@@ -18,7 +18,7 @@
   product_space =
     hirzebruch_surface(NormalToricVariety, 5) * projective_space(NormalToricVariety, 2)
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (intersection numbers in toric varieties)" begin
     R, _ = polynomial_ring(QQ, 3)
     @test_throws ArgumentError cohomology_ring(antv)
     @test_throws ArgumentError chow_ring(antv2)

@@ -40,6 +40,7 @@
 
   poscube = face_poset(cube(3))
   @test length(poscube) == 28
+  @test length(elements(poscube)) == 28
 
   possq = face_poset(cube(2))
   @test length(possq) == 10
@@ -55,6 +56,12 @@
 
   posmr = maximal_ranked_poset([2,4,3])
   @test length(posmr) == 11
+
+  posrpp = face_poset(real_projective_plane())
+  @test length(posrpp) == 32
+  @test length(elements(posrpp)) == 32
+  @test_throws ArgumentError element(posrpp, Oscar._top_node(posrpp)) # artificial top
+  @test data(element(posrpp, Oscar._bottom_node(posrpp))) == Int[] # bottom
 
   @testset "basics" begin
     @test rank(pos1) == 2

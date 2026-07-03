@@ -53,16 +53,16 @@ permutation_matrix(R::NCRing, p::PermGroupElem) = permutation_matrix(R, Vector(p
 #
 ########################################################################
 
-Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
+Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
 
-Base.:*(v::Vector{T}, x::MatrixGroupElem{T}) where T <: RingElem = v*matrix(x)
-Base.:*(x::MatrixGroupElem{T}, u::Vector{T}) where T <: RingElem = matrix(x)*u
+Base.:*(v::Vector{T}, x::MatGroupElem{T}) where T <: RingElem = v*matrix(x)
+Base.:*(x::MatGroupElem{T}, u::Vector{T}) where T <: RingElem = matrix(x)*u
 
 # `on_tuples` and `on_sets` delegate to an action via `^` on the subobjects
 # (`^` is the natural action in GAP)
-Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatrixGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
+Base.:^(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatGroupElem{T}) where T <: RingElem = v.parent(v.v*matrix(x))
 
 # action of matrix group elements on subspaces of a vector space
-function Base.:^(V::AbstractAlgebra.Generic.Submodule{T}, x::MatrixGroupElem{T}) where T <: RingElem
+function Base.:^(V::AbstractAlgebra.Generic.Submodule{T}, x::MatGroupElem{T}) where T <: RingElem
   return sub(V.m, [v^x for v in V.gens])[1]
 end

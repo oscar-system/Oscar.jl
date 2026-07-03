@@ -51,7 +51,7 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
     end
 
     @testset "parent object call overload" begin
-      @test L() == zero(L) == L(zeros(coefficient_ring(L), dim(L)))
+      @test L() == zero(L) == L(Hecke.zeros_array(coefficient_ring(L), dim(L)))
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(L))
@@ -147,7 +147,7 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
               reduce(
                 hcat,
                 [coefficients.(es); coefficients.(fs); coefficients.(hs)];
-                init=zeros(coefficient_ring(L), dim(L), 0),
+                init=Hecke.zeros_array(coefficient_ring(L), dim(L), 0),
               ),
             ),
           )
@@ -304,7 +304,7 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
     end
 
     @testset "parent object call overload" begin
-      @test V() == zero(V) == V(zeros(coefficient_ring(V), dim(V)))
+      @test V() == zero(V) == V(Hecke.zeros_array(coefficient_ring(V), dim(V)))
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(V))

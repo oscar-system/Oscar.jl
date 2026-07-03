@@ -8,6 +8,14 @@ Base.isfinite(G::PermGroup) = true
 
 ==(x::PermGroupElem, y::PermGroupElem) = (x === y) || (degree(x) == degree(y) && GapObj(x) == GapObj(y))
 
+function Base.hash(x::PermGroupElem, h::UInt)
+  b = 0x9b3a9724eca6a9c5 % UInt
+  h = hash(degree(x), h)
+  modulus = Sys.WORD_SIZE == 32 ? 2^28 : 2^60 # GAP limitations on integer size for seed.
+  h = UInt(GAPWrap.HashPermutation(GapObj(x), GapInt(h % modulus)))
+  return xor(h, b)
+end
+
 Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
@@ -610,8 +618,8 @@ Base.eltype(C::CycleType) = Pair{Int, Int}
 Base.getindex(C::CycleType, i::Int) = C.s[i]
 Base.size(C::CycleType) = size(C.s)
 
-function Base.hash(c::CycleType, u::UInt = UInt(121324))
-  return hash(c.s, u)
+function Base.hash(c::CycleType, h::UInt)
+  return hash(c.s, h)
 end
 
 function Base.show(io::IO, C::CycleType)

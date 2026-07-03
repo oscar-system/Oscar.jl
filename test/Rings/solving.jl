@@ -131,6 +131,15 @@ end
     @test issetequal(pts_swapped, [K.([0, 1]), K.([0, -1]), K.([2, 1]), K.([2, -1])])
   end
 
+  # issue 5741
+  let
+     P, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+     I = ideal(P,[(x-1)*x, y-2, z-3])
+     rat_sols = rational_solutions(I)
+     @test isequal(map(point -> map(gen -> evaluate(gen, point), gens(I)), rat_sols),
+                   [QQFieldElem[0,0,0],[0,0,0]])
+  end
+
   let
     K = algebraic_closure(QQ)
     R, (x, y) = polynomial_ring(K, [:x, :y])
@@ -245,4 +254,15 @@ end
 
     @test length(pts) > 0 && length(pts) == 1
   end
+end
+
+@testset "Two cubics" begin
+  k = algebraic_closure(GF(97))
+  R, (x, y) = polynomial_ring(k, [:x, :y])
+  I=ideal([x^3 + 2*y^2 + 3, y^3 + 5*x + 7])
+  pts = rational_solutions(I)
+  pts2 = rational_solutions(I) # this is intentional, see #5593
+  @test length(pts) == 9 == length(pts2)
+  @test issetequal(pts, pts2)
+  @test all(iszero(evaluate(f, p)) for p in pts, f in gens(I))
 end

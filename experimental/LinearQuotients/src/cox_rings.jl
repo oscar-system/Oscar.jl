@@ -519,8 +519,8 @@ function new_generators_phase_1(
   I::MPolyIdeal,
   Sdeg::MPolyDecRing,
   SAbG::MPolyDecRing,
-  junior::MatrixGroupElem,
-  vals::Dict{<:MatrixGroupElem,<:Tuple},
+  junior::MatGroupElem,
+  vals::Dict{<:MatGroupElem,<:Tuple},
 )
   S = domain(StoR)
   R = codomain(StoR)
@@ -556,8 +556,8 @@ function new_generators_phase_2(
   I::MPolyIdeal,
   Sdeg::MPolyDecRing,
   SAbG::MPolyDecRing,
-  juniors::Vector{<:MatrixGroupElem},
-  vals::Dict{<:MatrixGroupElem,<:Tuple},
+  juniors::Vector{<:MatGroupElem},
+  vals::Dict{<:MatGroupElem,<:Tuple},
   k::Int,
   l::Int,
 )
@@ -653,8 +653,8 @@ end
 function relations(
   StoR::MPolyAnyMap,
   I::MPolyIdeal,
-  juniors::Vector{<:MatrixGroupElem},
-  vals::Dict{<:MatrixGroupElem,<:Tuple},
+  juniors::Vector{<:MatGroupElem},
+  vals::Dict{<:MatGroupElem,<:Tuple},
   degsRt::Vector{Vector{ZZRingElem}},
 )
   R = codomain(StoR)

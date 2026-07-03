@@ -267,29 +267,55 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
+## action of permutations on sets of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{Set{T2}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on sets of tuples of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{<:Tuple{T2,Vararg{T2}}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_tuples, Omega; closed = closed, check = false)
+end
+
+## action of permutations on tuples of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{T2,Vararg{T2}} where T2<:Set{<:IntegerUnion}
+  return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on vectors of positive integers
 ## action of matrices on vectors via right multiplication
-function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on sets of vectors via right multiplication
-function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Set{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Set{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_sets, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on vectors of vectors via right multiplication
-function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on subspaces via right multiplication
-function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: AbstractAlgebra.Generic.Submodule{E} where E where M
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: AbstractAlgebra.Generic.Submodule{E} where E where M
   return GSetByElements(G, ^, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on polynomials via `on_indeterminates`
-function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
   return GSetByElements(G, on_indeterminates, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on group elements via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroupElem
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on subgroups via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroup
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -325,20 +351,20 @@ julia> length(natural_gset(G))
 natural_gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
 
 """
-    natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
+    natural_gset(G::MatGroup{T, MT}) where {MT, T <: FinFieldElem}
 
 Return the G-set `Omega` that consists of vectors under the 
 natural action of `G` over a finite field.
 
 # Examples
 ```jldoctest
-julia> G = matrix_group(GF(2), 2);
+julia> G = general_linear_group(2, 2);
 
 julia> length(natural_gset(G))
 4
 ```
 """
-function natural_gset(G::MatrixGroup{T, MT}) where {MT, T <: FinFieldElem}
+function natural_gset(G::MatGroup{T, MT}) where {MT, T <: FinFieldElem}
   V = free_module(base_ring(G), degree(G))
   return gset(G, collect(V); closed = true)
 end
@@ -350,10 +376,20 @@ end
 #      using what is called `RepresentativeAction` in GAP.
 
 function Base.in(omega::S, Omega::GSetByElements{T,S}) where {T,S}
-    omega in Omega.seeds && return true
-    return omega in elements(Omega)
+  is_in_seeds = (omega in Omega.seeds)::Bool
+  is_in_seeds && return true
+  # If all elements of Omega are seeds, we don't need to check everything again.
+  # This prominently happens if Omega was computed as an orbit. In that case,
+  # Omega already knows its elements, so the following length check is cheap.
+  # This is not just a micro-optimization: looking up omega in Omega.seeds is
+  # in O(1) because seeds is an IndexedSet, but the look-up in elements(Omega)
+  # takes linear time.
+  elts = elements(Omega)
+  if length(Omega.seeds)::Int == length(elts)
+    return is_in_seeds
+  end
+  return omega in elts
 end
-
 
 #############################################################################
 ##
@@ -1644,7 +1680,7 @@ false
 is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G)) = GAPWrap.IsSemiRegular(GapObj(G), GapObj(L))
 
 """
-    orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
+    orbit_representatives_and_stabilizers(G::MatGroup{E}, k::Int) where E <: FinFieldElem
 
 Return a vector of pairs `(orb, stab)` where `orb` runs over representatives
 of orbits of `G` on the `k`-dimensional subspaces of `F^n`,
@@ -1664,7 +1700,30 @@ julia> print(sort([index(G, stab) for (U, stab) in res]))
 ZZRingElem[12, 12, 16]
 ```
 """
-function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
+function orbit_representatives_and_stabilizers(G::MatGroup{E}, k::Int; algorithm=:default) where E <: FinFieldElem
+  if algorithm==:default
+    if 128 < order(base_ring(G))^degree(G) < ZZ(2)^32
+      # permutation degrees must be small integers in gap
+      # no need to do anything fancy if the order is small
+      algorithm=:perm
+    else 
+      algorithm=:gset
+    end
+  end
+  if algorithm==:gset
+    return _orbit_representatives_and_stabilizers_gset_gap(G, k)
+  elseif algorithm==:perm
+    n = degree(G)
+    V = vector_space(base_ring(G), n)
+    k == 0 && return [(sub(V, [])[1], G)]
+    _repstab = _orbit_representatives_and_stabilizers_perm(G, k)
+    return [(sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1],S) for (M,S) in _repstab]
+  else 
+    error("unknown algorithm")
+  end
+end
+
+function _orbit_representatives_and_stabilizers_gset_gap(G::MatGroup{E}, k::Int) where E <: FinFieldElem
   n = degree(G)
   V = vector_space(base_ring(G), n)
   k == 0 && return [(sub(V, [])[1], G)]
@@ -1677,3 +1736,57 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end
+
+function _orbit_representatives_and_stabilizers_perm(G::T, k::Int; do_stab::Bool=true) where {T<:MatGroup{<:FinFieldElem}}
+  gl = general_linear_group(degree(G), base_ring(G))
+  rep_gl, stab_gl = _orbit_representatives_and_stabilizers_GLn(base_ring(G), degree(G), k)
+  to_perm = isomorphism(PermGroup, gl)
+  gl_perm = codomain(to_perm)
+  from_perm = inv(to_perm)
+  Gperm,_ = to_perm(G)
+  reps = Tuple{dense_matrix_type(base_ring(G)),T}[]
+  stab_perm_gl, _ = to_perm(sub(gl, gl.(stab_gl))[1])
+  dc = double_cosets(gl_perm, stab_perm_gl, Gperm)
+  for SxG in dc
+    xp = representative(SxG)
+    x = preimage(to_perm, xp)
+    Hx = rep_gl*matrix(x)
+    if do_stab
+      stab_G_perm,i1,i2 = intersect(stab_perm_gl^xp, Gperm)
+      stab = from_perm(i2(stab_G_perm)[1])
+      push!(reps, (Hx, stab[1]))
+    else
+      push!(reps, (Hx, G))
+    end
+  end
+  return reps
+end
+
+function _orbit_representatives_and_stabilizers_GLn(K::T, n::Int, k::Int) where T <: FinField 
+  # Representative of the unique GL_n(K) orbit of rank k
+  rep = zero_matrix(K, k, n)
+  for i in 1:k 
+    rep[i,i] = 1
+  end 
+  E = identity_matrix(K, n)
+  _gens = dense_matrix_type(T)[]
+  if k>0
+    for g in gens(GL(k, K))
+      EE = deepcopy(E) 
+      EE[1:k,1:k] = matrix(g)
+      push!(_gens, EE)
+    end
+  end 
+  if k < n
+    for g in gens(GL(n - k, K))
+      EE = deepcopy(E) 
+      EE[k+1:end,k+1:end] = matrix(g)
+      push!(_gens, EE)
+    end
+  end 
+  if 0<k<n 
+    E[k+1,1] = 1
+    push!(_gens, E)
+  end
+  return rep, _gens
+end 

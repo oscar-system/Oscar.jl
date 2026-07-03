@@ -127,13 +127,13 @@ t{2,3}(1, 2)
 end
 
 @doc raw"""
-    vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L} where L
+    vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}; algorithm=:markov) where L
 
 The vanishing ideal is toric of an undirected discrete graphical model
 is toric. Therefore its `vanishing_ideal` method defaults to `algorithm=:markov`.
 """
-function vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}) where L
-  vanishing_ideal(M; algorithm=:markov)
+function vanishing_ideal(M::DiscreteGraphicalModel{Graph{Undirected}, L}; algorithm::Symbol=:markov) where L
+  return generic_vanishing_ideal(M; algorithm=algorithm)
 end
 
 @doc raw"""

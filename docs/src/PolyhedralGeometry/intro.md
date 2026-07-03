@@ -86,6 +86,14 @@ coefficient_field(x::PolyhedralObject)
 embedded_number_field
 ```
 
+If there is a corresponding conversion for the field elements, then polyhedra can
+be converted to a different field, e.g., a polytope over a number field can be
+converted to a polytope over the algebraic closure of the rationals.
+
+```@docs
+polyhedron(f::scalar_type_or_field, p::Polyhedron)
+```
+
 ## Type compatibility
 
 When working in polyhedral geometry it can prove advantageous to have various
@@ -233,8 +241,8 @@ fan for its construction, see [`polyhedral_fan`](@ref).
 Lower dimensional polyhedral objects can be visualized through polymake's backend.
 
 ```@docs
-visualize(P::Union{Polyhedron{<:Union{Float64,FieldElem}}, Cone{<:Union{Float64,FieldElem}}, PolyhedralFan{<:Union{Float64,FieldElem}}, PolyhedralComplex{<:Union{Float64,FieldElem}}, SubdivisionOfPoints{<:Union{Float64,FieldElem}}, SimplicialComplex}; kwargs...)
-visualize(::Vector)
+visualize(P::Union{Polyhedron{<:Union{Float64,FieldElem}}, Cone{<:Union{Float64,FieldElem}}, PolyhedralFan{<:Union{Float64,FieldElem}}, PolyhedralComplex{<:Union{Float64,FieldElem}}, SubdivisionOfPoints{<:Union{Float64,FieldElem}}, SimplicialComplex}; backend::Symbol=:default, filename::Union{Nothing,String}=nothing, kwargs...)
+visualize(P::Vector; backend::Symbol=:default, filename::Union{Nothing,String}=nothing, kwargs...)
 ```
 
 

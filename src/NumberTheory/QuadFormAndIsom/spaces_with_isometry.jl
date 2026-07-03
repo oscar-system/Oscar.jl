@@ -342,7 +342,8 @@ Quadratic space of dimension 2
 function quadratic_space_with_isometry(
     V::Hecke.QuadSpace,
     f::QQMatrix;
-    check::Bool=true
+    check::Bool=true,
+    cached::Bool=false, # ignored
   )
   if rank(V) == 0
     return QuadSpaceWithIsom(V, zero_matrix(QQ, 0, 0), -1)
@@ -388,7 +389,7 @@ Quadratic space of dimension 2
   [0   1]
 ```
 """
-function quadratic_space_with_isometry(V::Hecke.QuadSpace; neg::Bool=false)
+function quadratic_space_with_isometry(V::Hecke.QuadSpace; neg::Bool=false, cached::Bool=false)
   f = identity_matrix(QQ, dim(V))
   f = neg ? -f : f
   return quadratic_space_with_isometry(V, f; check=false)
@@ -439,8 +440,8 @@ with gram matrix
 [-1//2       1]
 ```
 """
-function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion)
-  return quadratic_space_with_isometry(rescale(space(Vf), a), isometry(Vf); check=false)
+function rescale(Vf::QuadSpaceWithIsom, a::RationalUnion; cached=false)
+  return quadratic_space_with_isometry(rescale(space(Vf), a; cached), isometry(Vf); check=false, cached)
 end
 
 @doc raw"""
@@ -553,13 +554,13 @@ with gram matrix
 [0   0   -1    2]
 ```
 """
-function direct_sum(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, inj, proj = Hecke._biproduct(space.(x))
+function direct_sum(x::Vector{T}; cached=false) where T <: QuadSpaceWithIsom
+  V, inj, proj = Hecke._biproduct(space.(x); cached)
   f = block_diagonal_matrix(isometry.(x))
   return quadratic_space_with_isometry(V, f; check=false), inj, proj
 end
 
-direct_sum(x::Vararg{QuadSpaceWithIsom}) = direct_sum(collect(x))
+direct_sum(x::Vararg{QuadSpaceWithIsom};cached=false) = direct_sum(collect(x);cached)
 
 ###############################################################################
 #

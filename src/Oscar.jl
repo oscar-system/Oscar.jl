@@ -50,7 +50,7 @@ function _print_banner(;is_dev = Oscar.is_dev)
   version_string = string(VERSION_NUMBER)
   if is_dev
     gitinfo = _get_oscar_git_info()
-    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+    version_string = version_string * " " * _short_git_info(gitinfo)
   else
     version_string = "Version " * version_string
   end
@@ -85,7 +85,7 @@ function __init__()
     [
         (GAP.Globals.IsPermGroup, PermGroup),
         (GAP.Globals.IsPcGroup, PcGroup),
-        (GAP.Globals.IsMatrixGroup, MatrixGroup),
+        (GAP.Globals.IsMatrixGroup, MatGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
@@ -129,6 +129,9 @@ function __init__()
 
   add_verbosity_scope(:Isometry)
   add_assertion_scope(:Isometry)
+  
+  add_verbosity_scope(:OrthogonalStablizer)
+  add_assertion_scope(:OrthogonalStablizer)
 
   add_verbosity_scope(:EnriquesAuto)
   add_assertion_scope(:EnriquesAuto)
@@ -176,6 +179,10 @@ function __init__()
 
   add_verbosity_scope(:DirectImages)
 
+  add_verbosity_scope(:DrawingCurves)
+
+  add_verbosity_scope(:f4ncgb)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
   if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
@@ -189,23 +196,25 @@ function __init__()
   if Oscar.is_dev
     Serialization.get_oscar_serialization_version()
   end
+
+  # Temporary workaround to allow access to Singular's tropicalVariety command
+  # see https://github.com/oscar-system/Oscar.jl/issues/5392
+  # see TropicalGeometry/variety_prime.jl
+  Singular.libSingular.load_library("tropical.lib")
+  Singular.call_interpreter("""
+    proc tropicalVariety_as_string(ideal I, list #) {
+      if(size(#)==0) {
+        return(string(tropicalVariety(I)));
+      };
+      return(string(tropicalVariety(I,number(#[1]))));
+    }
+    """)
 end
 
-const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
-const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
-const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
+const VERSION_NUMBER = Base.pkgversion(@__MODULE__)
+const PROJECT_UUID = Base.PkgId(@__MODULE__).uuid
 
-const is_dev = (function()
-        deps = Pkg.dependencies()
-        if Base.haskey(deps, PROJECT_UUID)
-          if deps[PROJECT_UUID].is_tracking_path
-            return true
-          end
-        end
-        return occursin("-dev", lowercase(string(VERSION_NUMBER)))
-    end)()
-
-const IJuliaMime = Union{MIME"text/latex", MIME"text/html"}
+const is_dev = occursin("-dev", lowercase(string(VERSION_NUMBER)))
 
 const oscardir = Base.pkgdir(Oscar)
 
@@ -265,11 +274,12 @@ include("../gap/pkg/OscarInterface/julia/constants.jl")
 
 
 include("Modules/Modules.jl")
-include("Rings/ReesAlgebra.jl") # Needs ModuleFP
+include("Rings/ReesAlgebra.jl") # Needs OFPModule
 
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
+include("NumberTheory/embedding_with_roots.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")
@@ -278,6 +288,7 @@ include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/PhylogeneticTrees.jl")
+include("NumberTheory/ZLattices.jl") # needs graphs
 
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/Matroids/JMatroids.jl")

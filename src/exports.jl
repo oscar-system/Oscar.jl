@@ -131,14 +131,14 @@ export MPolyQuoLocalizedIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MatrixGroup
-export MatrixGroupElem
+export MatGroup
+export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
-export ModuleFP
-export ModuleFPElem
-export ModuleFPHom
+export OFPModule
+export OFPModuleElem
+export OFPModuleHom
 export ModuleOrdering
 export MonomialOrdering
 export Multipartition
@@ -154,6 +154,7 @@ export PcGroup
 export PcGroupElem
 export PermGroup
 export PermGroupElem
+export PhylogeneticTree
 export PointVector
 export PolyhedralComplex, polyhedral_complex
 export PolyhedralFan, polyhedral_fan
@@ -205,6 +206,7 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
+export TorQuadModuleWithIsom
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
@@ -322,6 +324,7 @@ export augmented_chow_ring
 export augmented_complex
 export aut
 export automorphism_group
+export automorphism_group_with_inclusion
 export barycentric_subdivision
 export base_ring
 export base_scheme
@@ -331,6 +334,7 @@ export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
 export basis_of_h4
 export bell
+export bergman_fan
 export betti
 export betti_number
 export betti_numbers
@@ -384,6 +388,7 @@ export character_lattice
 export character_parameters
 export character_table
 export character_table_complex_reflection_group
+export character_table_rational
 export character_table_wreath_symmetric
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
@@ -407,6 +412,7 @@ export class_positions_of_pcore
 export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
 export closure
+export clebsch_graph
 export cm_regularity
 export coatoms
 export cobases
@@ -473,6 +479,7 @@ export connected_sum
 export connectivity
 export connectivity_function
 export contains
+export contains_in_interior
 export continued_fraction_hirzebruch_jung
 export continued_fraction_hirzebruch_jung_to_rational
 export contraction
@@ -546,7 +553,6 @@ export derived_length, has_derived_length, set_derived_length
 export derived_series, has_derived_series, set_derived_series
 export derived_subgroup, has_derived_subgroup, set_derived_subgroup
 export describe
-export desimulate_valuation
 export det
 export diameter
 export dicyclic_group
@@ -558,6 +564,7 @@ export direct_sum
 export direct_sum_components
 export directed_component
 export discriminant_representation
+export disjoint_automorphisms, has_disjoint_automorphisms
 export disjoint_union
 export div_left
 export div_left!
@@ -820,6 +827,7 @@ export inclusion_morphism
 export indegree
 export independent_sets
 export index
+export index_of_coset
 export index_of_gen
 export index_of_leading_term
 export indicator
@@ -829,7 +837,6 @@ export induced_action
 export induced_action_function
 export induced_automorphism
 export induced_cyclic
-export induced_map_on_exterior_power
 export induced_ring_ordering
 export induced_subgraph
 export initial
@@ -884,6 +891,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_anti_isomorphic_with_map
 export is_archimedean_solid
 export is_atlas_character_table
 export is_ball
@@ -1070,9 +1078,12 @@ export is_table_of_marks_name
 export is_ternary
 export is_total
 export is_transitive
+export is_transversal
+export is_transversal_with_presentation
 export is_transverse_intersection
 export is_trivial
 export is_tropically_generic
+export is_tutte_realizable
 export is_two_sided
 export is_unipotent
 export is_unit
@@ -1088,6 +1099,7 @@ export is_zm_graded
 export isfinite
 export isometry
 export isometry_group
+export isometry_is_positive
 export isomorphic_matroid
 export isomorphic_subgroups
 export isomorphism
@@ -1223,6 +1235,7 @@ export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_ranked_poset
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
+export maximal_supersolvable_quotient
 export metadata
 export min_revlex_basis_encoding
 export min_weights
@@ -1368,13 +1381,16 @@ export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats
+export on_graph
 export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_sets_tuples
 export on_simplicial_complex
 export on_subgroups
 export on_tuples
+export on_tuples_sets
 export one!
 export open_subset_type
 export opposite_algebra
@@ -1430,6 +1446,8 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
+export petersen_graph
 export phylogenetic_tree
 export picard_class
 export picard_group
@@ -1485,6 +1503,7 @@ export primitive_group_identification, has_primitive_group_identification
 export primorial
 export principal_extension
 export print_constraints
+export prism
 export product
 export proj
 export project_full
@@ -1505,10 +1524,12 @@ export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
 export projectivization
+export prune
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
 export pullback
+export puiseux_expansion
 export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
@@ -1564,6 +1585,7 @@ export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
+export ree_group
 export reflect, reflect!
 export reflection
 export register_morphism!
@@ -1686,9 +1708,10 @@ export simplify
 export simplify!
 export simplify_light
 export simplify_with_same_ambient_free_module
-export simulate_valuation
 export singular_locus
 export singular_locus_reduced
+export slack_ideal
+export slack_ideal_non_saturated
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
@@ -1749,6 +1772,7 @@ export subquotient
 export subscheme
 export subsystem
 export support_function
+export suzuki_group
 export syllables
 export sylow_subgroup
 export sylow_system, has_sylow_system, set_sylow_system
@@ -1782,6 +1806,7 @@ export toric_line_bundle
 export toric_morphism
 export toric_vanishing_set
 export toric_variety
+export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
 export torusinvariant_cartier_divisor_group
@@ -1818,6 +1843,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_group
 export tutte_lifting
 export tutte_polynomial
 export twist
@@ -1825,6 +1851,7 @@ export twisting_sheaf
 export two_sided_ideal
 export type
 export underlying_gluing
+export underlying_module
 export underlying_presheaf
 export underlying_quotient
 export underlying_word

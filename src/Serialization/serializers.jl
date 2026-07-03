@@ -23,6 +23,15 @@ struct LPSerializer <: MultiFileSerializer
   basepath::String
 end
 
+struct MultiFileRefSerializer <: MultiFileSerializer
+  basepath::String
+  compression::Symbol
+  ref_files::Vector{String}
+end
+MultiFileRefSerializer() = MultiFileRefSerializer("", :none, String[])
+MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none, String[])
+MultiFileRefSerializer(basepath::String, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
+
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
 ################################################################################
@@ -56,11 +65,17 @@ mutable struct SerializerState{T <: OscarSerializer}
   io::IO
   key::Union{Symbol, Nothing}
   with_attrs::Bool
+  pretty_print::Bool
 end
 
-function begin_node(s::SerializerState)
+function begin_node(s::SerializerState, key::Union{Symbol, Nothing})
+  !isnothing(key) && set_key(s, key)
   if !s.new_level_entry
-    write(s.io, ",")
+    if s.pretty_print
+      println(s.io, ",")
+    else
+      write(s.io, ",")
+    end
   else
     s.new_level_entry = false
   end
@@ -71,46 +86,6 @@ function begin_node(s::SerializerState)
   end
 end
 
-function begin_dict_node(s::SerializerState)
-  begin_node(s)
-  write(s.io, "{")
-end
-
-function end_dict_node(s::SerializerState)
-  write(s.io, "}")
-
-  if s.new_level_entry
-    # makes sure that entries after empty dicts add comma
-    s.new_level_entry = false
-  end
-end
-
-function begin_array_node(s::SerializerState)
-  begin_node(s)
-  write(s.io, "[")
-end
-
-function end_array_node(s::SerializerState)
-  write(s.io, "]")
-
-  if s.new_level_entry
-    # makes sure that entries after empty arrays add comma
-    s.new_level_entry = false
-  end
-end
-
-function serialize_dict(f::Function, s::SerializerState)
-  begin_dict_node(s)
-  f()
-  end_dict_node(s)
-end
-
-function serialize_array(f::Function, s::SerializerState)
-  begin_array_node(s)
-  f()
-  end_array_node(s)
-end
-
 function set_key(s::SerializerState, key::Symbol)
   @req isnothing(s.key) "Key :$(s.key) is being overridden by :$key before write."
   s.key = key
@@ -119,37 +94,57 @@ end
 ## operations for an in-order tree traversals
 ## all nodes (dicts or arrays) contain all child nodes
 
+function _save_data_container(f::Function, s::SerializerState,
+                        key::Union{Symbol, Nothing}, start::String, stop::String)
+  begin_node(s, key)
+  if s.pretty_print
+    println(s.io, start)
+    print(s.io, Indent())
+  else
+    write(s.io, start)
+  end
+  s.new_level_entry = true
+  f()
+  if s.pretty_print
+    println(s.io, "")
+    print(s.io, Dedent(), stop)
+  else
+    write(s.io, stop)
+  end
+
+  if s.new_level_entry
+    # makes sure that entries after empty arrays or dicts add comma
+    s.new_level_entry = false
+  end
+end
+
 function save_data_dict(f::Function, s::SerializerState,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_dict(s) do
-    s.new_level_entry = true
-    f()
-  end
+  _save_data_container(f, s, key, "{", "}")
 end
 
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  serialize_array(s) do
-    s.new_level_entry = true
-    f()
-  end
+  _save_data_container(f, s, key, "[", "]")
 end
 
 function save_data_basic(s::SerializerState, x::Any,
                          key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
-  str = string(x)
-  JSON.json(s.io, str)
+  begin_node(s, key)
+  data = x isa Bool ? x : string(x)
+  if s.pretty_print
+    print(s.io, "")
+    JSON.json(s.io, data)
+    print(s.io, "")
+  else
+    JSON.json(s.io, data)
+  end
   nothing
 end
 
 function save_data_json(s::SerializerState, jsonstr::Any,
                         key::Union{Symbol, Nothing} = nothing)
-  !isnothing(key) && set_key(s, key)
-  begin_node(s)
+  begin_node(s, key)
   write(s.io, jsonstr)
 end
 
@@ -170,23 +165,71 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function handle_refs(s::SerializerState)
-  should_handle_refs(s.serializer) || return nothing
-  if !isempty(s.refs) 
-    save_data_dict(s, :_refs) do
-      for id in s.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
-        s.key = Symbol(id)
-        save_data_dict(s) do
-          save_typed_object(s, ref_obj)
-        end
+  isempty(s.refs) && return nothing
+  save_data_dict(s, :_refs) do
+    for id in s.refs
+      ref_obj = global_serializer_state.id_to_obj[id]
+      s.key = Symbol(id)
+      save_data_dict(s) do
+        save_typed_object(s, ref_obj)
       end
     end
   end
 end
 
-should_handle_refs(::OscarSerializer) = true
-should_handle_refs(s::JSONSerializer) = s.serialize_refs
-should_handle_refs(::IPCSerializer) = false
+function handle_refs(s::SerializerState{JSONSerializer})
+  s.serializer.serialize_refs && invoke(handle_refs, Tuple{SerializerState}, s)
+end
+
+handle_refs(::SerializerState{IPCSerializer}) = nothing
+
+function handle_refs(s::SerializerState{MultiFileRefSerializer})
+  isempty(s.refs) && return nothing
+  prefix = basepath(s.serializer)
+  compression = s.serializer.compression
+  ref_files = s.serializer.ref_files
+  prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+  while !isempty(s.refs)
+    id = pop!(s.refs)
+    ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    fname = basename(prefix) * "_" * string(id) * ext
+    push!(ref_files, fname)
+    ref_obj = global_serializer_state.id_to_obj[id]
+    ref_path = joinpath(prefix_dir, fname)
+    temp_file = tempname(prefix_dir)
+    write_ref_file = function(file)
+      # Share s.refs so transitive refs accumulate in the outer while loop
+      inner_s = SerializerState(
+        JSONSerializer(; serialize_refs=false),
+        true, s.refs, file, nothing, s.with_attrs, false
+      )
+      save_data_dict(inner_s) do
+        save_header(inner_s, get_oscar_serialization_version(), :_ns)
+        save_typed_object(inner_s, ref_obj)
+        if serialize_with_id(typeof(ref_obj))
+          ref_id = get(global_serializer_state.obj_to_id, ref_obj, nothing)
+          if isnothing(ref_id)
+            ref_id = global_serializer_state.obj_to_id[ref_obj] = uuid4()
+            global_serializer_state.id_to_obj[ref_id] = ref_obj
+          end
+          save_object(inner_s, string(ref_id), :id)
+        end
+      end
+    end
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        write_ref_file(file)
+      end
+    else
+      open(temp_file, "w") do file
+        write_ref_file(file)
+      end
+    end
+    Base.Filesystem.rename(temp_file, ref_path)
+  end
+  # reverse: DFS pop! gives root-first order; reverse gives leaves-first for loading
+  save_object(s, reverse(ref_files), :_ref_files)
+end
 
 function serializer_close(s::SerializerState)
   finish_writing(s)
@@ -200,7 +243,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion}
+  obj::Union{AbstractDict{Symbol, Any}, Vector, JSON3.Array, BasicTypeUnion, Nothing}
   key::Union{Symbol, Int, Nothing}
   refs::Union{AbstractDict{Symbol, Any}, Nothing}
   with_attrs::Bool
@@ -243,7 +286,11 @@ function load_node(f::Function, s::DeserializerState,
   obj = s.obj
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
   s.key = nothing
-  result = f(s.obj)
+  if isnothing(s.obj)
+    result = nothing
+  else
+    result = f(s.obj)
+  end
   s.obj = obj
   return result
 end
@@ -258,10 +305,11 @@ end
 function serializer_open(
   io::IO,
   serializer::OscarSerializer,
-  with_attrs::Bool)
+  with_attrs::Bool,
+  pretty_print::Bool)
   
   # some level of handling should be done here at a later date
-  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
+  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs, pretty_print)
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
@@ -271,9 +319,31 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
+function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
+  obj = JSON.parse(io; dicttype=Dict{Symbol, Any})
+  ref_files = get(obj, :_ref_files, nothing)
+  if !isnothing(ref_files)
+    prefix = basepath(serializer)
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+    for fname in ref_files
+      filepath = joinpath(prefix_dir, string(fname))
+      if endswith(filepath, ".gz")
+        open(CodecZlib.GzipDecompressorStream, filepath) do file
+          load(file)
+        end
+      else
+        open(filepath) do file
+          load(file)
+        end
+      end
+    end
+  end
+  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
+end
+
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # put_type_params to hang
+  # put_type_and_params to hang
   #obj = JSON3.read(io)
   str = readuntil(io, '}'; keep=true)
   while !JSON.isvalidjson(str)

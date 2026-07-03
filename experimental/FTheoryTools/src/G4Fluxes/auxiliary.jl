@@ -210,21 +210,21 @@ julia> length(collect(keys(cdh22)))
       (my_tuple[1] in bad_positions || my_tuple[2] in bad_positions)
 
       # Represent first variable by list of coefficients, after plugging in the linear relation
-      var1 = zeros(QQ, ncols(my_mat))
+      var1 = zeros(QQFieldElem, ncols(my_mat))
       var1[my_tuple[1]] = 1
       if my_tuple[1] in bad_positions
         var1 = lin_rels[my_tuple[1]]
       end
 
       # Represent second variable by list of coefficients, after plugging in the linear relation
-      var2 = zeros(QQ, ncols(my_mat))
+      var2 = zeros(QQFieldElem, ncols(my_mat))
       var2[my_tuple[2]] = 1
       if my_tuple[2] in bad_positions
         var2 = lin_rels[my_tuple[2]]
       end
 
       # Compute the product of the two variables, which represents the new relation
-      prod = zeros(QQ, N_filtered_quadratic_elements)
+      prod = zeros(QQFieldElem, N_filtered_quadratic_elements)
       for k in 1:length(var1)
         if var1[k] != 0
           for l in 1:length(var2)

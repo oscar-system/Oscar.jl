@@ -120,25 +120,25 @@ function _fmodel_params(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceMo
       nothing
     end,
     if !isempty(explicit_model_sections(m))
-      (:explicit_model_sections => type_params(explicit_model_sections(m)))
+      (:explicit_model_sections => type_and_params(explicit_model_sections(m)))
     else
       nothing
     end,
     if !isempty(defining_classes(m))
-      (:defining_classes => type_params(defining_classes(m)))
+      (:defining_classes => type_and_params(defining_classes(m)))
     else
       nothing
     end,
     if !isempty(model_section_parametrization(m))
-      (:model_section_parametrization => type_params(model_section_parametrization(m)))
+      (:model_section_parametrization => type_and_params(model_section_parametrization(m)))
     else
       nothing
     end]
   return filter(!isnothing, params)
 end
 
-type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
-  TypeParams(
+type_and_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
+  TypeAndParams(
     T, _fmodel_params(m)...
   )
 
@@ -177,8 +177,18 @@ end
 # (4) Loading
 ###########################################################################
 
-function _maybe_load(s::DeserializerState, ::Type{T}, key::Symbol, params::Dict) where {T}
-  return haskey(s, key) ? load_object(s, T, params[key], key) : T()
+function _maybe_load(
+  s::DeserializerState, ::Type{T}, key::Symbol, params::Dict
+) where {S,T<:Dict{String,S}}
+  if haskey(s, key)
+    if params[key] isa Dict
+      dict_params = params[key]
+    else
+      dict_params = Dict(:key_params => nothing, :value_params => params[key])
+    end
+    return load_object(s, T, dict_params, key)
+  end
+  return T()
 end
 
 function _load_common_parts(s::DeserializerState, params::Dict)
@@ -194,6 +204,7 @@ function _load_common_parts(s::DeserializerState, params::Dict)
   ))
   def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
   @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
+
   explicit_model_sections = _maybe_load(
     s,
     Dict{String,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}},

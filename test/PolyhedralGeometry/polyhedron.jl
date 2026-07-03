@@ -7,6 +7,7 @@
   @test convex_hull(f, pts; non_redundant=true) == Q0
   Q1 = convex_hull(f, pts, [1 1])
   Q2 = convex_hull(f, pts, [1 1], [1 1])
+  Q3 = convex_hull(f, [], [1 1])
   square = cube(f, 2)
   CR = cube(f, 2, 0, 3//2)
   Pos = polyhedron(f, [-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0])
@@ -38,6 +39,13 @@
     @test issetequal(matrix(f, vertices(Q1)) * v, T[f(1), f(0), f(1)])
     @test issubset(Q0, Q1)
     @test !issubset(Q1, Q0)
+    @test contains(Q0, [1, 0])
+    @test !contains_in_interior(Q0, [1, 0])
+    @test contains(Q1, [3, 3])
+    @test contains(Q1, ray_vector(f, [3, 3]))
+    @test contains_in_interior(Q1, ray_vector(f, [1, 1]))
+    @test contains_in_interior(Pos, ray_vector(f, [1, 1, 1]))
+    @test !contains_in_interior(Pos, ray_vector(f, [1, 0, 1]))
     @test [1, 0] in Q0
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
@@ -88,6 +96,7 @@
     @test intersect(Ps...) == Q0
     @test minkowski_sum(Q0, Q0) == convex_hull(f, 2 * pts)
     @test Q0 + Q0 == minkowski_sum(Q0, Q0)
+    @test Q1 * Q2 == product(Q1, Q2)
     @test f_vector(Pos) == [1, 3, 3]
     @test f_vector(L) == [0, 1, 2]
     @test codim(square) == 0
@@ -266,6 +275,18 @@
     @test lineality_dim(full) == 3
     @test length(findall(f -> [1, 0] in f, facets(Hyperplane, Q0))) == 2
     @test length(findall(f -> [1, 0] in f, facets(Halfspace, Q0))) == 3
+
+    @test dim(Q3) < 0
+
+    # empty inputs
+    @test dim(convex_hull(f, [1 1], [], [])) == 0
+    @test ambient_dim(convex_hull(f, [1 1], [], [])) == 2
+    @test dim(convex_hull(f, [], [1 1], [])) == -1
+    @test ambient_dim(convex_hull(f, [], [1 1], [])) == 2
+    @test dim(convex_hull(f, [], [], [1 1])) == -1
+    @test ambient_dim(convex_hull(f, [], [], [1 1])) == 2
+    @test dim(convex_hull(f, [], [], [])) == -1
+    @test ambient_dim(convex_hull(f, [], [], [])) == -1
   end
 
   @testset "volume" begin
@@ -282,6 +303,14 @@
     nc = normal_cone(square, 1)
     @test nc isa Cone{T}
     @test rays(nc) == [[1, 0], [0, 1]]
+    let nc2 = normal_cone(square, [1, 2])
+      @test nc2 isa Cone{T}
+      @test rays(nc2) == [[0, 1]]
+    end
+    let nc2 = normal_cone(square, [1, 2]; outer=true)
+      @test nc2 isa Cone{T}
+      @test rays(nc2) == [[0, -1]]
+    end
     let H = linear_halfspace(f, [1, 1, 0])
       @test polyhedron(H) isa Polyhedron{T}
       @test polyhedron(H) == polyhedron(f, [1 1 0], 0)
@@ -582,6 +611,19 @@
     end
   end
 
+  @testset "Products of polyhedra" begin
+    pt = convex_hull(f, [[0]])
+    ray = polyhedron(f, [[1]], [0])
+    line = polyhedron(f, [[0]], [0])
+
+    @test dim(pt * pt) == 0 && lineality_dim(pt * pt) == 0
+    @test dim(pt * ray) == 1 && lineality_dim(pt * ray) == 0
+    @test dim(pt * line) == 1 && lineality_dim(pt * line) == 1
+    @test dim(ray * ray) == 2 && lineality_dim(ray * ray) == 0
+    @test dim(ray * line) == 2 && lineality_dim(ray * line) == 1
+    @test dim(line * line) == 2 && lineality_dim(line * line) == 2
+  end
+
   if T == EmbeddedNumFieldElem{AbsSimpleNumFieldElem}
     @testset "Dodecahedron" begin
       D = polyhedron(Polymake.polytope.dodecahedron())
@@ -856,6 +898,12 @@
     SC = secondary_cone(SOP)
     @test polyhedron(SC) isa Polyhedron
   end
+
+  @testset "Prism" begin
+    PQ0 = prism(Q0)
+    @test n_vertices(PQ0) == 6
+    @test n_facets(PQ0) == 5
+  end
 end
 
 @testset "Regular solids" begin
@@ -917,8 +965,30 @@ end
   pts = collect(orb)
   len = sqrt(dot(pts[1] - pts[2], pts[1] - pts[2])) / 2
   ngon = convex_hull(pts)
-  prism = polyhedron(Polymake.polytope.prism(Oscar.pm_object(ngon), len))
-  @test Oscar._is_prismic_or_antiprismic(prism)
-  @test !is_archimedean_solid(prism)
-  @test !is_johnson_solid(prism)
+  ngprism = prism(ngon, -len, len)
+  @test Oscar._is_prismic_or_antiprismic(ngprism)
+  @test !is_archimedean_solid(ngprism)
+  @test !is_johnson_solid(ngprism)
+end
+
+@testset "Slack ideal" begin
+  # The ouput depends on the ordering of the vertices and facets of the input
+  # polytope. Reordering results in a permutation of the variables. Depending
+  # on the convex hull algorithm used we may ge a different ordering of the
+  # vertices or facets. To avoid this issue, we load the polytope from file
+  # with the vertices and facets already computed.
+  PS = polyhedron(Polymake.load(joinpath(@__DIR__, "data", "prism_over_simplex.poly")))
+  SI = slack_ideal(PS)
+  R = base_ring(SI)
+  x = gens(R)
+  desired = ideal(
+    R,
+    [
+      x[3] * x[6] * x[10] * x[11] - x[4] * x[5] * x[9] * x[12],
+      x[1] * x[6] * x[8] * x[11] - x[2] * x[5] * x[7] * x[12],
+      x[1] * x[4] * x[8] * x[9] - x[2] * x[3] * x[7] * x[10],
+    ],
+  )
+  @test SI == desired
+  @test_throws ArgumentError slack_ideal(QQ[:x, :y][1], PS)
 end

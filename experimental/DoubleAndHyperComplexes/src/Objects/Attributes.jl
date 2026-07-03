@@ -147,7 +147,8 @@ the cache which have already been computed.
 
 This can be used to write a full double complex to disc by filling the cache first.
 
-!!! note This method might not terminate. Use carefully!
+!!! note
+    This method might not terminate. Use carefully!
 """
 function finalize!(D::DoubleComplexOfMorphisms)
   isempty(keys(D.chains)) && error("can not finalize starting from empty cache")

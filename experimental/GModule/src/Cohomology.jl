@@ -68,7 +68,7 @@ import Base: ==, +, -, *
 -(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = MultGrpElem{T}(a.data//b.data, parent(a))
 -(a::MultGrpElem{T}) where T = MultGrpElem{T}(inv(a.data), parent(a))
 ==(a::MultGrpElem{T}, b::MultGrpElem{T}) where T = a.data == b.data
-Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
+Base.hash(a::MultGrpElem, h::UInt) = hash(a.data, h)
 
 
 ##############################################################
@@ -1818,7 +1818,7 @@ function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingE
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
 
-function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+function Oscar.direct_sum(a::Vector{<:OFPModuleHom})
   @req allequal(domain, a) "All maps must have equal domain"
   D = direct_sum(codomain.(a); task = :none)
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
@@ -1865,7 +1865,7 @@ end
 # create a free module with type "compatible" with that of `M`
 _similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
 _similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n; cached = false)
-_similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
+_similar_free_module(M::Oscar.OFPModule, n::Int) = FreeMod(base_ring(M), n)
 
 """
 Compute
@@ -2365,15 +2365,15 @@ function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFie
                          y->G(matrix(y)))
 end
 
-function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+function (G::MatGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
   return G(matrix(h))
 end
 
-function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
+function (G::MatGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
   return h*G
 end
 
-function Oscar.hom(g::MatrixGroupElem)
+function Oscar.hom(g::MatGroupElem)
   G = parent(g)
   p = get_attribute(G, :aut_group)
   p === nothing && error("Matrix group must be the automorphism group of some module")
@@ -2569,7 +2569,7 @@ end
 =#    
 
     
-(G::MatrixGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
+(G::MatGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
 
 @doc raw"""
     gmodule_class_reps(M::Union{<:AbstractAlgebra.FPModule, FinGenAbGroup}, G::Oscar.GAPGroup) -> Vector{GModule}

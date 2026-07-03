@@ -235,11 +235,11 @@ function _ideal_sheaf_to_minimal_supercone_coordinates(
   defining_ideal = ideal_in_cox_ring(I)
   all(in(gens(base_ring(defining_ideal))), gens(defining_ideal)) || return not_possible
   R = coordinate_ring(X)
-  coords = zeros(QQ, n_rays(X))
+  coords = zeros(QQFieldElem, n_rays(X))
   for i in 1:n_rays(X)
     R[i] in gens(defining_ideal) && (coords[i] = 1)
   end
-  coords == zeros(QQ, n_rays(X)) && return not_possible
+  is_zero(coords) && return not_possible
   is_minimal_supercone_coordinate_vector(polyhedral_fan(X), coords) || return not_possible
   return coords
 end
@@ -482,23 +482,8 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
-  if has_attribute(m, :arxiv_id)
-    if resolution_index == 1 && arxiv_id(m) == "1511.03209"
-      model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-      model = load(model_data_path)
-      # Modify attributes, see PR #5031 for details
-      set_attribute!(
-        model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface)
-      )
-      set_attribute!(
-        model,
-        :gens_of_h22_hypersurface_indices,
-        get_attribute(model, :basis_of_h22_hypersurface_indices),
-      )
-      delete!(model.__attrs, :basis_of_h22_hypersurface)
-      delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
-      return model
-    end
+  if has_attribute(m, :arxiv_id) && arxiv_id(m) == "1511.03209" && resolution_index == 1
+    return load(artifact"FTM-1511-03209/1511-03209-resolved.mrdi")::GlobalTateModel
   end
 
   # To be extended to hypersurface models...

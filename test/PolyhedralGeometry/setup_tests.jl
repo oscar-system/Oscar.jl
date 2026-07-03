@@ -4,7 +4,8 @@ if !isdefined(Main, :_prepare_scalar_types)
     Qx, x = QQ[:x]
     K, a = Hecke.embedded_field(NF, real_embeddings(NF)[2])
     KK, (a1, a2) = embedded_number_field([x^2 - 2, x^3 - 5], [(0, 2), (0, 2)])
-    return [(f, elem_type(f)) for f in (QQ, K, KK)]
+    QB = algebraic_closure(QQ)
+    return [(f, elem_type(f)) for f in (QQ, K, KK, QB)]
   end
 
   function _check_im_perm_rows(inc::IncidenceMatrix, o)

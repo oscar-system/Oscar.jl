@@ -3,6 +3,9 @@
     "data": {
       "oneOf": [
         {
+          "type": "boolean"
+        },
+        {
           "type": "string"
         },
         {
@@ -22,6 +25,9 @@
         },
         {
           "$ref": "https://polymake.org/schemas/data.json"
+        },
+        {
+          "type": "null"
         }
       ]
     }

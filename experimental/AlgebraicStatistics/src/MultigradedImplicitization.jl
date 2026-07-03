@@ -165,8 +165,8 @@ function compute_kernel_component(mon_basis::Vector{<:MPolyDecRingElem}, phi::MP
     end
     push!(SM, sparse_row(QQ, row))
   end
-  K = kernel(transpose(SM); side=:right)
-  return mon_basis * K
+  K = kernel(SM; side=:left)
+  return K * mon_basis
 end
 
 @doc raw"""
@@ -195,11 +195,14 @@ end
 
 
 @doc raw"""
-    components_of_kernel(d::Int, phi::MPolyAnyMap; wp::Union{OscarWorkerPool, Nothing}=nothing)
+    components_of_kernel(d::Int, phi::MPolyAnyMap; wp::Union{OscarWorkerPool, Nothing}=nothing, show_progress::Bool=false)
 
 Computes all minimal generators of the kernel of the polynomial map $\phi: \mathbb{K}[x_1, \ldots, x_n] \to \mathbb{K}[t_1, \ldots, t_m]$ such that $(i, j)$
 with total degree at most $d$ using the main algorithm of [CH26](@cite). This implementation requires that $\phi$ be homogeneous in a multigrading which refines total
 degree which ensures the algorithm is parallelizable. The output is a dictionary whose keys are the multidegrees and values consist of a minimal generating set for that multidegree.
+
+This function can be run using multiple processes by passing an `OscarWorkerPool` using the keryword argument `wp`.
+Setting `show_progress` to `true` will print a progress meter for parts of the algorithm.
 
 ## Examples
 
@@ -228,27 +231,27 @@ julia> length(d)
 """
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap; # Morphism between ungraded rings
-                              wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size=100
-                              )
+                              kw...)
   # grade the domain
   graded_dom = Oscar.max_grade_domain(phi)
   graded_cod, _ = grade(codomain(phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(phi)))
-  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+  return FinAbGroupElemDict{Vector{elem_type(domain(phi))}}(
+    Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; kw...))
+  )
 end
 
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing{<:MPolyRingElem}}; # Morphism between ungraded rings
-                              wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size=100
-                              )
+                              kw...)
   new_phi = flatten(phi)
   # grade the domain
   graded_dom = Oscar.max_grade_domain(new_phi)
   graded_cod, _ = grade(codomain(new_phi)) # standard grading
   phi_grad = hom(graded_dom, graded_cod, graded_cod.(_images_of_generators(new_phi)))
-  return Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; wp, batch_size))
+  return FinAbGroupElemDict{Vector{elem_type(domain(phi))}}(
+    Dict{FinGenAbGroupElem, Vector{elem_type(domain(phi))}}(d=>forget_grading.(v) for (d, v) in components_of_kernel(d, phi_grad; kw...))
+  )
 end
 
 function lifted_monomials(deg::FinGenAbGroupElem,
@@ -261,14 +264,22 @@ function lifted_monomials(deg::FinGenAbGroupElem,
     end
   end
   isempty(gen_shifts) && return Set{MPolyDecRingElem}([])
+  
   mons = unique!(reduce(vcat, [collect(monomials(f)) for f in gen_shifts]))
-  M = matrix(QQ, [[coeff(f, m) for f in gen_shifts] for m in mons])
+  M = matrix(QQ, [[coeff(f, m) for m in mons] for f in gen_shifts])
   rref!(M)
   mon_indices = Int[]
-  for j in 1:ncols(M)
-    rows = findall(!iszero, M[:, j])
-    isnothing(rows) && continue
-    isone(length(rows)) && push!(mon_indices, only(rows))
+  j = 1
+  for i in 1:nrows(M)
+    while true
+      if isone(M[i, j])
+        push!(mon_indices, j)
+        break
+      end
+      j += 1
+      j > ncols(M) && break
+    end
+    j > ncols(M) && break
   end
   return Set(mons[mon_indices])
 end
@@ -321,8 +332,8 @@ end
 function components_of_kernel(d::Int,
                               phi::MPolyAnyMap{<:MPolyDecRing, <:MPolyDecRing, Nothing}; # Morphism with a graded domain
                               wp::Union{OscarWorkerPool, Nothing}=nothing,
-                              batch_size::Int=1000
-                              )
+                              batch_size::Int=1000,
+                              show_progress::Bool=false)
   @assert is_graded(domain(phi)) && is_graded(codomain(phi)) "morphism must be between graded rings"
   @assert all(is_homogeneous, _images_of_generators(phi)) "morphism must be homogeneous"
 
@@ -369,16 +380,15 @@ function components_of_kernel(d::Int,
       b = get!(mon_bases, deg, typeof(m)[])
       !(m in l_monomials[deg]) && push!(b, m)
     end
-
     degrees = collect(keys(mon_bases))
     # first filter out all easy cases
     if isnothing(wp) || length(mon_bases) < 30 * batch_size
-      filter_results = pmap(filter_component,
+      filter_results = @showprogress enabled=show_progress desc="filtering cases" pmap(filter_component,
                             [deg for deg in degrees],
                             [mon_bases[deg] for deg in degrees],
                             [jac for _ in degrees]; distributed=false)
     else
-      filter_results = pmap(filter_component, wp,
+      filter_results = @showprogress enabled=show_progress desc="filtering cases" pmap(filter_component, wp,
                             [deg for deg in degrees],
                             [mon_bases[deg] for deg in degrees],
                             [jac for _ in degrees]; batch_size=batch_size)
@@ -389,10 +399,10 @@ function components_of_kernel(d::Int,
     # this could also be improved to do some load-balancing
     if !isempty(remain_degs)
       if isnothing(wp) || length(remain_degs) < batch_size
-        results = pmap(compute_kernel_component,
+        results = @showprogress enabled=show_progress desc="handling remaining cases" pmap(compute_kernel_component,
                        [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
       else
-        results = pmap(compute_kernel_component, wp,
+        results = @showprogress enabled=show_progress desc="handling remaining cases" pmap(compute_kernel_component, wp,
                        [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], batch_size=batch_size)
       end
     else

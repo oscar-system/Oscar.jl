@@ -149,6 +149,9 @@ end
      x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
      img = GAP.Globals.ImagesRepresentative(iso, x)
      @test x == GAP.Globals.PreImagesRepresentative(iso, img)
+
+     iso = isomorphism(PermGroup, G0)
+     @test order(codomain(iso)) == order(G0)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
@@ -249,6 +252,13 @@ end
    @test_throws ErrorException G[1]
    G = SO(3, residue_ring(ZZ, 9)[1])
    @test nrows(G[1]) == 3
+
+   G = GL(2, QQ)
+   @test_throws ErrorException GapObj(G)
+   S = sub(G, [G(QQ[0 -1; 1 0])])
+   @test order(S) == 4
+   S = sub(G, [G(QQ[1 2; 5 6])])
+   @test ! is_finite(S)
 end
 
 @testset "Type operations" begin
@@ -266,7 +276,7 @@ end
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
-   @test G isa MatrixGroup
+   @test G isa MatGroup
    @test F==base_ring(G)
    @test 2==degree(G)
    @test !isdefined(G,:X)
@@ -327,6 +337,7 @@ end
    @test K==matrix_group(matrix(x), matrix(x^2), matrix(y))
    @test K==matrix_group([matrix(x), matrix(x^2), matrix(y)])
 
+   # The following group is incomplete (no `gens`) but knows its identity.
    G = matrix_group(F, nrows(x))
    @test one(G) == one(x)
 
@@ -334,13 +345,59 @@ end
    x = G([1,z,0,0,z,0,0,0,z+1])
    @test order(x)==8
 
+   # The following group is incomplete (no `gens`).
    G = matrix_group(F, 4)
+   @test !has_gens(G)
    @test_throws ErrorException GapObj(G)
    setfield!(G,:descr,:GX)
    @test isdefined(G,:descr)
+   @test !has_gens(G)
    @test_throws ErrorException GapObj(G)
+
+   G = GL(2, 3)
+   @test has_gens(G)
+
+   G = GL(2, QQ)
+   @test !has_gens(G)
+   @test_throws ErrorException GapObj(G)
+   @test_throws ErrorException gens(G)
 end
 
+@testset "matrix_group(Ring, Vector)" begin
+   # Base case: coerce ZZ matrices into QQ
+   G = matrix_group(QQ, [identity_matrix(ZZ, 3)])
+   @test base_ring(G) == QQ
+   @test degree(G) == 3
+
+   # Coerce ZZ matrices into a finite field
+   G = matrix_group(GF(101), [ZZ[1 2; 3 4]])
+   @test base_ring(G) == GF(101)
+   @test degree(G) == 2
+
+   # Same ring, no coercion needed
+   G = matrix_group(QQ, [identity_matrix(QQ, 2)])
+   @test base_ring(G) == QQ
+   @test degree(G) == 2
+
+   # Empty list should error
+   @test_throws ArgumentError matrix_group(QQ, dense_matrix_type(ZZ)[])
+end
+
+@testset "Construct a matrix group from a GAP group" begin
+   G = matrix_group(GAP.Globals.GL(2, 4))
+   @test degree(G) == 2
+   @test order(base_ring(G)) == 4
+
+   iso = Oscar.iso_oscar_gap(GF(2, 6))
+   G = matrix_group(iso, GAP.Globals.GL(2, 4))
+   @test degree(G) == 2
+   @test order(base_ring(G)) == 2^6
+
+   @test_throws ArgumentError matrix_group(GAP.Globals.SymmetricGroup(5))
+   @test_throws ArgumentError matrix_group(iso, GAP.Globals.SymmetricGroup(5))
+   @test_throws ArgumentError matrix_group(iso, GAP.Globals.GL(2,2^4))
+   @test_throws ArgumentError matrix_group(identity_map(GF(2)), GAP.Globals.GL(2,2))
+end
 
 @testset "Constructors" begin
    @testset for n in 4:5, F in [GF(2, 2), GF(3, 1)]
@@ -528,13 +585,13 @@ end
    @test !(x in S)
    @test !(matrix(F,2,2,[0,0,0,1]) in G)
    @test_throws ArgumentError S(x)
-   @test G(x) isa MatrixGroupElem
+   @test G(x) isa MatGroupElem
    @test S(x; check=false)==G(x)
    @test S(G(x); check=false)==G(x)
    x = G(x)
-   y = MatrixGroupElem(G,GapObj(x))
+   y = MatGroupElem(G,GapObj(x))
    @test_throws ArgumentError S(y)
-   @test G(y) isa MatrixGroupElem
+   @test G(y) isa MatGroupElem
    @test G(y*y)==G(y)*G(y)
    @test x==G([1,z,0,z])
    @test x==G([1 z; 0 z])
@@ -599,11 +656,26 @@ end
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
+   @test_throws ErrorException -1 * x
+   @test_throws ErrorException x * -1
+
+   # minimal and characteristic polynomial
+   @test charpoly(x)(matrix(x)) == 0
+   @test charpoly(y)(matrix(y)) == 0
+   @test minpoly(x)(matrix(x)) == 0
+   @test minpoly(y)(matrix(y)) == 0
+   Fx, = polynomial_ring(F; cached = false)
+   @test charpoly(Fx, x)(matrix(x)) == 0
+   @test charpoly(Fx, y)(matrix(y)) == 0
+   @test minpoly(Fx, x)(matrix(x)) == 0
+   @test minpoly(Fx, y)(matrix(y)) == 0
+   @test parent(charpoly(Fx, x)) === Fx
+   @test parent(minpoly(Fx, x)) === Fx
 
    xg = GAP.Globals.Random(GapObj(G))
    yg = GAP.Globals.Random(GapObj(G))
-   pg = MatrixGroupElem(G, xg*yg)
-   @test pg == MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
+   pg = MatGroupElem(G, xg*yg)
+   @test pg == MatGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
 
    O = GO(-1,2,F)
    S = SL(2,F)
@@ -812,7 +884,7 @@ end
 @testset "deepcopy" begin
    g = general_linear_group(2, 4)
 
-   m = MatrixGroupElem(g, gen(g, 1).X);  # do not call `show`!
+   m = MatGroupElem(g, gen(g, 1).X);  # do not call `show`!
    @test isdefined(m, :X)
    @test ! isdefined(m, :elm)
    c = deepcopy(m);
@@ -820,7 +892,7 @@ end
    @test ! isdefined(c, :elm)
    @test GapObj(c) == GapObj(m)
 
-   m = MatrixGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
+   m = MatGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
    @test isdefined(m, :X)
    @test isdefined(m, :elm)
    c = deepcopy(m);
@@ -829,7 +901,7 @@ end
    @test GapObj(c) == GapObj(m)
    @test matrix(c) == matrix(m)
 
-   m = MatrixGroupElem(g, matrix(gen(g, 1)))
+   m = MatGroupElem(g, matrix(gen(g, 1)))
    @test ! isdefined(m, :X)
    @test isdefined(m, :elm)
    c = deepcopy(m);
@@ -852,4 +924,15 @@ end
      @test h * v isa Vector{T}
      @test h * v == mat * v
    end
+end
+
+@testset "hashing matrix elements" begin
+   matrices = [matrix(ZZ, [0 -1; 1 -1]), matrix(ZZ, [0 1; 1 0])]
+   G = matrix_group(matrices)
+   A = matrix(ZZ, [1 -1; 0 -1])
+   B = matrix(ZZ, [-1 0; -1 1])
+   C = G([1 0; 0 1])
+
+   @test hash(C) == hash(one(G))
+   @test hash(G(A)) == hash(G(A))
 end

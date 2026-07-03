@@ -43,6 +43,21 @@ deviate from them in some cases; in that case just do so.
   matrices...
 - Input sanity checks should be enabled by default, they can then be disabled
   internally if they are known to be true, and manually by users.
+  The boolean valued keyword argument `check` is recommended for this purpose.
+  In order to check assertions only if the `check` argument is `true`,
+  the `@check` macro can be used.
+  For argument checks independent of the value of `check`,
+  the `@req` macro can be used.
+- For functions that return iterators
+  (see [`combinations`](@ref) for an example),
+  the boolean valued keyword argument `inplace` can be used to express
+  that the objects returned by the iterator may share their memory, that is,
+  an element returned by the iterator may be overwritten "in place"
+  in the next iteration step.
+  This may result in significantly fewer memory allocations.
+  However, using the in-place version is only meaningful
+  if just one element of the iterator is needed at any time.
+  For example, calling `collect` on this iterator will not give useful results.
 - All user-facing functions that expect some kind of indeterminant name etc.
   (like `polynomial_ring(QQ, <indeterminant_name>)`) should accept a
   `VarName = Union{Symbol, Char, String}`, and convert it to a symbol for internal
@@ -293,7 +308,7 @@ the user's convenience.
 Let's see an example. Say, you want to implement the characteristic 
 polynomial of a matrix. You could do it as follows:
 ```julia
-function characteristic_polynomial(A::MatrixElem)
+function characteristic_polynomial(A::MatElem)
   kk = base_ring(A)
   P, x = kk[:x]
   AP = change_base_ring(P, A)
@@ -310,7 +325,7 @@ To solve this, we should have implemented the function differently:
 ```julia
 # Implementation of the recommended keyword argument signature:
 function characteristic_polynomial(
-    A::MatrixElem;
+    A::MatElem;
     parent::AbstractAlgebra.Ring=polynomial_ring(base_ring(A), :t)[1]
   )
   AP = change_base_ring(parent, A)
@@ -322,7 +337,7 @@ end
 # output's parent as the first argument:
 function characteristic_polynomial(
     P::PolyRing,
-    A::MatrixElem
+    A::MatElem
   )
   coefficient_ring(P) === base_ring(A) || error("coefficient rings incompatible")
   return characteristic_polynomial(A, parent=P)

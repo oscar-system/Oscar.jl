@@ -43,7 +43,7 @@ julia> cophenetic_matrix(phylo_t)
  6.0  6.0  8.0  0.0
 
 julia> typeof(phylogenetic_tree("((H:3,(C:1,B:1):2):1,G:4);"))
-Oscar.PhylogeneticTree{QQFieldElem}
+PhylogeneticTree{QQFieldElem}
 ```
 """
 function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)

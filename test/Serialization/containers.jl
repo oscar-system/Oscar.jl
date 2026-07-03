@@ -11,6 +11,11 @@
         @test t == loaded
       end
 
+      et = Tuple{}([])
+      test_save_load_roundtrip(path, et) do loaded
+        @test et == loaded
+      end
+
       nt = (a = v, b = t)
       test_save_load_roundtrip(path, nt) do loaded
         @test nt == loaded
@@ -167,8 +172,10 @@
       end
     end
 
-    @testset "(de)serialization Dict{Vector, Int}" begin
-      original = Dict([1, 2] => 1)
+    @testset "(de)serialization Dict{Vector, T}" for V in (
+      1, [matrix(ZZ, [1 2; 3 4]), matrix(ZZ, [6 5; 3 4])]
+      )
+      original = Dict([1, 2] => V)
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end

@@ -54,6 +54,7 @@ GAP.@wrap ClassPositionsOfDerivedSubgroup(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfNormalSubgroups(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfPCore(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ClassPositionsOfSolvableResiduum(x::GapObj)::GapObj
+GAP.@wrap CodePcgs(x::GapObj)::GAP.Obj
 GAP.@wrap Coefficients(x::Any, y::Any)::GapObj
 GAP.@wrap CoefficientsFamily(x::GapObj)::GapObj
 GAP.@wrap CoefficientsOfUnivariatePolynomial(x::GapObj)::GapObj
@@ -91,6 +92,7 @@ GAP.@wrap DescriptionOfRootOfUnity(x::Any)::GapObj
 GAP.@wrap DeterminantOfCharacter(x::GapObj)::GapObj
 GAP.@wrap Dimension(x::GapObj)::Int
 GAP.@wrap DimensionOfHighestWeightModule(x::GapObj, y::GapObj)::GapInt
+GAP.@wrap DimensionOfMatrixGroup(x::GapObj)::GapInt
 GAP.@wrap DominantCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DoubleCoset(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap DoubleCosetRepsAndSizes(x::GapObj, y::GapObj, z::GapObj)::GapObj
@@ -112,6 +114,7 @@ GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
 GAP.@wrap FamilyPcgs(x::GAP.Obj)::GapObj
 GAP.@wrap fhmethsel(x::GapObj)::GAP.Obj
 GAP.@wrap Field(x::Any)::GapObj
+GAP.@wrap FieldOfMatrixGroup(x::GapObj)::GapObj
 GAP.@wrap Flat(x::GapObj)::GapObj
 GAP.@wrap FreeAbelianGroup(x::Int)::GapObj
 GAP.@wrap FreeGeneratorsOfFpGroup(x::GapObj)::GapObj
@@ -144,6 +147,7 @@ GAP.@wrap HasClassParameters(x::GapObj)::Bool
 GAP.@wrap HasConjugacyClassesSubgroups(x::GapObj)::Bool
 GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
 GAP.@wrap HasGrp(x::GapObj)::Bool
+GAP.@wrap HashPermutation(x::GapObj, y::GapInt)::Int
 GAP.@wrap HasImageRecogNode(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForAlmostSimpleGroup(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForSimpleGroup(x::GapObj)::Bool
@@ -314,11 +318,13 @@ GAP.@wrap MarksTom(x::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap MatTom(x::GapObj)::GapObj
 GAP.@wrap Maxes(x::GapObj)::GapObj
+GAP.@wrap MaximalAbelianQuotient(x::GapObj)::GapObj
 GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
 GAP.@wrap MinimalPolynomial(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
 GAP.@wrap NameFunction(x::GapObj)::GapObj
 GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj
+GAP.@wrap NaturalHomomorphismByNormalSubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NiceGens(x::GapObj)::GapObj
 GAP.@wrap NormalClosure(x::GapObj, y::GapObj)::GapObj
@@ -336,7 +342,9 @@ GAP.@wrap OnIndeterminates(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnLines(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnSetsSets(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnSetsTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap OnTuplesSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap PcElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
@@ -350,6 +358,7 @@ GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
+GAP.@wrap PositionCanonical(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PossibleClassFusions(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap POW(x::GAP.Obj, y::GAP.Obj)::GAP.Obj
@@ -404,6 +413,7 @@ GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj
 GAP.@wrap SubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap SubsTom(x::GapObj)::GapObj
+GAP.@wrap SupersolvableResiduum(x::GapObj)::GapObj
 GAP.@wrap SylowSubgroup(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap SymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap Symmetrizations(x::GapObj, y::GapObj, z::GapInt)::GapObj

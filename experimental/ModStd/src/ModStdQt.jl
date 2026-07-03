@@ -261,7 +261,7 @@ end
 
 function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   if i > length(v.v)
-    push!(v.v, zeros(parent(v.v[1][1]), length(v.v[1])))
+    push!(v.v, Hecke.zeros_array(parent(v.v[1][1]), length(v.v[1])))
   end
   if j > length(v.v[i])
     while length(v.v[i]) < j-1
@@ -445,13 +445,13 @@ function ref_ff!(M::MatElem)
       continue
     end
     for k=i+1:nrows(M)
-      M[k, :] = M[i, j]*M[k, :] - M[k, j] * M[i, :]
+      M[k, :] = M[i, j]*M[k:k, :] - M[k, j] * M[i:i, :]
     end
   end
   return rk
 end
 
-function Hecke.content(M::MatrixElem{<:MPolyRingElem})
+function Hecke.content(M::MatElem{<:MPolyRingElem})
   m = []
   for idx = eachindex(M)
     l = length(M[idx]) # should be 0 iff entry is zero

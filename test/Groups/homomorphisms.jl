@@ -3,10 +3,12 @@
      H, emb = sylow_subgroup(G, 2)
      x = gen(H, 1)
      y = image(emb, x)
+     ker, _ = kernel(emb)
      @test preimage(emb, y) == x
      @test any(g -> ! has_preimage_with_preimage(emb, g)[1], gens(G))
      @test id_hom(H) * emb == emb
      @test emb * id_hom(G) == emb
+     @test is_trivial(ker)
    end
 end
 
@@ -124,7 +126,7 @@ end
    h = sub(g, [x^2])[1]
    @test_throws ArgumentError quo(h, [h(x^10)])
    n = normal_closure(h, sub(h, [h(x^10)])[1])[1]
-   @test_throws ErrorException quo(h, n)
+   @test_throws GAP.GAPError quo(h, n)
 
    h = sub(q2, [q2[2]^5])[1]
    @test_throws ArgumentError quo(h, [h[1]^2])

@@ -1,68 +1,61 @@
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}} where T
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple, Array}
 
-function type_params(obj::S) where {T, S <:MatVecType{T}}
-  if isempty(obj)
-    return TypeParams(S, TypeParams(T, nothing))
-  end
+# handle Vector and Matrix instances, i.e. Array instances with 1 or 2 dimensions
+function type_and_params(obj::S) where {T, S <: MatVecType{T}}
+  isempty(obj) && return TypeAndParams(S, TypeAndParams(T, nothing))
   
-  params = type_params.(obj)
+  params = type_and_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
-  return TypeParams(S, params[1])
+  return TypeAndParams(S, params[1])
 end
 
-function type_params(obj::S) where {N, T, S <:Array{T, N}}
-  if isempty(obj)
-    return TypeParams(S, :subtype_params => TypeParams(T, nothing), :dims => N)
-  end
+# handle Array instances with >= 3 dimensions
+function type_and_params(obj::S) where {N, T, S <: Array{T, N}}
+  isempty(obj) && return TypeAndParams(S, :subtype_params => TypeAndParams(T, nothing), :dims => N)
   
-  params = type_params.(obj)
+  params = type_and_params.(obj)
   @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
-  return TypeParams(S, :subtype_params => params[1], :dims => N)
+  return TypeAndParams(S, :subtype_params => params[1], :dims => N)
 end
 
-function has_empty_entries(obj::T) where T
-  return false
-end
+has_empty_entries(obj) = false
 
-function has_empty_entries(obj::T) where T <: ContainerTypes
-  isempty(obj) && return true
-  any(has_empty_entries, obj)  && return true
-  return false
-end
+has_empty_entries(obj::ContainerTypes) = isempty(obj) || any(has_empty_entries, obj)
 
-function type_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
-  isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
+# handle Vector and Matrix instances containing other containers
+function type_and_params(obj::S) where {T <: ContainerTypes, S <: MatVecType{T}}
+  isempty(obj) && return TypeAndParams(S, TypeAndParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
   non_empty_entries = filter(!has_empty_entries, obj)
+  params = type_and_params.(non_empty_entries)
+  @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
 
   # need to check if any of the inner containers are non empty, and if there is at least one
   # then we can use that one to get the type for the entire nested container
-  isempty(non_empty_entries) && return TypeParams(S, type_params(first(obj)))
-  params = type_params.(non_empty_entries)
-  @req allequal(params) "Not all params of the entries are the same, consider using a Tuple for serialization"
-  return TypeParams(S, params[1])
+  isempty(params) && return TypeAndParams(S, type_and_params(first(obj)))
+  return TypeAndParams(S, params[1])
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where {S, N,  T <: Array{S, N}}
+function save_type_and_params(s::SerializerState,
+                          tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where {S, N,  T <: Array{S, N}}
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for (k, v) in params(tp)
         if k == :dims
           save_object(s, v, k)
-          continue
+        else
+          save_type_and_params(s, v, k)
         end
-        save_type_params(s, v, k)
       end
     end
   end
 end
 
 # this function is forced to deal with all array types
-function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecType}})
+function load_type_and_params(s::DeserializerState, T::Type{<: Union{Array, MatVecType}})
   !haskey(s, :params) && return T, nothing
   subtype, params = load_node(s, :params) do _
     if haskey(s, :dims)
@@ -71,11 +64,10 @@ function load_type_params(s::DeserializerState, T::Type{<: Union{Array, MatVecTy
       end
        
       dims = load_object(s, Int, :dims)
-      subtype, params =  load_type_params(s, U, :subtype_params)
+      subtype, params = load_type_and_params(s, U, :subtype_params)
       return T{subtype, dims}, params
     else
-      U = decode_type(s)
-      subtype, params = load_type_params(s, U)
+      subtype, params = load_type_and_params(s, decode_type(s))
       return T{subtype}, params
     end
   end
@@ -95,7 +87,7 @@ end
 # Saving and loading vectors
 @register_serialization_type Vector
 
-# see Array above for load_type_params for general Arrays which include Matrix
+# see Array above for load_type_and_params for general Arrays which include Matrix
 # and Vector
 
 function save_object(s::SerializerState, x::AbstractVector{S}) where S
@@ -114,12 +106,12 @@ end
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
-      loaded_v::Vector{params} = load_array_node(s) do _
+      loaded_v = load_array_node(s) do _
         load_ref(s)
-      end
+      end::Vector{params}
     else
       isempty(s.obj) && return params[]
-      loaded_v = load_array_node(s) do obj
+      loaded_v = load_array_node(s) do _
         load_object(s, params)
       end
     end
@@ -241,26 +233,26 @@ end
 # Saving and loading Tuple
 @register_serialization_type Tuple
 
-function type_params(obj::T) where T <: Tuple
-  return TypeParams(T, type_params.(obj))
+function type_and_params(obj::T) where T <: Tuple
+  return TypeAndParams(T, type_and_params.(obj))
 end
 
-function save_type_params(s::SerializerState, tp::TypeParams{T}) where T <: Tuple
+function save_type_and_params(s::SerializerState, tp::TypeAndParams{T}) where T <: Tuple
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_array(s, :params) do
       for (i, param_tp) in enumerate(params(tp))
-        save_type_params(s, param_tp)
+        save_type_and_params(s, param_tp)
       end
     end
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type{Tuple})
+function load_type_and_params(s::DeserializerState, T::Type{Tuple})
+  !haskey(s, :params) && return T{}, nothing
   subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s) do _
-      U = decode_type(s)
-      load_type_params(s, U)
+      load_type_and_params(s, decode_type(s))
     end
     return Tuple([x[1] for x in tuple_params]), Tuple(x[2] for x in tuple_params)
   end
@@ -304,15 +296,15 @@ end
 # Saving and loading NamedTuple
 @register_serialization_type NamedTuple
 
-function type_params(obj::T) where T <: NamedTuple
-  return TypeParams(
+function type_and_params(obj::T) where T <: NamedTuple
+  return TypeAndParams(
     T, 
-    NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+    NamedTuple(x.first => type_and_params(x.second) for x in pairs(obj))
   )
 end
 
-# Named Tuples need to preserve order so they are handled seperate from Dict
-function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
+# Named Tuples need to preserve order so they are handled separate from Dict
+function save_type_and_params(s::SerializerState, tp::TypeAndParams{<:NamedTuple})
   T = type(tp)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -324,18 +316,17 @@ function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
       end
       save_data_array(s, :tuple_params) do
         for (i, param_tp) in enumerate(values(params(tp)))
-          save_type_params(s, param_tp)
+          save_type_and_params(s, param_tp)
         end
       end
     end
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type{NamedTuple})
+function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})
   subtype, params = load_node(s, :params) do obj
     tuple_params = load_array_node(s, :tuple_params) do _
-      U = decode_type(s)
-      load_type_params(s, U)
+      load_type_and_params(s, decode_type(s))
     end
     tuple_types, named_tuple_params = collect(zip(tuple_params...))
     names = load_object(s, Vector{Symbol}, :names)
@@ -356,64 +347,62 @@ end
 # Saving and loading dicts
 @register_serialization_type Dict
 
-function type_params(obj::T) where {S <: Union{Symbol, Int, String},
+function type_and_params(obj::T) where {S <: Union{Symbol, Int, String},
                                     T <: Dict{S, Any}}
-  return TypeParams(
+  return TypeAndParams(
     T,
-    :key_params => TypeParams(S, nothing),
-    map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
+    :key_params => TypeAndParams(S, nothing),
+    (x.first => type_and_params(x.second) for x in pairs(obj))...
   )
 end
 
-function type_params(obj::T) where {U, S, T <: Dict{S, U}}
+function type_and_params(obj::T) where {U, S, T <: Dict{S, U}}
   if isempty(obj)
-    return TypeParams(
+    return TypeAndParams(
       T,
-      :key_params => TypeParams(S, nothing),
-      :value_params => TypeParams(U, nothing)
+      :key_params => TypeAndParams(S, nothing),
+      :value_params => TypeAndParams(U, nothing)
     )
   end
-  key_params = Oscar.type_params.(collect(keys(obj)))
+  key_params = Oscar.type_and_params.(collect(keys(obj)))
   @req allequal(key_params) "Not all type parameters of keys in $obj are the same"
 
-  value_params = type_params.(collect(values(obj)))
+  value_params = type_and_params.(collect(values(obj)))
   @req allequal(value_params) "Not all type parameters of values in $obj are the same"
 
-  return TypeParams(
+  return TypeAndParams(
     T, 
     :key_params => first(key_params),
-    :value_params => first(value_params)
+    :value_params => first(value_params),
   )
 end
 
-function save_type_params(
+function save_type_and_params(
   s::SerializerState,
-  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
+  tp::TypeAndParams{Dict{S, T}, <:Tuple{Vararg{Pair}}}) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
       isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
       for (k, param_tp) in params(tp)
-        save_type_params(s, param_tp, Symbol(k))
+        save_type_and_params(s, param_tp, Symbol(k))
       end
     end
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type{Dict})
+function load_type_and_params(s::DeserializerState, T::Type{Dict})
   subtype, params = load_node(s, :params) do obj
     if haskey(s, :value_params)
       S, key_params = load_node(s, :key_params) do params
         params isa String && return decode_type(s), nothing
-        load_type_params(s, decode_type(s))
+        load_type_and_params(s, decode_type(s))
       end
 
       U, value_params = load_node(s, :value_params) do _
-        load_type_params(s, decode_type(s))
+        load_type_and_params(s, decode_type(s))
       end
 
-      isnothing(key_params) && return (S, U), value_params
-      isnothing(key_params) && isnothing(value_params) && return (S, U), nothing
       return (S, U), Dict(:key_params => key_params, :value_params => value_params)
     else
       S, key_params = load_node(s, :key_params) do _
@@ -425,8 +414,7 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
         k == :key_params && continue
         key = S <: Integer ? parse(Int, string(k)) : S(k)
         params_dict[key] = load_node(s, k) do _
-          value_type = decode_type(s)
-          return load_type_params(s, value_type)
+          return load_type_and_params(s, decode_type(s))
         end
         push!(value_types, params_dict[key][1])
       end
@@ -536,60 +524,59 @@ end
 
 function load_object(s::DeserializerState,
                      T::Type{<:Dict{S, U}},
-                     params::Any) where {S, U}
-  if params isa Dict
-    if haskey(params, :value_params)
-      pairs = load_array_node(s) do _
-        load_object(s, Tuple{S, U}, (params[:key_params], params[:value_params]))
-      end
-      return T(k => v for (k, v) in pairs)
-    else
-      dict = Dict{S, Any}()
-      value_types = Type[]
-      for k in keys(s.obj)
-        key = S <: Integer ? parse(S, string(k)) : S(k)
-        value_type, param = params[key]
-        v = load_object(s, value_type, param, k)
-        dict[key] = load_object(s, value_type, param, k)
-        push!(value_types, typeof(v))
-      end
-      isempty(value_types) && return T()
-      value_params = type_params.(collect(values(dict)))
-      value_type = allequal(value_params) ? typejoin(unique(value_types)...) : Any
-      return Dict{S, value_type}(dict)
+                     params::Dict) where {S <: Union{Int, String, Symbol}, U}
+  if haskey(params, :value_params)
+    pairs = Tuple{S, U}[]
+    for k in keys(s.obj)
+      key = S <: Integer ? parse(S, string(k)) : S(k)
+      push!(pairs, (key, load_object(s, U, params[:value_params], k)))
     end
+    isempty(pairs) && return T()
+    _, v = first(pairs)
+
+    return Dict{S, typeof(v)}(k => v for (k, v) in pairs)
   else
     dict = Dict{S, Any}()
     value_types = Type[]
     for k in keys(s.obj)
-      v = load_object(s, U, params, k)
       key = S <: Integer ? parse(S, string(k)) : S(k)
-      dict[key] = v
+      value_type, param = params[key]
+      v = load_object(s, value_type, param, k)
+      dict[key] = load_object(s, value_type, param, k)
       push!(value_types, typeof(v))
     end
     isempty(value_types) && return T()
-    value_params = type_params.(collect(values(dict)))
+    value_params = type_and_params.(collect(values(dict)))
     value_type = allequal(value_params) ? typejoin(unique(value_types)...) : Any
     return Dict{S, value_type}(dict)
   end
+end
+
+function load_object(s::DeserializerState,
+                     T::Type{<:Dict{S, U}},
+                     params::Dict) where {S, U}
+  pairs = load_array_node(s) do _
+    load_object(s, Tuple{S, U}, (params[:key_params], params[:value_params]))
+  end
+  isempty(pairs) && return T()
+  k1, v1 = first(pairs)
+
+  return Dict{typeof(k1), typeof(v1)}(k => v for (k, v) in pairs)
 end
 
 ################################################################################
 # Saving and loading sets
 @register_serialization_type Set
 
-function type_params(obj::T) where {S, T <: Set{S}}
-  if isempty(obj)
-    return TypeParams(T, TypeParams(S, nothing))
-  end
-  return TypeParams(T, type_params(first(obj)))
+function type_and_params(obj::T) where {S, T <: Set{S}}
+  isempty(obj) && return TypeAndParams(T, TypeAndParams(S, nothing))
+  return TypeAndParams(T, type_and_params(first(obj)))
 end
 
-function load_type_params(s::DeserializerState, T::Type{<: Set})
+function load_type_and_params(s::DeserializerState, T::Type{<: Set})
   !haskey(s, :params) && return T, nothing
   subtype, params = load_node(s, :params) do _
-    U = decode_type(s)
-    subtype, params = load_type_params(s, U)
+    subtype, params = load_type_and_params(s, decode_type(s))
   end
   return T{subtype}, params
 end

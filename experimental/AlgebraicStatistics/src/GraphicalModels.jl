@@ -69,7 +69,9 @@ denominator(f::MPolyRingElem) = parent(f)(1)
 Compute the vanishing ideal for a graphical model `M`.
 This is done by computing the kernel of the parametrization.
 """
-function vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate)
+vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate) = generic_vanishing_ideal(GM; algorithm=algorithm)
+
+function generic_vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate)
   phi = parametrization(GM)
   if algorithm == :kernel
     invariants = kernel(phi)

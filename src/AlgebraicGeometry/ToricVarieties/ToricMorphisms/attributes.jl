@@ -72,9 +72,8 @@ Map
   cod = codomain(tm)
   cod_rays = matrix(ZZ, rays(cod))
   images = matrix(ZZ, rays(d)) * matrix(lattice_homomorphism(tm))
-  mapping_matrix = matrix(
-    ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0)
-  )
+  n = torsion_free_rank(torusinvariant_weil_divisor_group(cod))
+  mapping_matrix = zero_matrix(ZZ, n, 0)
   for i in 1:nrows(images)
     v = [images[i, k] for k in 1:ncols(images)]
     j = findfirst(j -> v in maximal_cones(cod)[j], 1:n_maximal_cones(cod))

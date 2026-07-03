@@ -4,6 +4,7 @@
   D::FinGenAbGroup
   d::Vector{FinGenAbGroupElem}
   lt::Any
+  is_fine_graded::Bool
   hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
@@ -14,6 +15,7 @@
     r.R = R
     r.D = parent(d[1])
     r.d = d
+    r.is_fine_graded = is_free(parent(d[1])) && (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
     return r
   end
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
@@ -24,11 +26,13 @@
     r.D = parent(d[1])
     r.d = d
     r.lt = lt
+    r.is_fine_graded = is_free(parent(d[1])) &&  (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
     return r
   end
 end
 
 generator_degrees(S::MPolyDecRing) = S.d
+is_fine_graded(S::MPolyDecRing) = S.is_fine_graded
 
 @doc raw"""
     grading_group(R::MPolyDecRing)
@@ -981,8 +985,17 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
-AbstractAlgebra.coefficients(f::MPolyDecRingElem) = AbstractAlgebra.coefficients(forget_decoration(f))
-AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem) = AbstractAlgebra.exponent_vectors(forget_decoration(f))
+function AbstractAlgebra.coefficients(f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.coefficients(forget_decoration(f), inplace=inplace)
+end
+
+function AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.exponent_vectors(forget_decoration(f), inplace=inplace)
+end
+
+function AbstractAlgebra.exponent_vectors(v, f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.exponent_vectors(v, forget_decoration(f), inplace=inplace)
+end
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -1219,7 +1232,7 @@ function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing,
     end
   end
 
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(aa), AbstractAlgebra.exponent_vectors(aa))
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(aa, inplace = true), AbstractAlgebra.exponent_vectors(aa, inplace = true))
     # this is non-allocating
     for i in 1:length(e)
       tmat[1, i] = e[i]
@@ -1228,7 +1241,7 @@ function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing,
     u = FinGenAbGroupElem(D, res_mat)
     if haskey(h, u)
       ctx = h[u]
-      push_term!(ctx, c, e)
+      push_term!(ctx, deepcopy(c), deepcopy(e))
     else
       # If we are only asked for the degrees in degs, we don't add any others
       !isnothing(degs) && continue
@@ -1237,7 +1250,7 @@ function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing,
       # Make a fresh res_mat, which can be used the for the next u
       res_mat = deepcopy(res_mat)
       ctx = MPolyBuildCtx(R)
-      push_term!(ctx, c, e)
+      push_term!(ctx, deepcopy(c), deepcopy(e))
       h[u] = ctx
     end
   end
@@ -2332,16 +2345,6 @@ function _dehomogenization(F::MPolyDecRingElem, R::MPolyRing, pos::Int, m::Int)
   end
   return finish(B)
 end
-
-
-
-################################################################################
-#
-#  Evaluation
-#
-################################################################################
-
-(f::MPolyDecRingElem)(x...) = evaluate(f, collect(x))
 
 ################################################################################
 #

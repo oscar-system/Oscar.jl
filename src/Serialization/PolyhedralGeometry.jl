@@ -26,31 +26,27 @@ function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   return bigobject
 end
 
-function load_object(s::DeserializerState, ::Type{Polymake.BigObject}, str::String)
-  return load_ref(s, str)
-end
-
 ##############################################################################
 # Abstract Polyhedral Object
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeAndParams(T, coefficient_field(obj))
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: LinearProgram{S}} = TypeParams(T, coefficient_field(obj))
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLinearProgram{S}} = TypeParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: LinearProgram{S}} = TypeAndParams(T, coefficient_field(obj))
+type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: MixedIntegerLinearProgram{S}} = TypeAndParams(T, coefficient_field(obj))
 
-function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
+function type_and_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
   field = p_dict[:_coeff]
   delete!(p_dict, :_coeff)
-  return TypeParams(
+  return TypeAndParams(
     T,
     :field => field,
-    :pm_params => type_params(p_dict))
+    :pm_params => type_and_params(p_dict))
 end
 
-function type_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
-  par = params(type_params(feasible_region(obj)))
-  return TypeParams(
+function type_and_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
+  par = params(type_and_params(feasible_region(obj)))
+  return TypeAndParams(
     T,
     par...)
 end
@@ -123,7 +119,7 @@ function save_object(s::SerializerState, lp::LinearProgram{<:FieldElem})
 end
 
 function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
-  lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
+  lp_filename = basepath(s.serializer) * "_$(objectid(lp)).lp"
   save_lp(lp_filename, lp)
 
   save_object(s, basename(lp_filename))

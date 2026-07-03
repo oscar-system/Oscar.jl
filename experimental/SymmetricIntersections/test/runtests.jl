@@ -65,7 +65,7 @@ end
 
   f = representation_mapping(rep)
   @test domain(f) === E
-  @test codomain(f) isa MatrixGroup
+  @test codomain(f) isa MatGroup
   @test character_representation(RR, f) == chi
 
   n = @inferred dimension_representation(rep)
@@ -138,7 +138,7 @@ end
 
   f = representation_mapping_linear_lift(prep)
   @test order(domain(f)) == 64
-  @test codomain(f) isa MatrixGroup
+  @test codomain(f) isa MatGroup
   @test character_representation(RR, f) == chi
 
   n = @inferred dimension_representation(prep)
