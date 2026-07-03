@@ -310,7 +310,7 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   withenv("COLUMNS"=>80, "LINES"=>24) do
     with_unicode(false) do
       Pkg.activate(docsproject) do
-        @invokelatest BuildDoc.doit(Oscar; warnonly, local_build=true, doctest, formats, pdf_method,
+        @invokelatest BuildDoc.doit(Oscar; warnonly, local_build=true, doctest, formats, pdf_method)
       end
     end
   end
