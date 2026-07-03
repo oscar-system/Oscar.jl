@@ -479,5 +479,9 @@
       @test G.label[2, 1] == 10
       @test G.label[1, 3] == 20
       @test G.color[2] == "red"
+
+      H = copy(G)
+      permute_nodes!(H, p)
+      @test G.label[1, 3] == H.label[2, 3]
     end
 end
