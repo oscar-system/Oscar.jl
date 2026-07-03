@@ -1566,7 +1566,9 @@ end
 @doc raw"""
     dual(r::RootSpaceElem) -> DualRootSpaceElem
 
-Return the coroot corresponding to `r` in the dual root space of its root system.
+Return the dual element to `r`.
+
+If `r` is a root, this is the coroot corresponding to `r`.
 """
 function dual(r::RootSpaceElem)
   R = root_system(r)
@@ -1578,7 +1580,9 @@ end
 @doc raw"""
     dual(r::DualRootSpaceElem) -> RootSpaceElem
 
-Return the root corresponding to the coroot `r` in the root space of its root system.
+Return the dual element to `r`, identified with an element in the root space instead of its bidual space.
+
+If `r` is a coroot, this is the root corresponding to `r`.
 """
 function dual(r::DualRootSpaceElem)
   R = root_system(r)
