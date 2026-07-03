@@ -1,15 +1,3 @@
-# Add your new types, functions, and methods here.
-
-module OrigamiHelper
-
-using ..Oscar
-
-function __init__()
-  GAP.Packages.load("Origami")
-end
-
-end
-
 include("exports.jl")
 include("types.jl")
 include("canonical.jl")
