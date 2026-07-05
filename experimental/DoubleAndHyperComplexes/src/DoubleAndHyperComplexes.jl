@@ -50,4 +50,5 @@ include("generic_direct_images.jl")
 include("determinants.jl")
 include("Objects/simplicial_complex.jl")
 include("cohomology_ring.jl")
+include("a-resultants.jl")
 
