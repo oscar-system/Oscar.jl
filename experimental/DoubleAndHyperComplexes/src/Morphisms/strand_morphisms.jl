@@ -38,12 +38,12 @@ function (fac::InducedStrandMorphismFactory)(self::AbsHyperComplexMorphism, I::T
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d)))
+  cod_dict = get_mapping_dict(fac.codomain, J)
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)
   vv = gens(R)
-  for (e, i) in all_exponents(orig_dom, fac.d) # iterate through the generators of `dom`
+  for (e, i) in get_exponents(fac.domain, I) # iterate through the generators of `dom`
     m = prod(x^k for (x, k) in zip(vv, e); init=one(R))*orig_dom[i]
     v = orig_map(m) # map the monomial
     # take preimage of the result using the previously built dictionary.
@@ -53,7 +53,7 @@ function (fac::InducedStrandMorphismFactory)(self::AbsHyperComplexMorphism, I::T
     w = zero(cod)
     for (i, b) in coordinates(v)
       #g = orig_cod[i]
-      w += sum(c*cod_dict[(n, i)] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
+      w += sum(c*cod[cod_dict[(n, i)]] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
     end
     push!(img_gens_res, w)
   end
@@ -71,8 +71,9 @@ end
   function InducedStrandMorphism(
       phi::AbsHyperComplexMorphism,
       d::FinGenAbGroupElem;
-      domain::StrandComplex = strand(Oscar.domain(phi), d)[1],
-      codomain::StrandComplex = strand(Oscar.codomain(phi), d)[1]
+      check::Bool=true,
+      domain::StrandComplex = strand(Oscar.domain(phi), d; check)[1],
+      codomain::StrandComplex = strand(Oscar.codomain(phi), d; check)[1]
     )
     @assert original_complex(domain) === Oscar.domain(phi)
     @assert original_complex(codomain) === Oscar.codomain(phi)
@@ -91,10 +92,11 @@ underlying_morphism(phi::InducedStrandMorphism) = phi.internal_morphism
 function strand(
     phi::AbsHyperComplexMorphism,
     d::FinGenAbGroupElem;
-    domain::StrandComplex = strand(Oscar.domain(phi), d)[1],
-    codomain::StrandComplex = strand(Oscar.codomain(phi), d)[1]
+    check::Bool=true,
+    domain::StrandComplex = strand(Oscar.domain(phi), d; check)[1],
+    codomain::StrandComplex = strand(Oscar.codomain(phi), d; check)[1]
   )
-  return InducedStrandMorphism(phi, d; domain, codomain)
+  return InducedStrandMorphism(phi, d; check, domain, codomain)
 end
 
 degree(c::InducedStrandMorphism) = degree(domain(c))

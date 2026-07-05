@@ -15,13 +15,15 @@
 struct StrandChainFactory{ChainType<:OFPModule} <: HyperComplexChainFactory{ChainType}
   orig::AbsHyperComplex
   d::Union{Int, FinGenAbGroupElem}
+  exponents::Dict{Tuple, Vector{Tuple{Vector{Int}, Int}}}
   mapping_dicts::Dict{Tuple, Dict}
   check::Bool
 
   function StrandChainFactory(
       orig::AbsHyperComplex{ChainType}, d::Union{Int, FinGenAbGroupElem}, check::Bool
     ) where {ChainType<:OFPModule}
-    return new{FreeMod}(orig, d, Dict{Tuple, Dict}(), check) # TODO: Specify the chain type better
+    return new{FreeMod}(orig, d, Dict{Tuple, Vector{Tuple{Vector{Int}, Int}}}(),
+                        Dict{Tuple, Dict}(), check) # TODO: Specify the chain type better
   end
 end
 
@@ -131,16 +133,20 @@ function (fac::StrandProjectionMorphismFactory)(self::AbsHyperComplexMorphism, i
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(dom, degree(strand))))
+  cod_dict = get_mapping_dict(strand, i) #Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(dom, degree(strand))))
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   return MapFromFunc(dom, cod, 
                      function(v)
                        R = base_ring(cod)
+                       one_R = one(R)
                        pre_res = sparse_row(R)
                        for (i, p) in coordinates(v)
                          for (c, e) in zip(AbstractAlgebra.coefficients(p), 
                                            AbstractAlgebra.exponent_vectors(p))
-                           pre_res = Hecke.add_scaled_row!(coordinates(get(cod_dict, (e, i), zero(cod))), pre_res, c)
+                           #pre_res = Hecke.add_scaled_row!(coordinates(get(cod_dict, (e, i), zero(cod))), pre_res, c)
+                           idx = get(cod_dict, (e, i), nothing)
+                           isnothing(idx) && continue
+                           pre_res = Hecke.add_scaled_row!(sparse_row(R, idx::Int, c), pre_res, one_R)
                          end
                        end
                        return FreeModElem(pre_res, cod)

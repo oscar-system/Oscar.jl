@@ -3,7 +3,7 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(all_exponents(M, fac.d; check=fac.check)))
+  cod_dict = get_mapping_dict(c, i)
   fac.mapping_dicts[i] = cod_dict
   return FreeMod(kk, length(cod_dict))
 end
@@ -12,6 +12,21 @@ function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
   return can_compute_index(fac.orig, i)
 end
 
+function get_mapping_dict(c::AbsHyperComplex, i::Tuple)
+  fac = chain_factory(c)::StrandChainFactory
+  M = fac.orig[i]
+  return get!(fac.mapping_dicts, i) do
+    Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(get_exponents(c, i)))
+  end
+end
+
+function get_exponents(c::AbsHyperComplex, i::Tuple)
+  fac = chain_factory(c)::StrandChainFactory
+  M = fac.orig[i]
+  return get!(fac.exponents, i) do
+    collect(all_exponents(M, fac.d; check=fac.check))
+  end
+end
 
 function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
   I = collect(i)

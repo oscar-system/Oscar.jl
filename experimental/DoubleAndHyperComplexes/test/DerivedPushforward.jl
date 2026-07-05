@@ -270,3 +270,170 @@ end
 
   @test iszero(map(C, 1, (-1,)))
 end
+
+@testset "Weyman complexes backbone" begin
+  X = abelian_d10_pi6() # Should run, too, but is too long for regular test suite.
+  #X = cubic_scroll()
+  #X = bordiga() # Yet another possibility which runs fast.
+  Q = homogeneous_coordinate_ring(X)
+  S = base_ring(Q);
+  M = canonical_bundle(X);
+  res, aug = free_resolution(Oscar.SimpleFreeResolution, M);
+  res = Oscar.ReflectedComplex(res);
+
+  ctx = Oscar.PushForwardCtx(S);
+  wctx = Oscar.WeymanCtx(ctx, res);
+
+  mb = Oscar.get_macro_block!(wctx, -1, 4, :cohomology);
+  F = res[-1]
+  alpha = -degree(F[85])
+  e = Oscar._minimal_exponent_vector(ctx, alpha)
+  h4 = Oscar.simplified_strand(ctx, e, alpha)[-4]
+  v = Oscar.MicroVec(mb, 85, e, h4[1]);
+  mv = Oscar.MacroVec(v)
+  Imv = Oscar.apply_I(mv)
+  w = addmul!(mv, Oscar.apply_P(Imv)[2], -1)
+  @test is_zero(w)
+
+  F = res[-5]
+  for k in 1:5
+    mb = Oscar.get_macro_block!(wctx, -5, 4, :cohomology);
+    alpha = -degree(F[k])
+    e = Oscar._minimal_exponent_vector(ctx, alpha)
+    h4 = Oscar.simplified_strand(ctx, e, alpha)[-4]
+    v = Oscar.MicroVec(mb, k, e, h4[1]);
+    mv = Oscar.MacroVec(v)
+    Imv = Oscar.apply_I(mv)
+    PImv = Oscar.apply_P(Imv)
+    w = mv + (-1)*PImv[end]
+    @test all(is_zero, PImv[1:end-1])
+    @test is_zero(w)
+
+    CImv = Oscar.apply_cech_map(Imv)
+    HCImv = Oscar.apply_homotopy_map(CImv)
+    HCImv2 = Oscar.apply_homotopy_map(Oscar.apply_cech_map(Imv))
+    @test is_zero(HCImv + (-1)*HCImv2)
+
+    phiv = Oscar.apply_weyman_differential(mv)
+    @test is_zero(first(phiv))
+  end
+
+# F = res[-5]
+# for k in 1:ngens(F)
+#   # k = 26
+#   mv = Oscar.MacroVec(wctx, -5, 4, :cohomology);
+#   alpha = -degree(F[k])
+#   e = Oscar._minimal_exponent_vector(ctx, alpha)
+#   h4 = Oscar.simplified_strand(ctx, e, alpha)[-4]
+#   for w in gens(h4)
+#     # w = h4[23]
+#     v = Oscar.MicroVec(mv, k, e, w);
+#     a = Oscar.apply_weyman_differential(Oscar.MacroVec(v))
+#   end
+# end
+
+end
+
+@testset "new weyman complexes" begin
+  X = abelian_d10_pi6() # Should run, too, but is too long for regular test suite.
+  #X = cubic_scroll()
+  #X = bordiga() # Yet another possibility which runs fast.
+  Q = homogeneous_coordinate_ring(X)
+  S = base_ring(Q);
+  M = canonical_bundle(X);
+  res, aug = free_resolution(Oscar.SimpleFreeResolution, M);
+  ctx = Oscar.PushForwardCtx(S);
+  #ctx.fixed_exponent_vector = [5 for _ in 1:5]
+  dir_im = Oscar.DirectImageComplex(ctx, res);
+  wctx = Oscar.WeymanCtx(ctx, Oscar.ReflectedComplex(res));
+  mb = Oscar.get_macro_block!(wctx, -5, 4, :cohomology);
+  v = Oscar.MicroVec(mb, 6, 70)
+  w = Oscar.apply_weyman_differential(Oscar.MacroVec(v))
+  
+  w0 = Oscar.MacroVec(v)
+  w1 = Oscar.apply_I(w0)
+  w10 = Oscar.apply_P(w1)
+  w2_1 = (-1)*Oscar.apply_phi.(w1)
+  w2_2 = Oscar.apply_cech_map(w1)
+  w2 = w2_1[2:end] + w2_2
+  pushfirst!(w2, first(w2_1))
+  
+  w3 = Oscar.apply_P(w2)
+  w3_alt = Oscar.apply_P(w2_1)
+  @assert w3 == w3_alt
+  w3_aa = Oscar.apply_weyman_differential(w0)
+  @assert w3 == w3_aa
+  
+  #[Oscar.project_to_weyman_complex!([Oscar.MacroVec(deepcopy(v))]) for (_, v) in Oscar.micro_vectors(w3[end])]
+  
+  w4 = Oscar.project_to_weyman_complex!(deepcopy(w3))
+  w4_alt = Oscar.apply_weyman_differential(w0)
+  @test w4 == w4_alt
+end
+  
+@testset "NewToricCtx" begin
+  X = hirzebruch_surface(NormalToricVariety, 3)
+
+  ctx = Oscar.NewToricCtx(X)
+  S = Oscar.graded_ring(ctx)
+  G = grading_group(S)
+  alpha = G[1]
+  Oscar.all_monomials(ctx, alpha)
+  Oscar.all_monomials_inv(ctx, alpha)
+  p = [7, 2, 3, -5]
+  str_inc = Oscar.fine_strand(ctx, p)
+  str_simp = Oscar.simplified_fine_strand(ctx, p)
+  @test Oscar.original_complex(str_simp) === str_inc
+  q = [7, 2, -6, -5]
+  str_inc = Oscar.fine_strand(ctx, q)
+  str_simp = Oscar.simplified_fine_strand(ctx, q)
+  @test Oscar.original_complex(str_simp) === str_inc
+
+  @test Oscar.fine_strand(ctx, [1, 0, 0, -1]) === Oscar.fine_strand(ctx, [5, 0, 4, -70])
+  trunc_str = ctx[10, G[1]]
+  @test !is_zero(map(trunc_str, 0))
+
+  # test the structure sheaf 
+  ctx = Oscar.NewToricCtx(X);
+  z = zero(G)
+  str = ctx[0, z]
+  [ngens(str[i]) for i in 0:-1:-2]
+
+  str_simp = Oscar.simplified_strand(ctx, 0, z)
+  betti_nums = [ngens(str_simp[i]) for i in 0:-1:-2]
+  @test isone(first(betti_nums)) && all(is_zero, betti_nums[2:end])
+
+
+  simp_trunc_str = Oscar.simplified_strand(ctx, 10, G[1])
+  Oscar.induced_cohomology_map(ctx, 1, 2, G[1], 0)
+  Oscar.simplified_strand_homotopy(ctx, 3, G[1], -1)
+  Oscar.simplified_strand_inclusion(ctx, 3, G[1], -1)
+
+  # test compatibility with the already established code 
+  ctx[1, 2, G[1]]
+  Oscar.multiplication_map(ctx, S[1], 1, G[1], 0)
+
+  ctx_old = Oscar.ToricCtx(X);
+  for _ in 1:100
+    g = sum(rand(-5:5)*g for g in gens(G); init=zero(G))
+    e = rand(0:10)
+    ee = [e for _ in 1:ngens(irrelevant_ideal(X))]
+    s1 = Oscar.simplified_strand(ctx, e, g)
+    s2 = Oscar.simplified_strand(ctx_old, ee, g)
+    @test all(ngens(s1[k]) == ngens(s2[k]) for k in 0:-1:-dim(X))
+  end
+
+
+  # Test computation of support sets in easy cases. 
+  IP = projective_space(NormalToricVariety, 2)
+  S = cox_ring(IP)
+  G = grading_group(S)
+  g = G[1]
+  ctx = Oscar.NewToricCtx(IP);
+  supps = Dict{Int, Vector{Int}}(i => Oscar.support_set(ctx, i) for i in 0:dim(IP))
+
+  @test Oscar.optimal_k(ctx, 0, zero(G)) == 0
+  @test Oscar.optimal_k(ctx, 1, -g) == 0
+  @test Oscar.optimal_k(ctx, 2, -3*g) == 1
+  @test Oscar.optimal_k(ctx, 2, -4*g) == 2
+end
