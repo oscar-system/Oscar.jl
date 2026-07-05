@@ -40,7 +40,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}},
     ind += 1
   end
   c[ind]::FreeMod
-  R = base_ring(c[ind])::MPolyRing{<:FieldElem}
+  R = base_ring(c[ind])::MPolyRing{<:RingElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
@@ -75,7 +75,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}},
     ind += 1
   end
   c[ind]::FreeMod
-  R = base_ring(c[ind])::MPolyRing{<:FieldElem}
+  R = base_ring(c[ind])::MPolyRing{<:RingElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
@@ -107,7 +107,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}},
       result = is_even(ind) ? result*p : result//p
       I = Int[i for i in 1:m if !(i in J0)]
     else
-      A_red = map_entries(reduction_map, A_ess)::MatrixElem{<:FieldElem}
+      A_red = map_entries(reduction_map, A_ess)::MatrixElem{<:RingElem}
       rk, M = rref(transpose(A_red))
       @assert r == rk "reduction map did not recover the anticipated rank ($r anticipated vs. $rk real)"
       pivots = Int[findfirst(!is_zero(a) for a in M[i, :]) for i in 1:nrows(M) if !is_zero(M[i, :])]
@@ -137,7 +137,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}},
     ind -= 1
   end
   c[ind]::FreeMod
-  R = base_ring(c[ind])::MPolyRing{<:FieldElem}
+  R = base_ring(c[ind])::MPolyRing{<:RingElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
@@ -172,7 +172,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}},
     ind -= 1
   end
   c[ind]::FreeMod
-  R = base_ring(c[ind])::MPolyRing{<:FieldElem}
+  R = base_ring(c[ind])::MPolyRing{<:RingElem}
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)

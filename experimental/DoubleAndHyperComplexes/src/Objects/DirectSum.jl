@@ -87,7 +87,7 @@ function _direct_sum(R::Ring, phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModu
     ig3 = [inc_cod(v) for v in ig2]
     push!(img_gens, ig3)
   end
-  return hom(domain, codomain, reduce(vcat, img_gens))
+  return hom(domain, codomain, is_empty(img_gens) ? elem_type(codomain)[] : reduce(vcat, img_gens))
 end
 
 function can_compute(::DirectSumMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)

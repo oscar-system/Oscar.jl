@@ -1558,7 +1558,7 @@ function simplified_strand_inclusion(
     G = grading_group(S)
     delta = sum(degree(x) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
-    maps = [map_to_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
+    maps = FreeModuleHom{FreeMod{elem_type(kk)}, FreeMod{elem_type(kk)}, Nothing}[map_to_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
     #for (k, phi) in enumerate(maps)
       #@assert domain(phi) === codomain(canonical_projection(dom, k))
       #@assert codomain(phi) === codomain(canonical_projection(cod, k))
