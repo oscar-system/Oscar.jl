@@ -31,6 +31,22 @@
   end
 end
 
+
+function Base.show(io::IO, RS::MatroidRealizationSpace)
+  if RS.ambient_ring isa MPolyRing
+    # Backed by a genuine affine scheme (this is also how the schemes machinery
+    # displays such a space when it appears as a chart, e.g. in a blow-up):
+    # defer to the underlying scheme's terse show.
+    show(io, underlying_scheme(RS))
+  elseif has_attribute(RS, :is_realizable) && !is_realizable(RS)
+    print(io, "Realization space of a non-realizable matroid")
+  else
+    # ambient ring is a field or ZZ; underlying_scheme is not implemented for
+    # these, so the generic scheme show would error -- print a terse summary.
+    print(io, "Matroid realization space")
+  end
+end
+
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
   if has_attribute(RS, :is_realizable) && !is_realizable(RS)
     if RS.char === nothing && RS.q === nothing
@@ -148,27 +164,24 @@ realization_matrix(RS::MatroidRealizationSpace) = RS.realization_matrix
 function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   # prepare the combinatorial data
 
+  rk = rank(M)
+  n = length(M)
+
   circs = fundamental_circuits_of_basis(M, B)
+  E_dict, G_sharp = fundamental_circuits_basis_graph(circs, B, n)
+  SF = spanning_forest(G_sharp)
 
   nonIdCols = setdiff(matroid_groundset(M), B)
   circs = [setdiff(c, nonIdCols) for c in circs]
 
-  rk = rank(M)
-  n = length(M)
-
   # we start by computing the number of variables:
-  numVars = 0
-  unUsedRowsForOnes = collect(2:rk)
-  for col in 1:(n - rk), row in 1:rk
-    circ = circs[col]
-    if B[row] != minimum(circ) && B[row] in circ
-      if row in unUsedRowsForOnes
-        unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row])
-      else
-        numVars += 1
-      end
-    end
+  numVars = (n - rk)*rk
+  # every circuit yields zeros in the entries which are not part of the circuit
+  for C in circs
+    numVars -= (rk-length(C))
   end
+  # every edge in the spanning tree we computed yields a one in the matrix
+  numVars -= length(SF)
 
   if numVars > 0
     R, x = polynomial_ring(F, numVars)
@@ -177,10 +190,6 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
     x = Vector{MPolyRingElem}()
   end
 
-  unUsedRowsForOnes = collect(2:rk)
-
-  # create the matrix and fill it with entries
-
   mat = zero_matrix(R, rk, n)
 
   for i in 1:rk
@@ -188,25 +197,16 @@ function realization_space_matrix(M::Matroid, B::Vector{Int}, F::Ring)
   end
 
   varCounter = 1
-
-  for col in 1:(n - rk), row in 1:rk
-    circ = circs[col]
-    c = nonIdCols[col]
-
-    if B[row] == minimum(circ) #somehow these minimums of the circuit == B[row] shows the first nonzero entry in each column int he part of the matrix that is not the identity - I don't yet understand why or how that works.
-      mat[row, c] = R(1)
-    elseif B[row] in circ
-      if row in unUsedRowsForOnes
-        mat[row, c] = R(1)
-        unUsedRowsForOnes = setdiff(unUsedRowsForOnes, [row]) #unUsedRowsForOnes corresponds to scaling the first nonzero entry in each row (for the part of the matrix that is not the identity)
-      else
-        mat[row, c] = x[varCounter]
-        varCounter = varCounter + 1
-      end
+  for e in edges(G_sharp)
+    (i,j) = E_dict[e]
+    if e in SF
+      mat[i,j] = R(1)
     else
-      mat[row, c] = R(0)
+      mat[i,j] = x[varCounter]
+      varCounter += 1
     end
   end
+
   return (R, mat)
 end
 
@@ -219,6 +219,57 @@ function fundamental_circuits_of_basis(M::Matroid, B::Vector{Int})
     push!(fund_circs, fundamental_circuit(M, B, i))
   end
   return fund_circs
+end
+
+
+# This creates the bipartite graph G(D^#) as described before Theorem 6.4.7 in Oxley's book.
+# It is the incidence graph between a basis of the matroid and its associated fundamental circuits.
+# A spanning forest of the graph tells us which entries of the matrix to scale to one.
+# Input: the output of the method 'fundamental_circuits_of_basis(M,B)' with the basis 'B' and the size of the matroid 'n'
+# Output: a dictionary mapping the edges to the positions in the realization matrix and the graph G(D^#)
+function fundamental_circuits_basis_graph(FC, B, n)
+  A = zero_matrix(ZZ,n,n)
+  E = Vector{Vector{Int64}}([])
+  E_dict = Dict()
+
+  for f in FC
+    r = first(setdiff(f,B))
+    for i in 1:length(B)
+      l = B[i]
+      if l in f
+        A[r,l] = 1
+        A[l,r] = 1
+        if r > l
+          E_dict[Edge(r,l)] = (i,r)
+        else
+          E_dict[Edge(l,r)] = (i,r)
+        end
+      end
+    end
+  end
+  return E_dict, graph_from_adjacency_matrix(Undirected, A)
+end
+
+# This function greedily computes a spanning forest in an undirected graph
+function spanning_forest(G)
+  parent = Dict{Int,Int}(v => v for v in vertices(G))
+  function find_root(x)
+    while parent[x] != x
+      parent[x] = parent[parent[x]]
+      x = parent[x]
+    end
+    return x
+  end
+  S = Edge[]
+  for e in edges(G)
+    u, v = src(e), dst(e)
+    ru, rv = find_root(u), find_root(v)
+    if ru != rv
+      parent[ru] = rv
+      push!(S, e)
+    end
+  end
+  return S
 end
 
 @doc raw"""
@@ -332,26 +383,31 @@ function realization_space(
 
   goodM = isomorphic_matroid(M, [i for i in 1:n])
 
-  Bs = bases(goodM)
+  # Reduce to simple matroid: zero columns for loops, shared columns for parallel elements
+  workM, workn, rep_of, rep_col, expand_matrix = _simplify_for_realization_space(goodM)
+
+  Bs = bases(workM)
 
   if !isnothing(B)
-    goodB = sort!(Int.([M.gs2num[j] for j in B]))
+    goodB_full = sort!(Int.([M.gs2num[j] for j in B]))
+    goodB = sort!([rep_col[rep_of[e]] for e in goodB_full])
   else
-    goodB = find_good_basis_heuristically(goodM)
+    goodB = find_good_basis_heuristically(workM)
   end
-  polyR, mat = realization_space_matrix(goodM, goodB, ground_ring)
+  polyR, mat = realization_space_matrix(workM, goodB, ground_ring)
 
   eqs = Vector{RingElem}()
   ineqs = Vector{RingElem}()
 
   #need to catch the corner-case if there are no variables at all
   if !(polyR isa MPolyRing)
-    RS = MatroidRealizationSpace(ideal(polyR, [0]), ineqs, polyR, mat, char, q, ground_ring)
+    full_mat = expand_matrix(mat, polyR)
+    RS = MatroidRealizationSpace(ideal(polyR, [0]), ineqs, polyR, full_mat, char, q, ground_ring)
     set_attribute!(RS, :is_realizable, :true)
     return RS
   end
 
-  for col in subsets(Vector(1:n), rk)
+  for col in subsets(Vector(1:workn), rk)
     col_det = det(mat[:, col])
 
     if total_degree(col_det) <= 0
@@ -411,7 +467,7 @@ function realization_space(
     end
   end
 
-  if saturate
+  if saturate && RS.defining_ideal isa MPolyIdeal
     RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
     if isone(RS.defining_ideal)
       set_attribute!(RS, :is_realizable, :false)
@@ -419,7 +475,105 @@ function realization_space(
     end
   end
 
+  if simplify && saturate
+    RS = reduce_realization_space(RS)
+  end
+
+  # we filter out the inequalities that don't actually meet the realization space:
+  if simplify
+    if iszero(RS.defining_ideal)
+      # With trivial defining ideal, an inequation is redundant iff it is a unit
+      # in the ambient ring (after gens_2_prime_divisors this is essentially never
+      # the case, but check defensively). Avoids one Gröbner basis per inequation.
+      filter!(!is_unit, RS.inequations)
+    else
+      redundant_inequations = Vector{RingElem}()
+      for ineq in RS.inequations
+        if isone(RS.defining_ideal + ideal(RS.ambient_ring,[ineq]))
+          push!(redundant_inequations,ineq)
+        end
+      end
+      for ineq in redundant_inequations
+        deleteat!(RS.inequations, findfirst(x->x==ineq,RS.inequations))
+      end
+    end
+  end
+
+  # Expand the simple realization matrix back to the full n-column matrix
+  if RS.realization_matrix !== nothing
+    RS.realization_matrix = expand_matrix(RS.realization_matrix, RS.ambient_ring)
+  end
+
   return RS
+end
+
+# For a non-simple matroid, compute the simple matroid on one representative per
+# parallel class and return a function to expand the smaller matrix back to n columns.
+# Returns (workM, workn, rep_of, rep_col, expand_fn) where:
+#   workM   - simple matroid with integer groundset 1..workn
+#   workn   - number of elements in workM
+#   rep_of  - maps each non-loop element of goodM to its parallel-class representative
+#   rep_col - maps each representative to its column index in workM (1..workn)
+#   expand_fn(mat, R) - expands an rk×workn matrix to an rk×n matrix
+function _simplify_for_realization_space(goodM::Matroid)
+  n = length(goodM)
+  gs = matroid_groundset(goodM)  # already [1,...,n] after isomorphic_matroid
+
+  # Fast path: simple matroids need no reduction
+  if is_simple(goodM)
+    rep_of = Dict(e => e for e in gs)
+    rep_col = Dict(gs[i] => i for i in 1:n)
+    return (goodM, n, rep_of, rep_col, (mat, R) -> mat)
+  end
+
+  loop_elems = loops(goodM)
+  loop_set = Set(loop_elems)
+  non_loops = [e for e in gs if !(e in loop_set)]
+
+  # Build parallel classes: e and f are parallel iff rank({e,f}) == 1
+  parallel_classes = Vector{Vector{Int}}()
+  assigned = Set{Int}()
+  for e in non_loops
+    e in assigned && continue
+    cls = [e]
+    push!(assigned, e)
+    for f in non_loops
+      f in assigned && continue
+      if rank(goodM, [e, f]) == 1
+        push!(cls, f)
+        push!(assigned, f)
+      end
+    end
+    push!(parallel_classes, cls)
+  end
+
+  representatives = [cls[1] for cls in parallel_classes]
+  m = length(representatives)
+
+  rep_of = Dict{Int,Int}()
+  for cls in parallel_classes
+    for e in cls
+      rep_of[e] = cls[1]
+    end
+  end
+  rep_col = Dict(representatives[i] => i for i in 1:m)
+
+  simpleM = isomorphic_matroid(restriction(goodM, representatives), collect(1:m))
+
+  function expand_to_full(simple_mat, R)
+    rk = size(simple_mat, 1)
+    full_mat = zero_matrix(R, rk, n)
+    for j in gs
+      j in loop_set && continue
+      col = rep_col[rep_of[j]]
+      for i in 1:rk
+        full_mat[i, j] = simple_mat[i, col]
+      end
+    end
+    return full_mat
+  end
+
+  return (simpleM, m, rep_of, rep_col, expand_to_full)
 end
 
 # A heuristic function that tries to find a sensible basis for the moduli space computation for which the defining ideal is not too complicated
@@ -671,7 +825,15 @@ end
 function n_new_Sgens(
   x::RingElem, t::RingElem, Sgens::Vector{<:RingElem}, R::Ring, xs::Vector{<:RingElem}
 )
-  preSgens = unique!(elem_type(R)[sub_v(x, t, f, R, xs) for f in Sgens])
+  den = denominator(t)
+  if is_unit(den)
+    # Unit denominator: polynomial ring hom avoids fraction-field JIT overhead.
+    m = hom(R, R, map(v -> v == x ? divexact(numerator(t), den) : v, xs))
+    preSgens = unique!(elem_type(R)[m(f) for f in Sgens])
+  else
+    m = sub_map(x, t, R, xs)
+    preSgens = unique!(elem_type(R)[numerator(m(f)) for f in Sgens])
+  end
   if R(0) in preSgens
     return [R(0)]
   end
@@ -686,7 +848,14 @@ function n_new_Igens(
   R::Ring,
   xs::Vector{<:RingElem},
 )
-  preIgens = unique!([clean(sub_v(x, t, f, R, xs), R, Sgens) for f in Igens])
+  den = denominator(t)
+  if is_unit(den)
+    m = hom(R, R, map(v -> v == x ? divexact(numerator(t), den) : v, xs))
+    preIgens = unique!([clean(m(f), R, Sgens) for f in Igens])
+  else
+    m = sub_map(x, t, R, xs)
+    preIgens = unique!([clean(numerator(m(f)), R, Sgens) for f in Igens])
+  end
   return filter(!iszero, preIgens)
 end
 
@@ -822,9 +991,18 @@ function reduce_realization_space(
       normal_Sgens = Vector{RingElem}()
     else
       Sgens_new = phi.(Sgens)
-      normal_Sgens = [normal_form(g, Inew) for g in Sgens_new]
-      if !(ambR(0) in normal_Sgens)
-        normal_Sgens = gens_2_prime_divisors(Sgens_new)
+      if iszero(Inew)
+        # normal_form is identity when Inew is zero; checking iszero on phi-images suffices.
+        if ambR(0) in Sgens_new
+          normal_Sgens = Sgens_new  # triggers the "not realizable" branch below
+        else
+          normal_Sgens = gens_2_prime_divisors(Sgens_new)
+        end
+      else
+        normal_Sgens = [normal_form(g, Inew) for g in Sgens_new]
+        if !(ambR(0) in normal_Sgens)
+          normal_Sgens = gens_2_prime_divisors(Sgens_new)
+        end
       end
     end
   end

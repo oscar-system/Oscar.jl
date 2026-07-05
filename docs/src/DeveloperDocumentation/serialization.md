@@ -286,22 +286,81 @@ Note for now `save_typed_object` must be wrapped in either a `save_data_array` o
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
-`serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writing to a file.
+`serializers.jl` file. The abstract type hierarchy is:
 
-When passing `serialize_refs = false` to the `JSONSerializer` it will not
-store the refs of any types that are registered with the `uses_id` flag.
-When using this flag it is left up to the user to guarantee that any refs
-mentioned in the file are loaded prior to loading the file.
-This is useful for cases where the user wants to store multiple objects that
-refer to the same object, but does not want to store the refs in each file.
-Instead, one can now store the refs in a separate file, and store the objects
-themselves without the refs.
+```
+OscarSerializer
+├── JSONSerializer        # default; single JSON file with inline _refs
+├── IPCSerializer         # inter-process communication; no refs written
+└── MultiFileSerializer
+    ├── LPSerializer      # LinearProgram + external .lp file
+    └── MultiFileRefSerializer  # one file per ref object, prefix-based naming
+```
 
-There is also the `IPCSerializer` which at the moment is
-equal to the `JSONSerializer(serialize_refs = false)`. However, this serializer
-may be changed in the future to support binary representations of some types
-for faster inter-process communication (IPC).
+#### JSONSerializer
+
+The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
+(parent rings, coefficient fields, etc.) are inlined under the `_refs` key and
+resolved by UUID during load.
+
+```julia
+JSONSerializer()                         # serialize_refs=true (default)
+JSONSerializer(serialize_refs=false)     # omit _refs; caller must pre-load them
+```
+
+When `serialize_refs = false` it is the caller's responsibility to ensure that
+any UUID references in the file are already in `global_serializer_state` before
+calling `load`. This is useful for storing many objects that share a large parent
+without duplicating it: serialize the parent once (with its id), then serialize
+the children with `serialize_refs=false`.
+
+#### IPCSerializer
+
+Equivalent to `JSONSerializer(serialize_refs=false)` at present. Reserved for
+future optimised representation for inter-process communication (IPC).
+
+#### LPSerializer
+
+Handles `LinearProgram{QQFieldElem}` by writing the LP data to an external file
+in the standard LP file format (`.lp`) and storing only the filename in the
+`.mrdi` JSON. The `basepath` field is used as the filename prefix for the `.lp`
+file.
+
+```julia
+LPSerializer(basepath::String)
+```
+
+The `.mrdi` and `.lp` files are separate; both must be kept together and the
+same `LPSerializer(basepath)` must be passed to both `save` and `load`.
+
+```julia
+ser = Oscar.Serialization.LPSerializer("/data/project/lp")
+save("/data/project/lp.mrdi", lp; serializer=ser)
+load("/data/project/lp.mrdi"; serializer=ser)
+# also creates: /data/project/lp-<objectid>.lp
+```
+
+#### MultiFileRefSerializer
+
+Writes `<prefix>.mrdi` for the root object and one `<prefix>_<UUID>.mrdi` (or
+`<prefix>_<UUID>.mrdi.gz` with `compression=:gzip`) file per referenced object,
+all flat in the same directory. The path argument is used as a prefix verbatim
+(no extension stripping): `save("my_data", obj; serializer=MultiFileRefSerializer())`
+creates `my_data.mrdi` and `my_data_<UUID>.mrdi`.
+
+```julia
+MultiFileRefSerializer()                    # basepath resolved at save time
+MultiFileRefSerializer(basepath::String)    # explicit stem path
+MultiFileRefSerializer(basepath, compression)  # with compression (internal use)
+```
+
+`_ref_files` in the main file lists ref basenames in leaf-first (dependency) order
+so `deserializer_open` can load them in the correct sequence without requiring a
+separate topological sort.
+
+On load, `deserializer_open` opens each ref file before deserializing the main file.
+Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
+
 
 ### Upgrades
 
