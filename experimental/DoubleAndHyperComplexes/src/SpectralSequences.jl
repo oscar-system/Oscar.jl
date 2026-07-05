@@ -837,7 +837,7 @@ function multiplication_map(
                                # `domain(mon_mult)` and `dom` have generating sets so that 
                                # `dom[i] = domain(mon_mult)[i] ⊗ R`. 
                                mon_gen = domain(mon_mult)[i]
-                               row = map_entries(R, coordinates(mon_mult(mon_gen)))
+                               row = map_entries(coefficient_map(ctx.transfer), coordinates(mon_mult(mon_gen)))
                                new_row = Hecke.add_scaled_row!(row, new_row, c)
                              end
                              new_row

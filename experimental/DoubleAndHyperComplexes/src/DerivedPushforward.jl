@@ -1021,7 +1021,7 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, d::FinGenAbGroupE
     Dict{typeof(d), AbsHyperComplex}()
   end
   return get!(strands, d) do
-    res, tr = change_base_ring(ctx.R, ctx.pure_ctx[alpha, d])
+    res, tr = change_base_ring(coefficient_map(ctx.transfer), ctx.pure_ctx[alpha, d])
     res
   end
 end
@@ -1031,7 +1031,7 @@ function simplified_strand(ctx::ToricCtxWithParams,
   )
   str = simplified_strand(ctx.pure_ctx, alpha, d)
   return get!(ctx.simplified_strands, str) do
-    change_base_ring(ctx.R, str)[1]
+    change_base_ring(coefficient_map(ctx.transfer), str)[1]
   end
 end
 
@@ -1040,7 +1040,7 @@ function simplified_strand_homotopy(
   )
   h = simplified_strand_homotopy(ctx.pure_ctx, alpha, d, p)
   return get!(ctx.simplified_strands_homotopy, h) do
-    change_base_ring(ctx.R, h; 
+    change_base_ring(coefficient_map(ctx.transfer), h; 
                      domain=ctx[alpha, d][p], 
                      codomain=ctx[alpha, d][p+1]
                     )[1]
@@ -1052,7 +1052,7 @@ function simplified_strand_inclusion(
   )
   inc = simplified_strand_inclusion(ctx.pure_ctx, alpha, d, p)
   res = get!(ctx.simplified_strands_to_orig, inc) do
-    change_base_ring(ctx.R, inc; 
+    change_base_ring(coefficient_map(ctx.transfer), inc; 
                      domain=simplified_strand(ctx, alpha, d)[p],
                      codomain=ctx[alpha, d][p]
                     )[1]
@@ -1067,7 +1067,7 @@ function simplified_strand_projection(
   )
   h = simplified_strand_projection(ctx.pure_ctx, alpha, d, p)
   return get!(ctx.simplified_strands_from_orig, h) do
-    change_base_ring(ctx.R, h;
+    change_base_ring(coefficient_map(ctx.transfer), h;
                      domain=ctx[alpha, d][p],
                      codomain=simplified_strand(ctx, alpha, d)[p]
                     )[1]
@@ -1080,7 +1080,7 @@ function induced_cohomology_map(
     i::Int
   )
   return get!(ctx.induced_cohomology_maps, (e0, e1, d, i)) do 
-    change_base_ring(ctx.R, 
+    change_base_ring(coefficient_map(ctx.transfer), 
                      induced_cohomology_map(ctx.pure_ctx, e0, e1, d, i);
                      domain=simplified_strand(ctx, e0, d)[i],
                      codomain=simplified_strand(ctx, e1, d)[i]
@@ -1098,7 +1098,7 @@ function cohomology_model_inclusion(ctx::ToricCtxWithParams, d::FinGenAbGroupEle
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
   to_orig = map_to_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
-  res, _, _ = change_base_ring(ctx.R, to_orig; domain=h[i], codomain=c[i])
+  res, _, _ = change_base_ring(coefficient_map(ctx.transfer), to_orig; domain=h[i], codomain=c[i])
   return res
 end
 
@@ -1106,7 +1106,7 @@ function cohomology_model_projection(ctx::ToricCtxWithParams, d::FinGenAbGroupEl
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
   from_orig = map_from_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
-  res, _, _ = change_base_ring(ctx.R, from_orig; domain=c[i], codomain=h[i])
+  res, _, _ = change_base_ring(coefficient_map(ctx.transfer), from_orig; domain=c[i], codomain=h[i])
   return res
 end
 
@@ -1121,7 +1121,7 @@ end
 function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
   if all(a <= b for (a, b) in zip(alpha, beta))
     return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
-      res, _, _ = change_base_ring(ctx.R, ctx.pure_ctx[alpha, beta, d]; domain=ctx[alpha, d], codomain=ctx[beta, d])
+      res, _, _ = change_base_ring(coefficient_map(ctx.transfer), ctx.pure_ctx[alpha, beta, d]; domain=ctx[alpha, d], codomain=ctx[beta, d])
       res
     end
   elseif all(a >= b for (a, b) in zip(alpha, beta)) 
