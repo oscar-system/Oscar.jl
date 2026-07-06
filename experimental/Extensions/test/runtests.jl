@@ -12,4 +12,12 @@ using HomotopyContinuation
     ws = witness_set(J)
     @test length(ws.R) == 3
   end
+
+  @testset "" begin
+    R, a = polynomial_ring(QQ, :a => (1:2, 1:2))
+    I = ideal(vec(a[:,1]*transpose(a[:,2])-Array(R[1//2 1; 0 1//2])))
+    Oscar.dim(I)
+    dim_numerical(I)
+  end
+
 end
