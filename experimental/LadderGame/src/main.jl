@@ -24,7 +24,7 @@ end
 
 function _ladder_start(G::PermGroup, U::PermGroup)
   st = [get_transversal_chain(U)]
-  r = LadderData(G,G)
+  r = LadderStep(G,G)
   r.T = [one(G)]
   r.Tmap = [ map_from_func(G, G, x -> one(G)) ]
   r.D = [one(G)]
@@ -37,8 +37,8 @@ function _ladder_start(G::PermGroup, U::PermGroup)
   return r
 end
 
-function down_step(A::PermGroup, U::PermGroup, rec::LadderData)
-  r = LadderData(
+function down_step(A::PermGroup, U::PermGroup, rec::LadderStep)
+  r = LadderStep(
         # Ai = A
         # Aim1 = rec.Ai
         # last = rec
@@ -86,8 +86,8 @@ function down_step(A::PermGroup, U::PermGroup, rec::LadderData)
   return r
 end
 
-function up_step(A::PermGroup, U::PermGroup, rec::LadderData)
-  r = LadderData(
+function up_step(A::PermGroup, U::PermGroup, rec::LadderStep)
+  r = LadderStep(
         # Ai = A
         # Aim1 = rec.Ai
         # last = rec
@@ -288,7 +288,7 @@ end
 
 function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   n = sum(p)
-  L = LadderData[]
+  L = LadderStep[]
   pp = copy(p)
   H = young_subgroup(pp ; full=full)
   s = n - pp[1]
