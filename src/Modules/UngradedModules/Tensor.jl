@@ -3,14 +3,14 @@
 ##################################################
 
 @doc raw"""
-    tensor_product(F::FreeMod...; task::Symbol = :none)
+    tensor_product(F::FreeMod...; task::Symbol = :none, minimal::Bool = true)
 
 Given a collection of free modules, say, $F_1, \dots, F_n$ over a ring $R$, return $F_1\otimes_R \cdots \otimes_R F_n$.
 
 
 If `task = :map`, additionally return the map which sends a tuple $(f_1,\dots, f_n)$ of elements $f_i\in F_i$ to the pure tensor $f_1\otimes\dots\otimes f_n$.
 """
-function tensor_product(G::FreeMod...; task::Symbol = :none)
+function tensor_product(G::FreeMod...; task::Symbol = :none, minimal::Bool = true)
   gs = [is_graded(g) for g in G]
   if !all(gs) && !all(!x for x in gs)
     error("All factors must either be graded or all must be ungraded.")
