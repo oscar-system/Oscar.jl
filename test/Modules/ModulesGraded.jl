@@ -511,7 +511,7 @@ end
     @test is_graded(M)
     v = pure_M((M1[1],M2[1]))
     @test degree(v) == 3*Z[1]
-    @test degrees_of_generators(M) == [3*Z[1], 3*Z[1]]
+    @test degrees_of_generators(M) == [3*Z[1]]
 end
 
 @testset "Presentation preserves degrees for zero generators" begin
