@@ -97,13 +97,14 @@ Witness set for dimension 1 of degree 4
 witness_set(I::Vector{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(I); show_progress, args...)
 witness_set(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...) = witness_set(gens(I); show_progress, args...)
 
-function Oscar.dim_numerical(I::Vector{QQMPolyRingElem})
-  # This is provided by HomotopyContinuation.jl and computes the
-  # dimension based on the Jacobian rank at a random point.
-  F = System(I)
-  return HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
-end
+# currently not working as expected
+#function Oscar.dim_numerical(I::Vector{QQMPolyRingElem})
+#  # This is provided by HomotopyContinuation.jl and computes the
+#  # dimension based on the Jacobian rank at a random point.
+#  F = System(I)
+#  return HomotopyContinuation.nvariables(F) - rank(HomotopyContinuation.fixed(F))
+#end
 
-Oscar.dim_numerical(I::MPolyIdeal{QQMPolyRingElem}) = Oscar.dim_numerical(gens(I))
+#Oscar.dim_numerical(I::MPolyIdeal{QQMPolyRingElem}) = Oscar.dim_numerical(gens(I))
 
 end
