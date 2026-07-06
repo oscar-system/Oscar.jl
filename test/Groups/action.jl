@@ -207,3 +207,32 @@ end
   @test (order(F) - 1) * order(image(epi)[1]) == order(G)
   @test_throws AssertionError on_lines(zero(V), one(G))
 end
+
+@testset "action of group automorphisms on groups" begin
+  G = dihedral_group(20)
+  A = automorphism_group(G)
+  H, _ = sylow_subgroup(G, 2)
+
+  a = gen(A, 1)
+  g = gen(G, 1)
+  @test g^a == a(g)
+  @test H^a == a(H)
+
+  Omega = gset(A, collect(H))
+  @test action_function(Omega) === ^
+  @test sort(map(length, orbits(Omega))) == [1, 1, 10]
+
+  Omega = gset(A, [H])
+  @test action_function(Omega) === ^
+  @test map(length, orbits(Omega)) == [5]
+
+  # `on_subgroups` works only for the action of automorphisms
+  Omega = gset(A, on_subgroups, [H])
+  @test map(length, orbits(Omega)) == [5]
+  @test any(a -> on_subgroups(H, a) != H, gens(A))
+
+  G = dihedral_group(PermGroup, 20)
+  H = sylow_subgroup(G, 2)[1]
+  @test_throws MethodError on_subgroups(H, gen(G,1))
+  @test_throws ArgumentError gset(G, on_subgroups, [H])
+end

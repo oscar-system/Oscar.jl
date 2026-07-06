@@ -475,7 +475,7 @@ end
    G = alternating_group(5)
    W = wreath_product(G, G)
    N = kernel(canonical_projection(W))[1]
-   @test_throws ErrorException complement_classes(W, N)
+   @test_throws GAP.GAPError complement_classes(W, N)
 
    # pc group, with complements
    G = PcGroup(symmetric_group(4))

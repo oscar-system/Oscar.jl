@@ -538,11 +538,11 @@ function on_lines(line::AbstractAlgebra.Generic.FreeModuleElem, x::GAPGroupElem)
 end
 
 @doc raw"""
-    on_subgroups(x::GapObj, g::GAPGroupElem) -> GapObj
-    on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup -> T
+    on_subgroups(x::GapObj, g::AutomorphismGroupElem) -> GapObj
+    on_subgroups(x::T, g::AutomorphismGroupElem) where T <: GAPGroup -> T
 
-Return the image of the group `x` under `g`. Note that `x` must
-be a subgroup of the domain of `g`.
+Return the image of the group `x` under the group automorphism `g`.
+Note that `x` must be a subgroup of the domain of `g`.
 
 # Examples
 ```jldoctest
@@ -556,7 +556,7 @@ Automorphism group of
 julia> H, _ = sub(C, [gens(C)[1]^4])
 (Sub-pc group of order 5, Hom: H -> C)
 
-julia> all(g -> on_subgroups(H, g) == H, S)
+julia> all(g -> on_subgroups(H, g) == H, gens(S))
 true
 ```
 """
@@ -564,7 +564,7 @@ function on_subgroups(x::GapObj, g::GAPGroupElem)
   return GAPWrap.Image(GapObj(g), x)
 end
 
-on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup = T(on_subgroups(GapObj(x), g))
+on_subgroups(x::T, g::AutomorphismGroupElem) where T <: GAPGroup = T(on_subgroups(GapObj(x), g))
 
 
 @doc raw"""
@@ -867,4 +867,30 @@ function right_coset_action(G::GAPGroup, U::GAPGroup)
   @req mp !== GAP.Globals.fail "Invalid input"
   H = PermGroup(GAPWrap.Range(mp))
   return GAPGroupHomomorphism(G, H, mp)
+end
+
+@doc raw"""
+    regular_action_homomorphism(G::GAPGroup)
+
+Return an isomorphism from finite $G$ onto the regular permutation representation of $G$.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5)
+Symmetric group of degree 5
+
+julia> hom = regular_action_homomorphism(g)
+Group homomorphism
+  from symmetric group of degree 5
+  to permutation group of degree 120 and order 120
+
+julia> number_of_moved_points(image(hom)[1]) == order(g)
+true
+```
+"""
+function regular_action_homomorphism(G::GAPGroup)
+  @req is_finite(G) "G must be a finite group."
+  hom = GAPWrap.RegularActionHomomorphism(GapObj(G))
+  H = PermGroup(GAPWrap.Image(hom))
+  return GAPGroupHomomorphism(G, H, hom)
 end

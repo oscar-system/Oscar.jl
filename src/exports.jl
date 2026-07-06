@@ -1381,6 +1381,7 @@ export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats
+export on_graph
 export on_indeterminates
 export on_lines
 export on_sets
@@ -1445,6 +1446,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
 export petersen_graph
 export phylogenetic_tree
 export picard_class
@@ -1501,6 +1503,7 @@ export primitive_group_identification, has_primitive_group_identification
 export primorial
 export principal_extension
 export print_constraints
+export prism
 export product
 export proj
 export project_full
@@ -1589,6 +1592,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_action_homomorphism
 export regular_character
 export regular_triangulation
 export regular_triangulations
@@ -1707,6 +1711,8 @@ export simplify_light
 export simplify_with_same_ambient_free_module
 export singular_locus
 export singular_locus_reduced
+export slack_ideal
+export slack_ideal_non_saturated
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
