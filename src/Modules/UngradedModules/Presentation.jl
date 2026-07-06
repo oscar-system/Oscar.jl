@@ -9,9 +9,9 @@ Return a (free) presentation of `M`.
     If `minimal` is `true`, and `M` is positively graded, a minimal presentation is returned.
     If `minimal` is `true`, and `M` is not (positively) graded, the function still aims at returning an ''improved'' presentation.
 """
-function presentation(SQ::SubquoModule;
-                      minimal=false)
-  if minimal
+function presentation(SQ::SubquoModule{T};
+                      minimal=false) where {T}
+  if minimal && T <: Union{MPolyRingElem, MPolyQuoRingElem}
     return _presentation_minimal_cached(SQ)
   elseif is_graded(SQ)
     return _presentation_graded(SQ)
