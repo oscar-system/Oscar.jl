@@ -1,13 +1,16 @@
 
 # Compute A\G/U
+# TODO indices should start at 1...
 # we need: a subgroup ladder L = (A_i)_(0<=i<=a)
-# Need a transversal chain for U:
-#           subgroup chain (U_i)_(0<=i<=k)
-#           transversals (S_i)_(0<i<=k) of R(U_i\U_i-1)
+# with A_0 = G and A_a = A
 # Transversals: For each (A_i+1, A_i)
 #           T_i in R(A_i\A_i+1) or R(A_i+1\A_i) as appropriate
 # Test functions: For each i with A_i+1 <= A_i,
 #           tau_i : A_i+1\A_i >-> NN (injection)
+# Need a transversal chain for U:
+#           subgroup chain (U_i)_(0<=i<=k)
+#           transversals (S_i)_(0<i<=k) of R(U_i\U_i-1)
+
 function ladder_game(L, G::PermGroup, U::PermGroup)
   r = _ladder_start(G, U)
   H = L[1]
