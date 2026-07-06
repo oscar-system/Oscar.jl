@@ -54,9 +54,9 @@ Graded subquotient of graded submodule of S^2 with 2 generators
   1: e[1]
   2: e[2]
 by graded submodule of S^2 with 3 generators
-  1: x_2*e[1] - x_3*e[2]
-  2: x_1*e[1] - x_2*e[2]
-  3: x_0*e[1] - x_1*e[2]
+  1: -x_2*e[1] + x_3*e[2]
+  2: x_0*e[1] - x_1*e[2]
+  3: -x_1*e[1] + x_2*e[2]
 
 julia> degrees_of_generators(hom1)
 2-element Vector{FinGenAbGroupElem}:
