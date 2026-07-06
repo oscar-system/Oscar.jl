@@ -326,7 +326,7 @@ function effective_upgrade_version(format_version::VersionNumber)
   isempty(pre) && return format_version
 
   # pre[1] has format "DEV-<n_upgrades>-<hash>" or "DEV-<hash>" (n_upgrades=0)
-  pre_str = string(pre[1])
+  pre_str = string(only(pre))
   startswith(pre_str, "DEV-") || return format_version
 
   parts = split(pre_str, "-")
