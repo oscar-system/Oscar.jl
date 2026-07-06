@@ -36,8 +36,6 @@ convention(::TropicalPolyhedron{typeof(max)}) = max
 convention(::TropicalPointConfiguration{typeof(min)}) = min
 convention(::TropicalPointConfiguration{typeof(max)}) = max
 
-visualize(P::TropicalPolyhedron) = Polymake.visual(pm_object(P))
-
 tropical_convex_hull(P::TropicalPointConfiguration{M}) where {M<:MinOrMax} = TropicalPolyhedron{M}(pm_object(P))
 tropical_point_configuration(P::TropicalPolyhedron{M}) where {M<:MinOrMax} = TropicalPointConfiguration{M}(pm_object(P))
 
