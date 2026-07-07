@@ -61,8 +61,7 @@ function minimize_cubic_at_p(cubic, p)
 end
 
 function try_minimize_cubic_at_p(cubic, p)
-  #F = GF(p)
-  F = Nemo.Native.GF(ZZ(p))
+  F = GF(p)
   cubic_p = change_coefficient_ring(F, cubic)
   R_p = parent(cubic_p)
   R_p, _ = grade(R_p)
@@ -117,13 +116,24 @@ function try_minimize_cubic_at_p(cubic, p)
 
 end
 
+function _factor(f)
+  Fx = parent(f)
+  F = base_ring(f)
+  FF = Nemo.Native.GF(characteristic(base_ring(f)))
+  FFx, = polynomial_ring(FF, nvars(parent(f)))
+  ff = map_coefficients(c -> FF(lift(ZZ, c)), f; parent = FFx)
+  fffac = factor(ff)
+  return Fac(Fx(lift(ZZ, constant_coefficient(unit(fffac)))), Dict(map_coefficients(c -> F(lift(ZZ, c)), g; parent = Fx) => e for (g, e) in fffac))
+end
+
+  #F = Nemo.Native.GF(ZZ(p))
 function weight0001(cubic_p)
   println("try weight0001")
   R_p = parent(cubic_p)
   F = base_ring(R_p)
   p = characteristic(F)
   success = false
-  facs = factor(cubic_p)
+  facs = _factor(cubic_p)
   M = zero_matrix(F, 4, 4)
   for (g, e) in facs
     if total_degree(g) == 1
