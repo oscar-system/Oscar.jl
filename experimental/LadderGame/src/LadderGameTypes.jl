@@ -1,43 +1,46 @@
 mutable struct LadderStep
   is_up_step::Bool
+
   A::PermGroup
   Aprev::PermGroup
-  T::Vector
+
+  T::Vector{PermGroupElem}
   Tmap::Map
+
   D::Vector
   St::Vector
   I::Vector
   m::Map
 
   function LadderStep(A::PermGroup, Aprev::PermGroup)
-    rec = new()
+    S = new()
     if is_subset(Aprev, A)
-      rec.is_up_step = true
+      S.is_up_step = true
     elseif is_subset(Aprev, A)
-      rec.is_up_step = false
+      S.is_up_step = false
     else
       # throw an error
     end
-    rec.A = A
-    rec.Aprev = Aprev
+    S.A = A
+    S.Aprev = Aprev
     # construct T / Tmap or do this only when needed?
-    return rec
+    return S
   end
 
   function LadderStep(A::PermGroup, Aprev::PermGroup, T::Vector)
-    rec = new()
+    S = new()
     if is_subset(Aprev, A)
-      rec.is_up_step = true
+      S.is_up_step = true
     elseif is_subset(Aprev, A)
-      rec.is_up_step = false
+      S.is_up_step = false
     else
       # throw an error
     end
-    rec.A = A
-    rec.Aprev = Aprev
-    rec.T = T
+    S.A = A
+    S.Aprev = Aprev
+    S.T = T
     # construct a tmap
-    return rec
+    return S
   end
 
   function LadderStep(A::PermGroup, Aprev::PermGroup, T::Vector, Tmap::Map)
