@@ -61,7 +61,8 @@ function minimize_cubic_at_p(cubic, p)
 end
 
 function try_minimize_cubic_at_p(cubic, p)
-  F = GF(p)
+  #F = GF(p)
+  F = Nemo.Native.GF(ZZ(p))
   cubic_p = change_coefficient_ring(F, cubic)
   R_p = parent(cubic_p)
   R_p, _ = grade(R_p)
