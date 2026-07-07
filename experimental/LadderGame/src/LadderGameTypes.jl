@@ -1,4 +1,4 @@
-struct LadderStep
+mutable struct LadderStep
   is_up_step::Bool
   A::PermGroup
   Aprev::PermGroup
@@ -62,7 +62,7 @@ end
 # SubgroupLadder stores Vector{LadderStep}
 # with some special tools for adding steps.
 
-struct SubgroupLadder <: AbstractVector{LadderStep}
+mutable struct SubgroupLadder <: AbstractVector{LadderStep}
   S::Vector{LadderStep}
 
   function SubgroupLadder(S::Vector{PermGroup})
