@@ -10,8 +10,10 @@
 # Need a transversal chain for U:
 #           subgroup chain (U_i)_(0<=i<=k)
 #           transversals (S_i)_(0<i<=k) of R(U_i\U_i-1)
-
-function ladder_game(L, G::PermGroup, U::PermGroup)
+# TODO : at the moment we are just returning a LadderStep for the end result
+#        but don't have access to any of the previous steps, this is fine
+#        if we only want double cosets but overall is very limiting...
+function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
   r = _ladder_start(G, U)
   H = L[1]
   for i in 2:length(L)
@@ -25,19 +27,15 @@ function ladder_game(L, G::PermGroup, U::PermGroup)
   return r
 end
 
-function _ladder_start(G::PermGroup, U::PermGroup)
-  st = [get_transversal_chain(U)]
-  r = LadderStep(G,G)
-  r.T = [one(G)]
-  r.Tmap = [ map_from_func(G, G, x -> one(G)) ]
-  r.D = [one(G)]
-  r.St = [st]
-  r.I = [one(G)]
-  r.m = map_from_func(r.I, (r.D, U), x -> (one(G), one(U)))
-  # g,s for env variable "F" set to nothing
-  # what about this environment variable "F" set to nothing?
-
-  return r
+function _ladder_start!(S::LadderStep, U::PermGroup)
+  @assert S.A == S.Aprev "Initial ladder step must be trivial"
+  isdefined(S, :T) || S.T = [one(S.A)]
+  isdefined(S, :Tmap) || S.Tmap = [map_from_func(G, G, x -> one(S.A))]
+  S.D = [one(S.A)]
+  S.St = [get_transversal_chain(U)]
+  S.I = [one(S.A)]
+  S.m = map_from_func(S.I, (S.D, U), x -> (one(S.A), one(U)))
+  return L
 end
 
 function down_step(A::PermGroup, U::PermGroup, rec::LadderStep)
