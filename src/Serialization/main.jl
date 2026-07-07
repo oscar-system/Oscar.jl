@@ -59,11 +59,14 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::AbstractDict{Symbol, Any})
-  ns = obj[:_ns]
+function serialization_version_info(ns_dict::JSON.Object{String, Any})
+  ns = ns_dict[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
+
+serialization_version_info(obj::JSON.LazyValue) = serialization_version_info(obj[])
+
 
 function version_number(v_number::String)
   return VersionNumber(v_number)
@@ -121,49 +124,66 @@ function encode_type(::Type{T}) where T
   )
 end
 
+function node_is_string(s::DeserializerState)::Bool
+  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+  return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
+end
+
+function node_is_array(s::DeserializerState)::Bool
+  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+    return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
+end
+
+function node_is_object(s::DeserializerState)::Bool
+  s.obj isa JSON.LazyValue || return false
+  s.obj isa AbstractDict && return true
+
+  # I don't think we can get here now?
+  return JSON.gettype(s.obj) == JSON.JSONTypes.OBJECT
+end
+
 function decode_type(s::String)
   return get(reverse_type_map, s) do
     error("unsupported type '$s' for decoding")
   end
 end
 
-function decode_type(s::DeserializerState)
-  if s.obj isa String
-    uuid = tryparse(UUID, s.obj)
+function decode_type(s::DeserializerState)::Type
+  if node_is_string(s)
+    str = load_json(s, String)
+    uuid = tryparse(UUID, str)
     if !isnothing(uuid)
-      if isnothing(s.refs)
+      if isempty(s.refs)
         return typeof(global_serializer_state.id_to_obj[uuid])
       end
-      id = s.obj
-      s.obj = s.refs[Symbol(id)]
+      lazy_obj = s.obj
+      s.obj = s.refs[uuid]
       T = decode_type(s)
-      s.obj = id
-      return T
+      s.obj = lazy_obj
+      result = T
+    else
+      result = decode_type(str)
     end
-    obj = decode_type(s.obj)
-    obj isa AbstractDict && return obj["default"]
-    return obj
+    result isa AbstractDict && return result["default"]
+    return result
   end
 
-  if type_key in keys(s.obj)
-    return load_node(s, type_key) do _
-      obj = decode_type(s)
-      obj isa AbstractDict && return obj["default"]
-      return obj
+  if haskey(s, type_key)
+    return load_node(s, type_key) do
+      decode_type(s)
     end
   end
 
-  if :name in keys(s.obj)
-    if :_instance in keys(s.obj)
-      return get(reverse_type_map[s.obj[:name]], s.obj[:_instance]) do
-        unsupported_instance = s.obj[:_instance]
-        error("unsupported instance '$unsupported_instance' for decoding")
+  if haskey(s, :name)
+    if haskey(s, :_instance)
+      name = load_node(s, :name) do; load_json(s, String); end
+      instance = load_node(s, :_instance) do; load_json(s, String); end
+      return get(reverse_type_map[name], instance) do
+        error("unsupported instance '$instance' for decoding")
       end
     else
-      return load_node(s, :name) do _
-        obj = decode_type(s)
-        obj isa AbstractDict && return obj["default"]
-        return obj
+      return load_node(s, :name) do
+        decode_type(s)
       end
     end
   end
@@ -171,6 +191,23 @@ end
 
 ################################################################################
 # TypeAndParams Struct
+@doc raw"""
+    TypeAndParams{T, S}
+    TypeAndParams(T::Type, params)
+    TypeAndParams(T::Type, pairs::Pair...)
+
+A container pairing a Julia type `T` with its contextual parameters `params`.
+
+`TypeAndParams` values are created by [`type_and_params`](@ref) and consumed by
+`load_object`. The `params` field holds whatever context is needed to
+reconstruct an object of type `T`: a parent ring, a base field, a
+domain/codomain pair, etc.
+
+Access named parameters with `tp[:key]` when `params` is a tuple of `Pair`s.
+Retrieve the raw parameters with `parameters(tp)` and the type with `type(tp)`.
+
+See [`type_and_params`](@ref) for usage examples.
+"""
 struct TypeAndParams{T, S}
   type::Type{T}
   params::S
@@ -186,9 +223,60 @@ end
 
 TypeAndParams(T::Type, args::Pair...) = TypeAndParams(T, args)
 
-params(tp::TypeAndParams) = tp.params
+parameters(tp::TypeAndParams) = tp.params
 type(tp::TypeAndParams) = tp.type
 
+function Base.getindex(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
+  for (k, v) in tp.params
+    k === key && return v
+  end
+  error("key $key not found in TypeAndParams")
+end
+
+Base.haskey(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
+  any(k === key for (k, _) in tp.params)
+
+@doc raw"""
+    type_and_params(obj)
+
+Return a [`TypeAndParams`](@ref) value capturing the type and parent parameters of `obj`.
+
+This is useful when loading a file into the same context as a currently loaded object —
+pass the result directly to [`load`](@ref) so the deserialized object shares the same
+     parent, ring, or domain/codomain as `obj`.
+
+# Examples
+
+Loading a ring homomorphism back into the same rings it was defined over:
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, (x, y) = QQ[:x, :y];
+
+julia> S, (a, b) = QQ[:a, :b];
+
+julia> phi = hom(R, S, [a + b, a - b])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
+
+julia> save("phi.mrdi", phi)
+
+julia> tp = type_and_params(phi);
+
+julia> phi_loaded = load("phi.mrdi", tp)
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
+
+julia> domain(phi_loaded) === R && codomain(phi_loaded) === S
+true
+```
+"""
 type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
 function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
@@ -197,7 +285,7 @@ function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
   else
     io = pretty(io)
     print(io, "Type parameters for $T")
-    for param in params(tp)
+    for param in parameters(tp)
       println(io, "")
       print(terse(io), Lowercase(), param)
     end
@@ -210,7 +298,7 @@ function Base.show(io::IO, tp::TypeAndParams{T, S}) where {T, S}
   else
     io = pretty(io)
     print(io, "Type parameters for $T ")
-    print(terse(io), Lowercase(), params(tp))
+    print(terse(io), Lowercase(), parameters(tp))
   end
 end
 
@@ -292,10 +380,10 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams)
     save_object(s, type_encoding, :name)
 
     # params(tp) isa TypeAndParams if the type isa container type
-    if params(tp) isa TypeAndParams
-      save_type_and_params(s, params(tp), :params)
+    if parameters(tp) isa TypeAndParams
+      save_type_and_params(s, parameters(tp), :params)
     else
-      save_typed_object(s, params(tp), :params)
+      save_typed_object(s, parameters(tp), :params)
     end
   end
 end
@@ -315,7 +403,7 @@ end
 
 function save_type_and_params(s::SerializerState,
                           tp::TypeAndParams{<:TypeAndParams, <:Tuple{Vararg{Pair}}})
-  for param in params(tp)
+  for param in parameters(tp)
     save_type_and_params(s, param.second, Symbol(param.first))
   end
 end
@@ -323,7 +411,7 @@ end
 function save_type_and_params(s::SerializerState,
                           tp::TypeAndParams{<:TypeAndParams, <:Tuple})
   save_data_array(s) do 
-    for param in params(tp)
+    for param in parameters(tp)
       save_type_and_params(s, param)
     end
   end
@@ -334,7 +422,7 @@ function save_type_and_params(s::SerializerState,
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in params(tp)
+      for param in parameters(tp)
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeAndParams)
@@ -362,72 +450,78 @@ function save_type_and_params(s::SerializerState,
 end
 
 function load_type_and_params(s::DeserializerState, T::Type, key::Symbol)
-  load_node(s, key) do _
+  load_node(s, key) do
     load_type_and_params(s, T)
   end
 end
 
 function load_type_array_params(s::DeserializerState)
-  load_array_node(s) do obj
+  load_array_node(s) do _
     T = decode_type(s)
-    if obj isa String
-      !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
-      return T
+    if node_is_string(s)
+      !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
+      return TypeAndParams(T, nothing)
     end
-    return load_type_and_params(s, T)[2]
+    haskey(s, type_key) && return load_typed_object(s)
+    return load_type_and_params(s, T)
   end
 end
 
 function load_type_and_params(s::DeserializerState, T::Type)
-  if s.obj isa String
-    if !isnothing(tryparse(UUID, s.obj))
-      return T, load_ref(s)
-    end
-    return T, nothing
+  if node_is_string(s)
+    val = load_json(s, String)
+    !isnothing(tryparse(UUID, val)) && return TypeAndParams(T, load_ref(s))
+    return TypeAndParams(T, nothing)
   end
   if haskey(s, :params)
-    load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
-        params = load_type_array_params(s)
-      elseif obj isa String || haskey(s, :params)
+    load_node(s, :params) do
+      if node_is_array(s)
+        p = load_type_array_params(s)
+      elseif node_is_string(s) || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
-          params = U()
+          p = U()
         else
-          params = load_type_and_params(s, U)[2]
+          p = parameters(load_type_and_params(s, U))
         end
       # handle cases where type_and_params is a dict of params
-      elseif !haskey(obj, type_key) 
-        params = Dict{Symbol, Any}()
-        for (k, _) in obj
-          params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+      elseif !haskey(s, type_key)
+        pairs_vec = Pair{Symbol, Any}[]
+        for k in propertynames(s.obj)
+          v = load_node(s, k) do
+            if node_is_array(s)
               return load_type_array_params(s)
             end
-            
-            U = decode_type(s)
-            if obj isa String && isnothing(tryparse(UUID, obj))
-              return U
+            if haskey(s, type_key)
+              return load_typed_object(s)
             end
-            return load_type_and_params(s, U)[2]
+            U = decode_type(s)
+            if node_is_string(s)
+              uuid_str = load_json(s, String)
+              !isnothing(tryparse(UUID, uuid_str)) && return load_ref(s)
+              return TypeAndParams(U, nothing)
+            end
+            return load_type_and_params(s, U)
           end
+          push!(pairs_vec, k => v)
         end
+        return TypeAndParams(T, pairs_vec...)
       else
-        params = load_typed_object(s)
+        p = load_typed_object(s)
       end
       # all types where the type T should be updated with a subtype i.e. T -> T{U}
       # need to implement their own method, see for example containers
-      return T, params
+      return TypeAndParams(T, p)
     end
   elseif haskey(s, :_instance)
-    T, nothing
+    TypeAndParams(T, nothing)
   else
-    return T, load_typed_object(s)
+    return TypeAndParams(T, load_typed_object(s))
   end
 end
 
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
-  load_node(s, key) do _
+  load_node(s, key) do
     load_typed_object(s; override_params=override_params)
   end
 end
@@ -437,34 +531,38 @@ end
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   if !isnothing(override_params)
-    T, _ = load_type_and_params(s, T, type_key)
-    params = override_params
+    tp = load_type_and_params(s, T, type_key)
+    tp = TypeAndParams(type(tp), override_params)
   else
-    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
-    T, params = load_type_and_params(s, T, type_key)
+    node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
+    tp = load_type_and_params(s, T, type_key)
   end
-  Base.issingletontype(T) && return T()
-  obj = load_node(s, :data) do _
-    return load_object(s, T, params)
+  Base.issingletontype(type(tp)) && return type(tp)()
+  obj = load_node(s, :data) do
+    return load_object(s, tp)
   end
   load_attrs(s, obj)
   return obj
 end
 
 function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
-  load_node(s, key) do _
+  load_node(s, key) do
     load_object(s, T)
   end
 end
 
-function load_object(s::DeserializerState, T::Type, params::S,
-                     key::Union{Symbol, Int}) where S
-  load_node(s, key) do _
-    load_object(s, T, params)
+function load_object(s::DeserializerState, tp::TypeAndParams,
+                     key::Union{Symbol, Int})
+  load_node(s, key) do
+    load_object(s, tp)
   end
 end
 
-load_object(s::DeserializerState, T::Type, ::Nothing) = load_object(s, T)
+load_object(s::DeserializerState, tp::TypeAndParams{T, Nothing}) where T = load_object(s, T)
+load_object(s::DeserializerState, tp::TypeAndParams{Vector{T}, Nothing}) where T = load_object(s, Vector{T})
+load_object(s::DeserializerState, tp::TypeAndParams{Matrix{T}, Nothing}) where T = load_object(s, Matrix{T})
+load_object(s::DeserializerState, tp::TypeAndParams{Array{T, N}, Nothing}) where {T, N} = load_object(s, Array{T, N})
+load_object(s::DeserializerState, tp::TypeAndParams{Set{T}, Nothing}) where T = load_object(s, Set{T})
 
 ################################################################################
 # serializing attributes
@@ -481,8 +579,8 @@ end
 function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
-  haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in keys(d)
+  haskey(s, :attrs) && load_node(s, :attrs) do
+    for attr in propertynames(s.obj)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -799,9 +897,74 @@ function save(filename::String, obj::Any;
   return nothing
 end
 
+function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_attrs::Bool)
+  s = deserializer_open(io, serializer, with_attrs)
+  if :id in propertynames(s.obj)
+    id = JSON.parse(s.obj[:id], UUID)
+    if haskey(global_serializer_state.id_to_obj, id)
+      return global_serializer_state.id_to_obj[id]
+    end
+  end
+
+  # handle different namespaces
+  polymake_obj = load_node(s) do
+    @req :_ns in propertynames(s.obj) "Namespace is missing"
+    outer_obj = s.obj
+    load_node(s, :_ns) do
+      if :polymake in propertynames(s.obj)
+        return load_from_polymake(JSON.parse(outer_obj; dicttype=Dict{String, Any}))
+      end
+    end
+  end
+  if !isnothing(polymake_obj)
+    return polymake_obj
+  end
+
+  load_node(s, :_ns) do
+    @req :Oscar in propertynames(s.obj) "Not an Oscar object"
+  end
+
+  # deal with upgrades
+  file_version = load_node(s) do
+    serialization_version_info(s.obj)
+  end
+  current_version = version_number(string(get_oscar_serialization_version()[:Oscar][2]))
+  if file_version < current_version
+    jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
+    jsondict_str = JSON.json(jsondict)
+    s = deserializer_open(IOBuffer(jsondict_str), serializer, with_attrs)
+  end
+
+  try
+    loaded = do_load(s)
+    if haskey(s, :id)
+      load_node(s, :id) do
+        id = load_json(s, UUID)
+        global_serializer_state.obj_to_id[loaded] = id
+        global_serializer_state.id_to_obj[id] = loaded
+      end
+    end
+    return loaded
+  catch e
+    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
+      @warn """
+      Attempted loading file stored with Oscar version $file_version
+      using Oscar version $VERSION_NUMBER
+      """
+    end
+    if contains(string(file_version), "DEV")
+      commit = split(string(file_version), "-")[end]
+      @warn "Attempted loading file stored using a DEV version with commit $commit"
+    end
+    rethrow(e)
+  end
+end
+
 """
     load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
     load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(io::IO, tp::TypeAndParams; with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String, tp::TypeAndParams; with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
 
 Load the object stored in the given io stream respectively in the file `filename`.
 
@@ -825,6 +988,28 @@ If the file was created with `compression=:gzip` and the filename ends in `.gz`,
 the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
+
+## Using `TypeAndParams` directly
+
+Use [`type_and_params`](@ref) on an already-loaded object to capture its type and parent context,
+then pass the result to `load` — the deserialized object will share the same parent ring,
+domain/codomain, or other context as the original.
+
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, x = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> p = x^2 - x + 1
+x^2 - x + 1
+
+julia> save("p.mrdi", p)
+
+julia> p_loaded = load("p.mrdi", type_and_params(p))
+x^2 - x + 1
+
+julia> parent(p_loaded) === R
+true
+```
 
 # Examples
 
@@ -862,97 +1047,47 @@ julia> parent(loaded_p_v[1]) === parent(loaded_p_v[2]) === R
 true
 ```
 """
-function load(io::IO; params::Any = nothing, type::Any = nothing,
+function load(io::IO, tp::TypeAndParams;
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
-  s = deserializer_open(io, serializer, with_attrs)
-  if haskey(s.obj, :id)
-    id = s.obj[:id]
-    if haskey(global_serializer_state.id_to_obj, UUID(id))
-      return global_serializer_state.id_to_obj[UUID(id)]
-    end
+  _load_with_state(io, serializer, with_attrs) do s
+    Base.issingletontype(type(tp)) && return type(tp)()
+    obj = load_object(s, tp, :data)
+    load_attrs(s, obj)
+    return obj
   end
+end
 
-  # handle different namespaces
-  polymake_obj = load_node(s) do d
-    @req :_ns in keys(d) "Namespace is missing"
-    load_node(s, :_ns) do _ns
-      if :polymake in keys(_ns)
-        return load_from_polymake(Dict(d))
-      end
-    end
-  end
-  if !isnothing(polymake_obj)
-    return polymake_obj
-  end
-
-  load_node(s, :_ns) do _ns
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
-  end
-
-  # deal with upgrades
-  file_version = load_node(s) do obj
-    serialization_version_info(obj)
-  end
-  if file_version < VERSION_NUMBER
-    # we need a mutable dictionary
-    jsondict = copy(s.obj)
-    jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON.json(jsondict)
-    s = deserializer_open(IOBuffer(jsondict_str),
-                          serializer,
-                          with_attrs)
-  end
-  
-  try
-    if params isa TypeAndParams
-      params = _convert_override_params(params)
-    end
+function load(io::IO; params::Any=nothing, type::Any=nothing,
+              serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
+  _load_with_state(io, serializer, with_attrs) do s
     if type !== nothing
-      # Decode the stored type, and compare it to the type `T` supplied by the caller.
-      # If they are identical, just proceed. If not, then we assume that either
-      # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-      # concrete, and `U <: T` should hold.
-      #
-      # This check should maybe change to a check on the whole type tree?
-      U = load_node(s, type_key) do _
+      U = load_node(s, type_key) do
         decode_type(s)
       end
-      
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
-
       Base.issingletontype(type) && return type()
       if isnothing(params)
-        _, params = load_node(s, type_key) do _
+        tp_inner = load_node(s, type_key) do
           load_type_and_params(s, U)
         end
+        params = parameters(tp_inner)
       end
-      load_node(s, :data) do _
-        loaded = load_object(s, type, params)
-      end
+      load_object(s, TypeAndParams(type, params), :data)
     else
-      loaded = load_typed_object(s; override_params=params)
+      load_typed_object(s; override_params=params)
     end
+  end
+end
 
-    if :id in keys(s.obj)
-      load_node(s, :id) do id
-        global_serializer_state.obj_to_id[loaded] = UUID(id)
-        global_serializer_state.id_to_obj[UUID(id)] = loaded
-      end
+function load(filename::String, tp::TypeAndParams; kwargs...)
+  if endswith(filename, ".gz")
+    open(CodecZlib.GzipDecompressorStream, filename) do file
+      return load(file, tp; kwargs...)
     end
-    return loaded
-  catch e
-    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
-      @warn """
-      Attempted loading file stored with Oscar version $file_version
-      using Oscar version $VERSION_NUMBER
-      """
+  else
+    open(filename) do file
+      return load(file, tp; kwargs...)
     end
-
-    if contains(string(file_version), "DEV")
-      commit = split(string(file_version), "-")[end]
-      @warn "Attempted loading file stored using a DEV version with commit $commit"
-    end
-    rethrow(e)
   end
 end
 
@@ -989,48 +1124,6 @@ function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kw
     end
   end
 end
-
-_convert_override_params(tp::TypeAndParams{T, S}) where {T, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
-_convert_override_params(tp::TypeAndParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeAndParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeAndParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-_convert_override_params(tp::TypeAndParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
-
-function _convert_override_params(tp::TypeAndParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
-  return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
-end
-
-_convert_override_params(obj::Any) = obj
-
-#handles empty tuple ambiguity
-_convert_override_params(obj::Tuple{}) = ()
-
-_convert_override_params(t::Tuple{Vararg{TypeAndParams}}) = map(_convert_override_params, t)
-
-function _convert_override_params(t::Tuple{Vararg{Pair}})
-  map(x -> x.first => _convert_override_params(x.second), t)
-end
-
-# handle special polyhedral case
-function _convert_override_params(tp::TypeAndParams{<:PolyhedralObject, <:Tuple{Vararg{Pair}}})
-  # special treatement for the polymake parameters
-  poly_params = Dict()
-  for (k, v) in params(tp)
-    if k == :pm_params
-      poly_params[k] = Dict()
-      for (pm_k, pm_v) in params(v)
-        poly_params[k][pm_k] = (type(pm_v), _convert_override_params(params(pm_v)))
-      end
-    else
-      poly_params[k] = v
-    end
-  end
-  return poly_params
-end
-
-# handle monomial ordering
-_convert_override_params(tp::TypeAndParams{T, S}) where {T <: MonomialOrdering, S} = T
 
 export @register_serialization_type
 export DeserializerState
