@@ -59,12 +59,51 @@ struct LadderStep
 end
 
 
-struct SubgroupLadder
-  L::Vector{LadderStep}
+# SubgroupLadder stores Vector{LadderStep}
+# with some special tools for adding steps.
+
+struct SubgroupLadder <: AbstractVector{LadderStep}
+  S::Vector{LadderStep}
 
   function SubgroupLadder(S::Vector{PermGroup})
     rec = new()
 
-    rec.L = [ LadderStep(S[i+1], S[i])]
+    rec.S = [ LadderStep(S[i+1], S[i])]
   end
+end
+
+data(L::SubgroupLadder) = L.S
+
+################################################################################
+#
+#  Array-like functionality
+#
+################################################################################
+
+function Base.size(L::SubgroupLadder)
+  return size(data(L))
+end
+
+function Base.length(L::SubgroupLadder)
+  return length(data(L))
+end
+
+function Base.getindex(L::SubgroupLadder, i::IntegerUnion)
+  return getindex(data(L), Int(i))
+end
+
+# I don't think we want to support this
+# function Base.setindex!(L::SubgroupLadder, s::LadderStep, i::IntegerUnion)
+#   return setindex!(data(L), s, Int(i))
+# end
+
+function Base.copy(L::SubgroupLadder)
+  return SubgroupLadder(copy(data(L)))
+end
+
+function Base.push!(L::SubgroupLadder, s::LadderStep)
+  # require or assert that this is actually a step
+  @req last(L).A == s.Aprev "Incompatible LadderStep"
+  push!(L.S, s)
+  return L
 end
