@@ -713,6 +713,33 @@ n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_rays(PC) : 0
 _n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)::Int
 
 @doc raw"""
+    n_rays_modulo_lineality(PC::PolyhedralComplex)
+
+Return the number of rays of `PC` modulo lineality.
+
+# Examples
+The shifted normal fan of a 2-cube in 3-space.  The latter lies in a
+2-dimensional subspace and has 4 maximal proper faces. Accordingly, its
+(shifted) normal fan has a 1-dimenional lineality space modulo which it has 4
+rays.
+
+```jldoctest
+julia> C = convex_hull([0 0 0; 1 0 0; 1 1 0; 0 1 0])
+Polyhedron in ambient dimension 3
+
+julia> PC = polyhedral_complex(normal_fan(C)) + QQFieldElem[1,1,1]
+Polyhedral complex in ambient dimension 3
+
+julia> n_rays(PC)
+0
+
+julia> n_rays_modulo_lineality(PC)
+4
+```
+"""
+n_rays_modulo_lineality(PC::PolyhedralComplex) = _n_rays(PC)
+
+@doc raw"""
     n_vertices(PC::PolyhedralComplex)
 
 Return the number of vertices of `PC`.
