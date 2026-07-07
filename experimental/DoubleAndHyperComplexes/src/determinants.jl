@@ -172,7 +172,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}},
     ind -= 1
   end
   c[ind]::FreeMod
-  R = base_ring(c[ind])::MPolyRing{<:RingElem}
+  R = base_ring(c[ind])
   result = one(R)
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
