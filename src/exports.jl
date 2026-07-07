@@ -1300,6 +1300,7 @@ export n_gon
 export n_maximal_cells
 export n_maximal_cones
 export n_maximal_polyhedra
+export n_minimal_faces
 export n_points
 export n_polyhedra
 export n_pseudovertices
