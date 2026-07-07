@@ -1,3 +1,17 @@
+@doc raw"""
+    a_resultant_complex(support_sets::Vector{T};
+        toric_variety::NormalToricVariety=_get_toric_variety(support_sets),
+        inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
+        parent::Ring=_parent_for_resultant(support_sets),
+        outer_toric_ctx_object::ToricCtxWithParams=_get_outer_toric_ctx(inner_toric_ctx_object, parent),
+        twist::FinGenAbGroupElem=zero(grading_group(cox_ring(toric_variety)))
+      ) where {T}
+
+Given a collection of ``n+1`` support sets ``Aᵢ ∈ ℤʳˣⁿ``, i.e. a matrix whose ``r = r(i)`` rows are exponent vectors 
+of Laurent polynomials, compute a complex ``C*`` of free modules over the ring ``R = ℤ[aᵢᵥ : i = 1,…,n+1, ν ∈ 1,…,r(i)]`` 
+of coefficients ``aᵢᵥ`` of those polynomials such that ``det(C*)`` is a (possibly non-reduced) equation for the 
+resultant ``Δ``. See [GZ26](@cite) for more details.
+"""
 function a_resultant_complex(support_sets::Vector{T};
     toric_variety::NormalToricVariety=_get_toric_variety(support_sets),
     inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
