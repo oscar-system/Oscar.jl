@@ -195,13 +195,15 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
   elseif type_name == "Tuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
+
+    # catch empty tuples here before zip
+    !haskey(dict, :data) && return dict
     for (type, entry) in zip(dict[:_type][:params], dict[:data])
       upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
       push!(upgraded_entries, upgraded_entry)
     end
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
-
   elseif type_name == "NamedTuple"
     upgraded_entries = Dict{Symbol, Any}[]
     upgraded_entry = nothing
@@ -326,7 +328,7 @@ function effective_upgrade_version(format_version::VersionNumber)
   isempty(pre) && return format_version
 
   # pre[1] has format "DEV-<n_upgrades>-<hash>" or "DEV-<hash>" (n_upgrades=0)
-  pre_str = string(pre[1])
+  pre_str = string(only(pre))
   startswith(pre_str, "DEV-") || return format_version
 
   parts = split(pre_str, "-")
