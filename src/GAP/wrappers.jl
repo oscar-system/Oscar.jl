@@ -118,6 +118,7 @@ GAP.@wrap FieldOfMatrixGroup(x::GapObj)::GapObj
 GAP.@wrap Flat(x::GapObj)::GapObj
 GAP.@wrap FreeAbelianGroup(x::Int)::GapObj
 GAP.@wrap FreeGeneratorsOfFpGroup(x::GapObj)::GapObj
+GAP.@wrap FreeGroup(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap FreeGroupOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap FusionCharTableTom(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap FusionConjugacyClasses(x::GapObj, y::GapObj)::GapObj
