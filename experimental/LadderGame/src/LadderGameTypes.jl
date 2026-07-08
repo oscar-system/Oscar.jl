@@ -1,10 +1,11 @@
 mutable struct LadderStep
   is_up_step::Bool
 
-  A::PermGroup
   Aprev::PermGroup
+  A::PermGroup
 
-  T::Vector{PermGroupElem}
+
+  T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal}
   Tmap::Map
 
   D::Vector
@@ -12,7 +13,7 @@ mutable struct LadderStep
   I::Vector
   m::Map
 
-  function LadderStep(A::PermGroup, Aprev::PermGroup)
+  function LadderStep(Aprev::PermGroup, A::PermGroup)
     S = new()
     if is_subset(Aprev, A)
       S.is_up_step = true
@@ -27,7 +28,7 @@ mutable struct LadderStep
     return S
   end
 
-  function LadderStep(A::PermGroup, Aprev::PermGroup, T::Vector)
+  function LadderStep(Aprev::PermGroup, A::PermGroup, T::Vector)
     S = new()
     if is_subset(Aprev, A)
       S.is_up_step = true
