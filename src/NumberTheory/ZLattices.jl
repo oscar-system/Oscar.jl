@@ -223,7 +223,7 @@ end
 
 function _get_edge_labeled_graph(cv_set, gram)
   p = length(cv_set)
-  res_graph = graph(Undirected, p+2);
+  res_graph = graph(Undirected, p+2)
   max_w = QQ(0)
   weightDict= Dict{Tuple{Int64, Int64}, QQFieldElem,}()
   for i = 1:p 
