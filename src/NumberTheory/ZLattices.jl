@@ -216,7 +216,7 @@ function _get_canonical_form(A, char_vectors_set, canonical_ordering)
   p = length(char_vectors_set)
   filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
   can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
-  (H, U) = hnf_with_transform(can_char_vectors_set) 
+  H, U = hnf_with_transform(can_char_vectors_set) 
   U_inv = inv(U)
   return transpose(U_inv)*A*U_inv
 end
