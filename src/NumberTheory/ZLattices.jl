@@ -249,6 +249,7 @@ function _get_edge_labeled_graph(cv_set, gram)
   label!(res_graph, weightDict, nothing; name=:edge)
   return res_graph
 end
+
 """
     canonical_form(L::ZZLat) -> ZZMatrix
     
