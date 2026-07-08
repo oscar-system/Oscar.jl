@@ -252,7 +252,6 @@ end
 
 """
     canonical_form(L::ZZLat) -> ZZMatrix
-    
 Return the canonical form of ``L``. The form is canonical in the sense, that two isomorphic latticies would have the same canonical form.
 
 We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
