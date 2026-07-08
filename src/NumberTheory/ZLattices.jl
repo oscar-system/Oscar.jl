@@ -234,7 +234,7 @@ function _get_edge_labeled_graph(cv_set, gram)
         max_w = w
       end
       add_edge!(res_graph, i, j)
-      merge!(weightDict, Dict((i, j) => w))
+      weightDict[(i, j)] = w
     end
     add_edge!(res_graph, i, p+1)
   end
