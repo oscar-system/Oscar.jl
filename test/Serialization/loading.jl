@@ -65,4 +65,30 @@ end
 
     @test str == cmp_str
   end
+
+  @testset "MultiFileRefSerializer" begin
+    mktempdir() do path
+      Qx, x = QQ[:x]
+      F, a = number_field(x^2 + 1)
+      R, (y, z) = F[:y, :z]
+      p = a * y - z
+
+      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R) do loaded
+        @test loaded == p
+      end
+
+      prefix_path = joinpath(path, "original")
+      files = readdir(path)
+      @test "original.mrdi" in files
+      @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
+
+      # compression: main and ref files should be gzip compressed
+      save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+      gz_files = filter(f -> startswith(f, "original") && (endswith(f, ".mrdi") || endswith(f, ".mrdi.gz")), readdir(path))
+      @test "original.mrdi.gz" in gz_files
+      Oscar.Serialization.reset_global_serializer_state()
+      loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
+      @test loaded == p
+    end
+  end
 end
