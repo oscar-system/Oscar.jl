@@ -484,4 +484,46 @@
       permute_nodes!(H, p)
       @test G.label[1, 3] == H.label[2, 3]
     end
+    
+    @testset "cayley_graph" begin
+      G = symmetric_group(3)
+      gen_s3 = gens(G)
+
+      # cayley_graph_index_map
+      idx = cayley_graph_index_map(G)
+      @test length(idx) == order(G) == 6
+      @test idx[one(G)] == 1
+
+      # cayley_graph_vertex
+      @test cayley_graph_vertex(G, one(G)) == 1
+      @test cayley_graph_vertex(G, one(G), idx) == 1
+
+      # Directed Cayley graph (right multiplication)
+      gamma = cayley_graph(Directed, G, gen_s3)
+      @test n_vertices(gamma) == order(G)
+      @test n_edges(gamma) == order(G) * length(gen_s3)
+      @test is_strongly_connected(gamma)
+
+      # Left multiplication
+      gamma_left = cayley_graph(Directed, G, gen_s3; left=true)
+      @test n_vertices(gamma_left) == order(G)
+      @test n_edges(gamma_left) == order(G) * length(gen_s3)
+      @test is_strongly_connected(gamma_left)
+
+      # Undirected Cayley graph (generators closed under inversion)
+      gamma_u = cayley_graph(Undirected, G, gen_s3)
+      @test n_vertices(gamma_u) == order(G)
+      @test n_edges(gamma_u) == 9
+      @test is_connected(gamma_u)
+
+      # Error: empty generators
+      @test_throws ArgumentError cayley_graph(Directed, G, GroupElem[])
+
+      # Error: identity in generators
+      @test_throws ArgumentError cayley_graph(Directed, G, [one(G)])
+
+      # Error: element not in G
+      H = symmetric_group(4)
+      @test_throws ArgumentError cayley_graph_vertex(G, gens(H)[1])
+    end
 end
