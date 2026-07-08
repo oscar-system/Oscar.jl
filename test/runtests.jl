@@ -83,7 +83,7 @@ end
 
 testlist = Oscar._gather_tests("test")
 
-if !islink(joinpath(expdir, "NoExperimental_whitelist.jl")) # add no experimental tests in the NoExperimental CI job
+if !islink(joinpath(Oscar.expdir, "NoExperimental_whitelist.jl")) # add no experimental tests in the NoExperimental CI job
   for exp in Oscar.exppkgs
     path = joinpath(Oscar.oscardir, "experimental", exp, "test")
     if isdir(path) && exp != "Parallel"
