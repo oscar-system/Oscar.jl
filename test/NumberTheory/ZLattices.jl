@@ -8,6 +8,7 @@ end
   @test 7 == length(unique!(Oscar.invariant_function_graph_hash.(L)))
   @test 7 == length(unique!(Oscar.oscar_invariant_function.(L)))
 end 
+
 @testset "Lattice Canonical Form" begin
   function create_gram(data)  # helper function to create gram matricies of latticies
     U = upper_triangular_matrix(data)
