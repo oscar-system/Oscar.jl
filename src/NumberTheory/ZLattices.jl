@@ -262,8 +262,8 @@ We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
 """
 function canonical_form(L::ZZLat)
   gram = gram_matrix(L)
-  char_vectors_set = Oscar.characteristic_vectors(L)
-  graph = Oscar._get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
-  can_order = Oscar._canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
-  return Oscar._get_canonical_form(gram, char_vectors_set, can_order)
+  char_vectors_set = characteristic_vectors(L)
+  graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
+  can_order = _canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
+  return _get_canonical_form(gram, char_vectors_set, can_order)
 end
