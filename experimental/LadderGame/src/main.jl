@@ -14,7 +14,7 @@
 function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
   sprev = L[1]
   for s in L
-    s.is_up_step === nothing && (_ladder_start(s, U), continue)
+    s.A == s.Aprev && (_ladder_start(s, U), continue)
     s.is_up_step ? up_step(s, sprev, U) : down_step(s, sprev, U)
     sprev = s
   end
@@ -268,10 +268,10 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
 
   pushfirst!(L, LadderStep(Hprev,Hprev))
 
-  # TODO fix: when we have an up-step, we want the PREV step to get an F
+  L = SubgroupLadder(L)
   for (i, s) in enumerate(L)
-    s.is_up_step === nothing && continue
-    s.is_up_step && (s.F = view(L, 1:i))
+    s.A == s.Aprev && continue
+    s.is_up_step && (L[i-1].F = view(L, 1:i-1))
   end
 
   return SubgroupLadder(L)
