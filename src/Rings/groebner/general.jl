@@ -44,18 +44,19 @@ end
 # standard basis for non-global orderings #############################
 @doc raw"""
     standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+                   complete_reduction::Bool = false, signature_ordering = :POT, algorithm::Symbol = :buchberger)
 
 Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
-- `:modular` (implementation of multi-modular approach, if applicable),
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
 - `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
 - `:markov` (implementation to compute Gröbner basis for lattice ideals in *4ti2*)
+- `:modular` (implementation of multi-modular approach, if applicable),
+- `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -80,7 +81,7 @@ with respect to the ordering
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+                        complete_reduction::Bool = false, signature_ordering::Symbol = :POT, algorithm::Symbol = :buchberger)
   complete_reduction && @assert is_global(ordering)
   @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
@@ -91,6 +92,12 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
     elseif complete_reduction == true
       I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
+    end
+  elseif algorithm == :signature_based
+    if is_signature_based_gb_algorithm_applicable(I, ordering, signature_ordering)
+      groebner_basis_signature_based(I, signature_ordering=signature_ordering)
+    else
+      error("Signature-based option not applicable in this setting.")
     end
   elseif algorithm == :modular
     if is_f4_applicable(I, ordering)
@@ -154,16 +161,18 @@ end
 @doc raw"""
     groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+      complete_reduction::Bool = false, signature_ordering=:POT,
+      algorithm::Symbol = :buchberger)
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
-- `:modular` (implementation of multi-modular approach, if applicable),
-- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
+- `:modular` (implementation of multi-modular approach, if applicable),
+- `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -240,10 +249,9 @@ julia> leading_coefficient(G[8])
 -91230304237130414552564280286681870842473427917231798336639893796481988733936505735341479640589040146625319419037353645834346047404145021391726185993823650399589880820226804328750
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-                        algorithm::Symbol = :buchberger)
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false, signature_ordering = :POT, algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
-    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, signature_ordering=signature_ordering, algorithm=algorithm)
 end
 
 function is_known(
