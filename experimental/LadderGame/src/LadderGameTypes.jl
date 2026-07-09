@@ -14,7 +14,7 @@ mutable struct LadderStep
 
   # TODO I/m should be implemented as a Dict
   I::Vector
-  m::Map
+  m::Vector
 
   F
 
