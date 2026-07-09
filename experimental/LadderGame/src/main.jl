@@ -29,10 +29,12 @@ function _ladder_start!(S::LadderStep, U::PermGroup)
   @assert S.A == S.Aprev "Initial ladder step must be trivial"
   isdefined(S, :T) || (S.T = [one(S.A)])
   isdefined(S, :Tmap) || (S.Tmap = map_from_func(S.A, S.A, x -> one(S.A)))
-  S.D = [one(S.A)]
-  S.St = [get_transversal_chain(U)]
-  S.I = [one(S.A)]
-  S.m = map_from_func(S.I, (S.D, U), x -> (one(S.A), one(U)))
+  S.DSt = Dict(one(S.A) => get_transversal_chain(U))
+  # S.D = [one(S.A)]
+  # S.St = [get_transversal_chain(U)]
+  S.Im = Dict(one(S.A) => (one(S.A), one(U)))
+  # S.I = [one(S.A)]
+  # S.m = map_from_func(S.I, (S.D, U), x -> (one(S.A), one(U)))
   return S
 end
 
@@ -45,17 +47,14 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
   T = S.T
 
-  D = []
-  St = []
-  I = []
-  S3 = []
+  DSt = Dict{PermGroupElem, TransversalChain}()
+  Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
-  for (i, a) in enumerate(Sprev.D)
+  for (a, st) in Sprev.DSt
     tmp = PermGroupElem[]
     for t in T
       if ~(t in tmp)
         d = t*a
-        st = Sprev.St[i]
         S1, _ = intersect(U, A^d)
 
         # not used in calculation
@@ -64,7 +63,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
         @assert st[1][1] == S2
         @assert S2 == intersect(U, Aprev^d)[1]
 
-        st, Sta = _induce_chain(S1, S.Tmap, st ; conj=d)
+        st2, Sta = _induce_chain(S1, S.Tmap, st ; conj=d)
 
         # not used in calculation
         @assert length(Sta) == index(S2, S1)
@@ -72,38 +71,24 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
         ss = map_from_func(S2, S2, x -> Tss[index_of_coset(Tss, x)])
         @assert allunique(map(x -> ss(S2(x)), Sta))
 
-        push!(D,d)
-        push!(St, st)
+        DSt[d] = st2
         for u in Sta
           tt = S.Tmap(Aprev(d*u*inv(a)))
           push!(tmp, tt)
-          push!(I, tt*a)
-          push!(S3, (d,u) )
+          Im[tt*a] = (d,u)
           @assert tt*a*inv(u)*inv(d) in A
         end
       end
     end
     @assert Set(collect(T)) == Set(tmp)
   end
-  S.D = D
-  S.St = St
-  S.I = I
-  S.m = map_from_func(S.I, (S.D, U), x -> (one(S.A), one(U)))
-  # S.m = map_from_func(S.I, (S.D, U), x -> )
-  # S3 # TODO this should be a map
-  # could we use a Dict I -> (S.D, U) ???
+  S.DSt = DSt
+  S.Im = Im
+
   return S
 end
 
 function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
-  # A::PermGroup, U::PermGroup, rec::LadderStep)
-  # r = LadderStep(
-  #       # Ai = A
-  #       # Aim1 = rec.Ai
-  #       # last = rec
-  #       # g,s for ev variable "F" set to false
-  # )
-
   A = S.A
   Aprev = S.Aprev
 
@@ -112,10 +97,8 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
   T = S.T
 
-  D = []
-  S3 = []
-  St = []
-  I = []
+  DSt = Dict{PermGroupElem, TransversalChain}()
+  Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   seen = []
   data = []
@@ -123,7 +106,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   cls = []
   cls_data = []
 
-  for a in Aprev.D
+  for (a, st) in Sprev.DSt
     if a in cls
       p = findfirst(a, cls)
       rep = cls_data[p][1]
@@ -138,45 +121,43 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
     for t in T
       (~new && ~is_one(t)) && continue
       ta = t*a
-      at, ut = _get_rep(ta, Aprev)
+      at, ut = _get_rep(ta, Sprev)
+
+      println("how are we getting here?")
 
       @assert ta*inv(ut)*inv(at) in Aprev
-      @assert at in Sprev.D
+      @assert at in keys(Sprev.DSt)
 
       rep === nothing && (rep = at, rep_u = ut)
       at in cls || (push!(cls, at), push!(cls_data, (rep, rep_u*inv(ut)) ))
       at == rep && push!(tt, ut*inv(rep_u))
-      is_one(t) && (push!(I, a), push!(S3, (rep, rep_u*inv(ut)) ))
+      is_one(t) && (Im[a] = (rep, rep_u*inv(ut)))
     end
     if new
-      push!(D, rep)
-      push!(St, [[ (intersect(A^rep, U)[1], tt) ] Sprev.St[findfirst(rep, Aprev.D)]] ) # in magma code: rec.St[Position(R.Di, rep)]
-      # assert Index(St[end][1][1], St[end][2][1]) == length(tt)
+      # TODO need to be able to EXTEND a stabilizer chain
+      DSt[rep] = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; st])
+
+      @assert index(St[end][1][1], St[end][2][1]) == length(tt)
     end
   end
 
-  S.D = D
-  S.St = St
-
-  S.I = I
-  # S.m = map_from_func(S.I, (S.D, U), x -> (one(S.A), one(U))) TODO fix
-  # S.S3 = S3
+  S.DSt = DSt
+  S.Im = Im
 
   return S
 end
 
 # I think this gives a transversal chain ???
 # can streamline wrt tUU / last_tUU
-function _induce_chain(V::PermGroup, Tm::Map, C::Vector ; conj=one(C[1][1]))
-  # Tm is a MAP: transversal map for C[1][1]/V
+function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1][1]))
+  # Tm is a transversal map for C[1][1]/V
   @assert is_subset(V, C[1][1])
 
   c = Tuple{PermGroup, Vector{PermGroupElem}}[ (sub(V, [one(V)])[1], [one(V)]) ]
 
-  last_tUU = [ one(C[end][1]) ]
-  # tUU = change_universe(last_tUU, C[1][1]) # - unnecessary???
+  last_tUU = (C[1][1]).([ one(C[end][1]) ])
   tUU = copy(last_tUU)
-  tU = [ Tm( one(codomain(Tm))^inv(conj) ) ] # isn't this just Tm(1)?
+  tU = [ Tm( one(domain(Tm))^inv(conj) ) ] # isn't this just Tm(1)?
 
   for i in (length(C)-1):-1:1
     # tUU = change_universe(last_tUU, C[i][1])
@@ -207,27 +188,12 @@ function _induce_chain(V::PermGroup, Tm::Map, C::Vector ; conj=one(C[1][1]))
     length(tV) != 1 && push!(c, (U, tV) )
   end
 
-  return reverse(c), tUU
+  return TransversalChain(reverse(c)), tUU
 end
 
-function get_transversal_chain(U::PermGroup)
-  # c = PermGroup[U]
-  U0 = U
-  C = Tuple{PermGroup, Vector{PermGroupElem}}[]
-  while length(U0) != 1
-    s = first(moved_points(U0))
-    U = stabilizer(U0, s)[1]
-    T = right_transversal(U0, U)
-    push!(C, (U0, T) )
-    U0 = U
-  end
-  push!(C, (U0, [one(U0)]))
-  return C
-end
-
-
+# Recursive recognition method
 function _get_rep(g::PermGroupElem, S::LadderStep)
-  F = S.F
+  F = _get_previous_steps(S)
 
   dprev = one(F[1].A)
   uprev = dprev
@@ -241,6 +207,14 @@ function _get_rep(g::PermGroupElem, S::LadderStep)
   return dprev, uprev
 end
 
+
+
+################################################################################
+#
+#  Young subgroup ladders
+#
+################################################################################
+
 function young_subgroup(p::Vector{T} ; full::T=sum(p)) where T<:Integer
   s = full - sum(p)
   # should error if s < 0
@@ -248,7 +222,6 @@ function young_subgroup(p::Vector{T} ; full::T=sum(p)) where T<:Integer
   return inner_direct_product([symmetric_group(i) for i in vcat(p, ones(T, s))])
 end
 
-# Test method - groups only
 # works - matches Magma
 function _young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   n = sum(p)
@@ -275,44 +248,33 @@ function _young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
 end
 
 
-
-
-
-
-
+# TODO make transversal maps, integrate into each LadderStep
 function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   n = sum(p)
   L = LadderStep[]
   pp = copy(p)
-  H = young_subgroup(pp ; full=full)
+  Hprev = young_subgroup(pp ; full=full)
   s = n - pp[1]
   while s!=0
     if pp[2]==1
-
-      Hprev = H
       deleteat!(pp, 2)
       pp[1]+=1
-      H = young_subgroup(pp ; full=full)
-      pushfirst!(L, young_subgroup(pp ; full=full))
-
     else
-
-      Hprev = H
       pp[2]-=1
       insert!(pp,2,1)
-      H = young_subgroup(pp ; full=full)
-      pushfirst!(L, young_subgroup(pp ; full=full))
-
-
-      Hprev = H
+      H = Hprev
+      Hprev = young_subgroup(pp ; full=full)
+      pushfirst!(L, LadderStep(Hprev, H))
       deleteat!(pp, 2)
       pp[1]+=1
-      H = young_subgroup(pp ; full=full)
-      pushfirst!(L, young_subgroup(pp ; full=full))
-
     end
+    H = Hprev
+    Hprev = young_subgroup(pp ; full=full)
+    pushfirst!(L, LadderStep(Hprev, H))
     s = n-pp[1]
   end
 
-  return L
+  pushfirst!(L, LadderStep(Hprev,Hprev))
+
+  return SubgroupLadder(L)
 end
