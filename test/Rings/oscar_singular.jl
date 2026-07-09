@@ -71,4 +71,19 @@
     f = Oscar.iso_oscar_singular_poly_ring(Rx)
     @test base_ring(codomain(f)) isa Singular.N_FField
   end
+
+  let
+    p = next_prime(ZZ(2)^70)
+    F = GF(p)
+    g = Oscar.iso_oscar_singular_coeff_ring(F)
+    @test codomain(g) isa Singular.N_ZnRing
+    a = F(ZZ(2)^69 + 123)
+    @test preimage(g, g(a)) == a
+
+    R, (x, y) = polynomial_ring(F, [:x, :y])
+    h = a*x + (F(ZZ(2)^68 + 456))*y + 1
+    phi = Oscar.iso_oscar_singular_poly_ring(R)
+    @test base_ring(codomain(phi)) isa Singular.N_ZnRing
+    @test preimage(phi, phi(h)) == h
+  end
 end
