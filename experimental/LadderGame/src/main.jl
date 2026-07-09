@@ -101,8 +101,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   for (a, st) in Sprev.DSt
     if a in cls
       p = findfirst(a, cls)
-      rep = cls_data[p][1]
-      rep_u = cls_data[p][2]
+      (rep, rep_u) = cls_data[p]
       new = false
     else
       rep = nothing
@@ -113,14 +112,12 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
     for t in T
       (~new && ~is_one(t)) && continue
       ta = t*a
-      at, ut = _get_rep(ta, Sprev)
-
-      println("how are we getting here?")
+      (at, ut) = _get_rep(ta, Sprev)
 
       @assert ta*inv(ut)*inv(at) in Aprev
       @assert at in keys(Sprev.DSt)
 
-      rep === nothing && (rep = at, rep_u = ut)
+      rep === nothing && ((rep, rep_u) = (at, ut))
       at in cls || (push!(cls, at), push!(cls_data, (rep, rep_u*inv(ut)) ))
       at == rep && push!(tt, ut*inv(rep_u))
       is_one(t) && (Im[a] = (rep, rep_u*inv(ut)))
@@ -190,12 +187,13 @@ function _get_rep(g::PermGroupElem, S::LadderStep)
   dprev = one(F[1].A)
   uprev = dprev
   for s in F
-    p = s.is_up_step ? dprev : (dprev * s.Tmap(g*inv(dprev*uprev)))
-    (d, u) = s.m[p]
+    p = s.is_up_step ? dprev : (dprev * s.Tmap(domain(s.Tmap)(g*inv(dprev*uprev))))
+    println(keys(s.Im))
+    println()
+    (d, u) = s.Im[p]
     dprev = d
     uprev = u*uprev
   end
-
   return dprev, uprev
 end
 
