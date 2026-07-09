@@ -1,84 +1,105 @@
+mutable struct TransversalChain
+  C::Vector{Tuple{PermGroup, Vector{PermGroupElem}}}
+end
+
+data(T::TransversalChain) = T.C
+
+function Base.size(T::TransversalChain)
+  return size(data(T))
+end
+
+function Base.length(T::TransversalChain)
+  return length(data(T))
+end
+
+Base.firstindex(T::TransversalChain) = 1
+Base.lastindex(T::TransversalChain) = length(T)
+
+function Base.getindex(T::TransversalChain, i::IntegerUnion)
+  return getindex(data(T), Int(i))
+end
+
+
+function TransversalChain(U::PermGroup)
+  U0 = U
+  C = Tuple{PermGroup, Vector{PermGroupElem}}[]
+  while length(U0) != 1
+    s = first(moved_points(U0))
+    U = stabilizer(U0, s)[1]
+    T = right_transversal(U0, U)
+    push!(C, (U0, T) )
+    U0 = U
+  end
+  push!(C, (U0, [one(U0)]))
+
+  return TransversalChain(C)
+end
+
+get_transversal_chain(U::PermGroup) = TransversalChain(U)
+
+
+
+
 mutable struct LadderStep
   is_up_step::Bool
 
   Aprev::PermGroup
   A::PermGroup
 
-
   T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal}
   Tmap::Map
 
-  # Should these also be a Dict??????
-  D::Vector
-  St::Vector
+  DSt::Dict{PermGroupElem, TransversalChain}
 
-  # TODO I/m should be implemented as a Dict
-  I::Vector
-  m::Vector
+
+  Im::Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}
 
   F
 
   function LadderStep(Aprev::PermGroup, A::PermGroup)
-    S = new()
     if is_subset(Aprev, A)
-      S.is_up_step = true
-    elseif is_subset(Aprev, A)
-      S.is_up_step = false
+      u = true
+    elseif is_subset(A, Aprev)
+      u = false
     else
       # throw an error
     end
-    S.A = A
-    S.Aprev = Aprev
-    # construct T / Tmap or do this only when needed?
-    return S
-  end
-
-  function LadderStep(Aprev::PermGroup, A::PermGroup, T::Vector)
-    S = new()
-    if is_subset(Aprev, A)
-      S.is_up_step = true
-    elseif is_subset(Aprev, A)
-      S.is_up_step = false
-    else
-      # throw an error
-    end
-    S.A = A
-    S.Aprev = Aprev
-    S.T = T
-    # construct a tmap
-    return S
+    return new(u, Aprev, A)
   end
 
   function LadderStep(A::PermGroup, Aprev::PermGroup, T::Vector, Tmap::Map)
-    rec = new()
     if is_subset(Aprev, A)
-      rec.is_up_step = true
-    elseif is_subset(Aprev, A)
-      rec.is_up_step = false
+      u = true
+    elseif is_subset(A, Aprev)
+      u = false
     else
       # throw an error
     end
-    rec.A = A
-    rec.Aprev = Aprev
-    rec.T = T
-    rec.Tmap = Tmap
-    return rec
+    return new(u, Aprev, A, T, Tmap)
   end
-
 end
+
+function _get_previous_steps(S::LadderStep)::SubArray{LadderStep, 1, SubgroupLadder, Tuple{UnitRange{Int64}}, false}
+  return S.F
+end
+
+# function _set_previous_steps!(S::LadderStep, )
 
 
 # SubgroupLadder stores Vector{LadderStep}
-# with some special tools for adding steps.
-
 mutable struct SubgroupLadder <: AbstractVector{LadderStep}
   S::Vector{LadderStep}
+end
 
-  function SubgroupLadder(S::Vector{PermGroup})
-    rec = new()
-
-    rec.S = [ LadderStep(S[i+1], S[i])]
+function SubgroupLadder(S::Vector{PermGroup})
+  L = LadderStep[]
+  isempty(S) && return new(L)
+  push!(L, LadderStep(first(S), first(S)))
+  for i in 2:length(S)
+    push!(L, LadderStep(S[i-1], S[i]))
   end
+
+  return SubgroupLadder(L)
 end
 
 data(L::SubgroupLadder) = L.S
@@ -110,9 +131,9 @@ function Base.copy(L::SubgroupLadder)
   return SubgroupLadder(copy(data(L)))
 end
 
-function Base.push!(L::SubgroupLadder, s::LadderStep)
-  # require or assert that this is actually a step
-  @req last(L).A == s.Aprev "Incompatible LadderStep"
-  push!(L.S, s)
-  return L
-end
+# function Base.push!(L::SubgroupLadder, s::LadderStep)
+#   # require or assert that this is actually a step
+#   @req last(L).A == s.Aprev "Incompatible LadderStep"
+#   push!(L.S, s)
+#   return L
+# end
