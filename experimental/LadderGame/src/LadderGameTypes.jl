@@ -8,10 +8,15 @@ mutable struct LadderStep
   T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal}
   Tmap::Map
 
+  # Should these also be a Dict??????
   D::Vector
   St::Vector
+
+  # TODO I/m should be implemented as a Dict
   I::Vector
   m::Map
+
+  F
 
   function LadderStep(Aprev::PermGroup, A::PermGroup)
     S = new()
