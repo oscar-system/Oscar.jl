@@ -33,7 +33,7 @@
     @test_throws ErrorException groebner_basis(I, signature_ordering=:DPOT, algorithm=:signature_based)
     @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:signature_based)
     groebner_basis(I, ordering=degrevlex(R), algorithm=:signature_based)
-    @test gens(I.gb[degrevlex(R)]) == FqMPolyRingElem[x^2 + y, x*y +32002,x + y^2]
+    @test gens(I.gb[degrevlex(R)]) == FqMPolyRingElem[x + y^2, x*y + 32002, x^2 + y]
 
     # issue 3665
     kt,t = polynomial_ring(GF(2),:t)
@@ -224,7 +224,17 @@ end
 @testset "signature based" begin
   R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
   I = ideal(R,[x1+2*x2+2*x3+2*x4-1, x1^2+2*x2^2+2*x3^2+2*x4^2-x1, 2*x1*x2+2*x2*x3+2*x3*x4-x2, x2^2+2*x1*x3+2*x2*x4-x3])
+  @test_throws ErrorException groebner_basis_signature_based(I, signature_ordering=:DPOT)
   H = groebner_basis_signature_based(I);
+  G = [x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
+         2*x2*x4 + 115043768*x2 + x3^2 + 76695850*x3*x4 + 191739613*x3 + 115043772*x4^2 + 230087535*x4
+         x2*x3 + 107374184*x2*x4 + 241591913*x2 + 53687093*x3^2 + 53687094*x3*x4 + 161061275*x3 + 53687093*x4^2 + 161061275*x4
+         x2^2 + 178956974*x2*x3 + 178956974*x2*x4 + 89478486*x2 + x3^2 + 178956974*x3*x4 + 89478486*x3 + x4^2 + 89478486*x4
+         14913081*x2*x4 + 263464432*x2 + x3*x4^2 + 56338306*x3*x4 + 260150414*x3 + 238609298*x4^3 + 129246702*x4^2 + 258493405*x4
+         x2*x4^2 + 29826162*x2*x4 + 141674270*x2 + 263464432*x3*x4 + 9942054*x3 + 89478486*x4^3 + 238609297*x4^2
+         232885084*x2*x4 + 191484965*x2 + 251179133*x3*x4 + 85955250*x3 + x4^4 + 35851649*x4^3 + 231479137*x4^2 + 167408122*x4
+        ]
+    @test elements(H) == G
 end
 @testset "f4" begin
   R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
