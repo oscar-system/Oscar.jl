@@ -72,6 +72,7 @@ function groebner_basis_signature_based(
   ordering = degrevlex(base_ring(I))
   AI = AlgebraicSolving.Ideal(oscar_generators(I))
   sig_gb = AlgebraicSolving.sig_groebner_basis(AI.gens,info_level=info_level, degbound=0, mod_ord=signature_ordering)
+  p = sortperm()
   GB = IdealGens(base_ring(I), [g[2] for g in sig_gb], ordering, keep_ordering=false, isGB=true, isReduced=false)
   I.gb[ordering] = GB
 
