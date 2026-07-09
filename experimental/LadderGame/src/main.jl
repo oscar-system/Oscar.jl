@@ -268,7 +268,9 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
 
   pushfirst!(L, LadderStep(Hprev,Hprev))
 
+  # TODO fix: when we have an up-step, we want the PREV step to get an F
   for (i, s) in enumerate(L)
+    s.is_up_step === nothing && continue
     s.is_up_step && (s.F = view(L, 1:i))
   end
 
