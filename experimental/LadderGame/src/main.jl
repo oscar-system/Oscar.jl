@@ -30,11 +30,7 @@ function _ladder_start!(S::LadderStep, U::PermGroup)
   isdefined(S, :T) || (S.T = [one(S.A)])
   isdefined(S, :Tmap) || (S.Tmap = map_from_func(S.A, S.A, x -> one(S.A)))
   S.DSt = Dict(one(S.A) => get_transversal_chain(U))
-  # S.D = [one(S.A)]
-  # S.St = [get_transversal_chain(U)]
   S.Im = Dict(one(S.A) => (one(S.A), one(U)))
-  # S.I = [one(S.A)]
-  # S.m = map_from_func(S.I, (S.D, U), x -> (one(S.A), one(U)))
   return S
 end
 
