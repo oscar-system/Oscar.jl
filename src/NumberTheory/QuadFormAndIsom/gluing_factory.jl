@@ -688,8 +688,8 @@ function _local_gluings_primary!(
   subs2 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Fac, W2inq2, O2, p, subtype, i2)
 
   # Preparation to compute glue maps; we want to avoid some redundant computations
-  _data1 = Array{GAPGroupHomomorphism}(undef, 1, length(subs1))
-  _data2 = Array{GAPGroupHomomorphism}(undef, 1, length(subs2))
+  _data1 = Array{GAPGroupHomomorphism}(undef, length(subs1))
+  _data2 = Array{GAPGroupHomomorphism}(undef, length(subs2))
 
   for i in 1:length(subs1)
     H1inq1, s1 = subs1[i]

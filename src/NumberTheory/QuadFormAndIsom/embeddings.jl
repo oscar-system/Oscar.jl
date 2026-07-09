@@ -1764,6 +1764,9 @@ function _primitive_extensions(
     return false, NTuple{3, ZZLat}[]
   end
 
+  local _dataM::Array{TorQuadModuleMap, 1}
+  local _dataN::Array{TorQuadModuleMap, 1}
+
   need_setup = true # To avoid repeating some routine
   compute_iso = true
   for it in _iterator
@@ -1773,8 +1776,8 @@ function _primitive_extensions(
     if need_setup
       Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
       Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
-      _dataM = Array{TorQuadModuleMap}(undef, 1, length(Ms))
-      _dataN = Array{TorQuadModuleMap}(undef, 1, length(Ns))
+      _dataM = Array{TorQuadModuleMap}(undef, length(Ms))
+      _dataN = Array{TorQuadModuleMap}(undef, length(Ns))
       need_setup = false
     end
     if compute_iso
