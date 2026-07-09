@@ -142,32 +142,6 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
   return dict
 end
 
-# For DEV versions like "1.8.0-DEV-1-hash", the n_upgrades count tells us how many
-# upgrade scripts for that base version existed when the file was saved — meaning those
-# scripts were already applied. Map to the version of the n-th script so upgrade()
-# correctly skips already-applied scripts.
-#
-# Julia parses "1.8.0-DEV-1-hash" with prerelease = ("DEV-1-hash",) as a single
-# identifier, so we split on "-" to extract n_upgrades.
-function effective_upgrade_version(format_version::VersionNumber)
-  pre = format_version.prerelease
-  isempty(pre) && return format_version
-
-  # pre[1] has format "DEV-<n_upgrades>-<hash>" or "DEV-<hash>" (n_upgrades=0)
-  pre_str = string(pre[1])
-  startswith(pre_str, "DEV-") || return format_version
-
-  parts = split(pre_str, "-")
-  length(parts) < 3 && return format_version  # no n_upgrades encoded
-
-  n_upgrades = tryparse(Int, string(parts[2]))
-  (isnothing(n_upgrades) || iszero(n_upgrades)) && return format_version
-
-  base = Base.thispatch(format_version)
-  base_num = findfirst(s -> version(s) == base, upgrade_scripts)
-  return version(upgrade_scripts[base_num+n_upgrades-1])
-end
-
 function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   # all containers have a Dict for their type description
   # with a name and a params key
