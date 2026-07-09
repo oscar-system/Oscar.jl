@@ -1074,21 +1074,59 @@ end
 function load(io::IO; params::Any=nothing, type::Any=nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   _load_with_state(io, serializer, with_attrs) do s
-    if type !== nothing
-      U = load_node(s, type_key) do
-        decode_type(s)
-      end
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
-      Base.issingletontype(type) && return type()
-      if isnothing(params)
-        tp_inner = load_node(s, type_key) do
-          load_type_and_params(s, U)
+    # handle different namespaces
+    polymake_obj = load_node(s) do d
+      @req :_ns in keys(d) "Namespace is missing"
+      load_node(s, :_ns) do _ns
+        if :polymake in keys(_ns)
+          return load_from_polymake(Dict(d))
         end
-        params = tp_inner.params
       end
-      load_object(s, TypeAndParams(type, params), :data)
-    else
-      load_typed_object(s; override_params=params)
+    end
+    if !isnothing(polymake_obj)
+      return polymake_obj
+    end
+
+    load_node(s, :_ns) do _ns
+      @req haskey(_ns, :Oscar) "Not an Oscar object"
+    end
+
+    # deal with upgrades
+    file_version = load_node(s) do obj
+      serialization_version_info(obj)
+    end
+    # A file needs upgrading iff some upgrade script targets a version newer than the
+    # file's effective version. Gate on the newest upgrade script rather than on
+    # VERSION_NUMBER: for DEV builds the file's version string carries a commit hash
+    # (e.g. "1.8.0-DEV-<hash>"), and comparing that against VERSION_NUMBER orders the two
+    # by hash characters rather than by upgrade state, which can wrongly skip upgrades.
+    if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
+      # we need a mutable dictionary
+      jsondict = copy(s.obj)
+      jsondict = upgrade(file_version, jsondict)
+      jsondict_str = JSON.json(jsondict)
+      s = deserializer_open(IOBuffer(jsondict_str),
+                            serializer,
+                            with_attrs)
+    end
+    
+    try
+      if type !== nothing
+        U = load_node(s, type_key) do
+          decode_type(s)
+        end
+        U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+        Base.issingletontype(type) && return type()
+        if isnothing(params)
+          tp_inner = load_node(s, type_key) do
+            load_type_and_params(s, U)
+          end
+          params = tp_inner.params
+        end
+        load_object(s, TypeAndParams(type, params), :data)
+      else
+        load_typed_object(s; override_params=params)
+      end
     end
   end
 end
