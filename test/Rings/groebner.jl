@@ -26,6 +26,14 @@
     R = @polynomial_ring(T, [:x, :y])
     I = ideal(R, [x^2+y,y*x-1])
     @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:modular)
+    # algorithm = :signature_based option
+    R = @polynomial_ring(GF(32003), [:x, :y])
+    I = ideal(R, [x^2+y,y*x-1])
+    # uses f4 in siggb/AlgebraicSolving
+    @test_throws ErrorException groebner_basis(I, signature_ordering=:DPOT, algorithm=:signature_based)
+    @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:signature_based)
+    groebner_basis(I, ordering=degrevlex(R), algorithm=:signature_based)
+    @test gens(I.gb[degrevlex(R)]) == FqMPolyRingElem[x^2 + y, x*y +32002,x + y^2]
 
     # issue 3665
     kt,t = polynomial_ring(GF(2),:t)
@@ -213,6 +221,14 @@ end
   @test ideal_membership(x^4, I, ordering=u)
 end
 
+@testset "signature based" begin
+  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
+  I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
+          x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
+          2*x1*x2+2*x2*x3+2*x3*x4-x2,
+          x2^2+2*x1*x3+2*x2*x4-x3])
+  H = groebner_basis_signature_based(I);
+end
 @testset "f4" begin
   R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
   I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
