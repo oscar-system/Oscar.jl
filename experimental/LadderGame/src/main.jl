@@ -12,17 +12,13 @@
 #           transversals (S_i)_(0<i<=k) of R(U_i\U_i-1)
 
 function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
-  s = _ladder_start(L[1], U)
-  # H = L[1]
-  for i in 2:length(L)
-    if is_subgroup(H, L[i])
-      r = up_step(L[i],U,r)
-    else
-      r = down_step(L[i], U, r)
-    end
-    H = L[i]
+  sprev = L[1]
+  for s in L
+    s.is_up_step === nothing && (_ladder_start(s, U), continue)
+    s.is_up_step ? up_step(s, sprev, U) : down_step(s, sprev, U)
+    sprev = s
   end
-  return r
+  return L
 end
 
 function _ladder_start!(S::LadderStep, U::PermGroup)
@@ -153,11 +149,11 @@ function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1
 
   last_tUU = (C[1][1]).([ one(C[end][1]) ])
   tUU = copy(last_tUU)
-  tU = [ Tm( one(domain(Tm))^inv(conj) ) ] # isn't this just Tm(1)?
+  tU = [ one(codomain(Tm)) ] # isn't this just Tm(1)?
 
   for i in (length(C)-1):-1:1
-    # tUU = change_universe(last_tUU, C[i][1])
-    # change_universe!(last_tUU, C[i][1])
+    tUU = (C[i][1]).(last_tUU)
+    map!(C[i][1], last_tUU, last_tUU)
 
     U, _ = intersect(C[i][1], V)
     tV = []
@@ -176,9 +172,9 @@ function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1
         end
       end
     end
-    # assert length(tV) == index(U, c[end][1])
-    # assert length(tU) == index(C[i][1], U)
-    # assert length(tU)*length(tV) == length(last_tUU)*length(C[i][2])
+    @assert length(tV) == index(U, c[end][1])
+    @assert length(tU) == index(C[i][1], U)
+    @assert length(tU)*length(tV) == length(last_tUU)*length(C[i][2])
 
     last_tUU = tUU
     length(tV) != 1 && push!(c, (U, tV) )
@@ -271,6 +267,10 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   end
 
   pushfirst!(L, LadderStep(Hprev,Hprev))
+
+  for (i, s) in enumerate(L)
+    s.is_up_step && (s.F = view(L, 1:i))
+  end
 
   return SubgroupLadder(L)
 end

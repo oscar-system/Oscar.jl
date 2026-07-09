@@ -41,7 +41,7 @@ get_transversal_chain(U::PermGroup) = TransversalChain(U)
 
 
 mutable struct LadderStep
-  is_up_step::Bool
+  is_up_step::Union{Nothing, Bool}
 
   Aprev::PermGroup
   A::PermGroup
@@ -57,7 +57,9 @@ mutable struct LadderStep
   F
 
   function LadderStep(Aprev::PermGroup, A::PermGroup)
-    if is_subset(Aprev, A)
+    if Aprev == A
+      u = nothing
+    elseif is_subset(Aprev, A)
       u = true
     elseif is_subset(A, Aprev)
       u = false
@@ -68,7 +70,9 @@ mutable struct LadderStep
   end
 
   function LadderStep(A::PermGroup, Aprev::PermGroup, T::Vector, Tmap::Map)
-    if is_subset(Aprev, A)
+    if Aprev == A
+      u = nothing
+    elseif is_subset(Aprev, A)
       u = true
     elseif is_subset(A, Aprev)
       u = false
