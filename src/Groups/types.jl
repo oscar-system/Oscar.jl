@@ -41,8 +41,8 @@ If $x$ is an element of the group `G` of type `T`,
 then the type of $x$ is `BasicGAPGroupElem{T}`.
 """
 struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
-  parent::T
-  X::GapObj
+   parent::T
+   X::GapObj
 end
 
 function Base.deepcopy_internal(x::BasicGAPGroupElem, dict::IdDict)
@@ -101,27 +101,27 @@ Symmetric group of degree 6
 ```
 """
 @attributes mutable struct PermGroup <: GAPGroup
-  X::GapObj
-  deg::Int64       # G < Sym(deg)
-
-  function PermGroup(G::GapObj)
-    @assert GAPWrap.IsPermGroup(G)
-    n = GAPWrap.LargestMovedPoint(G)::Int
-    if n == 0
-      # We support only positive degrees.
-      # (`symmetric_group(0)` yields an error,
-      # and `symmetric_group(1)` yields a GAP group with `n == 0`.)
-      n = 1
-    end
-    z = new(G, n)
-    return z
-  end
-
-  function PermGroup(G::GapObj, deg::Int)
-    @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)::Int
-    z = new(G, deg)
-    return z
-  end
+   X::GapObj
+   deg::Int64       # G < Sym(deg)
+   
+   function PermGroup(G::GapObj)
+     @assert GAPWrap.IsPermGroup(G)
+     n = GAPWrap.LargestMovedPoint(G)::Int
+     if n == 0
+       # We support only positive degrees.
+       # (`symmetric_group(0)` yields an error,
+       # and `symmetric_group(1)` yields a GAP group with `n == 0`.)
+       n = 1
+     end
+     z = new(G, n)
+     return z
+   end
+   
+   function PermGroup(G::GapObj, deg::Int)
+     @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)::Int
+     z = new(G, deg)
+     return z
+   end
 end
 
 permutation_group(G::GapObj) = PermGroup(G)
@@ -242,7 +242,7 @@ return groups of type `SubPcGroup`.
 @attributes mutable struct SubPcGroup <: GAPGroup
   X::GapObj
   full_group::PcGroup
-  #T better create an embedding!
+#T better create an embedding!
 
   function SubPcGroup(G::GapObj)
     # Create the `PcGroup` on the Oscar side anew.
@@ -260,7 +260,7 @@ return groups of type `SubPcGroup`.
     # Keep object identity of the available `PcGroup` on the Oscar side.
     if check
       @assert (GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)) &&
-      GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
+              GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
     end
     z = new(G, F)
     return z
@@ -383,7 +383,7 @@ subgroups of a finitely presented group.
 @attributes mutable struct SubFPGroup <: GAPGroup
   X::GapObj
   full_group::FPGroup
-  #T better create an embedding!
+#T better create an embedding!
 
   function SubFPGroup(G::GapObj)
     # Create the `FPGroup` on the Oscar side anew.
@@ -397,7 +397,7 @@ subgroups of a finitely presented group.
     # Keep object identity of the available `FPGroup` on the Oscar side.
     if check
       @assert GAPWrap.IsSubgroupFpGroup(G) &&
-      GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
+              GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
     end
     z = new(G, F)
     return z
@@ -428,19 +428,19 @@ abstract type AbstractMatGroupElem <: GAPGroupElem{GAPGroup} end
 Type of groups `G` of `n x n` matrices over the ring `R`, where `n = degree(G)` and `R = base_ring(G)`.
 """
 @attributes mutable struct MatGroup{RE<:RingElem, T<:MatElem{RE}} <: GAPGroup
-  deg::Int
-  ring::Ring
-  X::GapObj
-  gens::Vector{<:AbstractMatGroupElem}
-  descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
-  ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
+   deg::Int
+   ring::Ring
+   X::GapObj
+   gens::Vector{<:AbstractMatGroupElem}
+   descr::Symbol                       # e.g. GL, SL, symbols for isometry groups
+   ring_iso::MapFromFunc # Isomorphism from the Oscar base ring to the GAP base ring
 
-  function MatGroup{RE,T}(F::Ring, m::Int) where {RE,T}
-    G = new{RE, T}()
-    G.deg = m
-    G.ring = F
-    return G
-  end
+   function MatGroup{RE,T}(F::Ring, m::Int) where {RE,T}
+     G = new{RE, T}()
+     G.deg = m
+     G.ring = F
+     return G
+   end
 end
 
 # Construct an Oscar matrix group from a GAP matrix group,
@@ -479,22 +479,22 @@ end
 Type of elements of a group of type `MatGroup{RE, T}`.
 """
 mutable struct MatGroupElem{RE<:RingElem, T<:MatElem{RE}} <: AbstractMatGroupElem
-  parent::MatGroup{RE, T}
-  elm::T                         # Oscar matrix
-  X::GapObj                     # GAP matrix. If x isa MatGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
+   parent::MatGroup{RE, T}
+   elm::T                         # Oscar matrix
+   X::GapObj                     # GAP matrix. If x isa MatGroupElem, then x.X = map_entries(x.parent.ring_iso, x.elm)
 
-  # full constructor
-  MatGroupElem{RE,T}(G::MatGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
+   # full constructor
+   MatGroupElem{RE,T}(G::MatGroup{RE,T}, x::T, x_gap::GapObj) where {RE, T} = new{RE,T}(G, x, x_gap)
 
-  # constructor which leaves `X` undefined
-  MatGroupElem{RE,T}(G::MatGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
+   # constructor which leaves `X` undefined
+   MatGroupElem{RE,T}(G::MatGroup{RE,T}, x::T) where {RE, T} = new{RE,T}(G, x)
 
-  # constructor which leaves `elm` undefined
-  function MatGroupElem{RE,T}(G::MatGroup{RE,T}, x_gap::GapObj) where {RE, T}
-    z = new{RE,T}(G)
-    z.X = x_gap
-    return z
-  end
+   # constructor which leaves `elm` undefined
+   function MatGroupElem{RE,T}(G::MatGroup{RE,T}, x_gap::GapObj) where {RE, T}
+      z = new{RE,T}(G)
+      z.X = x_gap
+      return z
+   end
 end
 
 
@@ -779,13 +779,13 @@ An object of the type `GAPGroupHomomorphism` stores a homomorphism object
 as its `GapObj` value, and delegates all computations to it.
 """
 struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupHomomorphism{S,T}}
-  domain::S
-  codomain::T
-  map::GapObj
+   domain::S
+   codomain::T
+   map::GapObj
 
-  function GAPGroupHomomorphism(G::S, H::T, mp::GapObj) where {S<: GAPGroup, T<: GAPGroup}
-    return new{S, T}(G, H, mp)
-  end
+   function GAPGroupHomomorphism(G::S, H::T, mp::GapObj) where {S<: GAPGroup, T<: GAPGroup}
+     return new{S, T}(G, H, mp)
+   end
 end
 
 """
@@ -802,13 +802,13 @@ Many natural embeddings between `GapGroup` objects are realized as
 `GAPGroupEmbedding` objects.
 """
 struct GAPGroupEmbedding{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGroupEmbedding{S,T}}
-  domain::S
-  codomain::T
-  map::Ref{GapObj} # may be missing
+   domain::S
+   codomain::T
+   map::Ref{GapObj} # may be missing
 
-  function GAPGroupEmbedding(G::S, H::T) where {S<: GAPGroup, T<: GAPGroup}
-    return new{S, T}(G, H, Ref{GapObj}())
-  end
+   function GAPGroupEmbedding(G::S, H::T) where {S<: GAPGroup, T<: GAPGroup}
+     return new{S, T}(G, H, Ref{GapObj}())
+   end
 end
 
 GapObj(f::GAPGroupHomomorphism) = f.map
@@ -816,7 +816,7 @@ GapObj(f::GAPGroupHomomorphism) = f.map
 function GapObj(f::GAPGroupEmbedding)
   isassigned(f.map) && return f.map[]::GapObj
   mp = GAPWrap.GroupHomomorphismByFunction(GapObj(f.domain), GapObj(f.codomain),
-                                           GAP.Globals.IdFunc, false, GAP.Globals.IdFunc)
+           GAP.Globals.IdFunc, false, GAP.Globals.IdFunc)
   f.map[] = mp
   return mp
 end
