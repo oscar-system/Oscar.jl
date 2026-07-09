@@ -219,7 +219,7 @@ concrete type at load time, it does not need to be in `type_and_params`.
 
 **Summary:** implement `type_and_params` whenever your type needs context to be
 reconstructed. The parameters you return will be serialized into the `_type`
-branch of the JSON, stored as shared `_refs` entries, and passed into
+branch of the `mrdi` file, stored as shared `_refs` entries, and passed into
 `load_object` as the second argument. The `load_object` signature should
 match the type of the parameters:
 
