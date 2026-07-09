@@ -274,6 +274,7 @@ function init_gluing_factory!(
     glue_order,
     glue_elementary_divisors,
     form_over,
+    genus_over,
   )
   assert_has_local_classifying_groups!(Fac)
   return nothing
@@ -351,10 +352,10 @@ function init_gluing_conditions!(
   # If glue_exponent is a positive integer, the exponent of the glue groups
   # should divide it
   if !isnothing(glue_exponent) && glue_exponent > 0
-    filter!(Base.Fix1(is_divisible_by, glue_exponent)∘last, elementary_divisors)
-    VM, _VMinVM = torsion_subgroup(domain(VMinqM), e)
+    filter!(Base.Fix1(is_divisible_by, glue_exponent)∘last, glue_elementary_divisors)
+    VM, _VMinVM = torsion_subgroup(domain(VMinqM), glue_exponent)
     VMinqM = compose(_VMinVM, VMinqM)
-    VN, _VNinVN = torsion_subgroup(domain(VNinqN), e)
+    VN, _VNinVN = torsion_subgroup(domain(VNinqN), glue_exponent)
     VNinqN = compose(_VNinVN, VNinqN)
   end
 
@@ -1112,7 +1113,8 @@ function _pullback_right(
   f::TorQuadModuleMap;
   as_bilinear_module::Bool=false,
 )
-  return inv(_pullback_left(inv(x), f; as_bilinear_module))
+  x2 = inv(_pullback_left(inv(x), f; as_bilinear_module))
+  return x2
 end
 
 # Given a glue map, return a representative for the isometry class of the

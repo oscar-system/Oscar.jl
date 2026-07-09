@@ -1494,11 +1494,25 @@ function _primitive_extensions(
   return _primitive_extensions(genus(M), G, parity, [M], lattices_left; GMs=Dict(1 => GMbar), exist_only, first, check=false, kwargs...)
 end
 
+function _primitive_extensions(
+  G1::ZZGenus,
+  G2::ZZGenus,
+  Ms::Vector{ZZLat} = ZZLat[],
+  Ns::Vector{ZZLat} = ZZLat[];
+  parity::Symbol=:default,
+  kwargs...,
+)
+  if parity === :default
+    parity = is_even(G1) && is_even(G2) ? :even : :odd
+  end
+  return _primitive_extensions(G1, G2, parity, Ms, Ns; kwargs...)
+end
+
 # In the case where the determinant of `G1` or `G2` is coprime to the
 # determinant of a primitive extension, i.e. we glue the full discriminant
 # group of one lattice (and it is anti-isometric to the product of some
 # `p`-Sylow of the discriminant group of the other lattice)
-# This applies then to unimodular primitive extensions also, for instance
+# This applies then to unimodular primitive extensions, for instance
 function _primitive_extensions_direct(
   G1::ZZGenus,
   G2::ZZGenus,
@@ -1697,7 +1711,6 @@ function _primitive_extensions(
   if unimodular || coprime_left || coprime_right
     return _primitive_extensions_direct(G1, G2, parity, Ms, Ns; coprime_left, coprime_right, unimodular, GMs, GNs, first, exist_only, check)
   end
-
   both_even = is_even(G1) && is_even(G2)
   if !both_even && parity === :even
     return false, results
@@ -1751,8 +1764,6 @@ function _primitive_extensions(
     return false, NTuple{3, ZZLat}[]
   end
 
-  _dataM = Array{TorQuadModuleMap}(undef, 1, length(Ms))
-  _dataN = Array{TorQuadModuleMap}(undef, 1, length(Ns))
   need_setup = true # To avoid repeating some routine
   compute_iso = true
   for it in _iterator
@@ -1762,6 +1773,8 @@ function _primitive_extensions(
     if need_setup
       Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
       Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
+      _dataM = Array{TorQuadModuleMap}(undef, 1, length(Ms))
+      _dataN = Array{TorQuadModuleMap}(undef, 1, length(Ns))
       need_setup = false
     end
     if compute_iso
@@ -1790,7 +1803,7 @@ function _primitive_extensions(
           GN = GNs[j]
           gammaN = _dataN[j]
           xMN = _pullback_right(y, gammaN; as_bilinear_module)
-          xMNs = _split_orbit_right(y, GN; as_bilinear_module)
+          xMNs = _split_orbit_right(xMN, GN; as_bilinear_module)
           for z in xMNs
             w = _overlattice(x; as_bilinear_module)
             !test_overlattice(Fac, Base.first(w)) && continue
