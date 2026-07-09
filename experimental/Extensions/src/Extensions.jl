@@ -66,5 +66,3 @@ function solve_numerical(::Any)
   error("HomotopyContinuation.jl is not available in the current Julia session")
 end
 ################################################################################
-
-export dim_numerical, solve_numerical

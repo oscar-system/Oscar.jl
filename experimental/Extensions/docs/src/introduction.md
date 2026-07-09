@@ -10,7 +10,7 @@ An extension is a module that is loaded when all of its dependencies are loaded 
 This functionality has been available since Julia version 1.9. 
 See the [julia docs](https://docs.julialang.org/en/v1/manual/code-loading/#man-extensions) on how to setup an extension.
 
-We will maintain extensions of Oscar so long as the dependencies used as part of the extension are actively maintained
+We will maintain extensions of Oscar so long as the dependencies used as part of the extension are actively maintained.
 
 ## Homotopy Continuation
 
@@ -24,7 +24,6 @@ To align with Oscar naming conventions and to raise awareness that the underlyin
 
 ```@docs
 solve_numerical
-dim_numerical
 ```
 
 ## Contact
