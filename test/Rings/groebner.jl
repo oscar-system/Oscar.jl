@@ -223,10 +223,7 @@ end
 
 @testset "signature based" begin
   R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
-  I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
-          x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
-          2*x1*x2+2*x2*x3+2*x3*x4-x2,
-          x2^2+2*x1*x3+2*x2*x4-x3])
+  I = ideal(R,[x1+2*x2+2*x3+2*x4-1, x1^2+2*x2^2+2*x3^2+2*x4^2-x1, 2*x1*x2+2*x2*x3+2*x3*x4-x2, x2^2+2*x1*x3+2*x2*x4-x3])
   H = groebner_basis_signature_based(I);
 end
 @testset "f4" begin
