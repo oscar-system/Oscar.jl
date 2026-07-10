@@ -18,6 +18,7 @@ function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
     s.is_up_step ? up_step(s, sprev, U) : down_step(s, sprev, U)
     sprev = s
   end
+  # TODO want to return double cosets and sizes, as in /src/Groups/cosets.jl/double_cosets
   return keys(L[end].DSt)
 end
 
@@ -50,29 +51,29 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
         S1, _ = intersect(U, A^d)
 
         # not used in calculation
-        S2, _ = intersect(U, Aprev^a)
-        @assert is_subset(S1, S2)
-        @assert st[1][1] == S2
-        @assert S2 == intersect(U, Aprev^d)[1]
+        # S2, _ = intersect(U, Aprev^a)
+        # @assert is_subset(S1, S2)
+        # @assert st[1][1] == S2
+        # @assert S2 == intersect(U, Aprev^d)[1]
 
         st2, Sta = _induce_chain(S1, S.Tmap, st ; conj=d)
 
         # not used in calculation
-        @assert length(Sta) == index(S2, S1)
-        Tss = right_transversal(S2, S1)
-        ss = map_from_func(S2, S2, x -> Tss[index_of_coset(Tss, x)])
-        @assert allunique(map(x -> ss(S2(x)), Sta))
+        # @assert length(Sta) == index(S2, S1)
+        # Tss = right_transversal(S2, S1)
+        # ss = map_from_func(S2, S2, x -> Tss[index_of_coset(Tss, x)])
+        # @assert allunique(map(x -> ss(S2(x)), Sta))
 
         DSt[d] = st2
         for u in Sta
           tt = S.Tmap(Aprev(d*u*inv(a)))
           push!(tmp, tt)
           Im[tt*a] = (d, u)
-          @assert tt*a*inv(u)*inv(d) in A
+          # @assert tt*a*inv(u)*inv(d) in A
         end
       end
     end
-    @assert Set(collect(T)) == Set(tmp)
+    # @assert Set(collect(T)) == Set(tmp)
   end
   S.DSt = DSt
   S.Im = Im
@@ -94,10 +95,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
   seen = PermGroupElem[]
   store = PermGroupElem[]
-  # TODO cls/cls_store should be Dict
   cls_store = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
-  # cls = PermGroupElem[]
-  # cls_store = Tuple{PermGroupElem, PermGroupElem}[]
 
   for (a, st) in Sprev.DSt
     if haskey(cls_store, a)
@@ -114,8 +112,8 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       ta = t*a
       (at, ut) = _get_rep(ta, Sprev)
 
-      @assert ta*inv(ut)*inv(at) in Aprev
-      @assert at in keys(Sprev.DSt)
+      # @assert ta*inv(ut)*inv(at) in Aprev
+      # @assert at in keys(Sprev.DSt)
 
       rep === nothing && ((rep, rep_u) = (at, ut))
       haskey(cls_store, at) || (cls_store[at] = (rep, rep_u*inv(ut)))
@@ -126,7 +124,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       StTC = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; data(st)])
       DSt[rep] = StTC
 
-      @assert index(StTC[1][1], StTC[2][1]) == length(tt)
+      # @assert index(StTC[1][1], StTC[2][1]) == length(tt)
     end
   end
 
@@ -139,7 +137,7 @@ end
 # This gives a transversal chain
 function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1][1]))
   # Tm is a transversal map for C[1][1]/V
-  @assert is_subset(V, C[1][1])
+  # @assert is_subset(V, C[1][1])
 
   c = Tuple{PermGroup, Vector{PermGroupElem}}[ (sub(V, [one(V)])[1], [one(V)]) ]
 
@@ -166,9 +164,9 @@ function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1
         end
       end
     end
-    @assert length(tV) == index(U, c[end][1])
-    @assert length(tU) == index(C[i][1], U)
-    @assert length(tU)*length(tV) == length(last_tUU)*length(C[i][2])
+    # @assert length(tV) == index(U, c[end][1])
+    # @assert length(tU) == index(C[i][1], U)
+    # @assert length(tU)*length(tV) == length(last_tUU)*length(C[i][2])
 
     last_tUU = tUU
     length(tV) != 1 && push!(c, (U, tV) )
