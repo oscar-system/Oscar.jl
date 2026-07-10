@@ -134,7 +134,7 @@ function simulate_valuation(
         # make sw strictly negative
         sw[2:end] .-= 1+maximum(sw[2:end])
         # if latter entries of sw do fit in Int16, minimize their absolute value
-        if any(sw[2:end] .< typemin(Int16)) || any(sw[2:end] .> typemax(Int16))
+        if any(sw[2:end] .< typemin(Int16))
             sw[2:end] .-= div(maximum(sw[2:end])-minimum(sw[2:end]),2)
         end
     end
