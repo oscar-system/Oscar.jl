@@ -76,9 +76,8 @@ function groebner_basis_signature_based(
   # sig_gb includes the signatures and the elements are sorted w.r.t. the signatures. Thus we drop the signatures
   # and sort the generators w.r.t. degrevlex.
   gb = [g[2] for g in sig_gb]
-  p = sortperm([leading_term(x) for x in gb]; order=degrevlex(base_ring(I)))
-
-  GB = IdealGens(base_ring(I), gb[p], ordering, keep_ordering=false, isGB=true, isReduced=false)
+  sort!(gb; by=leading_term, order=degrevlex(base_ring(I)))
+  GB = IdealGens(base_ring(I), gb, ordering, keep_ordering=false, isGB=true, isReduced=false)
   I.gb[ordering] = GB
 
   return GB
