@@ -58,6 +58,10 @@ The keyword `algorithm` can be set to
 - `:modular` (implementation of multi-modular approach, if applicable),
 - `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
 
+The keyword `signature_ordering` can be set to
+ - `:POT` (position-over-term ordering)
+ - `:DPOT` (degree-position-over-term ordering)
+ 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
     and `f4` in the OSCAR documentation for some more details and for restrictions    
@@ -173,6 +177,10 @@ The keyword `algorithm` can be set to
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:modular` (implementation of multi-modular approach, if applicable),
 - `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
+
+The keyword `signature_ordering` can be set to
+ - `:POT` (position-over-term ordering)
+ - `:DPOT` (degree-position-over-term ordering)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
