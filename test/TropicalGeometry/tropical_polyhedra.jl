@@ -220,6 +220,9 @@ end
      __sign*[-1, 0]
     ])
 
+  # issue 6095
+  @test f_vector(covector_decomposition(C2)) isa Vector{Int64}
+
   pts3 = TT[0 1__sign 4__sign; oo 0 2__sign; oo oo 0]
   C3 = tropical_point_configuration(pts3)
   @test issetequal(points(C3), eachrow(pts3))

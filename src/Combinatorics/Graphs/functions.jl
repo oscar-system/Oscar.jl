@@ -5,6 +5,28 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+function _copy_labels(G::Graph{T}, G_copy::Graph{T}, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
+  for label in labels
+    graph_map = _graph_maps(G)[label]
+    new_vertex_labels = nothing
+    new_edge_labels = nothing
+    if !isnothing(graph_map.vertex_map)
+      new_vertex_labels = Dict(v => graph_map.vertex_map[v] for v in 1:n_vertices(G))
+    end
+
+    if !isnothing(graph_map.edge_map)
+      new_edge_labels = Dict((src(e), dst(e)) => graph_map.edge_map[e] for e in edges(G))
+    end
+    label!(G_copy, new_edge_labels, new_vertex_labels; name=label)
+  end
+end
+
+function copy(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+  copyG = Graph{T}(copy(pm_object(G)))
+  !isempty(labelings(G)) && _copy_labels(G, copyG, labelings(G))
+  return copyG
+end
+
 _directed_component(G::MixedGraph) = G.directed_component
 @doc raw"""
     directed_component(G::MixedGraph)

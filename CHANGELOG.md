@@ -9,6 +9,17 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
+## [1.7.3](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.3) - 2026-05-18
+
+### Combinatorics
+
+- [#5931](https://github.com/oscar-system/Oscar.jl/pull/5931) `shortest_path_dijkstra`: add checks for input vertices
+
+### Other changes
+
+- [#5972](https://github.com/oscar-system/Oscar.jl/pull/5972) Remove obsolete pretty printing for IJulia notebooks, that errors with recent IJulia versions
+
+
 ## [1.7.2](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.7.2) - 2026-04-08
 
 ### Commutative Algebra

@@ -308,7 +308,7 @@
     end
   end
 
-  @testset "coroot" begin
+  @testset "dual" begin
     @testset "$Rname" for (Rname, R) in [
       ("A5", root_system(:A, 5)),
       ("B3", root_system(:B, 3)),
@@ -316,11 +316,14 @@
       ("F4", root_system(:F, 4)),
       ("G2", root_system(:G, 2)),
     ]
-      for i in 1:rank(R)
-        @test dual(simple_root(R,i)) == simple_coroot(R,i)
+      for i in 1:number_of_roots(R)
+        @test dual(root(R, i)) == coroot(R, i)
+        @test dual(coroot(R, i)) == root(R, i)
       end
-      for i in roots(R)
-        @test dual(dual(i)) == i
+
+      for _ in 1:10
+        r = RootSpaceElem(R, rand(-10:10, rank(R)))
+        @test dual(dual(r)) == r
       end
     end
   end

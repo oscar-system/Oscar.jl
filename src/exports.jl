@@ -1300,10 +1300,12 @@ export n_gon
 export n_maximal_cells
 export n_maximal_cones
 export n_maximal_polyhedra
+export n_minimal_faces
 export n_points
 export n_polyhedra
 export n_pseudovertices
 export n_rays
+export n_rays_modulo_lineality
 export n_vertices
 export name
 export names_of_fusion_sources
@@ -1592,6 +1594,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_action_homomorphism
 export regular_character
 export regular_triangulation
 export regular_triangulations

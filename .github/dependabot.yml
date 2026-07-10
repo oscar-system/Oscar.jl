@@ -5,3 +5,6 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+    labels:
+      - "github_actions"
+      - "release notes: not needed"
