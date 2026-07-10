@@ -170,12 +170,12 @@ function decode_type(s::DeserializerState)
 end
 
 ################################################################################
-# TypeParams Struct
-struct TypeParams{T, S}
+# TypeAndParams Struct
+struct TypeAndParams{T, S}
   type::Type{T}
   params::S
 
-  function TypeParams(T::Type, params)
+  function TypeAndParams(T::Type, params)
     if Base.issingletontype(T)
       return new{T, Nothing}(T, nothing)
     else
@@ -184,14 +184,14 @@ struct TypeParams{T, S}
   end
 end
 
-TypeParams(T::Type, args::Pair...) = TypeParams(T, args)
+TypeAndParams(T::Type, args::Pair...) = TypeAndParams(T, args)
 
-params(tp::TypeParams) = tp.params
-type(tp::TypeParams) = tp.type
+params(tp::TypeAndParams) = tp.params
+type(tp::TypeAndParams) = tp.type
 
-type_params(obj::T) where T = TypeParams(T, nothing)
+type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
-function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
+function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
   if is_terse(io)
     print(io, "Type parameters for $T")
   else
@@ -204,7 +204,7 @@ function Base.show(io::IO, tp::TypeParams{T, Tuple}) where T
   end
 end
 
-function Base.show(io::IO, tp::TypeParams{T, S}) where {T, S}
+function Base.show(io::IO, tp::TypeAndParams{T, S}) where {T, S}
   if is_terse(io)
     print(io, "Type parameters for $T")
   else
@@ -247,7 +247,7 @@ function save_typed_object(s::SerializerState, x::T) where T
   if Base.issingletontype(T)
     save_object(s, encode_type(T), type_key)
   else
-    save_type_params(s, x, type_key)
+    save_type_and_params(s, x, type_key)
     save_object(s, x, :data)
   end
   if with_attrs(s)
@@ -270,18 +270,18 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
 end
 
 ################################################################################
-# (save | load) TypeParams
+# (save | load) TypeAndParams
 
-function save_type_params(s::SerializerState, obj::Any, key::Symbol)
+function save_type_and_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
-  save_type_params(s, obj)
+  save_type_and_params(s, obj)
 end
 
-function save_type_params(s::SerializerState, obj::T) where T
-  save_type_params(s, type_params(obj))
+function save_type_and_params(s::SerializerState, obj::T) where T
+  save_type_and_params(s, type_and_params(obj))
 end
 
-function save_type_params(s::SerializerState, tp::TypeParams)
+function save_type_and_params(s::SerializerState, tp::TypeAndParams)
   save_data_dict(s) do
     T = type(tp)
     type_encoding = encode_type(T)
@@ -291,17 +291,17 @@ function save_type_params(s::SerializerState, tp::TypeParams)
     
     save_object(s, type_encoding, :name)
 
-    # params(tp) isa TypeParams if the type isa container type
-    if params(tp) isa TypeParams
-      save_type_params(s, params(tp), :params)
+    # params(tp) isa TypeAndParams if the type isa container type
+    if params(tp) isa TypeAndParams
+      save_type_and_params(s, params(tp), :params)
     else
       save_typed_object(s, params(tp), :params)
     end
   end
 end
 
-function save_type_params(s::SerializerState,
-                          ::TypeParams{T, Nothing}) where T
+function save_type_and_params(s::SerializerState,
+                          ::TypeAndParams{T, Nothing}) where T
   type_encoding = encode_type(T)
   if reverse_type_map[type_encoding] isa Dict
     save_data_dict(s) do
@@ -313,31 +313,31 @@ function save_type_params(s::SerializerState,
   end
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{<:TypeParams, <:Tuple{Vararg{Pair}}})
+function save_type_and_params(s::SerializerState,
+                          tp::TypeAndParams{<:TypeAndParams, <:Tuple{Vararg{Pair}}})
   for param in params(tp)
-    save_type_params(s, param.second, Symbol(param.first))
+    save_type_and_params(s, param.second, Symbol(param.first))
   end
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{<:TypeParams, <:Tuple})
+function save_type_and_params(s::SerializerState,
+                          tp::TypeAndParams{<:TypeAndParams, <:Tuple})
   save_data_array(s) do 
     for param in params(tp)
-      save_type_params(s, param)
+      save_type_and_params(s, param)
     end
   end
 end
 
-function save_type_params(s::SerializerState,
-                          tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T
+function save_type_and_params(s::SerializerState,
+                          tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in params(tp)
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
-        elseif !(param.second isa TypeParams)
+        elseif !(param.second isa TypeAndParams)
           if param.second isa Tuple
             save_data_array(s, Symbol(param.first)) do
               for entry in param.second
@@ -354,16 +354,16 @@ function save_type_params(s::SerializerState,
             save_typed_object(s, param.second, Symbol(param.first))
           end
         else
-          save_type_params(s, param.second, Symbol(param.first))
+          save_type_and_params(s, param.second, Symbol(param.first))
         end
       end
     end
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type, key::Symbol)
+function load_type_and_params(s::DeserializerState, T::Type, key::Symbol)
   load_node(s, key) do _
-    load_type_params(s, T)
+    load_type_and_params(s, T)
   end
 end
 
@@ -374,11 +374,11 @@ function load_type_array_params(s::DeserializerState)
       !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
       return T
     end
-    return load_type_params(s, T)[2]
+    return load_type_and_params(s, T)[2]
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type)
+function load_type_and_params(s::DeserializerState, T::Type)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
       return T, load_ref(s)
@@ -394,9 +394,9 @@ function load_type_params(s::DeserializerState, T::Type)
         if Base.issingletontype(U)
           params = U()
         else
-          params = load_type_params(s, U)[2]
+          params = load_type_and_params(s, U)[2]
         end
-      # handle cases where type_params is a dict of params
+      # handle cases where type_and_params is a dict of params
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
         for (k, _) in obj
@@ -409,7 +409,7 @@ function load_type_params(s::DeserializerState, T::Type)
             if obj isa String && isnothing(tryparse(UUID, obj))
               return U
             end
-            return load_type_params(s, U)[2]
+            return load_type_and_params(s, U)[2]
           end
         end
       else
@@ -437,11 +437,11 @@ end
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
   if !isnothing(override_params)
-    T, _ = load_type_params(s, T, type_key)
+    T, _ = load_type_and_params(s, T, type_key)
     params = override_params
   else
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
-    T, params = load_type_params(s, T, type_key)
+    T, params = load_type_and_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
   obj = load_node(s, :data) do _
@@ -675,18 +675,24 @@ include("parallel.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false, serializer::OscarSerializer=JSONSerializer())
 
-Save an object `obj` to the given io stream
-respectively to the file `filename`. When used with `with_attrs=true` then the object will
-save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration, see
+Save an object `obj` to the given io stream respectively to the file `filename`.
+When used with `with_attrs=true` the object will save its attributes along with
+all the attributes of the types used in the object's struct. The attributes that
+will be saved are defined during type registration, see
 [`@register_serialization_type`](@ref).
 
-Setting the optional argument `compression` will compress the file using the given
-compression method. The `filename` must have the appropriate file extension for the
-chosen compression method.
+The optional `serializer` argument controls the output format and layout.
+The default `JSONSerializer` writes a single `.mrdi` file. Other serializers
+such as `MultiFileRefSerializer` (multi-file prefix-based) and `LPSerializer` (external LP
+file for linear programs) are available. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+Setting the optional argument `compression` will compress the file using the
+given compression method. The `filename` must have the appropriate file
+extension for the chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
 
 The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
@@ -745,19 +751,46 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
-  dir_name = dirname(filename)
-  # julia dirname does not return "." for plain filenames without any slashes
-  temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
+function save(filename::String, obj::Any;
+              compression::Symbol=:none,
+              serializer::OscarSerializer=JSONSerializer(),
+              kwargs...)
+  if serializer isa MultiFileRefSerializer
+    prefix = if endswith(filename, ".mrdi.gz")
+      chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      chopsuffix(filename, ".mrdi")
+    else
+      filename
+    end
+    main_ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    main_file = prefix * main_ext
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+
+    inner_serializer = MultiFileRefSerializer(prefix, compression)
+    temp_file = tempname(prefix_dir)
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        save(file, obj; serializer=inner_serializer, kwargs...)
+      end
+    else
+      open(temp_file, "w") do file
+        save(file, obj; serializer=inner_serializer, kwargs...)
+      end
+    end
+    Base.Filesystem.rename(temp_file, main_file)
+    return nothing
+  end
+  temp_file = tempname(dirname(abspath(filename)))
   
   if compression == :none
     open(temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
     open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   else
     error("Unsupported compression method: $compression")
@@ -767,26 +800,29 @@ function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
 
-Load the object stored in the given io stream
-respectively in the file `filename`.
+Load the object stored in the given io stream respectively in the file `filename`.
 
-If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of rings this
-results in setting its parent, or in the case of a container of ring types such as
-`Vector` or `Tuple`, then the parent of the entries will be set using their
- `params`.
+If `params` is specified, then the root object of the loaded data will attempt a
+load using these parameters. In the case of rings this results in setting its
+parent, or in the case of a container of ring types such as `Vector` or `Tuple`,
+the parent of the entries will be set using their `params`.
 
-If a type `T` is given then attempt to load the root object of the data
-being loaded with this type; if this fails, an error is thrown.
+If a type `T` is given then attempt to load the root object of the data being
+loaded with this type; if this fails, an error is thrown.
 
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
 
-If the file was created with setting the `compression` argument, and the filename
-has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
+The optional `serializer` argument must match the one used when saving. Pass the
+same serializer instance (e.g. `MultiFileRefSerializer()` or `LPSerializer(basepath)`)
+that was used with `save`. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+If the file was created with `compression=:gzip` and the filename ends in `.gz`,
+the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
 
@@ -857,7 +893,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   file_version = load_node(s) do obj
     serialization_version_info(obj)
   end
-  if file_version < VERSION_NUMBER
+  # A file needs upgrading iff some upgrade script targets a version newer than the
+  # file's effective version. Gate on the newest upgrade script rather than on
+  # VERSION_NUMBER: for DEV builds the file's version string carries a commit hash
+  # (e.g. "1.8.0-DEV-<hash>"), and comparing that against VERSION_NUMBER orders the two
+  # by hash characters rather than by upgrade state, which can wrongly skip upgrades.
+  if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
@@ -868,7 +909,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
   
   try
-    if params isa TypeParams
+    if params isa TypeAndParams
       params = _convert_override_params(params)
     end
     if type !== nothing
@@ -887,7 +928,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       Base.issingletontype(type) && return type()
       if isnothing(params)
         _, params = load_node(s, type_key) do _
-          load_type_params(s, U)
+          load_type_and_params(s, U)
         end
       end
       load_node(s, :data) do _
@@ -920,26 +961,48 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; kwargs...)
-  if endswith(filename, ".gz")
+function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
+  if serializer isa MultiFileRefSerializer
+    if endswith(filename, ".mrdi.gz")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi")
+    else
+      prefix = filename
+      main_gz = prefix * ".mrdi.gz"
+      main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+    end
+    compression = endswith(main_file, ".gz") ? :gzip : :none
+    if compression == :gzip
+      open(CodecZlib.GzipDecompressorStream, main_file) do file
+        return load(file; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
+      end
+    else
+      open(main_file) do file
+        return load(file; serializer=MultiFileRefSerializer(prefix), kwargs...)
+      end
+    end
+  elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   else
     open(filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   end
 end
 
-_convert_override_params(tp::TypeParams{T, S}) where {T, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
-_convert_override_params(tp::TypeParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
-_convert_override_params(tp::TypeParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
-_convert_override_params(tp::TypeParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
+_convert_override_params(tp::TypeAndParams{T, S}) where {T, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T = Dict(_convert_override_params(params(tp)))
+_convert_override_params(tp::TypeAndParams{T, S}) where {T <: MatVecType, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeAndParams{T, S}) where {T <: Set, S} = _convert_override_params(params(tp))
+_convert_override_params(tp::TypeAndParams{<: NamedTuple, S}) where S = _convert_override_params(values(params(tp)))
+_convert_override_params(tp::TypeAndParams{<:Array, <:Tuple{Vararg{Pair}}}) = Dict(_convert_override_params(params(tp)))[:subtype_params]
 
-function _convert_override_params(tp::TypeParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
+function _convert_override_params(tp::TypeAndParams{Dict{S, Any}, <:Tuple{Vararg{Pair}}}) where S <: Union{Int, Symbol, String}
   return Dict(k => (type(v), _convert_override_params(v)) for (k, v) in params(tp))
 end
 
@@ -948,14 +1011,14 @@ _convert_override_params(obj::Any) = obj
 #handles empty tuple ambiguity
 _convert_override_params(obj::Tuple{}) = ()
 
-_convert_override_params(t::Tuple{Vararg{TypeParams}}) = map(_convert_override_params, t)
+_convert_override_params(t::Tuple{Vararg{TypeAndParams}}) = map(_convert_override_params, t)
 
 function _convert_override_params(t::Tuple{Vararg{Pair}})
   map(x -> x.first => _convert_override_params(x.second), t)
 end
 
 # handle special polyhedral case
-function _convert_override_params(tp::TypeParams{<:PolyhedralObject, <:Tuple{Vararg{Pair}}})
+function _convert_override_params(tp::TypeAndParams{<:PolyhedralObject, <:Tuple{Vararg{Pair}}})
   # special treatement for the polymake parameters
   poly_params = Dict()
   for (k, v) in params(tp)
@@ -972,7 +1035,7 @@ function _convert_override_params(tp::TypeParams{<:PolyhedralObject, <:Tuple{Var
 end
 
 # handle monomial ordering
-_convert_override_params(tp::TypeParams{T, S}) where {T <: MonomialOrdering, S} = T
+_convert_override_params(tp::TypeAndParams{T, S}) where {T <: MonomialOrdering, S} = T
 
 export @register_serialization_type
 export DeserializerState
@@ -994,14 +1057,14 @@ export save_object
 export SerializerState
 export serialize_with_id
 export set_key
-export TypeParams
-export type_params
+export TypeAndParams
+export type_and_params
 export with_attrs
 
 end # module Serialization
 
 using Oscar.Serialization
-import Oscar.Serialization: load_object, save_object, type_params
+import Oscar.Serialization: load_object, save_object, type_and_params
 import Oscar.Serialization: reset_global_serializer_state
 
 # FIXME: the following functions are exported by us but undocumented

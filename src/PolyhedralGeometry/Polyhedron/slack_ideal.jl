@@ -1,11 +1,8 @@
 @doc raw"""
     slack_ideal_non_saturated(P::Polyhedron)
 
-Computes the (non-saturated) slack ideal of the input polytope `P` as described
-in
-  João Gouveia, Antonio Macchia, Rekha R. Thomas, Amy Wiebe:
-  The Slack Realization Space of a Polytope
-  https://doi.org/10.1137/18M1233649
+Compute the (non-saturated) slack ideal of the input polytope `P` as described
+in [GMTW19](@cite).
 
 To get the slack ideal one needs to saturate this ideal, which can be
 expensive.
@@ -26,7 +23,7 @@ function slack_ideal_non_saturated(P::Polyhedron)
   pmo = pm_object(P)
   SM = pmo.SLACK_MATRIX
   Rnvars = count(!iszero, vec(SM))
-  R, x = polynomial_ring(QQ, Rnvars)
+  R, x = polynomial_ring(QQ, Rnvars; cached=false)
   return slack_ideal_non_saturated(R, P)
 end
 
@@ -34,7 +31,7 @@ function slack_ideal_non_saturated(R::MPolyRing, P::Polyhedron)
   pmo = pm_object(P)
   SM = pmo.SLACK_MATRIX
   Rnvars = count(!iszero, vec(SM))
-  @assert nvars(R) == Rnvars "Wrong number of variables in R. Should be $Rnvars."
+  @req nvars(R) == Rnvars "Wrong number of variables in R. Should be $Rnvars."
   x = gens(R)
   VM = zero_matrix(R, nrows(SM), ncols(SM))
   c = 1
@@ -58,12 +55,9 @@ end
 @doc raw"""
     slack_ideal(P::Polyhedron)
 
-Computes the slack ideal of the input polytope `P` as described in
-  João Gouveia, Antonio Macchia, Rekha R. Thomas, Amy Wiebe:
-  The Slack Realization Space of a Polytope
-  https://doi.org/10.1137/18M1233649
+Compute the slack ideal of the input polytope `P` as described in [GMTW19](@cite).
 
-Optionally one can pass a suitable polynomial ring as the first arguemnt.
+Optionally one can pass a suitable polynomial ring as the first argument.
 
 # Examples
 ```jldoctest
