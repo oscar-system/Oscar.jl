@@ -72,7 +72,7 @@ function Oscar.solve_numerical(I::Vector{QQMPolyRingElem}; show_progress=false, 
 end
                                     
 function Oscar.solve_numerical(I::MPolyIdeal{QQMPolyRingElem}; args...)
-  return solve_numerical(gens(I); args...)
+  return Oscar.solve_numerical(gens(I); args...)
 end
 
 """
