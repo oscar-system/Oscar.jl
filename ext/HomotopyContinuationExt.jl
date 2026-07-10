@@ -1,6 +1,6 @@
 module HomotopyContinuationExt
 
-using Oscar, HomotopyContinuation
+using Oscar
 
 import HomotopyContinuation: HomotopyContinuation, Variable, Expression, System, witness_set
 
