@@ -58,7 +58,7 @@ The keyword `algorithm` can be set to
 - `:modular` (implementation of multi-modular approach, if applicable),
 - `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
 
-The keyword `signature_ordering` can be set to
+The keyword `signature_ordering` is only used if `algorithm = :signature_based`. It can be set to
  - `:POT` (position-over-term ordering)
  - `:DPOT` (degree-position-over-term ordering)
  
@@ -178,7 +178,7 @@ The keyword `algorithm` can be set to
 - `:modular` (implementation of multi-modular approach, if applicable),
 - `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
 
-The keyword `signature_ordering` can be set to
+The keyword `signature_ordering` is only used if `algorithm = :signature_based`. It can be set to
  - `:POT` (position-over-term ordering)
  - `:DPOT` (degree-position-over-term ordering)
 
