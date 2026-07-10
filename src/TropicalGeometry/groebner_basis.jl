@@ -167,7 +167,7 @@ function simulate_valuation(
         # make w strictly positive
         w .-= 1+minimum(w)
         # if entries of w do fit in Int16, minimize their absolute value
-        if any(w .< typemin(Int16)) || any(w .> typemax(Int16))
+        if any(w .> typemax(Int16))
             w .-= div(maximum(w)-minimum(w),2)
         end
     end
