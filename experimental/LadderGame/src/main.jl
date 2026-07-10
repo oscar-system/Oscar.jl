@@ -14,11 +14,11 @@
 function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
   sprev = L[1]
   for s in L
-    s.A == s.Aprev && (_ladder_start(s, U), continue)
+    s.A == s.Aprev && (_ladder_start!(s, U), continue)
     s.is_up_step ? up_step(s, sprev, U) : down_step(s, sprev, U)
     sprev = s
   end
-  return L
+  return keys(L[end].DSt)
 end
 
 function _ladder_start!(S::LadderStep, U::PermGroup)
@@ -92,16 +92,16 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   DSt = Dict{PermGroupElem, TransversalChain}()
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
-  seen = []
-  data = []
-  # TODO cls/cls_data should be Dict
-  cls = []
-  cls_data = []
+  seen = PermGroupElem[]
+  store = PermGroupElem[]
+  # TODO cls/cls_store should be Dict
+  cls_store = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
+  # cls = PermGroupElem[]
+  # cls_store = Tuple{PermGroupElem, PermGroupElem}[]
 
   for (a, st) in Sprev.DSt
-    if a in cls
-      p = findfirst(a, cls)
-      (rep, rep_u) = cls_data[p]
+    if haskey(cls_store, a)
+      (rep, rep_u) = cls_store[a]
       new = false
     else
       rep = nothing
@@ -118,15 +118,15 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       @assert at in keys(Sprev.DSt)
 
       rep === nothing && ((rep, rep_u) = (at, ut))
-      at in cls || (push!(cls, at), push!(cls_data, (rep, rep_u*inv(ut)) ))
+      haskey(cls_store, at) || (cls_store[at] = (rep, rep_u*inv(ut)))
       at == rep && push!(tt, ut*inv(rep_u))
       is_one(t) && (Im[a] = (rep, rep_u*inv(ut)))
     end
     if new
-      # TODO need to be able to EXTEND a stabilizer chain
-      DSt[rep] = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; data(st)])
+      StTC = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; data(st)])
+      DSt[rep] = StTC
 
-      @assert index(St[end][1][1], St[end][2][1]) == length(tt)
+      @assert index(StTC[1][1], StTC[2][1]) == length(tt)
     end
   end
 
