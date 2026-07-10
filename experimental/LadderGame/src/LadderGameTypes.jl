@@ -27,7 +27,7 @@ function TransversalChain(U::PermGroup)
     s = first(moved_points(U0))
     U = stabilizer(U0, s)[1]
     T = right_transversal(U0, U)
-    push!(C, (U0, T) )
+    push!(C, (U0, T))
     U0 = U
   end
   push!(C, (U0, [one(U0)]))

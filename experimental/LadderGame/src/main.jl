@@ -26,7 +26,7 @@ function _ladder_start!(S::LadderStep, U::PermGroup)
   isdefined(S, :T) || (S.T = [one(S.A)])
   isdefined(S, :Tmap) || (S.Tmap = map_from_func(S.A, S.A, x -> one(S.A)))
   S.DSt = Dict(one(S.A) => get_transversal_chain(U))
-  S.Im = Dict(one(S.A) => (one(S.A), one(U)))
+  S.Im = Dict(one(S.A) => (one(S.A), one(U))) # should both be one(S.A) for the sake of parents?
   return S
 end
 
@@ -67,7 +67,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
         for u in Sta
           tt = S.Tmap(Aprev(d*u*inv(a)))
           push!(tmp, tt)
-          Im[tt*a] = (d,u)
+          Im[tt*a] = (d, u)
           @assert tt*a*inv(u)*inv(d) in A
         end
       end
@@ -124,7 +124,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
     end
     if new
       # TODO need to be able to EXTEND a stabilizer chain
-      DSt[rep] = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; st])
+      DSt[rep] = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; data(st)])
 
       @assert index(St[end][1][1], St[end][2][1]) == length(tt)
     end
@@ -136,25 +136,22 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   return S
 end
 
-# I think this gives a transversal chain ???
-# can streamline wrt tUU / last_tUU
+# This gives a transversal chain
 function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1][1]))
   # Tm is a transversal map for C[1][1]/V
   @assert is_subset(V, C[1][1])
 
   c = Tuple{PermGroup, Vector{PermGroupElem}}[ (sub(V, [one(V)])[1], [one(V)]) ]
 
-  last_tUU = (C[1][1]).([ one(C[end][1]) ])
-  tUU = copy(last_tUU)
-  tU = [ one(codomain(Tm)) ] # isn't this just Tm(1)?
+  last_tUU = [ one(C[end][1]) ]
 
+  tU = [ one(codomain(Tm)) ] # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
   for i in (length(C)-1):-1:1
-    tUU = (C[i][1]).(last_tUU)
     map!(C[i][1], last_tUU, last_tUU)
+    tUU = copy(last_tUU)
 
     U, _ = intersect(C[i][1], V)
     tV = []
-
     for t in last_tUU, s in C[i][2]
       x = t*s
       if x in V
@@ -177,7 +174,7 @@ function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1
     length(tV) != 1 && push!(c, (U, tV) )
   end
 
-  return TransversalChain(reverse(c)), tUU
+  return TransversalChain(reverse(c)), last_tUU
 end
 
 # Recursive recognition method
@@ -187,9 +184,7 @@ function _get_rep(g::PermGroupElem, S::LadderStep)
   dprev = one(F[1].A)
   uprev = dprev
   for s in F
-    p = s.is_up_step ? dprev : (dprev * s.Tmap(domain(s.Tmap)(g*inv(dprev*uprev))))
-    println(keys(s.Im))
-    println()
+    p = s.is_up_step ? dprev : (s.Tmap(domain(s.Tmap)(g*inv(dprev*uprev)))) * dprev
     (d, u) = s.Im[p]
     dprev = d
     uprev = u*uprev
