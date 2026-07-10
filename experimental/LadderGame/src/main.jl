@@ -259,13 +259,5 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
 
   pushfirst!(L, LadderStep(Hprev,Hprev))
 
-  # TODO move this directly into SubgroupLadder constructor
-  # TODO save this info for every step
-  L = SubgroupLadder(L)
-  for (i, s) in enumerate(L)
-    s.A == s.Aprev && continue
-    s.is_up_step && (L[i-1].F = view(L, 1:i-1))
-  end
-
   return SubgroupLadder(L)
 end

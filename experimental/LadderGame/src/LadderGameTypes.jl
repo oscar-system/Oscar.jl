@@ -89,17 +89,25 @@ end
 # SubgroupLadder stores Vector{LadderStep}
 mutable struct SubgroupLadder <: AbstractVector{LadderStep}
   S::Vector{LadderStep}
+
+  function SubgroupLadder(S::Vector{LadderStep})
+    L = new(S)
+    for (i, s) in enumerate(L)
+      s.F = view(L, 1:i)
+    end
+    return L
+  end
 end
 
 function SubgroupLadder(S::Vector{PermGroup})
-  L = LadderStep[]
-  isempty(S) && return new(L)
-  push!(L, LadderStep(first(S), first(S)))
+  LS = LadderStep[]
+  isempty(S) && return new(LS)
+  push!(LS, LadderStep(first(S), first(S)))
   for i in 2:length(S)
     push!(L, LadderStep(S[i-1], S[i]))
   end
 
-  return SubgroupLadder(L)
+  return SubgroupLadder(LS)
 end
 
 data(L::SubgroupLadder) = L.S
