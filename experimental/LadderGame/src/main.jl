@@ -106,7 +106,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       new = true
     end
 
-    tt = []
+    tt = PermGroupElem[]
     for t in T
       (~new && ~is_one(t)) && continue
       ta = t*a
@@ -141,15 +141,15 @@ function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1
 
   c = Tuple{PermGroup, Vector{PermGroupElem}}[ (sub(V, [one(V)])[1], [one(V)]) ]
 
-  last_tUU = [ one(C[end][1]) ]
+  last_tUU = PermGroupElem[ one(C[end][1]) ]
 
-  tU = [ one(codomain(Tm)) ] # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
+  tU = PermGroupElem[ one(codomain(Tm)) ] # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
   for i in (length(C)-1):-1:1
     map!(C[i][1], last_tUU, last_tUU)
     tUU = copy(last_tUU)
 
     U, _ = intersect(C[i][1], V)
-    tV = []
+    tV = PermGroupElem[]
     for t in last_tUU, s in C[i][2]
       x = t*s
       if x in V
