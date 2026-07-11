@@ -365,26 +365,44 @@ end
     V = vector_space(F, n)
     gl = general_linear_group(n, F)
     S = sylow_subgroup(gl, 2)[1]
-    for G in [gl, S]
-      for k in 0:n
-        res = orbit_representatives_and_stabilizers(G, k)
-        total = ZZ(0)
-        for (U, stab) in res
-          total = total + index(G, stab)
-          @test length(orbit(stab, U)) == 1
+    for algorithm in [:gset,:perm]
+      for G in [gl, S]
+        for k in 0:n
+          res = orbit_representatives_and_stabilizers(G, k)
+          total = ZZ(0)
+          for (U, stab) in res
+            total = total + index(G, stab)
+            @test length(orbit(stab, U)) == 1
+          end
+          num = ZZ(1)
+          for i in 0:(k-1)
+            num = num * (q^n - q^i)
+          end
+          for i in 0:(k-1)
+            num = divexact(num, q^k - q^i)
+          end
+          @test total == num
         end
-        num = ZZ(1)
-        for i in 0:(k-1)
-          num = num * (q^n - q^i)
-        end
-        for i in 0:(k-1)
-          num = divexact(num, q^k - q^i)
-        end
-        @test total == num
       end
     end
   end
 
+  function test_mod2_orbs(L::ZZLat, i)
+    L = lattice(rational_span(L))
+    F2 = GF(2)
+    GF2 = [F2.(ZZ.(i)) for i in automorphism_group_generators(L)]
+    GF2_grp = matrix_group(GF2)
+    for i in 1:3
+      orb1 = orbit_representatives_and_stabilizers(GF2_grp, i; algorithm=:perm)
+      orb2 = orbit_representatives_and_stabilizers(GF2_grp, i; algorithm=:orbmod2)
+      stabord1 = sort!([order(i[2]) for i in orb1])
+      stabord2 = sort!([order(i[2]) for i in orb2])
+      @test stabord1 == stabord2
+    end
+    return nothing
+  end
+  LL = [integer_lattice(gram=matrix(ZZ,i)) for i in [[2 0 1 -1 -1 0; 0 4 2 0 0 -1; 1 2 5 -2 -2 -1; -1 0 -2 4 0 0; -1 0 -2 0 5 2; 0 -1 -1 0 2 7], [2 0 0 0 -1 1; 0 2 1 0 -1 1; 0 1 3 1 0 0; 0 0 1 4 2 -1; -1 -1 0 2 5 -2; 1 1 0 -1 -2 16], [532 265 527 1 530 1054; 265 133 264 0 265 527; 527 264 528 0 527 1054; 1 0 0 1 0 0; 530 265 527 0 530 1054; 1054 527 1054 0 1054 2108], [1 0 0 0 0 0; 0 2 0 1 1 1; 0 0 2 1 -1 0; 0 1 1 4 0 2; 0 1 -1 0 9 -1; 0 1 0 2 -1 18]]]
+  test_mod2_orbs(LL[3])  
 end
 
 @testset "G-sets of matrix groups in characteristic zero" begin
