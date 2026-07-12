@@ -51,15 +51,20 @@ types and Julia's native `Matrix` type is supported.
 ## Topics covered
 
 The main topics covered in this section are:
-- [Matrix functionality](@ref matrix_functionality_chapter)
-- [Matrix spaces](@ref "Matrix Spaces")
-- [Linear solving](@ref solving_chapter)
-- [Eigenvalues and -spaces](@ref "Eigenvalues and -spaces")
-- [Nemo matrices](@ref "Nemo matrices")
-- [Generic matrix algebras](@ref "Generic matrix algebras")
-- [Sparse linear algebra](@ref)
+- Working With Matrices
+  - [Constructing Algebraic Matrices](@ref matrix_construction)
+  - [Manipulating Algebraic Matrices](@ref matrix_manipulation)
+  - [Matrix Predicates](@ref matrix_predicates)
+  - [Matrix Computed Quantities](@ref matrix_computed_quantities)
+  - [Linear Solving](@ref solving_chapter)
+  - [Matrix Normal Forms](@ref matrix_normal_forms)
+  - [Eigenvalues And Eigenspaces](@ref "Eigenvalues and -spaces")
+- [Matrix Spaces](@ref "Matrix Spaces")
+- [Matrix Algebras](@ref "Generic matrix algebras")
 - [Modules](@ref "Finitely presented modules")
-
+- Specialized Matrix Types
+  - [Nemo Matrices](@ref "Nemo matrices")
+  - [Sparse Linear Algebra](@ref)
 
 ## For developers
 
