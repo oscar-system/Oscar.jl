@@ -507,3 +507,4 @@ julia> n_leaves(ptree)
 ```
 """
 n_leaves(pt::PhylogeneticTree) = n_leaves(adjacency_tree(pt))
+
