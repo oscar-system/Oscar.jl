@@ -1753,7 +1753,11 @@ function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) 
   n = degree(G)
   V = vector_space(F, n)
   k == 0 && return [(sub(V, [])[1], G)]
-  gens_mat = matrix.(small_generating_set(G))
+  if order(G)>1
+    gens_mat = matrix.(small_generating_set(G))
+  else 
+    gens_mat = [identity_matrix(F,n)]
+  end
   res = Hecke.orbit_representatives_and_stabilizers_mod_2(gens_mat, k; group_order=order(G))
   orbreps = first.(res)
   orbreps2 = [sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1] for M in orbreps]
