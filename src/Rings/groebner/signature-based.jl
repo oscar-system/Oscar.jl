@@ -26,7 +26,7 @@ degree reverse lexicographical monomial ordering and the signature ordering
     The algorithms behaviour may depend heavily on how the elements in generators list are sorted.
 
 !!! note
-  In general, the resulting Gröbner basis is not reduced.
+    In general, the resulting Gröbner basis is not reduced.
 
 # Possible keyword arguments
 - `info_level::Int=0`: info level printout: off (`0`, default), computational details (`1`)
