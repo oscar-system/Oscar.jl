@@ -8,9 +8,9 @@ function is_signature_based_gb_algorithm_applicable(I::MPolyIdeal, ordering::Mon
 end
 
 @doc raw"""
-  groebner_basis_signature_based(
-    I::MPolyIdeal; info_level::Int=0, signature_ordering::Symbol=:POT
-)
+    groebner_basis_signature_based(
+        I::MPolyIdeal; info_level::Int=0, signature_ordering::Symbol=:POT
+    )
 
 Returns a Gröbner basis of `I` w.r.t. to the
 degree reverse lexicographical monomial ordering and the signature ordering
