@@ -17,7 +17,7 @@ degree reverse lexicographical monomial ordering and the signature ordering
 `signature_ordering`.
 
 !!! note
-  Only ground fields of characteristic `p`, `p` prime, `p < 2^{31}` are supported.
+    Only ground fields of characteristic `p`, `p` prime, `p < 2^{31}` are supported.
 
 !!! note
   If `signature_ordering == :DPOT` then the input generators must be homogeneous.
