@@ -23,7 +23,7 @@ degree reverse lexicographical monomial ordering and the signature ordering
   If `signature_ordering == :DPOT` then the input generators must be homogeneous.
   
 !!! note
-  The algorithms behaviour may depend heavily on how the elements in generators list are sorted.
+    The algorithms behaviour may depend heavily on how the elements in generators list are sorted.
 
 !!! note
   In general, the resulting Gröbner basis is not reduced.
