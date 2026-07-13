@@ -106,9 +106,11 @@
     end
   end
 
-  #= The code below takes too long for the CI.
+  # The code below takes too long for the CI.
   # It is kept here for the purpose of reproducibility of the paper's results. 
-  
+  #
+  # Re-enabled because test-file was moved to extra long tests now.
+
   @test [ngens(coh[i]) for i in 11:-1:-2] == [0, 0, 0, 0, 0, 0, 0, 1, 9, 16, 9, 1, 0, 0]
   
   # We substitute for a specific function.
@@ -129,14 +131,16 @@
   subs_coh, _ = change_base_ring(subs, coh);
   @test all(is_zero(homology(subs_coh, i)[1]) for i in 0:5)
   
-  =#
 end
 
-#= The following tests are disabled to cut down on cost for CI.
+# The following tests are disabled to cut down on cost for CI.
 # 
 # We keep them here to test against regression. As this is part 
 # of the data associated to a paper, we will eventually move it 
 # to Zenodo in order to adhere to the MarDi principles.
+#
+# Re-enabled because test-file was moved to extra long tests now.
+
 @testset "Example 5.2" begin
   # All steps similar to the above.
   P, v = QQ[vcat(["a_{$(i), $j}" for i in 1:2 for j in 1:2], ["b_{$(i), $j}" for i in 1:2 for j in 1:2], ["c"], [:x, :y, :z, :w])...]
@@ -216,5 +220,3 @@ end
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
   @test vector_space_dim(H0) == 2
 end
-=#
-
