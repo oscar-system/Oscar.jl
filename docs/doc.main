@@ -340,6 +340,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
+    "DeveloperDocumentation/timing-tool.md",
     "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/artifacts.md",
