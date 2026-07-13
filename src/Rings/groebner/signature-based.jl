@@ -70,6 +70,9 @@ function groebner_basis_signature_based(
   signature_ordering::Symbol=:POT
 )
   ordering = degrevlex(base_ring(I))
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
+  end
   AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
   sig_gb = AlgebraicSolving.sig_groebner_basis(AI.gens,info_level=info_level, degbound=0, mod_ord=signature_ordering)
