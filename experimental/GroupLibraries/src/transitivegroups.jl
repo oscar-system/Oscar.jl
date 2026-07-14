@@ -27,12 +27,6 @@ import Oscar.IntegerUnion
 import Oscar._permgroup_filter_attrs
 import Oscar.translate_group_library_args
 
-# import Oscar.@req
-# import Oscar.GAP
-# import Oscar.GapObj
-# import Oscar.PermGroup
-# import Oscar.degree
-
 """
     TransitiveGroups.has_count(deg::Int)
 

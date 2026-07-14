@@ -53,3 +53,20 @@ TransitiveGroups.count
 TransitiveGroups.has_identification
 TransitiveGroups.identification
 ```
+
+## Perfect groups of small order
+
+```@docs
+PerfectGroups
+```
+
+```@docs
+PerfectGroups.get
+PerfectGroups.get_all
+PerfectGroups.has
+PerfectGroups.has_count
+PerfectGroups.count
+PerfectGroups.has_identification
+PerfectGroups.identification
+PerfectGroups.orders
+```
