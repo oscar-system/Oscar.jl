@@ -18,8 +18,6 @@ end
 
 GAP.@install GapObj(D::Digraph) = D.X
 
-digraph(d::GapObj) = Digraph(d)
-
 function Base.show(io::IO, ::MIME"text/plain", D::Digraph)
     @show_name(io, D)
     @show_special(io, D)

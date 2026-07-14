@@ -33,12 +33,6 @@ function digraph(obj::GapObj)
   return Digraph(d)
 end
 
-function digraph(binary_relation::Vector{Vector{Int64}})
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  d = DigraphWrap.Digraph(filter, GapObj(binary_relation, recursive = true))
-  return Digraph(d)
-end
-
 function digraph(name::T) where T <: AbstractString
   d = DigraphWrap.Digraph(GapObj(name))
   return Digraph(d)
