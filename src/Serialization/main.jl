@@ -893,8 +893,8 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
 
   # deal with upgrades
-  file_version = load_node(s) do obj
-    serialization_version_info(obj)
+  file_version = load_node(s) do
+    serialization_version_info(s.obj)
   end
   # A file needs upgrading iff some upgrade script targets a version newer than the
   # file's effective version. Gate on the newest upgrade script rather than on
