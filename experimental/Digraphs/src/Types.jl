@@ -1,26 +1,24 @@
-mutable struct Digraph{T<:GraphTypes}
+abstract type GAPDigraph <: AbstractGraph{Directed} end
+
+@attributes mutable struct Digraph <: GAPDigraph
     X::GapObj
     nv::Int64
     ne::Int64
     mut::Bool
 
-    function Digraph{T}(d::GapObj) where T<:GraphTypes
+    function Digraph(d::GapObj)
         @req DigraphWrap.IsDigraph(d) "the GAP object must be a digraph"
         nv = DigraphWrap.DigraphNrVertices(d)
         ne = DigraphWrap.DigraphNrEdges(d)
         mut = DigraphWrap.IsMutableDigraph(d)
-        z = new{T}(d, nv, ne, mut)
+        z = new(d, nv, ne, mut)
         return z
     end
 end
 
 GAP.@install GapObj(D::Digraph) = D.X
 
-const DirectedDigraph = Digraph{Directed}
-const UndirectedDigraph = Digraph{Undirected}
-
-digraph(d::GapObj) = Digraph{Directed}(d)
-undirected_digraph(d::GapObj) = Digraph{Undirected}(d)
+digraph(d::GapObj) = Digraph(d)
 
 function Base.show(io::IO, ::MIME"text/plain", D::Digraph)
     @show_name(io, D)
@@ -31,3 +29,4 @@ function Base.show(io::IO, ::MIME"text/plain", D::Digraph)
         print(io, "Digraph with ", nv(D), " vertices, ", ne(D), " edges")
     end
 end
+

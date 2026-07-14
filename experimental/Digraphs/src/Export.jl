@@ -8,6 +8,7 @@ export clique_number
 export complete_bipartite_digraph
 export complete_digraph
 export cycle_digraph
+export digraph
 export digraph_cartesian_product
 export digraph_diameter
 export digraph_direct_product

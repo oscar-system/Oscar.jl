@@ -1,3 +1,5 @@
+using Oscar: AbstractGraph, Directed, GAPGroup
+
 include("DigraphWrap.jl")
 include("Types.jl")
 include("Constructors.jl")
@@ -6,3 +8,4 @@ include("Attributes.jl")
 include("Operations.jl")
 include("Isomorphisms.jl")
 include("Export.jl")
+

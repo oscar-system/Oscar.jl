@@ -39,8 +39,9 @@ function clique_number(D::Digraph)
 end
 
 function has_edge(D::Digraph, s::Int, t::Int)
-  adj = adjacency_matrix(D)
-  return adj[s, t] != 0
+  has_vertex(D, s) || return false
+  has_vertex(D, t) || return false
+  return DigraphWrap.DigraphHasEdge(GapObj(D), s, t)::Bool
 end
 
 function has_vertex(D::Digraph, v::Int)
@@ -54,5 +55,6 @@ end
 function digraph_diameter(D::Digraph)
   return Int(DigraphWrap.DigraphDiameter(GapObj(D))::GapInt)
 end
+
 
 

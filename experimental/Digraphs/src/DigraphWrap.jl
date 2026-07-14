@@ -24,6 +24,12 @@ GAP.@wrap CliqueNumber(x::GapObj)::GapInt
 GAP.@wrap CompleteBipartiteDigraph(x::Int, y::Int)::GapObj
 GAP.@wrap CompleteDigraph(x::Int)::GapObj
 GAP.@wrap CycleDigraph(x::Int)::GapObj
+GAP.@wrap Digraph(filter::GapObj, adj::GapObj)::GapObj
+GAP.@wrap Digraph(filter::GapObj, list::GapObj, func::GapObj)::GapObj
+GAP.@wrap Digraph(filter::GapObj, labels::GapObj, source::GapObj, range::GapObj)::GapObj
+GAP.@wrap Digraph(filter::GapObj, n::Int64, source::GapObj, range::GapObj)::GapObj
+GAP.@wrap Digraph(filter::GapObj, G::GapObj, list::GapObj, act::GapObj, rel::GapObj)::GapObj
+GAP.@wrap Digraph(obj::GapObj)::GapObj
 GAP.@wrap DigraphBicomponents(x::GapObj)::GapObj
 GAP.@wrap DigraphByAdjacencyMatrix(x::GapObj)::GapObj
 GAP.@wrap DigraphByEdges(x::GapObj)::GapObj
@@ -36,6 +42,7 @@ GAP.@wrap DigraphDisjointUnion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphDual(x::GapObj)::GapObj
 GAP.@wrap DigraphEdgeUnion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphGroup(x::GapObj)::GapObj
+GAP.@wrap DigraphHasEdge(x::GapObj, s::Int, t::Int)::Bool
 GAP.@wrap DigraphJoin(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphLexicographicProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphMaximalCliques(x::GapObj)::GapObj
@@ -102,3 +109,5 @@ function __init__()
 end
 
 end
+
+
