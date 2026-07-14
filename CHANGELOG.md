@@ -130,13 +130,15 @@ which we think might affect some users directly.
 ### Changes related to the package AbstractAlgebra
 
 - [#5982](https://github.com/oscar-system/Oscar.jl/pull/5982) Update AbstractAlgebra to v0.49
-- [#5982](https://github.com/oscar-system/Oscar.jl/pull/5982) Update Nemo to v0.55
 - [#6051](https://github.com/oscar-system/Oscar.jl/pull/6051) Update AbstractAlgebra to v0.50
-- [#6051](https://github.com/oscar-system/Oscar.jl/pull/6051) Update Nemo to v0.56
 
 ### Changes related to the package GAP
 
 - [#6054](https://github.com/oscar-system/Oscar.jl/pull/6054) Update GAP.jl to 0.17, i.e. GAP to 4.16.0
+
+### Changes related to the package Nemo
+- [#5982](https://github.com/oscar-system/Oscar.jl/pull/5982) Update Nemo to v0.55
+- [#6051](https://github.com/oscar-system/Oscar.jl/pull/6051) Update Nemo to v0.56
 
 ### Other changes
 
