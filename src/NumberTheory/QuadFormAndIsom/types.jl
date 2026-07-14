@@ -315,6 +315,28 @@ end
 
 A context object which stores the results of some orbits and stabilizers
 computations for some ``p``-subgroups of a given type.
+
+It should be used in the following way: ``q`` is a fixed `TorQuadModule` and
+``V`` is a submodule given by conditions which are fixed in the context (i.e.
+``V`` is a given torsion part of the kernel of a fixed endomorphism of ``q``).
+
+The pair ``(q, V)`` is represented by an index `i::Int`. Then, for every prime
+number `p` and every non-increasing vector of positive integers `subtype`, the
+dictionary `orb_and_stab` records the result of the computations of orbits
+representatives and stabilizers for the $p$-subgroups of ``V`` of $p$-type
+`subtype` under the action of
+- the orthogonal group of the quadratic form on `q` -> key `(i, true, p, subtype)`,
+- the orthogonal group of the bilinear form on `q` -> key `(i, false, p, subtype)`.
+
+In large computations, an object of type `ZZLatGluingCtx` should be used with a
+tuple of integers `vi` indicating the index `i` to use for each of the two
+given `TorQuadModule` (with the condition module ``V`` fixed by the context).
+
+!!! warning
+    To avoid caching too much data, it is important that the condition module
+    ``V`` is fixed by the context. If it changes, it is better not to use
+    such context object since the overall procedure might miss some cases and
+    thus return the wrong output.
 """
 struct ZZLatGluingCtx
   orb_and_stab::Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}

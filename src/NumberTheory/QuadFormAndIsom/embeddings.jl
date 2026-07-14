@@ -40,8 +40,8 @@ function __direct_sum(
   D = torsion_quadratic_module(covD, relD; gens=union!(gensDA, gensDB), modulus=mbf, modulus_qf=mqf)
   IA = identity_matrix(ZZ, ngens(A))
   IB = identity_matrix(ZZ, ngens(B))
-  AinD = hom(A, D, reduce(hcat, ZZMatrix[IA, zero_matrix(ZZ, ngens(A), ngens(B))]))
-  BinD = hom(B, D, reduce(hcat, ZZMatrix[zero_matrix(ZZ, ngens(B), ngens(A)), IB]))
+  AinD = hom(A, D, reduce(hcat, ZZMatrix[IA, zero_matrix(ZZ, ngens(A), ngens(B))]); check=false)
+  BinD = hom(B, D, reduce(hcat, ZZMatrix[zero_matrix(ZZ, ngens(B), ngens(A)), IB]); check=false)
   return D, (AinD, BinD)
 end
 
@@ -128,7 +128,7 @@ function _get_V(
   fpV = restrict_endomorphism(f, Vinq; check=false)
   fpV = evaluate(mu, fpV)
   V, _ = kernel(fpV)
-  Vinq = hom(V, q, elem_type(q)[q(lift(a)) for a in gens(V)])
+  Vinq = hom(V, q, elem_type(q)[q(lift(a)) for a in gens(V)]; check=false)
   @hassert :ZZLatWithIsom 1 is_injective(Vinq)
   return V, Vinq
 end
@@ -248,7 +248,7 @@ function _overlattice_with_graph(
   zB, zBinDB = sub(DB, TorQuadModuleElem[])
   zAinD = compose(zAinDA, DAinD)
   zBinD = compose(zBinDB, DBinD)
-  gamma = hom(zA, zB, zero_matrix(ZZ, 0, 0))
+  gamma = hom(zA, zB, zero_matrix(ZZ, 0, 0); check=false)
   return _overlattice_with_graph(gamma, zAinD, zBinD)
 end
 
@@ -787,7 +787,6 @@ function _primitive_extensions_generic(
         # primitive extensions we consider, i.e. it is in bijection with the set
         # of (equivariant) gluings.
         reps = double_cosets(codomain(iso), iso(SM)[1], iso(SN)[1])
-
         for _g in reps
           g = iso\(representative(_g))
           phig = compose(phi, hom(g))
@@ -878,6 +877,7 @@ function __subgroups_orbit_representatives_and_stabilizers_primary_subtype(
     push!(sgap, Hgap)
   end
 
+  #TODO: maybe change to act on Howell forms ?
   m = gset(O, on_subgroups, sgap)
   orbs = orbits(m)
   for orb in orbs
@@ -1245,7 +1245,7 @@ function _get_classifying_group(
     GLbar, _ = image(discriminant_representation(L, lattice_action; full=false))
   elseif first || exist_only || (classification === :embsub && side === :left) || (classification === :subemb && side === :right) || classification == :embemb
     qL = discriminant_group(L)
-    GLbar = Oscar._orthogonal_group(qL, TorQuadModuleMap[id_hom(qL)]; check=false)
+    GLbar = _orthogonal_group(qL, TorQuadModuleMap[id_hom(qL)]; check=false)
   else
     GLbar, _ = image_in_Oq(L)
   end
@@ -1585,6 +1585,13 @@ function _primitive_extensions_direct(
   # `phi` to give rise to an odd extension, and we set `as_bilinear_module` to
   # `false` so that we have no risk to turning `phi` into an even glue map
   # again
+  # TODO: In the following block, we should be able to only test whether `phi`
+  # preserves the quadratic form by testing whether it preserves the quadratic
+  # products of a set of generators of its domain.
+  # TODO: We do not need to construct the group `_O` below but only a set of
+  # generators as `TorQuadModuleMap`. Is it maybe possible to detect whether
+  # the orthogonal group of the quadratic form of `HN` has index two and find
+  # an isometry of the bilinear form generating the quotient ?
   if parity === :odd && both_even
     if is_anti_isometry(phi; as_bilinear_module=false)
       _O = orthogonal_group_bilinear(HN)
@@ -1639,7 +1646,7 @@ function _primitive_extensions_direct(
     @assert ok
     _imHM = TorQuadModuleElem[gamma\(HMinqM(a)) for a in gens(HM)]
     _HM, i0 = sub(_qM, _imHM)
-    k0 = hom(_HM, HM, _HM.(lift.(_imHM)), gens(HM))
+    k0 = hom(_HM, HM, _HM.(lift.(_imHM)), gens(HM); check=false)
     push!(dataM, (i0, k0))
   end
 
@@ -1651,7 +1658,7 @@ function _primitive_extensions_direct(
     @assert ok
     _imHN = TorQuadModuleElem[gamma(HNinqN(a)) for a in gens(HN)]
     _HN, i1 = sub(_qN, _imHN)
-    k1 = hom(HN, _HN, _HN.(lift.(_imHN)))
+    k1 = hom(HN, _HN, _HN.(lift.(_imHN)); check=false)
     push!(dataN, (i1, k1))
   end
 
@@ -1703,6 +1710,7 @@ function _primitive_extensions(
   check::Bool=true,
   Ctx::Union{ZZLatGluingCtx, Nothing}=nothing,
   vi::NTuple{2, Int}=(-1, -1),
+  force_local::Bool=false,
   kwargs...,
 )
   results = NTuple{3, ZZLat}[]
@@ -1726,6 +1734,18 @@ function _primitive_extensions(
   # it allows to avoid redundant computations since local gluings
   # are the same for all lattices in a given genus
   Fac = gluing_factory(qM, qN; parity, Ctx, vi)
+  do_local = true
+  # When we want all primitive extensions between two lattices,
+  # a more direct approach is often already fast enough
+  if (length(Ms) == length(Ns) == 1) && !first && !exist_only && !force_local
+    Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
+    Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
+    do_local = false
+  end
+
+  if !do_local
+    Fac.local_classifying_groups = (GMs[1], GNs[1])
+  end
   # The keyword arguments give restrictions on the gluing so we
   # initialize the gluing factory with these conditions
   init_gluing_factory!(Fac; kwargs...)
@@ -1734,7 +1754,6 @@ function _primitive_extensions(
   # extensions satisfy the given conditions
   is_trivial(Fac) && return false, results
   parity = Fac.par
-
   # Now, we iterate on the possible elementary divisors (if any provided
   # as keyword arguments) or the possible glue orders for the glue groups.
   # We keep track in `_glue_map_gen` of the good function to call depending
@@ -1742,23 +1761,21 @@ function _primitive_extensions(
   # divisors or on orders
   if isdefined(Fac, :glue_elementary_divisors)
     _iterator = Fac.glue_elementary_divisors
-    _glue_map_gen = Oscar._local_glue_maps_eldiv
+    _glue_map_gen = _local_glue_maps_eldiv
   else
     _iterator = sort!(collect(possible_glue_order(Fac)))
-    _glue_map_gen = Oscar._local_glue_maps_ord
+    _glue_map_gen = _local_glue_maps_ord
   end
 
   # In case `exist_only` or `first` is `true`, we want to try to decide
   # whether we can already conclude without having to do some more
   # unnecessary computations. This is the goal of this function
   function _early_abort(_lgm)
-    if exist_only || first
-      for x in _lgm
-        z = _overlattice(x, D; as_bilinear_module)
-        if test_overlattice(Fac, Base.first(z))
-          exist_only && return true, NTuple{3, ZZLat}[]
-          first && return true, NTuple{3, ZZLat}[z]
-        end
+    for x in _lgm
+      z = _overlattice(x, D; as_bilinear_module)
+      if test_overlattice(Fac, Base.first(z))
+        exist_only && return true, NTuple{3, ZZLat}[]
+        first && return true, NTuple{3, ZZLat}[z]
       end
     end
     return false, NTuple{3, ZZLat}[]
@@ -1767,12 +1784,17 @@ function _primitive_extensions(
   local _dataM::Array{TorQuadModuleMap, 1}
   local _dataN::Array{TorQuadModuleMap, 1}
 
-  need_setup = true # To avoid repeating some routine
-  compute_iso = true
+  need_setup = do_local ? true : false # To avoid repeating some routine
+  compute_iso = do_local ? true : false
   for it in _iterator
     lgm = _glue_map_gen(Fac, it)
-    ok, res = _early_abort(lgm)
-    ok && return ok, res
+    if first || exist_only
+      for x in lgm
+        ok, res = _early_abort(_all_glue_maps(x; as_bilinear_module))
+        ok && return ok, res
+      end
+      continue
+    end
     if need_setup
       Ms, GMs = __setup_classifying_groups(G1, Ms, GMs)
       Ns, GNs = __setup_classifying_groups(G2, Ns, GNs)
@@ -1796,23 +1818,31 @@ function _primitive_extensions(
       compute_iso = false
     end
 
-    for i in 1:length(Ms)
-      GM = GMs[i] # Global classifying group
-      gammaM = _dataM[i]
-      for x in lgm
-        xM = _pullback_left(x, gammaM; as_bilinear_module)
-        xMs = _split_orbit_left(xM, GM; as_bilinear_module)
-        for y in xMs, j in 1:length(Ns)
-          GN = GNs[j]
-          gammaN = _dataN[j]
-          xMN = _pullback_right(y, gammaN; as_bilinear_module)
-          xMNs = _split_orbit_right(xMN, GN; as_bilinear_module)
-          for z in xMNs
-            w = _overlattice(x; as_bilinear_module)
-            !test_overlattice(Fac, Base.first(w)) && continue
-            exist_only && return true, results
-            push!(results, w)
-            first && return true, results
+    if !do_local
+      for x in lgm, z in _all_glue_maps(x; as_bilinear_module)
+        w = _overlattice(z; as_bilinear_module)
+        !test_overlattice(Fac, Base.first(w)) && continue
+        push!(results, w)
+      end
+    else
+      for i in 1:length(Ms)
+        GM = GMs[i] # Global classifying group
+        gammaM = _dataM[i]
+        for x in lgm
+          xM = _pullback_left(x, gammaM; as_bilinear_module)
+          xMs = _split_orbit_left(xM, GM; as_bilinear_module)
+          for y in xMs, j in 1:length(Ns)
+            GN = GNs[j]
+            gammaN = _dataN[j]
+            xMN = _pullback_right(y, gammaN; as_bilinear_module)
+            xMNs = _split_orbit_right(xMN, GN; as_bilinear_module)
+            for _z in xMNs, z in _all_glue_maps(_z; as_bilinear_module)
+              w = _overlattice(z; as_bilinear_module)
+              !test_overlattice(Fac, Base.first(w)) && continue
+              exist_only && return true, results
+              push!(results, w)
+              first && return true, results
+            end
           end
         end
       end
@@ -2249,7 +2279,8 @@ Here is a complete list of currently supported keyword arguments:
   embedding exists together with an empty list.
 - `check::Bool` -> is set to `true` and the first input is a lattice $L_0$,
   the function filters the output to keep only triples $(L, M_1, N)$ such that
-  $L$ is isometric to $L_0$.
+  $L$ is isometric to $L_0$. Currently this is not compatible with `first` or
+  `exist_only` if $L_0$ is not unique in its genus.
 
 !!! note
     If `right_action` is provided by the user, then the algorithm assumes that
@@ -2326,16 +2357,32 @@ function primitive_embeddings(
   return _primitive_embeddings(G, genusM, [M]; GMs=Dict(1 => GMbar), check=false, first, exist_only)
 end
 
+# TODO: currently wanting a first embedding, or just existence, into exactly
+# L is not properly supported, so we remove this possibility for the moment
 function primitive_embeddings(
   L::ZZLat,
   M::ZZLat;
+  classification::Symbol=:sub, # Keep for backward compatibility
+  first::Bool=false,
+  exist_only::Bool=false,
   check::Bool=false,
   kwargs...,
 )
   G = genus(L)
-  ok, reps = primitive_embeddings(G, M; kwargs...)
+  if check && (first || exist_only || classification === :first || classification === :none)
+    if is_definite(L) && (mass(G) == 1//automorphism_group_order(L))
+      nothing
+    elseif !is_definite(L) && length(representatives(G)) == 1
+      nothing
+    else
+      @req false "The combination of keyword arguments (check == false) together with (first == true) or (exist_only == true) currently only available for lattices that are unique in their genus"
+    end
+  end
+  ok, reps = primitive_embeddings(G, M; classification, first, exist_only, kwargs...)
 
-  if !ok || !check
+  if (first || exist_only || classification === :first || classification === :none)
+    return ok, reps
+  elseif !ok || !check
     return ok, reps
   elseif !is_definite(G) && length(representatives(G)) == 1
     return ok, reps
@@ -2446,7 +2493,7 @@ function equivariant_primitive_extensions(
   if isnothing(right_discriminant_action)
     if isnothing(right_action)
       if classification == :embsub || classification == :embemb
-        GMbar = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
+        GMbar = _orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
       else
         GMbar, _ = image_centralizer_in_Oq(M; _local)
       end
@@ -2461,7 +2508,7 @@ function equivariant_primitive_extensions(
   if isnothing(left_discriminant_action)
     if isnothing(left_action)
       if classification == :subemb || classification == :embemb
-        GNbar = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
+        GNbar = _orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
       else
         GNbar, _ = image_centralizer_in_Oq(N; _local)
       end
@@ -2482,8 +2529,8 @@ function equivariant_primitive_extensions(
     OqfM, _ = image_centralizer_in_Oq(M; _local)
     OqfN, _ = image_centralizer_in_Oq(N; _local)
   else
-    OqfM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
-    OqfN = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
+    OqfM = _orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
+    OqfN = _orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
   end
 
   return _primitive_extensions_generic(
@@ -2533,7 +2580,7 @@ function equivariant_primitive_extensions(
   if isnothing(right_discriminant_action)
     if isnothing(right_action)
       if classification == :embsub || classification == :embemb
-        GMbar = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
+        GMbar = _orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
       else
         GMbar, _ = image_centralizer_in_Oq(M; _local)
       end
@@ -2550,7 +2597,7 @@ function equivariant_primitive_extensions(
   if isnothing(left_discriminant_action)
     if isnothing(left_action)
       if classification == :subemb || classification == :embemb
-        GNbar = Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
+        GNbar = _orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
       elseif _local
         GNbar = orthogonal_group(qN)
       else
@@ -2572,7 +2619,7 @@ function equivariant_primitive_extensions(
   if compute_bar_Gf
     OqfM, _ = image_centralizer_in_Oq(M)
   else
-    OqfM = Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
+    OqfM = _orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
   end
 
   return _primitive_extensions_generic(
@@ -3098,7 +3145,7 @@ function _glue_stabilizers(
   qM, fqM = discriminant_group(M)
   if isnothing(right_discriminant_action)
     if isnothing(right_action)
-      GMbar = subM ? image_centralizer_in_Oq(M)[1] : Oscar._orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
+      GMbar = subM ? image_centralizer_in_Oq(M)[1] : _orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
     else
       GMbar, _ = image(discriminant_representation(M, right_action; full=false))
     end
@@ -3109,7 +3156,7 @@ function _glue_stabilizers(
   qN, fqN = discriminant_group(N)
   if isnothing(left_discriminant_action)
     if isnothing(left_action)
-      GNbar = subN ? image_centralizer_in_Oq(N)[1] : Oscar._orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
+      GNbar = subN ? image_centralizer_in_Oq(N)[1] : _orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
     else
       GNbar, _ = image(discriminant_representation(N, left_action; full=false))
     end
@@ -3200,7 +3247,6 @@ function _classes_isomorphic_subgroups(
     push!(res, (j, O))
     return res
   end
-
   # Trivial case: we look for subgroups in a given primary part of q
   ok, e, p = is_prime_power_with_data(ordH)
   if ok
@@ -3288,11 +3334,10 @@ function _classes_isomorphic_subgroups(
 
     genestabD = TorQuadModuleMap[hom(D, D, g) for g in genestab]
     genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
-    stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check=false))
+    stab, _ = intersect(O, _orthogonal_group(q, unique(genestas); check=false))
     @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
     push!(res, (H2inq, stab))
   end
-
   return res
 end
 

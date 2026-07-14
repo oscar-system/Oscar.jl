@@ -1415,6 +1415,7 @@ export orders_perfect_groups
 export ordinary_table
 export orthogonal_components
 export orthogonal_group
+export orthogonal_group_bilinear
 export orthogonal_sign
 export outdegree
 export outneighbors

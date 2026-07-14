@@ -200,49 +200,6 @@ function _integer_genera(
   return GKs
 end
 
-# TODO: EXPORT ???
-@doc raw"""
-    orthogonal_group_bilinear(T::TorQuadModule) -> AutomorphismGroup{TorQuadModule}
-
-Return the orthogonal group for the bilinear form on ``T``, i.e. seeing ``T``
-as a torsion bilinear form. If the modulus of the quadratic form on ``T`` is
-equal to the modulus of its bilinear form, then this is the same as calling
-`orthogonal_group(T)`.
-"""
-@attr AutomorphismGroup{TorQuadModule} function orthogonal_group_bilinear(T::TorQuadModule)
-  return __orthogonal_group(T; as_bilinear_module=true)
-end
-
-# Forget about the quadratic form on `q`, if any. The difference with the Hecke
-# function is that we also record the same set of generators
-# TODO: Modify the Hecke version to specify whether to keep the same
-# generators and delete this version
-function __as_finite_bilinear_module(
-  q::TorQuadModule,
-)
-  n = modulus_bilinear_form(q)
-  if n == modulus_quadratic_form(q)
-    return q
-  end
-  
-  qb =  torsion_quadratic_module(cover(q), relations(q); modulus=n, modulus_qf=n, gens=lift.(gens(q)))
-  return qb
-end
-
-# If `q` is bilinear or `as_bilinear_module` is `true`, return the orthogonal
-# group of the associated torsion bilinear form, otherwise the orthogonal group
-# of the torsion quadratic form
-function __orthogonal_group(
-  q::TorQuadModule;
-  as_bilinear_module::Bool=false,
-)
-  if !as_bilinear_module || modulus_bilinear_form(q) == modulus_quadratic_form(q)
-    return orthogonal_group(q)
-  end
-  qb = __as_finite_bilinear_module(q)
-  return _orthogonal_group(q, _orthogonal_group_gens(qb); check=false)
-end
-
 ###############################################################################
 #
 #  Initialization functions for ZZLatGluingFactory
@@ -282,7 +239,7 @@ end
 
 # Using the glue annihilators and glue_exponent, the function sets up the
 # "conditions modules", i.e. where to look for glue groups. From this, the
-# fonction filters through the remaining initial conditions to determine the
+# function filters through the remaining initial conditions to determine the
 # actual restrictions for the gluing computed in the factory. This list of
 # actual conditions consists of:
 # - a set of genera for the primitive extensions (optional: only if
@@ -686,65 +643,11 @@ function _local_gluings_primary!(
 
   subs1 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Fac, W1inq1, O1, p, subtype, i1)
   subs2 = __subgroups_orbit_representatives_and_stabilizers_primary_subtype(Fac, W2inq2, O2, p, subtype, i2)
-
-  # Preparation to compute glue maps; we want to avoid some redundant computations
-  _data1 = Array{GAPGroupHomomorphism}(undef, length(subs1))
-  _data2 = Array{GAPGroupHomomorphism}(undef, length(subs2))
-
-  for i in 1:length(subs1)
-    H1inq1, s1 = subs1[i]
-    H1 = domain(H1inq1)
-    OH1 = __orthogonal_group(H1; as_bilinear_module)
-    imOH1 = elem_type(OH1)[OH1(restrict_automorphism(x, H1inq1); check=false) for x in gens(domain(s1))]
-    act1 = hom(domain(s1), OH1, imOH1)
-    _, j1 = image(act1)
-    _data1[i] = j1
-  end
-
-  for j in 1:length(subs2)
-    H2inq2, s2 = subs2[j]
-    H2 = domain(H2inq2)
-    OH2 = __orthogonal_group(H2; as_bilinear_module)
-    imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(domain(s2))]
-    act2 = hom(domain(s2), OH2, imOH2)
-    _, j2 = image(act2)
-    _data2[j] = j2
-  end
-
-  # compute all glue maps for each pair of representatives of
-  # orbits of potential glue p-groups, up to the actions
-  # of O(q1) and O(q2)
-  for j in 1:length(subs2)
-    H2inq2, s2 = subs2[j]
-    j2 = _data2[j]
-    H2 = domain(H2inq2)
-    im2 = domain(j2)
-    OH2 = codomain(j2)
-    elH2 = elementary_divisors(H2)
-    if isone(order(H2)) || elH2[1] == elH2[end]
-      iso2 = isomorphism(PermGroup, OH2)
-    else
-      iso2 = id_hom(OH2)
-    end
-    OH22 = first(iso2(OH2))
-    im22 = first(iso2(im2))
-    for i in 1:length(subs1)
-      H1inq1, s1 = subs1[i]
-      j1 = _data1[i]
-      im1 = domain(j1)
-      H1 = domain(H1inq1)
-      ok, phi = is_anti_isometric_with_anti_isometry(H1, H2; as_bilinear_module)
+  for (H1inq1, s1) in subs1
+    for (H2inq2, s2) in subs2
+      ok, phi = is_anti_isometric_with_anti_isometry(domain(H1inq1), domain(H2inq2); as_bilinear_module)
       !ok && continue
-      iphi = inv(phi)
-      stab1gamma = elem_type(OH2)[OH2(iphi * hom(g) * phi; check=false) for g in gens(im1)]
-      S1, _ = sub(OH2, stab1gamma)
-      S2 = first(iso2(S1))
-      for _g in double_cosets(OH22, im22, S2)
-        g = hom(iso2\representative(_g))
-        psi = compose(phi, g)
-        x = ZZLatGluing(psi, inv(psi), H1inq1, s1, H2inq2, s2)
-        push!(loc_glue_p, x)
-      end
+      push!(loc_glue_p, ZZLatGluing(phi, inv(phi), H1inq1, s1, H2inq2, s2))
     end
   end
   ged[p][subtype] = loc_glue_p # Store known data
@@ -759,8 +662,8 @@ function _trivial_gluing(
   s1, s2 = id_hom.(local_classifying_groups(Fac))
   z1, z1inq1 = sub(q1, TorQuadModuleElem[])
   z2, z2inq2 = sub(q2, TorQuadModuleElem[])
-  phi = hom(z1, z2, zero_matrix(ZZ, 0, 0))
-  iphi = hom(z2, z1, zero_matrix(ZZ, 0, 0))
+  phi = hom(z1, z2, zero_matrix(ZZ, 0, 0); check=false)
+  iphi = hom(z2, z1, zero_matrix(ZZ, 0, 0); check=false)
   return ZZLatGluing(phi, iphi, z1inq1, s1, z2inq2, s2)
 end
 
@@ -850,7 +753,7 @@ function merge_glue_maps(
     end
     @hassert :ZZLatWithIsom 1 domain(j1) == first(stabilizer(codomain(j1), H1inq1))
     @hassert :ZZLatWithIsom 1 domain(j2) == first(stabilizer(codomain(j2), H2inq2))
-    phi = hom(H1, H2, gens(H1), gens(H2))
+    phi = hom(H1, H2, gens(H1), gens(H2); check=false)
     @hassert :ZZLatWithIsom 1 is_anti_isometry(phi; as_bilinear_module=(Fac.par !== :even))
     push!(res, ZZLatGluing(phi, inv(phi), H1inq1, j1, H2inq2, j2))
   end
@@ -1006,8 +909,8 @@ function _split_orbit_left(
   # Do some preparations; to split the double coset of glue map, we have
   # to take into account the left action of `s2`
   OH2 = __orthogonal_group(H2; as_bilinear_module)
-  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(domain(s2))]
-  act2 = hom(domain(s2), OH2, imOH2)
+  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2; check=false); check=false) for x in gens(domain(s2))]
+  act2 = hom(domain(s2), OH2, imOH2; check=false)
   im2, _ = image(act2)
 
   # Check if q1 is a free module over some finite ring, in which case we
@@ -1028,40 +931,14 @@ function _split_orbit_left(
     # Image group
     _H1, _H1inq1 = sub(q1, elem_type(q1)[h(H1inq1(a)) for a in gens(H1)])
     # Pullback of glue map
-    _phi = hom(_H1, H2, elem_type(H2)[phi(H1(lift(ih(_H1inq1(a))))) for a in gens(_H1)])
+    _phi = hom(_H1, H2, elem_type(H2)[phi(H1(lift(ih(_H1inq1(a))))) for a in gens(_H1)]; check=false)
     _iphi = inv(_phi)
     @hassert :ZZLatWithIsom 1 is_anti_isometry(_phi; as_bilinear_module)
     # Conjugate stabilizer
     _stab1, _ = Oscar._as_subgroup(Oq1, Oscar.GAPWrap.ConjugateSubgroup(GapObj(stab1), GapObj(Oq1(h))))
     # Intersect with the new classifying group O1
     __stab1, _, j1 = intersect(_stab1, O1)
-
-    # We now split the double coset of the glue map
-    _OH1 = __orthogonal_group(_H1; as_bilinear_module)
-    _imOH1 = elem_type(_OH1)[_OH1(restrict_automorphism(x, _H1inq1); check=false) for x in gens(_stab1)]
-    act1 = hom(_stab1, _OH1, _imOH1)
-    _ims1, _ = image(act1)
-    _imO1, _ = act1(__stab1)
-
-    # Same as before, if possible, use permutation groups (seems faster
-    # for double coset computations)
-    elH1 = elementary_divisors(H1)
-    if isone(order(H1)) || elH1[1] == elH1[end]
-      _iso1 = isomorphism(PermGroup, _ims1)
-    else
-      _iso1 = id_hom(_ims1)
-    end
-    # This is how s2 acts on the right glue group via the initial glue map _phi
-    # Then we intersect with the old clasisfying group stab1, get a group L1
-    # then we compute a transversal for the double cosets L1\_ims1/_imO1 to
-    # find double cosets of glue maps up to the action of s2 and O1
-    _im2phi, _ = sub(_OH1, elem_type(_OH1)[_OH1(_phi * hom(g) * _iphi; check=false) for g in gens(im2)])
-    L1, _ = intersect(_im2phi, _ims1)
-    for _g in double_cosets(codomain(_iso1), first(_iso1(L1)), first(_iso1(_imO1)))
-      psi =  hom(_iso1\(representative(_g))) * _phi
-      ipsi = inv(psi)
-      push!(res, ZZLatGluing(psi, ipsi, _H1inq1, j1, H2inq2, s2))
-    end
+    push!(res, ZZLatGluing(_phi, _iphi, _H1inq1, j1, H2inq2, s2))
   end
   return res
 end
@@ -1098,7 +975,7 @@ function _pullback_left(
   _, s0 = sub(Oq0, elem_type(Oq0)[Oq0(f * hom(s1(g)) * invf; check=false) for g in gens(domain(s1))])
   H0, i0 = sub(q0, TorQuadModuleElem[f\(i1(a)) for a in gens(domain(i1))])
   @hassert :ZZLatWithIsom 1 domain(s0) == first(stabilizer(Oq0, i0))
-  H0toH1 = hom(H0, domain(i1), TorQuadModuleElem[i1\(f(i0(a))) for a in gens(H0)])
+  H0toH1 = hom(H0, domain(i1), TorQuadModuleElem[i1\(f(i0(a))) for a in gens(H0)]; check=false)
   psi = H0toH1 * phi
   @hassert :ZZLatWithIsom 1 is_anti_isometry(psi; as_bilinear_module)
   ipsi = inv(psi)
@@ -1175,13 +1052,13 @@ function __overlattice(
   q1, q2 = codomain(i1), codomain(i2)
   H1inD = i1 * D.j1
   H2inD = i2 * D.j2
-  O1, O2 = __orthogonal_group(H1; as_bilinear_module), __orthogonal_group(H2; as_bilinear_module)
-  im1 = elem_type(O1)[O1(restrict_automorphism(g, i1); check=false) for g in gens(domain(s1))]
-  act1 = hom(domain(s1), O1, im1)
-  im2 = elem_type(O2)[O2(restrict_automorphism(g, i2); check=false) for g in gens(domain(s2))]
-  act2 = hom(domain(s2), O2, im2)
   V, extinD = _overlattice_with_graph(phi, H1inD, H2inD)
   if glue_stab
+    O1, O2 = __orthogonal_group(H1; as_bilinear_module), __orthogonal_group(H2; as_bilinear_module)
+    im1 = elem_type(O1)[O1(restrict_automorphism(g, i1; check=false); check=false) for g in gens(domain(s1))]
+    act1 = hom(domain(s1), O1, im1; check=false)
+    im2 = elem_type(O2)[O2(restrict_automorphism(g, i2; check=false); check=false) for g in gens(domain(s2))]
+    act2 = hom(domain(s2), O2, im2; check=false)
     @vprintln :ZZLatWithIsom 1 "Glue stabilizers"
     _disc, _stab = _glue_stabilizers(phi, act1, act2, D.k1, D.k2, extinD)
     qV = discriminant_group(V)
@@ -1195,7 +1072,7 @@ function __overlattice(
     # Pullback the glue of the stabilizers along the canonical map phi2
     GV, _ = sub(OqV, elem_type(OqV)[OqV(phi2 * g * iphi2; check=false) for g in _stab])
   else
-    GV = O1
+    GV = _orthogonal_group(H1, TorQuadModuleMap[id_hom(H1)]; check=false)
   end
   # This is where we require that q1, q2 are discriminant groups of some
   # lattices and phi indeed defines a primitive extension between the
@@ -1223,12 +1100,12 @@ function _all_glue_maps(
   stab2 = domain(s2)
 
   OH1 = __orthogonal_group(H1; as_bilinear_module)
-  imOH1 = elem_type(OH1)[OH1(restrict_automorphism(x, H1inq1); check=false) for x in gens(stab1)]
-  act1 = hom(stab1, OH1, imOH1)
+  imOH1 = elem_type(OH1)[OH1(restrict_automorphism(x, H1inq1; check=false); check=false) for x in gens(stab1)]
+  act1 = hom(stab1, OH1, imOH1; check=false)
   im1, _ = image(act1)
   OH2 = __orthogonal_group(H2; as_bilinear_module)
-  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2); check=false) for x in gens(stab2)]
-  act2 = hom(stab2, OH2, imOH2)
+  imOH2 = elem_type(OH2)[OH2(restrict_automorphism(x, H2inq2; check=false); check=false) for x in gens(stab2)]
+  act2 = hom(stab2, OH2, imOH2; check=false)
   im2, _ = image(act2)
 
   elH2 = elementary_divisors(H2)
