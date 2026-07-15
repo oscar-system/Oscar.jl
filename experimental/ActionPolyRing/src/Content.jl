@@ -391,7 +391,9 @@ total_degree(apre::ActionPolyRingElem) = total_degree(data(apre))
     degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) -> Int
 
 Return the degree of the polynomial `p` in the jet variable specified by `i` and `jet`. If this jet variable
-is valid but still untracked, return $0$. This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables).
+is valid but still untracked, return $0$.
+
+This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
 """
 function degree(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
@@ -441,12 +443,16 @@ Return `true` if `p` is a degree zero polynomial or the zero polynomial, i.e. a 
 is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 
 @doc raw"""
-    vars(p::ActionPolyRingElem)
+    vars(p::ActionPolyRingElem; sorted::Bool=true)
 
-Return the jet variables actually occuring in `p` as a vector. The jet variables are sorted with respect to the
+Return the jet variables actually occuring in `p` as a vector. 
+If `sorted` is `true` (the default), the jet variables are sorted with respect to the
 ranking of the action polynomial ring containing `p`, leading with the largest jet variable.
 """
-vars(apre::ActionPolyRingElem) = sort!(parent(apre).(vars(data(apre))); rev = true)
+function vars(apre::ActionPolyRingElem; sorted::Bool=true)
+  v = parent(apre).(vars(data(apre)))
+  return sorted ? sort!(v; rev = true) : v
+end
 
 @doc raw"""
     is_gen(p::ActionPolyRingElem)
@@ -679,7 +685,8 @@ end
     derivative(p::ActionPolyRing, i::Int, jet::Vector{Int})
 
 Return the derivative of `p` with respect to the jet variable specified by `i` and `jet`.
-This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables).
+
+This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
 """
 function derivative(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
   apr = parent(apre)
@@ -864,27 +871,12 @@ function diff_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T
   return res
 end
 
-@doc"""
+@doc raw"""
     initial(p::ActionPolyRingElem)
 
 Return the initial of the polynomial `p`, i.e. the leading coefficient of `p` regarded as a univariate polynomial in its leader.
 """
-function initial(apre::ActionPolyRingElem)
-  if is_constant(apre)
-    return apre
-  end
-  res = parent(apre)()
-  ld = leader(apre)
-  ld_ind = var_index(ld)
-  d = degree(apre, ld_ind)
-  for (t,e) in zip(terms(apre), exponents(apre))
-    if e[ld_ind] < d
-      break
-    end
-    res += remove(t, ld)[2] 
-  end
-  return res
-end
+initial(apre::ActionPolyRingElem) = univariate_leading_coefficient(apre, leader(apre))
 
 @doc raw"""
     leader(p::ActionPolyRingElem)
@@ -912,7 +904,9 @@ end
     resultant(f::ActionPolyRingElem, g::ActionPolyRingElem, i::Int, jet::Vector{Int})
 
 Return the resultant of `f` and `g` regarded as univariate polynomials in the jet variable specified by `i` and
-`jet`. This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables).
+`jet`.
+
+This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
 """
 function resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, i::Int, jet::Vector{Int})
   check_parent(r1, r2)
@@ -997,6 +991,8 @@ function to_univariate(apre::ActionPolyRingElem)
   return to_univariate(R, apre)
 end
 
+#----
+
 function univariate_coefficients(r::ActionPolyRingElem, var::ActionPolyRingElem)
   check_parent(r, var)
   @req is_gen(var) "Not a jet variable"
@@ -1007,8 +1003,9 @@ end
     univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) 
 
 Return the coefficient vector of `p` regarded as a univariate polynomial in the jet variable specified by `i` and
-`jet`, leading with the constant coefficient. This method allows all versions described in
-[Specifying jet variables](@ref specifying_jet_variables).
+`jet`, leading with the constant coefficient.
+
+This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
 """
 function univariate_coefficients(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
@@ -1024,6 +1021,44 @@ end
 
 univariate_coefficients(r::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = univariate_coefficients(r, jet_idx...)
 univariate_coefficients(r::ActionPolyRingElem, i::Int) = univariate_coefficients(r, gen(parent(r), i))
+
+#----
+
+function univariate_leading_coefficient(r::ActionPolyRingElem, var::ActionPolyRingElem)
+  check_parent(r, var)
+  @req is_gen(var) "Not a jet variable"
+  return univariate_leading_coefficient(r, __vtj(parent(var))[var])
+end
+
+@doc raw"""
+    univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) 
+
+Return the leading coefficient of `p` regarded as a univariate polynomial in the jet variable specified by `i` and
+`jet`. Note that in case where the jet variable coincides with the leader of `p`, this result is just the initial of `p`;
+see [`initial`](@ref initial).
+
+This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
+"""
+function univariate_leading_coefficient(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
+  d = degree(r, i, jet)
+  d < 0 && return zero(r)  # By convention, (only) the zero polynomial has degree -1 in all jet variables
+  d == 0 && return r
+
+  res = zero(r)
+  var = __jtv(parent(r))[(i, jet)]
+  v_idx = var_index(var)
+  
+  for (t, e) in zip(terms(r), exponents(r)) 
+    if @inbounds e[v_idx] == d
+      res += remove(t, var)[2]
+    end
+  end
+  
+  return res
+end
+
+univariate_leading_coefficient(r::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = univariate_leading_coefficient(r, jet_idx...)
+univariate_leading_coefficient(r::ActionPolyRingElem, i::Int) = univariate_leading_coefficient(r, gen(parent(r), i))
 
 ###############################################################################
 #
