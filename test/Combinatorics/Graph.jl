@@ -7,12 +7,17 @@
         add_edge!(g, 1, 2)
         @test n_edges(g) == 1
         @test has_edge(g, 1, 2)
+        h = copy(g)
         rem_edge!(g, 1, 2)
         @test n_edges(g) == 0
+        @test n_edges(h) == 1
         @test !has_edge(g, 1, 2)
+        @test has_edge(h, 1, 2)
         @test add_vertex!(g)
         @test n_vertices(g) == 6
+        @test n_vertices(h) == 5
         @test has_vertex(g, 6)
+        @test !has_vertex(h, 6)
         rem_vertex!(g, 1)
         @test n_vertices(g) == 5
         @test has_vertex(g, 1)
@@ -341,6 +346,20 @@
       @test degree(C) == fill(5,16)
     end
 
+    @testset "automorphism group" begin
+      # edge-labeled: triangle with two equal edges, one different
+      # edges (1,2)=1, (2,3)=1, (1,3)=2 → only (1,2) swap preserves labels
+      g = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>2))
+      gens = automorphism_group_generators(g; label=:label)
+      @test length(gens) == 1
+      ag = automorphism_group(g; label=:label)
+      @test order(ag) == 2
+
+      # fully symmetric edge labels → full automorphism group
+      g_sym = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (1,3)=>1))
+      @test order(automorphism_group(g_sym; label=:label)) == order(automorphism_group(g_sym))
+    end
+
     @testset "disjoint automorphism" begin
       P = petersen_graph()
       @test !has_disjoint_automorphisms(P)
@@ -353,5 +372,116 @@
       @test !is_one(b)
       @test fixed_points(a) == moved_points(b)
       @test fixed_points(b) == moved_points(a)
+    end
+
+    @testset "graph isomorphism" begin
+      G1_empty = graph(Undirected, 0)
+      G2_empty = graph(Undirected, 0)
+      @test is_isomorphic(G1_empty, G2_empty) == true
+
+      G1_one = graph(Undirected, 1)
+      G2_one = graph(Undirected, 1)
+      @test is_isomorphic(G1_one, G2_one) == true
+      @test is_isomorphic(G1_empty, G2_one) == false
+
+      G1_two = graph(Undirected, 2)
+      G2_two = graph(Undirected, 2)
+      @test is_isomorphic(G1_two, G2_two) == true
+      @test is_isomorphic(G1_two, G2_one) == false
+      
+      #vertex indistinguishable, edge indistinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>1, (4,5)=>1, (5,1)=>1,
+                                         (1,3)=>2, (3,5)=>2, (5,2)=>2, (2,4)=>2, (4,1)=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (2,3)=>2, (3,4)=>2, (4,5)=>2, (5,1)=>2,
+                                         (1,3)=>1, (3,5)=>1, (5,2)=>1, (2,4)=>1, (4,1)=>1))
+      G3 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,1)=>1, (4, 5)=>1,
+                                         (1,4)=>2, (1,5)=>2, (2,4)=>2, (2,5)=>2, (3,4)=>2, (3,5)=>2))
+      G1_hash = Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      G2_hash = Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      @test G1_hash == G2_hash
+      G3_hash = Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+      @test G3_hash != G1_hash
+      
+      #vertex indistinguishable, edge distinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7))
+      G2 = graph_from_labeled_edges(Dict((3,1)=>3, (1,2)=>5, (2,3)=>7))
+      G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8))
+      @test Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false) == Oscar._canonical_hash(G2; label=:label, vertex_distinguishable=false)
+      @test Oscar._canonical_hash(G1; label=:label, vertex_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, vertex_distinguishable=false)
+      
+      #vertex distinguishable, edge indistinguishable
+      G1 = graph(Undirected, 2)
+      add_edge!(G1, 1, 2)
+      G2 = graph(Undirected, 2)
+      add_edge!(G2, 1, 2)
+      G3 = graph(Undirected, 3)
+      add_edge!(G3, 1, 2)
+      label!(G1, nothing, Dict(1=>1, 2=>2))
+      label!(G2, nothing, Dict(1=>2, 2=>1))
+      label!(G3, nothing, Dict(1=>1, 2=>2, 3=>3))
+
+      @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) == Oscar._canonical_hash(G2; label=:label, edge_distinguishable=false)
+      @test Oscar._canonical_hash(G1; label=:label, edge_distinguishable=false) != Oscar._canonical_hash(G3; label=:label, edge_distinguishable=false)
+      
+      #vertex distinguishable, edge distinguishable
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (3,1)=>7), Dict(1=>1, 2=>3, 3=>3))
+      G2 = graph_from_labeled_edges(Dict((2,3)=>3, (3,1)=>5, (1,2)=>7), Dict(2=>1, 3=>3, 1=>3))
+      G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
+      @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
+      @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
+    end
+
+    @testset "on_graph" begin
+      id = perm(3, [1, 2, 3])
+
+      # identity permutation gives equal graph
+      G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+      @test on_graph(G, id) == G
+
+      # applying a permutation relabels edges
+      p = perm(3, [2, 1, 3])  # (1,2)
+      H = on_graph(G, p)
+      @test n_vertices(H) == n_vertices(G)
+      @test n_edges(H) == n_edges(G)
+      @test has_edge(H, 2, 1)
+      @test has_edge(H, 1, 3)
+      @test !has_edge(H, 1, 2)
+      @test !has_edge(H, 2, 3)
+
+      # applying an automorphism gives an isomorphic graph
+      K4 = complete_graph(4)
+      S4 = symmetric_group(4)
+      q = perm(S4, [2, 3, 4, 1])
+      @test is_isomorphic(K4, on_graph(K4, q))
+
+      # degree mismatch throws
+      G2 = graph_from_edges(Directed, [[1, 2]])
+      @test_throws ArgumentError on_graph(G2, perm(3, [2, 1, 3]))
+
+      # labels are carried along
+      GL = graph_from_labeled_edges(Directed, Dict((1, 2) => 10, (2, 3) => 20))
+      label!(GL, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
+      HL = on_graph(GL, p)
+      @test HL.label[2, 1] == 10
+      @test HL.label[1, 3] == 20
+      @test HL.color[2] == GL.color[1]
+    end
+
+    @testset "permute_nodes!" begin
+      p = perm(3, [2, 1, 3])  # (1,2)
+      G = graph_from_edges(Directed, [[1, 2], [2, 3]])
+      permute_nodes!(G, p)
+      @test collect(edges(G)) == [ Edge(1, 3),  Edge(2, 1)]
+      permute_nodes!(G, p)
+      label!(G, Dict((1, 2) => 10, (2, 3) => 20), nothing)
+      label!(G, nothing, Dict(1 => "red", 2 => "blue", 3 => "green"); name=:color)
+      permute_nodes!(G, p)
+      @test G.label[2, 1] == 10
+      @test G.label[1, 3] == 20
+      @test G.color[2] == "red"
+
+      H = copy(G)
+      permute_nodes!(H, p)
+      @test G.label[1, 3] == H.label[2, 3]
     end
 end

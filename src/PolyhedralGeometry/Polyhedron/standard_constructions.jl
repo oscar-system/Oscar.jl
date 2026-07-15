@@ -1063,9 +1063,9 @@ Polyhedron in ambient dimension 4
 
 julia> f_vector(BL)
 3-element Vector{ZZRingElem}:
- 6
+  6
  12
- 8
+  8
 
 ```
 """
@@ -1360,9 +1360,9 @@ Polytope in ambient dimension 3
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{QQFieldElem}:
  4306545//4194304
- 15849//16384
- 4165//4096
- 8281//8192
+   15849//16384
+    4165//4096
+    8281//8192
 
 julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
 Polytope in ambient dimension 3
@@ -2110,7 +2110,7 @@ Polytope in ambient dimension 4
 
 julia> f_vector(DP)
 4-element Vector{ZZRingElem}:
- 9
+  9
  32
  46
  23
@@ -2293,9 +2293,9 @@ true
 julia> sort(map(x->dot(x,x), vertices(rnp)))
 4-element Vector{QQFieldElem}:
  1417//4096
- 481//1024
- 225//256
- 101//32
+  481//1024
+  225//256
+  101//32
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
@@ -2622,4 +2622,52 @@ julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
 """
 function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
   return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
+end
+
+@doc raw"""
+    prism(P::Polyhedron)
+    prism(P::Polyhedron, z1, z2)
+
+Build the prism over the polyhedron `P`, i.e. the product with $[-1,1]$.
+If `z1` and `z2` are provided, build the product with the
+interval $[z_1, z_2]$ instead.
+
+# Examples
+```jldoctest
+julia> S = simplex(2)
+Polytope in ambient dimension 2
+
+julia> PS = prism(S)
+Polytope in ambient dimension 3
+
+julia> vertices(PS)
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, -1]
+ [1, 0, -1]
+ [0, 1, -1]
+ [0, 0, 1]
+ [1, 0, 1]
+ [0, 1, 1]
+
+julia> vertices(prism(S, -3, 2))
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, -3]
+ [1, 0, -3]
+ [0, 1, -3]
+ [0, 0, 2]
+ [1, 0, 2]
+ [0, 1, 2]
+```
+"""
+function prism(
+  P::Polyhedron{T},
+  z1::Union{Number,IntegerUnion,scalar_types},
+  z2::Union{Number,IntegerUnion,scalar_types},
+) where {T<:scalar_types}
+  F = coefficient_field(P)
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P), F(z1), F(z2)), F)
+end
+
+function prism(P::Polyhedron{T}) where {T<:scalar_types}
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P)), coefficient_field(P))
 end

@@ -144,7 +144,7 @@ julia> basis(S)
  [c2, c1^2, h*c1, h^2]
 ```
 
-A priori, it looks like there are too many generators for the top degree of our surface:
+A priori, it looks like there are too many generators for the top degree part of the Chow ring:
 we expect there to be a unique point class, but there are 4 basis elements in that degree.
 The reason is that `h`, `c1`, and `c2` are completely formal variables,
 and we have not specified their relationship.
@@ -197,6 +197,12 @@ julia> ct = top_chern_class(-j.T)
 
 julia> Y = codomain(j)
 AbstractVariety of dim 4
+
+julia> pi = structure_map(Y)
+AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 4
+
+julia> codomain(pi) == X
+true
 
 julia> basis(Y)
 5-element Vector{Vector{MPolyQuoRingElem}}:

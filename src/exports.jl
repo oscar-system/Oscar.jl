@@ -136,9 +136,9 @@ export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
-export ModuleFP
-export ModuleFPElem
-export ModuleFPHom
+export OFPModule
+export OFPModuleElem
+export OFPModuleHom
 export ModuleOrdering
 export MonomialOrdering
 export Multipartition
@@ -1300,10 +1300,12 @@ export n_gon
 export n_maximal_cells
 export n_maximal_cones
 export n_maximal_polyhedra
+export n_minimal_faces
 export n_points
 export n_polyhedra
 export n_pseudovertices
 export n_rays
+export n_rays_modulo_lineality
 export n_vertices
 export name
 export names_of_fusion_sources
@@ -1381,6 +1383,7 @@ export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats
+export on_graph
 export on_indeterminates
 export on_lines
 export on_sets
@@ -1445,6 +1448,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
 export petersen_graph
 export phylogenetic_tree
 export picard_class
@@ -1501,6 +1505,7 @@ export primitive_group_identification, has_primitive_group_identification
 export primorial
 export principal_extension
 export print_constraints
+export prism
 export product
 export proj
 export project_full
@@ -1521,6 +1526,7 @@ export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
 export projectivization
+export prune
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
@@ -1588,6 +1594,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_action_homomorphism
 export regular_character
 export regular_triangulation
 export regular_triangulations
@@ -1706,6 +1713,8 @@ export simplify_light
 export simplify_with_same_ambient_free_module
 export singular_locus
 export singular_locus_reduced
+export slack_ideal
+export slack_ideal_non_saturated
 export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
