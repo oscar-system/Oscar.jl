@@ -8,7 +8,6 @@ export quiver_representation
 struct QuiverRepresentation
     quiver::Graph{Directed}
     ambient_dims::Vector{Int}
-    input_matrices::Vector
     edge_morphisms::Vector
     function QuiverRepresentation(quiver, ambient_dims::Vector{Int}, input_matrices::Vector)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
