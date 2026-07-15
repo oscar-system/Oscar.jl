@@ -29,6 +29,13 @@
   end
 end
 
+@testset "check invalidation" begin
+    @test validate(mrdi_schema,
+                   Dict("_ns" => ns, "_type" => Dict("name" => "Vector", "params" => "Base.Int"),
+                        "data" => [Dict("_type" => "ZZRingElem", "data" => "3")])) !== nothing
+  end
+end
+
 @testset "saving and loading Gzip'ed filed" begin
   @testset "loading file format paper example (Gzip'ed)" begin
     F = GF(7, 2)
