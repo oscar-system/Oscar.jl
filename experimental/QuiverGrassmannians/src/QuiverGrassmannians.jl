@@ -3,17 +3,29 @@ export QuiverRepresentation
 export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
-#Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
 
+#Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
 struct QuiverRepresentation
     quiver::Graph{Directed}
     ambient_dims::Vector{Int}
-    maps::Vector
-    function QuiverRepresentation(quiver, ambient_dims::Vector{Int}, maps::Vector)
+    input_matrices::Vector
+    edge_morphisms::Vector
+    function QuiverRepresentation(quiver, ambient_dims::Vector{Int}, input_matrices::Vector)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
-        @req n_edges(quiver) == length(maps) "each edge needs a linear map"
-        new(quiver, ambient_dims, maps)
+        @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
+        new(quiver, ambient_dims, input_matrices, edge_morphisms(quiver,input_matrices,ambient_dims))
     end
+end
+
+#convert matrices to free module morphisms
+function edge_morphisms(G, As, ns)
+    R = base_ring(As[1])
+    return [
+        hom(free_module(R, ns[src(e)]),
+            free_module(R, ns[dst(e)]),
+            transpose(A))
+        for (A, e) in zip(As, edges(G))
+    ]
 end
 
 @doc raw"""
@@ -75,6 +87,12 @@ struct QuiverGrassmannian#add types
     dimension_vector::Vector{Int64}
 end
 
+#generate free module homomorphisms from matrices
+function edge_morphisms(A,G,)
+    R = base_ring(A[1])
+    return [hom(A,free_module(R,ns))]
+end
+
 
 @doc raw"""
      quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
@@ -103,7 +121,7 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #quiver rep data
     G = Q.quiver
     ns = Q.ambient_dims
-    As = Q.maps
+    As = Q.input_matrices
     @req length(dims) == length(ns) "each vertex needs a subspace dimension"
     @req all([dims[i]<= ns[i] for i in 1:length(ns)]) "dimension on vertex must be less or
                                                         equal to than ambient dimension"
