@@ -85,7 +85,7 @@ julia> PerfectGroups.has(2*10^6+1)
 false
 ```
 """
-function has(deg::Int)
+function has(n::Int)
   @req n >= 1 "order must be positive, not $n"
   return n <= 2_000_000
 end
@@ -198,8 +198,8 @@ These conditions may be of one of the following forms:
 - `!func` selects groups for which the function `func` returns `false`
 
 As a special case, the first argument may also be one of the following:
-- `intval` selects groups whose degree equals `intval`; this is equivalent to `degree => intval`
-- `intlist` selects groups whose degree is in `intlist`; this is equivalent to `degree => intlist`
+- `intval` selects groups whose order equals `intval`; this is equivalent to `order => intval`
+- `intlist` selects groups whose order is in `intlist`; this is equivalent to `order => intlist`
 
 The following functions are currently supported as values for `func`:
 - `is_quasisimple`
