@@ -127,7 +127,7 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #ambient ring
     F = base_ring(As[1])
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
-    Is = sort!(Ls)
+    sort!(Ls)
     R,x = polynomial_ring(F,:x=>Is)
     #index dictionary
     xdict = Dict(Is[i] => x[i] for i in 1:length(Is))
