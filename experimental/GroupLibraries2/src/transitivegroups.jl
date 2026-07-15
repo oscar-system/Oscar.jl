@@ -181,7 +181,7 @@ function identification(T::Type{TransitiveGroupsLibrary}, G::PermGroup)
   return deg, res
 end
 
-@doc raw"""
+_docstr = """
     get_all(TransitiveGroupsLibrary, L...)
     get_one(TransitiveGroupsLibrary, L...)
 
@@ -247,6 +247,8 @@ julia> get_one(TransitiveGroupsLibrary, degree => 3:5, is_abelian)
 Alternating group of degree 3
 ```
 """
+
+@doc _docstr
 function get_all(::Type{TransitiveGroupsLibrary}, L...)
    @req !isempty(L) "must specify at least one filter"
    if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
@@ -257,6 +259,7 @@ function get_all(::Type{TransitiveGroupsLibrary}, L...)
    return [PermGroup(x) for x in K]
 end
 
+@doc _docstr
 function get_one(::Type{TransitiveGroupsLibrary}, L...)
    @req !isempty(L) "must specify at least one filter"
    if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
@@ -267,4 +270,3 @@ function get_one(::Type{TransitiveGroupsLibrary}, L...)
    K === GAP.Globals.fail && return nothing
    return PermGroup(K)
 end
-@doc (@doc get_all(::Type{TransitiveGroupsLibrary}, L...)) get_one(::Type{TransitiveGroupsLibrary}, L...)
