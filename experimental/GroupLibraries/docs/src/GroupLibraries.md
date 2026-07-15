@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Group libraries
+# Group libraries (variant 1)
 
 Oscar provides access to several libraries of groups.
 There is a Julia module for each such library,
