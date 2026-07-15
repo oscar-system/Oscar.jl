@@ -62,7 +62,14 @@
               "type": "string"
             },
             "params": {
-              "$ref": "#/$defs/data"
+              "anyOf": [
+                {
+                  "$ref": "#"
+                },
+                {
+                  "$ref": "#/$defs/data"
+                }
+              ]
             }
           },
           "type": "object"
