@@ -214,5 +214,6 @@ is_univariate(p::ActionPolyRingElem)
 to_univariate(R::PolyRing{T}, p::ActionPolyRingElem{T}) where {T <: RingElement}
 to_univariate(p::ActionPolyRingElem)
 univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
+univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 ```
 
