@@ -9,7 +9,7 @@ end
 
 @doc raw"""
     groebner_basis_signature_based(
-        I::MPolyIdeal; info_level::Int=0, signature_ordering::Symbol=:POT
+        I::MPolyIdeal; signature_ordering::Symbol=:POT
     )
 
 Returns a Gröbner basis of `I` w.r.t. to the
@@ -28,8 +28,7 @@ degree reverse lexicographical monomial ordering and the signature ordering
 !!! note
     In general, the resulting Gröbner basis is not reduced.
 
-# Possible keyword arguments
-- `info_level::Int=0`: info level printout: off (`0`, default), computational details (`1`)
+# Possible keyword argument
 - `signature_ordering::Symbol=:POT`: The module monomial ordering for the signatures, either `:POT` (position-over-term, default) or `:DPOT` (degree-position-over-term).
 
 # Examples
@@ -66,9 +65,11 @@ with respect to the ordering
 """
 function groebner_basis_signature_based(
   I::MPolyIdeal;
-  info_level::Int=0,
   signature_ordering::Symbol=:POT
 )
+
+  info_level = get_verbosity_level(:AlgebraicSolving) > 1 ? 1 : get_verbosity_level(:AlgebraicSolving)
+
   ordering = degrevlex(base_ring(I))
   if haskey(I.gb, ordering)
     return I.gb[ordering]
