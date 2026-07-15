@@ -131,7 +131,7 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     Is = sort!(Ls)
     R,x = polynomial_ring(F,:x=>Is)
     #index dictionary
-    xdict = Dict([Is[i] => x[i] for i in 1:length(Is)])
+    xdict = Dict(Is[i] => x[i] for i in 1:length(Is))
     #create ideal generators for each edge
     Gs = elem_type(R)[]
     for (e, A) in zip(edges(G), As)
