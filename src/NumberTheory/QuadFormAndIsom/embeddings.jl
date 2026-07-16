@@ -981,7 +981,36 @@ function _cokernel(f::TorQuadModuleMap)
                                     modulus_qf=modulus_quadratic_form(B))
   return BmodA, hom(B, BmodA, [BmodA(lift(i)) for i in gens(B)])
 end
-  
+
+#= TEMPORARY: TO BE REMOVED ONCE COMPUTATIONS WITH MAGMA ARE DONE. NEED MAGMACALL
+
+function orbit_representatives_and_stabilizers_magma(G::MatrixGroup{E}, k::Int) where E <: FinFieldElem
+  g = gens(G)
+  d = degree(G)
+  F = base_ring(G)
+  V = vector_space(F, d)
+  p, e = characteristic(F), degree(F)
+  str = "K := GF($p, $e); G := MatrixGroup<$d, K | "
+  for m in g
+    mm = "[" * split(string([m[i,j] for i in 1:nrows(m) for j in 1:ncols(m)]), '[')[2]
+    str *= mm
+    str *= ", "
+  end
+  str = str[1:end-2]*" >; O := OrbitsOfSpaces(G, $k); S1 := Sprint([[[[M[j,k] : k in [1..NumberOfColumns(M)]] : j in [1..NumberOfRows(M)]] : M in Generators(Stabilizer(G, L[2]   : L in O]); S2 := Sprint([[[M[k] : k in [1..NumberOfColumns(M)]] : M in Basis(L[2])] : L in O]); [S1, S2]"
+  o = MagmaCall.interact() do stdout
+    MagmaCall.putcmd(stdout, str)
+    MagmaCall.readtotoken(String, stdout, missing) |> Meta.parse |> eval
+  end
+  L1, L2 = o
+  stabs = Vector{elem_type(G)}[elem_type(G)[G(matrix(F, d, d, reduce(vcat, v))) for v in bas] for bas in L1]
+  stabs = [sub(G, bas)[1] for bas in stabs]
+  orb = Vector{elem_type(V)}[elem_type(V)[V(F.(v)) for v in bas] for bas in L2]
+  orb = [sub(V, bas)[1] for bas in orb]
+  return [(orb[i], stabs[i]) for i in 1:length(orb)]
+end
+
+=#
+
 # Given an embedding of an `(G, f)`-stable finite quadratic module `V` of `q`,
 # where the abelian group structure on `V` is `p`-elementary, compute
 # representatives of `G`-orbit of `f`-stable subgroups of `V` of order `ord`,
@@ -1125,6 +1154,8 @@ function __subgroups_orbit_representatives_and_stabilizers_elementary(
   k = nrows(K)
   gene_H0 = elem_type(q)[q(lift(a)) for a in gens(H0)]
   
+  # REPLACE THE LINE BELOW BY
+  # orb_and_stab = orbit_representatives_and_stabilizers_magma(MGp, g-k)
   orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
   for (orb, stab) in orb_and_stab
     i = orb.map
