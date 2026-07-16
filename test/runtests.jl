@@ -109,6 +109,7 @@ test_subsets = Dict(
                                "experimental/FTheoryTools/test/singular_loci.jl",
                                "experimental/FTheoryTools/test/paper_tests.jl",
                                "experimental/DoubleAndHyperComplexes/test/min_k_tester.jl",
+                               "experimental/DoubleAndHyperComplexes/test/LeGreuelFormulaOnStratifiedSpaces.jl",
                               ],
 
                     :long  => [
@@ -144,7 +145,8 @@ test_subsets = Dict(
                      :book => [
                                "test/book/test.jl",
                      ],
-  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+                 :oscar_db => ["experimental/OscarDB/test/runtests.jl"],
+                     :exts => ["experimental/Extensions/test/runtests.jl"]
 )
 
 tests_on_main = Dict(

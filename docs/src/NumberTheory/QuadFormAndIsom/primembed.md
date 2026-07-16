@@ -58,7 +58,7 @@ Such an algorithm has been designed and implemented as part of this package,
 and it can be accessed via the following function.
 
 ```@docs
-primitive_embeddings(::ZZGenus, ::ZZLat)
+primitive_embeddings
 ```
 
 !!! warning
@@ -105,7 +105,7 @@ An algorithm answering to the previous problem, based on Nikulin's work, is
 available via the following function.
 
 ```@docs
-primitive_extensions(::ZZLat, ::ZZLat)
+primitive_extensions
 ```
 
 ## Equivariant primitive extensions

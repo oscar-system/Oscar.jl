@@ -162,3 +162,42 @@ end
   p=q=3
   admissible_equivariant_primitive_extensions(Af,Bf,Cf,p,q)
 end
+
+@testset "New infrastructure" begin
+  B = matrix(QQ, 5, 5 ,[-1, 0, 1, 0, 0, 0, -1, 0, -1, 0, 1, -1, 1, 1, 0, -1, 1//2, -1, 1//2, 1//2, 2, 1, 2, -1, 0]);
+  G = matrix(QQ, 5, 5 ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 22]);
+  L = integer_lattice(B, gram = G);
+  T = rescale(L, -1)
+  for v in [[2], [2,2,18], [2,22]]
+    ok, r = primitive_extensions(L, T; glue_elementary_divisors=[v])
+    for l in r
+      @test elementary_divisors(torsion_quadratic_module(l[1], l[2]+l[3])) == v
+    end
+  end
+
+  ok, r = primitive_extensions(L, T; glue_exponent=6)
+  for l in r
+    @test first(divides(ZZ(6), exponent(torsion_quadratic_module(l[1], l[2]+l[3]))))
+  end
+
+  q3, _ = primary_part(discriminant_group(L), 3)
+  ok, r = primitive_extensions(L, T; form_over=[q3])
+  for l in r
+    @test first(is_isometric_with_isometry(discriminant_group(l[1]), q3))
+  end
+  q11, _ = primary_part(discriminant_group(L), 11)
+  q, _ = direct_sum(q11, rescale(q11, -1))
+  G = genus(q, (5,5))
+  ok, r = primitive_extensions(L, T; genus_over=[G])
+  for l in r
+    @test genus(l[1]) == G
+  end
+
+  ok, r = primitive_extensions(L, genus(T); glue_elementary_divisors=[[99]])
+  for l in r
+    @test elementary_divisors(torsion_quadratic_module(l[1], l[2]+l[3])) == [99]
+  end
+
+  ok, _ = unimodular_primitive_extensions(genus(L), genus(T); exist_only=true)
+  @assert ok
+end
