@@ -331,7 +331,10 @@ end
 @doc raw"""
     orthogonal_group(T::TorQuadModule)  -> AutomorphismGroup{TorQuadModule}
 
-Return the full orthogonal group of this torsion quadratic module.
+Return the full orthogonal group of ``T`` seen as a torsion quadratic form.
+
+See `orthogonal_group_bilinear` to compute the orthogonal group for the
+bilinear form on ``T``.
 
 # Examples
 ```jldoctest
@@ -355,29 +358,77 @@ julia> order(OT)
 ```
 """
 @attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
+  return _orthogonal_group(T, _orthogonal_group_gens(T); check=false)
+end
+
+@doc raw"""
+    orthogonal_group_bilinear(T::TorQuadModule) -> AutomorphismGroup{TorQuadModule}
+
+Return the orthogonal group for the bilinear form on ``T``, i.e. seeing ``T``
+as a torsion bilinear form. If the modulus of the quadratic form on ``T`` is
+equal to the modulus of its bilinear form, then this is the same as calling
+`orthogonal_group(T)`.
+"""
+@attr AutomorphismGroup{TorQuadModule} function orthogonal_group_bilinear(T::TorQuadModule)
+  return __orthogonal_group(T; as_bilinear_module=true)
+end
+
+# Forget about the quadratic form on `T`, if any. The difference with the Hecke
+# function is that we also record the same set of generators
+# TODO: Modify the Hecke version to specify whether to keep the same
+# generators and delete this version
+function __as_finite_bilinear_module(
+  T::TorQuadModule,
+)
+  n = modulus_bilinear_form(T)
+  if n == modulus_quadratic_form(T)
+    return T
+  end
+
+  Tb =  torsion_quadratic_module(cover(T), relations(T); modulus=n, modulus_qf=n, gens=lift.(gens(T)))
+  return Tb
+end
+
+# If `T` is bilinear or `as_bilinear_module` is `true`, return the orthogonal
+# group of the associated torsion bilinear form, otherwise the orthogonal group
+# of the torsion quadratic form
+function __orthogonal_group(
+  T::TorQuadModule;
+  as_bilinear_module::Bool=false,
+)
+  if !as_bilinear_module || modulus_bilinear_form(T) == modulus_quadratic_form(T)
+    return orthogonal_group(T)
+  end
+  Tb = __as_finite_bilinear_module(T)
+  return _orthogonal_group(T, _orthogonal_group_gens(Tb); check=false)
+end
+
+function _orthogonal_group_gens(T::TorQuadModule)
   if is_trivial(abelian_group(T))
-    return _orthogonal_group(T, ZZMatrix[identity_matrix(ZZ, ngens(T))], check = false)
+    return ZZMatrix[identity_matrix(ZZ, ngens(T))]
+  elseif iszero(gram_matrix_quadratic(T))
+    # in that case, we don't have any conditions regarding the
+    # quadratic form, so we have all automorphisms coming
+    # from the underlying abelian group
+    return matrix.(gens(automorphism_group(abelian_group(T))))
   elseif is_semi_regular(T)
     # if T is semi-regular, it is isometric to its normal form for which
     # we know how to compute the isometries.
     N, i = normal_form(T)
     j = inv(i)
-    gensON_mat = unique(_compute_gens(N))
+    gensON_mat = unique!(_compute_gens(N))
+    filter!(!iszero, gensON_mat)
     gensON = TorQuadModuleMap[hom(N, N, g) for g in gensON_mat]
-    gensOT = TorQuadModuleMap[i * g * j for g in gensON]
-    length(gensOT) > 1 ? filter!(!isone∘matrix, gensOT) : nothing
-    return _orthogonal_group(T, gensOT; check=false)
-  elseif iszero(gram_matrix_quadratic(T))
-    # in that case, we don't have any conditions regarding the
-    # quadratic form, so we have all automorphisms coming
-    # from the underlying abelian group
-    return _orthogonal_group(T, hom.(gens(automorphism_group(abelian_group(T)))); check=false)
+    gensOT_mat = ZZMatrix[matrix(i * g * j) for g in gensON]
+    unique!(gensOT_mat)
+    length(gensOT_mat) > 1 ? filter!(!isone, gensOT_mat) : nothing
+    return gensOT_mat
   else
     # if T is not semi-regular, we distinghuish the cases whether or not
     # it splits its radical quadratic
     i = radical_quadratic(T)[2]
     gensOT_mat = has_complement(i)[1] ? _compute_gens_split_degenerate(T) : _compute_gens_non_split_degenerate(T)
-    return _orthogonal_group(T, gensOT_mat; check=false)
+    return unique!(gensOT_mat)
   end
 end
 
