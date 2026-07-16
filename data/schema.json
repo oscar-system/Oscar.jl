@@ -1,7 +1,12 @@
 {
   "$defs": {
     "data": {
-      "not": { "$ref": "#" },
+      "not": {
+        "allOf": [
+          { "$ref": "#" },
+          { "not": { "$ref": "#/$defs/polymake" } }
+        ]
+      },
       "oneOf": [
         {
           "type": "boolean"
@@ -25,12 +30,15 @@
           "type": "array"
         },
         {
-          "$ref": "https://polymake.org/schemas/data.json"
+          "$ref": "#/$defs/polymake"
         },
         {
           "type": "null"
         }
       ]
+    },
+    "polymake": {
+      "$ref": "https://polymake.org/schemas/data.json"
     },
     "type": {
       "oneOf": [
