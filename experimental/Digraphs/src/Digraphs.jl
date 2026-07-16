@@ -1,4 +1,4 @@
-using Oscar: AbstractGraph, Directed, GAPGroup
+using Oscar: AbstractGraph, Directed, GAPGroup, GAPGroupElem
 
 include("DigraphWrap.jl")
 include("Types.jl")
