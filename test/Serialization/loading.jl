@@ -35,7 +35,6 @@ end
   @test validate(mrdi_schema, Dict("_ns" => Dict("Oscar" => ["https://github.com/oscar-system/Oscar.jl","1.8.0"]),
                                      "_type" => Dict("name" => "Vector", "params" => "Base.Int"),
                                      "data" => [Dict("_type" => "ZZRingElem", "data" => "3")])) !== nothing
-  end
 end
 
 @testset "saving and loading Gzip'ed filed" begin
