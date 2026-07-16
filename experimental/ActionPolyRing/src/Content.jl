@@ -876,7 +876,10 @@ end
 
 Return the initial of the polynomial `p`, i.e. the leading coefficient of `p` regarded as a univariate polynomial in its leader.
 """
-initial(apre::ActionPolyRingElem) = univariate_leading_coefficient(apre, leader(apre))
+function initial(apre::ActionPolyRingElem)
+  is_constant(apre) && return apre
+  return univariate_leading_coefficient(apre, leader(apre))
+end
 
 @doc raw"""
     leader(p::ActionPolyRingElem)
@@ -1041,8 +1044,7 @@ This method allows all versions described in [Specifying jet variables](@ref spe
 """
 function univariate_leading_coefficient(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
-  d < 0 && return zero(r)  # By convention, (only) the zero polynomial has degree -1 in all jet variables
-  d == 0 && return r
+  d <= 0 && return r  
 
   res = zero(r)
   var = __jtv(parent(r))[(i, jet)]
