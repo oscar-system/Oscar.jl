@@ -7,6 +7,36 @@
     digraph(obj::GapObj) -> Digraph
     digraph(name::T) where T <: AbstractString -> Digraph
 
+Construct a directed graph (digraph) using one of several convenient interfaces.
+By default, an **immutable** digraph is returned; pass `mut=true` to obtain a
+**mutable** digraph.
+
+# Arguments
+- `adj::Vector{Vector{Int}}`: adjacency list where the `i`-th entry lists the
+  out-neighbours of vertex `i`. Vertex numbers must be between `1` and
+  `length(adj)`. Repeated entries create multiple edges.
+- `labels::Vector{<:AbstractString}`: unique vertex labels.
+- `source::Vector{<:AbstractString}`: source vertex of each edge (by label).
+- `range::Vector{<:AbstractString}`: target vertex of each edge (by label).
+- `n::Int64`: number of vertices, numbered from `1` to `n`.
+- `source::Vector{Int}`: source vertex of each edge (by index).
+- `range::Vector{Int}`: target vertex of each edge (by index).
+- `list::Vector{<:Any}`: arbitrary objects serving as vertices.
+- `func::Function`: binary predicate; edge `i -> j` exists iff
+  `func(list[i], list[j])` is `true`.
+- `G::T<:GAPGroup`: a group acting on the elements of `list`.
+- `act::Function`: group action; takes an object and a group element, returns
+  the transformed object.
+- `rel::Function`: binary predicate that must be invariant under the group
+  action.
+- `obj::GapObj`: a GAP object (digraph, GRAPE graph, binary relation, etc.).
+- `name::T<:AbstractString`: name of a digraph in the built-in database.
+- `mut::Bool=false`: if `true`, return a mutable digraph; otherwise return an
+  immutable digraph.
+
+# Returns
+A `Digraph` object.
+
 # Examples
 ```jldoctest
 julia> d = digraph([[2, 3], [1, 3], [1, 2]])
