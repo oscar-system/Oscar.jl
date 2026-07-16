@@ -1,6 +1,7 @@
 {
   "$defs": {
     "data": {
+      "not": { "$ref": "#" },
       "oneOf": [
         {
           "type": "boolean"
