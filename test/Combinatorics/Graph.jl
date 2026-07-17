@@ -332,6 +332,13 @@
       @test sg4.vertexlabels[2] == "fourth"
     end
 
+    @testset "cycle_graph" begin
+      G = cycle_graph(4)
+      @test n_vertices(G) == 4
+      @test n_edges(G) == 4
+      @test degree(G) == fill(2,4)
+    end
+
     @testset "petersen_graph" begin
       P = petersen_graph()
       @test n_vertices(P) == 10
