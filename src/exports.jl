@@ -746,6 +746,7 @@ export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
 export groebner_basis_modular
+export groebner_basis_signature_based
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group

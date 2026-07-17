@@ -40,7 +40,7 @@ HomotopyContinuationExt = "HomotopyContinuation"
 
 [compat]
 AbstractAlgebra = "0.50.1"
-AlgebraicSolving = "0.10.6"
+AlgebraicSolving = "0.11.0"
 CodecZlib = "0.7.8"
 Compat = "4.13.0"
 Distributed = "1.6"
