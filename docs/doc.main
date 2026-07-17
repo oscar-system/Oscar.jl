@@ -97,13 +97,17 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "AbstractAlgebra/matrix.md",
+     "Working with matrices" => [
+        "AbstractAlgebra/matrix_construction.md",
+        "AbstractAlgebra/matrix_manipulation.md",
+        "AbstractAlgebra/matrix_predicates.md",
+        "AbstractAlgebra/matrix_computed_quantities.md",
+        "AbstractAlgebra/linear_solving.md",
+        "AbstractAlgebra/matrix_normal_forms.md",
+        "LinearAlgebra/eigen.md",
+     ],
      "AbstractAlgebra/matrix_spaces.md",
-     "AbstractAlgebra/linear_solving.md",
-     "LinearAlgebra/eigen.md",
-     "Nemo/matrix.md",
      "AbstractAlgebra/matrix_algebras.md",
-     "Hecke/manual/misc/sparse.md",
      "Modules" => [
         "LinearAlgebra/module_introduction.md",
         "AbstractAlgebra/module.md",
@@ -113,7 +117,13 @@
         "AbstractAlgebra/direct_sum.md",
         "AbstractAlgebra/module_homomorphism.md",
      ],
-     "AbstractAlgebra/matrix_implementation.md",
+     "Specialized matrix types" => [
+        "Nemo/matrix.md",
+        "Hecke/manual/misc/sparse.md",
+     ],
+     "Developer documentation" => [
+        "AbstractAlgebra/matrix_implementation.md",
+     ]
   ],
 
   "Number Theory" => [
