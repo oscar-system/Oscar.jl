@@ -95,6 +95,11 @@
         g = dual_graph(convex_hull([0 0 0; 1 0 0], [0 0 1; 0 1 0]))
         @test n_vertices(g) == 4
         @test n_edges(g) == 5
+
+        @test egtriangle == graph_from_edges(triangle)
+        @test egcube == graph_from_edges(c)
+        @test egpl == graph_from_edges(pl)
+        @test egplc == graph_from_edges(pl, modulo_lineality=true)
     end
 
     @testset "isomorphic" begin

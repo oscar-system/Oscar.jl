@@ -2022,10 +2022,17 @@ end
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
+    graph_from_edges(p::Polyhedron)
+    graph_from_edges(::Type{Undirected}, p::Polyhedron)
 
 
-Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
-ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
+Create a graph from a vector of edges or from the edges of a polyhedron.
+
+For vector of edges, there is an optional input for number of vertices,
+`graph_from_edges` will ignore any negative integers and throw an error when the
+input is less than the maximum vertex index in edges.
+
+For polyhedron, the return is the same as [`vertex_edge_graph`](@ref).
 
 # Examples
 ```jldoctest
@@ -2058,6 +2065,11 @@ Directed edges:
 (1, 2)(3, 4)
 Undirected edges:
 (3, 2)(4, 1)
+
+julia> graph_from_edges(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+
 ```
 """
 function graph_from_edges(::Type{T},
@@ -2107,6 +2119,16 @@ function graph_from_edges(::Type{Mixed},
                           undirected_edges::EdgeIterator,
                           n_vertices::Int=-1)
   return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
+end
+
+function graph_from_edges(::Type{Undirected},
+                          p::Polyhedron;
+                          modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
+end
+
+function graph_from_edges(p::Polyhedron; modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
 end
 
 @doc raw"""
