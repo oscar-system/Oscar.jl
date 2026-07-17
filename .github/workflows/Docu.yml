@@ -38,6 +38,14 @@ jobs:
         uses: julia-actions/julia-buildpkg@v1
       - name: Install dependencies
         run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
+      - name: Install LaTeX
+        run: |
+              sudo apt-get update
+              sudo apt-get install -y --no-install-recommends \
+              latexmk \
+              texlive-luatex \
+              texlive-fonts-recommended \
+              texlive-latex-extra
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # For authentication with GitHub Actions token
