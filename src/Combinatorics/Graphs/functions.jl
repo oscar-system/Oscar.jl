@@ -1838,6 +1838,28 @@ function complete_bipartite_graph(n::Int64, m::Int64)
 end
 
 
+@doc raw"""
+    cycle_graph(n::Int64)
+
+Return the graph consisting of a single `n`-cycle.
+
+# Examples
+```jldoctest
+julia> g = cycle_graph(4);
+
+julia> collect(edges(g))
+4-element Vector{Edge}:
+ Edge(2, 1)
+ Edge(3, 2)
+ Edge(4, 1)
+ Edge(4, 3)
+```
+"""
+function cycle_graph(n::Int64)
+    bigobj = Polymake.graph.cycle_graph(n)
+    return Graph{Undirected}(bigobj.ADJACENCY)
+end
+
 
 @doc raw"""
     visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)

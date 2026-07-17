@@ -62,6 +62,7 @@ export CoveredScheme
 export CoveredSchemeMorphism
 export Covering
 export CoveringMorphism
+export cycle_graph
 export CyclicQuotientSingularity
 export DirectProductGroup
 export DirectSumSheaf
