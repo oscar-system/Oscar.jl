@@ -1,7 +1,7 @@
 import Oscar.Serialization: save_object, load_object,
-  type_params, _convert_override_params, params, load_type_params, decode_type
+  type_and_params, _convert_override_params, params, load_type_and_params, decode_type
 
-function _convert_override_params(tp::TypeParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
+function _convert_override_params(tp::TypeAndParams{<:GraphicalModel, <:Tuple{Vararg{Pair}}})
   param_dict = Dict()
   for p in Oscar.Serialization.params(tp)
     if p.first == :graph_type 
@@ -13,7 +13,7 @@ function _convert_override_params(tp::TypeParams{<:GraphicalModel, <:Tuple{Varar
   return param_dict
 end
 
-function _convert_override_params(tp::TypeParams{T, <:Tuple{Vararg{Pair}}}) where T <: Union{GroupBasedPhylogeneticModel, PhylogeneticModel}
+function _convert_override_params(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T <: Union{GroupBasedPhylogeneticModel, PhylogeneticModel}
   param_dict = Dict()
   type_keys = [:transition_matrix_entry_type, :graph_type,
                :model_parameter_name_type, :root_distribution_entry_type]
@@ -33,24 +33,24 @@ end
 @register_serialization_type GraphTransDict
 @register_serialization_type GenDict
 
-function type_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
+function type_and_params(obj::T) where T <: Union{GraphDict, GraphTransDict}
   if isempty(obj)
-    return TypeParams(
+    return TypeAndParams(
       T,
       nothing
     )
   end
   
-  value_params = type_params.(collect(values(obj)))
+  value_params = type_and_params.(collect(values(obj)))
   @req allequal(value_params) "Not all params of values in $obj are the same"
   
-  return TypeParams(
+  return TypeAndParams(
     T,
     first(value_params)
   )
 end
 
-type_params(D::GenDict) = TypeParams(GenDict, params(type_params(D.d)))
+type_and_params(D::GenDict) = TypeAndParams(GenDict, params(type_and_params(D.d)))
 
 function save_object(s::SerializerState, e::Edge)
   save_data_array(s) do
@@ -109,15 +109,15 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
   return GraphTransDict{elem_type(R)}(graph_trans_dict)
 end
 
-function load_type_params(s::DeserializerState, T::Type{GenDict})
+function load_type_and_params(s::DeserializerState, T::Type{GenDict})
   subtype, params = load_node(s, :params) do obj
     S, key_params = load_node(s, :key_params) do params
       params isa String && return decode_type(s), nothing
-      load_type_params(s, decode_type(s))
+      load_type_and_params(s, decode_type(s))
     end
 
     _, value_params = load_node(s, :value_params) do _
-      load_type_params(s, decode_type(s))
+      load_type_and_params(s, decode_type(s))
     end
 
     return S, Dict(:key_params => key_params, :value_params => value_params)
@@ -135,10 +135,10 @@ end
 @register_serialization_type GaussianGraphicalModel uses_id [:parameter_ring, :model_ring]
 @register_serialization_type DiscreteGraphicalModel uses_id [:parameter_ring, :model_ring]
 
-function type_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
+function type_and_params(GM::S) where {T, L, S <: GraphicalModel{T, L}}
   # this should only be the graph type not the whole graph
-  # need to make adjustments to TypeParams functionality
-  TypeParams(S, :graph_type => TypeParams(typeof(graph(GM)), nothing))
+  # need to make adjustments to TypeAndParams functionality
+  TypeAndParams(S, :graph_type => TypeAndParams(typeof(graph(GM)), nothing))
 end
 
 function save_object(s::SerializerState, M::GraphicalModel)
@@ -167,16 +167,17 @@ end
 # needs to use id to have attributes
 @register_serialization_type PhylogeneticModel uses_id [:parameter_ring, :model_ring, :full_model_ring]
 
-type_params(pm::PhylogeneticModel) = TypeParams(
+type_and_params(pm::PhylogeneticModel) = TypeAndParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
   # needed until serialization can handle types as parameters
-  :graph_type => TypeParams(typeof(graph(pm)), nothing), 
-  :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
-  :transition_matrix_entry_type => TypeParams(eltype(transition_matrix(pm)), nothing),
-  :transition_matrix_params => type_params(transition_matrix(pm)),
-  :root_distribution_entry_type => TypeParams(eltype(root_distribution(pm)), nothing),
-  :root_distribution_params => type_params(root_distribution(pm))
+  :graph_type => TypeAndParams(typeof(graph(pm)), nothing), 
+  :graph_params => type_and_params(graph(pm)),
+  :model_parameter_name_type => TypeAndParams(typeof(varnames(pm)), nothing),
+  :transition_matrix_entry_type => TypeAndParams(eltype(transition_matrix(pm)), nothing),
+  :transition_matrix_params => type_and_params(transition_matrix(pm)),
+  :root_distribution_entry_type => TypeAndParams(eltype(root_distribution(pm)), nothing),
+  :root_distribution_params => type_and_params(root_distribution(pm))
 )
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
@@ -208,12 +209,12 @@ end
 
 @register_serialization_type GroupBasedPhylogeneticModel uses_id [:parameter_ring, :model_ring, :full_model_ring]
 
-type_params(pm::GroupBasedPhylogeneticModel) = TypeParams(
+type_and_params(pm::GroupBasedPhylogeneticModel) = TypeAndParams(
   GroupBasedPhylogeneticModel,
   :phylo_model => phylogenetic_model(pm),
   # see comment in GroupBasedPhylogeneticModel constructor about group
   :group => parent(first(group(pm))),
-  :model_parameter_name_type => TypeParams(typeof(varnames(pm)), nothing),
+  :model_parameter_name_type => TypeAndParams(typeof(varnames(pm)), nothing),
 )
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
@@ -236,15 +237,15 @@ end
 # IndexedRing
 @register_serialization_type IndexedRing
 
-function type_params(IR::IndexedRing)
+function type_and_params(IR::IndexedRing)
   if isempty(IR.gen_to_index)
-    return TypeParams(IndexedRing,
+    return TypeAndParams(IndexedRing,
                :ring => base_ring(IR),
-               :index_type => TypeParams(Int, nothing))
+               :index_type => TypeAndParams(Int, nothing))
   end
-  return TypeParams(IndexedRing,
+  return TypeAndParams(IndexedRing,
                     :ring => base_ring(IR),
-                    :index_type => type_params(first(IR.gen_to_index).second))
+                    :index_type => type_and_params(first(IR.gen_to_index).second))
 end
 
 save_object(s::SerializerState, R::IndexedRing) = save_object(s, R.gen_to_index)
@@ -266,7 +267,7 @@ end
 # Phylogenetic Networks
 @register_serialization_type PhylogeneticNetwork
 
-type_params(::PhylogeneticNetwork) = TypeParams(PhylogeneticNetwork, nothing)
+type_and_params(::PhylogeneticNetwork) = nothing
 
 function save_object(s::SerializerState, pn::PhylogeneticNetwork)
   save_object(s, graph(pn))

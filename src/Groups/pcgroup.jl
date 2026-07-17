@@ -499,7 +499,7 @@ g1^-3*g2^2
 julia> exponent_vector(x)
 2-element Vector{ZZRingElem}:
  -3
- 2
+  2
 ```
 
 ```jldoctest
@@ -933,6 +933,12 @@ Return a `ZZRingElem` representing the polycyclic group `G`,
 using the same encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
 Currently only defined for `PcGroup`, not `SubPcGroup`.
 
+For `n = order(G)` and `code = encode(G)`,
+`pc_group(n, code)` returns a `PcGroup` with the same defining presentation
+as `G`.
+
+The encoding is described in [BE99](@cite), Section 3.3.
+
 # Examples
 ```jldoctest
 julia> G = small_group(12, 2)
@@ -949,14 +955,17 @@ true
 ```
 """
 function encode(G::PcGroup)
-  return ZZ(GAP.Globals.CodePcGroup(GapObj(G))::GapInt)
+  return ZZ(GAPWrap.CodePcgs(GAPWrap.FamilyPcgs(GapObj(G))))
 end
 
 """
-    pc_group(order::IntegerUnion, code::IntegerUnion)
+    pc_group(n::IntegerUnion, code::IntegerUnion)
 
-Given an integer `order` and an integer `code`, return the polycyclic group it encodes.
-The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
+Return the polycyclic group encoded by `n` and `code`,
+in the sense of [`encode`](@ref).
+
+The accepted codes and resulting groups match those of GAP's `PcGroupCode`
+and Magma's `SmallGroupDecoding`.
 
 # Examples
 ```jldoctest

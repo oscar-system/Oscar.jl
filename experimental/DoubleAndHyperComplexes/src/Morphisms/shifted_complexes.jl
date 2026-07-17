@@ -17,7 +17,7 @@ struct ShiftedComplexMorphismFactory{MorphismType} <: HyperComplexMorphismFactor
       dom::ShiftedHyperComplex,
       cod::ShiftedHyperComplex
     )
-    return new{ModuleFPHom}(phi, dom, cod, shift(dom))
+    return new{OFPModuleHom}(phi, dom, cod, shift(dom))
   end
 end
 
@@ -47,7 +47,7 @@ end
     map_factory = ShiftedComplexMorphismFactory(phi, domain, codomain)
 
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=false, offset=offset(phi))
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

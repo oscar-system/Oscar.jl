@@ -28,7 +28,8 @@ julia> integral(top_chern_class(B))
 27
 ```
 
-More generally, `linear_subspaces_on_hypersurface(1, d)` counts lines on a
+In OSCAR, we have more generally the function `linear_subspaces_on_hypersurface(1, d)`
+which is based on localization and Bott's formula. It counts the lines on a
 degree-$d$ hypersurface in $\mathbb{P}^n$ where $n = (d+3)/2$:
 
 ```jldoctest

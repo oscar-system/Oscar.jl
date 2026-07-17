@@ -1,4 +1,4 @@
-function tor(M1::ModuleFP{T}, M2::ModuleFP{T}) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
+function tor(M1::OFPModule{T}, M2::OFPModule{T}) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
   f1, _ = free_resolution(SimpleFreeResolution, M1)
   M1oM2 = tensor_product(free_resolution(SimpleFreeResolution, M1)[1], ZeroDimensionalComplex(M2))
 end
@@ -30,7 +30,7 @@ function boundary(hc::AbsHyperComplex, p::Int, i::Tuple)
   return boundary(underlying_complex(hc), p, i)
 end
 
-function tor(M1::ModuleFP{T}, M2::ModuleFP{T}, i::Int) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
+function tor(M1::OFPModule{T}, M2::OFPModule{T}, i::Int) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
   return homology(tor(M1, M2), i)
 end
 
