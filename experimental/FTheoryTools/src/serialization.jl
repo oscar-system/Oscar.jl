@@ -178,20 +178,20 @@ end
 ###########################################################################
 
 function _maybe_load(
-  s::DeserializerState, ::Type{T}, key::Symbol, params::Dict
+  s::DeserializerState, ::Type{T}, key::Symbol, tp::TypeAndParams
 ) where {S,T<:Dict{String,S}}
   if haskey(s, key)
-    if params[key] isa Dict
-      dict_params = params[key]
-    else
-      dict_params = Dict(:key_params => nothing, :value_params => params[key])
+    val = tp[key]
+    if val isa TypeAndParams
+      return load_object(s, val, key)
     end
-    return load_object(s, T, dict_params, key)
+    dict_params = val isa Dict ? val : Dict(:key_params => nothing, :value_params => val)
+    return load_object(s, TypeAndParams(T, dict_params), key)
   end
   return T()
 end
 
-function _load_common_parts(s::DeserializerState, params::Dict)
+function _load_common_parts(s::DeserializerState, tp::TypeAndParams)
   # TODO: The following should eventually be handled by a serializatino upgrade script.
   # TODO: Discussed with Antony on slack today (August 22, 2025), and we decided to postpone.
   # TODO: This can/should/may be fixed after the OSCAR 1.5.0 release and the corresponding upgrade script.
@@ -200,73 +200,66 @@ function _load_common_parts(s::DeserializerState, params::Dict)
       (:hypersurface_equation_ring, :hypersurface_equation),
       (:weierstrass_polynomial_ring, :weierstrass_polynomial),
       (:tate_polynomial_ring, :tate_polynomial),
-    ) if haskey(params, rk)
+    ) if haskey(tp, rk)
   ))
-  def_poly = load_object(s, MPolyDecRingElem, params[ring_key], poly_key)
-  @req coordinate_ring(params[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
+  def_poly = load_object(s, TypeAndParams(MPolyDecRingElem, tp[ring_key]), poly_key)
+  @req coordinate_ring(tp[:ambient_space]) == parent(def_poly) "Hypersurface equation not in Cox ring of toric ambient space"
 
   explicit_model_sections = _maybe_load(
     s,
     Dict{String,MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}},
     :explicit_model_sections,
-    params,
+    tp,
   )
   model_section_parametrization = _maybe_load(
-    s, Dict{String,MPolyRingElem}, :model_section_parametrization, params
+    s, Dict{String,MPolyRingElem}, :model_section_parametrization, tp
   )
   defining_classes = _maybe_load(
-    s, Dict{String,ToricDivisorClass}, :defining_classes, params
+    s, Dict{String,ToricDivisorClass}, :defining_classes, tp
   )
   return def_poly, explicit_model_sections, model_section_parametrization, defining_classes
 end
 
-function load_object(s::DeserializerState, ::Type{<:WeierstrassModel}, params::Dict)
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
-    s, params
-  )
+function load_object(s::DeserializerState, tp::TypeAndParams{<:WeierstrassModel, <:Tuple{Vararg{Pair}}})
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
   model = WeierstrassModel(
     explicit_model_sections,
     model_section_parametrization,
     def_poly,
-    params[:base_space],
-    params[:ambient_space],
+    tp[:base_space],
+    tp[:ambient_space],
   )
   model.defining_classes = defining_classes
   return model
 end
 
-function load_object(s::DeserializerState, ::Type{<:GlobalTateModel}, params::Dict)
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
-    s, params
-  )
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GlobalTateModel, <:Tuple{Vararg{Pair}}})
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
   model = GlobalTateModel(
     explicit_model_sections,
     model_section_parametrization,
     def_poly,
-    params[:base_space],
-    params[:ambient_space],
+    tp[:base_space],
+    tp[:ambient_space],
   )
   model.defining_classes = defining_classes
   return model
 end
 
-function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Dict)
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
-    s, params
-  )
+function load_object(s::DeserializerState, tp::TypeAndParams{<:HypersurfaceModel, <:Tuple{Vararg{Pair}}})
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
   defining_equation_parametrization = load_object(
     s,
-    MPolyRingElem,
-    params[:hypersurface_equation_parametrization_ring],
+    TypeAndParams(MPolyRingElem, tp[:hypersurface_equation_parametrization_ring]),
     :hypersurface_equation_parametrization,
   )
   model = HypersurfaceModel(
     explicit_model_sections,
     defining_equation_parametrization,
     def_poly,
-    params[:base_space],
-    params[:ambient_space],
-    params[:fiber_ambient_space],
+    tp[:base_space],
+    tp[:ambient_space],
+    tp[:fiber_ambient_space],
   )
   model.model_section_parametrization = model_section_parametrization
   model.defining_classes = defining_classes
