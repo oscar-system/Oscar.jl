@@ -41,6 +41,9 @@ function _overlattices_no_new_roots_index_p(L::ZZLat, p::ZZRingElem; even::Bool=
   D = discriminant_group(L)
   timesp = hom(D, D, [p*x for x in gens(D)])
   Kp,iKp = kernel(timesp)
+  if isone(order(Kp))
+    return ZZLat[]
+  end
   OKp = orthogonal_group(Kp)
   qq = gram_matrix_quadratic(Kp)
 
