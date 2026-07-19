@@ -44,6 +44,7 @@ struct PhylogeneticNetwork{N, L} <: AbstractGraph{Directed}
     end
 
     level = level_phylogenetic_network(G)
+    # if level = 0, return PhylogeneticTree??
     return new{length(actual_hybrids), level}(G, actual_hybrids)
   end
 end
@@ -87,8 +88,17 @@ function Base.show(io::IO,  m::MIME"text/plain", N::PhylogeneticNetwork)
   $E")  
 end
 
+function Base.show(io::IO, N::PhylogeneticNetwork)
+  l = level(N)
+  E = join("($(src(e)), $(dst(e)))" for e in edges(N))
+  hybN = join(hybrid_vertices(N), ", ")
+  print(io, "Level-$l phylogenetic network with hybrid nodes {$hybN} and edges
+  $E")  
+end
+
 @doc raw"""
     level(::PhylogeneticNetwork{N, L}) where {N, L}
+    level(::PhylogeneticTree)
 
 Return the level `L` of the phylogenetic network.
 
@@ -101,9 +111,11 @@ julia> level(N)
 ```
 """
 level(::PhylogeneticNetwork{N, L}) where {N, L} = L
+level(::PhylogeneticTree) = 0
 
 @doc raw"""
     n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L}
+    n_hybrid(::PhylogeneticTree)
 
 Return the number of hybrid nodes `N` in the phylogenetic network.
 
@@ -116,6 +128,7 @@ julia> n_hybrid(N)
 ```
 """
 n_hybrid(::PhylogeneticNetwork{N, L}) where {N, L} = N
+n_hybrid(::PhylogeneticTree) = 0
 
 @doc raw"""
     graph(N::PhylogeneticNetwork)
@@ -132,9 +145,11 @@ Directed graph with 6 nodes and the following edges:
 ```
 """
 graph(N::PhylogeneticNetwork) = N.graph
+n_vertices(N::PhylogeneticNetwork) = n_vertices(graph(N))
 
 @doc raw"""
     hybrids(N::PhylogeneticNetwork)
+    hybrids(::PhylogeneticTree)
 
 Return the dictionary mapping hybrid vertex IDs to their incoming hybrid edges.
 
@@ -148,8 +163,11 @@ Dict{Int64, Vector{Edge}} with 1 entry:
 ```
 """
 hybrids(N::PhylogeneticNetwork) = N.hybrids
+hybrids(::PhylogeneticTree) = Dict{Int64, Vector{Edge}}()
+
 @doc raw"""
     hybrid_vertices(N::PhylogeneticNetwork)
+    hybrid_vertices(::PhylogeneticTree)
 
 Return a list of the hybrid vertices in the phylogenetic network.
 
@@ -163,9 +181,11 @@ julia> hybrid_vertices(N)
 ```
 """
 hybrid_vertices(N::PhylogeneticNetwork) = hybrid_vertices(graph(N))
+hybrid_vertices(::PhylogeneticTree) = []
 
 @doc raw"""
     hybrid_edges(N::PhylogeneticNetwork)
+    hybrid_edges(::PhylogeneticTree)
 
 Return a list of all hybrid edges in the phylogenetic network.
 
@@ -179,6 +199,7 @@ julia> hybrid_edges(N)
 ```
 """
 hybrid_edges(N::PhylogeneticNetwork) = hybrid_edges(graph(N))
+hybrid_edges(::PhylogeneticTree) = []
 
 @doc raw"""
     n_edges(N::PhylogeneticNetwork)
