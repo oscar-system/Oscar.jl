@@ -101,6 +101,9 @@ jobs:
       - name: "Clean polymake scratchspace for self-hosted macOS runners"
         if: runner.environment == 'self-hosted'
         run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
+      - name: Force AbstractAlgebra master branch
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Nemocas/AbstractAlgebra.jl", rev="master")'
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -167,6 +170,9 @@ jobs:
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
+      - name: Force AbstractAlgebra master branch
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Nemocas/AbstractAlgebra.jl", rev="master")'
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "set test subgroup"
@@ -209,6 +215,9 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: "1.10"
+      - name: Force AbstractAlgebra master branch
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Nemocas/AbstractAlgebra.jl", rev="master")'
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "reduce concurrent jobs"
@@ -261,6 +270,9 @@ jobs:
       - name: "Clean polymake scratchspace for self-hosted macOS runners"
         if: runner.environment == 'self-hosted'
         run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
+      - name: Force AbstractAlgebra master branch
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Nemocas/AbstractAlgebra.jl", rev="master")'
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -429,6 +441,9 @@ jobs:
         run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RO" >> $GITHUB_ENV
       - name: Set up julia
         uses: julia-actions/setup-julia@v3
+      - name: Force AbstractAlgebra master branch
+        shell: bash
+        run: julia --project -e 'using Pkg; Pkg.add(url="https://github.com/Nemocas/AbstractAlgebra.jl", rev="master")'
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       # mark RO depot as RO
