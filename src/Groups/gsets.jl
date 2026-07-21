@@ -130,35 +130,6 @@ function ==(Omega1::GSet, Omega2::GSet)
   throw(NotImplementedError(:(==), (Omega1, Omega2)))
 end
 
-
-"""
-    GSetByElements{T,S} <: GSet{T,S}
-
-Objects of this type represent G-sets that are willing to write down
-orbits and elements lists as vectors.
-These G-sets are created by default by [`gset`](@ref).
-
-The fields are
-- the group that acts, of type `T`,
-- the Julia function (for example `on_tuples`) that describes the action,
-- the seeds (something iterable of eltype `S`) whose closure under the action is the G-set
-- the dictionary used to store attributes (orbits, elements, ...).
-"""
-@attributes mutable struct GSetByElements{T,S} <: GSet{T,S}
-    group::T
-    action_function::Function
-    seeds
-
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{Group, FinGenAbGroup}}
-        @req !isempty(seeds) "seeds for G-set must be nonempty"
-        check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
-        Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
-        closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
-        return Omega
-    end
-end
-#TODO: How can I specify that `seeds` should be an iterable object?
-
 function Base.show(io::IO, ::MIME"text/plain", x::GSetByElements)
   println(io, "G-set of")
   io = pretty(io)
@@ -460,19 +431,6 @@ function _induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Gr
 end
 
 #############################################################################
-##
-##  wrapper objects for elements of G-sets,
-##  with fields `gset` (the G-set) and `objects` (the unwrapped object)
-##
-##  These objects are optional ("syntactic sugar"), they can be used to
-##  - apply group elements via `^`,
-##    not via the action function stored in the G-set,
-##  - write something like `orbit(omega)`, `stabilizer(omega)`.
-
-struct ElementOfGSet{T, S, G <: GSet{T, S}}
-    gset::G
-    obj::S
-end
 
 function (Omega::GSet{T, S})(obj::S) where {T, S}
     return ElementOfGSet(Omega, obj)
@@ -807,46 +765,6 @@ function permutation(Omega::GSetByElements{T}, g::Union{GAPGroupElem, FinGenAbGr
     @req pi !== GAP.Globals.fail "no permutation is induced by $g"
 
     return group_element(action_range(Omega), pi)
-end
-
-
-@doc raw"""
-    GSetBySubgroupTransversal{T, S, E} <: GSet{T}
-
-Objects of this type represent G-sets that describe the left or right cosets
-of a subgroup $H$ in a group $G$.
-The group $G$ acts on the G-set by multiplication from the right or (after
-taking inverses) from the left.
-These G-sets store just transversals,
-see [`right_transversal`](@ref) and [`left_transversal`](@ref).
-The construction of explicit right or left cosets is not necessary in order
-to compute the permutation action of elements of $G$ on the cosets.
-
-The fields are
-- the group that acts, of type `T`, with elements of type `E`,
-- the subgroup whose cosets are the elements, of type `S`,
-- the side from which the group acts (`:right` or `:left`),
-- the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
-- the dictionary used to store attributes (orbits, elements, ...).
-"""
-@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, S, E}}
-    group::T
-    subgroup::S
-    side::Symbol
-    transversal::SubgroupTransversal{T, S, E}
-
-    function GSetBySubgroupTransversal(G::T, H::S, side::Symbol; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
-        check && @req is_subgroup(H, G)[1] "H must be a subgroup of G"
-        E = eltype(G)
-        if side == :right
-          tr = right_transversal(G, H)
-        elseif side == :left
-          tr = left_transversal(G, H)
-        else
-          throw(ArgumentError("side must be :right or :left"))
-        end
-        return new{T, S, E}(G, H, side, tr, Dict{Symbol,Any}())
-    end
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GSetBySubgroupTransversal)

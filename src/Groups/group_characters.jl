@@ -97,49 +97,6 @@ end
 ##
 ##  character tables
 ##
-abstract type GroupCharacterTable end
-
-"""
-    GAPGroupCharacterTable <: GroupCharacterTable
-
-This is the type of (ordinary or Brauer) character tables that can delegate
-tasks to an underlying character table object in the GAP system
-(field `GAPTable`).
-
-The value of the field `characteristic` determines whether the table
-is an ordinary one (value `0`) or a `p`-modular one (value `p`).
-
-A group can (but need not) be stored in the field `group`.
-If it is available then also the field `isomorphism` is available,
-its value is a bijective map from the `group` value to a group in GAP.
-
-Objects of type `GAPGroupCharacterTable` support [`get_attribute`](@ref),
-for example in order to store the already computed `p`-modular tables
-in an ordinary table, and to store the corresponding ordinary table
-in a `p`-modular table.
-"""
-@attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
-    GAPTable::GapObj  # the GAP character table object
-    characteristic::T where T <: IntegerUnion
-    group::Union{GAPGroup, FinGenAbGroup}    # the underlying group, if any
-    isomorphism::Map  # isomorphism from `group` to a group in GAP
-
-    function GAPGroupCharacterTable(G::Union{GAPGroup, FinGenAbGroup}, tab::GapObj, iso::Map, char::T) where T <: IntegerUnion
-      return new(tab, char, G, iso)
-    end
-
-    function GAPGroupCharacterTable(tab::GapObj, char::T) where T <: IntegerUnion
-      # group and isomorphism are left undefined
-      return new(tab, char)
-    end
-end
-
-abstract type GroupClassFunction end
-
-struct GAPGroupClassFunction <: GroupClassFunction
-    table::GAPGroupCharacterTable
-    values::GapObj
-end
 
 # access to field values via functions
 GapObj(tbl::GAPGroupCharacterTable) = tbl.GAPTable
@@ -563,15 +520,6 @@ is_character_table_name(name::String) = GAPWrap.LibInfoCharacterTable(GapObj(nam
 ##############################################################################
 #
 # `print` and `show` character tables
-
-# Utility:
-# Create strings in length-lexicographical ordering w.r.t. the
-# alphabet 'alphabet'.
-# (If `alphabet` is `"ABCDEFGHIJKLMNOPQRSTUVWXYZ"` then the strings
-# have the form `"A", "B", ..., "Z", "AA", ...`.)
-mutable struct WordsIterator
-    alphabet::String
-end
 
 Base.iterate(wi::WordsIterator) = length(wi.alphabet) == 0 ? nothing : (string(wi.alphabet[1]), 2)
 
@@ -3907,30 +3855,6 @@ end
 ##
 ##  rational character tables
 ##
-"""
-    GAPGroupCharacterTableRational <: GroupCharacterTable
-
-This is the type of ordinary *rational* character tables
-that can delegate tasks to the underlying character table
-(field `character_table`).
-
-As a collection, a rational character table stores the *rational irreducible*
-characters of the underlying character table `t`, that is, the Galois sums of
-the irreducible characters of `t` (field `irr`).
-
-The norms of these characters (the lengths of the Galois orbits)
-are stored in the field `norms`.
-"""
-@attributes mutable struct GAPGroupCharacterTableRational <: GroupCharacterTable
-    character_table::GAPGroupCharacterTable
-    irr::Vector{GAPGroupClassFunction}
-    norms::Vector{Int}
-
-    function GAPGroupCharacterTableRational(tbl::GAPGroupCharacterTable)
-      # irr and norms are left undefined
-      return new(tbl)
-    end
-end
 
 """
     character_table_rational(tbl::GAPGroupCharacterTable)
