@@ -73,15 +73,6 @@ function Base.show(io::IO, G::ModularGroup)
   print(io, "Modular subgroup of index $(idx)")
 end
 
-function Base.print(io::IO, G::ModularGroup)
-  idx = index(G)
-  s = s_right_perm(G)
-  t = t_right_perm(G)
-  r = r_right_perm(G)
-  j = j_right_perm(G)
-  print(io, "ModularSubgroup(\n S : $(s)\n T : $(t)\n R : $(r)\n J : $(j) )")
-end
-
 @doc raw"""
     s_right_perm(G::ModularGroup)
 
