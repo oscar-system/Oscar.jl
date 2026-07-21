@@ -135,7 +135,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 end
 
 # This gives a transversal chain
-function _induce_chain(V::PermGroup, Tm::Map, C::TransversalChain ; conj=one(C[1][1]))
+function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::TransversalChain ; conj=one(C[1][1]))
   # Tm is a transversal map for C[1][1]/V
   # @assert is_subset(V, C[1][1])
 

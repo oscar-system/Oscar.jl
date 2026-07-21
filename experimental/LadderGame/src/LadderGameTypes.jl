@@ -47,7 +47,7 @@ mutable struct LadderStep
   A::PermGroup
 
   T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}}
-  Tmap::Map
+  Tmap::Map{PermGroup, PermGroup}
 
   DSt::Dict{PermGroupElem, TransversalChain}
 
@@ -79,7 +79,17 @@ mutable struct LadderStep
   end
 end
 
-function _get_previous_steps(S::LadderStep)::SubArray{LadderStep, 1, SubgroupLadder, Tuple{UnitRange{Int64}}, false}
+function Base.getproperty(S::LadderStep, s::Symbol)
+  if s === :F
+    return getfield(S, :F)::SubArray{LadderStep, 1, SubgroupLadder, Tuple{UnitRange{Int64}}, false}
+  else
+    return getfield(S, s)
+  end
+end
+
+
+
+function _get_previous_steps(S::LadderStep)
   return S.F
 end
 
