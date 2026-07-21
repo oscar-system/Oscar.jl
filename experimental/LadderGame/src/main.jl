@@ -24,8 +24,12 @@ end
 
 function _ladder_start!(S::LadderStep, U::PermGroup)
   # @assert S.A == S.Aprev "Initial ladder step must be trivial"
-  isdefined(S, :T) || (S.T = [one(S.A)])
-  isdefined(S, :Tmap) || (S.Tmap = map_from_func(S.A, S.A, x -> one(S.A)))
+  if !isdefined(S, :T)
+    S.T = [one(S.A)]
+    S.Tmap = map_from_func(S.A, S.A, x -> one(S.A))
+  end
+  # isdefined(S, :T) || (S.T = [one(S.A)])
+  # isdefined(S, :Tmap) || (S.Tmap = map_from_func(S.A, S.A, x -> one(S.A)))
   S.DSt = Dict(one(S.A) => get_transversal_chain(U))
   S.Im = Dict(one(S.A) => (one(S.A), one(U))) # should both be one(S.A) for the sake of parents?
   return S
@@ -34,11 +38,11 @@ end
 function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   A = S.A
   Aprev = S.Aprev
-
-  isdefined(S, :T) || (S.T = right_transversal(Aprev, A))
-  isdefined(S, :Tmap) || (S.Tmap = map_from_func(Aprev, Aprev, x -> S.T[index_of_coset(T, x)]))
-
-  T = S.T
+  if !isdefined(S, :T)
+    S.T = right_transversal(S.Aprev, S.A)
+    S.Tmap = map_from_func(S.Aprev, S.Aprev, x -> S.T[index_of_coset(S.T, x)])
+  end
+  (T, Tmap) = (S.T, S.Tmap)
 
   DSt = Dict{PermGroupElem, TransversalChain}()
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
@@ -56,7 +60,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
         # @assert st[1][1] == S2
         # @assert S2 == intersect(U, Aprev^d)[1]
 
-        st2, Sta = _induce_chain(S1, S.Tmap, st ; conj=d)
+        st2, Sta = _induce_chain(S1, Tmap, st ; conj=d)
 
         # not used in calculation
         # @assert length(Sta) == index(S2, S1)
@@ -66,7 +70,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
         DSt[d] = st2
         for u in Sta
-          tt = S.Tmap(Aprev(d*u*inv(a)))
+          tt = Tmap(Aprev(d*u*inv(a)))
           push!(tmp, tt)
           Im[tt*a] = (d, u)
           # @assert tt*a*inv(u)*inv(d) in A
@@ -85,10 +89,11 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   A = S.A
   Aprev = S.Aprev
 
-  isdefined(S, :T) || (S.T = right_transversal(A, Aprev))
-  isdefined(S, :Tmap) || (S.Tmap = map_from_func(A, A, x -> S.T[index_of_coset(T, x)]))
-
-  T = S.T
+  if !isdefined(S, :T)
+    S.T = right_transversal(S.A, S.Aprev)
+    S.Tmap = map_from_func(S.A, S.A, x -> S.T[index_of_coset(S.T, x)])
+  end
+  (T, Tmap) = (S.T, S.Tmap)
 
   DSt = Dict{PermGroupElem, TransversalChain}()
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
