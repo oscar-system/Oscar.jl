@@ -222,9 +222,7 @@ function s_t_decomposition(M::ZZMatrix)
 end
 
 function coset_action_of(A::ZZMatrix, G::ModularGroup)
-  if det(A) != 1
-     throw(ArgumentError("Matrix needs to be in SL(2, Z)"))
-  end
+  @req isone(det(A)) "Matrix needs to be in SL(2, Z)"
   w = s_t_decomposition(A)
   phi = _coset_action_hom(G)
   return phi(w)
