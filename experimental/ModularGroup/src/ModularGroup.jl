@@ -237,10 +237,7 @@ function coset_left_action_of(A::ZZMatrix, G::ModularGroup)
 end
 
 function Base.in(A::ZZMatrix, G::ModularGroup)
-    if det(A) != 1
-      return false
-    end
-    return coset_action_of(A, G)(1) == 1
+    return det(A) == 1 && coset_action_of(A, G)(1) == 1
 end
 
 function is_word_elm_of(w::FPGroupElem, G::ModularGroup)
