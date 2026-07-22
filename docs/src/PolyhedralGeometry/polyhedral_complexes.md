@@ -34,6 +34,7 @@ polyhedral_complex
 ```@docs
 ambient_dim(PC::PolyhedralComplex)
 codim(PC::PolyhedralComplex)
+common_refinement(PC1::PolyhedralComplex{T}, PC2::PolyhedralComplex{T}) where T<:scalar_types
 dim(PC::PolyhedralComplex)
 f_vector(PC::PolyhedralComplex)
 is_embedded(PC::PolyhedralComplex)
@@ -44,8 +45,10 @@ lineality_space(PC::PolyhedralComplex{T}) where T<:scalar_types
 maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types
 minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types
 n_maximal_polyhedra(PC::PolyhedralComplex)
+n_minimal_faces(PC::PolyhedralComplex)
 n_polyhedra(PC::PolyhedralComplex)
 n_rays(PC::PolyhedralComplex)
+n_rays_modulo_lineality(PC::PolyhedralComplex)
 n_vertices(PC::PolyhedralComplex)
 polyhedra_of_dim
 rays(PC::PolyhedralComplex{T}) where T<:scalar_types

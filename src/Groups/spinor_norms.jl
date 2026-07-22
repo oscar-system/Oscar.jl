@@ -475,7 +475,7 @@ julia> order(Oq)
       f = det_spin_homomorphism(L; signed = false)
       return kernel(f)
     else
-      f = det_spin_homomorphism(rescale(L, 2); signed = false)
+      f = det_spin_homomorphism(rescale(L, 2); signed=false)
       K, _ = kernel(f)
       qL = domain(K)
       q = discriminant_group(L)

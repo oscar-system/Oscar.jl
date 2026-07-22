@@ -5,8 +5,9 @@
 #
 
 ReadPackage( "OscarInterface", "gap/OscarInterface.gi");
-ReadPackage( "OscarInterface", "gap/alnuth.gi");
 ReadPackage( "OscarInterface", "gap/QQBar.gi");
 ReadPackage( "OscarInterface", "gap/hash.gi");
+
+RereadPackage( "OscarInterface", "gap/bugfix.gi");
 
 ReadPackage( "OscarInterface", "gap/ExperimentalMatrixGroups.g");

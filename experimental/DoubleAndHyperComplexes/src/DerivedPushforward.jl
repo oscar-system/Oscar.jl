@@ -146,7 +146,7 @@ function _derived_pushforward(M::SubquoModule{T}) where {T <:MPolyRingElem{<:Fie
   K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
 
   pres = presentation(M)
-  N = cokernel(map(pres, 1))
+  N, _ = cokernel(map(pres, 1))
 
   KoM = hom(K, N)
   st = strand(KoM, 0)
@@ -160,7 +160,7 @@ end
 
 
 @doc raw"""
-    simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
+    simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:OFPModule}
 
 For a complex `c` of free modules over some `base_ring` `R` this looks for 
 unit entries `u` in the representing matrices of the (co-)boundary maps and 
@@ -173,7 +173,7 @@ It returns a triple `(d, f, g)` where
 such that the composition `f ∘ g` is homotopy equivalent to the identity 
 and `g ∘ f` is the identity on `d`.
 """
-function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
+function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:OFPModule}
   # the maps from the new to the old complex
   phi = morphism_type(ChainType)[identity_map(c[first(range(c))])] 
   # the maps from the old to the new complex
@@ -1044,9 +1044,9 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}
   error("the given constellation of exponent vectors can not be handled with the chosen algorithm")
 end
 
-function change_base_ring(bc::Any, f::ModuleFPHom{DT, CT, Nothing}; 
-    domain::ModuleFP=change_base_ring(bc, Oscar.domain(f))[1],
-    codomain::ModuleFP=change_base_ring(bc, Oscar.codomain(f))[1]
+function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing}; 
+    domain::OFPModule=change_base_ring(bc, Oscar.domain(f))[1],
+    codomain::OFPModule=change_base_ring(bc, Oscar.codomain(f))[1]
   ) where {DT, CT}
   img_gens = elem_type(codomain)
   bc_dom = hom(Oscar.domain(f), domain, gens(domain), bc)

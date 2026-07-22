@@ -140,7 +140,7 @@ function quantum_symmetric_group(n::Int; reduced_gb::Bool=true)
     if !reduced_gb
       gb = vcat(gens(I), gb)
     end
-    I.gb = IdealGens(gb)
+    set_gb!(I, gb, -1)
   end
 
   return I

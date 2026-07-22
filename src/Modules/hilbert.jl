@@ -60,7 +60,7 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
     (sliced into ideals, one for each ambient free module component).
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
@@ -77,7 +77,7 @@ julia> num
 -t^25 + 2*t^17 + t^16 + t^15 - t^12 - t^11 - t^9 - t^8 - t^7 + t^4 + t^3
 
 julia> den
-(-t^4 + 1)^1*(-t^3 + 1)^1*(-t^2 + 1)^1
+(-t^3 + 1)^1*(-t^2 + 1)^1*(-t^4 + 1)^1
 
 ```
 """

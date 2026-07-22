@@ -590,26 +590,6 @@ Base.iseven(n::PermGroup) = !isodd(n)
 ##
 # cycle types and support
 ##
-struct CycleType <: AbstractVector{Pair{Int64, Int64}}
-  # pairs 'cycle length => number of times it occurs'
-  # so 'n => 1' is a single n-cycle and  '1 => n' is the identity on n points
-  s::Vector{Pair{Int, Int}}
-
-  # take a vector of cycle lengths
-  function CycleType(c::Vector{Int})
-    s = Vector{Pair{Int, Int}}()
-    for i = c
-      _push_cycle!(s, i)
-    end
-    sort!(s; by=first)
-    return new(s)
-  end
-  function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
-    sorted && return new(v)
-    return new(sort(v; by=first))
-#TODO: check that each cycle length is specified at most once?
-  end
-end
 
 Base.iterate(C::CycleType) = iterate(C.s)
 Base.iterate(C::CycleType, x) = iterate(C.s, x)
@@ -618,8 +598,8 @@ Base.eltype(C::CycleType) = Pair{Int, Int}
 Base.getindex(C::CycleType, i::Int) = C.s[i]
 Base.size(C::CycleType) = size(C.s)
 
-function Base.hash(c::CycleType, u::UInt = UInt(121324))
-  return hash(c.s, u)
+function Base.hash(c::CycleType, h::UInt)
+  return hash(c.s, h)
 end
 
 function Base.show(io::IO, C::CycleType)

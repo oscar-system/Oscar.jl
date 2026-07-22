@@ -300,7 +300,7 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
   _v0 = map_entries(QQ, v0)
   for (n, k) in iteration # search for vectors which solve $n = v.v_0$ and $k = v^2$
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)"
-    possible_Vec = short_vectors_affine(_Q, _v0, QQ(n), QQ(k))
+    possible_Vec = short_vectors_affine_iterator(_Q, _v0, QQ(n), QQ(k))
     for v in possible_Vec
       vZZ = numerator(v)
       if !isone(reduce(gcd, vZZ))
@@ -339,7 +339,7 @@ then it is a random choice which reflection chamber next to `v0` will be compute
 - `divisibilities`: a dictionary; The keys are the root lengths and the values are the divisibilities for the given root length. If given requires that a fundamental root $r$ has one of the specified divisibilities.
 """
 function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=QQ[0;]::QQMatrix, divisibilities::Union{Nothing,Dict{ZZRingElem,Vector{ZZRingElem}}}=nothing)
-  Q = gram_matrix(S)
+  Q = change_base_ring(ZZ, gram_matrix(S))
   if !iszero(v0)
     v0 = solve(basis_matrix(S),v0; side=:left)
   end
@@ -348,7 +348,7 @@ function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_leng
   end
   _v0 = ZZ.(v0)
   _check_direction_vector = ZZ.(direction_vector)
-  roots = vinberg_algorithm(Q, upper_bound; v0=_v0, root_lengths=root_lengths, direction_vector=_direction_vector, divisibilities)
+  roots = vinberg_algorithm(Q, upper_bound; v0=_v0, root_lengths=root_lengths, direction_vector=_check_direction_vector, divisibilities)
   B = basis_matrix(S)
   return [r * B for r in roots]
 end
@@ -436,7 +436,7 @@ function _get_h(L::ZZLat, v, w, bi_form)
 end
 
 function _get_R(L, h::ZZMatrix)
-  return short_vectors_affine(change_base_ring(ZZ, gram_matrix(L)),h,0,-2) #better to use iterator, but there is no equivalent function that returns iterator
+  return short_vectors_affine_iterator(change_base_ring(ZZ, gram_matrix(L)),h,0,-2)
 end
 
 @doc raw"""

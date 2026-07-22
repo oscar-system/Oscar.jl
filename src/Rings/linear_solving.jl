@@ -19,15 +19,20 @@ function AbstractAlgebra.Solve._can_solve_internal_no_check(::ModuleSolveTrait, 
   for i in 1:nrows(b)
     c = G(b[i, :])
     if !(c in imh)
-      return false
+      return false, sol, sol
     end
-    sol[i, :] = dense_row(coordinates(preimage(h, c)), nrows(A))
+    if task !== :only_check
+      sol[i, :] = dense_row(coordinates(preimage(h, c))::sparse_row_type(R), nrows(A))
+    end
+  end
+  if task !== :with_kernel
+    return true, sol, sol
   end
   K, KtoF = kernel(h)
   if ngens(K) == 0
     Ke = zero_matrix(R, 0, nrows(A))
   else
-    Ke = reduce(vcat, dense_row.(coordinates.(KtoF.(gens(K))), rank(F)))
+    Ke = reduce(vcat, dense_row.((coordinates.(KtoF.(gens(K))))::Vector{sparse_row_type(R)}, rank(F)))
   end
   return true, sol, Ke
 end
@@ -44,5 +49,12 @@ function AbstractAlgebra.Solve._can_solve_internal_no_check(::LaurentSolveTrait,
   AA = map_entries(f, A)
   bb = map_entries(f, b)
   fl, xx, kk = can_solve_with_solution_and_kernel(AA, bb; side)
-  return fl, map_entries(f.inv, xx), map_entries(f.inv, kk)
+  fl::Bool, sol::typeof(AA), K::typeof(AA) = AbstractAlgebra.Solve._can_solve_internal_no_check(AbstractAlgebra.Solve.matrix_normal_form_type(AA), AA, bb, task; side)
+  if task === :only_check
+    return fl, A, A
+  elseif task === :with_solution
+    return fl::Bool, map_entries(f.inv, xx)::typeof(A), A
+  else
+    return fl::Bool, map_entries(f.inv, xx)::typeof(A), map_entries(f.inv, kk)::typeof(b)
+  end
 end

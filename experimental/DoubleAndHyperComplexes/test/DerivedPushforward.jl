@@ -15,7 +15,7 @@
   S1 = graded_free_module(S, [0])
   I = ideal(S, f)
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
   # Nothing is expected here to jump: H^0 is always free of rank one and 
   # so the remainder of this short complex must also be of constant rank.
   st1 = Oscar._derived_pushforward(M)
@@ -154,7 +154,7 @@ end
   S1 = graded_free_module(S, [0])
   I = ideal(S, f)
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
   st0 = Oscar._derived_pushforward(M);
 
   Z0, _ = kernel(map(st0, 1, (0,)))
@@ -214,7 +214,7 @@ end
   S1 = graded_free_module(S, [0])
   I = ideal(S, f)
   IS1, inc = I*S1
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
   st0 = Oscar._derived_pushforward(M);
   st0_simp = simplify(st0);
   

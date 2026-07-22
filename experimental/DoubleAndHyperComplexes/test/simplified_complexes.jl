@@ -47,7 +47,7 @@ end
   L1 = FreeMod(L, 1)
   IL1, inc = L(I)*L1
 
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   c, _ = free_resolution(Oscar.SimpleFreeResolution, M)
 

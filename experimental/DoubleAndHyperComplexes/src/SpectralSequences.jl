@@ -6,8 +6,8 @@
 mutable struct CSSPage#{GradedRingType, CoeffRingType}
   parent::Any # The spectral sequence; type declaration below
   page_number::Int
-  entries::Dict{Tuple{Int, Int}, ModuleFP}
-  maps::Dict{Tuple{Int, Int}, ModuleFPHom}
+  entries::Dict{Tuple{Int, Int}, OFPModule}
+  maps::Dict{Tuple{Int, Int}, OFPModuleHom}
   lifted_kernel_generators::Dict{Tuple{Int, Int}, Vector{Tuple{Vector{Int}, Vector{Tuple{Int, <:FreeModElem}}}}}
 
   function CSSPage(css::Any, k::Int)
@@ -144,7 +144,7 @@ end
 
 function entries(cssp::CSSPage)
   if !isdefined(cssp, :entries)
-    cssp.entries = Dict{Tuple{Int, Int}, ModuleFP}()
+    cssp.entries = Dict{Tuple{Int, Int}, OFPModule}()
   end
   return cssp.entries
 end
@@ -213,7 +213,7 @@ end
 
 function maps(cssp::CSSPage)
   if !isdefined(cssp, :maps)
-    cssp.maps = Dict{Tuple{Int, Int}, ModuleFPHom}()
+    cssp.maps = Dict{Tuple{Int, Int}, OFPModuleHom}()
   end
   return cssp.maps
 end

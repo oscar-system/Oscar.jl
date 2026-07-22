@@ -4,6 +4,7 @@
   D::FinGenAbGroup
   d::Vector{FinGenAbGroupElem}
   lt::Any
+  is_fine_graded::Bool
   hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
@@ -14,6 +15,7 @@
     r.R = R
     r.D = parent(d[1])
     r.d = d
+    r.is_fine_graded = is_free(parent(d[1])) && (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
     return r
   end
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
@@ -24,11 +26,13 @@
     r.D = parent(d[1])
     r.d = d
     r.lt = lt
+    r.is_fine_graded = is_free(parent(d[1])) &&  (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
     return r
   end
 end
 
 generator_degrees(S::MPolyDecRing) = S.d
+is_fine_graded(S::MPolyDecRing) = S.is_fine_graded
 
 @doc raw"""
     grading_group(R::MPolyDecRing)
@@ -2341,16 +2345,6 @@ function _dehomogenization(F::MPolyDecRingElem, R::MPolyRing, pos::Int, m::Int)
   end
   return finish(B)
 end
-
-
-
-################################################################################
-#
-#  Evaluation
-#
-################################################################################
-
-(f::MPolyDecRingElem)(x...) = evaluate(f, collect(x))
 
 ################################################################################
 #

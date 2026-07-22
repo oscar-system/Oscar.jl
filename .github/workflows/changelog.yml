@@ -21,7 +21,7 @@ jobs:
     steps:
     # Checkout the repository
     - name: Checkout Repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
@@ -29,7 +29,7 @@ jobs:
     - name: Run python script
       uses: oscar-system/update-release-notes@v1
       with:
-        conffile: "dev/releases/config.toml"
+        conffile: "etc/release_config.toml"
         releasenotesfile: "CHANGELOG.md"
         version: ${{ inputs.version }}
 
