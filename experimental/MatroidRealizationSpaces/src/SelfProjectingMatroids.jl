@@ -249,39 +249,52 @@ end
 
 #this function computes the minors of a given matrix for the bases in a given list.
 #this list is not reduced, i.e. there are no repetitions but the polynomials are not reduced, i.e. the list might contain x+1 and y-2 and their product
-function basis_minors(M::MatElem, Bases::Vector{Vector{Int}})::Vector{<:RingElem}
-  R = base_ring(M)
-  if R isa MPolyQuoRing
-    candidates = [det(M[1:nrows(M),b]) for b in Bases]
-  else
-    candidates = sort_by_degree([det(M[1:nrows(M),b]) for b in Bases])
-  end
-  multiplicativeSet= nothing
-  ineqs = [R(0)]
-  if R isa MPolyQuoRing #in this case one cannot make the multiplicativeSet using the powers_of_element, so currently the simpler choice is used and there might be double entries or products of polynomials in the list - is there a better solution for this?
-    for candidate in candidates
-      @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-      if isone(candidate) || isone(-candidate)
-      elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
-        push!(ineqs,R(candidate))
-      end
-    end
-    return ineqs[2:end]
-  end
-  for candidate in candidates
-    @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-    if isone(candidate) || isone(-candidate)
+#in the default case (multiplicatives = false) the function does not make the multiplicativeSet so there might be double entries or products of polynomials in the list.
+function basis_minors(M::MatElem, Bases::Vector{Vector{Int}};multiplicatives::Bool = false)::Vector{<:RingElem}
+    R = base_ring(M);
+    if R isa MPolyQuoRing
+        candidates = [det(M[1:nrows(M),b]) for b in Bases]
     else
-      if isnothing(multiplicativeSet) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
-        multiplicativeSet = powers_of_element(candidate)
-        push!(ineqs,R(candidate))
-      elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)]) && !(candidate in multiplicativeSet)  && !(-candidate in multiplicativeSet)
-        multiplicativeSet = product(multiplicativeSet,powers_of_element(candidate))
-        push!(ineqs,R(candidate))
-      end
+        candidates = Oscar.sort_by_degree([det(M[1:nrows(M),b]) for b in Bases])
     end
-  end
-  return ineqs[2:length(ineqs)]
+    if multiplicatives
+        multiplicativeSet= nothing
+        ineqs = [R(0)]
+        if R isa MPolyQuoRing #in this case one cannot make the multiplicativeSet using the powers_of_element, so currently the simpler choice is used and there might be double entries or products of polynomials in the list - is there a better solution for this?
+            for candidate in candidates
+            @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
+                if isone(candidate) || isone(-candidate) 
+                elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
+                    push!(ineqs,R(candidate))
+                end
+            end
+            return ineqs[2:end]
+        end
+        for candidate in candidates
+            @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
+            if isone(candidate) || isone(-candidate) 
+            else
+                if isnothing(multiplicativeSet) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
+                multiplicativeSet = powers_of_element(candidate)
+                    push!(ineqs,R(candidate))
+                elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)]) && !(candidate in multiplicativeSet)  && !(-candidate in multiplicativeSet)
+                multiplicativeSet = product(multiplicativeSet,powers_of_element(candidate));
+                    push!(ineqs,R(candidate))
+                end
+            end
+            return ineqs[2:length(ineqs)]
+        end
+    else
+        ineqs = [R(0)]
+        for candidate in candidates
+        @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
+            if isone(candidate) || isone(-candidate) 
+            elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
+                push!(ineqs,R(candidate))
+            end
+        end
+        return ineqs[2:end]
+    end
 end
 
 
@@ -362,6 +375,9 @@ If nothing is given, a choice will be made.
 The keyword argument `check` states whether the matroid will be checked for self-projectivity.
 The default is true.
 
+The keyword argument `multiplicatives` states whether the list of polynomials of basis minors is created as a multiplicative set. 
+The default is false.
+
 !!! warning
     This function uses the computation of the `selfprojecting_realization_ideal`.
     Therefore, it is slow except for small matroids.
@@ -396,7 +412,7 @@ RingElem[x1*x4 - x1 - x2*x3 + x2 + x3 - x4, -x1 + x3, -x3 + 1, x1 - 1, -x2 + x4,
 ```
 """
 function selfprojecting_realization_space(m::Matroid;
-  B::Union{GroundsetType,Nothing}=nothing, check::Bool = true)::MatroidRealizationSpaceSelfProjecting
+  B::Union{GroundsetType,Nothing}=nothing, check::Bool = true;multiplicatives::Bool = false)::MatroidRealizationSpaceSelfProjecting
   if check
     @req is_selfprojecting(m) "The given matroid is not self-projecting."
   end
@@ -420,7 +436,7 @@ function selfprojecting_realization_space(m::Matroid;
   if M == nothing
     Ineqs = inequations(RS)
   else
-    Ineqs = basis_minors(M,bases(m))
+    Ineqs = basis_minors(M,bases(m);multiplicatives);
   end
   return MatroidRealizationSpaceSelfProjecting(I, Ineqs, R, M, 0, nothing, QQ)
 end

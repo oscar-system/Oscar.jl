@@ -7,7 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 This collection contains the (self-projecting) realization spaces of self-projecting matroids of rank k on n elements over characteristic zero for ``(k,n)`` in ``{(2,4),...,(2,12),(3,6),(3,7),(3,8),(4,8),(4,9),(5,10)}``.
 It accompanies the article "The self-projecting Grassmannian" by Alheydis Geiger and Francesca Zaffalon [GZ25](@cite).
 
-**Warning:** The database is still under construction. The collections for selfprojecting matroids of rank 4 on 9 elements and for selfprojecting matroids of rank 5 on 10 elements are not complete yet, but underway.
+**Warning:** The database is still under construction. The collections for selfprojecting matroids of rank 5 on 10 elements are not complete yet, but underway.
 
 For the cases ``{(2,4),(3,6),(4,8),(5,10)}`` the database stores material from the  article [GHSV24](@cite), for which the accompanying code (in Macaulay2, Magma, Matlab, OSCAR and SageMath) can be found on [github](https://github.com/sachihashimoto/self-dual).
 
@@ -283,7 +283,7 @@ true
 
 ## How to verify claims from the article
 To verify Tables 2, 3, and 4 from the article, one can use queries to the database. The example below shows how to generate the line of Table 2 with respect to the matroids of rank 3 on 7 elements. Recall that the uniform matroids are not stored in the database.
-The other rows as well as Table 3 can be verified similarly. Note that the database collection for (4,9) and (5,10) is not filled completely yet.
+The other rows as well as Table 3 can be verified similarly. Note that the database collection for (5,10) is not filled completely yet.
 ```julia-repl
 julia> t2 = [length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"=>"3", "data.length_groundset"=>"7","data.dim_s"=>"$i")) for i in -1:5]
 7-element Vector{Int64}:
@@ -310,9 +310,9 @@ julia> t4 = [length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"
 One can count the matroids for which $\mathcal{R}$ and $\mathcal{S}$ are known and do not coincide as follows:
 ```julia-repl
 julia> length(db["Combinatorics.SelfProjectingMatroids"], Dict("data.rank"=>"4", "data.length_groundset"=>"9","data.equality_of_realizationspaces"=>"false"))
-5399
+5400
 ```
-Theorem 4.11 claims that there are at least ``5400`` matroids of rank 4 on 9 elements with $\mathcal{R}\supsetneq\mathcal{S}$. Since the database does not count the uniform matroid $U_{4,9}$, the claim is verified.
+Just as Theorem 4.11 claims:  there are at least ``5400`` matroids of rank 4 on 9 elements with $\mathcal{R}\supsetneq\mathcal{S}$. 
 
 The user can find the selfprojecting matroids for which the computation of the selfprojecting realization space was too costly and did not terminate as follows:
 ```julia-repl
@@ -329,7 +329,7 @@ julia> using Oscar
 
 julia> db = Oscar.OscarDB.get_db();
 
-julia> find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["name"=>"r_4_n_9_index_5985"]))
+julia> find_one(db["Combinatorics.SelfProjectingMatroids"], Dict(["data.name"=>"r_4_n_9_5985"]))
 The matroid is of rank 4 on 9 elements.
 The realization space is
   [1   0   0   0   2//3   0      1   1   1//2]
@@ -365,5 +365,5 @@ Software used to create the database collection `Combinatorics.SelfProjectingMat
 GNU parallel 20221122
 
 
-Last updated 20/02/2026.
+Last updated 30/06/2026.
 
