@@ -72,6 +72,7 @@ export is_contact_equivalent
 export tjurina_module
 
 export defining_matrix
+export determinantal_ideal
 export determinantal_type
 export T1_GL_module
 export tjurina_GL_number

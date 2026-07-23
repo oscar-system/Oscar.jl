@@ -5,6 +5,7 @@
         0 y  z]
   X_A = DeterminantalGerm(A, 2)
   @test determinantal_type(X_A) == (2,3,2)
+  @test determinantal_ideal(X_A) == ideal(L, [x*y, x*z, y*z])
   @test defining_matrix(X_A) === A
   @test Oscar._mat_type(X_A) === Val{:generic}
   @test dim(X_A) == 1
@@ -21,6 +22,7 @@ end
         x y z]
   X_A = DeterminantalGerm(A, 2, mat_type = :symmetric)
   @test determinantal_type(X_A) == (3,3,2)
+  @test determinantal_ideal(X_A) == ideal(minors(L[v w x y; w x y z], 2))
   @test defining_matrix(X_A) === A
   @test Oscar._mat_type(X_A) === Val{:symmetric}
   @test dim(X_A) == 2
@@ -38,6 +40,7 @@ end
        -y^2 -x 0 0]
   X_A = DeterminantalGerm(A, 2, mat_type = :skew_symmetric)
   @test determinantal_type(X_A) == (4,4,2)
+  @test determinantal_ideal(X_A) == ideal(L, [x^2 - y^5])
   @test defining_matrix(X_A) === A
   @test Oscar._mat_type(X_A) === Val{:skew_symmetric}
   @test dim(X_A) == 1
