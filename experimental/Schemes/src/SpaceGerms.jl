@@ -27,7 +27,7 @@ const GermAtGeometricPoint = AffineScheme{<:Field,
 
 @doc raw"""
     SpaceGerm{BaseRingType, RingType, AffineSchemeType}
-A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type AffineSchemeType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A space germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct SpaceGerm{
                 BaseRingType<:Ring,
@@ -48,7 +48,7 @@ end
 @doc raw"""
     HypersurfaceGerm{BaseRingType, RingType, AffineSchemeType}
 
-A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A hypersurface germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct HypersurfaceGerm{
                  BaseRingType<:Ring,
@@ -79,7 +79,7 @@ end
 @doc raw"""
     CompleteIntersectionGerm{BaseRingType, RingType, AffineSchemeType}
 
-A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type AffineSchemeType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A complete intersection germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
@@ -108,16 +108,125 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
   end
 end
 
+
+####################################################################
+## another short hand definition for internal use only
+####################################################################
+
+const MPolyAnyLocalRingElem = AbsLocalizedRingElem{<:Ring, <:RingElem, <:Union{MPolyComplementOfKPointIdeal, MPolyComplementOfPrimeIdeal}}
+
+################################################################################
+## type declaration derterminantal germs
+################################################################################
+
+const MatTypeVal = Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}}
+
+_determinantal_ideal(A::MatElem, t::Int, ::Type{Val{:generic}}) = ideal(base_ring(A), minors(A, t))
+
+function _determinantal_ideal(A::MatElem, t::Int, ::Type{Val{:symmetric}})
+  @req is_symmetric(A) "'A' is not a symmetric matrix"
+  return ideal(base_ring(A), minors(A, t))
+end
+
+#pfaffians check skew-symmetric
+_determinantal_ideal(A::MatElem, t::Int, ::Type{Val{:skew_symmetric}}) = ideal(base_ring(A), pfaffians(A, 2*t)) 
+
+
+_expected_codim(n::Int, m::Int, t::Int, ::Type{Val{:generic}}) = (n-t+1)*(m-t+1)
+_expected_codim(n::Int, m::Int, t::Int, ::Type{Val{:symmetric}}) = div((n-t+2)*(n-t+1), 2)
+_expected_codim(n::Int, m::Int, t::Int, ::Type{Val{:skew_symmetric}}) = div((n-2*t+2)*(n-2*t+1), 2)
+
+_codim_error(::Type{Val{:generic}}) = "matrix does not describe a singularity of expected codimension"
+_codim_error(::Type{Val{:symmetric}}) = "symmetric matrix does not describe a singularity of expected codimension"
+_codim_error(::Type{Val{:skew_symmetric}}) = "skew-symmetric matrix does not describe a singularity of expected codimension"
+
+@doc raw"""
+    DeterminantalGerm{BaseRingType, RingType, AffineSchemeType, Oscar.MatTypeVal}
+
+A determinantal germ $(X_A^t, O_{(X_A^t, x)})$, i.e. a ringed space with underlying scheme $X_A^t$ of type `AffineSchemeType` and local ring $O_{(X_A^t, x)}$ of type `RingType` over some base ring $k$ of type `BaseRingType` given by the $t$-`minors` respectively $2t$-`pfaffians` of a matrix $A$ with symmetry structure `Oscar.MatTypeVal`.
+"""
+@attributes mutable struct DeterminantalGerm{
+                  BaseRingType <: Ring,
+                  RingType <: Ring,
+                  AffineSchemeType <: AffineScheme, 
+                  MatType <: MatTypeVal
+                } <: AbsSpaceGerm{BaseRingType, RingType}
+  A::MatElem{<:RingElem}
+  t::Int
+  X::AffineSchemeType
+
+  function DeterminantalGerm(A::MatElem{<:MPolyAnyLocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
+    @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
+    (n, m) = size(A)
+    @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
+    R = base_ring(A)
+    
+    val = Val{mat_type}
+    I = _determinantal_ideal(A, t, val)
+    @check (krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val)) _codim_error(val)
+
+    Q, _ = quo(R, I)
+    X = spec(Q)
+    return new{typeof(coefficient_ring(R)), typeof(Q), typeof(X), val}(A, t, X)
+  end
+end
+
+
 ##############################################################################
 ## Some more shorthand notation
 ##############################################################################
-const AnySpaceGerm = Union{SpaceGerm, HypersurfaceGerm, CompleteIntersectionGerm}
-const AnySpaceGermClosedPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
-                                HypersurfaceGerm{<:Ring,<:Ring,<:GermAtClosedPoint},
-                                CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtClosedPoint}}
-const AnySpaceGermGeometricPoint = Union{SpaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
-                                HypersurfaceGerm{<:Ring,<:Ring,<:GermAtGeometricPoint},
-                                CompleteIntersectionGerm{<:Ring,<:Ring,<:GermAtGeometricPoint}}
+const AnySpaceGerm = Union{SpaceGerm, 
+                           HypersurfaceGerm, 
+                           CompleteIntersectionGerm, 
+                           DeterminantalGerm}
+const AnySpaceGermClosedPoint = Union{SpaceGerm{BRT, RT, AST},
+                                      HypersurfaceGerm{BRT, RT, AST},
+                                      CompleteIntersectionGerm{BRT, RT, AST},
+                                      DeterminantalGerm{BRT, RT, AST, <: MatTypeVal}
+                                    } where {BRT <: Ring, RT <: Ring, AST <: GermAtClosedPoint}
+const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
+                                      HypersurfaceGerm{BRT, RT, AST},
+                                      CompleteIntersectionGerm{BRT, RT, AST},
+                                      DeterminantalGerm{BRT, RT, AST, <: MatTypeVal}
+                                    } where {BRT <: Ring, RT <: Ring, AST <: GermAtGeometricPoint}
+
+##############################################################################
+## conversion constructors (forgetful functors)
+##############################################################################
+#TODO: docstrings
+
+
+function SpaceGerm(X::AnySpaceGerm)
+  return X isa SpaceGerm ? X : SpaceGerm(underlying_scheme(X))
+end
+
+underlying_space_germ(X::AnySpaceGerm) = SpaceGerm(X)
+
+
+
+function CompleteIntersectionGerm(X::HypersurfaceGerm)
+  return CompleteIntersectionGerm(underlying_scheme(X), [defining_ring_element(X)])
+end
+
+
+
+#TODO: refactor the DeterminantalGerm constructor be able to scheme 
+function DeterminantalGerm(X::HypersurfaceGerm)
+  g = defining_ring_element(X) 
+  A = matrix(parent(g), 1, 1, [g])
+  return DeterminantalGerm(A, 1)
+end
+
+
+
+#TODO: refactor the DeterminantalGerm constructor be able to scheme 
+function DeterminantalGerm(X::CompleteIntersectionGerm)
+  v = defining_ring_elements(X)
+  A = matrix(parent(v[1]), 1, length(v), v)
+  return DeterminantalGerm(A, 1)
+end
+
+
 
 ##############################################################################
 ### Getter functions
@@ -135,7 +244,7 @@ Return a representative `Y` of a space germ `(X,p)` at a point `p`.
 
 More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
-to `p. Then the representative `Y = Spec R/I` is returned.
+to `p`. Then the representative `Y = Spec R/I` is returned.
 
 # Examples
 ```jldoctest
@@ -240,7 +349,7 @@ Return the ambient germ of a given germ `(X,p)`.
 
 More precisely, let `(X,p)` be given by `Spec U^{-1}(R /I)`, where `R` is a polynomial
 ring, `I` an ideal of it and `U` the complement of the maximal ideal corresponding
-to `p. Then the ambient germ `Spec U^{-1}R` is returned.
+to `p`. Then the ambient germ `Spec U^{-1}R` is returned.
 
 # Examples
 ```jldoctest
@@ -316,8 +425,8 @@ Return the space germ `(X,p)` arising from the given representative `X` or the g
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
-- by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the coordinate ring of `X` or
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -388,7 +497,7 @@ end
     SpaceGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     SpaceGerm(p::AbsAffineRationalPoint)
 
-Return a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `Y`.
+Return a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `X`.
 """
 SpaceGerm(p::AbsAffineRationalPoint) = SpaceGerm(codomain(p), coordinates(p))
 
@@ -407,7 +516,7 @@ point `p` and returns the hypersurface germ `(X,p)` from `X` in the affirmative 
 may be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I` in the coordinate ring of `X`  or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
     HypersurfaceGerm(X::AffineScheme(LocalRing),f::MPolyLocRingElem)
@@ -490,7 +599,7 @@ the complete intersection germ `(X,p)` from `X` in the affirmative case, where `
 be specified in several equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal in the coordinate ring of `X` or
-- by a maximal ideal in the ambient_coordinate_ring of `X`
+- by a maximal ideal in the ambient\_coordinate_ring of `X`
 
 # Examples
 ```jldoctest
@@ -547,7 +656,7 @@ end
     CompleteIntersectionGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     CompleteIntersectionGerm(p::AbsAffineRationalPoint)
 
-Return a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighborhood of `p`. If no `X` is specified, `Y` is used in its place.
+Return a complete intersection germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighborhood of `p`. If no `X` is specified, `Y` is used in its place.
 """
 CompleteIntersectionGerm(p::AbsAffineRationalPoint) = CompleteIntersectionGerm(codomain(p), coordinates(p))
 
@@ -568,8 +677,8 @@ arising from the given representative `X` or the given
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
-- by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the coordinate ring of `X` or
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -621,7 +730,7 @@ germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
     germ_at_point(p::AbsAffineRationalPoint)
 
 Return a space germ `(X,p)` and the corresponding inclusion morphism of spectra arising
-from the representative `X` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place..
+from the representative `X` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
 
 """
 germ_at_point(p::AbsAffineRationalPoint) = germ_at_point(codomain(p), coordinates(p))
@@ -644,7 +753,7 @@ arising from the given representative `X` or the given
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -721,7 +830,7 @@ Return a CompleteIntersectionGerm `(X,p)` and the corresponding inclusion morphi
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
 - by a maximal ideal `I`in the coordinate ring of `X` or
-- by a maximal ideal `I` in the ambient_coordinate_ring of `X`
+- by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
 !!! note
@@ -792,16 +901,7 @@ end
 ## for convenience of users thinking in terms of local rings
 #########################################################################################
 
-const LocalRing = Union{
-                  MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-                                        <:MPolyComplementOfKPointIdeal},
-                  MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
-                                     <:MPolyComplementOfKPointIdeal},
-                  MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
-                                        <:MPolyComplementOfPrimeIdeal},
-                  MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
-                                     <:MPolyComplementOfPrimeIdeal}
-                 }
+const LocalRing = AbsLocalizedRing{<:Ring, <:RingElem, <:Union{MPolyComplementOfKPointIdeal, MPolyComplementOfPrimeIdeal}}
 
 
 function SpaceGerm(A::LocalRing)
