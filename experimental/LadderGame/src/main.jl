@@ -52,13 +52,13 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
     for t in T
       if ~(t in tmp)
         d = t*a
-        S1, _ = intersect(U, A^d)
+        S1 = _my_intersect(U, A^d)
 
         # not used in calculation
-        # S2, _ = intersect(U, Aprev^a)
+        # S2 = _my_intersect(U, Aprev^a)
         # @assert is_subset(S1, S2)
         # @assert st[1][1] == S2
-        # @assert S2 == intersect(U, Aprev^d)[1]
+        # @assert S2 == _my_intersect(U, Aprev^d)
 
         st2, Sta = _induce_chain(S1, Tmap, st ; conj=d)
 
@@ -126,7 +126,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       is_one(t) && (Im[a] = (rep, rep_u*inv(ut)))
     end
     if new
-      StTC = TransversalChain([[ (intersect(A^rep, U)[1], tt) ]; data(st)])
+      StTC = TransversalChain([[ (_my_intersect(A^rep, U), tt) ]; data(st)])
       DSt[rep] = StTC
 
       # @assert index(StTC[1][1], StTC[2][1]) == length(tt)
@@ -153,7 +153,7 @@ function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::Transvers
     map!(C[i][1], last_tUU, last_tUU)
     tUU = copy(last_tUU)
 
-    U, _ = intersect(C[i][1], V)
+    U = _my_intersect(C[i][1], V)
     tV = PermGroupElem[]
     for t in last_tUU, s in C[i][2]
       x = t*s
@@ -265,4 +265,15 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   pushfirst!(L, LadderStep(Hprev,Hprev))
 
   return SubgroupLadder(L)
+end
+
+
+function _my_intersect(G1::PermGroup, V::Oscar.GAPGroup...)
+  return intersect([G1, V...])
+end
+
+function _my_intersect(V::AbstractVector{PermGroup})
+  L = GapObj(V; recursive = true)
+  K = GAPWrap.Intersection(L)
+  return _as_subgroup(V[1], K)[1]
 end

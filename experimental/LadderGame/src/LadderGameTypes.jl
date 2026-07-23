@@ -47,7 +47,7 @@ mutable struct LadderStep
   A::PermGroup
 
   T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}}
-  Tmap::Map{PermGroup, PermGroup}
+  Tmap::MapFromFunc{PermGroup, PermGroup}
 
   DSt::Dict{PermGroupElem, TransversalChain}
 
