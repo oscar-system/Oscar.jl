@@ -246,8 +246,18 @@ end
 
 
 ################################################################################
-## basic functionality for determinantal germs, which needs to be overwriten
+## basic functionality for determinantal germs, which needs to be overwritten
+## for correctness or performance
 ################################################################################
+
+
+function codim(X::DeterminantalGerm) 
+  m, n, t  = determinantal_type(X)
+  return _expected_codim(m, n, t, _mat_type(X))
+end
+
+
+dim(X::DeterminantalGerm) = dim(ambient_germ(X)) - codim(X)
 
 
 @doc raw"""
