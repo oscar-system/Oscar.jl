@@ -225,7 +225,7 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Grap
   p = length(cv_set)
   res_graph = graph(Undirected, p+2)
   max_w = QQ(0) # we need to use QQ element, as graph can be created only with this type of weights
-  weightDict= Dict{Tuple{Int64, Int64}, QQFieldElem,}()
+  label!(res_graph, Dict{Tuple{Int64, Int64}, QQFieldElem,}(), nothing; name=:edge)
   v_i = zero_matrix(ZZ, 1, number_of_columns(gram))
   t_i = zero_matrix(ZZ, number_of_rows(gram), 1)
   w_i = zero_matrix(ZZ, 1, 1)
@@ -238,22 +238,21 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Grap
         max_w = w
       end
       add_edge!(res_graph, i, j)
-      weightDict[(i, j)] = w
+      res_graph.edge[i, j] = w
     end
     add_edge!(res_graph, i, p+1)
     mul!(w_i, v_i, transpose!(t_i, cv_set[i]))
     w = Int64(w_i[1])
-    weightDict[(i, p+1)] = w
+    res_graph.edge[i, p+1] = w
   end
   a = 1+max_w 
   b = a + 1
   for i = 1:p 
     add_edge!(res_graph, i, p+2)
-    merge!(weightDict, Dict((i, p+2) => a))
+    res_graph.edge[i, p+2] = a
   end
   add_edge!(res_graph, p+1, p+2)
-  merge!(weightDict, Dict((p+1, p+2) => b))
-  label!(res_graph, weightDict, nothing; name=:edge)
+  res_graph.edge[p+1, p+2] = b
   return res_graph
 end
 
