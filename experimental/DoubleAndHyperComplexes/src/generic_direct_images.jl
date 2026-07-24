@@ -1165,7 +1165,7 @@ function is_zero(mb::MacroMod)
   gc = graded_complex(mb)
   gm = gc[p]
   for (i, v) in enumerate(gens(gm))
-    alpha = -degree(v)
+    alpha = -degree(v; check=false)
     coh = cohomology_model(ctx, alpha)[-q]
     !is_zero(coh) && return false
   end
@@ -1201,7 +1201,7 @@ end
 function _build_weyman_inclusions(wctx::WeymanCtx, p::Int, q::Int, j::Int, e::Int; check::Bool=false)
   mac_mod = get_macro_block!(wctx, p, q)
   mic_zero = MicroVec(mac_mod, j; check)
-  alpha = degree(mic_zero)
+  alpha = degree(mic_zero; check=false)
   d = _minimal_exponent_vector(pushforward_ctx(wctx), alpha)
   result = Vector{MacroVec}[]
 
@@ -1248,7 +1248,7 @@ end
 function _build_weyman_projection(wctx::WeymanCtx, p::Int, q::Int, j::Int, e::Int; check::Bool=false)
   mac_mod = get_macro_block!(wctx, p, q, :cohomology)
   mic_zero = MicroVec(mac_mod, j; check)
-  alpha = degree(mic_zero)
+  alpha = degree(mic_zero; check=false)
   d = _minimal_exponent_vector(pushforward_ctx(wctx), alpha)
   # reconstruct the whole exponent vector (fragile!)
   ee = Int[e for _ in 1:length(d)]
@@ -1438,7 +1438,7 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   kk = coefficient_ring(S)
   @assert G === grading_group(S)
   return get!(ctx.strands, (e, alpha)) do
-    beta = e*sum(degree(x) for x in gens(S); init=zero(G))
+    beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
     return DirectSumComplex(kk, [:chain], [fine_strand(ctx, ee.-e) for ee in all_mons])
   end
@@ -1463,7 +1463,7 @@ function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
     S = graded_ring(ctx)
     kk = coefficient_ring(S)
     @assert G === grading_group(S)
-    beta = e*sum(degree(x) for x in gens(S); init=zero(G))
+    beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
     summands = [simplified_fine_strand(ctx, ee .- e ) for ee in all_mons]
     @assert length(all_mons) == length(summands)
@@ -1491,7 +1491,7 @@ function induced_cohomology_map(
     cod = cod_str[i]
     S = graded_ring(ctx)
     G = grading_group(S)
-    delta = sum(degree(x) for x in gens(S); init=zero(G))
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     if e0 <= e1
       all_mons_dom = all_monomials(ctx, alpha + e0*delta)
       all_mons_cod_inv = all_monomials_inv(ctx, alpha + e1*delta)
@@ -1530,7 +1530,7 @@ function simplified_strand_homotopy(
     S = graded_ring(ctx)
     kk = coefficient_ring(S)
     G = grading_group(S)
-    delta = sum(degree(x) for x in gens(S); init=zero(G))
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = [homotopy_map(simplified_fine_strand(ctx, ee.-e), p) for ee in all_mons]
     #for (k, phi) in enumerate(maps)
@@ -1556,7 +1556,7 @@ function simplified_strand_inclusion(
     S = graded_ring(ctx)
     kk = coefficient_ring(S)
     G = grading_group(S)
-    delta = sum(degree(x) for x in gens(S); init=zero(G))
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = FreeModuleHom{FreeMod{elem_type(kk)}, FreeMod{elem_type(kk)}, Nothing}[map_to_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
     #for (k, phi) in enumerate(maps)
@@ -1582,7 +1582,7 @@ function simplified_strand_projection(
     S = graded_ring(ctx)
     kk = coefficient_ring(S)
     G = grading_group(S)
-    delta = sum(degree(x) for x in gens(S); init=zero(G))
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = [map_from_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
     #for (k, phi) in enumerate(maps)
@@ -1629,7 +1629,7 @@ function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
     S = graded_ring(ctx)
     G = grading_group(S)
     @assert G === parent(alpha)
-    delta = sum(degree(x) for x in gens(S); init=zero(G))
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons_dom = all_monomials(ctx, alpha + e0*delta)
     all_mons_cod_inv = all_monomials_inv(ctx, alpha + e1*delta)
     index_mapping = Int[all_mons_cod_inv[ee.+(e1 - e0)] for ee in all_mons_dom]
@@ -1678,7 +1678,7 @@ function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
       inc = inclusion_map(dom)[p]
       pr = projection_map(cod)[p]
       imgs = [mon*inc(v) for v in gens(dom[p])]
-      @assert all(degree(v) == degree(cod) for v in imgs)
+      @assert all(degree(v; check=false) == degree(cod) for v in imgs)
       img_gens = elem_type(cod[p])[pr(v) for v in imgs]
       !is_zero(dom[p]) && @assert !is_zero(img_gens)
       map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
@@ -1717,7 +1717,7 @@ function multiplication_map(
     S = graded_ring(ctx)
     @assert S === parent(p)
     G = grading_group(S)
-    delta = sum(degree(x) for x in gens(S); init=zero(G))
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons_dom = all_monomials(ctx, alpha + e0*delta)
     all_mons_cod_inv = all_monomials_inv(ctx, beta + e0*delta)
     #img_gens = elem_type(cod)[zero(cod) for _ in 1:ngens(dom)]
