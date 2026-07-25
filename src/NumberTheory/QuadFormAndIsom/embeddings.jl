@@ -2144,7 +2144,6 @@ function _primitive_embeddings_generic_safe(
 )
   results = NTuple{3, ZZLat}[]
   R = rescale(representative(G1), -1; cached=false)
-  # O(T) surjects onto O(q_T), we might need to add two copies of U (2-adic issue)
   if is_even(G1)
     parity = :even
     as_bilinear_module = false
