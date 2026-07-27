@@ -854,3 +854,120 @@ true
 """
 is_outer_planar(D::Digraph) = DigraphWrap.IsOuterPlanarDigraph(GapObj(D))::Bool
 
+
+@doc raw"""
+    is_directed_forest(D::Digraph) -> Bool
+
+Return 	rue if the digraph D is a directed forest (a disjoint union of
+directed trees).
+
+# Examples
+`jldoctest
+julia> d = digraph([[2], [3], []])
+Digraph with 3 vertices, 2 edges
+
+julia> is_directed_forest(d)
+true
+`
+"""
+is_directed_forest(D::Digraph) = DigraphWrap.IsDirectedForest(GapObj(D))::Bool
+
+@doc raw"""
+    is_undirected_forest(D::Digraph) -> Bool
+
+Return 	rue if the underlying undirected graph of D is a forest.
+
+# Examples
+`jldoctest
+julia> d = digraph([[2], [3], []])
+Digraph with 3 vertices, 2 edges
+
+julia> is_undirected_forest(d)
+true
+`
+"""
+is_undirected_forest(D::Digraph) = DigraphWrap.IsUndirectedForest(GapObj(D))::Bool
+
+@doc raw"""
+    is_join_semilattice(D::Digraph) -> Bool
+
+Return 	rue if the digraph D is a join semilattice.
+
+# Examples
+`jldoctest
+julia> d = digraph([[1, 2, 3, 4], [2, 4], [3, 4], [4]])
+Digraph with 4 vertices, 9 edges
+
+julia> is_join_semilattice(d)
+true
+`
+"""
+is_join_semilattice(D::Digraph) = DigraphWrap.IsJoinSemilatticeDigraph(GapObj(D))::Bool
+
+@doc raw"""
+    is_lattice(D::Digraph) -> Bool
+
+Return 	rue if the digraph D is a lattice (both a meet semilattice and
+a join semilattice).
+
+# Examples
+`jldoctest
+julia> d = digraph([[1, 2, 3, 4], [2, 4], [3, 4], [4]])
+Digraph with 4 vertices, 9 edges
+
+julia> is_lattice(d)
+true
+`
+"""
+function is_lattice(D::Digraph)
+  return is_meet_semilattice(D) && is_join_semilattice(D)
+end
+
+@doc raw"""
+    is_cograph(D::Digraph) -> Bool
+
+Return 	rue if the digraph D is a cograph (has no induced subdigraph
+isomorphic to a 4-vertex path).
+
+# Examples
+`jldoctest
+julia> d = complete_digraph(3)
+Digraph with 3 vertices, 6 edges
+
+julia> is_cograph(d)
+true
+`
+"""
+is_cograph(D::Digraph) = DigraphWrap.IsCograph(GapObj(D))::Bool
+
+@doc raw"""
+    is_lower_semimodular(D::Digraph) -> Bool
+
+Return 	rue if the digraph D represents a lower semimodular lattice.
+
+# Examples
+`jldoctest
+julia> d = chain_digraph(3)
+Digraph with 3 vertices, 3 edges
+
+julia> is_lower_semimodular(d)
+true
+`
+"""
+is_lower_semimodular(D::Digraph) = DigraphWrap.IsLowerSemimodularDigraph(GapObj(D))::Bool
+
+@doc raw"""
+    is_negative_edge_weighted(D::Digraph) -> Bool
+
+Return 	rue if the edge-weighted digraph D has any negative edge weights.
+
+# Examples
+`jldoctest
+julia> d = edge_weighted_digraph([[2], [1]], [[5], [-10]])
+Digraph with 2 vertices, 2 edges
+
+julia> is_negative_edge_weighted(d)
+true
+`
+"""
+is_negative_edge_weighted(D::Digraph) = DigraphWrap.IsNegativeEdgeWeightedDigraph(GapObj(D))::Bool

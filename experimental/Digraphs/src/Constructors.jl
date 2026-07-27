@@ -1202,3 +1202,26 @@ function star_graph(n::Int64; mut::Bool=false)
   return Digraph(DigraphWrap.StarGraph(filter, n))
 end
 
+@doc raw"""
+    edge_weighted_digraph(D::Digraph, weights::Vector{Vector{Int}}) -> Digraph
+
+Return an edge-weighted digraph from the digraph D with edge weights.
+
+# Examples
+`jldoctest
+julia> d = digraph([[2], [1]])
+Digraph with 2 vertices, 2 edges
+
+julia> edge_weighted_digraph(d, [[5], [10]])
+Digraph with 2 vertices, 2 edges
+`
+"""
+function edge_weighted_digraph(D::Digraph, weights::Vector{Vector{Int}})
+  return Digraph(DigraphWrap.EdgeWeightedDigraph(GapObj(D), GapObj(weights)))
+end
+
+function edge_weighted_digraph(adj::Vector{Vector{Int}}, eights::Vector{Vector{Int}})
+  d = digraph(adj)
+  return edge_weighted_digraph(d, weights)
+end
+

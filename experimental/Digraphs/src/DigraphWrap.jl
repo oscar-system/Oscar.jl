@@ -15,12 +15,16 @@ using GAP
 #
 # This list is sorted according to LC_COLLATE=C sort -f
 GAP.@wrap AdjacencyMatrix(x::GapObj)::GapObj
+GAP.@wrap ArticulationPoints(x::GapObj)::GapObj
 GAP.@wrap AutomorphismGroup(x::GapObj)::GapObj
 GAP.@wrap BlissAutomorphismGroup(x::GapObj)::GapObj
 GAP.@wrap BlissCanonicalDigraph(x::GapObj)::GapObj
 GAP.@wrap BlissCanonicalLabelling(x::GapObj)::GapObj
+GAP.@wrap BooleanAdjacencyMatrix(x::GapObj)::GapObj
+GAP.@wrap Bridges(x::GapObj)::GapObj
 GAP.@wrap CayleyDigraph(filter::GapObj, G::GapObj, gens::GapObj)::GapObj
 GAP.@wrap CayleyDigraph(filter::GapObj, G::GapObj)::GapObj
+GAP.@wrap CharacteristicPolynomial(x::GapObj)::GapObj
 GAP.@wrap ChromaticNumber(x::GapObj)::GapInt
 GAP.@wrap CliqueNumber(x::GapObj)::GapInt
 GAP.@wrap CompleteBipartiteDigraph(filter::GapObj, x::Int, y::Int)::GapObj
@@ -28,7 +32,47 @@ GAP.@wrap CompleteDigraph(filter::GapObj, x::Int)::GapObj
 GAP.@wrap CycleDigraph(filter::GapObj, x::Int)::GapObj
 GAP.@wrap CycleDigraph(x::Int)::GapObj
 GAP.@wrap ChainDigraph(filter::GapObj, n::Int)::GapObj
+GAP.@wrap DegreeMatrix(x::GapObj)::GapObj
+GAP.@wrap DigraphAllSimpleCircuits(x::GapObj)::GapObj
+GAP.@wrap DigraphAbsorptionProbabilities(x::GapObj)::GapObj
+GAP.@wrap DigraphAbsorptionExpectedSteps(x::GapObj)::GapObj
+GAP.@wrap DigraphConnectedComponent(x::GapObj, v::Int)::GapObj
+GAP.@wrap DigraphCycleBasis(x::GapObj)::GapObj
+GAP.@wrap DigraphDegeneracy(x::GapObj)::GapInt
+GAP.@wrap DigraphDegeneracyOrdering(x::GapObj)::GapObj
+GAP.@wrap DigraphDijkstra(x::GapObj, s::Int)::GapObj
+GAP.@wrap DigraphEdges(x::GapObj)::GapObj
+GAP.@wrap DigraphFloydWarshall(x::GapObj)::GapObj
+GAP.@wrap DigraphGirth(x::GapObj)::GapInt
+GAP.@wrap DigraphOddGirth(x::GapObj)::GapInt
+GAP.@wrap DigraphUndirectedGirth(x::GapObj)::GapInt
+GAP.@wrap DigraphHash(x::GapObj)::GapInt
+GAP.@wrap DigraphLayers(x::GapObj, v::Int)::GapObj
+GAP.@wrap DigraphLoops(x::GapObj)::GapObj
+GAP.@wrap DigraphLongestSimpleCircuit(x::GapObj)::GapObj
+GAP.@wrap DigraphNrAdjacencies(x::GapObj)::GapInt
+GAP.@wrap DigraphNrAdjacenciesWithoutLoops(x::GapObj)::GapInt
+GAP.@wrap DigraphNrLoops(x::GapObj)::GapInt
+GAP.@wrap DigraphPath(x::GapObj, s::Int, t::Int)::GapObj
+GAP.@wrap DigraphPeriod(x::GapObj)::GapInt
+GAP.@wrap DigraphRandomWalk(x::GapObj, len::Int, start::Int)::GapObj
+GAP.@wrap DigraphShortestDistance(x::GapObj, s::Int, t::Int)::GapInt
+GAP.@wrap DigraphShortestPath(x::GapObj, s::Int, t::Int)::GapObj
+GAP.@wrap DigraphStronglyConnectedComponent(x::GapObj, v::Int)::GapObj
+GAP.@wrap DigraphVertexConnectivity(x::GapObj)::GapInt
+GAP.@wrap DigraphVertices(x::GapObj)::GapObj
 GAP.@wrap EmptyDigraph(filter::GapObj, n::Int)::GapObj
+GAP.@wrap EdgeWeights(x::GapObj)::GapObj
+GAP.@wrap EdgeWeightedDigraph(D::GapObj, weights::GapObj)::GapObj
+GAP.@wrap EdgeWeightedDigraphMinimumSpanningTree(x::GapObj)::GapObj
+GAP.@wrap EdgeWeightedDigraphShortestPaths(x::GapObj)::GapObj
+GAP.@wrap EdgeWeightedDigraphShortestPaths(x::GapObj, s::Int)::GapObj
+GAP.@wrap EdgeWeightedDigraphShortestPath(x::GapObj, s::Int, t::Int)::GapObj
+GAP.@wrap EdgeWeightedDigraphTotalWeight(x::GapObj)::GapObj
+GAP.@wrap GeneratorsOfCayleyDigraph(x::GapObj)::GapObj
+GAP.@wrap GroupOfCayleyDigraph(x::GapObj)::GapObj
+GAP.@wrap HamiltonianPath(x::GapObj)::GapObj
+GAP.@wrap IsReachable(x::GapObj, s::Int, t::Int)::Bool
 GAP.@wrap JohnsonDigraph(filter::GapObj, n::Int, k::Int)::GapObj
 GAP.@wrap Digraph(filter::GapObj, adj::GapObj)::GapObj
 GAP.@wrap Digraph(filter::GapObj, G::GapObj, list::GapObj, act::GapObj, rel::GapObj)::GapObj
@@ -46,6 +90,7 @@ GAP.@wrap DigraphByInNeighbours(x::GapObj)::GapObj
 GAP.@wrap DigraphCartesianProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphConnectedComponents(x::GapObj)::GapObj
 GAP.@wrap DigraphCons(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap DigraphCore(x::GapObj)::GapObj
 GAP.@wrap DigraphDiameter(x::GapObj)::GapInt
 GAP.@wrap DigraphDirectProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphDisjointUnion(x::GapObj, y::GapObj)::GapObj
@@ -53,13 +98,21 @@ GAP.@wrap DigraphDual(x::GapObj)::GapObj
 GAP.@wrap DigraphEdgeUnion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphGroup(x::GapObj)::GapObj
 GAP.@wrap DigraphHasLoops(x::GapObj)::Bool
-GAP.@wrap DigraphHasEdge(x::GapObj, s::Int, t::Int)::Bool
 GAP.@wrap DigraphHasNoVertices(x::GapObj)::Bool
 GAP.@wrap DigraphJoin(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap DigraphJoinTable(x::GapObj)::GapObj
 GAP.@wrap DigraphLexicographicProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphMaximalCliques(x::GapObj)::GapObj
+GAP.@wrap DigraphMaximalMatching(x::GapObj)::GapObj
+GAP.@wrap DigraphMaximumFlow(x::GapObj, s::Int, t::Int)::GapObj
+GAP.@wrap DigraphMaximumMatching(x::GapObj)::GapObj
+GAP.@wrap DigraphMinimumCut(x::GapObj, s::Int, t::Int)::GapObj
+GAP.@wrap DigraphMinimumCutSet(x::GapObj, s::Int, t::Int)::GapObj
+GAP.@wrap DigraphMeetTable(x::GapObj)::GapObj
 GAP.@wrap DigraphNrEdges(x::GapObj)::GapInt
+GAP.@wrap DigraphNrConnectedComponents(x::GapObj)::GapInt
 GAP.@wrap DigraphNrVertices(x::GapObj)::GapInt
+GAP.@wrap DigraphNrStronglyConnectedComponents(x::GapObj)::GapInt
 GAP.@wrap DigraphReverse(x::GapObj)::GapObj
 GAP.@wrap DigraphShortestDistances(x::GapObj)::GapObj
 GAP.@wrap DigraphSinks(x::GapObj)::GapObj
@@ -81,6 +134,7 @@ GAP.@wrap IsBipartiteDigraph(x::GapObj)::Bool
 GAP.@wrap IsBridgelessDigraph(x::GapObj)::Bool
 GAP.@wrap IsCayleyDigraph(x::GapObj)::Bool
 GAP.@wrap IsChainDigraph(x::GapObj)::Bool
+GAP.@wrap IsCograph(x::GapObj)::Bool
 GAP.@wrap IsCompleteBipartiteDigraph(x::GapObj)::Bool
 GAP.@wrap IsCompleteDigraph(x::GapObj)::Bool
 GAP.@wrap IsCompleteMultipartiteDigraph(x::GapObj)::Bool
@@ -88,6 +142,7 @@ GAP.@wrap IsConnectedDigraph(x::GapObj)::Bool
 GAP.@wrap IsCycleDigraph(x::GapObj)::Bool
 GAP.@wrap IsDigraph(x::GapObj)::Bool
 GAP.@wrap IsDigraphCore(x::GapObj)::Bool
+GAP.@wrap IsDirectedForest(x::GapObj)::Bool
 GAP.@wrap IsDistanceRegularDigraph(x::GapObj)::Bool
 GAP.@wrap IsDistributiveLatticeDigraph(x::GapObj)::Bool
 GAP.@wrap IsDirectedTree(x::GapObj)::Bool
@@ -98,11 +153,14 @@ GAP.@wrap IsEulerianDigraph(x::GapObj)::Bool
 GAP.@wrap IsFunctionalDigraph(x::GapObj)::Bool
 GAP.@wrap IsHamiltonianDigraph(x::GapObj)::Bool
 GAP.@wrap IsInRegularDigraph(x::GapObj)::Bool
+GAP.@wrap IsJoinSemilatticeDigraph(x::GapObj)::Bool
 GAP.@wrap IsImmutableDigraph(x::GapObj)::Bool
 GAP.@wrap IsIsomorphicDigraph(x::GapObj, y::GapObj)::Bool
 GAP.@wrap IsMeetSemilatticeDigraph(x::GapObj)::Bool
+GAP.@wrap IsLowerSemimodularDigraph(x::GapObj)::Bool
 GAP.@wrap IsModularLatticeDigraph(x::GapObj)::Bool
 GAP.@wrap IsMultiDigraph(x::GapObj)::Bool
+GAP.@wrap IsNegativeEdgeWeightedDigraph(x::GapObj)::Bool
 GAP.@wrap IsNonemptyDigraph(x::GapObj)::Bool
 GAP.@wrap IsMutableDigraph(x::GapObj)::Bool
 GAP.@wrap IsNullDigraph(x::GapObj)::Bool
@@ -120,11 +178,16 @@ GAP.@wrap IsSymmetricDigraph(x::GapObj)::Bool
 GAP.@wrap IsTournament(x::GapObj)::Bool
 GAP.@wrap IsTransitiveDigraph(x::GapObj)::Bool
 GAP.@wrap IsUndirectedTree(x::GapObj)::Bool
+GAP.@wrap IsUndirectedForest(x::GapObj)::Bool
 GAP.@wrap IsUpperSemimodularDigraph(x::GapObj)::Bool
 GAP.@wrap IsVertexTransitive(x::GapObj)::Bool
 GAP.@wrap LaplacianMatrix(x::GapObj)::GapObj
 GAP.@wrap MaximalSymmetricSubdigraph(x::GapObj)::GapObj
+GAP.@wrap MinimalCyclicEdgeCut(x::GapObj)::GapObj
 GAP.@wrap ModularProduct(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap NrSpanningTrees(x::GapObj)::GapInt
+GAP.@wrap NonLowerSemimodularPair(x::GapObj)::GapObj
+GAP.@wrap NonUpperSemimodularPair(x::GapObj)::GapObj
 GAP.@wrap NullDigraph(filter::GapObj, x::Int)::GapObj
 GAP.@wrap OutDegrees(x::GapObj)::GapObj
 GAP.@wrap OutNeighbours(x::GapObj)::GapObj
@@ -139,6 +202,7 @@ GAP.@wrap ReadDigraphs(x::GapObj)::GapObj
 GAP.@wrap ReducedDigraph(x::GapObj)::GapObj
 GAP.@wrap Sparse6String(x::GapObj)::GapObj
 GAP.@wrap StrongProduct(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap StrongOrientation(x::GapObj)::GapObj
 GAP.@wrap SubdigraphHomeomorphicToK23(x::GapObj)::GapObj
 GAP.@wrap SubdigraphHomeomorphicToK33(x::GapObj)::GapObj
 GAP.@wrap SubdigraphHomeomorphicToK4(x::GapObj)::GapObj
@@ -192,5 +256,6 @@ function __init__()
 end
 
 end
+
 
 
