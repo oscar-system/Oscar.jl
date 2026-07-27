@@ -62,7 +62,6 @@ export CoveredScheme
 export CoveredSchemeMorphism
 export Covering
 export CoveringMorphism
-export cycle_graph
 export CyclicQuotientSingularity
 export DirectProductGroup
 export DirectSumSheaf
@@ -512,6 +511,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_graph
 export cycle_length
 export cycle_matroid
 export cycle_structure
