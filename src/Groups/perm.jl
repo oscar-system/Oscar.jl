@@ -301,7 +301,7 @@ julia> rho = smaller_degree_permutation_representation(s)
 """
 function smaller_degree_permutation_representation(G::PermGroup)
   mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
-  img = PermGroup(GAP.Globals.Image(mp))
+  img = PermGroup(GAPWrap.Image(mp))
   return img, GAPGroupHomomorphism(G, img, mp)
 end
 
@@ -745,7 +745,7 @@ julia> cycle_structure(g)
 function cycle_structure(g::PermGroupElem)
     c = GAPWrap.CycleStructurePerm(GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
-    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
+    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAPWrap.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))
     if s < degree(g)
       @assert length(c) == 0 || ct[1][1] > 1

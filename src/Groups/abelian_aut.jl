@@ -236,7 +236,7 @@ function _orthogonal_group(
     # expensive for large groups
     subgrp_gap = GAP.Globals.Subgroup(ambient.X, gens_aut)
   else
-    subgrp_gap = GAP.Globals.SubgroupNC(ambient.X, gens_aut)
+    subgrp_gap = GAPWrap.SubgroupNC(ambient.X, gens_aut)
   end
   aut = AutomorphismGroup(subgrp_gap, T)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
@@ -890,12 +890,12 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     G = O
     Gnice = GAP.Globals.NiceObject(GapObj(G))
     # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-    BL1mod_gap = GapObj(lift(BL1mod)) * GAP.Globals.Z(GapObj(p))^0
-    BL2mod_gap = GapObj(lift(BL2mod)) * GAP.Globals.Z(GapObj(p))^0
+    BL1mod_gap = GapObj(lift(BL1mod)) * GAPWrap.Z(GapObj(p))^0
+    BL2mod_gap = GapObj(lift(BL2mod)) * GAPWrap.Z(GapObj(p))^0
     GAP.Globals.ConvertToMatrixRep(BL1mod_gap)
     GAP.Globals.ConvertToMatrixRep(BL2mod_gap)
     mats_gap = GapObj([GapObj(x) for x in mats])
-    img = GAP.Globals.RepresentativeAction(Gnice, BL1mod_gap, BL2mod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats_gap, GAP.Globals.OnSubspacesByCanonicalBasis)
+    img = GAPWrap.RepresentativeAction(Gnice, BL1mod_gap, BL2mod_gap, GAPWrap.GeneratorsOfGroup(Gnice), mats_gap, GAP.Globals.OnSubspacesByCanonicalBasis)
     img == GAP.Globals.fail && return false, one(G)
     mono = GAP.Globals.NiceMonomorphism(GapObj(G))
     _g = G(GAP.Globals.PreImage(mono, img))

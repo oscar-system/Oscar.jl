@@ -992,7 +992,7 @@ function is_conjugate_with_data(Omega::GSet, omega1, omega2)
     pos1 === nothing && return false, one(G)
     pos2 = findfirst(isequal(omega2), elms)
     pos2 === nothing && return false, one(G)
-    img = GAP.Globals.RepresentativeAction(GapObj(image(acthom)[1]), pos1, pos2)
+    img = GAPWrap.RepresentativeAction(GapObj(image(acthom)[1]), pos1, pos2)
     img == GAP.Globals.fail && return false, one(G)
     pre = has_preimage_with_preimage(acthom, group_element(image(acthom)[1], img))
     @assert(pre[1])
@@ -1651,7 +1651,7 @@ function _orbit_representatives_and_stabilizers_gset_gap(G::MatGroup{E}, k::Int)
   orbreps = [orb[1] for orb in orbs]
   orbreps_gap = [map_entries(_ring_iso(G), omega) for omega in orbreps]
   orbreps2 = [sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1] for M in orbreps]
-  stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
+  stabs = [_as_subgroup_bare(G, GAPWrap.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end
 

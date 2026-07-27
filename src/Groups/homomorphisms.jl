@@ -97,7 +97,7 @@ function compose(f::GAPGroupEmbedding{S, T}, g::GAPGroupHomomorphism{T, U}) wher
   check_composable(f, g)
   dom = domain(f)
   cod = codomain(g)
-  mp = GAP.Globals.RestrictedMapping(GapObj(g), GapObj(dom))
+  mp = GAPWrap.RestrictedMapping(GapObj(g), GapObj(dom))
   return GAPGroupHomomorphism(dom, cod, mp)
 end
 
@@ -486,7 +486,7 @@ function restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
   # in the case that `H` is not a subgroup of `f.domain`,
   # and in fact just the given map may be returned.)
   @assert is_subset(H, domain(f)) "Not a subgroup!"
-  return GAPGroupHomomorphism(H, f.codomain, GAP.Globals.RestrictedMapping(GapObj(f), GapObj(H))::GapObj)
+  return GAPGroupHomomorphism(H, f.codomain, GAPWrap.RestrictedMapping(GapObj(f), GapObj(H)))
 end
 
 function restrict_homomorphism(f::GAPGroupEmbedding, H::GAPGroup)
@@ -628,7 +628,7 @@ function preimage(f::GAPGroupHomomorphism, H::GAPGroup)
 end
 
 function preimage(f::GAPGroupEmbedding, H::GAPGroup)
-  H1 = GAP.Globals.Intersection(GapObj(domain(f)), GapObj(H))::GapObj
+  H1 = GAPWrap.Intersection(GapObj(domain(f)), GapObj(H))
   return _as_subgroup(domain(f), H1)
 end
 
@@ -945,11 +945,11 @@ error("do not know how to create a pcp group on given generators in GAP")
        @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
        # The codomain of `f` can be a *subgroup* of a full pc group.
        # In this situation, we have to switch to a full pc group.
-       C = GAP.Globals.Range(f)::GapObj
+       C = GAPWrap.Range(f)
        if !_is_full_pc_group(C)
-         @assert GAPWrap.IsPcGroup(C) || GAP.Globals.IsPcpGroup(C)::Bool
-         if GAPWrap.IsPcGroup(C)::Bool
-           Cpcgs = GAP.Globals.Pcgs(C)::GapObj
+         @assert GAPWrap.IsPcGroup(C) || GAPWrap.IsPcpGroup(C)
+         if GAPWrap.IsPcGroup(C)
+           Cpcgs = GAPWrap.Pcgs(C)
            CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
            CCpcgs = GAPWrap.FamilyPcgs(CC)
          else
@@ -982,7 +982,7 @@ function isomorphism(::Type{FinGenAbGroup}, G::GAPGroup; on_gens::Bool=false)
      @req is_finite(G) "the group is not finite"
 #T this restriction is not nice
 
-     indep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapObj(G))::GapObj
+     indep = GAPWrap.IndependentGeneratorsOfAbelianGroup(GapObj(G))
      orders = ZZRingElem[GAPWrap.Order(x) for x in indep]
      n = length(indep)
      A = abelian_group(FinGenAbGroup, orders)
@@ -1069,7 +1069,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup; on_gens::Bool=false) where T <
 
      f = function(a::elem_type(FinGenAbGroup))
        exp = A_to_A2(a)
-       img = GAP.Globals.One(GapG)
+       img = GAPWrap.One(GapG)
        for i in 1:n
          img = img * Ggens[i]^GAP.Obj(exp[i])
        end
@@ -1500,7 +1500,7 @@ Return the full automorphism group of `G`. If `f` is an object of type
 `GAPGroupHomomorphism` and it is bijective from `G` to itself, then `A(f)`
 return the embedding of `f` in `A`.
 
-Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup{T}`, where `T` is the type of `G`. 
+Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup{T}`, where `T` is the type of `G`.
 
 # Examples
 ```jldoctest
@@ -1525,7 +1525,7 @@ julia> typeof(D)
 AutomorphismGroup{PermGroup}
 ```
 
-The evaluation of the automorphism `f` in the element `x` is analogous to the homomorphism evaluation: 
+The evaluation of the automorphism `f` in the element `x` is analogous to the homomorphism evaluation:
 it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
@@ -1568,9 +1568,9 @@ AutomorphismGroupElem{PermGroup} (alias for Oscar.BasicGAPGroupElem{Automorphism
 julia> typeof(hom(f))
 GAPGroupHomomorphism{PermGroup, PermGroup}
 ```
-The converse is also possible: if `g` is a bijective homomorphism from the group `G` to itself and `A` 
-is the automorphism group of `G`, then the instruction `A(g)` returns `g` as automorphism of `G`. 
-This is the standard way to explicitly build an automorphism (another way, available for inner 
+The converse is also possible: if `g` is a bijective homomorphism from the group `G` to itself and `A`
+is the automorphism group of `G`, then the instruction `A(g)` returns `g` as automorphism of `G`.
+This is the standard way to explicitly build an automorphism (another way, available for inner
 automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphisms)).
 
 # Examples

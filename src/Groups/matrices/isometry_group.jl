@@ -471,9 +471,9 @@ function _stab_via_fin_field(G, mats, BL, p)
 
   Gnice = GAP.Globals.NiceObject(GapObj(G))
   # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-  BLmod_gap = GapObj(lift(BLmod)) * GAP.Globals.Z(GapObj(p))^0
+  BLmod_gap = GapObj(lift(BLmod)) * GAPWrap.Z(GapObj(p))^0
   GAP.Globals.ConvertToMatrixRep(BLmod_gap)
-  st = GAP.Globals.Stabilizer(Gnice, BLmod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
+  st = GAPWrap.Stabilizer(Gnice, BLmod_gap, GAPWrap.GeneratorsOfGroup(Gnice), mats, GAP.Globals.OnSubspacesByCanonicalBasis)
 
   mono = GAP.Globals.NiceMonomorphism(GapObj(G))
   st_mat = GAP.Globals.PreImage(mono, st)
