@@ -15,7 +15,7 @@
    @test GAP.Globals.IsZero(14*Z+1)
    @test iszero(preimage(G.ring_iso, GAP.Globals.Zero(codomain(G.ring_iso))))
    @test GAP.Globals.IsOne(G.ring_iso(one(F)))
-   @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
+   @test isone(preimage(G.ring_iso, GAPWrap.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
 #   xg = Vector{GapObj}(undef, 3)
@@ -27,7 +27,7 @@
    xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive = true)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
-   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
+   @test Oscar.preimage_matrix(G.ring_iso, GAPWrap.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
    T,t = polynomial_ring(GF(3) ,:t)
@@ -51,7 +51,7 @@
    @test iszero(preimage(G.ring_iso, GAP.Globals.Zero(codomain(G.ring_iso))))
    @test GAP.Globals.IsZero(Z^2+1)
    @test GAP.Globals.IsOne(G.ring_iso(one(F)))
-   @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
+   @test isone(preimage(G.ring_iso, GAPWrap.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
    xg = Vector{GapObj}(undef, 3)
@@ -61,7 +61,7 @@
    xg=GAP.Obj(xg)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
-   @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
+   @test Oscar.preimage_matrix(G.ring_iso, GAPWrap.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)])))==4
 end
 
@@ -90,7 +90,7 @@ end
       @test GAP.Globals.IsField(codomain(G.ring_iso))
       @test iszero(preimage(G.ring_iso, GAP.Globals.Zero(codomain(G.ring_iso))))
       @test GAP.Globals.IsOne(G.ring_iso(one(F)))
-      @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
+      @test isone(preimage(G.ring_iso, GAPWrap.One(codomain(G.ring_iso))))
 
       xo = matrix(F, 3, 3, [0, 1, 0, 0, 1, z, 0, 0, z])
       xg = GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
@@ -138,7 +138,7 @@ end
        @test g(g\x) == x
      end
 
-     H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive = true))
+     H = GAPWrap.Group(GAP.Obj(gens(G0); recursive = true))
      f = Oscar.GAPWrap.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
@@ -146,7 +146,7 @@ end
      Gap_G0 = GapObj(G0)
      @test GAP.Globals.HasNiceMonomorphism(GapObj(G0))
      iso = GAP.Globals.NiceMonomorphism(Gap_G0)
-     x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
+     x = GAP.Globals.Product(GAPWrap.GeneratorsOfGroup(Gap_G0))
      img = GAP.Globals.ImagesRepresentative(iso, x)
      @test x == GAP.Globals.PreImagesRepresentative(iso, img)
 
@@ -672,8 +672,8 @@ end
    @test parent(charpoly(Fx, x)) === Fx
    @test parent(minpoly(Fx, x)) === Fx
 
-   xg = GAP.Globals.Random(GapObj(G))
-   yg = GAP.Globals.Random(GapObj(G))
+   xg = GAPWrap.Random(GapObj(G))
+   yg = GAPWrap.Random(GapObj(G))
    pg = MatGroupElem(G, xg*yg)
    @test pg == MatGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
 
