@@ -263,15 +263,14 @@ dim(X::DeterminantalGerm) = dim(ambient_germ(X)) - codim(X)
 @doc raw"""
     ==(X::DeterminantalGerm, Y::DeterminantalGerm)
 
-Return whether the determinantal germs `X` and `Y` are equal, i.e. they have the same determinantal structure on the same underlying scheme.
+Return whether the determinantal germs `X` and `Y` are equal, i.e. they have the same determinantal structure and are given by the same defining_matrix.
 """
 function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
   X === Y && return true
   _mat_type(X) == _mat_type(Y) || return false
   determinantal_type(X) == determinantal_type(Y) || return false
   ambient_coordinate_ring(X) === ambient_coordinate_ring(Y) || return false
-  defining_matrix(X) == defining_matrix(Y) && return true
-  return underlying_scheme(X) == underlying_scheme(Y)
+  return defining_matrix(X) == defining_matrix(Y)
 end
 
 

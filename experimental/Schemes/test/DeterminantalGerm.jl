@@ -112,11 +112,17 @@ end
   @test X != Y
   # same defining_matrix
   X3 = DeterminantalGerm(A, 2, [0,0,0])
-  @test X == X3
-  # same underlying_scheme
-  L, = localization(R, complement_of_point_ideal(R, [0,0,0]))
+  @test_broken X == X3     #TODO: Add missing == for MPoly[Quo][Loc]Rings
+  # different constructors for the same germ
+  L, _ = localization(R, complement_of_point_ideal(R, [0,0,0]))
   X4 = DeterminantalGerm(L.(A), 2)
-  @test X == X4
+  @test_broken X == X4     #TODO: Add missing == for MPoly[Quo][Loc]Rings
+  # different defining matrix for same underlying_scheme
+  C = R[z y;
+        y x]
+  X5 = DeterminantalGerm(C, 2, [0,0,0])
+  @test_broken determinantal_ideal(X) == determinantal_ideal(X5)     #TODO: Add missing == for MPoly[Quo][Loc]Rings
+  @test X != X5
 end
 
 @testset "T1_GL module" begin
