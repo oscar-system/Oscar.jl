@@ -19,6 +19,7 @@ export partially_reduce
 export partition
 export ranking
 export riquier_matrix
+export ritt_is_less
 export separant
 export set_ranking!
 export trailing_monomial
