@@ -1839,7 +1839,7 @@ end
 
 
 @doc raw"""
-    cycle_graph(n::Int64)
+    cycle_graph(n::Int)
 
 Return the graph consisting of a single `n`-cycle.
 
