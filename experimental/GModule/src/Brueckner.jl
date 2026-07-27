@@ -30,7 +30,7 @@ function reps(K, G::Oscar.PcGroup)
     return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
-  pcgs = GAP.Globals.Pcgs(GapObj(G))
+  pcgs = GAPWrap.Pcgs(GapObj(G))
   @assert length(pcgs) == ngens(G)
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 

@@ -248,7 +248,7 @@ function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; 
 end
 
 function refined_derived_series(G::PermGroup)
-  s = GAP.Globals.PcSeries(GAP.Globals.Pcgs(GapObj(G)))
+  s = GAP.Globals.PcSeries(GAPWrap.Pcgs(GapObj(G)))
   return  Oscar._as_subgroups(G,s)
 end
 
