@@ -483,7 +483,7 @@ set `gens`. If `gens` is not given, the generators of `G` are used.
 julia> G = symmetric_group(4);
 
 julia> cayley_digraph(G)
-Digraph with 24 vertices, ...
+Digraph with 24 vertices, 48 edges
 ```
 """
 function cayley_digraph(G::T; mut::Bool=false) where T <: GAPGroup
@@ -504,9 +504,11 @@ Search the database of named digraphs for names matching the string `s`.
 # Examples
 ```jldoctest
 julia> list_named_digraphs("Dia")
-5-element Vector{String}:
- "Diamond"
- ...
+4-element Vector{String}:
+ "diamond"
+ "bidiakiscube"
+ "sevensegmentleddigits,immediatesubsets,7withoutleft,9withlow"
+ "4-largestcubicnonplanardiameter"
 ```
 """
 function list_named_digraphs(s::AbstractString; level::Int64=2)
@@ -521,6 +523,7 @@ Construct a Andrasfai Graph.
 # Examples
 ```jldoctest
 julia> d = andrasfai_graph(4)
+Digraph with 11 vertices, 44 edges
 ```
 """
 function andrasfai_graph(n::Int64; mut::Bool=false)
@@ -536,6 +539,7 @@ Construct a Banana Tree.
 # Examples
 ```jldoctest
 julia> d = banana_tree(4, 4)
+Digraph with 17 vertices, 32 edges
 ```
 """
 function banana_tree(n::Int64, k::Int64; mut::Bool=false)
@@ -551,6 +555,7 @@ Construct a Binary Tree.
 # Examples
 ```jldoctest
 julia> d = binary_tree(4)
+Digraph with 15 vertices, 14 edges
 ```
 """
 function binary_tree(n::Int64; mut::Bool=false)
@@ -566,6 +571,7 @@ Construct a Binomial Tree Graph.
 # Examples
 ```jldoctest
 julia> d = binomial_tree_graph(4)
+Digraph with 4 vertices, 6 edges
 ```
 """
 function binomial_tree_graph(n::Int64; mut::Bool=false)
@@ -581,6 +587,7 @@ Construct a Bishops Graph.
 # Examples
 ```jldoctest
 julia> d = bishops_graph(4, 4)
+Digraph with 16 vertices, 56 edges
 ```
 """
 function bishops_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -596,6 +603,7 @@ Construct a Bondy Graph.
 # Examples
 ```jldoctest
 julia> d = bondy_graph(4)
+Digraph with 58 vertices, 174 edges
 ```
 """
 function bondy_graph(n::Int64; mut::Bool=false)
@@ -611,6 +619,7 @@ Construct a Book Graph.
 # Examples
 ```jldoctest
 julia> d = book_graph(4)
+Digraph with 10 vertices, 26 edges
 ```
 """
 function book_graph(n::Int64; mut::Bool=false)
@@ -626,6 +635,7 @@ Construct a Burnt Pancake Graph.
 # Examples
 ```jldoctest
 julia> d = burnt_pancake_graph(4)
+Digraph with 384 vertices, 1536 edges
 ```
 """
 function burnt_pancake_graph(n::Int64; mut::Bool=false)
@@ -641,6 +651,7 @@ Construct a Circulant Graph.
 # Examples
 ```jldoctest
 julia> d = circulant_graph(4, [2, 3])
+Digraph with 4 vertices, 12 edges
 ```
 """
 function circulant_graph(n::Int64, par::Vector{Int}; mut::Bool=false)
@@ -656,6 +667,7 @@ Construct a Complete Multipartite Digraph.
 # Examples
 ```jldoctest
 julia> d = complete_multipartite_digraph([2, 3])
+Digraph with 5 vertices, 12 edges
 ```
 """
 function complete_multipartite_digraph(orders::Vector{Int}; mut::Bool=false)
@@ -671,6 +683,7 @@ Construct a Cycle Graph.
 # Examples
 ```jldoctest
 julia> d = cycle_graph(4)
+Digraph with 4 vertices, 8 edges
 ```
 """
 function cycle_graph(n::Int64; mut::Bool=false)
@@ -686,6 +699,7 @@ Construct a Gear Graph.
 # Examples
 ```jldoctest
 julia> d = gear_graph(4)
+Digraph with 9 vertices, 24 edges
 ```
 """
 function gear_graph(n::Int64; mut::Bool=false)
@@ -700,7 +714,8 @@ Construct a Generalised Petersen Graph.
 
 # Examples
 ```jldoctest
-julia> d = generalised_petersen_graph(4, 4)
+julia> d = generalised_petersen_graph(7, 2)
+Digraph with 14 vertices, 42 edges
 ```
 """
 function generalised_petersen_graph(n::Int64, k::Int64; mut::Bool=false)
@@ -716,6 +731,7 @@ Construct a Haar Graph.
 # Examples
 ```jldoctest
 julia> d = haar_graph(4)
+Digraph with 6 vertices, 6 edges
 ```
 """
 function haar_graph(n::Int64; mut::Bool=false)
@@ -731,6 +747,7 @@ Construct a Halved Cube Graph.
 # Examples
 ```jldoctest
 julia> d = halved_cube_graph(4)
+Digraph with 8 vertices, 48 edges
 ```
 """
 function halved_cube_graph(n::Int64; mut::Bool=false)
@@ -746,6 +763,7 @@ Construct a Hanoi Graph.
 # Examples
 ```jldoctest
 julia> d = hanoi_graph(4)
+Digraph with 8 vertices, 48 edges
 ```
 """
 function hanoi_graph(n::Int64; mut::Bool=false)
@@ -761,6 +779,7 @@ Construct a Helm Graph.
 # Examples
 ```jldoctest
 julia> d = helm_graph(4)
+Digraph with 9 vertices, 24 edges
 ```
 """
 function helm_graph(n::Int64; mut::Bool=false)
@@ -776,6 +795,7 @@ Construct a Hypercube Graph.
 # Examples
 ```jldoctest
 julia> d = hypercube_graph(4)
+Digraph with 16 vertices, 64 edges
 ```
 """
 function hypercube_graph(n::Int64; mut::Bool=false)
@@ -791,6 +811,7 @@ Construct a Keller Graph.
 # Examples
 ```jldoctest
 julia> d = keller_graph(4)
+Digraph with 256 vertices, 43776 edges
 ```
 """
 function keller_graph(n::Int64; mut::Bool=false)
@@ -806,6 +827,7 @@ Construct a Kings Graph.
 # Examples
 ```jldoctest
 julia> d = kings_graph(4, 4)
+Digraph with 16 vertices, 84 edges
 ```
 """
 function kings_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -821,6 +843,7 @@ Construct a Kneser Graph.
 # Examples
 ```jldoctest
 julia> d = kneser_graph(4, 4)
+Digraph with 1 vertices, 0 edges
 ```
 """
 function kneser_graph(n::Int64, k::Int64; mut::Bool=false)
@@ -836,6 +859,7 @@ Construct a Knights Graph.
 # Examples
 ```jldoctest
 julia> d = knights_graph(4, 4)
+Digraph with 16 vertices, 48 edges
 ```
 """
 function knights_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -851,6 +875,7 @@ Construct a Lindgren Sousselier Graph.
 # Examples
 ```jldoctest
 julia> d = lindgren_sousselier_graph(4)
+Digraph with 28 vertices, 90 edges
 ```
 """
 function lindgren_sousselier_graph(n::Int64; mut::Bool=false)
@@ -866,6 +891,7 @@ Construct a Lollipop Graph.
 # Examples
 ```jldoctest
 julia> d = lollipop_graph(4, 4)
+Digraph with 8 vertices, 20 edges
 ```
 """
 function lollipop_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -881,6 +907,7 @@ Construct a Mobius Ladder Graph.
 # Examples
 ```jldoctest
 julia> d = mobius_ladder_graph(4)
+Digraph with 8 vertices, 24 edges
 ```
 """
 function mobius_ladder_graph(n::Int64; mut::Bool=false)
@@ -896,6 +923,7 @@ Construct a Mycielski Graph.
 # Examples
 ```jldoctest
 julia> d = mycielski_graph(4)
+Digraph with 11 vertices, 40 edges
 ```
 """
 function mycielski_graph(n::Int64; mut::Bool=false)
@@ -911,6 +939,7 @@ Construct a Odd Graph.
 # Examples
 ```jldoctest
 julia> d = odd_graph(4)
+Digraph with 35 vertices, 140 edges
 ```
 """
 function odd_graph(n::Int64; mut::Bool=false)
@@ -926,6 +955,7 @@ Construct a Pancake Graph.
 # Examples
 ```jldoctest
 julia> d = pancake_graph(4)
+Digraph with 24 vertices, 72 edges
 ```
 """
 function pancake_graph(n::Int64; mut::Bool=false)
@@ -941,6 +971,7 @@ Construct a Path Graph.
 # Examples
 ```jldoctest
 julia> d = path_graph(4)
+Digraph with 4 vertices, 6 edges
 ```
 """
 function path_graph(n::Int64; mut::Bool=false)
@@ -956,6 +987,7 @@ Construct a Permutation Star Graph.
 # Examples
 ```jldoctest
 julia> d = permutation_star_graph(4, 4)
+Digraph with 24 vertices, 72 edges
 ```
 """
 function permutation_star_graph(n::Int64, k::Int64; mut::Bool=false)
@@ -970,6 +1002,7 @@ Construct a Prism Graph.
 # Examples
 ```jldoctest
 julia> d = prism_graph(4)
+Digraph with 8 vertices, 24 edges
 ```
 """
 function prism_graph(n::Int64; mut::Bool=false)
@@ -985,6 +1018,7 @@ Construct a Queens Graph.
 # Examples
 ```jldoctest
 julia> d = queens_graph(4, 4)
+Digraph with 16 vertices, 152 edges
 ```
 """
 function queens_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -1000,6 +1034,7 @@ Construct a Rooks Graph.
 # Examples
 ```jldoctest
 julia> d = rooks_graph(4, 4)
+Digraph with 16 vertices, 96 edges
 ```
 """
 function rooks_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -1015,6 +1050,7 @@ Construct a Square Grid Graph.
 # Examples
 ```jldoctest
 julia> d = square_grid_graph(4, 4)
+Digraph with 16 vertices, 48 edges
 ```
 """
 function square_grid_graph(n::Int64, k::Int64; mut::Bool=false)
@@ -1030,6 +1066,7 @@ Construct a Stacked Book Graph.
 # Examples
 ```jldoctest
 julia> d = stacked_book_graph(4, 4)
+Digraph with 20 vertices, 62 edges
 ```
 """
 function stacked_book_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -1045,6 +1082,7 @@ Construct a Stacked Prism Graph.
 # Examples
 ```jldoctest
 julia> d = stacked_prism_graph(4, 4)
+Digraph with 16 vertices, 56 edges
 ```
 """
 function stacked_prism_graph(n::Int64, k::Int64; mut::Bool=false)
@@ -1060,6 +1098,7 @@ Construct a Tadpole Graph.
 # Examples
 ```jldoctest
 julia> d = tadpole_graph(4, 4)
+Digraph with 8 vertices, 16 edges
 ```
 """
 function tadpole_graph(m::Int64, n::Int64; mut::Bool=false)
@@ -1075,6 +1114,7 @@ Construct a Triangular Grid Graph.
 # Examples
 ```jldoctest
 julia> d = triangular_grid_graph(4, 4)
+Digraph with 16 vertices, 66 edges
 ```
 """
 function triangular_grid_graph(n::Int64, k::Int64; mut::Bool=false)
@@ -1090,6 +1130,7 @@ Construct a Walsh Hadamard Graph.
 # Examples
 ```jldoctest
 julia> d = walsh_hadamard_graph(4)
+Digraph with 32 vertices, 256 edges
 ```
 """
 function walsh_hadamard_graph(n::Int64; mut::Bool=false)
@@ -1105,6 +1146,7 @@ Construct a Web Graph.
 # Examples
 ```jldoctest
 julia> d = web_graph(4)
+Digraph with 12 vertices, 32 edges
 ```
 """
 function web_graph(n::Int64; mut::Bool=false)
@@ -1120,6 +1162,7 @@ Construct a Wheel Graph.
 # Examples
 ```jldoctest
 julia> d = wheel_graph(4)
+Digraph with 4 vertices, 12 edges
 ```
 """
 function wheel_graph(n::Int64; mut::Bool=false)
@@ -1135,6 +1178,7 @@ Construct a Windmill Graph.
 # Examples
 ```jldoctest
 julia> d = windmill_graph(4, 4)
+Digraph with 13 vertices, 48 edges
 ```
 """
 function windmill_graph(n::Int64, m::Int64; mut::Bool=false)
@@ -1150,6 +1194,7 @@ Construct a Star Graph.
 # Examples
 ```jldoctest
 julia> d = star_graph(4)
+Digraph with 4 vertices, 6 edges
 ```
 """
 function star_graph(n::Int64; mut::Bool=false)
