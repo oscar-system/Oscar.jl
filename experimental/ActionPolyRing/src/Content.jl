@@ -8,15 +8,15 @@
 
 ### Difference ###
 @doc raw"""
-    difference_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+    difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
-Construct the difference polynomial ring over the base ring `R` with the given elementary symbols and 
+Construct the difference polynomial ring over the base ring `R` with the given action indeterminates and 
 `n_action_maps` commuting endomorphisms. 
 
-- If `elementary_symbols` is a vector of symbols, those names are used.  
+- If `action_indeterminates` is a vector of symbols, those names are used.  
 - If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
 
-In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each elementary symbol.
+In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each action indeterminate.
 
 This method returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
 vector of initial jet variables.
@@ -27,10 +27,10 @@ This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to
 
 ```jldoctest
 julia> R, variablesR = difference_polynomial_ring(QQ, 3, 4)
-(Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
+(Difference polynomial ring in 3 action indeterminates over QQ, DifferencePolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
 
 julia> R
-Difference polynomial ring in 3 elementary symbols u1, u2, u3
+Difference polynomial ring in 3 action indeterminates u1, u2, u3
 with 4 commuting endomorphisms
   over rational field
 
@@ -41,10 +41,10 @@ julia> variablesR
  u3[0,0,0,0]
 
 julia> S, variablesS = difference_polynomial_ring(QQ, [:a, :b, :c], 4)
-(Difference polynomial ring in 3 elementary symbols over QQ, DifferencePolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
+(Difference polynomial ring in 3 action indeterminates over QQ, DifferencePolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
 
 julia> S
-Difference polynomial ring in 3 elementary symbols a, b, c
+Difference polynomial ring in 3 action indeterminates a, b, c
 with 4 commuting endomorphisms
   over rational field
 
@@ -55,39 +55,39 @@ julia> variablesS
  c[0,0,0,0]
 ```
 """
-function difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, n_action_maps)
+function difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_elementary_symbols])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_action_indeterminates])))
 end
 
-function difference_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, n_action_maps::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, elementary_symbols, n_action_maps)
+function difference_polynomial_ring(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int; kwargs...)
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, action_indeterminates, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(elementary_symbols)])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(action_indeterminates)])))
 end
 
 @doc raw"""
     difference_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int) -> Tuple{DifferencePolyRing, DifferencePolyRingElem}
 
-This constructor behaves exactly like [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...))
-but only allows for one elementary symbol `x` instead of a vector of these. Consequently, this method returns the tuple `(dpr, x[0,…,0])` where `dpr` is the resulting
+This constructor behaves exactly like [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
+but only allows for one action indeterminate `x` instead of a vector of these. Consequently, this method returns the tuple `(dpr, x[0,…,0])` where `dpr` is the resulting
 difference polynomial ring.
 
 # Examples
 
-This constructor is preferred when one only wants to have one elementary symbol:
+This constructor is preferred when one only wants to have one action indeterminate:
 ```jldoctest
 julia> R, x = difference_polynomial_ring(ZZ, :x, 2)
-(Difference polynomial ring in 1 elementary symbols over ZZ, x[0,0])
+(Difference polynomial ring in 1 action indeterminates over ZZ, x[0,0])
 
 julia> x
 x[0,0]
 ```
-If we instead construct this ring by passing the single elementary symbol as a vector, the variable x does not behave as intended:
+If we instead construct this ring by passing the single action indeterminate as a vector, the variable x does not behave as intended:
 ```jldoctest
 julia> R, x = difference_polynomial_ring(ZZ, [:x], 2)
-(Difference polynomial ring in 1 elementary symbols over ZZ, DifferencePolyRingElem{ZZRingElem}[x[0,0]])
+(Difference polynomial ring in 1 action indeterminates over ZZ, DifferencePolyRingElem{ZZRingElem}[x[0,0]])
 
 julia> x
 1-element Vector{DifferencePolyRingElem{ZZRingElem}}:
@@ -101,15 +101,15 @@ end
 
 ### Differential ###
 @doc raw"""
-    differential_polynomial_ring(R::Ring, elementary_symbols::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
+    differential_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
-Construct the differential polynomial ring over the base ring `R` with the given elementary symbols and 
+Construct the differential polynomial ring over the base ring `R` with the given action indeterminates and 
 `n_action_maps` commuting derivations. 
 
-- If `elementary_symbols` is a vector of symbols, those names are used.  
+- If `action_indeterminates` is a vector of symbols, those names are used.  
 - If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
 
-In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each elementary symbol.
+In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each action indeterminate.
 
 This method returns a tuple `(dpr, gens)` where `dpr` is the resulting differential polynomial ring and `gens` is the 
 vector of initial jet variables.  
@@ -120,10 +120,10 @@ This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to
 
 ```jldoctest
 julia> R, variablesR = differential_polynomial_ring(QQ, 3, 4)
-(Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
+(Differential polynomial ring in 3 action indeterminates over QQ, DifferentialPolyRingElem{QQFieldElem}[u1[0,0,0,0], u2[0,0,0,0], u3[0,0,0,0]])
 
 julia> R
-Differential polynomial ring in 3 elementary symbols u1, u2, u3
+Differential polynomial ring in 3 action indeterminates u1, u2, u3
 with 4 commuting derivations
   over rational field
 
@@ -134,10 +134,10 @@ julia> variablesR
  u3[0,0,0,0]
 
 julia> S, variablesS = differential_polynomial_ring(QQ, [:a, :b, :c], 4)
-(Differential polynomial ring in 3 elementary symbols over QQ, DifferentialPolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
+(Differential polynomial ring in 3 action indeterminates over QQ, DifferentialPolyRingElem{QQFieldElem}[a[0,0,0,0], b[0,0,0,0], c[0,0,0,0]])
 
 julia> S
-Differential polynomial ring in 3 elementary symbols a, b, c
+Differential polynomial ring in 3 action indeterminates a, b, c
 with 4 commuting derivations
   over rational field
 
@@ -148,39 +148,39 @@ julia> variablesS
  c[0,0,0,0]
 ```
 """
-function differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_elementary_symbols, n_action_maps)
+function differential_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_elementary_symbols])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_action_indeterminates])))
 end
 
-function differential_polynomial_ring(R::Ring, elementary_symbols::Vector{Symbol}, n_action_maps::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, elementary_symbols, n_action_maps)
+function differential_polynomial_ring(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int; kwargs...)
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, action_indeterminates, n_action_maps)
   set_ranking!(dpr; kwargs...)
-  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(elementary_symbols)])))
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(action_indeterminates)])))
 end
 
 @doc raw"""
     differential_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int) -> Tuple{DifferentialPolyRing, DifferentialPolyRingElem}
 
-This constructor behaves exactly like [`differential_polynomial_ring`](@ref differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...))
-but only allows for one elementary symbol `x` instead of a vector of these. Consequently, this method returns the tuple `(dpr, x[0,…,0])` where `dpr` is the resulting
+This constructor behaves exactly like [`differential_polynomial_ring`](@ref differential_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
+but only allows for one action indeterminate `x` instead of a vector of these. Consequently, this method returns the tuple `(dpr, x[0,…,0])` where `dpr` is the resulting
 differential polynomial ring.
 
 # Examples
 
-This constructor is preferred when one only wants to have one elementary symbol:
+This constructor is preferred when one only wants to have one action indeterminate:
 ```jldoctest
 julia> R, x = differential_polynomial_ring(ZZ, :x, 2)
-(Differential polynomial ring in 1 elementary symbols over ZZ, x[0,0])
+(Differential polynomial ring in 1 action indeterminates over ZZ, x[0,0])
 
 julia> x
 x[0,0]
 ```
-If we instead construct this ring by passing the single elementary symbol as a vector, the variable x does not behave as intended:
+If we instead construct this ring by passing the single action indeterminate as a vector, the variable x does not behave as intended:
 ```jldoctest
 julia> R, x = differential_polynomial_ring(ZZ, [:x], 2)
-(Differential polynomial ring in 1 elementary symbols over ZZ, DifferentialPolyRingElem{ZZRingElem}[x[0,0]])
+(Differential polynomial ring in 1 action indeterminates over ZZ, DifferentialPolyRingElem{ZZRingElem}[x[0,0]])
 
 julia> x
 1-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
@@ -295,23 +295,23 @@ factor(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor(data(apr)), pa
 coefficient_ring(apr::ActionPolyRing) = coefficient_ring(base_ring(apr))
 
 @doc raw"""
-    n_elementary_symbols(A::ActionPolyRing) -> Int
+    n_action_indeterminates(A::ActionPolyRing) -> Int
 
-Return the number of elementary symbols of the action polynomial ring `A`.
+Return the number of action indeterminates of the action polynomial ring `A`.
 """
-n_elementary_symbols(apr::ActionPolyRing) = length(elementary_symbols(apr))
+n_action_indeterminates(apr::ActionPolyRing) = length(action_indeterminates(apr))
 
 @doc raw"""
-    elementary_symbols(A::ActionPolyRing) -> Vector{Symbol}
+    action_indeterminates(A::ActionPolyRing) -> Vector{Symbol}
 
-Return the elementary symbols of the action polynomial ring `A` as a vector.
+Return the action indeterminates of the action polynomial ring `A` as a vector.
 """
-elementary_symbols(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.elementary_symbols
+action_indeterminates(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.action_indeterminates
 
 @doc raw"""
     n_action_maps(A::ActionPolyRing) -> Int
 
-Return the number of elementary symbols of the action polynomial ring `A`.
+Return the number of action indeterminates of the action polynomial ring `A`.
 """
 n_action_maps(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.n_action_maps
 
@@ -588,6 +588,37 @@ getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
 
 getindex(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
 
+@doc raw""" 
+    getindex(var::ActionPolyRingElem, index_shift::Int...)
+
+Given the jet variable `var`, return the jet variable with jet shifted by `index_shift`.
+
+# Examples
+
+```jldoctest
+julia> R, u = difference_polynomial_ring(QQ, :u, 2);
+
+julia> u[0,0]
+u[0,0]
+
+julia> u_45 = u[4,5]
+u[4,5]
+
+julia> u_45[1,0]
+u[5,5]
+
+julia> u_45[-3, -2]
+u[1,3]
+```
+"""
+function getindex(var::ActionPolyRingElem, index_shift::Int...)
+  apr = parent(var)
+  @req length(index_shift) == n_action_maps(apr) "Expected $(n_action_maps(apr)) indices, got $(length(index_shift))"
+  @req is_gen(var) "Not a jet variable"
+  i, jet = __vtj(apr)[var]
+  return gen(apr, i, jet .+ index_shift)
+end
+
 @doc raw"""
     var_index(p::ActionPolyRingElem)
 
@@ -699,8 +730,18 @@ function derivative(apre::ActionPolyRingElem, i::Int, jet::Vector{Int})
 end
 
 derivative(apre::ActionPolyRingElem, jet_idx::Tuple{Int, Vector{Int}}) = derivative(apre, jet_idx...)
-
 derivative(apre::ActionPolyRingElem, i::Int) = derivative(apre, gen(parent(apre), i))
+
+@doc raw"""
+    separant(p::DifferentialPolyRingElem) -> DifferentialPolyRingElem
+
+Return the separant of `p` which is the formal derivative of `p` with respect to its leader.
+If `p` is a constant, the zero polynomial is returned.
+"""
+function separant(dpre::DifferentialPolyRingElem)
+  is_constant(dpre) && return zero(dpre)
+  return derivative(dpre, leader(dpre))
+end
 
 ###############################################################################
 #
@@ -709,7 +750,7 @@ derivative(apre::ActionPolyRingElem, i::Int) = derivative(apre, gen(parent(apre)
 ###############################################################################
 
 @doc raw"""
-    diff_action(p::DifferencePolyRingElem, i::Int)
+    apply_action(p::DifferencePolyRingElem, i::Int)
 
 Apply the `i`-th endomorphism to the polynomial `p`.
 
@@ -718,29 +759,29 @@ Apply the `i`-th endomorphism to the polynomial `p`.
 ```jldoctest
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 2); f = -2*a*b + 3*a*b^2;
 
-julia> diff_action(3*a, 1)
+julia> apply_action(3*a, 1)
 3*a[1,0]
 
-julia> diff_action(3*a, 2)
+julia> apply_action(3*a, 2)
 3*a[0,1]
 
-julia> diff_action(f, 1)
+julia> apply_action(f, 1)
 (3*b[1,0]^2 - 2*b[1,0])*a[1,0]
 
-julia> diff_action(f, 2)
+julia> apply_action(f, 2)
 (3*b[0,1]^2 - 2*b[0,1])*a[0,1]
 ```
 """
-function diff_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
+function apply_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
   d = fill(0, n_action_maps(parent(dpre)))
   d[i] = 1
-  return diff_action(dpre, d)
+  return apply_action(dpre, d)
 end
 
 @doc raw"""
-    diff_action(p::DifferentialPolyRingElem, i::Int)
+    apply_action(p::DifferentialPolyRingElem, i::Int)
 
 Apply the `i`-th derivation to the polynomial `p`.
 
@@ -749,20 +790,20 @@ Apply the `i`-th derivation to the polynomial `p`.
 ```jldoctest
 julia> dpr, (a,b,c) = differential_polynomial_ring(ZZ, [:a, :b, :c], 2); f = -2*a*b + 3*a*b^2;
 
-julia> diff_action(3*a, 1)
+julia> apply_action(3*a, 1)
 3*a[1,0]
 
-julia> diff_action(3*a, 2)
+julia> apply_action(3*a, 2)
 3*a[0,1]
 
-julia> diff_action(f, 1)
+julia> apply_action(f, 1)
 (3*b[0,0]^2 - 2*b[0,0])*a[1,0] + 6*b[1,0]*a[0,0]*b[0,0] - 2*b[1,0]*a[0,0]
 
-julia> diff_action(f, 2)
+julia> apply_action(f, 2)
 (3*b[0,0]^2 - 2*b[0,0])*a[0,1] + 6*b[0,1]*a[0,0]*b[0,0] - 2*b[0,1]*a[0,0]
 ```
 """
-function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
+function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
 
@@ -813,11 +854,11 @@ function diff_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
 end
 
 @doc raw"""
-    diff_action(p::ActionPolyRingElem, d::Vector{Int}) -> ActionPolyRingElem
+    apply_action(p::ActionPolyRingElem, d::Vector{Int}) -> ActionPolyRingElem
 
 Successively apply the `i`-th diff-action `d[i]`-times to the polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
 """
-function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
+function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
   @req length(d) == n_action_maps(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
   if is_zero(d)
@@ -859,13 +900,13 @@ function diff_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   return dpr(finish(C))
 end
 
-function diff_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
+function apply_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
   len = length(d)
   @req len == n_action_maps(parent(dpre)) && all(>=(0), d) "Invalid vector of diff multiplicities"
   res = dpre
   for i in 1:len
     for j in 1:d[i]
-      res = diff_action(res, i)
+      res = apply_action(res, i)
     end
   end
   return res
@@ -875,6 +916,7 @@ end
     initial(p::ActionPolyRingElem)
 
 Return the initial of the polynomial `p`, i.e. the leading coefficient of `p` regarded as a univariate polynomial in its leader.
+If `p` is a constant, `p` itself is returned.
 """
 function initial(apre::ActionPolyRingElem)
   is_constant(apre) && return apre
@@ -888,7 +930,7 @@ Return the leader of the polynomial `p`, that is the largest jet variable with r
 """
 function leader(apre::ActionPolyRingElem)
   @req !is_constant(apre) "A constant polynomial has no leader"
-  return maximum(vars(apre))
+  return maximum(vars(apre; sorted=false))
 end
 
 ###############################################################################
@@ -1110,7 +1152,7 @@ function evaluate(a::ActionPolyRingElem{T}, vars::Vector{Int}, vals::Vector{V}) 
 end
 
 @doc raw"""
-    evaluate(a::PolyT, vars::Vector{PolyT}, vals::Vector{V}) where {PolyT <: ActionPolyRingElem, V <: Ringelement}
+    evaluate(a::ActionPolyRingElem, vars::Vector{ActionPolyRingElem}, vals::Vector{V}) where {V <: Ringelement}
 
 Evaluate the polynomial expression by substituting in the supplied values in the array `vals` for
 the corresponding jet variables from the vector `vars`; see
@@ -1356,11 +1398,11 @@ function __my_lt_for_vec(perm::Vector{Int})
 end
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
-__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_elementary_symbols(apr) && length(jet) == n_action_maps(apr) && all(>=(0), jet)
+__is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_action_indeterminates(apr) && length(jet) == n_action_maps(apr) && all(>=(0), jet)
 
 function __add_new_jetvar!(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}})
   __set_are_perms_up_to_date!(apr, false)
-  s_vec = map(jet_idx -> string(elementary_symbols(apr)[jet_idx[1]]) * "[" * join(jet_idx[2], ",") * "]", jet_idxs)::Vector{String}
+  s_vec = map(jet_idx -> string(action_indeterminates(apr)[jet_idx[1]]) * "[" * join(jet_idx[2], ",") * "]", jet_idxs)::Vector{String}
   upr = base_ring(apr)
   ng = ngens(upr)
   new_vars = apr.(gens(upr, s_vec))
@@ -1397,12 +1439,12 @@ ranking(dpr::DifferentialPolyRing{T}) where {T} = dpr.ranking::ActionPolyRingRan
                  partition::Vector{Vector{Int}} = Vector{Int}[],
                  index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)) 
 
-This method configures the ranking of the action polynomial ring `A`, using an ordered partition of the elementary symbols and a monomial ordering on the indices. The ranking can be specified either by choosing predefined naming options or by explicitly providing a custom configuration.
+This method configures the ranking of the action polynomial ring `A`, using an ordered partition of the action indeterminates and a monomial ordering on the indices. The ranking can be specified either by choosing predefined naming options or by explicitly providing a custom configuration.
 
 # Keyword Arguments
-- `partition_name`: Determines the partition of the elementary symbols of `dpr`. Supported values are:
-  - `:top`: groups all elementary symbols into a single block,
-  - `:pot`: separates each elementary symbol into its own block,
+- `partition_name`: Determines the partition of the action indeterminates of `dpr`. Supported values are:
+  - `:top`: groups all action indeterminates into a single block,
+  - `:pot`: separates each action indeterminate into its own block,
   - `:default`: uses `:top` unless a custom partition is specified.
 
 - `index_ordering_name`: Specifies the ordering on the multiindices. Supported values are:
@@ -1413,7 +1455,7 @@ This method configures the ranking of the action polynomial ring `A`, using an o
   - `:degrevlex`: degree reverse lexicographic ordering,
   - `:default`: uses `:lex` unless a custom matrix is specified.
 
-- `partition`: A custom partition of the elementary symbols, represented as a vector of characteristic vectors. The elementary symbols corresponding to the first characteristic vectors are considered largest and so on.
+- `partition`: A custom partition of the action indeterminates, represented as a vector of characteristic vectors. The action indeterminates corresponding to the first characteristic vectors are considered largest and so on.
 
 - `index_ordering_matrix`: A custom matrix representing a monomial ordering on the indices. Its number of columns must equal `n_action_maps(A)`.
 
@@ -1421,8 +1463,8 @@ This method configures the ranking of the action polynomial ring `A`, using an o
 
 ```jldoctest
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4; partition_name=:pot, index_ordering_name = :degrevlex)[1]; ranking(dpr)
-Ranking of differential polynomial ring in 3 elementary symbols over ZZ
-with elementary symbols partitioned by
+Ranking of differential polynomial ring in 3 action indeterminates over ZZ
+with action indeterminates partitioned by
   [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 and ordering of the indices defined by
   [1    1    1    1]
@@ -1431,8 +1473,8 @@ and ordering of the indices defined by
   [0   -1    0    0]
 
 julia> set_ranking!(dpr; partition = [[0,1,1],[1,0,0]], index_ordering_matrix = identity_matrix(ZZ, 4))
-Ranking of differential polynomial ring in 3 elementary symbols over ZZ
-with elementary symbols partitioned by
+Ranking of differential polynomial ring in 3 action indeterminates over ZZ
+with action indeterminates partitioned by
   [[0, 1, 1], [1, 0, 0]]
 and ordering of the indices defined by
   [1   0   0   0]
@@ -1441,8 +1483,8 @@ and ordering of the indices defined by
   [0   0   0   1]
 
 julia> set_ranking!(dpr)
-Ranking of differential polynomial ring in 3 elementary symbols over ZZ
-with elementary symbols partitioned by
+Ranking of differential polynomial ring in 3 action indeterminates over ZZ
+with action indeterminates partitioned by
   [[1, 1, 1]]
 and ordering of the indices defined by
   [1   0   0   0]
@@ -1459,7 +1501,7 @@ function set_ranking!(dpr::PolyT;
   ) where {PolyT <: ActionPolyRing}
   
   __set_are_perms_up_to_date!(dpr, false)
-  m, n = n_elementary_symbols(dpr), n_action_maps(dpr)
+  m, n = n_action_indeterminates(dpr), n_action_maps(dpr)
   dpr.ranking = ActionPolyRingRanking{PolyT}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
   return ranking(dpr)
 end
@@ -1477,7 +1519,7 @@ function __compute_ranking_params(m::Int, n::Int,
       partition = [fill(1, m)] #Use :top by default
     else
       # Otherwise the input is used. Check its validity:
-      @req __is_valid_partition(partition, m) "Not a partition of the number of elementary symbols"
+      @req __is_valid_partition(partition, m) "Not a partition of the number of action indeterminates"
     end
   else
     if is_empty(partition)
@@ -1487,7 +1529,7 @@ function __compute_ranking_params(m::Int, n::Int,
         partition = [[i == j ? 1 : 0 for j in 1:m] for i in 1:m]
       end
     else # This case is only accessed if both a partition and a name are provided. Then a consistency check is required.
-      @req __is_valid_partition(partition, m) "Not a partition of the number of elementary symbols"
+      @req __is_valid_partition(partition, m) "Not a partition of the number of action indeterminates"
       if partition_name == :top
         @req partition == [fill(1, m)] "The partition provided does not match its name"
       else
@@ -1529,7 +1571,7 @@ parent(ran::ActionPolyRingRanking) = ran.ring
 @doc raw"""
     partition(r::ActionPolyRingRanking) -> Vector{Vector{Int}}
 
-Return the partition of the elementary symbols defined by the ranking `r`
+Return the partition of the action indeterminates defined by the ranking `r`
 of the action polynomial ring `A`, where `r = ranking(A)`.
 """
 partition(ran::ActionPolyRingRanking) = ran.partition
@@ -1551,7 +1593,7 @@ function riquier_matrix(ran::ActionPolyRingRanking)
   if !isdefined(ran, :riquier_matrix)
     par = partition(ran)
     apr = parent(ran)
-    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, n_elementary_symbols(apr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
+    upper_part = block_diagonal_matrix([matrix(ZZ, length(par)-1, n_action_indeterminates(apr), vcat(par[1:end-1]...)), index_ordering_matrix(ran)])
     lower_part = block_diagonal_matrix([__in_block_tie_breaking_matrix(par), zero_matrix(ZZ, 0, n_action_maps(apr))])
     ran.riquier_matrix = vcat(upper_part, lower_part)
   end
