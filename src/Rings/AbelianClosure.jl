@@ -1312,7 +1312,7 @@ AbstractAlgebra.is_negative(a::QQAbFieldElem) = _isless_via_qqbar(a, 0)
 function generators_galois_group_cyclotomic_field(n::Int)
   res = GAP.Globals.GeneratorsPrimeResidues(GAP.Obj(n))
   return [QQAbAutomorphism(k)
-          for k in Vector{Int}(GAP.Globals.Flat(res.generators))]
+          for k in Vector{Int}(GAPWrap.Flat(res.generators))]
 end
 
 """
