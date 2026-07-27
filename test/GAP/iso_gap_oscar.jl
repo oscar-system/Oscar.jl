@@ -28,7 +28,7 @@ end
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.
   @testset "with characteristic $p" for p in [ 5, 65537, next_prime(ZZRingElem(2)^64) ]
     gap_p = GAP.Obj(p)
-    F = GAP.Globals.GF(gap_p)
+    F = GAPWrap.GF(gap_p)
     x = GAPWrap.Z(gap_p)
     y = GAPWrap.One(F)
     iso = Oscar.iso_gap_oscar(F)
@@ -58,7 +58,7 @@ end
   @testset "with characteristic $p" for p in [5, 65537, next_prime(ZZRingElem(2)^64)]
     gap_p = GAP.Obj(p)
     @testset "with degree $d" for d in 2:3
-      F = GAP.Globals.GF(gap_p, d)
+      F = GAPWrap.GF(gap_p, d)
       x = GAP.Globals.PrimitiveElement(F)
       y = GAPWrap.One(F)
       iso = Oscar.iso_gap_oscar(F)
@@ -72,7 +72,7 @@ end
         @test oxi + oy == iso(xi + y)
       end
       p2 = next_prime(p)
-      o = GAPWrap.One(GAP.Globals.GF(GAP.Obj(p2)))
+      o = GAPWrap.One(GAPWrap.GF(GAP.Obj(p2)))
       @test_throws ErrorException iso(o)
       @test_throws ErrorException image(iso, o)
       @test_throws ErrorException preimage(iso, GF(p2)(1))
@@ -222,8 +222,8 @@ end
 @testset "univariate polynomial rings" begin
    baserings = [GAP.Globals.Rationals,
                 GAP.Globals.Integers,
-                GAP.Globals.GF(2),
-                GAP.Globals.GF(2, 3),
+                GAPWrap.GF(2),
+                GAPWrap.GF(2, 3),
                ]
    @testset for R in baserings
       PR = GAPWrap.PolynomialRing(R)
@@ -242,8 +242,8 @@ end
 @testset "multivariate polynomial rings" begin
    baserings = [GAP.Globals.Rationals,
                 GAP.Globals.Integers,
-                GAP.Globals.GF(2),
-                GAP.Globals.GF(2, 3),
+                GAPWrap.GF(2),
+                GAPWrap.GF(2, 3),
                ]
    @testset for R in baserings
       PR = GAPWrap.PolynomialRing(R, 3)
