@@ -6,21 +6,6 @@ DocTestSetup = Oscar.doctestsetup()
 
 # [Action polynomial rings](@id actionpolyring)
 
-An *action polynomial ring* over the commutative ring ``R`` is a polynomial ring
-```math
-S = R[\, (u_i)_J \mid i \in \lbrace 1, \ldots, m \rbrace, J \in \mathbb{Z}_{\geq 0}^n ]
-```
-in the countably infinitely many *jet variables* ``(u_i)_J``, equipped with ``n`` commuting
-``R``-linear *action maps* ``\sigma_1, \ldots, \sigma_n``, where ``m`` and ``n`` are positive
-integers. The symbols ``u_1, \ldots, u_m`` are called elementary symbols, the multiindices
-``J \in \mathbb{Z}_{\geq 0}^n`` are called jets.
-
-The ``j``-th action map has the property that, when applied to a jet variable, it increments
-the ``j``-th entry of its jet by one. Depending on the setting it also has further properties,
-e.g. it is multiplicative for difference polynomial rings and it is a derivation for differential
-polynomial rings.
-
----
 In Oscar we provide the action polynomial interface via the abstract types `ActionPolyRing{T} <: Ring`
 and `ActionPolyRingElem{T} <: RingElem`. The type parameter `T` is the element type of the coefficient
 ring. All concrete subtypes use the functionality of [universal polynomials](@ref "Universal polynomial")
@@ -88,15 +73,20 @@ vars(p::ActionPolyRingElem)
 leader(p::ActionPolyRingElem)
 ```
 
-We also provide the usual `ngens` and `nvars` methods that respectively return the number of currently tracked jet variables.
+We also provide the usual `ngens` and `nvars` methods that respectively return the number of currently tracked jet variables. Finally,
+we provide the `getindex` method below to allow for fast access to jet variables from existing ones.
+
+```@docs
+getindex(var::ActionPolyRingElem, index_shift::Int...)
+```
 
 ## [Basic methods for action polynomial rings](@id basic_functionality_apr)
 
 ```@docs
 zero(A::ActionPolyRing)
 one(A::ActionPolyRing)
-n_elementary_symbols(A::ActionPolyRing)
-elementary_symbols(A::DifferencePolyRing)
+n_action_indeterminates(A::ActionPolyRing)
+action_indeterminates(A::DifferencePolyRing)
 n_action_maps(A::DifferencePolyRing)
 ```
 
@@ -217,3 +207,31 @@ univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 ```
 
+## [Polynomial reduction methods](@id polynomial_reduction_methods_apr)
+
+The following two methods `pseudorem` and `pseudodivrem` for the pseudo-division of an action polynomial ``p`` by another action polynomial
+``q`` form the backbone of most reduction methods. Recall that if ``s`` is the pseudo-quotient and the pseudo-remainder ``r``, of ``p`` by ``q``,
+we have the identity
+```math
+\operatorname{init}(q)^a p = s \cdot q + r,
+```
+with ``\operatorname{deg}_{v}(r) < \operatorname{deg}_{v}(q)`` or ``r = 0``, ``v = \operatorname{ld}(q)`` and some ``a \in \mathbb{N}_0``.
+In order to avoid coefficient swell, both methods specifically return the values for ``r`` and ``s``, where the exponent ``a`` is minimal. For
+addtional flexibility, both methods also allow the user to specify with respect to which jet variable the pseudo-division should be performed, so they
+are not just restricted to pseudo-divison by the leader of the second input. However, if no such jet variable is specified, the leader is used by default.
+
+```@docs
+pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
+pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
+```
+
+---
+
+We provide the following methods for reducing the action polynomial ``p`` with respect to the action polynomial ``q`` and to verify reducedness:
+
+```@docs
+is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+```

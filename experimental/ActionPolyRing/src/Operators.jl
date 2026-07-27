@@ -12,48 +12,48 @@ Base.:-(apre::ActionPolyRingElem) = parent(apre)(-data(apre))
 #
 ###############################################################################
 
-function Base.:+(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function Base.:+(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   return parent(apre1)(data(apre1) + data(apre2))
 end
 
-function Base.:-(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function Base.:-(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   return parent(apre1)(data(apre1) - data(apre2))
 end
 
-function Base.:*(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function Base.:*(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   return parent(apre1)(data(apre1) * data(apre2))
 end
 
-function Base.:/(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function Base.:/(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   return parent(apre1)(data(apre1) / data(apre2))
 end
 
-function divexact(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}; check::Bool = true) where {T<:RingElement}
+function divexact(apre1::PolyT, apre2::PolyT; check::Bool = true) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   return parent(apre1)(divexact(data(apre1), data(apre2)))
 end
 
-function divides(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T}
+function divides(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   flag, res = divides(data(apre1), data(apre2))
   return flag, parent(apre1)(res)
 end
 
-function Base.div(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T}
+function Base.div(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2) 
   return parent(apre1)(div(data(apre1), data(apre2)))
 end
 
-function Base.divrem(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T}
+function Base.divrem(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2) 
   return parent(apre1).(divrem(data(apre1), data(apre2)))
 end
 
-function mod(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function mod(apre1::PolyT, apre2::PolyT) where {PolyT<:ActionPolyRingElem}
   check_parent(apre1, apre2)
   return parent(apre1)(mod(data(apre1), data(apre2)))
 end
@@ -238,12 +238,12 @@ end
 #
 ###############################################################################
 
-function gcd(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function gcd(apre1::PolyT, apre2::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(apre1, apre2) 
   return parent(apre1)(gcd(data(apre1), data(apre2)))
 end
 
-function lcm(apre1::ActionPolyRingElem{T}, apre2::ActionPolyRingElem{T}) where {T<:RingElement}
+function lcm(apre1::PolyT, apre2::PolyT) where {PolyT <: ActionPolyRingElem}
    check_parent(apre1, apre2)
    return parent(apre1)(lcm(data(apre1), data(apre2)))
 end
@@ -254,13 +254,13 @@ end
 #
 ###############################################################################
 
-function remove(z::ActionPolyRingElem{T}, p::ActionPolyRingElem{T}) where {T}
+function remove(z::PolyT, p::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(z, p)
   val, q = remove(data(z), data(p))
   return val, parent(z)(q)
 end
 
-valuation(z::ActionPolyRingElem{T}, p::ActionPolyRingElem{T}) where {T} = remove(z, p)[1]
+valuation(z::PolyT, p::PolyT) where {PolyT <: ActionPolyRingElem} = remove(z, p)[1]
 
 ###############################################################################
 #
@@ -283,7 +283,7 @@ function Base.isless(dpre1::DifferencePolyRingElem{T}, dpre2::DifferencePolyRing
   dpr = parent(dpre1)
   vtj = __vtj(dpr)
   @req haskey(vtj, dpre1) && haskey(vtj, dpre2) "Not jet variables in comparison"
-  m = n_elementary_symbols(dpr)
+  m = n_action_indeterminates(dpr)
   ind1, ind2 = vtj[dpre1], vtj[dpre2]
   v1, v2 = vcat([ind1[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind1[2]), vcat([ind2[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind2[2])
   M = riquier_matrix(ranking(dpr))
@@ -305,12 +305,13 @@ function Base.isless(dpre1::DifferentialPolyRingElem{T}, dpre2::DifferentialPoly
   dpr = parent(dpre1)
   vtj = __vtj(dpr)
   @req haskey(vtj, dpre1) && haskey(vtj, dpre2) "Not jet variables in comparison"
-  m = n_elementary_symbols(dpr)
+  m = n_action_indeterminates(dpr)
   ind1, ind2 = vtj[dpre1], vtj[dpre2]
   v1, v2 = vcat([ind1[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind1[2]), vcat([ind2[1] == j ? one(ZZ) : zero(ZZ) for j in 1:m], ind2[2])
   M = riquier_matrix(ranking(dpr))
   return isless(M * v1, M * v2)
 end
+
 
 ###############################################################################
 #
