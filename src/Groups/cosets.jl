@@ -367,7 +367,7 @@ Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 Base.length(::Type{I}, T::SubgroupTransversal) where I <: IntegerUnion = index(I, T.G, T.H)
 
 function Base.getindex(T::SubgroupTransversal, i::IntegerUnion)
-  res = group_element(T.G, GAP.Globals.ELM_LIST(GapObj(T), GAP.Obj(i)))
+  res = group_element(T.G, GAPWrap.ELM_LIST(GapObj(T), GAP.Obj(i)))
 #TODO: As soon as `GapObj(T)[i]` works for large `i`, simplify the above line
   if is_left(T)
     res = inv(res)

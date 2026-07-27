@@ -37,7 +37,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatElem{T}}; che
    matrices_and_invs = copy(matrices)
    append!(matrices_and_invs, [ inv(M) for M in matrices ])
    for i = 1:length(rels)
-      M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
+      M = GAPWrap.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
       if !isone(M)
         return false, nothing
       end
@@ -94,7 +94,7 @@ function _isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) 
   gen = gens(G)
 
   preimg_bare = function(y)
-    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, y)),
+    return GAPWrap.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, y)),
                                   GAPWrap.FreeGeneratorsOfFpGroup(F),
                                   GapObj(gen))
   end
@@ -118,7 +118,7 @@ function _isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) 
     # map from Gap_Gp to Gap_G
     invfun = x -> GapObj(preimg_bare(x))
 
-    Gap_mp = GAP.Globals.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
+    Gap_mp = GAPWrap.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
     GAP.Globals.SetNiceMonomorphism(Gap_G, Gap_mp)
     GAP.Globals.SetIsHandledByNiceMonomorphism(Gap_G, true)
   end
