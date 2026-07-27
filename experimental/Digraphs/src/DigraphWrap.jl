@@ -52,7 +52,9 @@ GAP.@wrap DigraphDisjointUnion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphDual(x::GapObj)::GapObj
 GAP.@wrap DigraphEdgeUnion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphGroup(x::GapObj)::GapObj
+GAP.@wrap DigraphHasLoops(x::GapObj)::Bool
 GAP.@wrap DigraphHasEdge(x::GapObj, s::Int, t::Int)::Bool
+GAP.@wrap DigraphHasNoVertices(x::GapObj)::Bool
 GAP.@wrap DigraphJoin(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphLexicographicProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphMaximalCliques(x::GapObj)::GapObj
@@ -70,27 +72,45 @@ GAP.@wrap Graph6String(x::GapObj)::GapObj
 GAP.@wrap InDegrees(x::GapObj)::GapObj
 GAP.@wrap InducedSubdigraph(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InNeighbours(x::GapObj)::GapObj
+GAP.@wrap Is2EdgeTransitive(x::GapObj)::Bool
 GAP.@wrap IsAcyclicDigraph(x::GapObj)::Bool
 GAP.@wrap IsAntisymmetricDigraph(x::GapObj)::Bool
+GAP.@wrap IsAperiodicDigraph(x::GapObj)::Bool
 GAP.@wrap IsBiconnectedDigraph(x::GapObj)::Bool
 GAP.@wrap IsBipartiteDigraph(x::GapObj)::Bool
 GAP.@wrap IsBridgelessDigraph(x::GapObj)::Bool
 GAP.@wrap IsCayleyDigraph(x::GapObj)::Bool
+GAP.@wrap IsChainDigraph(x::GapObj)::Bool
 GAP.@wrap IsCompleteBipartiteDigraph(x::GapObj)::Bool
 GAP.@wrap IsCompleteDigraph(x::GapObj)::Bool
+GAP.@wrap IsCompleteMultipartiteDigraph(x::GapObj)::Bool
 GAP.@wrap IsConnectedDigraph(x::GapObj)::Bool
+GAP.@wrap IsCycleDigraph(x::GapObj)::Bool
 GAP.@wrap IsDigraph(x::GapObj)::Bool
+GAP.@wrap IsDigraphCore(x::GapObj)::Bool
+GAP.@wrap IsDistanceRegularDigraph(x::GapObj)::Bool
+GAP.@wrap IsDistributiveLatticeDigraph(x::GapObj)::Bool
 GAP.@wrap IsDirectedTree(x::GapObj)::Bool
 GAP.@wrap IsEdgeTransitive(x::GapObj)::Bool
 GAP.@wrap IsEmptyDigraph(x::GapObj)::Bool
+GAP.@wrap IsEquivalenceDigraph(x::GapObj)::Bool
 GAP.@wrap IsEulerianDigraph(x::GapObj)::Bool
 GAP.@wrap IsFunctionalDigraph(x::GapObj)::Bool
 GAP.@wrap IsHamiltonianDigraph(x::GapObj)::Bool
+GAP.@wrap IsInRegularDigraph(x::GapObj)::Bool
 GAP.@wrap IsImmutableDigraph(x::GapObj)::Bool
 GAP.@wrap IsIsomorphicDigraph(x::GapObj, y::GapObj)::Bool
+GAP.@wrap IsMeetSemilatticeDigraph(x::GapObj)::Bool
+GAP.@wrap IsModularLatticeDigraph(x::GapObj)::Bool
 GAP.@wrap IsMultiDigraph(x::GapObj)::Bool
+GAP.@wrap IsNonemptyDigraph(x::GapObj)::Bool
 GAP.@wrap IsMutableDigraph(x::GapObj)::Bool
 GAP.@wrap IsNullDigraph(x::GapObj)::Bool
+GAP.@wrap IsOuterPlanarDigraph(x::GapObj)::Bool
+GAP.@wrap IsOutRegularDigraph(x::GapObj)::Bool
+GAP.@wrap IsPartialOrderDigraph(x::GapObj)::Bool
+GAP.@wrap IsPermutationDigraph(x::GapObj)::Bool
+GAP.@wrap IsPreorderDigraph(x::GapObj)::Bool
 GAP.@wrap IsomorphismDigraphs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IsPlanarDigraph(x::GapObj)::Bool
 GAP.@wrap IsReflexiveDigraph(x::GapObj)::Bool
@@ -99,6 +119,8 @@ GAP.@wrap IsStronglyConnectedDigraph(x::GapObj)::Bool
 GAP.@wrap IsSymmetricDigraph(x::GapObj)::Bool
 GAP.@wrap IsTournament(x::GapObj)::Bool
 GAP.@wrap IsTransitiveDigraph(x::GapObj)::Bool
+GAP.@wrap IsUndirectedTree(x::GapObj)::Bool
+GAP.@wrap IsUpperSemimodularDigraph(x::GapObj)::Bool
 GAP.@wrap IsVertexTransitive(x::GapObj)::Bool
 GAP.@wrap LaplacianMatrix(x::GapObj)::GapObj
 GAP.@wrap MaximalSymmetricSubdigraph(x::GapObj)::GapObj

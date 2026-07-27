@@ -1,6 +1,6 @@
 @doc raw"""
 
-    digraph(adj::Vector{Vector{Int}}; mut::Bool=false) -> Digraph
+    digraph(adj::Vector{Vector{T}}; mut::Bool=false) where T <: Union{Int64, Any} -> Digraph
     digraph(labels::Vector{<:AbstractString}, source::Vector{<:AbstractString}, range::Vector{<:AbstractString}; mut::Bool=false) -> Digraph
     digraph(n::Int64, source::Vector{Int}, range::Vector{Int}; mut::Bool=false) -> Digraph
     digraph(list::Vector{<:Any}, func::Function; mut::Bool=false) -> Digraph
@@ -70,7 +70,7 @@ julia> digraph(d)
 Digraph with 3 vertices, 6 edges
 ```
 """
-function digraph(adj::Vector{Vector{Int}}; mut::Bool=false)
+function digraph(adj::Vector{Vector{T}}; mut::Bool=false) where T <: Union{Int64, Any}
   filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
   d = DigraphWrap.Digraph(filter, GapObj(adj, recursive = true))
   return Digraph(d)
