@@ -69,10 +69,12 @@ of ``c`` is just ``c`` itself. The zero polynomial has no leader and consequentl
 
 ### [Riquier rankings](@id actionpolyriquierranking)
 
-The rankings we use are called *Riquier rankings*. By definition, these are rankings of ``X`` that extend to a ranking of
-``\{1\} \times \mathbb{N}^{m+n}``.
+The rankings we use are called *Riquier rankings*. By definition, these are the rankings of ``X`` that extend to a ranking of
+``\{1\} \times \mathbb{N}^{m+n}``. Equivalently, we have that ``(u_i)_I > (u_i)_J`` implies ``(u_j)_I > (u_j)_J`` for all
+``i,j \in \underline{m}`` and all ``I,J \in \mathbb{N}_0^{n}``. Another equivalent condition and the one used for implementation
+is the following:
 
-Equivalently, there exists a positive integer ``s`` and an ``s \times (m+n)`` real matrix ``M`` such that the total ordering
+There exists a positive integer ``s`` and an ``s \times (m+n)`` real matrix ``M`` such that the total ordering
 of the jet variables defined by ``X`` coincides with the ordering obtained from the [matrix ordering](@ref "Matrix Orderings")
 on ``\mathbb{N}_0^{m+n}`` defined by ``M``.
 
@@ -80,9 +82,25 @@ For this construction, we identify a jet variable ``(u_i)_J \in A`` with ``(e_i,
 where ``e_i`` is the ``i``-th unit row and restrict ourselves to integer matrices ``M``. In this context, we call ``M``
 a *Riquier matrix*.
 
-!!! note
+!!! note "Integer Riquier matrix"
     Not all Riquier rankings are obtained from integral Riquier matrices. However, this is the case if we only require a total
     ordering of a finite subset of ``X``. Thus, only considering integer matrices is sufficient for practical use.
+
+#### Ritt ordering
+
+While it is possible to define a total ordering of the set of jet variables of the action polynomial ring ``S``, there is no obvious way
+to do the same for the set of all action polynomials. However, one can still compare two action polynomials using the so-called
+*Ritt ordering* (associated to a given ranking ``<`` on ``S``). Given ``p, q \in S``, we say that *``p`` is smaller than  ``q``* with
+respect to Ritt ordering, if one of the following conditions holds:
+- ``p \in R`` but ``q \notin R``
+- ``p, q \notin R`` and ``\operatorname{ld}(p) < \operatorname{ld}(q)``
+- ``p, q \notin R``, ``v \coloneqq \operatorname{ld}(p) = \operatorname{ld}(q)`` and ``\operatorname{deg}_v(p) < \operatorname{deg}_v(q)``
+
+!!! note "Incomparable action polynomials"
+    In any action polynomial ring there exist polynomials ``p,q \in S`` such that ``p \neq q`` but neither ``p`` is less than ``q`` with
+    respect to Ritt ordering nor the other way around. In this case, ``p`` and ``q`` are said to be *incomparable* (with respect to Ritt
+    ordering). Clearly, ``p`` and ``q`` are incomparable if and only if they are both constant, or they have the same leader as well as
+    the same degree in that leader.
 
 ### [Polynomial reduction](@id polynomial_reduction_apr)
 
