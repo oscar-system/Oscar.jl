@@ -1855,7 +1855,7 @@ julia> collect(edges(g))
  Edge(4, 3)
 ```
 """
-function cycle_graph(n::Int64)
+function cycle_graph(n::Int)
     bigobj = Polymake.graph.cycle_graph(n)
     return Graph{Undirected}(bigobj.ADJACENCY)
 end
