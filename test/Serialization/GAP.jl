@@ -31,7 +31,7 @@
 
         # subgroup of full free group
         Fgens = GAPWrap.GeneratorsOfGroup(F)
-        U = GAP.Globals.Subgroup(F, GapObj([Fgens[1]]))
+        U = GAPWrap.Subgroup(F, GapObj([Fgens[1]]))
         test_save_load_roundtrip(path, U) do loaded
           @test U == loaded
         end
@@ -54,7 +54,7 @@
         @test GAPWrap.GeneratorsOfGroup(loadedU)[1] in loadedF
 
         # full group and subgroup together in the same Julia session
-        V = GAP.Globals.Subgroup(F, GapObj([Fgens[2]]))
+        V = GAPWrap.Subgroup(F, GapObj([Fgens[2]]))
         v = (F, U, V)
         test_save_load_roundtrip(path, v) do loaded
           @test v == loaded
@@ -81,7 +81,7 @@
 
       # subgroup of full f.p. group
       Ggens = GAPWrap.GeneratorsOfGroup(G)
-      U = GAP.Globals.Subgroup(G, GapObj([Ggens[1]]))
+      U = GAPWrap.Subgroup(G, GapObj([Ggens[1]]))
       test_save_load_roundtrip(path, U) do loaded
         @test U == loaded
       end
@@ -104,7 +104,7 @@
       @test GAPWrap.GeneratorsOfGroup(loadedU)[1] in loadedG
 
       # full group and subgroup together in the same Julia session
-      V = GAP.Globals.Subgroup(G, GapObj([Ggens[2]]))
+      V = GAPWrap.Subgroup(G, GapObj([Ggens[2]]))
       v = (G, U, V)
       test_save_load_roundtrip(path, v) do loaded
         @test v == loaded

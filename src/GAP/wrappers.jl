@@ -413,6 +413,7 @@ GAP.@wrap Stabilizer(x::GapObj, y::Any, z::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj
+GAP.@wrap Subroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap SubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap SubsTom(x::GapObj)::GapObj
 GAP.@wrap SupersolvableResiduum(x::GapObj)::GapObj
