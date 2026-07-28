@@ -17,6 +17,7 @@ GAP.@wrap AbelianGroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap AbelianPcpGroup(x::GAP.Obj, y::GapObj)::GapObj
 GAP.@wrap AlgebraicExtension(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
+GAP.@wrap AlternatingGroup(x::Any)::GapObj
 GAP.@wrap AntiSymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap AsList(x::GapObj)::GapObj
 GAP.@wrap AsSet(x::GapObj)::GapObj
@@ -418,6 +419,7 @@ GAP.@wrap SubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap SubsTom(x::GapObj)::GapObj
 GAP.@wrap SupersolvableResiduum(x::GapObj)::GapObj
 GAP.@wrap SylowSubgroup(x::GapObj, y::GapInt)::GapObj
+GAP.@wrap SymmetricGroup(x::Any)::GapObj
 GAP.@wrap SymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap Symmetrizations(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap SymplecticComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj

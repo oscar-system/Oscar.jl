@@ -393,8 +393,8 @@ end
    @test degree(G) == 2
    @test order(base_ring(G)) == 2^6
 
-   @test_throws ArgumentError matrix_group(GAP.Globals.SymmetricGroup(5))
-   @test_throws ArgumentError matrix_group(iso, GAP.Globals.SymmetricGroup(5))
+   @test_throws ArgumentError matrix_group(GAPWrap.SymmetricGroup(5))
+   @test_throws ArgumentError matrix_group(iso, GAPWrap.SymmetricGroup(5))
    @test_throws ArgumentError matrix_group(iso, GAP.Globals.GL(2,2^4))
    @test_throws ArgumentError matrix_group(identity_map(GF(2)), GAP.Globals.GL(2,2))
 end
