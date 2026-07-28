@@ -808,7 +808,7 @@ end
 
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(C::GAPGroupConjClass{T}) where T
   G = acting_group(C)
-  acthom = GAP.Globals.ActionHomomorphism(GapObj(G), C.CC, GAP.Globals.OnPoints)::GapObj
+  acthom = GAPWrap.ActionHomomorphism(GapObj(G), C.CC, GAP.Globals.OnPoints)
 
   # See the comment about `SetJuliaData` in the `action_homomorphism` method
   # for `GSetByElements`.
