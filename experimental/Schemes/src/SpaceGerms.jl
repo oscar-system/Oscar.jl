@@ -13,11 +13,11 @@ abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsAffineSchem
 ## two short hand definitions for internal use only
 ####################################################################
 const GermAtClosedPoint = AffineScheme{<:Field,
-                         <:AbsLocalizedRing{<:Ring, <:Any,
+                         <:AbsLocalizedRing{<:Ring, <:RingElem,
                                             <:MPolyComplementOfKPointIdeal}
                         }
 const GermAtGeometricPoint = AffineScheme{<:Field,
-                            <:AbsLocalizedRing{<:Ring, <:Any,
+                            <:AbsLocalizedRing{<:Ring, <:RingElem,
                                                <:MPolyComplementOfPrimeIdeal}
                            }
 
