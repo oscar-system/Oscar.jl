@@ -386,10 +386,14 @@ using Test
           @testset "Non-constant polynomials" begin
             #Recall that u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3:
             @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
+            @test ritt_is_less(u3, u3_111)
+            @test ritt_is_less(u1, u1_100)
+            @test ritt_is_less(u2, u1_010)
             @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [1,3,6]
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             
+            @test ritt_is_less(f, g)
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
             @test length(f) == 6
             @test __perm_for_sort_poly(f) == [3,4,1,2,5,6]
@@ -1112,6 +1116,16 @@ using Test
           @test_throws DivideError pseudodivrem(u_x + v, dpr(0))
           @test_throws DivideError pseudorem(u_x + v, dpr(0), u_x)
           @test_throws DivideError pseudodivrem(u_x + v, dpr(0), u_x)
+
+          @testset "nonzero constants" begin
+            R, x = differential_polynomial_ring(ZZ, :x, 1)
+            @test pseudorem(x, R(2)) == zero(R)
+            @test pseudorem(2*x, R(2)) == zero(R)
+            @test pseudodivrem(x, R(2)) == (x, R(0))
+            @test pseudodivrem(2*x, R(2)) == (x, R(0))
+            @test pseudodivrem(R(6), R(2)) == (3, R(0))
+            @test pseudodivrem(R(5), R(2)) == (R(5), R(0))
+          end
         end
 
         @testset "partially_reduce" begin
