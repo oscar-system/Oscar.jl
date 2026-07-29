@@ -69,6 +69,18 @@ end
   @test_throws DomainError DeterminantalGerm(B, 1, mat_type = :skew_symmetric)
 end
 
+@testset "Endowing a determinantal structure onto a scheme" begin
+  R, (x,y,z) = QQ[:x,:y,:z]
+  I = ideal([x*y, x*z, y*z])
+  U = complement_of_point_ideal(R, [0,0,0])
+  X = spec(R, I, U)
+  A = localized_ring(OO(X))[x 0 z;
+                            0 y z]
+  X_A = DeterminantalGerm(X, A, 2)
+  @test defining_ideal(X_A) == localized_ring(OO(X))(I)
+  @test determinantal_ideal(X_A) == ideal(localized_ring(OO(X)), [x*y, x*z, -y*z])
+end
+
 @testset "DeterminantalGerm MPoly-matrix constructor" begin
   R, (x,y) = QQ[:x,:y]
   A = R[0 x y;
