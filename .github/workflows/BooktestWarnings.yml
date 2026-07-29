@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 2
     steps:
       - name: Comment if booktests changed
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const marker = "<!-- oscar-booktest-warning -->";
