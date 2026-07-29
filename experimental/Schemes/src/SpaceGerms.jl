@@ -178,12 +178,15 @@ const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
 ##############################################################################
 #TODO: docstrings
 
+SpaceGerm(X::SpaceGerm) = X
+DeterminantalGerm(X::DeterminantalGerm) = X
+CompleteIntersectionGerm(X::CompleteIntersectionGerm) = X
+HypersurfaceGerm(X::HypersurfaceGerm) = X
+
 
 function SpaceGerm(X::AnySpaceGerm)
-  return X isa SpaceGerm ? X : SpaceGerm(underlying_scheme(X))
+  return SpaceGerm(underlying_scheme(X))
 end
-
-underlying_space_germ(X::AnySpaceGerm) = SpaceGerm(X)
 
 
 
@@ -193,20 +196,18 @@ end
 
 
 
-#TODO: refactor the DeterminantalGerm constructor be able to scheme 
 function DeterminantalGerm(X::HypersurfaceGerm)
   g = defining_ring_element(X) 
   A = matrix(parent(g), 1, 1, [g])
-  return DeterminantalGerm(A, 1)
+  return DeterminantalGerm(underlying_scheme(X), A, 1)
 end
 
 
 
-#TODO: refactor the DeterminantalGerm constructor be able to scheme 
 function DeterminantalGerm(X::CompleteIntersectionGerm)
   v = defining_ring_elements(X)
   A = matrix(parent(v[1]), 1, length(v), v)
-  return DeterminantalGerm(A, 1)
+  return DeterminantalGerm(underlying_scheme(X), A, 1)
 end
 
 

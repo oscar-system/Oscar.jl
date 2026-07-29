@@ -431,7 +431,7 @@ julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric);
 julia> X_A == X_A_sym
 false
 
-julia> underlying_space_germ(X_A) == underlying_space_germ(X_A_sym)
+julia> SpaceGerm(X_A) == SpaceGerm(X_A_sym)
 true
 
 julia> T1_A = T1_GL_module(X_A)
@@ -532,7 +532,7 @@ julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 julia> X_A == X_B
 false
 
-julia> underlying_space_germ(X_A) == underlying_space_germ(X_B)
+julia> SpaceGerm(X_A) == SpaceGerm(X_B)
 true
 
 julia> tjurina_GL_number(X_A)
@@ -658,7 +658,7 @@ julia> X_B_sym = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 julia> X_A == X_B_sym
 false
 
-julia> underlying_space_germ(X_A) == underlying_space_germ(X_B_sym)
+julia> SpaceGerm(X_A) == SpaceGerm(X_B_sym)
 true
 
 julia> basis_versal_determinantal_unfolding(X_A)
