@@ -15,7 +15,7 @@ depends on the type of `p` (and `q`):
 """=#
 function _leader_shift_for_partial_reduction(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
-  @req !is_constant(q) "Cannot reduce with respect to a constant polynomial"
+  @req !is_constant(q) "Cannot compute leader shift with respect to a constant polynomial"
   is_constant(p) && return nothing
   
   apr = parent(q)
@@ -51,10 +51,13 @@ __is_proper_shift_reducible(p::PolyT, q::PolyT, var::PolyT) where {PolyT <: Diff
 @doc raw"""
     is_partially_reduced(p::ActionPolyRingElem, q::ActionPolyRingElem)
 
-Return `true` if the polynomial `p` is partially reduced with respect to the non-constant
-polynomial `q`. 
+Return `true` if the action polynomial `p` is partially reduced with respect to the nonzero action polynomial `q`.
 """
-is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem} = isnothing(_leader_shift_for_partial_reduction(p, q))
+function is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+  @req !is_zero(q) "Cannot partially reduce with respect to the zero polynomial"
+  is_constant(q) && return is_zero(p)
+  return isnothing(_leader_shift_for_partial_reduction(p, q))
+end
 
 @doc raw"""
     is_partially_reduced(p::ActionPolyRingElem, S::Vector{<:ActionPolyRingElem})
@@ -66,14 +69,16 @@ is_partially_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingE
 @doc raw"""
     partially_reduce(p::ActionPolyRingElem, q::ActionPolyRingElem)
 
-Return the partial remainder of `p` with respect to the non-constant polynomial `q`, by performing successive pseudo-divisions
+Return the partial remainder of `p` with respect to the non-zero polynomial `q`, by performing successive pseudo-divisions
 of `p` by proper derivatives (or shifts) of `q`. This means that the returned polynomial has strictly smaller degree in each jet
-variable that is a proper derivative (or shift) of the leader of `q`.
+variable that is a proper derivative (or shift) of the leader of `q`. If `q` is a non-zero constant then the zero polynomial is
+returned.
 """
 function partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
-  @req !is_constant(q) "Cannot reduce with respect to a constant polynomial"
-    
+  @req !is_zero(q) "Cannot partially reduce with respect to the zero polynomial"
+  is_constant(q) && return zero(p)  
+
   p_red = p
   shift = _leader_shift_for_partial_reduction(p_red, q)
     
@@ -89,15 +94,13 @@ end
     partially_reduce(p::ActionPolyRingElem, S::Vector{ActionPolyRingElem})
 
 Partially reduce the action polynomial `p` with respect to the vector `S`. This is done by pre-sorting `S`
-with respect to Ritt ordering and then performing top-down partial reductions of `p` by the elements of `S`
-until no further reductions are possible.
+with respect to Ritt ordering, filtering out zero polynomials and then performing top-down partial
+reductions of `p` by the remaining elements of `S` until no further reductions are possible.
 """
 function partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
-  if any(is_constant, S)
-    return zero(parent(p))
-  end
+  S = filter(!is_zero, S)
+  any(is_constant, S) && return zero(p)
 
-  # Sort locally to ensure the Top-Down performance optimization
   sorted_S = sort(S, lt=ritt_is_less)
 
   res = p
@@ -124,7 +127,8 @@ of `p` in the leader of `q` is strictly less than the degree of `q` in its leade
 """
 function is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
-  @req !is_constant(q) "Cannot reduce with respect to a constant polynomial"
+  @req !is_zero(q) "Cannot reduce with respect to the zero polynomial"
+  is_constant(q) && return is_zero(p)
   
   is_constant(p) && return true
   is_partially_reduced(p, q) || return false
@@ -143,14 +147,15 @@ is_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem} = all
 @doc raw"""
     reduce(p::ActionPolyRingElem, q::ActionPolyRingElem)
 
-Return the full remainder of `p` with respect to the non-constant polynomial `q`. This remainder is
+Return the full remainder of `p` with respect to the nonzero polynomial `q`. This remainder is
 reduced with respect to `q` in the sense that the degree of `p` in each derivative (or shift) of the
 leader of `q` is strictly smaller than the degree of the respective derivative (or shift) of `q` in that
-same jet variable.
+same jet variable. If `q` is a nonzero constant then the zero polynomial is returned.
 """
 function reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
-  @req !is_constant(q) "Cannot reduce with respect to a constant polynomial"
+  @req !is_zero(q) "Cannot reduce with respect to the zero polynomial"
+  is_constant(q) && return zero(p)
   return pseudorem(partially_reduce(p,q), q)
 end
 
@@ -158,13 +163,12 @@ end
     reduce(p::ActionPolyRingElem, S::Vector{ActionPolyRingElem})
 
 Reduce the action polynomial `p` with respect to the vector `S`. This is done by pre-sorting `S`
-with respect to Ritt ordering and then performing top-down reductions of `p` by the elements of `S`
-until no further reductions are possible.
+with respect to Ritt ordering, filtering out zero polynomials and then performing top-down
+reductions of `p` by the elements of `S` until no further reductions are possible.
 """
 function reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
-  if any(is_constant, S)
-    return zero(parent(p))
-  end
+  S = filter(!is_zero, S)
+  any(is_constant, S) && return zero(parent(p))
 
   sorted_S = sort(S, lt=ritt_is_less)
 
@@ -207,7 +211,7 @@ end
     autoreduce(S::Vector{ActionPolyRingElem})
 
 Compute an autoreduced set from the vector of action polynomials `S`. If at any point in the reduction
-process a nonzero constant is discovered, the vector containing just the identity element is returned.
+process a nonzero constant is discovered, the vector containing just this constant is returned.
 """
 function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   # S will serve as the working list throughout this algorithm
