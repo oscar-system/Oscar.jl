@@ -71,9 +71,9 @@ end
     pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem} -> PolyT
 
 Return the algebraic pseudo-remainder of `p` divided by `q` with respect to the jet variable specified by `i` and
-`jet`. If no jet variable is specified then division is performed with respect to the leader of `q`.
-This method performs division by using a lazy pre-multiplication by the initial of `q` at each step, only
-multiplying the remainder when necessary.
+`jet`. If no jet variable is specified then division is performed with respect to the leader of `q`, even allowing
+`q` to be a nonzero constant. This method performs division by using a lazy pre-multiplication by the initial of `q`
+at each step, only multiplying the remainder when necessary.
 
 This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
 
@@ -96,6 +96,11 @@ true
 
 julia> pseudorem(p,q)
 y[0]^3 + 1
+```
+Finally, the pseudoremainder of any polynomial with respect to a non-zero constant is always zero.
+```jldoctest pseudorem_example
+julia> pseudorem(p,dpr(1))
+0
 ```
 """
 function pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
@@ -133,6 +138,7 @@ pseudorem(p::PolyT, q::PolyT, i::Int) where {PolyT <: ActionPolyRingElem} = pseu
 
 function pseudorem(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   is_zero(q) && throw(DivideError())
+  is_constant(q) && return zero(q)
   return pseudorem(p, q, leader(q))
 end
 
@@ -150,10 +156,10 @@ end
 
 Return the pair `(s,r)` where `s` is the pseudo-quotient and `r` is the pseudo-remainder of `p`
 by `q` with respect to the jet variable specified by `i` and `jet`. If no jet variable is specified
-then division is performed with respect to the leader of `q`. The number of pre-multiplications
-by the leading coefficient of `q` in this jet variable is minimised, i.e. we have
-`lc(q)^k * p = s * q + r` where the integer `k >= 0` is minimal and `lc(q)` is the above mentioned
-leading coefficient.
+then division is performed with respect to the leader of `q`, even allowing `q` to be a nonzero constant.
+The number of pre-multiplications by the leading coefficient of `q` in this jet variable is minimised,
+i.e. we have `lc(q)^k * p = s * q + r` where the integer `k >= 0` is minimal and `lc(q)` is the above
+mentioned leading coefficient.
 
 This method allows all versions described in [Specifying jet variables](@ref specifying_jet_variables); see the online documentation.
 
@@ -183,6 +189,13 @@ true
 julia> pseudodivrem(p,q)
 (y[0]*x[0] - 1, y[0]^3 + 1)
 ```
+Finally, if the second argument is a non-zero constant, then it depends on the first argument being divisible by said constant,
+whether the pseudo-quotient is the first argument divided by the second one or just the first argument. The pseudo-remainder is always
+equal to zero in this case.
+```jldoctest pseudodivrem_example
+julia> pseudodivrem(p,dpr(2))
+(1//2*x[0]^2 + 1//2*y[0], 0)
+´´´
 """
 function pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
@@ -229,6 +242,16 @@ pseudodivrem(p::PolyT, q::PolyT, i::Int) where {PolyT <: ActionPolyRingElem} = p
 
 function pseudodivrem(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   is_zero(q) && throw(DivideError())
+  
+  if is_constant(q)
+    flag, quo = divides(p, q)
+    if flag
+      return (quo, zero(p))
+    else
+      return (p, zero(p))
+    end
+  end
+  
   return pseudodivrem(p, q, leader(q))
 end
 
