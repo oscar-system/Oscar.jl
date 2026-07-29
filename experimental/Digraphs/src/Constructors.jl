@@ -71,32 +71,27 @@ Digraph with 3 vertices, 6 edges
 ```
 """
 function digraph(adj::Vector{Vector{T}}; mut::Bool=false) where T <: Union{Int64, Any}
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  d = DigraphWrap.Digraph(filter, GapObj(adj, recursive = true))
+  d = DigraphWrap.Digraph(_filt(mut), GapObj(adj, recursive = true))
   return Digraph(d)
 end
 
 function digraph(labels::Vector{<:AbstractString}, source::Vector{<:AbstractString}, range::Vector{<:AbstractString}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  d = DigraphWrap.Digraph(filter, GapObj(labels, recursive = true), GapObj(source, recursive = true), GapObj(range, recursive = true))
+  d = DigraphWrap.Digraph(_filt(mut), GapObj(labels, recursive = true), GapObj(source, recursive = true), GapObj(range, recursive = true))
   return Digraph(d)
 end
 
 function digraph(n::Int64, source::Vector{Int}, range::Vector{Int}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  d = DigraphWrap.Digraph(filter, GapObj(n), GapObj(source), GapObj(range))
+  d = DigraphWrap.Digraph(_filt(mut), GapObj(n), GapObj(source), GapObj(range))
   return Digraph(d)
 end
 
 function digraph(list::Vector{<:Any}, func::Function; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  d = DigraphWrap.Digraph(filter, GapObj(list, recursive = true), GapObj(func))
+  d = DigraphWrap.Digraph(_filt(mut), GapObj(list, recursive = true), GapObj(func))
   return Digraph(d)
 end
 
 function digraph(G::T, list::Vector{<:Any}, act::Function, adj::Function; mut::Bool=false) where T<:GAPGroup
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  d = DigraphWrap.Digraph(filter, GapObj(G), GapObj(list, recursive = true), GapObj(act), GapObj(adj))
+  d = DigraphWrap.Digraph(_filt(mut), GapObj(G), GapObj(list, recursive = true), GapObj(act), GapObj(adj))
   return Digraph(d)
 end
 
@@ -122,8 +117,7 @@ Digraph with 3 vertices, 0 edges
 ```
 """
 function null_digraph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.NullDigraph(filter, n))
+  return Digraph(DigraphWrap.NullDigraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -139,8 +133,7 @@ Digraph with 3 vertices, 6 edges
 ```
 """
 function complete_digraph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CompleteDigraph(filter, n))
+  return Digraph(DigraphWrap.CompleteDigraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -157,8 +150,7 @@ Digraph with 5 vertices, 12 edges
 ```
 """
 function complete_bipartite_digraph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CompleteBipartiteDigraph(filter, m, n))
+  return Digraph(DigraphWrap.CompleteBipartiteDigraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -173,8 +165,7 @@ Digraph with 4 vertices, 4 edges
 ```
 """
 function cycle_digraph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CycleDigraph(filter, n))
+  return Digraph(DigraphWrap.CycleDigraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -192,8 +183,7 @@ Digraph with 5 vertices, 0 edges
 ```
 """
 function empty_digraph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.EmptyDigraph(filter, n))
+  return Digraph(DigraphWrap.EmptyDigraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -209,8 +199,7 @@ Digraph with 4 vertices, 3 edges
 ```
 """
 function chain_digraph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.ChainDigraph(filter, n))
+  return Digraph(DigraphWrap.ChainDigraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -227,8 +216,7 @@ Digraph with 6 vertices, 24 edges
 ```
 """
 function johnson_digraph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.JohnsonDigraph(filter, n, k))
+  return Digraph(DigraphWrap.JohnsonDigraph(_filt(mut), n, k))
 end
 @doc raw"""
     digraph_from_edges(edges::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
@@ -250,23 +238,19 @@ Digraph with 4 vertices, 2 edges
 ```
 """
 function digraph_from_edges(n::Int64, edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByEdges(filter, GapObj(edges, recursive = true), GapObj(n)))
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true), GapObj(n)))
 end
 
 function digraph_from_edges(n::Int64, edges::Vector{Vector{Int64}}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByEdges(filter, GapObj(edges, recursive = true), GapObj(n)))
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true), GapObj(n)))
 end
 
 function digraph_from_edges(edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByEdges(filter, GapObj(edges, recursive = true)))
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true)))
 end
 
 function digraph_from_edges(edges::Vector{Vector{Int64}}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByEdges(filter, GapObj(edges, recursive = true)))
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true)))
 end
 
 @doc raw"""
@@ -289,13 +273,11 @@ Digraph with 2 vertices, 2 edges
 ```
 """
 function digraph_from_adjacency_matrix(A::Matrix{Int64}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(filter, GapObj(A)))
+  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(_filt(mut), GapObj(A)))
 end
 
 function digraph_from_adjacency_matrix(A::Matrix{Bool}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(filter, GapObj(A)))
+  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(_filt(mut), GapObj(A)))
 end
 
 @doc raw"""
@@ -313,13 +295,11 @@ Digraph with 3 vertices, 4 edges
 ```
 """
 function digraph_from_in_neighbours(inadj::Vector{Vector{Int64}}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByInNeighbours(filter, GapObj(inadj, recursive = true)))
+  return Digraph(DigraphWrap.DigraphByInNeighbours(_filt(mut), GapObj(inadj, recursive = true)))
 end
 
 function digraph_from_in_neighbors(inadj::Vector{Tuple{Int64, Int64}}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.DigraphByInNeighbours(filter, GapObj(inadj, recursive = true)))
+  return Digraph(DigraphWrap.DigraphByInNeighbours(_filt(mut), GapObj(inadj, recursive = true)))
 end
 
 @doc raw"""
@@ -343,7 +323,7 @@ Digraph with 100 vertices, 2552 edges
 ```
 """
 function random_digraph(n::Int64; mut::Symbol=:mut)
-  filter = if mut === :mut
+  filt = if mut === :mut
     GAP.Globals.IsMutableDigraph
   elseif mut === :immut
     GAP.Globals.IsImmutableDigraph
@@ -360,11 +340,11 @@ function random_digraph(n::Int64; mut::Symbol=:mut)
   else
     error("unsupported mut $mut")
   end
-  return Digraph(DigraphWrap.RandomDigraph(filter, n))
+  return Digraph(DigraphWrap.RandomDigraph(_filt(mut), n))
 end
 
 function random_digraph(n::Int64, p::AbstractFloat; mut::Symbol=:mut)
-  filter = if mut === :mut
+  filt = if mut === :mut
     GAP.Globals.IsMutableDigraph
   elseif mut === :immut
     GAP.Globals.IsImmutableDigraph
@@ -382,7 +362,7 @@ function random_digraph(n::Int64, p::AbstractFloat; mut::Symbol=:mut)
     error("unsupported mut $mut")
   end
   r = Rational(p)
-  return Digraph(DigraphWrap.RandomDigraph(filter, n, GapObj(p)))
+  return Digraph(DigraphWrap.RandomDigraph(_filt(mut), n, GapObj(p)))
 end
 
 @doc raw"""
@@ -421,8 +401,7 @@ Digraph with 10 vertices, 45 edges
 ```
 """
 function random_tournament(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.RandomTournament(filter, n))
+  return Digraph(DigraphWrap.RandomTournament(_filt(mut), n))
 end
 
 @doc raw"""
@@ -487,13 +466,11 @@ Digraph with 24 vertices, 48 edges
 ```
 """
 function cayley_digraph(G::T; mut::Bool=false) where T <: GAPGroup
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CayleyDigraph(filter, GapObj(G)))
+  return Digraph(DigraphWrap.CayleyDigraph(_filt(mut), GapObj(G)))
 end
 
 function cayley_digraph(G::T, gens::Vector{<:GAPGroupElem}; mut::Bool=false) where T <: GAPGroup
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CayleyDigraph(filter, GapObj(G), GapObj(gens)))
+  return Digraph(DigraphWrap.CayleyDigraph(_filt(mut), GapObj(G), GapObj(gens)))
 end
 
 @doc raw"""
@@ -527,8 +504,7 @@ Digraph with 11 vertices, 44 edges
 ```
 """
 function andrasfai_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.AndrasfaiGraph(filter, n))
+  return Digraph(DigraphWrap.AndrasfaiGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -543,8 +519,7 @@ Digraph with 17 vertices, 32 edges
 ```
 """
 function banana_tree(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BananaTree(filter, n, k))
+  return Digraph(DigraphWrap.BananaTree(_filt(mut), n, k))
 end
 
 @doc raw"""
@@ -559,8 +534,7 @@ Digraph with 15 vertices, 14 edges
 ```
 """
 function binary_tree(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BinaryTree(filter, n))
+  return Digraph(DigraphWrap.BinaryTree(_filt(mut), n))
 end
 
 @doc raw"""
@@ -575,8 +549,7 @@ Digraph with 4 vertices, 6 edges
 ```
 """
 function binomial_tree_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BinomialTreeGraph(filter, n))
+  return Digraph(DigraphWrap.BinomialTreeGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -591,8 +564,7 @@ Digraph with 16 vertices, 56 edges
 ```
 """
 function bishops_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BishopsGraph(filter, m, n))
+  return Digraph(DigraphWrap.BishopsGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -607,8 +579,7 @@ Digraph with 58 vertices, 174 edges
 ```
 """
 function bondy_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BondyGraph(filter, n))
+  return Digraph(DigraphWrap.BondyGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -623,8 +594,7 @@ Digraph with 10 vertices, 26 edges
 ```
 """
 function book_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BookGraph(filter, n))
+  return Digraph(DigraphWrap.BookGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -639,8 +609,7 @@ Digraph with 384 vertices, 1536 edges
 ```
 """
 function burnt_pancake_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.BurntPancakeGraph(filter, n))
+  return Digraph(DigraphWrap.BurntPancakeGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -655,8 +624,7 @@ Digraph with 4 vertices, 12 edges
 ```
 """
 function circulant_graph(n::Int64, par::Vector{Int}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CirculantGraph(filter, n, GapObj(par)))
+  return Digraph(DigraphWrap.CirculantGraph(_filt(mut), n, GapObj(par)))
 end
 
 @doc raw"""
@@ -671,8 +639,7 @@ Digraph with 5 vertices, 12 edges
 ```
 """
 function complete_multipartite_digraph(orders::Vector{Int}; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CompleteMultipartiteDigraph(filter, GapObj(orders)))
+  return Digraph(DigraphWrap.CompleteMultipartiteDigraph(_filt(mut), GapObj(orders)))
 end
 
 @doc raw"""
@@ -687,8 +654,7 @@ Digraph with 4 vertices, 8 edges
 ```
 """
 function cycle_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.CycleGraph(filter, n))
+  return Digraph(DigraphWrap.CycleGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -703,8 +669,7 @@ Digraph with 9 vertices, 24 edges
 ```
 """
 function gear_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.GearGraph(filter, n))
+  return Digraph(DigraphWrap.GearGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -719,8 +684,7 @@ Digraph with 14 vertices, 42 edges
 ```
 """
 function generalised_petersen_graph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.GeneralisedPetersenGraph(filter, n, k))
+  return Digraph(DigraphWrap.GeneralisedPetersenGraph(_filt(mut), n, k))
 end
 
 @doc raw"""
@@ -735,8 +699,7 @@ Digraph with 6 vertices, 6 edges
 ```
 """
 function haar_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.HaarGraph(filter, n))
+  return Digraph(DigraphWrap.HaarGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -751,8 +714,7 @@ Digraph with 8 vertices, 48 edges
 ```
 """
 function halved_cube_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.HalvedCubeGraph(filter, n))
+  return Digraph(DigraphWrap.HalvedCubeGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -767,8 +729,7 @@ Digraph with 8 vertices, 48 edges
 ```
 """
 function hanoi_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.HanoiGraph(filter, n))
+  return Digraph(DigraphWrap.HanoiGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -783,8 +744,7 @@ Digraph with 9 vertices, 24 edges
 ```
 """
 function helm_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.HelmGraph(filter, n))
+  return Digraph(DigraphWrap.HelmGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -799,8 +759,7 @@ Digraph with 16 vertices, 64 edges
 ```
 """
 function hypercube_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.HypercubeGraph(filter, n))
+  return Digraph(DigraphWrap.HypercubeGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -815,8 +774,7 @@ Digraph with 256 vertices, 43776 edges
 ```
 """
 function keller_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.KellerGraph(filter, n))
+  return Digraph(DigraphWrap.KellerGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -831,8 +789,7 @@ Digraph with 16 vertices, 84 edges
 ```
 """
 function kings_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.KingsGraph(filter, m, n))
+  return Digraph(DigraphWrap.KingsGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -847,8 +804,7 @@ Digraph with 1 vertices, 0 edges
 ```
 """
 function kneser_graph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.KneserGraph(filter, n, k))
+  return Digraph(DigraphWrap.KneserGraph(_filt(mut), n, k))
 end
 
 @doc raw"""
@@ -863,8 +819,7 @@ Digraph with 16 vertices, 48 edges
 ```
 """
 function knights_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.KnightsGraph(filter, m, n))
+  return Digraph(DigraphWrap.KnightsGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -879,8 +834,7 @@ Digraph with 28 vertices, 90 edges
 ```
 """
 function lindgren_sousselier_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.LindgrenSousselierGraph(filter, n))
+  return Digraph(DigraphWrap.LindgrenSousselierGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -895,8 +849,7 @@ Digraph with 8 vertices, 20 edges
 ```
 """
 function lollipop_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.LollipopGraph(filter, m, n))
+  return Digraph(DigraphWrap.LollipopGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -911,8 +864,7 @@ Digraph with 8 vertices, 24 edges
 ```
 """
 function mobius_ladder_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.MobiusLadderGraph(filter, n))
+  return Digraph(DigraphWrap.MobiusLadderGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -927,8 +879,7 @@ Digraph with 11 vertices, 40 edges
 ```
 """
 function mycielski_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.MycielskiGraph(filter, n))
+  return Digraph(DigraphWrap.MycielskiGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -943,8 +894,7 @@ Digraph with 35 vertices, 140 edges
 ```
 """
 function odd_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.OddGraph(filter, n))
+  return Digraph(DigraphWrap.OddGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -959,8 +909,7 @@ Digraph with 24 vertices, 72 edges
 ```
 """
 function pancake_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.PancakeGraph(filter, n))
+  return Digraph(DigraphWrap.PancakeGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -975,8 +924,7 @@ Digraph with 4 vertices, 6 edges
 ```
 """
 function path_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.PathGraph(filter, n))
+  return Digraph(DigraphWrap.PathGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -991,8 +939,7 @@ Digraph with 24 vertices, 72 edges
 ```
 """
 function permutation_star_graph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.PermutationStarGraph(filter, n, k))
+  return Digraph(DigraphWrap.PermutationStarGraph(_filt(mut), n, k))
 end
 @doc raw"""
     prism_graph(n::Int64; mut::Bool=false) -> Digraph
@@ -1006,8 +953,7 @@ Digraph with 8 vertices, 24 edges
 ```
 """
 function prism_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.PrismGraph(filter, n))
+  return Digraph(DigraphWrap.PrismGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -1022,8 +968,7 @@ Digraph with 16 vertices, 152 edges
 ```
 """
 function queens_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.QueensGraph(filter, m, n))
+  return Digraph(DigraphWrap.QueensGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -1038,8 +983,7 @@ Digraph with 16 vertices, 96 edges
 ```
 """
 function rooks_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.RooksGraph(filter, m, n))
+  return Digraph(DigraphWrap.RooksGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -1054,8 +998,7 @@ Digraph with 16 vertices, 48 edges
 ```
 """
 function square_grid_graph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.SquareGridGraph(filter, n, k))
+  return Digraph(DigraphWrap.SquareGridGraph(_filt(mut), n, k))
 end
 
 @doc raw"""
@@ -1070,8 +1013,7 @@ Digraph with 20 vertices, 62 edges
 ```
 """
 function stacked_book_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.StackedBookGraph(filter, m, n))
+  return Digraph(DigraphWrap.StackedBookGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -1086,8 +1028,7 @@ Digraph with 16 vertices, 56 edges
 ```
 """
 function stacked_prism_graph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.StackedPrismGraph(filter, n, k))
+  return Digraph(DigraphWrap.StackedPrismGraph(_filt(mut), n, k))
 end
 
 @doc raw"""
@@ -1102,8 +1043,7 @@ Digraph with 8 vertices, 16 edges
 ```
 """
 function tadpole_graph(m::Int64, n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.TadpoleGraph(filter, m, n))
+  return Digraph(DigraphWrap.TadpoleGraph(_filt(mut), m, n))
 end
 
 @doc raw"""
@@ -1118,8 +1058,7 @@ Digraph with 16 vertices, 66 edges
 ```
 """
 function triangular_grid_graph(n::Int64, k::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.TriangularGridGraph(filter, n, k))
+  return Digraph(DigraphWrap.TriangularGridGraph(_filt(mut), n, k))
 end
 
 @doc raw"""
@@ -1134,8 +1073,7 @@ Digraph with 32 vertices, 256 edges
 ```
 """
 function walsh_hadamard_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.WalshHadamardGraph(filter, n))
+  return Digraph(DigraphWrap.WalshHadamardGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -1150,8 +1088,7 @@ Digraph with 12 vertices, 32 edges
 ```
 """
 function web_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.WebGraph(filter, n))
+  return Digraph(DigraphWrap.WebGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -1166,8 +1103,7 @@ Digraph with 4 vertices, 12 edges
 ```
 """
 function wheel_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.WheelGraph(filter, n))
+  return Digraph(DigraphWrap.WheelGraph(_filt(mut), n))
 end
 
 @doc raw"""
@@ -1182,8 +1118,7 @@ Digraph with 13 vertices, 48 edges
 ```
 """
 function windmill_graph(n::Int64, m::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.WindmillGraph(filter, n, m))
+  return Digraph(DigraphWrap.WindmillGraph(_filt(mut), n, m))
 end
 
 @doc raw"""
@@ -1198,30 +1133,33 @@ Digraph with 4 vertices, 6 edges
 ```
 """
 function star_graph(n::Int64; mut::Bool=false)
-  filter = mut ? GAP.Globals.IsMutableDigraph : GAP.Globals.IsImmutableDigraph
-  return Digraph(DigraphWrap.StarGraph(filter, n))
+  return Digraph(DigraphWrap.StarGraph(_filt(mut), n))
 end
 
 @doc raw"""
-    edge_weighted_digraph(D::Digraph, weights::Vector{Vector{Int}}) -> Digraph
+    edge_weighted_digraph(D::Digraph, weights::Vector{Vector{T}}) where T <: Union{Int64, Any} -> Digraph
+    edge_weighted_digraph(adj::Vector{Vector{T}}, eights::Vector{Vector{T}}) where T <: Union{Int64, Any} -> Digraph
 
 Return an edge-weighted digraph from the digraph D with edge weights.
 
 # Examples
-`jldoctest
+```jldoctest
 julia> d = digraph([[2], [1]])
 Digraph with 2 vertices, 2 edges
 
 julia> edge_weighted_digraph(d, [[5], [10]])
 Digraph with 2 vertices, 2 edges
-`
+
+julia> edge_weighted_digraph([[2], [1]], [[5], [10]], mut = true)
+Digraph with 2 vertices, 2 edges
+```
 """
-function edge_weighted_digraph(D::Digraph, weights::Vector{Vector{Int}})
-  return Digraph(DigraphWrap.EdgeWeightedDigraph(GapObj(D), GapObj(weights)))
+function edge_weighted_digraph(D::Digraph, weights::Vector{Vector{T}}) where T <: Union{Int64, Any}
+  return Digraph(DigraphWrap.EdgeWeightedDigraph(GapObj(D), GapObj(weights, recursive = true)))
 end
 
-function edge_weighted_digraph(adj::Vector{Vector{Int}}, eights::Vector{Vector{Int}})
-  d = digraph(adj)
+function edge_weighted_digraph(adj::Vector{Vector{T}}, weights::Vector{Vector{T}}; mut::Bool=false) where T <: Union{Int64, Any}
+  d = digraph(adj, mut = mut)
   return edge_weighted_digraph(d, weights)
 end
 

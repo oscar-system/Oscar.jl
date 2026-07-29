@@ -1458,7 +1458,7 @@ julia> d = edge_weighted_digraph([[2], [3], []], [[5], [10], []])
 Digraph with 3 vertices, 2 edges
 
 julia> edge_weighted_digraph_shortest_paths(d)
-GAP: rec( distances := [ 0, 5, 15 ], parents := [ fail, 1, 2 ] )
+GAP: rec( distances := [ [ 0, 5, 15 ], [ fail, 0, 10 ], [ fail, fail, 0 ] ], edges := [ [ fail, 1, 1 ], [ fail, fail, 1 ], [ fail, fail, fail ] ], parents := [ [ fail, 1, 1 ], [ fail, fail, 2 ], [ fail, fail, fail ] ] )
 ```
 """
 function edge_weighted_digraph_shortest_paths(D::Digraph)
@@ -1498,16 +1498,21 @@ Return a minimal set of edges whose removal makes D acyclic.
 
 # Examples
 ```jldoctest
-julia> d = digraph([[2], [3], [1]])
-Digraph with 3 vertices, 3 edges
+julia> d = hypercube_graph(3)
+Digraph with 8 vertices, 24 edges
 
 julia> minimal_cyclic_edge_cut(d)
-1-element Vector{Int64}:
- 1
+4-element Vector{Vector{Int64}}:
+ [1, 5]
+ [2, 6]
+ [4, 8]
+ [3, 7]
 ```
 """
 function minimal_cyclic_edge_cut(D::Digraph)
-  return Vector{Int}(DigraphWrap.MinimalCyclicEdgeCut(GapObj(D)))
+  result = DigraphWrap.MinimalCyclicEdgeCut(GapObj(D))
+  @req result != GAP.Globals.fail "The digraph is not cubic, not connected, has less than 8 vertices or does not have a cyclic edge cut."
+  return Vector{Vector{Int64}}(result)
 end
 
 @doc raw"""
@@ -1519,18 +1524,24 @@ nothing if no such pair exists.
 
 # Examples
 ```jldoctest
-julia> d = chain_digraph(3)
-Digraph with 3 vertices, 3 edges
+julia> d = digraph([Vector(1:4), [2, 4], [3, 4], [4]])
+Digraph with 4 vertices, 9 edges
 
 julia> non_upper_semimodular_pair(d)
+ERROR: ArgumentError: No such pair exists (meaning that D is an upper semimodular lattice
+Stacktrace:
+ [1] macro expansion
+   @ ~/.julia/packages/AbstractAlgebra/Y7um3/src/Assertions.jl:602 [inlined]
+ [2] non_upper_semimodular_pair(D::Digraph)
+   @ Oscar /mnt/d/Desktop/Works/Oscar.jl/experimental/Digraphs/src/Attributes.jl:1550
+ [3] top-level scope
+   @ REPL[81]:1
 ```
 """
 function non_upper_semimodular_pair(D::Digraph)
   result = DigraphWrap.NonUpperSemimodularPair(GapObj(D))
-  if result == GAP.Globals.fail
-    return nothing
-  end
-  return Tuple{Int,Int}(result)
+  @req result != GAP.Globals.fail "No such pair exists (meaning that D is an upper semimodular lattice"
+  return Vector{Int,Int}(result)
 end
 
 @doc raw"""
@@ -1542,18 +1553,24 @@ nothing if no such pair exists.
 
 # Examples
 ```jldoctest
-julia> d = chain_digraph(3)
-Digraph with 3 vertices, 3 edges
+julia> d = digraph([Vector(1:4), [2, 4], [3, 4], [4]])
+Digraph with 4 vertices, 9 edges
 
 julia> non_lower_semimodular_pair(d)
+ERROR: ArgumentError: No such pair exists (meaning that D is an upper semimodular lattice
+Stacktrace:
+ [1] macro expansion
+   @ ~/.julia/packages/AbstractAlgebra/Y7um3/src/Assertions.jl:602 [inlined]
+ [2] non_lower_semimodular_pair(D::Digraph)
+   @ Oscar /mnt/d/Desktop/Works/Oscar.jl/experimental/Digraphs/src/Attributes.jl:1572
+ [3] top-level scope
+   @ REPL[82]:1
 ```
 """
 function non_lower_semimodular_pair(D::Digraph)
   result = DigraphWrap.NonLowerSemimodularPair(GapObj(D))
-  if result == GAP.Globals.fail
-    return nothing
-  end
-  return Tuple{Int,Int}(result)
+  @req result != GAP.Globals.fail "No such pair exists (meaning that D is an upper semimodular lattice"
+  return Vector{Int,Int}(result)
 end
 
 @doc raw"""
@@ -1572,12 +1589,9 @@ Digraph with 3 vertices, 3 edges
 """
 function strong_orientation(D::Digraph)
   result = DigraphWrap.StrongOrientation(GapObj(D))
-  if result == GAP.Globals.fail
-    return nothing
-  end
+  @req result != GAP.Globals.fail "D is symmetric but does not admit a strong orientation."
   return Digraph(result)
 end
-
 
 @doc raw"""
     digraph_maximum_flow(D::Digraph, s::Int, t::Int) -> GapObj
@@ -1666,10 +1680,10 @@ edge-weighted digraph D.
 # Examples
 ```jldoctest
 julia> d = edge_weighted_digraph([[2, 3], [4], [4], []], [[5, 1], [6], [11], []])
-Digraph with 3 vertices, 2 edges
+Digraph with 4 vertices, 4 edges
 
 julia> edge_weighted_digraph_shortest_paths(d, 1)
-GAP: rec( distances := [ 0, 5, 15 ], parents := [ fail, 1, 2 ] )
+GAP: rec( distances := [ 0, 5, 1, 11 ], parents := [ fail, 1, 1, 2 ] )
 ```
 """
 function edge_weighted_digraph_shortest_paths(D::Digraph, source::Int)

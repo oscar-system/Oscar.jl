@@ -22,16 +22,16 @@ GAP.@wrap BlissCanonicalDigraph(x::GapObj)::GapObj
 GAP.@wrap BlissCanonicalLabelling(x::GapObj)::GapObj
 GAP.@wrap BooleanAdjacencyMatrix(x::GapObj)::GapObj
 GAP.@wrap Bridges(x::GapObj)::GapObj
-GAP.@wrap CayleyDigraph(filter::GapObj, G::GapObj, gens::GapObj)::GapObj
-GAP.@wrap CayleyDigraph(filter::GapObj, G::GapObj)::GapObj
+GAP.@wrap CayleyDigraph(filt::GapObj, G::GapObj, gens::GapObj)::GapObj
+GAP.@wrap CayleyDigraph(filt::GapObj, G::GapObj)::GapObj
 GAP.@wrap CharacteristicPolynomial(x::GapObj)::GapObj
 GAP.@wrap ChromaticNumber(x::GapObj)::GapInt
 GAP.@wrap CliqueNumber(x::GapObj)::GapInt
-GAP.@wrap CompleteBipartiteDigraph(filter::GapObj, x::Int, y::Int)::GapObj
-GAP.@wrap CompleteDigraph(filter::GapObj, x::Int)::GapObj
-GAP.@wrap CycleDigraph(filter::GapObj, x::Int)::GapObj
+GAP.@wrap CompleteBipartiteDigraph(filt::GapObj, x::Int, y::Int)::GapObj
+GAP.@wrap CompleteDigraph(filt::GapObj, x::Int)::GapObj
+GAP.@wrap CycleDigraph(filt::GapObj, x::Int)::GapObj
 GAP.@wrap CycleDigraph(x::Int)::GapObj
-GAP.@wrap ChainDigraph(filter::GapObj, n::Int)::GapObj
+GAP.@wrap ChainDigraph(filt::GapObj, n::Int)::GapObj
 GAP.@wrap DegreeMatrix(x::GapObj)::GapObj
 GAP.@wrap DigraphAllSimpleCircuits(x::GapObj)::GapObj
 GAP.@wrap DigraphAbsorptionProbabilities(x::GapObj)::GapObj
@@ -61,7 +61,7 @@ GAP.@wrap DigraphShortestPath(x::GapObj, s::Int, t::Int)::GapObj
 GAP.@wrap DigraphStronglyConnectedComponent(x::GapObj, v::Int)::GapObj
 GAP.@wrap DigraphVertexConnectivity(x::GapObj)::GapInt
 GAP.@wrap DigraphVertices(x::GapObj)::GapObj
-GAP.@wrap EmptyDigraph(filter::GapObj, n::Int)::GapObj
+GAP.@wrap EmptyDigraph(filt::GapObj, n::Int)::GapObj
 GAP.@wrap EdgeWeights(x::GapObj)::GapObj
 GAP.@wrap EdgeWeightedDigraph(D::GapObj, weights::GapObj)::GapObj
 GAP.@wrap EdgeWeightedDigraphMinimumSpanningTree(x::GapObj)::GapObj
@@ -73,19 +73,19 @@ GAP.@wrap GeneratorsOfCayleyDigraph(x::GapObj)::GapObj
 GAP.@wrap GroupOfCayleyDigraph(x::GapObj)::GapObj
 GAP.@wrap HamiltonianPath(x::GapObj)::GapObj
 GAP.@wrap IsReachable(x::GapObj, s::Int, t::Int)::Bool
-GAP.@wrap JohnsonDigraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap Digraph(filter::GapObj, adj::GapObj)::GapObj
-GAP.@wrap Digraph(filter::GapObj, G::GapObj, list::GapObj, act::GapObj, rel::GapObj)::GapObj
-GAP.@wrap Digraph(filter::GapObj, labels::GapObj, source::GapObj, range::GapObj)::GapObj
-GAP.@wrap Digraph(filter::GapObj, list::GapObj, func::GapObj)::GapObj
-GAP.@wrap Digraph(filter::GapObj, n::Int64, source::GapObj, range::GapObj)::GapObj
+GAP.@wrap JohnsonDigraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap Digraph(filt::GapObj, adj::GapObj)::GapObj
+GAP.@wrap Digraph(filt::GapObj, G::GapObj, list::GapObj, act::GapObj, rel::GapObj)::GapObj
+GAP.@wrap Digraph(filt::GapObj, labels::GapObj, source::GapObj, range::GapObj)::GapObj
+GAP.@wrap Digraph(filt::GapObj, list::GapObj, func::GapObj)::GapObj
+GAP.@wrap Digraph(filt::GapObj, n::Int64, source::GapObj, range::GapObj)::GapObj
 GAP.@wrap Digraph(obj::GapObj)::GapObj
 GAP.@wrap DigraphBicomponents(x::GapObj)::GapObj
-GAP.@wrap DigraphByAdjacencyMatrix(filter::GapObj, x::GapObj)::GapObj
+GAP.@wrap DigraphByAdjacencyMatrix(filt::GapObj, x::GapObj)::GapObj
 GAP.@wrap DigraphByAdjacencyMatrix(x::GapObj)::GapObj
-GAP.@wrap DigraphByEdges(filter::GapObj, x::GapObj, n::Int64)::GapObj
-GAP.@wrap DigraphByEdges(filter::GapObj, x::GapObj)::GapObj
-GAP.@wrap DigraphByInNeighbours(filter::GapObj, x::GapObj)::GapObj
+GAP.@wrap DigraphByEdges(filt::GapObj, x::GapObj, n::Int64)::GapObj
+GAP.@wrap DigraphByEdges(filt::GapObj, x::GapObj)::GapObj
+GAP.@wrap DigraphByInNeighbours(filt::GapObj, x::GapObj)::GapObj
 GAP.@wrap DigraphByInNeighbours(x::GapObj)::GapObj
 GAP.@wrap DigraphCartesianProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap DigraphConnectedComponents(x::GapObj)::GapObj
@@ -188,16 +188,16 @@ GAP.@wrap ModularProduct(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap NrSpanningTrees(x::GapObj)::GapInt
 GAP.@wrap NonLowerSemimodularPair(x::GapObj)::GapObj
 GAP.@wrap NonUpperSemimodularPair(x::GapObj)::GapObj
-GAP.@wrap NullDigraph(filter::GapObj, x::Int)::GapObj
+GAP.@wrap NullDigraph(filt::GapObj, x::Int)::GapObj
 GAP.@wrap OutDegrees(x::GapObj)::GapObj
 GAP.@wrap OutNeighbours(x::GapObj)::GapObj
 GAP.@wrap QuotientDigraph(x::GapObj, y::GapObj)::GapObj
-GAP.@wrap RandomDigraph(filter::GapObj, n::Int, p::GapObj)::GapObj
-GAP.@wrap RandomDigraph(filter::GapObj, n::Int)::GapObj
+GAP.@wrap RandomDigraph(filt::GapObj, n::Int, p::GapObj)::GapObj
+GAP.@wrap RandomDigraph(filt::GapObj, n::Int)::GapObj
 GAP.@wrap RandomLattice(n::Int)::GapObj
 GAP.@wrap RandomMultiDigraph(n::Int, m::Int)::GapObj
 GAP.@wrap RandomMultiDigraph(n::Int)::GapObj
-GAP.@wrap RandomTournament(filter::GapObj, n::Int)::GapObj
+GAP.@wrap RandomTournament(filt::GapObj, n::Int)::GapObj
 GAP.@wrap ReadDigraphs(x::GapObj)::GapObj
 GAP.@wrap ReducedDigraph(x::GapObj)::GapObj
 GAP.@wrap Sparse6String(x::GapObj)::GapObj
@@ -207,50 +207,49 @@ GAP.@wrap SubdigraphHomeomorphicToK23(x::GapObj)::GapObj
 GAP.@wrap SubdigraphHomeomorphicToK33(x::GapObj)::GapObj
 GAP.@wrap SubdigraphHomeomorphicToK4(x::GapObj)::GapObj
 GAP.@wrap WriteDigraphs(x::GapObj, y::GapObj)::GapObj
-
-GAP.@wrap AndrasfaiGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap BananaTree(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap BinaryTree(filter::GapObj, n::Int)::GapObj
-GAP.@wrap BinomialTreeGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap BishopsGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap BondyGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap BookGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap BurntPancakeGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap CirculantGraph(filter::GapObj, n::Int, par::GapObj)::GapObj
-GAP.@wrap CompleteMultipartiteDigraph(filter::GapObj, orders::GapObj)::GapObj
-GAP.@wrap CycleGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap GearGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap GeneralisedPetersenGraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap HaarGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap HalvedCubeGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap HanoiGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap HelmGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap HypercubeGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap KellerGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap KingsGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap KneserGraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap KnightsGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap LindgrenSousselierGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap LollipopGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap MobiusLadderGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap MycielskiGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap OddGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap PancakeGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap PathGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap PermutationStarGraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap PrismGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap QueensGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap RooksGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap SquareGridGraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap StackedBookGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap StackedPrismGraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap StarGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap TadpoleGraph(filter::GapObj, m::Int, n::Int)::GapObj
-GAP.@wrap TriangularGridGraph(filter::GapObj, n::Int, k::Int)::GapObj
-GAP.@wrap WalshHadamardGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap WebGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap WheelGraph(filter::GapObj, n::Int)::GapObj
-GAP.@wrap WindmillGraph(filter::GapObj, n::Int, m::Int)::GapObj
+GAP.@wrap AndrasfaiGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap BananaTree(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap BinaryTree(filt::GapObj, n::Int)::GapObj
+GAP.@wrap BinomialTreeGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap BishopsGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap BondyGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap BookGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap BurntPancakeGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap CirculantGraph(filt::GapObj, n::Int, par::GapObj)::GapObj
+GAP.@wrap CompleteMultipartiteDigraph(filt::GapObj, orders::GapObj)::GapObj
+GAP.@wrap CycleGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap GearGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap GeneralisedPetersenGraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap HaarGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap HalvedCubeGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap HanoiGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap HelmGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap HypercubeGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap KellerGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap KingsGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap KneserGraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap KnightsGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap LindgrenSousselierGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap LollipopGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap MobiusLadderGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap MycielskiGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap OddGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap PancakeGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap PathGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap PermutationStarGraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap PrismGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap QueensGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap RooksGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap SquareGridGraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap StackedBookGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap StackedPrismGraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap StarGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap TadpoleGraph(filt::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap TriangularGridGraph(filt::GapObj, n::Int, k::Int)::GapObj
+GAP.@wrap WalshHadamardGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap WebGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap WheelGraph(filt::GapObj, n::Int)::GapObj
+GAP.@wrap WindmillGraph(filt::GapObj, n::Int, m::Int)::GapObj
 function __init__()
     GAP.Packages.load("Digraphs") || error("cannot load GAP package Digraphs")
 end

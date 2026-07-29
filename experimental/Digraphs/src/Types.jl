@@ -28,3 +28,12 @@ function Base.show(io::IO, ::MIME"text/plain", D::Digraph)
     end
 end
 
+# Used when constructing a digraph to generate whether the digraph is mutable
+function _filt(mut::Bool)
+    if mut
+        return GAP.Globals.IsMutableDigraph
+    else
+        return GAP.Globals.IsImmutableDigraph
+    end
+end
+
