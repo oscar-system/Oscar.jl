@@ -316,7 +316,6 @@
       ("F4", root_system(:F, 4)),
       ("G2", root_system(:G, 2)),
     ]
-
       @test iszero(dual(zero(RootSpaceElem, R)))
       @test iszero(dual(zero(DualRootSpaceElem, R)))
 
