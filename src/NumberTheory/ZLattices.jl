@@ -229,10 +229,16 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Grap
   v_i = zero_matrix(ZZ, 1, number_of_columns(gram))
   t_i = zero_matrix(ZZ, number_of_rows(gram), 1)
   w_i = zero_matrix(ZZ, 1, 1)
+  n = maximum(v -> (v*gram*transpose(v))[1], cv_set)
+  if n^2 < typemax(Int)
+    usedMul! = mul!
+  else 
+    usedMul! = LinearAlgebra.mul!
+  end
   for i = 1:p 
-    mul!(v_i, cv_set[i], gram)
+    usedMul!(v_i, cv_set[i], gram)
     for j = i+1:p
-      mul!(w_i, v_i, transpose!(t_i, cv_set[j]))
+      usedMul!(w_i, v_i, transpose!(t_i, cv_set[j]))
       w = Int64(w_i[1])
       if w>max_w
         max_w = w
@@ -241,7 +247,7 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Grap
       res_graph.edge[i, j] = w
     end
     add_edge!(res_graph, i, p+1)
-    mul!(w_i, v_i, transpose!(t_i, cv_set[i]))
+    usedMul!(w_i, v_i, transpose!(t_i, cv_set[i]))
     w = Int64(w_i[1])
     res_graph.edge[i, p+1] = w
   end
