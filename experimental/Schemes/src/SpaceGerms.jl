@@ -16,6 +16,9 @@ const GermAtClosedPoint = AffineScheme{<:Field,
                          <:AbsLocalizedRing{<:Ring, <:RingElem,
                                             <:MPolyComplementOfKPointIdeal}
                         }
+
+## the following is currently unused....
+## as no backend for groebner computations is currently available in this case
 const GermAtGeometricPoint = AffineScheme{<:Field,
                             <:AbsLocalizedRing{<:Ring, <:RingElem,
                                                <:MPolyComplementOfPrimeIdeal}
@@ -37,12 +40,7 @@ A space germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`
                 AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
 
-  function SpaceGerm(X::GermAtClosedPoint)
-    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X)
-  end
-
-## the following one is currently unused..
-  function SpaceGerm(X::GermAtGeometricPoint)
+  function SpaceGerm(X::GermAtPoint)
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X)
   end
 end
@@ -59,17 +57,7 @@ A hypersurface germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying sche
   X::AffineSchemeType
   f::RingElem
 
-  function HypersurfaceGerm(X::GermAtClosedPoint,f::MPolyLocRingElem; check::Bool=true)
-    base_ring(modulus(OO(X))) == parent(f) || error("baserings do not match")
-    @check begin
-      (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
-    end
-    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,f)
-  end
-
-## the following is currently unused....
-## as no backend for groebner computations is currently available in this case
-  function HypersurfaceGerm(X::GermAtGeometricPoint, f::MPolyLocRingElem; check::Bool=true)
+  function HypersurfaceGerm(X::GermAtPoint, f::MPolyLocRingElem; check::Bool=true)
     base_ring(modulus(OO(X))) == parent(f) || error("baserings do not match")
     @check begin
       (ideal(parent(f),[f]) == modulus(OO(X))) || error("given f does not define given X")
@@ -87,20 +75,8 @@ A complete intersection germ ``(X, O_{(X,x)})``, i.e. a ringed space with underl
   X::AffineSchemeType
   v::Vector{<:RingElem}
 
-  function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{T}; check::Bool=true) where T<:MPolyLocRingElem
+  function CompleteIntersectionGerm(X::GermAtPoint, v::Vector{T}; check::Bool=true) where T<:MPolyLocRingElem
     R = base_ring(modulus(OO(X)))
-    all(x->parent(x) == R, v) || error("base_rings do not coincide")
-    @check begin
-      length(v) == krull_dim(R) - dim(X) || error("not a complete intersection")
-      modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
-    end
-    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
-  end
-
-## the following one is currently unused...
-## as no backend for groebner computations is currently available in this case
-  function CompleteIntersectionGerm(X::GermAtGeometricPoint, v::Vector{MPolyLocRingElem}; check::Bool=true)
-    R = base_ring(OO(X))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
       length(v) == krull_dim(R) - dim(X) || error("not a complete intersection")
