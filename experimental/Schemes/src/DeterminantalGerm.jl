@@ -56,7 +56,7 @@ julia> L == base_ring(determinantal_ideal(X_A))
 true
 ```
 """
-@attr function determinantal_ideal(X::DeterminantalGerm)
+@attr MPolyLocalizedIdeal function determinantal_ideal(X::DeterminantalGerm)
   _, _, t = determinantal_type(X) 
   return _determinantal_ideal(defining_matrix(X), t, _mat_type(X))
 end
