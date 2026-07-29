@@ -362,13 +362,13 @@ end
 
 
 
-function _T1_GL_module(A::MatElem; val::Type = Val{:generic})
+function _T1_GL_module(A::MatElem; val_type::Type = Val{:generic})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
   # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
   F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
-  return SubquoModule(F, F.(_vec.(_T1_gens(A, val))), F.(_vec.(_T1_GL_rels(A, val))))
+  return SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_GL_rels(A, val_type))))
 end
 
 @doc raw"""
@@ -462,7 +462,7 @@ by submodule with 5 generators
   5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
-@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val = _mat_type(X))
+@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val_type = _mat_type(X))
 
 
 
@@ -705,13 +705,13 @@ end
 
 
 
-function _T1_SL_module(A::MatElem; val::Type = Val{:generic})
+function _T1_SL_module(A::MatElem; val_type::Type = Val{:generic})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
   # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
   F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
-  return SubquoModule(F, F.(_vec.(_T1_gens(A, val))), F.(_vec.(_T1_SL_rels(A, val))))
+  return SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_SL_rels(A, val_type))))
 end
 
 
@@ -724,7 +724,7 @@ Return the $T^1_{SL}$-module of the defining matrix `A` of the determinantal ger
     Different determinantal structures for the same underlying space germ may yield different $T^1_{SL}$-modules.
 
 """
-@attr SubquoModule T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val = _mat_type(X))
+@attr SubquoModule T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val_type = _mat_type(X))
 
 
 
