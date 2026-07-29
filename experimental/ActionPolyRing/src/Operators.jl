@@ -337,8 +337,11 @@ Return `true` if `p` is smaller than `q` with respect to the Ritt ordering (asso
 ranking) on the action polynomial ring containing `p` and `q`), otherwise return `false`.
 """
 function ritt_is_less(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-  
   if is_constant(p)
+    if is_zero(p)
+      is_zero(q) && return false
+      return true
+    end
     is_constant(q) && return false
     return true
   end
