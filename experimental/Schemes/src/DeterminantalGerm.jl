@@ -6,10 +6,10 @@
 
 Return the determinantal ideal `I` defining the determinantal germ `X` in the ring of the ambient germ of `X`.
 !!! warning
-    The `determinantal_ideal` might differ from the `defining_ideal`, if the determinantal structure was later endowed onto an existing germ.
+    The `determinantal_ideal` might differ from the `defining_ideal`, if the determinantal structure was endowed onto an existing scheme.
 
 !!! note
-    The returned determinantal ideal `I` is not an ideal of a polynomial ring, but an ideal of a localization of a polynomial ring at the complement of a maximal ideal. (Hence each generator of `I` has a numerator and a denominator.)
+    The returned determinantal ideal `I` is not an ideal of a polynomial ring, but an ideal of a localization of a polynomial ring at the complement of a prime ideal. (Hence each generator of `I` has a numerator and a denominator.)
 
 # Examples:
 ```jldoctest
@@ -19,13 +19,13 @@ julia> L, _ = localization(R, complement_of_point_ideal(R, [0,0,0]));
 
 julia> Q, _ = quo(L, ideal(L, [x*y, x*z, y*z]));
 
-julia> X = SpaceGerm(spec(Q));
+julia> X = spec(Q);
 
 julia> A = L[x 0 z;  0 y z]
 [x   0   z]
 [0   y   z]
 
-julia> X_A = DeterminantalGerm(underlying_scheme(X), A, 2)
+julia> X_A = DeterminantalGerm(X, A, 2)
 Spectrum
   of localization
     of quotient
@@ -68,7 +68,7 @@ end
 
 Return the defining matrix `A` of the derterminantal germ `X` over the ring of the ambient germ of `X`.
 !!! note
-    The returned matrix `A` is not a matrix over a polynomial ring, but a matrix over a localization of a polynomial ring at the complement of a maximal ideal. (Hence each entry of `A` has a numerator and a denominator.)
+    The returned matrix `A` is not a matrix over a polynomial ring, but a matrix over a localization of a polynomial ring at the complement of a prime ideal. (Hence each entry of `A` has a numerator and a denominator.)
 
 # Examples:
 ```jldoctest
