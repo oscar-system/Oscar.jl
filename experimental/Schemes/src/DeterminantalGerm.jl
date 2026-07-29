@@ -25,7 +25,7 @@ julia> A = L[x 0 z;  0 y z]
 [x   0   z]
 [0   y   z]
 
-julia> X_A = DeterminantalGerm(X, A, 2)
+julia> X_A = DeterminantalGerm(underlying_scheme(X), A, 2)
 Spectrum
   of localization
     of quotient
@@ -208,6 +208,7 @@ _mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val
 ################################################################################
 
 #TODO: To add more constructors (mostly snake_case constructors with embedding)
+# TODO: constructor accepting a SpaceGerm as input
 
 #TODO: Docstring for this constructor
 function DeterminantalGerm(A::MatElem{T}, t::Int;
