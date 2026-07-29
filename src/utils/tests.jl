@@ -1,3 +1,32 @@
+function _test_stats_metadata(
+  dir::AbstractString=oscardir,
+  git_info::Union{Nothing,AbstractDict}=nothing,
+)
+  if Sys.which("git") !== nothing && ispath(joinpath(dir, ".git"))
+    try
+      timestamp = readchomp(
+        `git -C $dir show --no-patch --pretty=format:%ad --date=format:%Y-%m-%dT%H-%M-%S`,
+      )
+      commit = readchomp(`git -C $dir rev-parse --verify --short HEAD`)
+      return (; timestamp, commit)
+    catch
+    end
+  end
+
+  if isnothing(git_info)
+    git_info = _get_oscar_git_info()
+  end
+
+  if haskey(git_info, :commit) && haskey(git_info, :date)
+    timestamp = replace(git_info[:date][1:19], " " => "T", ":" => "-")
+    commit = git_info[:commit][1:7]
+    return (; timestamp, commit)
+  end
+
+  timestamp = Base.Libc.strftime("%Y-%m-%dT%H-%M-%S", time())
+  return (; timestamp, commit="v$(VERSION_NUMBER)")
+end
+
 function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION > v"1.11.0"))
   has_ctime_stat || (compile_elapsedtimes = Base.cumulative_compile_time_ns())
   stats = @timed Base.include(identity, mod, str)

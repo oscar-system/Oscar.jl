@@ -19,8 +19,14 @@ for file in filelist
     # filenames on github must not contain colons so we convert to the correct timestamp format here
     timestamp = Dates.format(DateTime(timestr, dateformat"yyyy-mm-ddTHH-MM-SSZ"),
                              dateformat"yyyy-mm-ddTHH:MM:SS")
-    commitAuthor = readchomp(`git show --no-patch --pretty=format:'%aN' $commitHash`)
-    commitMessage = readchomp(`git show --no-patch --pretty=format:'%s' $commitHash`)
+    commitAuthor, commitMessage = try
+        (readchomp(pipeline(`git show --no-patch --pretty=format:'%aN' $commitHash`;
+                            stderr=devnull)),
+         readchomp(pipeline(`git show --no-patch --pretty=format:'%s' $commitHash`;
+                            stderr=devnull)))
+    catch
+        ("unknown", "OSCAR $commitHash")
+    end
     if subset == "default"
         subset = "short"
     end

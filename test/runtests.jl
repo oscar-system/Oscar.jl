@@ -5,6 +5,22 @@ import DelimitedFiles
 using Dates
 using Oscar
 
+# Test statistics metadata generation without a Git checkout.
+@testset "test statistics metadata" begin
+  mktempdir() do dir
+    metadata = Oscar._test_stats_metadata(dir, Dict{Symbol,String}())
+    @test occursin(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$", metadata.timestamp)
+    @test metadata.commit == "v$(Oscar.VERSION_NUMBER)"
+
+    git_info = Dict(
+      :commit => "0123456789abcdef",
+      :date => "2026-07-24 12:17:12 +0200",
+    )
+    metadata = Oscar._test_stats_metadata(dir, git_info)
+    @test metadata == (timestamp="2026-07-24T12-17-12", commit="0123456")
+  end
+end
+
 numprocs_str = get(ENV, "NUMPROCS", "1")
 
 oldWorkingDirectory = pwd()
@@ -210,10 +226,11 @@ else
   print_stats(stdout, stats; max=10)
 end
 if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
-  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H-%M-%S"`)
+  metadata = Oscar._test_stats_metadata()
+  timestamp = metadata.timestamp
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
-  commitHash = readchomp(`git rev-parse --verify --short HEAD`)
+  commitHash = metadata.commit
   statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(test_subset)_$(commitHash).csv"
   open(joinpath(pkgdir(Oscar), statsFileName), "a") do io
     println(io, "path,time,ctime,rctime,gctime,alloc")
