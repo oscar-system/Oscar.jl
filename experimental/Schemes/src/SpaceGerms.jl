@@ -10,7 +10,7 @@ abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsAffineSchem
 
 
 ####################################################################
-## two short hand definitions for internal use only
+## three short hand definitions for internal use only
 ####################################################################
 const GermAtClosedPoint = AffineScheme{<:Field,
                          <:AbsLocalizedRing{<:Ring, <:RingElem,
@@ -20,6 +20,8 @@ const GermAtGeometricPoint = AffineScheme{<:Field,
                             <:AbsLocalizedRing{<:Ring, <:RingElem,
                                                <:MPolyComplementOfPrimeIdeal}
                            }
+
+const GermAtPoint = Union{GermAtClosedPoint, GermAtGeometricPoint}
 
 ###################################################################
 ## start of the definition of space germ functionality
@@ -150,24 +152,29 @@ A determinantal germ $(X_A^t, O_{(X_A^t, x)})$, i.e. a ringed space with underly
                   RingType <: Ring,
                   AffineSchemeType <: AffineScheme, 
                   MatType <: MatTypeVal
-                } <: AbsSpaceGerm{BaseRingType, RingType}
+            } <: AbsSpaceGerm{BaseRingType, RingType}
+  X::AffineSchemeType
   A::MatElem{<:RingElem}
   t::Int
-  X::AffineSchemeType
 
-  function DeterminantalGerm(A::MatElem{<:MPolyAnyLocalRingElem}, t::Int; mat_type::Symbol = :generic, check::Bool=true)
+  function DeterminantalGerm(X::GermAtPoint, A::MatElem{T}, t::Int;
+                             mat_type::Symbol = :generic, check::Bool=true
+    ) where T <: MPolyAnyLocalRingElem
     @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
     (n, m) = size(A)
     @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
-    R = base_ring(A)
-    
-    val = Val{mat_type}
-    I = _determinantal_ideal(A, t, val)
-    @check (krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val)) _codim_error(val)
+    val_type = Val{mat_type}
 
-    Q, _ = quo(R, I)
-    X = spec(Q)
-    return new{typeof(coefficient_ring(R)), typeof(Q), typeof(X), val}(A, t, X)
+    @check begin
+      I = modulus(OO(X))
+      R = base_ring(I)
+
+      R == base_ring(A) || error("baserings do not match")      
+      I == _determinantal_ideal(A, t, val_type) || error("given matrix does not generate modulus")
+      krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val_type) || error(_codim_error(val_type))
+    end
+    
+    return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X), val_type}(X, A, t)
   end
 end
 

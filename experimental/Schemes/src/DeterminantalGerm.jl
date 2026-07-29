@@ -189,7 +189,26 @@ _mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val
 ## More constructors
 ################################################################################
 
-#TODO: To add more constructors
+#TODO: To add more constructors (mostly snake_case constructors with embedding)
+
+#TODO: Docstring for this constructor
+function DeterminantalGerm(A::MatElem{T}, t::Int;
+                           mat_type::Symbol = :generic, check::Bool=true
+)  where T <: AbsLocalizedRingElem{<:Ring, <:RingElem, <:MPolyComplementOfKPointIdeal}
+  @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
+  (n, m) = size(A)
+  @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
+  R = base_ring(A)  
+  val_type = Val{mat_type}
+  I = _determinantal_ideal(A, t, val_type)
+
+  @check (krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val_type)) _codim_error(val_type)
+  # The necessary check has already been done, if check=true, therefore check=false.
+  return DeterminantalGerm(spec(quo(R, I)[1]), A, t, mat_type=mat_type, check=false)
+end
+
+
+
 @doc raw"""
     DeterminantalGerm(A::MatElem{<:MPolyRingElem}, t::Int, p::Vector{T}; mat_type::Symbol = :generic, check::Bool=true)
 
