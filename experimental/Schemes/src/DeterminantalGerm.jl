@@ -17,15 +17,15 @@ julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> L, _ = localization(R, complement_of_point_ideal(R, [0,0,0]));
 
-julia> Q, _ = quo(L, ideal(L, [x*y, x*z, y*z]))
+julia> Q, _ = quo(L, ideal(L, [x*y, x*z, y*z]));
 
 julia> X = SpaceGerm(spec(Q));
 
-julia> A = R[x 0 z;  0 y z]
+julia> A = L[x 0 z;  0 y z]
 [x   0   z]
 [0   y   z]
 
-julia> X_A = DeterminantalGerm(X, A, 2, [0,0,0])
+julia> X_A = DeterminantalGerm(X, A, 2)
 Spectrum
   of localization
     of quotient
