@@ -389,6 +389,10 @@ using Test
             @test ritt_is_less(u3, u3_111)
             @test ritt_is_less(u1, u1_100)
             @test ritt_is_less(u2, u1_010)
+            @test ritt_is_less(dpr(1), u1)
+            @test !ritt_is_less(dpr(1), dpr(5))
+            @test ritt_is_less(dpr(0), dpr(1))
+            @test !ritt_is_less(dpr(0), dpr(0))
             @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [1,3,6]
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
@@ -1240,6 +1244,30 @@ using Test
         end
       end # two diff indets
     end # Difference reduction methods
-  end # ThomasDec
+    
+    @testset "autoreduction" begin
+      dxr, x = difference_polynomial_ring(QQ, :x, 1)
+
+      p1 = x[1] - x[0]^2
+      p2 = x[2]^2 - x[0]
+      @test autoreduce([p1, p2]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
+      @test autoreduce([p2, p1]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
+      @test autoreduce([p1, p1]) == [p1]
+      @test autoreduce(DifferencePolyRingElem[]) == DifferencePolyRingElem[]
+      @test autoreduce([dxr(0), dxr(0)]) == DifferencePolyRingElem[]
+      @test autoreduce([dxr(0), dxr(-1), dxr(2)]) == [dxr(-1)]
+
+
+      dpr, u = differential_polynomial_ring(QQ, :u, 1)
+      q1 = u[1]^2 - u[0]
+      q2 = u[2] - u[1]
+      @test autoreduce([q1, q2]) == [u[0]]
+      @test autoreduce([q2, q1]) == [u[0]]
+      @test autoreduce([q1, q1]) == [q1]
+      @test autoreduce(DifferentialPolyRingElem[]) == DifferentialPolyRingElem[]
+      @test autoreduce([dpr(0), dpr(0)]) == DifferentialPolyRingElem[]
+      @test autoreduce([dpr(0), dpr(-1), dpr(2)]) == [dpr(-1)]
+    end
+  end # ThomasDec 
 
 end #All tests
