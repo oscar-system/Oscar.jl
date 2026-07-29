@@ -1017,7 +1017,8 @@ using Test
           @test partially_reduce(p, q) == 4*u^2*u_y + 2*u_x*u_y + u
           @test partially_reduce(u_y + u, q) == u_y + u 
           
-          @test_throws ArgumentError partially_reduce(p, dpr(5))
+          @test partially_reduce(p, dpr(5)) == zero(p)
+          @test_throws ArgumentError partially_reduce(p, dpr(0))
         end
       
         @testset "reduce" begin
@@ -1032,7 +1033,8 @@ using Test
           @test reduce(p, q) == 6*u^2*u_y + u^4 + u
           @test reduce(u_y + u, q) == u_y + u 
           
-          @test_throws ArgumentError reduce(p, dpr(5))
+          @test reduce(p, dpr(5)) == zero(p)
+          @test_throws ArgumentError reduce(p, dpr(0))
         end
       end
       @testset "Two differential indeterminates" begin
