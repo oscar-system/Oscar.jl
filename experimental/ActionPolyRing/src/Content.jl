@@ -247,7 +247,7 @@ zero(apr::ActionPolyRing) = apr()
 @doc raw"""
     one(A::ActionPolyRing)
 
-Return the multiplicitive identity of the action polynomial ring `A`.
+Return the multiplicative identity of the action polynomial ring `A`.
 """
 one(apr::ActionPolyRing) = apr(one(base_ring(apr)))
 
@@ -546,7 +546,7 @@ gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}) = [gen(apr,
 
 Return the currently tracked jet variables of the action polynomial ring `A` as a vector. The jet variables are
 sorted with respect to the ranking of `A`, leading with the largest jet variable.
-
+/do
 # Examples
 
 ```jldoctest
@@ -642,7 +642,7 @@ constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre)
 Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term.
 """
 function leading_coefficient(apre::ActionPolyRingElem{T}) where {T}
-  @req length(apre) > 0 "Zero polynomial does not have a leading coefficient"
+  @req length(apre) > 0 "The zero polynomial has no leading coefficient"
   return coeff(apre, 1) 
 end
 
@@ -652,7 +652,7 @@ end
 Return the leading monomial of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
 """
 function leading_monomial(apre::ActionPolyRingElem) 
-  @req length(apre) > 0 "Zero polynomial does not have a leading monomial"
+  @req length(apre) > 0 "The zero polynomial has no leading monomial"
   return monomial(apre, 1)
 end
 
@@ -662,7 +662,7 @@ end
 Return the leading term of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
 """
 function leading_term(apre::ActionPolyRingElem) 
-  @req length(apre) > 0 "Zero polynomial does not have a leading term"
+  @req length(apre) > 0 "The zero polynomial has no a leading term"
   return term(apre, 1)
 end
 
@@ -673,7 +673,7 @@ Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of t
 """
 function trailing_coefficient(apre::ActionPolyRingElem{T}) where {T}
   len = length(apre)
-  @req len > 0 "Zero polynomial does not have a trailing coefficient"
+  @req len > 0 "The zero polynomial has no trailing coefficient"
   return coeff(apre, len) 
 end
 
@@ -684,7 +684,7 @@ Return the trailing monomial of the polynomial `p` with respect to the ranking o
 """
 function trailing_monomial(apre::ActionPolyRingElem) 
   len = length(apre)
-  @req len > 0 "Zero polynomial does not have a trailing monomial"
+  @req len > 0 "The zero polynomial has no trailing monomial"
   return monomial(apre, len)
 end
 
@@ -695,7 +695,7 @@ Return the leading term of the polynomial `p` with respect to the ranking of the
 """
 function trailing_term(apre::ActionPolyRingElem) 
   len = length(apre)
-  @req len > 0 "Zero polynomial does not have a trailing term"
+  @req len > 0 "The zero polynomial has no trailing term"
   return term(apre, len)
 end
 
@@ -736,10 +736,10 @@ derivative(apre::ActionPolyRingElem, i::Int) = derivative(apre, gen(parent(apre)
     separant(p::DifferentialPolyRingElem) -> DifferentialPolyRingElem
 
 Return the separant of `p` which is the formal derivative of `p` with respect to its leader.
-If `p` is a constant, the zero polynomial is returned.
+If `p` is a constant, then `p` itself is returned.
 """
 function separant(dpre::DifferentialPolyRingElem)
-  is_constant(dpre) && return zero(dpre)
+  is_constant(dpre) && return dpre
   return derivative(dpre, leader(dpre))
 end
 
@@ -916,9 +916,10 @@ end
     initial(p::ActionPolyRingElem)
 
 Return the initial of the polynomial `p`, i.e. the leading coefficient of `p` regarded as a univariate polynomial in its leader.
-If `p` is a constant, `p` itself is returned.
+If `p` is a nonzero constant, `p` itself is returned. If `p` is the zero polynomial, an error is raised.
 """
 function initial(apre::ActionPolyRingElem)
+  @req !is_zero(apre) "The zero polynomial has no initial"
   is_constant(apre) && return apre
   return univariate_leading_coefficient(apre, leader(apre))
 end
@@ -926,10 +927,12 @@ end
 @doc raw"""
     leader(p::ActionPolyRingElem)
 
-Return the leader of the polynomial `p`, that is the largest jet variable with respect to the ranking of `parent(p)`. If `p` is constant, an error is raised.
+Return the leader of the polynomial `p`, that is the largest jet variable with respect to the ranking of `parent(p)`. If `p` is a
+nonzero constant, then the multiplicative identity of `parent(p)` is returned. If `p` is the zero polynomial, an error is raised.
 """
 function leader(apre::ActionPolyRingElem)
-  @req !is_constant(apre) "A constant polynomial has no leader"
+  @req !is_zero(apre) "The zero polynomial has no leader"
+  is_constant(apre) && return one(apre)
   return maximum(vars(apre; sorted=false))
 end
 
@@ -976,7 +979,10 @@ resultant(r1::ActionPolyRingElem, r2::ActionPolyRingElem, i::Int) = resultant(r1
 Return the discriminant of `p`.
 """
 function discriminant(p::ActionPolyRingElem)
-  is_constant(p) && return zero(parent(p))
+  if is_constant(p)
+    is_zero(p) && return p
+    return one(p)
+  end
 
   ld = leader(p)
   
@@ -1086,7 +1092,8 @@ This method allows all versions described in [Specifying jet variables](@ref spe
 """
 function univariate_leading_coefficient(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
-  d <= 0 && return r  
+  @req d > -1 "The zero polynomial has no leading coefficient"
+  d == 0 && return r  
 
   res = zero(r)
   var = __jtv(parent(r))[(i, jet)]

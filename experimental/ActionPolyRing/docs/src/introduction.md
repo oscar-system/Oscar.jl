@@ -61,8 +61,11 @@ Let ``p \in S \setminus R`` be an action polynomial equipped with a ranking ``>`
 is the ``>``-largest (or highest ranked) jet variable occurring in ``p``. If we regard ``p`` as a univariate polynomial in
 ``\operatorname{ld}(p)`` then its coefficients are itself action polynomials in lower ranked jet variables, which we once again can regard as
 univariate polynomials in their respective leaders and so on. The *initial* of ``p``, denoted by ``\operatorname{init}(p)``, is the
-leading coefficient of ``p`` regarded as a univariate polynomial in ``\operatorname{ld}(p)``. The initial of ``p`` is very important in
-the context of [polynomial reduction](@ref polynomial_reduction_apr).
+leading coefficient of ``p`` regarded as a univariate polynomial in ``\operatorname{ld}(p)``. The initial of ``p`` is very important
+in the context of [polynomial reduction](@ref polynomial_reduction_apr).
+
+If ``c \in R \setminus \{0\}`` is a nonzero constant polynomial, we define its leader as the multiplicative identity of ``S``. The initial
+of ``c`` is just ``c`` itself. The zero polynomial has no leader and consequently also no initial.
 
 ### [Riquier rankings](@id actionpolyriquierranking)
 

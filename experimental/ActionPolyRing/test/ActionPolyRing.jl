@@ -585,7 +585,7 @@ using Test
             @test total_degree(dpr()) == -1
             @test degree(dpr(), 3, [5,5,5]) == -1
             @test_throws ArgumentError leader(dpr())
-            @test initial(dpr()) == ZZ()
+            @test_throws ArgumentError initial(dpr())
 
             @test dpr(1) == one(dpr)
             @test dpr(1) == ZZ(1)
@@ -611,7 +611,7 @@ using Test
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
             @test total_degree(dpr(1)) == 0 
             @test degree(dpr(1), 3, [5,5,5]) == 0
-            @test_throws ArgumentError leader(dpr(1))
+            @test leader(dpr(1)) == dpr(1)
             @test initial(dpr(1)) == ZZ(1)
 
             @test dpr(-2) == ZZ(-2)
@@ -635,7 +635,7 @@ using Test
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
             @test total_degree(dpr(-2)) == 0 
-            @test_throws ArgumentError leader(dpr(-2))
+            @test leader(dpr(-2)) == dpr(1)
             @test initial(dpr(-2)) == ZZ(-2)
 
             @test dpr(-5) == -dpr(5)
@@ -810,8 +810,8 @@ using Test
           @test discriminant(zero(dpr)) == 0
           
           # degree 0
-          @test discriminant(one(dpr)) == 0
-          @test discriminant(dpr(-17)) == 0
+          @test discriminant(one(dpr)) == 1
+          @test discriminant(dpr(-17)) == 1
           
           # degree 1
           @test discriminant(f) == 1
@@ -969,7 +969,8 @@ using Test
         
           q2 = u_xy^2 + u_x
           @test separant(q2) == 2*u_xy
-          @test separant(dpr(5)) == dpr(0)
+          @test separant(dpr(5)) == dpr(5)
+          @test separant(dpr(0)) == 0
         end
 
         @testset "pseudorem and pseudodivrem" begin
@@ -1064,7 +1065,7 @@ using Test
           @test separant(q1) == 1 
           @test separant(q2) == 3*u_x^2 + v_x
           @test separant(q3) == -10*v_y*v_xx^4 - 2*v_xy^2*v_xx + 2
-          @test separant(q4) == dpr(0)
+          @test separant(q4) == dpr(1)
         end
         @testset "pseudorem and pseudodivrem" begin
           p1 = u_x^2 + v_x
