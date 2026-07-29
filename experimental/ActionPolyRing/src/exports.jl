@@ -7,6 +7,7 @@ export DifferentialPolyRing
 export DifferentialPolyRingElem
 export action_indeterminates
 export apply_action
+export autoreduce
 export difference_polynomial_ring
 export differential_polynomial_ring
 export index_ordering_matrix
