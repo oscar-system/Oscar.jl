@@ -3,8 +3,6 @@ name: Warn about booktest changes
 on:
   pull_request_target:
     types: [opened, reopened, synchronize, ready_for_review]
-    paths:
-      - '**.jlcon'
 
 permissions:
   contents: read
@@ -39,9 +37,13 @@ jobs:
 
             const booktestFiles = files
               .filter((file) =>
-                file.filename.endsWith(".jlcon") ||
-                (file.previous_filename || "").endsWith(".jlcon"))
-              .map((file) => file.filename)
+                file.filename.match(/^test\/book\/[^/]+\/[^/]+\/[^/]+\.jl(con)?$/) ||
+                (file.previous_filename || "").match(
+                  /^test\/book\/[^/]+\/[^/]+\/[^/]+\.jl(con)?$/))
+              .map((file) =>
+                file.previous_filename
+                  ? `${file.previous_filename} → ${file.filename}`
+                  : file.filename)
               .sort();
 
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -54,20 +56,27 @@ jobs:
               comment.user.type === "Bot" && comment.body.includes(marker));
 
             if (booktestFiles.length === 0) {
+              if (existing) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                });
+              }
               return;
             }
 
             const fileList = booktestFiles.map((file) => `- \`${file}\``).join("\n");
             const body = [
               marker,
-              "This pull request changes one or more `.jlcon` booktest files.",
+              "This pull request changes one or more booktest files.",
               "",
               "These files are used by the OSCAR book website, so please take extra",
               "care when editing them. In particular, check that the corresponding",
               "book content still matches the transcript and that the website-facing",
               "examples remain suitable.",
               "",
-              "Changed `.jlcon` files:",
+              "Changed booktest files:",
               fileList,
             ].join("\n");
 
