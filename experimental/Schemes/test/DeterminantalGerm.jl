@@ -101,7 +101,7 @@ end
   # is identical
   X2 = X
   @test X == X2
-  # different determinantal structure
+  # different determinantal structure (with and without symmetry)
   X_sym = DeterminantalGerm(A, 2, [0,0,0], mat_type = :symmetric)
   @test X != X_sym
   # different ambient_coordinate_ring
@@ -112,17 +112,17 @@ end
   @test X != Y
   # same defining_matrix
   X3 = DeterminantalGerm(A, 2, [0,0,0])
-  @test_broken X == X3     #TODO: Add missing == for MPoly[Quo][Loc]Rings
+  @test X == X3
   # different constructors for the same germ
   L, _ = localization(R, complement_of_point_ideal(R, [0,0,0]))
   X4 = DeterminantalGerm(L.(A), 2)
-  @test_broken X == X4     #TODO: Add missing == for MPoly[Quo][Loc]Rings
-  # different defining matrix for same underlying_scheme
-  C = R[z y;
+  @test X == X4
+  # same determinantal_ideal, different defining matrix
+  C = L[z y;
         y x]
-  X5 = DeterminantalGerm(C, 2, [0,0,0])
-  @test_broken determinantal_ideal(X) == determinantal_ideal(X5)     #TODO: Add missing == for MPoly[Quo][Loc]Rings
-  @test X != X5
+  X5 = DeterminantalGerm(C, 2)
+  @test determinantal_ideal(X4) == determinantal_ideal(X5)
+  @test X4 != X5
 end
 
 @testset "T1_GL module" begin

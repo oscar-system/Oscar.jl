@@ -270,7 +270,8 @@ function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
   _mat_type(X) == _mat_type(Y) || return false
   determinantal_type(X) == determinantal_type(Y) || return false
   ambient_coordinate_ring(X) === ambient_coordinate_ring(Y) || return false
-  return defining_matrix(X) == defining_matrix(Y)
+  inverted_set(OO(X)) == inverted_set(OO(Y)) || return false
+  return fraction.(defining_matrix(X)) == fraction.(defining_matrix(Y))
 end
 
 
