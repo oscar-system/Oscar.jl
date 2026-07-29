@@ -1,22 +1,4 @@
-function _test_stats_metadata(
-  dir::AbstractString=oscardir,
-  git_info::Union{Nothing,AbstractDict}=nothing,
-)
-  if Sys.which("git") !== nothing && ispath(joinpath(dir, ".git"))
-    try
-      timestamp = readchomp(
-        `git -C $dir show --no-patch --pretty=format:%ad --date=format:%Y-%m-%dT%H-%M-%S`,
-      )
-      commit = readchomp(`git -C $dir rev-parse --verify --short HEAD`)
-      return (; timestamp, commit)
-    catch
-    end
-  end
-
-  if isnothing(git_info)
-    git_info = _get_oscar_git_info()
-  end
-
+function _test_stats_metadata(git_info::AbstractDict=_get_oscar_git_info())
   if haskey(git_info, :commit) && haskey(git_info, :date)
     timestamp = replace(git_info[:date][1:19], " " => "T", ":" => "-")
     commit = git_info[:commit][1:7]
