@@ -105,7 +105,7 @@ function partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPoly
 
   res = p
   changed = true
-  while changed && !iszero(res)
+  while changed && !is_zero(res)
     changed = false
     for q in Iterators.reverse(sorted_S)
       if !is_partially_reduced(res, q)
@@ -174,7 +174,7 @@ function reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
 
   res = p
   changed = true
-  while changed && !iszero(res)
+  while changed && !is_zero(res)
     changed = false
     for q in Iterators.reverse(sorted_S)
       if !is_reduced(res, q)
@@ -195,7 +195,8 @@ in the set is fully reduced with respect to all other polynomials in the set, an
 the set is sorted by Ritt ordering.
 """
 function is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
-  any(is_constant, S) && return (length(S) == 1 && is_constant(S[1]))
+  any(is_constant, S) && return (length(S) == 1 && !is_zero(S[1]) && is_constant(S[1]))
+  !issorted(S, lt=ritt_is_less) && return false
   
   for i in 1:length(S)
     for j in 1:length(S)
@@ -204,7 +205,7 @@ function is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
     end
   end
   
-  return issorted(S, lt=ritt_is_less)
+  return true
 end
 
 @doc raw"""
@@ -215,7 +216,7 @@ process a nonzero constant is discovered, the vector containing just this consta
 """
 function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   # S will serve as the working list throughout this algorithm
-  S = filter(!iszero, S)
+  S = filter(!is_zero, S)
   sort!(S, lt=ritt_is_less)
   
   A = PolyT[] # The "successively" built up autoreduced set 
@@ -233,7 +234,7 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
     for q in Iterators.reverse(A)
       p = reduce(p, q) 
       
-      if iszero(p)
+      if is_zero(p)
         break
       end
       
@@ -251,7 +252,7 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
     end
     
     # Nothing to do here
-    if iszero(p)
+    if is_zero(p)
       continue 
     end
     

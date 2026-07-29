@@ -232,6 +232,19 @@ We provide the following methods for reducing the action polynomial ``p`` with r
 ```@docs
 is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
 is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+
 partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
 reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+```
+
+We also provide similar methods for the set-related notions of reducedness:
+
+```@docs
+is_partially_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+is_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+
+partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
 ```

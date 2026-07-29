@@ -93,10 +93,12 @@ respect to Ritt ordering, if one of the following conditions holds:
 - ``p, q \notin R`` and ``\operatorname{ld}(p) < \operatorname{ld}(q)``
 - ``p, q \notin R``, ``v \coloneqq \operatorname{ld}(p) = \operatorname{ld}(q)`` and ``\operatorname{deg}_v(p) < \operatorname{deg}_v(q)``
 
+Additionally, we make the convention that the zero polynomial is smaller with respect to Ritt ordering than any other non-zero polynomial.
+
 !!! note "Incomparable action polynomials"
     In any action polynomial ring there exist polynomials ``p,q \in S`` such that ``p \neq q`` but neither ``p`` is less than ``q`` with
     respect to Ritt ordering nor the other way around. In this case, ``p`` and ``q`` are said to be *incomparable* (with respect to Ritt
-    ordering). Clearly, ``p`` and ``q`` are incomparable if and only if they are both constant, or they have the same leader as well as
+    ordering). Clearly, non-constant ``p`` and ``q`` are incomparable if and only if they have the same leader as well as
     the same degree in that leader.
 
 ### [Polynomial reduction](@id polynomial_reduction_apr)
@@ -105,7 +107,7 @@ Let ``p, q \in S = R[\, (u_i)_J \mid i \in \lbrace 1, \ldots, m \rbrace, J \in \
 action polynomials and let ``v`` denote the leader of ``q``, so that both ``p`` and ``q`` can be regarded as univariate polynomials
 in the jet variable ``v``. For the implementations of the concepts discussed below, see [polynomial reduction methods](@ref polynomial_reduction_methods_apr).
 
-#### [Pseudo-divsion and notions of reducedness for action polynomials](@id pseudodiv_and_notions_of_reducedness_for_action_polynomials)
+#### [Pseudo-divsion for action polynomials](@id pseudodivision_for_action_polynomials)
 
 Classical long-division of ``p`` by ``q`` will usually fail since ``\operatorname{init}(q)`` need not be invertible in ``S``. This can be fixed by
 pre-multiplying the dividend ``p`` by the initial of ``q`` to some high enough power. In fact, it is easy to see that one can always
@@ -121,9 +123,13 @@ Note that for each fixed exponent ``a``, both ``s`` and ``r`` are unique (if the
 if we refer to the pseudo-remainder or pseudo-quotient of ``p`` by ``q``, we mean the values of ``s`` and ``r`` that correspond to the above
 identity where the exponent ``a`` is minimal.
 
----
+Slightly generalising the above, we also allow the divisor ``q`` to be a nonzero constant polynomial ``c`` by regarding ``1`` as the leader
+of ``c`` and by putting ``\operatorname{init}(c) = c``. Thus, using the same formula as above, the pseudo-remainder of ``p`` by ``c`` is
+always equal to zero. The pseudo-quotient is ``p/c`` (with ``a = 0``) if ``p`` is divisible by ``c``; otherwise it is ``p`` (with ``a = 1``).
 
-Keep the notations from above. We have the following notions of reducedness for action polynomials:
+#### [Notions of reducedness for action polynomials](@id notions_of_reducedness_for_action_polynomials)
+
+Let ``p, q \in S``, ``q \notin R`` and ``v = \operatorname{ld}(q)``. We have the following notions of reducedness for action polynomials:
 - ``p`` is *partially reduced* with respect to ``q``, if ``\operatorname{deg}_{w}(p) < \operatorname{deg}_{w}(\Theta(q))`` 
     for all proper action transforms ``w = \Theta(v)``, ``1 \neq \Theta \in \operatorname{Mon}(\Delta)``
 - ``p`` is *reduced* with respect to ``q``, if ``\operatorname{deg}_{w}(p) < \operatorname{deg}_{w}(\Theta(q))``
@@ -133,6 +139,19 @@ Keep the notations from above. We have the following notions of reducedness for 
     In the case where ``S`` is a differential polynomial, the degree of ``\Theta(q)`` in each proper transform ``w`` of
     ``q`` is one. Thus, being partially reduced amounts to the condition that ``p`` does not contain no proper derivative
     of ``v`` occurs as a variable in ``p``.
+
+Also allowing ``q`` to be a nonzero constant polynomial ``c``, the only polynomial that is partially reduced or reduced with respect to ``c``
+is the zero polynomial.
+
+---
+
+There also exist the following set based notions of reducedness for action polynomials. For this, let ``p \in S`` and ``M \subset S \setminus \{0\}``.
+- ``p`` is called *partially reduced* with respect to ``M``, if ``p`` is partially reduced with respect to all elements of ``M``
+- ``p`` is called *reduced* with respect to ``M``, if ``p`` is reduced with respect to all elements of ``M``
+- The set ``M`` is *autoreduced*, if for any two distinct ``p_1, p_2 \in M``, ``p_1`` is reduced with respect to ``p_2``
+
+Note that for our implementation we use vectors of action polynomials instead of sets of action polynomials. In view of this, we add
+the requirement that an autoreduced set must be ordered with respect to Ritt ordering.
 
 ## Content
 
