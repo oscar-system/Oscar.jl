@@ -1,5 +1,24 @@
-@doc raw"""
+function is_digraph(d::Digraph)
+  return DigraphWrap.IsDigraph(d)
+end
 
+function is_mutable_digraph(d::Digraph)
+  return DigraphWrap.IsMutableDigraph(d)
+end
+
+function is_immutable_digraph(d::Digraph)
+  return DigraphWrap.IsImmutableDigraph(d::Digraph)
+end
+
+function is_cayley_digraph(d::Digraph)
+  return DigraphWrap.IsCayleyDigraph(d)
+end
+
+function is_digraph_with_adjacency_function(d::Digraph)
+  return DigraphWrap.IsDigraphWithAdjacencyFunction
+end
+
+@doc raw"""
     digraph(adj::Vector{Vector{T}}; mut::Bool=false) where T <: Union{Int64, Any} -> Digraph
     digraph(labels::Vector{<:AbstractString}, source::Vector{<:AbstractString}, range::Vector{<:AbstractString}; mut::Bool=false) -> Digraph
     digraph(n::Int64, source::Vector{Int}, range::Vector{Int}; mut::Bool=false) -> Digraph
@@ -39,6 +58,21 @@ The seventh form looks up a named digraph from the built-in database by
 
 # Examples
 ```jldoctest
+julia> d = digraph([[2, 5, 8, 10], [2, 3, 4, 2, 5, 6, 8, 9, 10], [1], [3, 5, 7, 8, 10], [2, 5, 7], [3, 6, 7, 9, 10], [1, 4], [1, 5, 9], [1, 2, 7, 8], [3, 5]])
+Digraph with 10 vertices, 38 edges
+
+julia> d = digraph(["a", "b", "c"], ["a"], ["b"])
+Digraph with 3 vertices, 1 edges
+
+julia> d = digraph(5, [1, 2, 2, 4, 1, 1], [2, 3, 5, 5, 1, 1])
+Digraph with 5 vertices, 6 edges
+
+julia> d = digraph("Petersen")
+Digraph with 10 vertices, 30 edges
+
+julia> d = digraph(Vector(1:10), function(x, y) true end)
+Digraph with 10 vertices, 100 edges
+
 julia> d = digraph([[2, 3], [1, 3], [1, 2]])
 Digraph with 3 vertices, 6 edges
 
@@ -104,6 +138,200 @@ function digraph(name::T) where T <: AbstractString
   d = DigraphWrap.Digraph(GapObj(name))
   return Digraph(d)
 end
+
+
+@doc raw"""
+    digraph_from_adjacency_matrix(A::Matrix{Int64}; mut::Bool=false) -> Digraph
+    digraph_from_adjacency_matrix(A::Matrix{Bool}; mut::Bool=false) -> Digraph
+
+Construct a digraph from its adjacency matrix.
+
+For an integer matrix `A`, entry `A[i, j]` gives the number of edges from
+vertex `i` to vertex `j`. For a boolean matrix `A`, entry `A[i, j] == true`
+indicates an edge from `i` to `j`.
+
+# Examples
+```jldoctest
+julia> digraph_from_adjacency_matrix([0 1 0; 1 0 1; 0 1 0])
+Digraph with 3 vertices, 4 edges
+
+julia> digraph_from_adjacency_matrix([true false; false true])
+Digraph with 2 vertices, 2 edges
+```
+"""
+function digraph_from_adjacency_matrix(A::Matrix{Int64}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(_filt(mut), GapObj(A)))
+end
+
+function digraph_from_adjacency_matrix(A::Matrix{Bool}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(_filt(mut), GapObj(A)))
+end
+
+@doc raw"""
+    digraph_from_edges(edges::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
+    digraph_from_edges(edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false) -> Digraph
+    digraph_from_edges(n::Int64, edges::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
+    digraph_from_edges(n::Int64, edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false) -> Digraph
+
+Construct a digraph from a list of edges. Each edge is a pair `[source, range]`.
+If `n` is given, the digraph will have exactly `n` vertices; otherwise the
+vertex count is inferred from the maximum vertex index in `edges`.
+
+# Examples
+```jldoctest
+julia> digraph_from_edges([[1, 2], [2, 3], [3, 1]])
+Digraph with 3 vertices, 3 edges
+
+julia> digraph_from_edges(4, [(1, 2), (2, 3)])
+Digraph with 4 vertices, 2 edges
+```
+"""
+function digraph_from_edges(n::Int64, edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true), GapObj(n)))
+end
+
+function digraph_from_edges(n::Int64, edges::Vector{Vector{Int64}}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true), GapObj(n)))
+end
+
+function digraph_from_edges(edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true)))
+end
+
+function digraph_from_edges(edges::Vector{Vector{Int64}}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true)))
+end
+
+@doc raw"""
+    edge_orbit_digraph(G::T, edges::Vector{Vector{Int64}}; n::Union{Int64,Nothing}=nothing) where T <: GAPGroup -> Digraph
+    edge_orbit_digraph(G::T, edges::Vector{Tuple{Int64,Int64}}; n::Union{Int,Nothing}=nothing) where T <: GAPGroup -> Digraph
+
+Construct the edge-orbit digraph of the group `G` acting on the given `edges`.
+Each edge is a pair `[source, range]`. If `n` is given, the digraph has exactly
+`n` vertices.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> edge_orbit_digraph(G, [[1, 2], [3, 4]])
+Digraph with 4 vertices, 12 edges
+```
+"""
+function edge_orbit_digraph(G::T, edges::Vector{Vector{Int64}}; n::Union{Int64,Nothing}=nothing) where T <: GAPGroup
+  if n === nothing
+    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true)))
+  else
+    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true), n))
+  end
+end
+
+function edge_orbit_digraph(G::T, edges::Vector{Tuple{Int64,Int64}}; n::Union{Int,Nothing}=nothing) where T <: GAPGroup
+  if n === nothing
+    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true)))
+  else
+    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true), n))
+  end
+end
+
+@doc raw"""
+    digraph_from_in_neighbours(inadj::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
+    digraph_from_in_neighbours(inadj::Vector{Tuple{Int64, Int64}}; mut::Bool=false) -> Digraph
+
+Construct a digraph from a list of in-neighbour adjacencies. The `i`-th entry
+lists the source vertices of edges whose target is vertex `i`. That is, there
+is an edge from `j` to `i` iff `j` is in `inadj[i]`.
+
+# Examples
+```jldoctest
+julia> digraph_from_in_neighbours([[2], [1, 3], [2]])
+Digraph with 3 vertices, 4 edges
+```
+"""
+function digraph_from_in_neighbours(inadj::Vector{Vector{Int64}}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByInNeighbours(_filt(mut), GapObj(inadj, recursive = true)))
+end
+
+function digraph_from_in_neighbors(inadj::Vector{Tuple{Int64, Int64}}; mut::Bool=false)
+  return Digraph(DigraphWrap.DigraphByInNeighbours(_filt(mut), GapObj(inadj, recursive = true)))
+end
+
+@doc raw"""
+    cayley_digraph(G::GAPGroup; gens::Union{Vector{<:GAPGroupElem},Nothing}=nothing; mut::Bool=false) -> Digraph
+
+Construct the Cayley digraph of the group `G` with respect to the generating
+set `gens`. If `gens` is not given, the generators of `G` are used.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> cayley_digraph(G)
+Digraph with 24 vertices, 48 edges
+```
+"""
+function cayley_digraph(G::T; mut::Bool=false) where T <: GAPGroup
+  return Digraph(DigraphWrap.CayleyDigraph(_filt(mut), GapObj(G)))
+end
+
+function cayley_digraph(G::T, gens::Vector{<:GAPGroupElem}; mut::Bool=false) where T <: GAPGroup
+  return Digraph(DigraphWrap.CayleyDigraph(_filt(mut), GapObj(G), GapObj(gens)))
+end
+
+@doc raw"""
+    list_named_digraphs(s::AbstractString; level::Int64=2) -> Vector{String}
+
+Search the database of named digraphs for names matching the string `s`.
+
+# Examples
+```jldoctest
+julia> list_named_digraphs("Dia")
+4-element Vector{String}:
+ "diamond"
+ "bidiakiscube"
+ "sevensegmentleddigits,immediatesubsets,7withoutleft,9withlow"
+ "4-largestcubicnonplanardiameter"
+```
+"""
+function list_named_digraphs(s::AbstractString; level::Int64=2)
+  return Vector{String}(GAP.Globals.ListNamedDigraphs(GapObj(s), level))
+end
+
+@doc raw"""
+  as_binary_relation(d::Digraph)
+
+
+```jldoctest
+julia> d = digraph([[3, 2], [1, 2], [2], [3, 4]])
+Digraph with 4 vertices, 7 edges
+
+julia> as_binary_relation(d)
+GAP: Binary Relation on 4 points
+````
+"""
+function as_binary_relation(d::Digraph)
+  return DigraphWrap.AsBinaryRelation(GapObj(d))
+end
+
+@doc raw"""
+```jldoctest
+julia> d = digraph([[3, 2], [1, 2], [2], [3, 4]])
+Digraph with 4 vertices, 7 edges
+
+julia> f = as_binary_relation(d)
+GAP: Binary Relation on 4 points
+
+julia> d1 = as_digraph(f)
+Digraph with 4 vertices, 7 edges
+````
+"""
+function as_digraph(f::GapObj; mut::Bool=false)
+  return Digraph(DigraphWrap.AsDigraph(_filt(mut), f))
+end
+
+# function as_digraph(f::GapObj, n::Int64; mut::Bool=false)
+#   return Digraph(DigraphWrap.AsDigraph(_filt(mut), f, GapObj(n)))
+# end
 
 @doc raw"""
     null_digraph(n::Int64; mut::Bool=false) -> Digraph
@@ -217,89 +445,6 @@ Digraph with 6 vertices, 24 edges
 """
 function johnson_digraph(n::Int64, k::Int64; mut::Bool=false)
   return Digraph(DigraphWrap.JohnsonDigraph(_filt(mut), n, k))
-end
-@doc raw"""
-    digraph_from_edges(edges::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
-    digraph_from_edges(edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false) -> Digraph
-    digraph_from_edges(n::Int64, edges::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
-    digraph_from_edges(n::Int64, edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false) -> Digraph
-
-Construct a digraph from a list of edges. Each edge is a pair `[source, range]`.
-If `n` is given, the digraph will have exactly `n` vertices; otherwise the
-vertex count is inferred from the maximum vertex index in `edges`.
-
-# Examples
-```jldoctest
-julia> digraph_from_edges([[1, 2], [2, 3], [3, 1]])
-Digraph with 3 vertices, 3 edges
-
-julia> digraph_from_edges(4, [(1, 2), (2, 3)])
-Digraph with 4 vertices, 2 edges
-```
-"""
-function digraph_from_edges(n::Int64, edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true), GapObj(n)))
-end
-
-function digraph_from_edges(n::Int64, edges::Vector{Vector{Int64}}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true), GapObj(n)))
-end
-
-function digraph_from_edges(edges::Vector{Tuple{Int64,Int64}}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true)))
-end
-
-function digraph_from_edges(edges::Vector{Vector{Int64}}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByEdges(_filt(mut), GapObj(edges, recursive = true)))
-end
-
-@doc raw"""
-    digraph_from_adjacency_matrix(A::Matrix{Int64}; mut::Bool=false) -> Digraph
-    digraph_from_adjacency_matrix(A::Matrix{Bool}; mut::Bool=false) -> Digraph
-
-Construct a digraph from its adjacency matrix.
-
-For an integer matrix `A`, entry `A[i, j]` gives the number of edges from
-vertex `i` to vertex `j`. For a boolean matrix `A`, entry `A[i, j] == true`
-indicates an edge from `i` to `j`.
-
-# Examples
-```jldoctest
-julia> digraph_from_adjacency_matrix([0 1 0; 1 0 1; 0 1 0])
-Digraph with 3 vertices, 4 edges
-
-julia> digraph_from_adjacency_matrix([true false; false true])
-Digraph with 2 vertices, 2 edges
-```
-"""
-function digraph_from_adjacency_matrix(A::Matrix{Int64}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(_filt(mut), GapObj(A)))
-end
-
-function digraph_from_adjacency_matrix(A::Matrix{Bool}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByAdjacencyMatrix(_filt(mut), GapObj(A)))
-end
-
-@doc raw"""
-    digraph_from_in_neighbours(inadj::Vector{Vector{Int64}}; mut::Bool=false) -> Digraph
-    digraph_from_in_neighbours(inadj::Vector{Tuple{Int64, Int64}}; mut::Bool=false) -> Digraph
-
-Construct a digraph from a list of in-neighbour adjacencies. The `i`-th entry
-lists the source vertices of edges whose target is vertex `i`. That is, there
-is an edge from `j` to `i` iff `j` is in `inadj[i]`.
-
-# Examples
-```jldoctest
-julia> digraph_from_in_neighbours([[2], [1, 3], [2]])
-Digraph with 3 vertices, 4 edges
-```
-"""
-function digraph_from_in_neighbours(inadj::Vector{Vector{Int64}}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByInNeighbours(_filt(mut), GapObj(inadj, recursive = true)))
-end
-
-function digraph_from_in_neighbors(inadj::Vector{Tuple{Int64, Int64}}; mut::Bool=false)
-  return Digraph(DigraphWrap.DigraphByInNeighbours(_filt(mut), GapObj(inadj, recursive = true)))
 end
 
 @doc raw"""
@@ -417,79 +562,6 @@ Digraph with 10 vertices, 36 edges
 """
 function random_lattice(n::Int64)
   return Digraph(DigraphWrap.RandomLattice(n))
-end
-
-@doc raw"""
-    edge_orbit_digraph(G::T, edges::Vector{Vector{Int64}}; n::Union{Int64,Nothing}=nothing) where T <: GAPGroup -> Digraph
-    edge_orbit_digraph(G::T, edges::Vector{Tuple{Int64,Int64}}; n::Union{Int,Nothing}=nothing) where T <: GAPGroup -> Digraph
-
-Construct the edge-orbit digraph of the group `G` acting on the given `edges`.
-Each edge is a pair `[source, range]`. If `n` is given, the digraph has exactly
-`n` vertices.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(4);
-
-julia> edge_orbit_digraph(G, [[1, 2], [3, 4]])
-Digraph with 4 vertices, 12 edges
-```
-"""
-function edge_orbit_digraph(G::T, edges::Vector{Vector{Int64}}; n::Union{Int64,Nothing}=nothing) where T <: GAPGroup
-  if n === nothing
-    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true)))
-  else
-    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true), n))
-  end
-end
-
-function edge_orbit_digraph(G::T, edges::Vector{Tuple{Int64,Int64}}; n::Union{Int,Nothing}=nothing) where T <: GAPGroup
-  if n === nothing
-    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true)))
-  else
-    return Digraph(DigraphWrap.EdgeOrbitsDigraph(GapObj(G), GapObj(edges, recursive = true), n))
-  end
-end
-
-@doc raw"""
-    cayley_digraph(G::GAPGroup; gens::Union{Vector{<:GAPGroupElem},Nothing}=nothing; mut::Bool=false) -> Digraph
-
-Construct the Cayley digraph of the group `G` with respect to the generating
-set `gens`. If `gens` is not given, the generators of `G` are used.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(4);
-
-julia> cayley_digraph(G)
-Digraph with 24 vertices, 48 edges
-```
-"""
-function cayley_digraph(G::T; mut::Bool=false) where T <: GAPGroup
-  return Digraph(DigraphWrap.CayleyDigraph(_filt(mut), GapObj(G)))
-end
-
-function cayley_digraph(G::T, gens::Vector{<:GAPGroupElem}; mut::Bool=false) where T <: GAPGroup
-  return Digraph(DigraphWrap.CayleyDigraph(_filt(mut), GapObj(G), GapObj(gens)))
-end
-
-@doc raw"""
-    list_named_digraphs(s::AbstractString; level::Int64=2) -> Vector{String}
-
-Search the database of named digraphs for names matching the string `s`.
-
-# Examples
-```jldoctest
-julia> list_named_digraphs("Dia")
-4-element Vector{String}:
- "diamond"
- "bidiakiscube"
- "sevensegmentleddigits,immediatesubsets,7withoutleft,9withlow"
- "4-largestcubicnonplanardiameter"
-```
-"""
-function list_named_digraphs(s::AbstractString; level::Int64=2)
-  return Vector{String}(GAP.Globals.ListNamedDigraphs(GapObj(s), level))
 end
 
 @doc raw"""
@@ -643,7 +715,7 @@ function complete_multipartite_digraph(orders::Vector{Int}; mut::Bool=false)
 end
 
 @doc raw"""
-    cycle_graph(n::Int64; mut::Bool=false) -> Digraph
+    cycle_graph(n::Signed; mut::Bool=false) -> Digraph
 
 Construct a Cycle Graph.
 
@@ -653,7 +725,7 @@ julia> d = cycle_graph(4)
 Digraph with 4 vertices, 8 edges
 ```
 """
-function cycle_graph(n::Int64; mut::Bool=false)
+function cycle_graph(n::Signed; mut::Bool=false)
   return Digraph(DigraphWrap.CycleGraph(_filt(mut), n))
 end
 

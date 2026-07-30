@@ -250,6 +250,9 @@ GAP.@wrap WalshHadamardGraph(filt::GapObj, n::Int)::GapObj
 GAP.@wrap WebGraph(filt::GapObj, n::Int)::GapObj
 GAP.@wrap WheelGraph(filt::GapObj, n::Int)::GapObj
 GAP.@wrap WindmillGraph(filt::GapObj, n::Int, m::Int)::GapObj
+GAP.@wrap AsBinaryRelation(d::GapObj)::GapObj
+GAP.@wrap AsDigraph(filt::GapObj, d::GapObj)::GapObj
+GAP.@wrap AsDigraph(filt::GapObj, f::GapObj, n::Int64)::GapObj
 function __init__()
     GAP.Packages.load("Digraphs") || error("cannot load GAP package Digraphs")
 end

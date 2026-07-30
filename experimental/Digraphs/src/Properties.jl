@@ -1,21 +1,4 @@
 @doc raw"""
-    is_digraph(D::Digraph) -> Bool
-
-Return `true` if `D` is a valid digraph. Always returns `true` for
-`Digraph` objects.
-
-# Examples
-```jldoctest
-julia> d = digraph([[2, 3], [1, 3], [1, 2]])
-Digraph with 3 vertices, 6 edges
-
-julia> is_digraph(d)
-true
-```
-"""
-is_digraph(::Digraph) = true
-
-@doc raw"""
     has_loops(D::Digraph) -> Bool
 
 Return `true` if the digraph `D` has any loops (edges from a vertex to itself).

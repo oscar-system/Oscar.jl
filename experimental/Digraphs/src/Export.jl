@@ -215,4 +215,6 @@ export non_upper_semimodular_pair
 export sparse6_string
 export strong_orientation
 export maximal_symmetric_subdigraph
+export as_binary_relation
+export as_digraph
 
