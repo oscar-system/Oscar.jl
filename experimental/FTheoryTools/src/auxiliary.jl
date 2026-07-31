@@ -391,6 +391,15 @@ function _copy_model_metadata!(target::AbstractFTheoryModel, source::AbstractFTh
   return target
 end
 
+function _sorted_tuple(a::Int, b::Int, c::Int, d::Int)
+  a, b = minmax(a, b)
+  c, d = minmax(c, d)
+  a, c = minmax(a, c)
+  b, d = minmax(b, d)
+  b, c = minmax(b, c)
+  return (a, b, c, d)
+end
+
 function _show_model_over_base(
   io::IO,
   model::AbstractFTheoryModel,
