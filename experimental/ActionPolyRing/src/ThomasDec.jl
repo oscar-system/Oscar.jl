@@ -98,8 +98,15 @@ with respect to Ritt ordering, filtering out zero polynomials and then performin
 reductions of `p` by the remaining elements of `S` until no further reductions are possible.
 """
 function partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
-  S = filter(!is_zero, S)
-  any(is_constant, S) && return zero(p)
+  has_const = false
+  for q in S
+    @req !is_zero(q) "Cannot partially reduce with respect to a set containing the zero polynomial"
+    
+    if !has_const && is_constant(q)
+      has_const = true
+    end
+  end
+  has_const && return zero(p)
 
   sorted_S = sort(S, lt=ritt_is_less)
 
@@ -163,13 +170,20 @@ end
     reduce(p::ActionPolyRingElem, S::Vector{ActionPolyRingElem})
 
 Reduce the action polynomial `p` with respect to the vector `S`. This is done by pre-sorting `S`
-with respect to Ritt ordering, filtering out zero polynomials and then performing top-down
-reductions of `p` by the elements of `S` until no further reductions are possible.
+with respect to Ritt ordering and then performing top-down reductions of `p` by the elements of
+`S` until no further reductions are possible.
 """
 function reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
-  S = filter(!is_zero, S)
-  any(is_constant, S) && return zero(parent(p))
-
+  has_const = false
+  for q in S
+    @req !is_zero(q) "Cannot reduce with respect to a set containing the zero polynomial"
+    
+    if !has_const && is_constant(q)
+      has_const = true
+    end
+  end
+  has_const && return zero(p)
+  
   sorted_S = sort(S, lt=ritt_is_less)
 
   res = p
