@@ -668,7 +668,8 @@ end
 @doc raw"""
     trailing_coefficient(p::ActionPolyRingElem{T}) -> T
 
-Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
+Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking
+of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
 """
 function trailing_coefficient(apre::ActionPolyRingElem{T}) where {T}
   len = length(apre)
