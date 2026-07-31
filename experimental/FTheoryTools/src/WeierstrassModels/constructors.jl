@@ -276,35 +276,7 @@ end
 
 # Detailed printing
 function Base.show(io::IO, ::MIME"text/plain", w::WeierstrassModel)
-  io = pretty(io)
-  properties_string = String[]
-  if is_partially_resolved(w)
-    push!(properties_string, "Partially resolved Weierstrass model over a")
-  else
-    push!(properties_string, "Weierstrass model over a")
-  end
-  if is_base_space_fully_specified(w)
-    push!(properties_string, "concrete base")
-  else
-    push!(properties_string, "not fully specified base")
-  end
-  if has_attribute(w, :model_description)
-    push!(properties_string, "-- " * model_description(w))
-    if has_attribute(w, :model_parameters)
-      push!(
-        properties_string,
-        "with parameter values (" *
-        join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")",
-      )
-    end
-  end
-  if has_attribute(w, :arxiv_id)
-    push!(properties_string, "based on arXiv paper " * arxiv_id(w))
-  end
-  if has_attribute(w, :arxiv_model_equation_number)
-    push!(properties_string, "Eq. (" * arxiv_model_equation_number(w) * ")")
-  end
-  join(io, properties_string, " ")
+  return _show_model_over_base(io, w, "Weierstrass model")
 end
 
 # Terse and one line printing

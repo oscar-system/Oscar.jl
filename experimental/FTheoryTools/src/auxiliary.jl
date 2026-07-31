@@ -329,6 +329,82 @@ function _kodaira_type(
   return kod_type
 end
 
+const _MODEL_METADATA_ATTRIBUTES = (
+  :associated_literature_models,
+  :arxiv_doi,
+  :arxiv_id,
+  :arxiv_link,
+  :arxiv_model_equation_number,
+  :arxiv_model_page,
+  :arxiv_model_section,
+  :arxiv_version,
+  :birational_literature_models,
+  :journal_doi,
+  :journal_link,
+  :journal_model_equation_number,
+  :journal_model_page,
+  :journal_model_section,
+  :journal_name,
+  :journal_pages,
+  :journal_report_numbers,
+  :journal_volume,
+  :journal_year,
+  :literature_identifier,
+  :model_description,
+  :model_parameters,
+  :paper_authors,
+  :paper_buzzwords,
+  :paper_description,
+  :paper_title,
+)
+
+function _copy_model_metadata!(target::AbstractFTheoryModel, source::AbstractFTheoryModel)
+  for name in _MODEL_METADATA_ATTRIBUTES
+    if has_attribute(source, name)
+      set_attribute!(target, name, deepcopy(get_attribute(source, name)))
+    end
+  end
+  return target
+end
+
+function _show_model_over_base(
+  io::IO,
+  model::AbstractFTheoryModel,
+  model_name::String;
+  show_literature_data::Bool=true,
+  partially_resolved_model_name::String=model_name,
+)
+  io = pretty(io)
+  properties = String[]
+  if is_partially_resolved(model)
+    push!(properties, "Partially resolved " * partially_resolved_model_name * " over a")
+  else
+    push!(properties, model_name * " over a")
+  end
+  if is_base_space_fully_specified(model)
+    push!(properties, "concrete base")
+  else
+    push!(properties, "not fully specified base")
+  end
+  if show_literature_data && has_attribute(model, :model_description)
+    push!(properties, "-- " * model_description(model))
+    if has_attribute(model, :model_parameters)
+      parameters = sort!(collect(model_parameters(model)); by=first)
+      parameter_text = join(
+        (string(key, " = ", value) for (key, value) in parameters), ", "
+      )
+      push!(properties, "with parameter values (" * parameter_text * ")")
+    end
+  end
+  if show_literature_data && has_attribute(model, :arxiv_id)
+    push!(properties, "based on arXiv paper " * arxiv_id(model))
+  end
+  if show_literature_data && has_attribute(model, :arxiv_model_equation_number)
+    push!(properties, "Eq. (" * arxiv_model_equation_number(model) * ")")
+  end
+  return join(io, properties, " ")
+end
+
 ###########################################################################
 # 5: Constructing a generic sample for models over not-fully specified spaces
 ###########################################################################

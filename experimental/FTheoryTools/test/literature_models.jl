@@ -5,6 +5,25 @@
 using Random
 our_rng = Random.Xoshiro(1234)
 
+# Ensure construction does not mutate caller-owned literature metadata.
+@testset "Literature model dictionary input" begin
+  model_dict = Oscar.JSON.parse(
+    raw"""
+    {
+      "model_parameters": ["k"],
+      "model_data": {"value": "k"},
+      "model_descriptors": {"description": "#k"},
+      "arxiv_data": {"id": "test"}
+    }
+    """,
+  )
+  original_model_dict = deepcopy(model_dict)
+  @test_throws ArgumentError literature_model(
+    model_dict; model_parameters=Dict("k" => 2)
+  )
+  @test isequal(model_dict, original_model_dict)
+end
+
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor_class(B3)
 w = torusinvariant_prime_divisors(B3)[1]

@@ -40,7 +40,7 @@ julia> a32 = generic_section(kbar^3 * w_bundle^(-2));
 julia> a43 = generic_section(kbar^4 * w_bundle^(-3));
 
 julia> t2 = put_over_concrete_base(t, Dict("base" => B3, "w" => w, "a21" => a21, "a32" => a32, "a43" => a43), completeness_check = false, rng = Random.Xoshiro(1234))
-Global Tate model over a concrete base
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
 function put_over_concrete_base(
