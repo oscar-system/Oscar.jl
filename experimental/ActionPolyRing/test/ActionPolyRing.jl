@@ -951,6 +951,15 @@ using Test
       @test apply_action(p, 2) == apply_action(p, [0, 1])
       @test apply_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
     end
+    @testset "wrong length for exponent vector" begin
+      R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
+      f_1 = y_2[0,1]^3 + y_2
+      f_2 = y_1^2 * y_2[1,0] + y_1[0,1] - 1
+      f_3 = y_1[1,0]^4 + y_1[0,1]*y_2^2
+      f_4 = y_1[0,2] * y_2[1,1] + y_1[0,1] + 1
+      F = [f_1, f_2, f_3, f_4]
+      @test initial(F[2]) == y_1^2 # This was zero at some point
+    end
   end
 
   @testset "Check ThomasDec" begin
@@ -1246,27 +1255,52 @@ using Test
     end # Difference reduction methods
     
     @testset "autoreduction" begin
-      dxr, x = difference_polynomial_ring(QQ, :x, 1)
+      @testset "single differential indeterminate and single action map" begin
+        dxr, x = difference_polynomial_ring(QQ, :x, 1)
 
-      p1 = x[1] - x[0]^2
-      p2 = x[2]^2 - x[0]
-      @test autoreduce([p1, p2]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
-      @test autoreduce([p2, p1]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
-      @test autoreduce([p1, p1]) == [p1]
-      @test autoreduce(DifferencePolyRingElem[]) == DifferencePolyRingElem[]
-      @test autoreduce([dxr(0), dxr(0)]) == DifferencePolyRingElem[]
-      @test autoreduce([dxr(0), dxr(-1), dxr(2)]) == [dxr(-1)]
+        p1 = x[1] - x[0]^2
+        p2 = x[2]^2 - x[0]
+        @test autoreduce([p1, p2]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
+        @test autoreduce([p2, p1]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
+        @test autoreduce([p1, p1]) == [p1]
+        @test autoreduce(DifferencePolyRingElem[]) == DifferencePolyRingElem[]
+        @test autoreduce([dxr(0), dxr(0)]) == DifferencePolyRingElem[]
+        @test autoreduce([dxr(0), dxr(-1), dxr(2)]) == [dxr(-1)]
 
 
-      dpr, u = differential_polynomial_ring(QQ, :u, 1)
-      q1 = u[1]^2 - u[0]
-      q2 = u[2] - u[1]
-      @test autoreduce([q1, q2]) == [u[0]]
-      @test autoreduce([q2, q1]) == [u[0]]
-      @test autoreduce([q1, q1]) == [q1]
-      @test autoreduce(DifferentialPolyRingElem[]) == DifferentialPolyRingElem[]
-      @test autoreduce([dpr(0), dpr(0)]) == DifferentialPolyRingElem[]
-      @test autoreduce([dpr(0), dpr(-1), dpr(2)]) == [dpr(-1)]
+        dpr, u = differential_polynomial_ring(QQ, :u, 1)
+        q1 = u[1]^2 - u[0]
+        q2 = u[2] - u[1]
+        @test autoreduce([q1, q2]) == [u[0]]
+        @test autoreduce([q2, q1]) == [u[0]]
+        @test autoreduce([q1, q1]) == [q1]
+        @test autoreduce(DifferentialPolyRingElem[]) == DifferentialPolyRingElem[]
+        @test autoreduce([dpr(0), dpr(0)]) == DifferentialPolyRingElem[]
+        @test autoreduce([dpr(0), dpr(-1), dpr(2)]) == [dpr(-1)]
+      end
+      #=
+      @testset "two differential indeterminates and two action maps" begin
+        dpr, (u, v) = differential_polynomial_ring(QQ, [:u, :v], 2; index_ordering_name=:degrevlex)
+
+        p1 = u[1, 1] - u[0, 0]
+        p2 = v[1, 0] - u[1, 0]
+        p3 = v[1, 1] - u[0, 0]
+
+        @test autoreduce([p1, p2, p3]) == [p2, p1]
+        @test autoreduce([p3, p2, p1]) == [p2, p1]
+        @test autoreduce([p2, p3, p1]) == [p2, p1]
+        @test autoreduce([p1, p2]) == [p2, p1]
+
+        p4 = u[1, 1] - u[0, 1]
+        p5 = p2
+        p6 = v[1, 1] + v[0, 0]
+        
+        res = [u[0, 1] + v[0, 0], u[1, 0] - v[0, 0], v[1, 0] - v[0, 0]]
+        @test autoreduce([p1, p2, p3]) == res
+        @test autoreduce([p3, p2, p1]) == res
+        @test autoreduce([p2, p3, p1]) == res
+      end
+      =#
     end
   end # ThomasDec 
 
