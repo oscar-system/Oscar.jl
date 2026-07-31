@@ -272,6 +272,41 @@ end
   @test length(weighted_resolution_zero_sections(t3)) == 1
 end
 
+# Check specialization of an abstract Tate model and validation of its section data.
+tate_specialization_data = Dict{String,Any}("base" => B3)
+for name in ("w", "a21", "a32", "a43")
+  tate_specialization_data[name] = explicit_model_sections(t1)[name]
+end
+specialized_t3 = put_over_concrete_base(
+  t3, tate_specialization_data; completeness_check=false, rng=Random.Xoshiro(1234)
+)
+
+@testset "Putting a literature Tate model over a concrete base" begin
+  @test is_base_space_fully_specified(specialized_t3)
+  @test arxiv_id(specialized_t3) == arxiv_id(t3)
+  @test tate_section_a2(specialized_t3) == tate_section_a2(t1)
+  @test tate_section_a3(specialized_t3) == tate_section_a3(t1)
+  @test tate_section_a4(specialized_t3) == tate_section_a4(t1)
+
+  missing_section_data = copy(tate_specialization_data)
+  delete!(missing_section_data, "a43")
+  @test_throws ArgumentError put_over_concrete_base(
+    t3, missing_section_data; completeness_check=false
+  )
+
+  wrong_parent_data = copy(tate_specialization_data)
+  wrong_parent_data["a21"] = explicit_model_sections(t3)["a21"]
+  @test_throws ArgumentError put_over_concrete_base(
+    t3, wrong_parent_data; completeness_check=false
+  )
+
+  wrong_degree_data = copy(tate_specialization_data)
+  wrong_degree_data["a21"] = wrong_degree_data["w"]
+  @test_throws ArgumentError put_over_concrete_base(
+    t3, wrong_degree_data; completeness_check=false
+  )
+end
+
 @testset "Test error messages for literature Tate model over arbitrary base" begin
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
@@ -423,6 +458,22 @@ end
   @test paper_description(w2) == "General construction of U(1) model"
   @test paper_title(w2) ==
     "F-Theory and the Mordell-Weil Group of Elliptically-Fibered Calabi-Yau Threefolds"
+end
+
+# Check specialization of the corresponding abstract Weierstrass model.
+weierstrass_specialization_data = Dict{String,Any}("base" => base_space(w1))
+for name in tunable_sections(w2)
+  weierstrass_specialization_data[name] = explicit_model_sections(w1)[name]
+end
+specialized_w2 = put_over_concrete_base(
+  w2, weierstrass_specialization_data; completeness_check=false, rng=Random.Xoshiro(1234)
+)
+
+@testset "Putting a literature Weierstrass model over a concrete base" begin
+  @test is_base_space_fully_specified(specialized_w2)
+  @test arxiv_id(specialized_w2) == arxiv_id(w2)
+  @test weierstrass_section_f(specialized_w2) == weierstrass_section_f(w1)
+  @test weierstrass_section_g(specialized_w2) == weierstrass_section_g(w1)
 end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin

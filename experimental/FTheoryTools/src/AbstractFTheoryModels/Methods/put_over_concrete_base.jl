@@ -52,180 +52,80 @@ function put_over_concrete_base(
   # Conduct elementary entry checks
   @req base_space(m) isa FamilyOfSpaces "The model must be defined over a family of spaces"
   @req haskey(concrete_data, "base") "The base space must be specified"
-  @req (concrete_data["base"] isa NormalToricVariety) "Currently, models over families of spaces can only be put over toric bases"
-  @req ((m isa WeierstrassModel) || (m isa GlobalTateModel)) "Currently, only Tate or Weierstrass models can be put on a concrete base"
+  @req (
+    concrete_data["base"] isa NormalToricVariety
+  ) "Currently, models over families of spaces can only be put over toric bases"
+  @req (
+    m isa Union{WeierstrassModel,GlobalTateModel}
+  ) "Currently, only Tate or Weierstrass models can be put on a concrete base"
 
-  # Work out the Weierstrass/Tate sections
-  new_model_secs = Dict{String,MPolyRingElem}()
-  if is_empty(model_section_parametrization(m))
-
-    # No parametrization, so simply take generic sections
-
-    # Pick generic values
-    if m isa WeierstrassModel
-      new_model_secs["f"] = generic_section(
-        anticanonical_bundle(concrete_data["base"])^4; rng
-      )
-      new_model_secs["g"] = generic_section(
-        anticanonical_bundle(concrete_data["base"])^6; rng
-      )
-    else
-      new_model_secs["a1"] = generic_section(
-        anticanonical_bundle(concrete_data["base"]); rng
-      )
-      new_model_secs["a2"] = generic_section(
-        anticanonical_bundle(concrete_data["base"])^2; rng
-      )
-      new_model_secs["a3"] = generic_section(
-        anticanonical_bundle(concrete_data["base"])^3; rng
-      )
-      new_model_secs["a4"] = generic_section(
-        anticanonical_bundle(concrete_data["base"])^4; rng
-      )
-      new_model_secs["a6"] = generic_section(
-        anticanonical_bundle(concrete_data["base"])^6; rng
-      )
-    end
-
+  base = concrete_data["base"]::NormalToricVariety
+  parametrization = model_section_parametrization(m)
+  defining_sections = if m isa WeierstrassModel
+    (("f", 4), ("g", 6))
   else
+    (("a1", 1), ("a2", 2), ("a3", 3), ("a4", 4), ("a6", 6))
+  end
+  anticanonical = anticanonical_bundle(base)
+  new_model_sections = Dict{String,MPolyRingElem}()
 
-    # Parametrization for Weierstrass/Tate sections found
-
-    # Have all parametrizing sections been provided by the user?
-    polys = collect(values(model_section_parametrization(m)))
-    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
-    all_appearing_exponents = hcat(
-      [collect(exponents(m))[1] for m in all_appearing_monomials]...
-    )
-    for k in 1:nrows(all_appearing_exponents)
-      if any(!is_zero, all_appearing_exponents[k, :])
-        gen_name = string(symbols(parent(polys[1]))[k])
-        @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
-        @req parent(concrete_data[gen_name]) == coordinate_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
-        new_model_secs[gen_name] = concrete_data[gen_name]
+  if isempty(parametrization)
+    for (name, power) in defining_sections
+      new_model_sections[name] = generic_section(anticanonical^power; rng)
+    end
+  else
+    parametrization_ring = parent(first(values(parametrization)))
+    parametrization_symbols = symbols(parametrization_ring)
+    used_generators = falses(ngens(parametrization_ring))
+    for polynomial in values(parametrization)
+      for index in eachindex(used_generators)
+        used_generators[index] |= degree(polynomial, index) > 0
       end
     end
 
-    # Create ring map to evaluate Weierstrass/Tate sections
-    parametrization = model_section_parametrization(m)
-    domain = parent(collect(values(parametrization))[1])
-    codomain = coordinate_ring(concrete_data["base"])
+    for index in eachindex(used_generators)
+      used_generators[index] || continue
+      name = string(parametrization_symbols[index])
+      @req haskey(concrete_data, name) "Required base section " * name * " not specified"
+      section = concrete_data[name]
+      @req (
+        parent(section) == coordinate_ring(base)
+      ) "Specified sections must reside in Cox ring of given base"
+      new_model_sections[name] = section
+    end
+
+    base_ring = coordinate_ring(base)
+    zero_section = zero(base_ring)
     images = [
-      haskey(new_model_secs, string(k)) ? new_model_secs[string(k)] : zero(codomain) for
-      k in gens(domain)
+      get(new_model_sections, string(generator), zero_section) for
+      generator in gens(parametrization_ring)
     ]
-    mapper = hom(domain, codomain, images)
+    evaluation_map = hom(parametrization_ring, base_ring, images)
 
-    # Compute defining sections
-    if m isa WeierstrassModel
-      if haskey(parametrization, "f")
-        new_sec = mapper(parametrization["f"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"])^4; rng)) "Degree mismatch"
+    for (name, power) in defining_sections
+      bundle = anticanonical^power
+      if haskey(parametrization, name)
+        section = evaluation_map(parametrization[name])
+        if !is_zero(section)
+          expected_degree = divisor_class(toric_divisor_class(bundle))
+          @req degree(section) == expected_degree "Degree mismatch"
         end
-        new_model_secs["f"] = new_sec
+        new_model_sections[name] = section
       else
-        new_model_secs["f"] = generic_section(
-          anticanonical_bundle(concrete_data["base"])^4; rng
-        )
-      end
-
-      if haskey(parametrization, "g")
-        new_sec = mapper(parametrization["g"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"])^6; rng)) "Degree mismatch"
-        end
-        new_model_secs["g"] = new_sec
-      else
-        new_model_secs["g"] = generic_section(
-          anticanonical_bundle(concrete_data["base"])^6; rng
-        )
-      end
-
-    else
-      if haskey(parametrization, "a1")
-        new_sec = mapper(parametrization["a1"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"]); rng)) "Degree mismatch"
-        end
-        new_model_secs["a1"] = new_sec
-      else
-        new_model_secs["a1"] = generic_section(
-          anticanonical_bundle(concrete_data["base"]); rng
-        )
-      end
-
-      if haskey(parametrization, "a2")
-        new_sec = mapper(parametrization["a2"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"])^2; rng)) "Degree mismatch"
-        end
-        new_model_secs["a2"] = new_sec
-      else
-        new_model_secs["a2"] = generic_section(
-          anticanonical_bundle(concrete_data["base"])^2; rng
-        )
-      end
-
-      if haskey(parametrization, "a3")
-        new_sec = mapper(parametrization["a3"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"])^3; rng)) "Degree mismatch"
-        end
-        new_model_secs["a3"] = new_sec
-      else
-        new_model_secs["a3"] = generic_section(
-          anticanonical_bundle(concrete_data["base"])^3; rng
-        )
-      end
-
-      if haskey(parametrization, "a4")
-        new_sec = mapper(parametrization["a4"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"])^4; rng)) "Degree mismatch"
-        end
-        new_model_secs["a4"] = new_sec
-      else
-        new_model_secs["a4"] = generic_section(
-          anticanonical_bundle(concrete_data["base"])^4; rng
-        )
-      end
-
-      if haskey(parametrization, "a6")
-        new_sec = mapper(parametrization["a6"])
-        if !is_zero(new_sec)
-          @req degree(new_sec) ==
-            degree(generic_section(anticanonical_bundle(concrete_data["base"])^6; rng)) "Degree mismatch"
-        end
-        new_model_secs["a6"] = new_sec
-      else
-        new_model_secs["a6"] = generic_section(
-          anticanonical_bundle(concrete_data["base"])^6; rng
-        )
+        new_model_sections[name] = generic_section(bundle; rng)
       end
     end
   end
 
-  # Compute the new model
-  if m isa WeierstrassModel
-    return weierstrass_model(
-      concrete_data["base"],
-      new_model_secs,
-      model_section_parametrization(m);
-      completeness_check,
+  result = if m isa WeierstrassModel
+    weierstrass_model(
+      base, new_model_sections, parametrization; completeness_check
     )
   else
-    return global_tate_model(
-      concrete_data["base"],
-      new_model_secs,
-      model_section_parametrization(m);
-      completeness_check,
+    global_tate_model(
+      base, new_model_sections, parametrization; completeness_check
     )
   end
+  _copy_model_metadata!(result, m)
+  return result
 end

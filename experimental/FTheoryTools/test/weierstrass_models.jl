@@ -137,6 +137,8 @@ end
     completeness_check=false,
     rng=Random.Xoshiro(1234),
   )
+  @test isempty(model_section_parametrization(weierstrass_generic))
+  @test is_base_space_fully_specified(specialized_model)
   @test base_space(specialized_model) === P3
   @test parent(weierstrass_section_f(specialized_model)) === coordinate_ring(P3)
   @test parent(weierstrass_section_g(specialized_model)) === coordinate_ring(P3)
