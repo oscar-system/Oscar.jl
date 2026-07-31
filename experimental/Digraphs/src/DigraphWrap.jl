@@ -253,11 +253,119 @@ GAP.@wrap WindmillGraph(filt::GapObj, n::Int, m::Int)::GapObj
 GAP.@wrap AsBinaryRelation(d::GapObj)::GapObj
 GAP.@wrap AsDigraph(filt::GapObj, d::GapObj)::GapObj
 GAP.@wrap AsDigraph(filt::GapObj, f::GapObj, n::Int64)::GapObj
+GAP.@wrap Graph(d::GapObj)::GapObj
+GAP.@wrap AsGraph(d::GapObj)::GapObj
+GAP.@wrap AsTransformation(d::GapObj)::GapObj
+GAP.@wrap DigraphImmutableCopy(d::GapObj)::GapObj
+GAP.@wrap DigraphMutableCopy(d::GapObj)::GapObj
+GAP.@wrap DigraphCopySameMutability(d::GapObj)::GapObj
+GAP.@wrap DigraphImmutableCopyIfImmutable(d::GapObj)::GapObj
+GAP.@wrap MaximalSymmetricSubdigraphAttr(d::GapObj)::GapObj
+GAP.@wrap MaximalSymmetricSubdigraphWithoutLoops(d::GapObj)::GapObj
+GAP.@wrap MaximalSymmetricSubdigraphWithoutLoopsAttr(d::GapObj)::GapObj
+GAP.@wrap MaximalAntiSymmetricSubdigraph(d::GapObj)::GapObj
+GAP.@wrap UndirectedSpanningTree(d::GapObj)::GapObj
+
+# ---------------------------------------------------------------------------
+# Additional wrappers for Chapter 3 (comprehensive wrapper): every overload of
+# every operation used by Constructors.jl is bound here. The entries follow
+# the order of GAP Digraphs manual Chapter 3 (Creating digraphs).
+# ---------------------------------------------------------------------------
+
+# 3.1  categories and named-digraph search
+GAP.@wrap IsDigraphWithAdjacencyFunction(x::GapObj)::Bool
+GAP.@wrap ListNamedDigraphs(s::GapObj)::GapObj
+GAP.@wrap ListNamedDigraphs(s::GapObj, level::Int)::GapObj
+
+# 3.3-1 / 3.3-2  copies
+GAP.@wrap DigraphCopy(x::GapObj)::GapObj
+GAP.@wrap DigraphImmutableCopyIfMutable(x::GapObj)::GapObj
+GAP.@wrap DigraphMutableCopyIfMutable(x::GapObj)::GapObj
+GAP.@wrap DigraphMutableCopyIfImmutable(x::GapObj)::GapObj
+
+# 3.3  attribute variants
+GAP.@wrap ReducedDigraphAttr(x::GapObj)::GapObj
+GAP.@wrap MaximalAntiSymmetricSubdigraphAttr(x::GapObj)::GapObj
+GAP.@wrap UndirectedSpanningForest(x::GapObj)::GapObj
+GAP.@wrap UndirectedSpanningForestAttr(x::GapObj)::GapObj
+GAP.@wrap UndirectedSpanningTreeAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphReverseAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphDualAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphSymmetricClosure(x::GapObj)::GapObj
+GAP.@wrap DigraphSymmetricClosureAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphTransitiveClosure(x::GapObj)::GapObj
+GAP.@wrap DigraphTransitiveClosureAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphReflexiveTransitiveClosure(x::GapObj)::GapObj
+GAP.@wrap DigraphReflexiveTransitiveClosureAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphTransitiveReduction(x::GapObj)::GapObj
+GAP.@wrap DigraphTransitiveReductionAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphReflexiveTransitiveReduction(x::GapObj)::GapObj
+GAP.@wrap DigraphReflexiveTransitiveReductionAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphRemoveLoopsAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphRemoveAllMultipleEdgesAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphAddAllLoops(x::GapObj)::GapObj
+GAP.@wrap DigraphAddAllLoopsAttr(x::GapObj)::GapObj
+GAP.@wrap DigraphMycielskian(x::GapObj)::GapObj
+GAP.@wrap DigraphMycielskianAttr(x::GapObj)::GapObj
+
+# 3.3  mutation operations (all overloads)
+GAP.@wrap DigraphAddVertex(x::GapObj)::GapObj
+GAP.@wrap DigraphAddVertex(x::GapObj, label::GapObj)::GapObj
+GAP.@wrap DigraphAddVertices(x::GapObj, m::Int)::GapObj
+GAP.@wrap DigraphAddVertices(x::GapObj, labels::GapObj)::GapObj
+GAP.@wrap DigraphAddEdge(x::GapObj, e::GapObj)::GapObj
+GAP.@wrap DigraphAddEdge(x::GapObj, src::Int, ran::Int)::GapObj
+GAP.@wrap DigraphAddEdgeOrbit(x::GapObj, e::GapObj)::GapObj
+GAP.@wrap DigraphAddEdges(x::GapObj, edges::GapObj)::GapObj
+GAP.@wrap DigraphRemoveVertex(x::GapObj, v::Int)::GapObj
+GAP.@wrap DigraphRemoveVertices(x::GapObj, verts::GapObj)::GapObj
+GAP.@wrap DigraphRemoveEdge(x::GapObj, e::GapObj)::GapObj
+GAP.@wrap DigraphRemoveEdge(x::GapObj, src::Int, ran::Int)::GapObj
+GAP.@wrap DigraphRemoveEdgeOrbit(x::GapObj, e::GapObj)::GapObj
+GAP.@wrap DigraphRemoveEdges(x::GapObj, edges::GapObj)::GapObj
+GAP.@wrap DigraphRemoveLoops(x::GapObj)::GapObj
+GAP.@wrap DigraphRemoveAllMultipleEdges(x::GapObj)::GapObj
+GAP.@wrap DigraphContractEdge(x::GapObj, e::GapObj)::GapObj
+GAP.@wrap DigraphContractEdge(x::GapObj, src::Int, ran::Int)::GapObj
+GAP.@wrap DigraphReverseEdges(x::GapObj, edges::GapObj)::GapObj
+GAP.@wrap DigraphReverseEdge(x::GapObj, e::GapObj)::GapObj
+GAP.@wrap DigraphReverseEdge(x::GapObj, src::Int, ran::Int)::GapObj
+GAP.@wrap DigraphShortestPathSpanningTree(x::GapObj, v::Int)::GapObj
+
+# 3.3  products, derived digraphs, and list forms of unions/products
+GAP.@wrap ConormalProduct(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap HomomorphicProduct(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap LexicographicProduct(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap DigraphCartesianProduct(list::GapObj)::GapObj
+GAP.@wrap DigraphCartesianProductProjections(x::GapObj)::GapObj
+GAP.@wrap DigraphDirectProduct(list::GapObj)::GapObj
+GAP.@wrap DigraphDirectProductProjections(x::GapObj)::GapObj
+GAP.@wrap DigraphDisjointUnion(list::GapObj)::GapObj
+GAP.@wrap DigraphEdgeUnion(list::GapObj)::GapObj
+GAP.@wrap DigraphJoin(list::GapObj)::GapObj
+GAP.@wrap LineDigraph(x::GapObj)::GapObj
+GAP.@wrap EdgeDigraph(x::GapObj)::GapObj
+GAP.@wrap LineUndirectedDigraph(x::GapObj)::GapObj
+GAP.@wrap EdgeUndirectedDigraph(x::GapObj)::GapObj
+GAP.@wrap DoubleDigraph(x::GapObj)::GapObj
+GAP.@wrap BipartiteDoubleDigraph(x::GapObj)::GapObj
+GAP.@wrap DistanceDigraph(x::GapObj, i::Int)::GapObj
+GAP.@wrap DistanceDigraph(x::GapObj, list::GapObj)::GapObj
+GAP.@wrap DigraphClosure(x::GapObj, k::Int)::GapObj
+
+# 3.4  random digraphs (additional overloads)
+GAP.@wrap RandomDigraph(n::Int)::GapObj
+GAP.@wrap RandomDigraph(n::Int, p::GapObj)::GapObj
+GAP.@wrap RandomLattice(filt::GapObj, n::Int)::GapObj
+GAP.@wrap RandomTournament(n::Int)::GapObj
+
+# 3.5  standard examples (additional overloads)
+GAP.@wrap BishopsGraph(filt::GapObj, color::GapObj, m::Int, n::Int)::GapObj
+GAP.@wrap PetersenGraph(filt::GapObj)::GapObj
+
 function __init__()
     GAP.Packages.load("Digraphs") || error("cannot load GAP package Digraphs")
 end
 
 end
-
-
 

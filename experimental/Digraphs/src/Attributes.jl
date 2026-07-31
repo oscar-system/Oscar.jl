@@ -1142,27 +1142,6 @@ function digraph_core(D::Digraph)
 end
 
 @doc raw"""
-    maximal_symmetric_subdigraph(D::Digraph) -> Digraph
-
-Return the maximal symmetric subdigraph of `D`. This is a symmetric digraph
-without multiple edges which has the same vertex set as `D`, and whose edge
-list is formed from `D` by ignoring the multiplicity of edges, and by ignoring
-edges `[u,v]` for which there does not exist an edge `[v,u]`.
-
-# Examples
-```jldoctest
-julia> d = digraph([[2, 2], [1, 3], [4], [3, 1]])
-Digraph with 4 vertices, 7 edges
-
-julia> maximal_symmetric_subdigraph(d)
-Digraph with 4 vertices, 4 edges
-```
-"""
-function maximal_symmetric_subdigraph(D::Digraph)
-  return Digraph(DigraphWrap.MaximalSymmetricSubdigraph(GapObj(D)))
-end
-
-@doc raw"""
     digraph_degeneracy_ordering(D::Digraph) -> Vector{Int}
 
 Return a degeneracy ordering of the vertices of D.
