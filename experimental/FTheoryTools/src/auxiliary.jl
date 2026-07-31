@@ -76,6 +76,15 @@ end
 # 2: Construct the Weierstrass polynomial
 ################################################################
 
+function _weierstrass_sections_from_tate(a1, a2, a3, a4, a6)
+  b2 = 4 * a2 + a1^2
+  b4 = 2 * a4 + a1 * a3
+  b6 = 4 * a6 + a3^2
+  f = -1//48 * (b2^2 - 24 * b4)
+  g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
+  return f, g
+end
+
 function _weierstrass_sections(
   base::NormalToricVariety; rng::AbstractRNG=Random.default_rng()
 )

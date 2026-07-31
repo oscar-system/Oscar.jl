@@ -39,7 +39,9 @@ set_attribute!(weierstrass_P3, :model_parameters, Dict("z" => 2, "a" => 1))
 
 @testset "Detailed display of a parameterized Weierstrass model" begin
   displayed_model = sprint(show, MIME("text/plain"), weierstrass_P3)
-  @test occursin("Parameterized model with parameter values (a = 1, z = 2)", displayed_model)
+  @test occursin(
+    "Parameterized model with parameter values (a = 1, z = 2)", displayed_model
+  )
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin
