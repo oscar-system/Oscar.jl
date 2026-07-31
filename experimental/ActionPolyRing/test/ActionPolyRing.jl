@@ -1147,6 +1147,10 @@ using Test
           p1 = u_xxy + v_x
           q1 = u_x - v^2
           @test partially_reduce(p1, q1) == 2*v_x*v_y + 2*v*v_xy+v_x
+          @test partially_reduce(p1, [q1]) == 2*v_x*v_y + 2*v*v_xy+v_x
+          @test partially_reduce(p1, [q1, q1]) == 2*v_x*v_y + 2*v*v_xy+v_x
+          @test partially_reduce(p1, [q1, dpr(1)]) == zero(p1)
+          @test_throws ArgumentError partially_reduce(p1, [q1, dpr(1), dpr(0)])
           
           p5 = u_x^3 + v_x
           q5 = u_x^2 + v
@@ -1171,6 +1175,27 @@ using Test
           @test reduce(p5, q5) == v_x - u_x * v
         end
       end # two diff indets
+      @testset "reduce wrt a set" begin
+        dpr, (u, v) = differential_polynomial_ring(QQ, [:u, :v], 1, index_ordering_name=:deglex)
+        
+        q1 = v[1] - u[0]
+        q2 = u[1] - v[0]
+        
+        p = v[2]
+        
+        @test reduce(p, [q1, q2]) == v[0]
+        @test partially_reduce(p, [q1, q2]) == u[1]
+
+        dpr, (u, v) = difference_polynomial_ring(QQ, [:u, :v], 1, index_ordering_name=:deglex)
+
+        q1 = v[1] - u[0]
+        q2 = u[1] - v[0]
+
+        p = v[2]
+
+        @test reduce(p, [q1, q2]) == v[0]
+        @test partially_reduce(p, [q1, q2]) == u[1]
+      end
     end # Differential reduction methods
     @testset "Difference reduction methods" begin
       @testset "Single shift operator " begin
@@ -1305,3 +1330,4 @@ using Test
   end # ThomasDec 
 
 end #All tests
+
