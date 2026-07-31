@@ -195,7 +195,7 @@ equal to zero in this case.
 ```jldoctest pseudodivrem_example
 julia> pseudodivrem(p,dpr(2))
 (1//2*x[0]^2 + 1//2*y[0], 0)
-´´´
+```
 """
 function pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
