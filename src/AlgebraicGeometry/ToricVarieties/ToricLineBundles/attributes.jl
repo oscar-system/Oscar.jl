@@ -219,7 +219,7 @@ julia> basis_of_global_sections(l)
       return MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}[]
     end
   end
-  return monomial_basis(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
+  return monomial_basis(cox_ring(toric_variety(l)), divisor_class(l))
 end
 basis_of_global_sections(l::ToricLineBundle) =
   basis_of_global_sections_via_homogeneous_component(
@@ -386,7 +386,7 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
     return _all_cohomologies_via_cech(l)
   elseif algorithm === :local
     ctx = local_cohomology_context_object(v)
-    d = divisor_class(toric_divisor_class(l))
+    d = divisor_class(l)
     coh = cohomology_model(ctx, d)
     return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:(-dim(v))]
   else
