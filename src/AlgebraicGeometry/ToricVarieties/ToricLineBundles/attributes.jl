@@ -22,6 +22,21 @@ Abelian group element [2]
 picard_class(l::ToricLineBundle) = l.picard_class
 
 @doc raw"""
+    divisor_class(l::ToricLineBundle)
+
+Return the element of the class group represented by the toric line bundle `l`.
+"""
+divisor_class(l::ToricLineBundle) =
+  map_from_picard_group_to_class_group(toric_variety(l))(picard_class(l))
+
+@doc raw"""
+    coefficients(l::ToricLineBundle)
+
+Return the coefficients of the chosen toric divisor representative of `l`.
+"""
+coefficients(l::ToricLineBundle) = coefficients(toric_divisor(l))
+
+@doc raw"""
     toric_variety(l::ToricLineBundle)
 
 Return the toric variety over which the toric line bundle `l` is defined.
@@ -94,7 +109,7 @@ true
 ```
 """
 @attr ToricDivisorClass toric_divisor_class(l::ToricLineBundle) = toric_divisor_class(
-  toric_divisor(l)
+  toric_variety(l), divisor_class(l)
 )
 
 @doc raw"""

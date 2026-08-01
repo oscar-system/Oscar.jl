@@ -1,3 +1,4 @@
+# Test divisor accessors, properties, and arithmetic for torus-invariant divisors.
 @testset "Torus-invariant divisors" begin
   F5 = hirzebruch_surface(NormalToricVariety, 5)
   dP3 = del_pezzo_surface(NormalToricVariety, 3)
@@ -51,6 +52,9 @@
   @testset "Basic attributes" begin
     @test coefficients(D) == [0, 0, 0, 0]
     @test coefficients(D2) == [1, 2, 9, -2]
+    @test divisor_class(D2) == divisor_class(toric_divisor_class(D2))
+    @test iszero(picard_class(D2))
+    @test picard_class(D7) == picard_class(toric_line_bundle(D7))
     @test dim(toric_variety(D)) == 2
     @test dim(polyhedron(D)) == 0
     @test ambient_dim(polyhedron(D)) == 2
@@ -72,5 +76,7 @@
     d = canonical_divisor(X)
     @test_throws ArgumentError is_ample(d)
     @test_throws ArgumentError is_cartier(d)
+    WPS = weighted_projective_space(NormalToricVariety, [2, 3, 1])
+    @test_throws ArgumentError picard_class(toric_divisor(WPS, [1, 0, 0]))
   end
 end
