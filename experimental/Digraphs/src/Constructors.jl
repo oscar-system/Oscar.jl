@@ -161,7 +161,7 @@ julia> d = digraph([[2, 5, 8, 10], [2, 3, 4, 2, 5, 6, 8, 9, 10], [1],
 Digraph with 10 vertices, 38 edges
 
 julia> digraph(["a", "b", "c"], ["a"], ["b"])
-Digraph with 3 vertices, 1 edges
+Digraph with 3 vertices, 1 edge
 
 julia> digraph(5, [1, 2, 2, 4, 1, 1], [2, 3, 5, 5, 1, 1])
 Digraph with 5 vertices, 6 edges
@@ -412,7 +412,7 @@ GAP returns `fail`.
 
 # Examples
 ```jldoctest
-julia> f = GAP.Globals.Transformation([4, 3, 3, 1, 7, 9, 10, 4, 2, 3]);
+julia> f = GAP.Globals.Transformation(GapObj([4, 3, 3, 1, 7, 9, 10, 4, 2, 3]));
 
 julia> as_digraph(f)
 Digraph with 10 vertices, 10 edges
@@ -1402,7 +1402,7 @@ julia> d = digraph_from_edges([[1, 2], [2, 1]])
 Digraph with 2 vertices, 2 edges
 
 julia> digraph_contract_edge(d, 1, 2)
-Digraph with 1 vertices, 0 edges
+Digraph with 1 vertex, 0 edges
 ```
 """
 function digraph_contract_edge(d::Digraph, edge::Union{Vector{Int}, Tuple{Int,Int}})
@@ -3132,24 +3132,4 @@ Digraph with 10 vertices, 36 edges
 """
 function windmill_graph(n::Integer, m::Integer; mut::Bool=false)
     return Digraph(DigraphWrap.WindmillGraph(_filt(mut), Int(n), Int(m)))
-end
-
-# ############################################################################
-# Appendix: edge-weighted digraph (not part of GAP Digraphs manual Chapter 3)
-# ############################################################################
-@doc raw"""
-    edge_weighted_digraph(D::Digraph, weights::Vector{<:AbstractVector}) -> Digraph
-    edge_weighted_digraph(adj::Vector{<:AbstractVector}, weights::Vector{<:AbstractVector}; mut::Bool=false) -> Digraph
-
-Return an edge-weighted digraph from the digraph `D` with the given edge
-`weights` (the `i`-th entry lists the weights of the edges of vertex `i` in
-the order of its out-neighbours).
-"""
-function edge_weighted_digraph(D::Digraph, weights::Vector{<:AbstractVector})
-    return Digraph(DigraphWrap.EdgeWeightedDigraph(GapObj(D), GapObj(weights, recursive=true)))
-end
-
-function edge_weighted_digraph(adj::Vector{<:AbstractVector}, weights::Vector{<:AbstractVector}; mut::Bool=false)
-    d = digraph(adj; mut=mut)
-    return edge_weighted_digraph(d, weights)
 end

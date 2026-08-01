@@ -357,6 +357,48 @@
     @test is_immutable_digraph(complete_digraph(3))
   end
 
+  @testset "4 Operators" begin
+    # equality and ordering (GAP manual Chapter 4)
+    d1 = digraph([[2, 3], [1], [2, 3]])
+    d2 = digraph([[2, 3], [1], [2, 3]])
+    @test d1 == d2
+    @test isequal(d1, d2)
+    @test hash(d1) == hash(d2)
+    @test length(Set([d1, d2])) == 1
+    @test length(unique([d1, d2])) == 1
+    @test length(Dict(d1 => "a", d2 => "b")) == 1
+    @test d1 != digraph([[2, 3], [], [2]])
+    @test digraph([[2], [1]]) != digraph([[1], [2]])
+    @test complete_digraph(3) < complete_digraph(4)
+    @test cycle_digraph(4) < complete_digraph(4)
+    @test digraph([[1], [2]]) < digraph([[2], [1]])
+    @test !(digraph([[2], [1]]) < digraph([[1], [2]]))
+    @test complete_digraph(4) <= complete_digraph(4)
+    @test complete_digraph(4) >= complete_digraph(4)
+
+    # IsSubdigraph (GAP manual 4.1-1)
+    g = digraph([[2, 3], [1], [2, 3]])
+    h = digraph([[2, 3], [], [2]])
+    @test is_subdigraph(g, h)
+    @test !is_subdigraph(h, g)
+    @test is_subdigraph(complete_digraph(4), cycle_digraph(4))
+    @test is_subdigraph(cycle_digraph(4), chain_digraph(4))
+    g = digraph([[2, 2], [1]])
+    h = digraph([[2], [1]])
+    @test is_subdigraph(g, h)
+    @test !is_subdigraph(h, g)
+
+    # IsUndirectedSpanningTree / IsUndirectedSpanningForest (GAP manual 4.1-2)
+    D = complete_digraph(4)
+    tree = digraph([[3], [4], [1, 4], [2, 3]])
+    @test is_undirected_spanning_tree(D, tree)
+    @test is_undirected_spanning_forest(D, tree)
+    D2 = digraph_disjoint_union(cycle_digraph(2), cycle_digraph(2))
+    @test !is_undirected_spanning_tree(D2, tree)
+    @test is_undirected_forest(D2) && is_undirected_spanning_forest(D2, D2)
+    @test !is_undirected_spanning_forest(D, empty_digraph(4))
+  end
+
   @testset "Properties" begin
     D = cycle_digraph(4)
     @test is_connected(D)
@@ -396,13 +438,241 @@
   end
 
   @testset "Isomorphisms" begin
-    D1 = cycle_digraph(4)
-    D2 = digraph(4, [1, 2, 3, 4], [2, 3, 4, 1])
-    @test is_isomorphic(D1, D2)
 
-    K4 = complete_digraph(4)
-    aut = automorphism_group(K4)
-    @test order(aut) == 24
+    @testset "7.1 Acting on digraphs" begin
+      # OnDigraphs with a permutation and with a transformation (GAP manual 7.1-1)
+      D = digraph([[3], [1, 3, 5], [1], [1, 2, 4], [2, 3, 5]])
+      @test out_neighbours(on_digraphs(D, GAP.evalstr("(1, 2)"))) ==
+            [[2, 3, 5], [3], [2], [2, 1, 4], [1, 3, 5]]
+      p = GAP.evalstr("(1, 2)")
+      @test on_digraphs(D, p) == on_digraphs(D, cperm([1, 2]))
+      @test out_neighbours(on_digraphs(digraph([[2], [], [2]]),
+                                        GAP.Globals.Transformation(GapObj([1, 2, 1])))) ==
+            [[2, 2], [], []]
+
+      # on a mutable digraph the relabelling is performed in-place
+      m = digraph([[2], [3], []]; mut = true)
+      m2 = on_digraphs(m, p)
+      @test GapObj(m2) === GapObj(m)
+      @test out_neighbours(m) == [[3], [1], []]
+
+      # ^ operator (GAP manual 7.1-2)
+      C5 = cycle_digraph(5)
+      @test C5 ^ GAP.evalstr("(1, 5)(2, 4)") == digraph_reverse(C5)
+      @test C5 ^ GAP.evalstr("()") == C5
+      @test C5 ^ cperm([1, 2]) == on_digraphs(C5, cperm([1, 2]))
+
+      # OnMultiDigraphs (GAP manual 7.1-3)
+      D = cycle_digraph(3)
+      p1 = GAP.evalstr("(1, 2)")
+      p2 = GAP.evalstr("()")
+      @test on_multi_digraphs(D, [p1, p2]) == on_digraphs(D, p1)
+      @test on_multi_digraphs(D, p1, p2) == on_digraphs(D, p1)
+
+      # OnTuplesDigraphs / OnSetsDigraphs (GAP manual 7.1-4)
+      list = [cycle_digraph(6), digraph_reverse(cycle_digraph(6))]
+      p = GAP.evalstr("(1, 6)(2, 5)(3, 4)")
+      @test on_tuples_digraphs(list, p) == reverse(list)
+      @test on_sets_digraphs(list, p) == list
+    end
+
+    @testset "7.2 Isomorphisms and canonical labellings" begin
+      # DigraphsUseNauty / DigraphsUseBliss (GAP manual 7.2-1)
+      @test digraphs_use_bliss() === nothing
+      @test digraphs_use_nauty() === nothing
+      digraphs_use_bliss()
+
+      # AutomorphismGroup (GAP manual 7.2-2, 7.2-5, 7.2-6)
+      @test order(automorphism_group(complete_digraph(4))) == 24
+      @test order(automorphism_group(cycle_digraph(9))) == 9
+      @test order(automorphism_group(cycle_digraph(9), [[1, 4, 7], [2, 5, 8], [3, 6, 9]])) == 3
+      @test order(automorphism_group(cycle_digraph(9), [1, 2, 3, 1, 2, 3, 1, 2, 3])) == 3
+      @test order(automorphism_group(cycle_digraph(4), GAP.Globals.fail,
+                                     [[1], [1], [1], [1]])) == 4
+
+      # BlissAutomorphismGroup / NautyAutomorphismGroup (GAP manual 7.2-3, 7.2-4)
+      @test order(bliss_automorphism_group(complete_digraph(3))) == 6
+      @test order(bliss_automorphism_group(cycle_digraph(9),
+                                           [[1, 4, 7], [2, 5, 8], [3, 6, 9]])) == 3
+      nauty_ok = try
+        GAP.Packages.load("NautyTracesInterface")
+      catch
+        false
+      end
+      if nauty_ok
+        @test order(nauty_automorphism_group(complete_digraph(3))) == 6
+        @test order(nauty_automorphism_group(cycle_digraph(9),
+                                             [[1, 4, 7], [2, 5, 8], [3, 6, 9]])) == 3
+      end
+
+      # Canonical labellings and canonical digraphs (GAP manual 7.2-7 to 7.2-9)
+      C4 = cycle_digraph(4)
+      lab = bliss_canonical_labelling(C4)
+      @test on_digraphs(C4, lab) == bliss_canonical_digraph(C4)
+      @test bliss_canonical_digraph(C4) isa Digraph
+      @test bliss_canonical_labelling(C4, [1, 2, 3, 4]) isa GapObj
+      if nauty_ok
+        @test on_digraphs(C4, nauty_canonical_labelling(C4)) ==
+              nauty_canonical_digraph(C4)
+      end
+
+      # DigraphGroup (GAP manual 7.2-10)
+      d = cayley_digraph(symmetric_group(3))
+      @test order(digraph_group(d)) == 6
+
+      # Orbits of the digraph group (GAP manual 7.2-11 to 7.2-14)
+      D = cayley_digraph(alternating_group(4))
+      @test length(digraph_orbits(D)) == 1
+      @test sort(digraph_orbits(D)[1]) == collect(1:12)
+      @test digraph_orbit_reps(D) == [1]
+      @test length(digraph_schreier_vector(D)) == 12
+      @test order(digraph_stabilizer(D, 1)) == 1
+
+      # IsIsomorphicDigraph / IsomorphismDigraphs (GAP manual 7.2-15 to 7.2-18)
+      @test is_isomorphic(C4, digraph(4, [1, 2, 3, 4], [2, 3, 4, 1]))
+      @test !is_isomorphic(C4, complete_digraph(4))
+      @test is_isomorphic(C4, C4, [1, 2, 3, 4], [1, 2, 3, 4])
+      @test !is_isomorphic(C4, C4, [1, 2, 1, 2], [1, 2, 3, 4])
+      p = isomorphism_digraphs(C4, C4)
+      @test on_digraphs(C4, p) == C4
+      p2 = isomorphism_digraphs(C4, C4, [1, 2, 3, 4], [1, 2, 3, 4])
+      @test on_digraphs(C4, p2) == C4
+      @test_throws ArgumentError isomorphism_digraphs(C4, complete_digraph(4))
+
+      # RepresentativeOutNeighbours (GAP manual 7.2-19)
+      D = digraph([[2], [3], []])
+      @test representative_out_neighbours(D) == out_neighbours(D)
+
+      # IsDigraphIsomorphism / IsDigraphAutomorphism (GAP manual 7.2-20)
+      p = isomorphism_digraphs(C4, C4)
+      @test is_digraph_isomorphism(C4, C4, p)
+      @test is_digraph_automorphism(C4, p)
+      @test is_digraph_automorphism(C4, GAP.evalstr("()"))
+      @test !is_digraph_automorphism(C4, GAP.evalstr("(1, 2)"))
+      @test is_digraph_isomorphism(C4, C4, p, [1, 2, 3, 4], [1, 2, 3, 4])
+
+      # IsDigraphColouring (GAP manual 7.2-21)
+      @test is_digraph_colouring(C4, [1, 2, 1, 2])
+      @test !is_digraph_colouring(C4, [1, 1, 2, 2])
+      @test is_digraph_colouring(C4, GAP.Globals.Transformation(GapObj([1, 2, 1, 2])))
+
+      # MaximalCommonSubdigraph / MinimalCommonSuperdigraph (7.2-22, 7.2-23)
+      r = maximal_common_subdigraph(C4, C4)
+      @test r[1] isa Digraph && length(r) == 3
+      r = minimal_common_superdigraph(C4, C4)
+      @test r[1] isa Digraph && length(r) == 3
+    end
+
+    @testset "7.3 Graph homomorphisms" begin
+      # HomomorphismDigraphsFinder (GAP manual 7.3-1)
+      D = cycle_digraph(4)
+      hook = GAP.evalstr("function(user_param, t) return false; end")
+      @test homomorphism_digraphs_finder(D, D, hook, GAP.Globals.fail, 1,
+        GAP.Globals.fail, false, [1, 2, 3, 4], GAP.Globals.fail,
+        GAP.Globals.fail, GAP.Globals.fail) == GAP.Globals.fail
+      hits = Int[]
+      hookj = (user_param, t) -> (push!(hits, 1); false)
+      @test homomorphism_digraphs_finder(D, D, hookj, GAP.Globals.fail, 1,
+        GAP.Globals.fail, false, [1, 2, 3, 4], GAP.Globals.fail,
+        GAP.Globals.fail, GAP.Globals.fail) == GAP.Globals.fail
+      @test !isempty(hits)
+      hook2 = GAP.evalstr("function(user_param, t) Add(user_param, t); return false; end")
+      result = homomorphism_digraphs_finder(D, D, hook2, GapObj([], recursive = true),
+        3, GAP.Globals.fail, false, [1, 2, 3, 4], GAP.Globals.fail,
+        GAP.Globals.fail, GAP.Globals.fail; aut_grp = GAP.evalstr("Group(())"))
+      @test length(result) == 3
+
+      # DigraphHomomorphism / HomomorphismsDigraphs (GAP manual 7.3-2, 7.3-3)
+      D1 = chain_digraph(3)
+      D2 = complete_digraph(3)
+      t = digraph_homomorphism(D1, D2)
+      @test is_digraph_homomorphism(D1, D2, t)
+      @test_throws ArgumentError digraph_homomorphism(D2, D1)
+      @test length(homomorphisms_digraphs(chain_digraph(2), complete_digraph(2))) == 2
+      @test length(homomorphisms_digraphs_representatives(chain_digraph(2),
+                                                          complete_digraph(2))) == 1
+
+      # DigraphMonomorphism / MonomorphismsDigraphs (GAP manual 7.3-4, 7.3-5)
+      D1 = chain_digraph(2)
+      D2 = complete_digraph(2)
+      t = digraph_monomorphism(D1, D2)
+      @test is_digraph_monomorphism(D1, D2, t)
+      @test length(monomorphisms_digraphs(D1, D2)) == 2
+      @test length(monomorphisms_digraphs_representatives(D1, D2)) == 1
+
+      # DigraphEpimorphism / EpimorphismsDigraphs (GAP manual 7.3-6, 7.3-7)
+      D = complete_digraph(2)
+      t = digraph_epimorphism(D, D)
+      @test is_digraph_epimorphism(D, D, t)
+      @test length(epimorphisms_digraphs(D, D)) == 2
+
+      # DigraphEmbedding / EmbeddingsDigraphs (GAP manual 7.3-8, 7.3-9)
+      D1 = chain_digraph(2)
+      D2 = chain_digraph(3)
+      t = digraph_embedding(D1, D2)
+      @test is_digraph_embedding(D1, D2, t)
+      @test length(embeddings_digraphs(D1, D2)) == 2
+      @test_throws ArgumentError digraph_embedding(chain_digraph(2), complete_digraph(2))
+
+      # IsDigraph* predicates (GAP manual 7.3-10, 7.3-11)
+      D1 = chain_digraph(3)
+      D2 = complete_digraph(3)
+      t = digraph_homomorphism(D1, D2)
+      @test is_digraph_homomorphism(D1, D2, t)
+      t3 = GAP.Globals.Transformation(GapObj([1, 2, 1]))
+      @test is_digraph_homomorphism(D1, D2, t3)
+      @test !is_digraph_epimorphism(D1, D2, t3)
+      @test !is_digraph_monomorphism(D1, D2, t3)
+      @test is_digraph_monomorphism(D1, D2, GAP.Globals.Transformation(GapObj([1, 2, 3])))
+      @test is_digraph_epimorphism(complete_digraph(2), complete_digraph(2),
+                                   GAP.Globals.Transformation(GapObj([1, 2])))
+      @test is_digraph_endomorphism(D2, GAP.Globals.Transformation(GapObj([1, 3, 2])))
+      @test !is_digraph_endomorphism(D2, GAP.Globals.Transformation(GapObj([1, 1, 1])))
+      D1 = chain_digraph(2)
+      t = digraph_embedding(D1, chain_digraph(3))
+      @test is_digraph_embedding(D1, chain_digraph(3), t)
+
+      # SubdigraphsMonomorphisms (GAP manual 7.3-12)
+      @test length(subdigraphs_monomorphisms(chain_digraph(2), chain_digraph(3))) == 2
+      @test length(subdigraphs_monomorphisms_representatives(chain_digraph(2),
+                                                             chain_digraph(3))) == 2
+
+      # DigraphsRespectsColouring (GAP manual 7.3-13)
+      D = cycle_digraph(4)
+      id = GAP.Globals.Transformation(GapObj([1, 2, 3, 4]))
+      @test digraphs_respects_colouring(D, D, id, [1, 2, 3, 4], [1, 2, 3, 4])
+      @test !digraphs_respects_colouring(D, D, id, [1, 2, 1, 2], [1, 2, 3, 4])
+
+      # GeneratorsOfEndomorphismMonoid (GAP manual 7.3-14)
+      @test !isempty(generators_of_endomorphism_monoid(complete_digraph(3)))
+      @test !isempty(generators_of_endomorphism_monoid(complete_digraph(3), [1, 1, 1]))
+      @test !isempty(generators_of_endomorphism_monoid_attr(complete_digraph(3)))
+
+      # DigraphColouring (GAP manual 7.3-15)
+      D = cycle_digraph(4)
+      t = digraph_colouring(D, 2)
+      @test is_digraph_colouring(D, t)
+      @test_throws ArgumentError digraph_colouring(complete_digraph(3), 2)
+
+      # DigraphGreedyColouring / DigraphWelshPowellOrder (7.3-16, 7.3-17)
+      @test is_digraph_colouring(D, digraph_greedy_colouring(D))
+      @test is_digraph_colouring(D, digraph_greedy_colouring(D, [1, 3, 2, 4]))
+      @test is_digraph_colouring(D, digraph_greedy_colouring(D, D -> [1, 3, 2, 4]))
+      @test length(digraph_welsh_powell_order(D)) == 4
+
+      # ChromaticNumber / DigraphCore (GAP manual 7.3-18, 7.3-19)
+      @test chromatic_number(complete_digraph(3)) == 3
+      @test digraph_core(digraph_symmetric_closure(cycle_digraph(8))) == [1, 2]
+
+      # LatticeDigraphEmbedding and IsLattice* (GAP manual 7.3-20, 7.3-21)
+      L = digraph([[1, 2, 3, 4], [2, 3, 4], [3, 4], [4]])
+      t = lattice_digraph_embedding(L, L)
+      @test is_lattice_homomorphism(L, L, t)
+      @test is_lattice_epimorphism(L, L, t)
+      @test is_lattice_embedding(L, L, t)
+      @test is_lattice_monomorphism(L, L, t)
+      @test is_lattice_endomorphism(L, t)
+    end
   end
 
   @testset "Edge-weighted digraph (appendix)" begin

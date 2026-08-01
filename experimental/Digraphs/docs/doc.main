@@ -1,0 +1,10 @@
+[
+   "Digraphs" => [
+      "introduction.md",
+      "constructing_digraphs.md",
+      "operators.md",
+      "attributes.md",
+      "properties.md",
+      "isomorphisms.md",
+   ],
+]
