@@ -39,6 +39,30 @@ as_grape_graph(d::Digraph)
 as_transformation(d::Digraph)
 ```
 
+## Conversions with Oscar graphs
+
+Digraphs can be converted to and from the directed, undirected and mixed
+`Graph` types of Oscar. The conversions are structural: vertices and edges
+are carried over, while labels and other attributes are not. Multiple edges
+cannot be represented by Oscar's `Graph` type and raise an error; self-loops
+are preserved. An undirected graph is converted to the symmetric digraph
+containing both arcs for every edge, and converting a digraph to an
+undirected graph requires the digraph to be symmetric. When converting a
+digraph to a mixed graph, every pair of opposite arcs becomes one undirected
+edge and all remaining arcs stay in the directed component.
+
+```@docs
+digraph(G::Graph{T}; mut::Bool=false) where {T <: Union{Directed, Undirected}}
+digraph(mg::MixedGraph; mut::Bool=false)
+graph(::Type{T}, D::Digraph) where {T <: Union{Directed, Undirected}}
+graph(::Type{Mixed}, D::Digraph)
+Digraph(G::Graph{T}; mut::Bool=false) where {T <: Union{Directed, Undirected}}
+Digraph(mg::MixedGraph; mut::Bool=false)
+Graph{Directed}(D::Digraph)
+Graph{Undirected}(D::Digraph)
+MixedGraph(D::Digraph)
+```
+
 ## New digraphs from old
 
 ```@docs

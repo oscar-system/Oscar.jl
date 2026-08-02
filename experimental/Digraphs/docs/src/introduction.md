@@ -12,7 +12,8 @@ set of vertices, identified with `1, ..., n`, together with a list of
 out-neighbours for every vertex, so that multiple edges and loops are
 supported. The functionality mirrors the GAP Digraphs manual: constructing
 digraphs, operators and attributes, properties, and isomorphisms and
-homomorphisms.
+homomorphisms. Digraphs can also be converted to and from Oscar's directed,
+undirected and mixed `Graph` types; see [Conversions with Oscar graphs](@ref).
 
 ```jldoctest
 julia> D = cycle_digraph(5)
