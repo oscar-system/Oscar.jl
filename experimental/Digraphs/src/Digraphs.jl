@@ -1,4 +1,8 @@
-using Oscar: AbstractGraph, Directed, GAPGroup, GAPGroupElem
+using Oscar: AbstractGraph, Directed, GAPGroup, GAPGroupElem,
+             Graph, MixedGraph, Mixed, Polymake, Undirected, pm_object, @req
+
+import GAP
+import GAP: GapObj
 
 include("DigraphWrap.jl")
 include("Types.jl")

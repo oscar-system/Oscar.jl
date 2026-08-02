@@ -680,4 +680,76 @@
     @test nv(d) == 2 && ne(d) == 2
   end
 
+  @testset "Conversions with Oscar Graphs" begin
+    # Directed round trip (functional and type-constructor interfaces)
+    d = digraph([[2, 3], [1, 4], [1], [2]])
+    g = Graph{Directed}(d)
+    @test graph(Directed, d) == g
+    @test n_vertices(g) == 4 && n_edges(g) == 6
+    @test sort([(src(e), dst(e)) for e in edges(g)]) ==
+          [(1, 2), (1, 3), (2, 1), (2, 4), (3, 1), (4, 2)]
+    d2 = digraph(g)
+    @test nv(d2) == 4 && ne(d2) == 6
+    @test out_neighbours(d2) == [[2, 3], [1, 4], [1], [2]]
+    @test out_neighbours(Digraph(g)) == out_neighbours(d2)
+
+    # Undirected round trip
+    du = digraph([[2, 3], [1, 3], [1, 2]])
+    gu = Graph{Undirected}(du)
+    @test graph(Undirected, du) == gu
+    @test n_vertices(gu) == 3 && n_edges(gu) == 3
+    du2 = digraph(gu)
+    @test is_symmetric(du2)
+    @test out_neighbours(du2) == [[2, 3], [1, 3], [1, 2]]
+    @test_throws ArgumentError Graph{Undirected}(digraph([[2], []]))
+    @test_throws ArgumentError graph(Undirected, digraph([[2], []]))
+
+    # Multiple edges cannot be represented by Oscar Graphs
+    @test_throws ArgumentError Graph{Directed}(digraph([[1, 1, 2], [], []]))
+    @test_throws ArgumentError graph(Directed, digraph([[1, 1, 2], [], []]))
+    @test_throws ArgumentError graph(Mixed, digraph([[1, 1, 2], [], []]))
+
+    # Self-loops are preserved
+    dl = digraph([[1, 2], [1]])
+    gl = Graph{Directed}(dl)
+    @test has_edge(gl, 1, 1)
+    @test n_vertices(gl) == 2 && n_edges(gl) == 3
+    @test out_neighbours(digraph(gl)) == [[1, 2], [1]]
+
+    # MixedGraph round trip
+    mg = Oscar.MixedGraph(4)
+    @test add_edge!(mg, Directed, 1, 3)
+    @test add_edge!(mg, Undirected, 2, 3)
+    @test add_edge!(mg, Undirected, 3, 4)
+    dmg = digraph(mg)
+    @test nv(dmg) == 4 && ne(dmg) == 5
+    @test sort.(out_neighbours(dmg)) == [[3], [3], [2, 4], [3]]
+    mg2 = Oscar.MixedGraph(dmg)
+    @test graph(Mixed, dmg) == mg2
+    @test sort([(src(e), dst(e)) for e in edges(mg2, Directed)]) == [(1, 3)]
+    @test sort([(src(e), dst(e)) for e in edges(mg2, Undirected)]) == [(3, 2), (4, 3)]
+    @test sort.(out_neighbours(digraph(mg2))) == sort.(out_neighbours(dmg))
+
+    # Empty digraph
+    d0 = digraph(Vector{Vector{Int}}())
+    g0 = Graph{Directed}(d0)
+    @test n_vertices(g0) == 0 && n_edges(g0) == 0
+    @test nv(digraph(g0)) == 0
+    @test n_vertices(Graph{Undirected}(d0)) == 0
+    @test n_vertices(Oscar.MixedGraph(d0)) == 0
+
+    # Mutability keyword
+    @test is_mutable_digraph(digraph(g; mut=true))
+    @test is_mutable_digraph(Digraph(g; mut=true))
+    @test is_immutable_digraph(digraph(g))
+
+    # Performance smoke test on a larger graph
+    adj_big = [sort(unique(rand(1:2000, 6))) for _ in 1:2000]
+    dbig = digraph(adj_big)
+    gbig = Graph{Directed}(dbig)
+    dbig2 = digraph(gbig)
+    @test nv(dbig2) == nv(dbig)
+    @test ne(dbig2) == ne(dbig)
+  end
+
 end
