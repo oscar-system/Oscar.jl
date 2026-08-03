@@ -63,7 +63,7 @@ julia> G = graph_from_edges(Directed, [[1,2]])
 Directed graph with 2 nodes and the following edges:
 (1, 2)
 
-julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0]))
+julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
 [1   0]
 [0   1]
 [0   0]
@@ -128,7 +128,7 @@ julia> G = graph_from_edges(Directed, [[1,2]])
 Directed graph with 2 nodes and the following edges:
 (1, 2)
 
-julia> A = transpose(matrix(QQ,[1 0 0 0;0 1 0 0]))
+julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
 [1   0]
 [0   1]
 [0   0]
@@ -152,10 +152,10 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #ambient ring
     F = Q.base_field
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
-    Is = sort!(Ls)
-    R,x = graded_polynomial_ring(F,:x=>Is)
+    sort!(Ls)
+    R,x = graded_polynomial_ring(F,:x=>Ls)
     #index dictionary
-    xdict = Dict(Is[i] => x[i] for i in 1:length(Is))
+    xdict = Dict(Ls[i] => x[i] for i in 1:length(Ls))
     #create ideal generators for each edge
     Gs = elem_type(R)[]
     for (e, A) in zip(edges(G), As)
@@ -168,7 +168,7 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #create grassmann generators for each node
     for j in 1:length(ns)
         if ns[j]-1 >dims[j]>1
-            Jj = filter(t -> t[1] == j, Is)
+            Jj = filter(t -> t[1] == j, Ls)
             xx = [xdict[t] for t in Jj]
             Gr_di_ni = gens(grassmann_pluecker_ideal(dims[j],ns[j]))
             phi_i = hom(parent(Gr_di_ni[1]),R,xx)  
