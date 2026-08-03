@@ -94,8 +94,8 @@ julia> x
  x[0,0]
 ```
 """
-function difference_polynomial_ring(R::Ring, elementary_symbol::Symbol, n_action_maps::Int; kwargs...)
-  tmp = difference_polynomial_ring(R, [elementary_symbol], n_action_maps; kwargs...)
+function difference_polynomial_ring(R::Ring, action_indeterminate::Symbol, n_action_maps::Int; kwargs...)
+  tmp = difference_polynomial_ring(R, [action_indeterminate], n_action_maps; kwargs...)
   return (tmp[1], tmp[2][1])
 end
 
@@ -187,8 +187,8 @@ julia> x
  x[0,0]
 ```
 """
-function differential_polynomial_ring(R::Ring, elementary_symbol::Symbol, n_action_maps::Int; kwargs...)
-  tmp = differential_polynomial_ring(R, [elementary_symbol], n_action_maps; kwargs...)
+function differential_polynomial_ring(R::Ring, action_indeterminate::Symbol, n_action_maps::Int; kwargs...)
+  tmp = differential_polynomial_ring(R, [action_indeterminate], n_action_maps; kwargs...)
   return (tmp[1], tmp[2][1])
 end
 
@@ -902,7 +902,7 @@ end
 
 function apply_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
   len = length(d)
-  @req len == n_action_maps(parent(dpre)) && all(>=(0), d) "Invalid vector of diff multiplicities"
+  @req len == n_action_maps(parent(dpre)) && all(>=(0), d) "Invalid vector of multiplicities"
   res = dpre
   for i in 1:len
     for j in 1:d[i]
