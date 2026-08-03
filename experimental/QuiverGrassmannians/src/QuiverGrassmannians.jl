@@ -3,26 +3,51 @@ export QuiverRepresentation
 export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
+#checks that the dimensions of the input matrices match the dimension labels on vertices
+function check_matrix_dimensions(quiver, ambient_dims, input_matrices)
+    for (e, A) in zip(edges(quiver), input_matrices)
+        u = src(e)
+        v = dst(e)
 
+        @req nrows(A) == ambient_dims[u] begin
+            "Matrix for edge $u → $v has $(nrows(A)) rows, " *
+            "but the source vertex has dimension $(ambient_dims[u])."
+            "check input matrices satisfy OSCAR's freemodule morphism convention."
+        end
+
+        @req ncols(A) == ambient_dims[v] begin
+            "Matrix for edge $u → $v has $(ncols(A)) columns, " *
+            "but the target vertex has dimension $(ambient_dims[v])."
+            "check input matrices satisfy OSCAR's freemodule morphism convention."
+        end
+    end
+end
 #Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
 struct QuiverRepresentation
     quiver::Graph{Directed}
     ambient_dims::Vector{Int}
+    vertex_vector_spaces::Vector
     edge_morphisms::Vector
+    base_field::Field
     function QuiverRepresentation(quiver, ambient_dims::Vector{Int}, input_matrices::Vector)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
-        new(quiver, ambient_dims, input_matrices, edge_morphisms(quiver,input_matrices,ambient_dims))
+        #add req to remind user that the dimension of the domain and codomain are "switched" for module homs
+        check_matrix_dimensions(quiver, ambient_dims, input_matrices)
+        base_field = base_ring(first(input_matrices))
+        vertex_vector_spaces = [vector_space(base_field,ambient_dims[i]) for i in vertices(quiver)]
+        new(quiver, ambient_dims, vertex_vector_spaces, edge_morphisms(quiver,input_matrices,vertex_vector_spaces), base_field)
     end
 end
 
 #convert matrices to free module morphisms
-function edge_morphisms(G, As, ns)
+function edge_morphisms(G, As, vertex_vector_spaces)
     R = base_ring(As[1])
+    Vs = vertex_vector_spaces
     return [
-        hom(free_module(R, ns[src(e)]),
-            free_module(R, ns[dst(e)]),
-            transpose(A))
+        hom(Vs[src(e)],
+            Vs[dst(e)],
+            A)
         for (A, e) in zip(As, edges(G))
     ]
 end
@@ -120,12 +145,12 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #quiver rep data
     G = Q.quiver
     ns = Q.ambient_dims
-    As = Q.input_matrices
+    As = transpose.(matrix.(Q.edge_morphisms))
     @req length(dims) == length(ns) "each vertex needs a subspace dimension"
     @req all([dims[i]<= ns[i] for i in 1:length(ns)]) "dimension on vertex must be less or
                                                         equal to than ambient dimension"
     #ambient ring
-    F = base_ring(As[1])
+    F = Q.base_field
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
     sort!(Ls)
     R,x = polynomial_ring(F,:x=>Is)
