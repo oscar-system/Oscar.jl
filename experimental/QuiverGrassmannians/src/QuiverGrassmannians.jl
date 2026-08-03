@@ -4,7 +4,7 @@ export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
 #checks that the dimensions of the input matrices match the dimension labels on vertices
-function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dimsambient_dims::Vector{Int}, input_matrices)
+function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices)
     for (e, A) in zip(edges(quiver), input_matrices)
         u = src(e)
         v = dst(e)
@@ -27,7 +27,9 @@ struct QuiverRepresentation
     quiver::Graph{Directed}
     ambient_dims::Vector{Int}
     vertex_vector_spaces::Vector
-    edge_morphisms::Vector
+    edge_morphisms::Vectorjulia> Q = quiver_representation(G,[2,4],[A])
+QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
+
     base_field::Field
     function QuiverRepresentation(quiver, ambient_dims::Vector{Int}, input_matrices::Vector)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
@@ -64,13 +66,11 @@ Directed graph with 2 nodes and the following edges:
 (1, 2)
 
 julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
-[1   0]
-[0   1]
-[0   0]
-[0   0]
+[1   0   0   0]
+[0   1   0   0]
 
 julia> Q = quiver_representation(G,[2,4],[A])
-QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
+QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
 ```
 """
 function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem})
@@ -129,16 +129,14 @@ Directed graph with 2 nodes and the following edges:
 (1, 2)
 
 julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
-[1   0]
-[0   1]
-[0   0]
-[0   0]
+[1   0   0   0]
+[0   1   0   0]
 
 julia> Q = quiver_representation(G,[2,4],[A])
-QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
+QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
 
-julia> Qsr = quiver_grassmannian(Q,[1,2])
-QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]]), Multivariate polynomial ring in 8 variables over QQ, Ideal with 5 generators, [1, 2])
+Qsr = quiver_grassmannian(Q,[1,2])
+QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field), Graded multivariate polynomial ring in 8 variables over QQ, Ideal with 5 generators, [1, 2])
 ```
 """
 function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
