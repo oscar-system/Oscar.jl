@@ -4,7 +4,7 @@ export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
 #checks that the dimensions of the input matrices match the dimension labels on vertices
-function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices)
+function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector{<:MatElem})
     for (e, A) in zip(edges(quiver), input_matrices)
         u = src(e)
         v = dst(e)
@@ -27,11 +27,11 @@ struct QuiverRepresentation
     quiver::Graph{Directed}
     ambient_dims::Vector{Int}
     vertex_vector_spaces::Vector
-    edge_morphisms::Vectorjulia> Q = quiver_representation(G,[2,4],[A])
+    edge_morphisms::Vector{<:MatElem}
 QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
 
     base_field::Field
-    function QuiverRepresentation(quiver, ambient_dims::Vector{Int}, input_matrices::Vector)
+    function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
         #add req to remind user that the dimension of the domain and codomain are "switched" for module homs
@@ -78,13 +78,13 @@ function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int
 end
 
 ####Internal functions for Quiver Grassmannian
-function sign_j(j::Int,I::Vector{Int},J::Vector{Int})
+function sign_j(j::Int, I::Vector{Int}, J::Vector{Int})
     g = count(>(j), J) + count(>(j), I)  
     return (-1)^(g)
 end
 
 #returns generator for (I,J) pair associated with an edge
-function P_gen(A::MatElem,I,J,e,n1,xdict)
+function P_gen(A::MatElem, I, J, e, n1, xdict)
     N = 1:n1
     return sum(sign_j(j, I, J)*A[i,j]*xdict[(src(e),sort(union(I,j)))]*xdict[(dst(e),setdiff(J,i))] for 
                 j in setdiff(N,I), i in J);# init=0)
