@@ -1573,6 +1573,7 @@ If `r` is a root, this is the coroot corresponding to `r`.
 """
 function dual(r::RootSpaceElem)
   R = root_system(r)
+  iszero(r) && return zero(DualRootSpaceElem, R)
   lr = dot(r, r)
   coeffs = [dot(simple_root(R, i), simple_root(R, i))//lr * coeff(r, i) for i in 1:rank(R)]
   return DualRootSpaceElem(R, coeffs)
@@ -1587,6 +1588,7 @@ If `r` is a coroot, this is the root corresponding to `r`.
 """
 function dual(r::DualRootSpaceElem)
   R = root_system(r)
+  iszero(r) && return zero(RootSpaceElem, R)
   lr = dot(r, r)
   coeffs = [
     dot(simple_coroot(R, i), simple_coroot(R, i))//lr * coeff(r, i) for i in 1:rank(R)
