@@ -4,7 +4,7 @@ export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
 #checks that the dimensions of the input matrices match the dimension labels on vertices
-function check_matrix_dimensions(quiver, ambient_dims, input_matrices)
+function check_matrix_dimensions(quiverGraph{Directed}, ambient_dimsambient_dims::Vector{Int}, input_matrices)
     for (e, A) in zip(edges(quiver), input_matrices)
         u = src(e)
         v = dst(e)
@@ -73,18 +73,18 @@ julia> Q = quiver_representation(G,[2,4],[A])
 QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], QQMatrix[[1 0; 0 1; 0 0; 0 0]])
 ```
 """
-function quiver_representation(quiver, ambient_dims, maps)
+function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem})
     return QuiverRepresentation(quiver, ambient_dims, maps)
 end
 
 ####Internal functions for Quiver Grassmannian
-function sign_j(j,I,J)
+function sign_j(j::Int,I::Vector{Int},J::Vector{Int})
     g = count(>(j), J) + count(>(j), I)  
     return (-1)^(g)
 end
 
 #returns generator for (I,J) pair associated with an edge
-function P_gen(A,I,J,e,n1,xdict)
+function P_gen(A::MatElem,I,J,e,n1,xdict)
     N = 1:n1
     return sum(sign_j(j, I, J)*A[i,j]*xdict[(src(e),sort(union(I,j)))]*xdict[(dst(e),setdiff(J,i))] for 
                 j in setdiff(N,I), i in J);# init=0)
@@ -152,8 +152,8 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     #ambient ring
     F = Q.base_field
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
-    sort!(Ls)
-    R,x = polynomial_ring(F,:x=>Is)
+    Is = sort!(Ls)
+    R,x = graded_polynomial_ring(F,:x=>Is)
     #index dictionary
     xdict = Dict(Is[i] => x[i] for i in 1:length(Is))
     #create ideal generators for each edge
