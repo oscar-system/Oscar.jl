@@ -12,13 +12,13 @@ function check_matrix_dimensions(quiverGraph{Directed}, ambient_dimsambient_dims
         @req nrows(A) == ambient_dims[u] begin
             "Matrix for edge $u → $v has $(nrows(A)) rows, " *
             "but the source vertex has dimension $(ambient_dims[u])."
-            "check input matrices satisfy OSCAR's freemodule morphism convention."
+            "Check input matrices satisfy OSCAR's freemodule morphism convention."
         end
 
         @req ncols(A) == ambient_dims[v] begin
             "Matrix for edge $u → $v has $(ncols(A)) columns, " *
             "but the target vertex has dimension $(ambient_dims[v])."
-            "check input matrices satisfy OSCAR's freemodule morphism convention."
+            "Check input matrices satisfy OSCAR's freemodule morphism convention."
         end
     end
 end
