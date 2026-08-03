@@ -78,7 +78,7 @@ function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int
 end
 
 ####Internal functions for Quiver Grassmannian
-function sign_j(j::Int, I::Vector{Int}, J::Vector{Int})
+function sign_j(j::Int, I::Vector{Int},J::Vector{Int})
     g = count(>(j), J) + count(>(j), I)  
     return (-1)^(g)
 end
@@ -110,13 +110,6 @@ struct QuiverGrassmannian#add types
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int64}
 end
-
-#generate free module homomorphisms from matrices
-function edge_morphisms(A,G,)
-    R = base_ring(A[1])
-    return [hom(A,free_module(R,ns))]
-end
-
 
 @doc raw"""
      quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
