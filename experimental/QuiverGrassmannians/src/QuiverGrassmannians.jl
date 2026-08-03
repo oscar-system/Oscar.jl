@@ -4,7 +4,7 @@ export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
 #checks that the dimensions of the input matrices match the dimension labels on vertices
-function check_matrix_dimensions(quiverGraph{Directed}, ambient_dimsambient_dims::Vector{Int}, input_matrices)
+function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dimsambient_dims::Vector{Int}, input_matrices)
     for (e, A) in zip(edges(quiver), input_matrices)
         u = src(e)
         v = dst(e)
