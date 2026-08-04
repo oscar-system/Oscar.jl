@@ -363,6 +363,26 @@ end
    @test_throws ErrorException gens(G)
 end
 
+@testset "matrix_group(Ring, Vector)" begin
+   # Base case: coerce ZZ matrices into QQ
+   G = matrix_group(QQ, [identity_matrix(ZZ, 3)])
+   @test base_ring(G) == QQ
+   @test degree(G) == 3
+
+   # Coerce ZZ matrices into a finite field
+   G = matrix_group(GF(101), [ZZ[1 2; 3 4]])
+   @test base_ring(G) == GF(101)
+   @test degree(G) == 2
+
+   # Same ring, no coercion needed
+   G = matrix_group(QQ, [identity_matrix(QQ, 2)])
+   @test base_ring(G) == QQ
+   @test degree(G) == 2
+
+   # Empty list should error
+   @test_throws ArgumentError matrix_group(QQ, dense_matrix_type(ZZ)[])
+end
+
 @testset "Construct a matrix group from a GAP group" begin
    G = matrix_group(GAP.Globals.GL(2, 4))
    @test degree(G) == 2

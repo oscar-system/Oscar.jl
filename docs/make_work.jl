@@ -109,12 +109,17 @@ function doit(
   Oscar.link_experimental_docs()
   collected = Any["Experimental/intro.md"]
   append!(collected, setup_experimental_package(Oscar, "ExperimentalTemplate"))
-  for pkg in sort(Oscar.exppkgs)
+  new_collected = Any[]
+  for pkg in Oscar.exppkgs
     pkg == "ExperimentalTemplate" && continue
     pkgdocs = setup_experimental_package(Oscar, pkg)
     if length(pkgdocs) > 0
-      append!(collected, pkgdocs)
+      push!(new_collected, pkgdocs)
     end
+  end
+  sort!(new_collected; by = pkgdocs -> lowercase(replace(first(pkgdocs[1]), r"\W" => "")))
+  for pkgdocs in new_collected
+    append!(collected, pkgdocs)
   end
   pos = findfirst(d -> d isa Pair && startswith(d[1], "Experimental"), doc)
   append!(doc[pos].second, collected)

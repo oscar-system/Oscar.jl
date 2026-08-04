@@ -271,8 +271,20 @@ class_positions_of_pcore
 class_positions_of_solvable_residuum
 ```
 
+## Rational character tables
+
+The *rational character table* of a group ``G`` consists of the
+*rational irreducible characters* of ``G``,
+that is, the Galois sums of the irreducible characters of ``G``.
+
+```@docs
+character_table_rational
+coordinates(chi::GAPGroupClassFunction, rattbl::GAPGroupCharacterTableRational; check = true)
+```
+
 ## Technicalities
 
 ```@docs
 GAPGroupCharacterTable
+GAPGroupCharacterTableRational
 ```

@@ -4,7 +4,7 @@
     R::MPolyRing
 
     function ZeroModuleFactory(R::MPolyRing)
-      return new{ModuleFP{elem_type(R)}}(R)
+      return new{OFPModule{elem_type(R)}}(R)
     end
   end
 
@@ -22,7 +22,7 @@
     R::MPolyRing
 
     function VerticalZeroMaps(R::MPolyRing)
-      return new{ModuleFPHom}(R)
+      return new{OFPModuleHom}(R)
     end
   end
 
@@ -30,7 +30,7 @@
     R::MPolyRing
 
     function HorizontalZeroMaps(R::MPolyRing)
-      return new{ModuleFPHom}(R)
+      return new{OFPModuleHom}(R)
     end
   end
 
@@ -87,8 +87,8 @@ end
   struct MyNewChainFactory{ChainType} <: Oscar.ChainFactory{ChainType} 
     original_complex::ComplexOfMorphisms
 
-    function MyNewChainFactory(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
-      return new{ModuleFP}(C)
+    function MyNewChainFactory(C::ComplexOfMorphisms{T}) where {T<:OFPModule}
+      return new{OFPModule}(C)
     end
   end
 
@@ -117,8 +117,8 @@ end
   struct MyNewMorphismFactory{MorphismType} <: Oscar.ChainMorphismFactory{MorphismType}
     original_complex::ComplexOfMorphisms
 
-    function MyNewMorphismFactory(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
-      return new{ModuleFPHom}(C)
+    function MyNewMorphismFactory(C::ComplexOfMorphisms{T}) where {T<:OFPModule}
+      return new{OFPModuleHom}(C)
     end
   end
 
@@ -146,15 +146,15 @@ end
   end
 
   struct MyDummyMorphismFactory{MorphismType} <: Oscar.ChainMorphismFactory{MorphismType}
-    function MyDummyMorphismFactory(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
-      return new{ModuleFPHom}()
+    function MyDummyMorphismFactory(C::ComplexOfMorphisms{T}) where {T<:OFPModule}
+      return new{OFPModuleHom}()
     end
   end
 
   Oscar.can_compute(fac::MyDummyMorphismFactory, D::Oscar.AbsDoubleComplexOfMorphisms, i::Int, j::Int) = false
 
   # The actual constructor for the object we want to have.
-  function as_infinite_one_line_double_complex(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
+  function as_infinite_one_line_double_complex(C::ComplexOfMorphisms{T}) where {T<:OFPModule}
     is_complete(C) || error("implemented only for complete complexes")
     chain_fac = MyNewChainFactory(C)
     mor_fac = MyNewMorphismFactory(C)

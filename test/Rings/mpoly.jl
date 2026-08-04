@@ -347,6 +347,8 @@ end
    R, (x0, x1, x2) = polynomial_ring(QQ, [:x0, :x1, :x2])
    I = ideal([x0*x1,x2])
    g = generating_system(I)
+   h = Oscar.IdealGens([x0*x1,x2])
+   @test h == g
    @test elements(g) == [x0*x1, x2]
    @test g.isGB == false
    @test isdefined(g, :ord) == false
@@ -713,5 +715,19 @@ end
   g = y^4 + x^2 + x^8
   hg = puiseux_expansion(g, 20)
   @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
+end
+
+@testset "issue #5968" begin
+  R, (a,b,c) = QQ[:a,:b,:c]
+  Q, (d,e,f) = QQ[:d,:e,:f]
+  P, (u,v) = QQ[:u,:v]
+
+  I = ideal(R, [a,b,c])
+  J = ideal(P, [u,v])
+
+  @test_throws ArgumentError ideal_membership(d, I)
+  @test_throws ArgumentError ideal_membership(d, J)
+  @test_throws ArgumentError radical_membership(d, I)
+  @test_throws ArgumentError radical_membership(d, J)
 end
 

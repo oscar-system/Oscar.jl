@@ -38,6 +38,9 @@ see the following sections.
 ```@docs
 on_tuples
 on_sets
+on_sets_sets
+on_sets_tuples
+on_tuples_sets
 permuted
 on_indeterminates
 on_lines

@@ -130,35 +130,6 @@ function ==(Omega1::GSet, Omega2::GSet)
   throw(NotImplementedError(:(==), (Omega1, Omega2)))
 end
 
-
-"""
-    GSetByElements{T,S} <: GSet{T,S}
-
-Objects of this type represent G-sets that are willing to write down
-orbits and elements lists as vectors.
-These G-sets are created by default by [`gset`](@ref).
-
-The fields are
-- the group that acts, of type `T`,
-- the Julia function (for example `on_tuples`) that describes the action,
-- the seeds (something iterable of eltype `S`) whose closure under the action is the G-set
-- the dictionary used to store attributes (orbits, elements, ...).
-"""
-@attributes mutable struct GSetByElements{T,S} <: GSet{T,S}
-    group::T
-    action_function::Function
-    seeds
-
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{Group, FinGenAbGroup}}
-        @req !isempty(seeds) "seeds for G-set must be nonempty"
-        check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
-        Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
-        closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
-        return Omega
-    end
-end
-#TODO: How can I specify that `seeds` should be an iterable object?
-
 function Base.show(io::IO, ::MIME"text/plain", x::GSetByElements)
   println(io, "G-set of")
   io = pretty(io)
@@ -267,6 +238,22 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
+## action of permutations on sets of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{Set{T2}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on sets of tuples of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{<:Tuple{T2,Vararg{T2}}} where T2<:IntegerUnion
+  return GSetByElements(G, on_sets_tuples, Omega; closed = closed, check = false)
+end
+
+## action of permutations on tuples of sets of positive integers
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{T2,Vararg{T2}} where T2<:Set{<:IntegerUnion}
+  return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
+end
+
+## action of permutations on vectors of positive integers
 ## action of matrices on vectors via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
@@ -290,6 +277,16 @@ end
 ## action of matrices on polynomials via `on_indeterminates`
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
   return GSetByElements(G, on_indeterminates, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on group elements via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroupElem
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
+end
+
+## action of automorphisms on subgroups via `^`
+function gset_by_type(G::AutomorphismGroup, Omega, ::Type{T}; closed::Bool = false) where T <: GAPGroup
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -350,10 +347,20 @@ end
 #      using what is called `RepresentativeAction` in GAP.
 
 function Base.in(omega::S, Omega::GSetByElements{T,S}) where {T,S}
-    omega in Omega.seeds && return true
-    return omega in elements(Omega)
+  is_in_seeds = (omega in Omega.seeds)::Bool
+  is_in_seeds && return true
+  # If all elements of Omega are seeds, we don't need to check everything again.
+  # This prominently happens if Omega was computed as an orbit. In that case,
+  # Omega already knows its elements, so the following length check is cheap.
+  # This is not just a micro-optimization: looking up omega in Omega.seeds is
+  # in O(1) because seeds is an IndexedSet, but the look-up in elements(Omega)
+  # takes linear time.
+  elts = elements(Omega)
+  if length(Omega.seeds)::Int == length(elts)
+    return is_in_seeds
+  end
+  return omega in elts
 end
-
 
 #############################################################################
 ##
@@ -424,19 +431,6 @@ function _induce(Omega::GSetByElements{T, S}, phi::Map{U, T}) where {T<:Union{Gr
 end
 
 #############################################################################
-##
-##  wrapper objects for elements of G-sets,
-##  with fields `gset` (the G-set) and `objects` (the unwrapped object)
-##
-##  These objects are optional ("syntactic sugar"), they can be used to
-##  - apply group elements via `^`,
-##    not via the action function stored in the G-set,
-##  - write something like `orbit(omega)`, `stabilizer(omega)`.
-
-struct ElementOfGSet{T, S, G <: GSet{T, S}}
-    gset::G
-    obj::S
-end
 
 function (Omega::GSet{T, S})(obj::S) where {T, S}
     return ElementOfGSet(Omega, obj)
@@ -771,46 +765,6 @@ function permutation(Omega::GSetByElements{T}, g::Union{GAPGroupElem, FinGenAbGr
     @req pi !== GAP.Globals.fail "no permutation is induced by $g"
 
     return group_element(action_range(Omega), pi)
-end
-
-
-@doc raw"""
-    GSetBySubgroupTransversal{T, S, E} <: GSet{T}
-
-Objects of this type represent G-sets that describe the left or right cosets
-of a subgroup $H$ in a group $G$.
-The group $G$ acts on the G-set by multiplication from the right or (after
-taking inverses) from the left.
-These G-sets store just transversals,
-see [`right_transversal`](@ref) and [`left_transversal`](@ref).
-The construction of explicit right or left cosets is not necessary in order
-to compute the permutation action of elements of $G$ on the cosets.
-
-The fields are
-- the group that acts, of type `T`, with elements of type `E`,
-- the subgroup whose cosets are the elements, of type `S`,
-- the side from which the group acts (`:right` or `:left`),
-- the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
-- the dictionary used to store attributes (orbits, elements, ...).
-"""
-@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, S, E}}
-    group::T
-    subgroup::S
-    side::Symbol
-    transversal::SubgroupTransversal{T, S, E}
-
-    function GSetBySubgroupTransversal(G::T, H::S, side::Symbol; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
-        check && @req is_subgroup(H, G)[1] "H must be a subgroup of G"
-        E = eltype(G)
-        if side == :right
-          tr = right_transversal(G, H)
-        elseif side == :left
-          tr = left_transversal(G, H)
-        else
-          throw(ArgumentError("side must be :right or :left"))
-        end
-        return new{T, S, E}(G, H, side, tr, Dict{Symbol,Any}())
-    end
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GSetBySubgroupTransversal)

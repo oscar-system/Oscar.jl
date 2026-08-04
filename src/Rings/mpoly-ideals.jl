@@ -1682,6 +1682,7 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
+  @req parent(f) === base_ring(I) "Polynomial `f` and ideal `I` do not belong to the same polynomial ring."
   Sx = singular_polynomial_ring(I, ordering)
   return Singular.iszero(Singular.reduce(Sx(f), singular_groebner_generators(I, ordering)))
 end
@@ -1716,6 +1717,7 @@ false
 ```
 """
 function radical_membership(f::T, I::MPolyIdeal{T}) where T
+  @req parent(f) === base_ring(I) "Polynomial `f` and ideal `I` do not belong to the same polynomial ring."
   iszero(I) && return iszero(f)
   Sx = singular_polynomial_ring(I)
   return Singular.LibPolylib.rad_con(Sx(f), singular_generators(I)) == 1

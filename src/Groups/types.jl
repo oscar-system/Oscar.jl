@@ -192,7 +192,7 @@ end
 
 function as_sub_pc_group(G::PcGroup)
   if !isdefined(G, :as_sub_pc_group)
-    G.as_sub_pc_group = sub_pc_group(G)
+    G.as_sub_pc_group = sub_pc_group(GapObj(G), G, check = false)
   end
   return G.as_sub_pc_group::SubPcGroup
 end
@@ -245,6 +245,7 @@ return groups of type `SubPcGroup`.
 #T better create an embedding!
 
   function SubPcGroup(G::GapObj)
+    # Create the `PcGroup` on the Oscar side anew.
     @assert GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)
     if GAPWrap.IsPcGroup(G)
       full = GAPWrap.GroupOfPcgs(GAPWrap.FamilyPcgs(G))
@@ -254,9 +255,20 @@ return groups of type `SubPcGroup`.
     z = new(G, PcGroup(full))
     return z
   end
+
+  function SubPcGroup(G::GapObj, F::PcGroup; check::Bool=true)
+    # Keep object identity of the available `PcGroup` on the Oscar side.
+    if check
+      @assert (GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)) &&
+              GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
+    end
+    z = new(G, F)
+    return z
+  end
 end
 
 sub_pc_group(G::GapObj) = SubPcGroup(G)
+sub_pc_group(G::GapObj, F::PcGroup; check::Bool=true) = SubPcGroup(G, F; check=check)
 
 
 """
@@ -286,7 +298,7 @@ const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
     FPGroup
 
 Finitely presented group.
-Such groups can be constructed a factors of free groups,
+Such groups can be constructed as factors of free groups,
 see [`free_group`](@ref).
 
 For a group `G` of type `FPGroup`, the elements in `gens(G)` satisfy the
@@ -297,6 +309,7 @@ Functions that compute subgroups of `G` return groups of type `SubFPGroup`.
 @attributes mutable struct FPGroup <: GAPGroup
   X::GapObj
   as_sub_fp_group::GAPGroup  # we cannot prescribe `SubFPGroup`
+  free_group::GAPGroup  # we cannot prescribe `FPGroup`
 
   function FPGroup(G::GapObj)
     # Accept only full f.p. groups.
@@ -315,13 +328,28 @@ function fp_group(G::GapObj)
   return FPGroup(GAPWrap.Range(f))
 end
 
+function fp_group(G::GapObj, F::FPGroup)
+  # We want to store `F` as the `free_group` value of the result.
+  # For that, `G` must be a full f.p. group on the GAP side
+  # (otherwise prescribing a known free group on the Oscar side
+  # does not make sense)
+  # and `GapObj(F)` must be identical with the free group on the GAP side
+  # that is stored in `G`
+  gapF = GapObj(F)
+  @assert GAPWrap.IsFpGroup(G)
+  @assert gapF === GAPWrap.FreeGroupOfFpGroup(G)
+  FG = FPGroup(G)
+  FG.free_group = F
+  return FG
+end
+
 # Return `true` if the generators of `G` fit
 # to those of its underlying presentation.
 _is_full_fp_group(G::GapObj) = GAPWrap.IsFpGroup(G)
 
 function as_sub_fp_group(G::FPGroup)
   if !isdefined(G, :as_sub_fp_group)
-    G.as_sub_fp_group = sub_fp_group(G)
+    G.as_sub_fp_group = sub_fp_group(GapObj(G), G, check = false)
   end
   return G.as_sub_fp_group::SubFPGroup
 end
@@ -358,14 +386,26 @@ subgroups of a finitely presented group.
 #T better create an embedding!
 
   function SubFPGroup(G::GapObj)
+    # Create the `FPGroup` on the Oscar side anew.
     @assert GAPWrap.IsSubgroupFpGroup(G)
     full = GAP.getbangproperty(GAPWrap.FamilyObj(G), :wholeGroup)::GapObj
     z = new(G, FPGroup(full))
     return z
   end
+
+  function SubFPGroup(G::GapObj, F::FPGroup; check::Bool=true)
+    # Keep object identity of the available `FPGroup` on the Oscar side.
+    if check
+      @assert GAPWrap.IsSubgroupFpGroup(G) &&
+              GAPWrap.FamilyObj(G) === GAPWrap.FamilyObj(F.X)
+    end
+    z = new(G, F)
+    return z
+  end
 end
 
 sub_fp_group(G::GapObj) = SubFPGroup(G)
+sub_fp_group(G::GapObj, F::FPGroup; check::Bool=true) = SubFPGroup(G, F; check=check)
 
 
 """
@@ -473,7 +513,7 @@ sub_type(G::GAPGroup) = sub_type(typeof(G))
 # default: ignore `G` and `check`
 function _oscar_subgroup(obj::GapObj, G::GAPGroup; check::Bool = true)
   S = sub_type(G)(obj)
-  @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
+  @assert GAPWrap.FamilyObj(GapObj(S)) === GAPWrap.FamilyObj(GapObj(G))
   return S
 end
 
@@ -492,11 +532,206 @@ function _oscar_subgroup(obj::GapObj, G::MatGroup; check::Bool = true)
   return matrix_group(_ring_iso(G), obj; check = check)
 end
 
+# `FPGroup`: keep the object identity of `G`
+function _oscar_subgroup(obj::GapObj, G::FPGroup; check::Bool = true)
+  return SubFPGroup(obj, G; check = check)
+end
 
+# `PcGroup`: keep the object identity of `G`
+function _oscar_subgroup(obj::GapObj, G::PcGroup; check::Bool = true)
+  return SubPcGroup(obj, G; check = check)
+end
+
+################################################################################
+#
+#  Cosets
+#
+################################################################################
+
+# T=type of the group, S=type of the element
+@doc raw"""
+    GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
+
+Type of right and left cosets of subgroups in groups.
+
+For an element $g$ in a group $G$, and a subgroup $H$ of $G$,
+the set $Hg = \{ hg; h \in H \}$ is a right coset of $H$ in $G$,
+and the set $gH = \{ gh; h \in H \}$ is a left coset of $H$ in $G$.
+
+- [`group(C::GroupCoset)`](@ref) returns $G$.
+
+- [`acting_group(C::GroupCoset)`](@ref) returns $H$.
+
+- [`representative(C::GroupCoset)`](@ref) returns an element
+  (the same element for each call) of `C`.
+
+- [`is_right(C::GroupCoset)`](@ref) and [`is_left(C::GroupCoset)`](@ref)
+  return whether `C` is a right or left coset, respectively.
+
+Two cosets are equal if and only if they are both left or right, respectively,
+and they contain the same elements.
+"""
+struct GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
+  G::TG                   # big group containing the subgroup and the element
+  H::TH                   # subgroup (may have a different type)
+  repr::S                 # element
+  side::Symbol            # says if the coset is left or right
+  X::Ref{GapObj}          # GapObj(H*repr)
+
+  function GroupCoset(G::TG, H::TH, representative::S, side::Symbol) where {TG <: GAPGroup, TH <: GAPGroup, S <:GAPGroupElem}
+    return new{TG, TH, S}(G, H, representative, side, Ref{GapObj}())
+  end
+end
+
+@doc raw"""
+    SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
+
+Type of left/right transversals of subgroups in groups.
+
+For a group $G$ and a subgroup $H$ of $G$, $T$ is a right
+(resp. left) transversal for $H$ in $G$ if $T$ contains
+precisely one element of each right (resp. left) cosets of $H$ in $G$.
+
+Objects of this type are created by [`right_transversal`](@ref) and
+[`left_transversal`](@ref).
+
+- [`group(T::SubgroupTransversal)`](@ref) returns $G$.
+
+- [`subgroup(T::SubgroupTransversal)`](@ref) returns $H$.
+
+# Note for developers
+
+The elements are encoded via a right transversal object in GAP.
+(Note that GAP does not support left transversals.)
+"""
+struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
+  G::T                    # big group containing the subgroup
+  H::S                    # subgroup
+  side::Symbol            # says if the transversal is left or right
+  X::GapObj               # underlying *right* transversal in GAP
+end
+
+@doc raw"""
+    GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
+
+Type of double cosets of subgroups in groups.
+
+For an element $g$ in a group $G$, and two subgroups $H$, $K$ of $G$,
+the set $HgK = \{ hgk; h \in H, k \in K \}$ is a $H-K$-double coset in $G$.
+
+- [`group(C::GroupDoubleCoset)`](@ref) returns $G$.
+
+- [`left_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
+
+- [`right_acting_group(C::GroupDoubleCoset)`](@ref) returns $K$.
+
+- [`representative(C::GroupDoubleCoset)`](@ref) returns an element
+  (the same element for each call) of `C`.
+
+Two double cosets are equal if and only if they contain the same elements.
+"""
+struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
+  # T=type of the group, S=type of the element
+  G::T
+  H::GAPGroup
+  K::GAPGroup
+  repr::S
+  X::Ref{GapObj}
+  size::Ref{ZZRingElem}
+  right_coset_reps::Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}
+
+  function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
+    return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}(),
+                     Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}())
+  end
+end
+
+################################################################################
+#
+#  G-Sets
+#
 ################################################################################
 
 abstract type GSet{T,S} end
 
+"""
+    GSetByElements{T,S} <: GSet{T,S}
+
+Objects of this type represent G-sets that are willing to write down
+orbits and elements lists as vectors.
+These G-sets are created by default by [`gset`](@ref).
+
+The fields are
+- the group that acts, of type `T`,
+- the Julia function (for example `on_tuples`) that describes the action,
+- the seeds (something iterable of eltype `S`) whose closure under the action is the G-set
+- the dictionary used to store attributes (orbits, elements, ...).
+"""
+@attributes mutable struct GSetByElements{T,S} <: GSet{T,S}
+  group::T
+  action_function::Function
+  seeds
+
+  function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{Group, FinGenAbGroup}}
+    @req !isempty(seeds) "seeds for G-set must be nonempty"
+    check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
+    Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
+    closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
+    return Omega
+  end
+end
+#TODO: How can I specify that `seeds` should be an iterable object?
+
+##  wrapper objects for elements of G-sets,
+##  with fields `gset` (the G-set) and `objects` (the unwrapped object)
+##
+##  These objects are optional ("syntactic sugar"), they can be used to
+##  - apply group elements via `^`,
+##    not via the action function stored in the G-set,
+##  - write something like `orbit(omega)`, `stabilizer(omega)`.
+struct ElementOfGSet{T, S, G <: GSet{T, S}}
+  gset::G
+  obj::S
+end
+
+@doc raw"""
+    GSetBySubgroupTransversal{T, S, E} <: GSet{T}
+
+Objects of this type represent G-sets that describe the left or right cosets
+of a subgroup $H$ in a group $G$.
+The group $G$ acts on the G-set by multiplication from the right or (after
+taking inverses) from the left.
+These G-sets store just transversals,
+see [`right_transversal`](@ref) and [`left_transversal`](@ref).
+The construction of explicit right or left cosets is not necessary in order
+to compute the permutation action of elements of $G$ on the cosets.
+
+The fields are
+- the group that acts, of type `T`, with elements of type `E`,
+- the subgroup whose cosets are the elements, of type `S`,
+- the side from which the group acts (`:right` or `:left`),
+- the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
+- the dictionary used to store attributes (orbits, elements, ...).
+"""
+@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, S, E}}
+  group::T
+  subgroup::S
+  side::Symbol
+  transversal::SubgroupTransversal{T, S, E}
+
+  function GSetBySubgroupTransversal(G::T, H::S, side::Symbol; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
+    check && @req is_subgroup(H, G)[1] "H must be a subgroup of G"
+    E = eltype(G)
+    if side == :right
+      tr = right_transversal(G, H)
+    elseif side == :left
+      tr = left_transversal(G, H)
+    else
+      throw(ArgumentError("side must be :right or :left"))
+    end
+    return new{T, S, E}(G, H, side, tr, Dict{Symbol,Any}())
+  end
+end
 
 ################################################################################
 #
@@ -512,6 +747,20 @@ in a group `G` of type `T`.
 """
 abstract type GroupConjClass{T,S} <: GSet{T,S} end
 
+@attributes mutable struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
+  X::T
+  repr::S
+  CC::GapObj
+
+  function GAPGroupConjClass(G::T, obj::S, C::GapObj) where T<:GAPGroup where S<:Union{GAPGroupElem, GAPGroup}
+    return new{T, S}(G, obj, C, Dict{Symbol,Any}())
+  end
+end
+
+struct FinGenAbGroupConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
+  X::T
+  repr::S
+end
 
 ################################################################################
 #
@@ -611,6 +860,10 @@ end
 
 function Base.show(io::IO, f::AutomorphismGroupElem{FinGenAbGroup})
   print(io, matrix(f))
+end
+
+mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFromFunc}
+  map::MapFromFunc{R, T}
 end
 
 ################################################################################
@@ -756,3 +1009,249 @@ end
 
 #TODO FinGenAbGroup: How do they behave?
 #     And does this question arise, since embeddings are used throughout?
+
+################################################################################
+#
+#  Character Tables
+#
+################################################################################
+
+abstract type GroupCharacterTable end
+
+"""
+    GAPGroupCharacterTable <: GroupCharacterTable
+
+This is the type of (ordinary or Brauer) character tables that can delegate
+tasks to an underlying character table object in the GAP system
+(field `GAPTable`).
+
+The value of the field `characteristic` determines whether the table
+is an ordinary one (value `0`) or a `p`-modular one (value `p`).
+
+A group can (but need not) be stored in the field `group`.
+If it is available then also the field `isomorphism` is available,
+its value is a bijective map from the `group` value to a group in GAP.
+
+Objects of type `GAPGroupCharacterTable` support [`get_attribute`](@ref),
+for example in order to store the already computed `p`-modular tables
+in an ordinary table, and to store the corresponding ordinary table
+in a `p`-modular table.
+"""
+@attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
+  GAPTable::GapObj  # the GAP character table object
+  characteristic::T where T <: IntegerUnion
+  group::Union{GAPGroup, FinGenAbGroup}    # the underlying group, if any
+  isomorphism::Map  # isomorphism from `group` to a group in GAP
+
+  function GAPGroupCharacterTable(G::Union{GAPGroup, FinGenAbGroup}, tab::GapObj, iso::Map, char::T) where T <: IntegerUnion
+    return new(tab, char, G, iso)
+  end
+
+  function GAPGroupCharacterTable(tab::GapObj, char::T) where T <: IntegerUnion
+    # group and isomorphism are left undefined
+    return new(tab, char)
+  end
+end
+
+abstract type GroupClassFunction end
+
+struct GAPGroupClassFunction <: GroupClassFunction
+  table::GAPGroupCharacterTable
+  values::GapObj
+end
+
+"""
+    GAPGroupCharacterTableRational <: GroupCharacterTable
+
+This is the type of ordinary *rational* character tables
+that can delegate tasks to the underlying character table
+(field `character_table`).
+
+As a collection, a rational character table stores the *rational irreducible*
+characters of the underlying character table `t`, that is, the Galois sums of
+the irreducible characters of `t` (field `irr`).
+
+The norms of these characters (the lengths of the Galois orbits)
+are stored in the field `norms`.
+"""
+@attributes mutable struct GAPGroupCharacterTableRational <: GroupCharacterTable
+  character_table::GAPGroupCharacterTable
+  irr::Vector{GAPGroupClassFunction}
+  norms::Vector{Int}
+
+  function GAPGroupCharacterTableRational(tbl::GAPGroupCharacterTable)
+    # irr and norms are left undefined
+    return new(tbl)
+  end
+end
+
+################################################################################
+#
+#  Tables of marks
+#
+################################################################################
+
+abstract type GroupTableOfMarks end
+
+"""
+    GAPGroupTableOfMarks <: GroupTableOfMarks
+
+This is the type of tables of marks that can delegate
+tasks to an underlying table of marks object in the GAP system
+(field `GAPTable`).
+
+A group can (but need not) be stored in the field `group`.
+If it is available then also the field `isomorphism` is available,
+its value is a bijective map from the `group` value to a group in GAP.
+
+Objects of type `GAPGroupTableOfMarks` support [`get_attribute`](@ref).
+"""
+@attributes mutable struct GAPGroupTableOfMarks <: GroupTableOfMarks
+  GAPTable::GapObj  # the GAP table of marks object
+  group::Union{GAPGroup, FinGenAbGroup}    # the underlying group, if any
+  isomorphism::Map  # isomorphism from `group` to a group in GAP
+
+  function GAPGroupTableOfMarks(G::Union{GAPGroup, FinGenAbGroup}, tom::GapObj, iso::Map)
+    @req GAPWrap.IsTableOfMarks(tom) "tom must be a GAP table of marks"
+    return new(tom, G, iso)
+  end
+
+  function GAPGroupTableOfMarks(tom::GapObj)
+    # group and isomorphism are left undefined
+    @req GAPWrap.IsTableOfMarks(tom) "tom must be a GAP table of marks"
+    return new(tom)
+  end
+end
+
+################################################################################
+#
+#  Marks vectors
+#
+################################################################################
+
+#  In order to describe Burnside rings over the integers,
+#  we implement marks vectors as wrapped GAP vectors,
+#  with parent the table of marks in question.
+#  Note that marks vectors can be shorter than the number of columns
+#  of the table of marks,
+#  meaning that the values at larger positions are zero.
+
+abstract type GroupMarksVector end
+
+struct GAPGroupMarksVector <: GroupMarksVector
+  table::GAPGroupTableOfMarks
+  values::GapObj
+end
+
+################################################################################
+#
+#  Cycles
+#
+################################################################################
+
+struct CycleType <: AbstractVector{Pair{Int64, Int64}}
+  # pairs 'cycle length => number of times it occurs'
+  # so 'n => 1' is a single n-cycle and  '1 => n' is the identity on n points
+  s::Vector{Pair{Int, Int}}
+
+  # take a vector of cycle lengths
+  function CycleType(c::Vector{Int})
+    s = Vector{Pair{Int, Int}}()
+    for i = c
+      _push_cycle!(s, i)
+    end
+    sort!(s; by=first)
+    return new(s)
+  end
+  function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
+    sorted && return new(v)
+    return new(sort(v; by=first))
+    #TODO: check that each cycle length is specified at most once?
+  end
+end
+
+################################################################################
+#
+#  Subspaces iterator
+#
+################################################################################
+
+# For an iterator of `k`-dimensional subspaces in an `n`-dimensional space
+# over the field with `q` elements,
+# the state is `(comb_iter, choice, prod_iter, values)`
+# where
+# - `comb_iter` is the iterator `combinations(1:n, k)`,
+# - `choice` is the current state of `comb_iter`,
+#   a vector that denotes the `k` pivot column positions in the matrix,
+# - `prod_iter` is an iterator of vectors, where the current vector
+#   corresponds to those entries in the not necessarily zero positions
+#   of the matrix that are not pivots, and
+# - `values` is the current state ot `prod_iter`.
+
+struct SubspacesIterator{T <: FinFieldElem}
+  V::AbstractAlgebra.Generic.AbstractAlgebra.Generic.FreeModule{T}
+  k::Int
+
+  function SubspacesIterator{T}(V, k) where T
+    @req 0 <= k <= vector_space_dim(V) "wrong dimension"
+    return new(V, k)
+  end
+end
+
+################################################################################
+#
+#  Words iterator (for printing and showing character tables)
+#
+################################################################################
+
+# Utility:
+# Create strings in length-lexicographical ordering w.r.t. the
+# alphabet 'alphabet'.
+# (If `alphabet` is `"ABCDEFGHIJKLMNOPQRSTUVWXYZ"` then the strings
+# have the form `"A", "B", ..., "Z", "AA", ...`.)
+mutable struct WordsIterator
+  alphabet::String
+end
+
+################################################################################
+#
+#  Collector
+#
+################################################################################
+
+# Create an Oscar collector object, its type parameter `T` describes
+# the type of integers that occur as exponents.
+
+abstract type Collector{T} end
+
+mutable struct GAP_Collector{T} <: Collector{T}
+  ngens::Int
+  relorders::Vector{T}
+  powers::Vector{Vector{Pair{Int, T}}}
+  conjugates::Matrix{Vector{Pair{Int, T}}}
+  X::GapObj   # a collector in GAP, if defined
+  F::FPGroup  # the free group in Oscar that belongs to `X`, if defined
+
+  function GAP_Collector{T}(n::Int) where T <: IntegerUnion
+    return new(n, zeros(T, n), # relative orders undefined
+               repeat([Pair{Int, T}[]], n), # default powers are identity
+               Matrix{Vector{Pair{Int, T}}}(undef, n, n)) # conjugates undefined
+  end
+end
+
+################################################################################
+#
+#  Recognition
+#
+################################################################################
+
+@attributes mutable struct GroupRecognitionTree{T <: GAPGroup}
+  input_group::T
+  gap_tree::GapObj
+
+  function GroupRecognitionTree{T}(G::GAPGroup, gap_tree::GapObj) where T
+    @req G isa PermGroup || G isa MatGroup "only matrix and permutation groups are supported"
+    res = new{T}(G, gap_tree)
+    return res
+  end
+end

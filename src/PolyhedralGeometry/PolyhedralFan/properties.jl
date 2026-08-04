@@ -301,12 +301,12 @@ Polyhedral fan in ambient dimension 2
 
 julia> r = rays(PF)[1]
 2-element RayVector{QQFieldElem}:
- 1
+  1
  -1//2
 
 julia> primitive_generator(r)
 2-element Vector{ZZRingElem}:
- 2
+  2
  -1
 ```
 """
@@ -326,7 +326,7 @@ Polyhedral fan in ambient dimension 2
 
 julia> r = rays(PF)[1]
 2-element RayVector{QQFieldElem}:
- 1
+  1
  -1//2
 
 julia> primitive_generator_with_scaling_factor(r)
@@ -538,8 +538,8 @@ Polyhedral fan in ambient dimension 3
 
 julia> standard_coordinates(PF, [1, 1, 0, 1])
 3-element Vector{QQFieldElem}:
- 0
- 0
+  0
+  0
  -1
 ```
 """
@@ -649,6 +649,31 @@ n_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _n_rays(PF) : 0
 _n_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 @doc raw"""
+    n_rays_modulo_lineality(PF::PolyhedralFan)
+
+Return the number of rays of `PF` modulo lineality.
+
+# Examples
+The 2-cube in 3-space lies in a 2-dimensional subspace and has 4 maximal
+proper faces. Accordingly, its normal fan has a 1-dimenional lineality
+space modulo which it has 4 rays.
+```jldoctest
+julia> C = convex_hull([0 0 0; 1 0 0; 1 1 0; 0 1 0])
+Polyhedron in ambient dimension 3
+
+julia> PF = normal_fan(C)
+Polyhedral fan in ambient dimension 3
+
+julia> n_rays(PF)
+0
+
+julia> n_rays_modulo_lineality(PF)
+4
+```
+"""
+n_rays_modulo_lineality(PF::_FanLikeType) = _n_rays(PF)
+
+@doc raw"""
     f_vector(PF::PolyhedralFan)
 
 Compute the vector $(f₁,f₂,...,f_{dim(PF)-1})$ where $f_i$ is the number of
@@ -663,9 +688,9 @@ Polytope in ambient dimension 3
 
 julia> f_vector(c)
 3-element Vector{ZZRingElem}:
- 8
+  8
  12
- 6
+  6
 
 
 julia> nfc = normal_fan(c)
@@ -673,15 +698,21 @@ Polyhedral fan in ambient dimension 3
 
 julia> f_vector(nfc)
 3-element Vector{ZZRingElem}:
- 6
+  6
  12
- 8
+  8
 ```
 """
 function f_vector(PF::_FanLikeType)
   pmf = pm_object(PF)
-  ldim = pmf.LINEALITY_DIM
-  return Vector{ZZRingElem}(vcat(fill(0, ldim), pmf.F_VECTOR))
+  ld = lineality_dim(PF)
+  fv = ld == dim(PF) ? ZZRingElem[] : pmf.F_VECTOR::Polymake.Vector{Polymake.Integer}
+  v = zeros(ZZRingElem, ld + length(fv))
+  v[(ld + 1):end] = fv
+  if ld > 0
+    v[ld] = 1
+  end
+  return v
 end
 
 @doc raw"""

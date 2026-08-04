@@ -86,7 +86,7 @@ julia> M = optimal_value(LP)
 julia> V = optimal_vertex(LP)
 3-element PointVector{QQFieldElem}:
  -1
- 1
+  1
  -1
 ```
 

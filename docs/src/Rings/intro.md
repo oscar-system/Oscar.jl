@@ -13,8 +13,106 @@ various kinds of rings:
 - orders in number fields
 - series rings
 
-General textbooks offering details on theory and algorithms include:
-- ...
+
+## [Subtle but important: `/` vs `//`](@id subtle_distinction_for_rings)
+
+OSCAR distinguishes a number of different kinds of divisions. In particular, the operators `/` and `//` have distinct meanings.
+
+Let `x` and `y` be elements of a ring.
+
+- `x / y` is a shorthand for `divexact(x,y)` and performs division within their parent ring (raising an error if this is not possible).
+- `x // y` constructs a formal quotient, placing the result in a fraction-field parent.
+- For fields, `/` and `//` coincide.
+
+Example:
+
+```julia
+julia> R, x = polynomial_ring(QQ, :x)
+(Univariate polynomial ring in x over QQ, x)
+
+julia> f = 1+x
+x + 1
+
+julia> parent(f//2)
+Fraction field
+  of univariate polynomial ring in x over QQ
+
+julia> parent(f/2)
+Univariate polynomial ring in x over QQ
+```
+
+!!! note
+    The above behavior applies if at least on of `x` and `y` is an OSCAR ring element. The other argument can also be a Julia integer, rational or float. For instance, provided `x isa RingElem` you can execute `x/2`, which will be an element in the corresponding parent ring. In contrast, if both `x` and `y` are plain Julia numbers, `/` denotes floating-point division. As such, the result of `1/2` is the floating point number `0.5` in Julia. [Read up for more details on integer division in OSCAR.](@ref division_of_integers_in_OSCAR)
+
+In case the ring in question is a field (which means that it is canonically isomorphic to its field of fractions), `//` coincides with exact division:
+
+```julia
+julia> F101 = GF(101)
+Finite field of characteristic 101
+
+julia> j = F101(9)
+9
+
+julia> parent(j//j)
+Finite field of characteristic 101
+
+julia> parent(j) == parent(j//j)
+true
+```
+
+Mixing `/` and `//` in the same expression can lead to subtle changes in the parent of the result. In the following example we create the same polynomial twice: once as an element of a polynomial ring (via `/`) and once as an element of its field of fractions (via `//`). We can add these ring elements despite residing in different rings, thanks to our[promotion rules](https://nemocas.github.io/AbstractAlgebra.jl/stable/ring_interface/#Promotion-rules), but the result lives in the field of fractions. This may be unexpected at first.
+
+```julia
+julia> R, x = polynomial_ring(QQ, :x)
+(Univariate polynomial ring in x over QQ, x)
+
+julia> f = 1+x
+x + 1
+
+julia> g = f//2 + f/2
+x + 1
+
+julia> parent(g)
+Fraction field
+  of univariate polynomial ring in x over QQ
+```
+
+If the ring in question is not an integral domain, its field of fractions does not exist in a strict mathematical sense. Nevertheless, `//` may still construct formal fractions. However, computations with such objects may fail. Use with care!
+
+The following example illustrates such failures for ``\mathbb{Z}/100 \mathbb{Z}`` (which is not an integral domain, since ``100 = 2^2 \times 5^2``, hence has zero divisors).
+
+```julia
+julia> RR,_ = residue_ring(ZZ, 100)
+(Integers modulo 100, Map: ZZ -> ZZ/(100))
+
+julia> a = RR(9)
+9
+
+julia> parent(a)
+Integers modulo 100
+
+julia> W = parent(a//a)
+Fraction field
+  of integers modulo 100
+
+julia> new_j = 10*W(1)
+10
+
+julia> inv_new_j = 1/new_j
+1//10
+
+julia> inv_new_j^2
+Error showing value of type AbstractAlgebra.Generic.FracFieldElem{zzModRingElem}:
+ERROR: Impossible inverse in Integers modulo 100
+
+julia> weird = (inv_new_j)^2;
+
+julia> is_zero(1//weird)
+true
+```
+
+In contrast, running the above code over ``\mathbb{Z}/101\mathbb{Z}`` completes successfully.
+
 
 
 ## Contact

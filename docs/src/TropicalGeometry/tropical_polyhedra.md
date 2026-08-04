@@ -37,6 +37,7 @@ Both `TropicalPolyhedron` and `TropicalPointConfiguration` can be constructed fr
 Additionally, one can convert between `TropicalPolyhedron` and `TropicalPointConfiguration`. This way, 
 the underlying low-level object in `polymake` and already computed information is preserved.
 ```@docs
+tropical_polyhedron
 tropical_convex_hull
 tropical_point_configuration
 ```
