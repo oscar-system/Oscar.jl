@@ -60,6 +60,16 @@
     @test ambient_dim(polyhedron(D)) == 2
   end
 
+  # Check divisor classes when the torus-invariant divisor group has no generators.
+  @testset "Zero-dimensional affine space" begin
+    A0 = affine_space(NormalToricVariety, 0)
+    D0 = trivial_divisor(A0)
+    @test is_trivial(class_group(A0))
+    @test is_trivial(picard_group(A0))
+    @test iszero(divisor_class(D0))
+    @test iszero(picard_class(D0))
+  end
+
   @testset "Arithmetic" begin
     @test (D == D2) == false
     @test (D4 + D5 == D6) == true

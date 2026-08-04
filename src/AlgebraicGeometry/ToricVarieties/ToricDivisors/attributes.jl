@@ -85,7 +85,7 @@ function picard_class(td::ToricDivisor)
   to_weil = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(
     v
   )
-  weil_divisor = sum(coefficients(td) .* gens(codomain(to_weil)))
+  weil_divisor = codomain(to_weil)(coefficients(td))
   return to_picard(preimage(to_weil, weil_divisor))
 end
 
