@@ -15,6 +15,7 @@ export is_reduced
 export leader
 export n_action_indeterminates
 export n_action_maps
+export partially_reduce
 export partition
 export ranking
 export riquier_matrix
