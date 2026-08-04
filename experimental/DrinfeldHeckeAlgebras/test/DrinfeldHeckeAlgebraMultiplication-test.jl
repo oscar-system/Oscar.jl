@@ -54,7 +54,7 @@
     G = symplectic_doubling(W)
     A = generic_drinfeld_hecke_algebra(G)
     (t1,t2,t3) = gens(base_ring(A))
-    A = evaluate_parameters(A, [-t1,t2,-t3/2])
+    A = evaluate_parameters(A, [-t3/2, -t1, t2])
 
     R = base_ring(A)
     RV = base_algebra(A)
