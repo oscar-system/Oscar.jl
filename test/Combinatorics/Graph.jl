@@ -230,6 +230,118 @@
         @test is_isomorphic(G2, GG2)
     end
 
+    @testset "graph_from_group_action" begin
+      function naive_group_action_graph(::Type{T}, L, adj) where {T}
+        verts = collect(L)
+        n = length(verts)
+        g = graph(T, n)
+        for i in 1:n
+          for j in 1:n
+            adj(verts[i], verts[j]) && add_edge!(g, i, j)
+          end
+        end
+        return g
+      end
+
+      same_neighbors(a, b) =
+        n_vertices(a) == n_vertices(b) &&
+        all(Set(outneighbors(a, i)) == Set(outneighbors(b, i)) for i in 1:n_vertices(a))
+
+      S4 = symmetric_group(4)
+      pts = collect(1:4)
+
+      # natural action of S4, adjacency !=
+      adj_neq = (x, y) -> x != y
+      g1 = graph_from_group_action(S4, pts, ^, adj_neq)
+      h1 = naive_group_action_graph(Directed, pts, adj_neq)
+      @test same_neighbors(g1, h1)
+      @test n_edges(g1) == 12
+
+      # cyclic action with a non-trivial stabilizer
+      C4 = sub(S4, [cperm([1, 2, 3, 4])])[1]
+      adj_c4 = (x, y) -> mod(y - x, 4) in (1, 3)
+      g2 = graph_from_group_action(C4, pts, ^, adj_c4)
+      h2 = naive_group_action_graph(Directed, pts, adj_c4)
+      @test same_neighbors(g2, h2)
+      @test n_edges(g2) == 8
+
+      # S4 on all 2-subsets (non-trivial stabilizer)
+      pairs = [[i, j] for i in 1:4 for j in i+1:4]
+      disjoint = (x, y) -> isempty(intersect(x, y))
+      g3 = graph_from_group_action(S4, pairs, on_sets, disjoint)
+      h3 = naive_group_action_graph(Directed, pairs, disjoint)
+      @test same_neighbors(g3, h3)
+      @test n_edges(g3) == 6
+
+      # matrix group acting on the non-zero vectors of GF(2)^2
+      G2 = general_linear_group(2, 2)
+      V = free_module(GF(2), 2)
+      vecs = [v for v in collect(V) if !iszero(v)]
+      g4 = graph_from_group_action(G2, vecs, *, adj_neq)
+      h4 = naive_group_action_graph(Directed, vecs, adj_neq)
+      @test same_neighbors(g4, h4)
+      @test n_edges(g4) == 6
+      @test n_edges(graph_from_group_action(Undirected, G2, vecs, *, adj_neq)) == 3
+
+      # Petersen graph from the action of S5 on 2-subsets
+      S5 = symmetric_group(5)
+      two_subsets = [[i, j] for i in 1:5 for j in i+1:5]
+      g5 = graph_from_group_action(S5, two_subsets, on_sets, disjoint)
+      @test n_vertices(g5) == 10
+      @test n_edges(g5) == 30
+      gu5 = graph_from_group_action(Undirected, S5, two_subsets, on_sets, disjoint)
+      @test n_vertices(gu5) == 10
+      @test n_edges(gu5) == 15
+      @test is_isomorphic(gu5, petersen_graph())
+
+      # Cayley digraph of S3 with respect to its generators
+      S3 = symmetric_group(3)
+      elts = collect(S3)
+      gens3 = gens(S3)
+      g6 = graph_from_group_action(S3, elts, (x, g) -> x * g,
+                                   (x, y) -> inv(x) * y in gens3)
+      @test n_vertices(g6) == 6
+      @test n_edges(g6) == 6 * length(gens3)
+
+      # G-set signatures
+      Omega = gset(S5, on_sets, [[1, 2]])
+      g7 = graph_from_group_action(Omega, disjoint)
+      @test n_vertices(g7) == 10
+      @test n_edges(g7) == 30
+      @test same_neighbors(g7, graph_from_group_action(Directed, Omega, disjoint))
+      @test same_neighbors(g7,
+                           graph_from_group_action(S5, collect(Omega), on_sets, disjoint))
+      Omega4 = natural_gset(S4)
+      g8 = graph_from_group_action(Omega4, adj_neq)
+      @test n_vertices(g8) == 4
+      @test n_edges(g8) == 12
+
+      # right cosets with a double-coset adjacency predicate
+      H4 = stabilizer(S4, 1)[1]
+      rl = collect(right_cosets(S4, H4))
+      d = double_coset(H4, S4([2, 1, 3, 4]), H4)
+      g10 = graph_from_group_action(S4, rl, *,
+                                    (x, y) -> representative(x) / representative(y) in d)
+      @test n_vertices(g10) == 4
+      @test n_edges(g10) == 12
+
+      # left cosets with the left action
+      ll = collect(left_cosets(S4, H4))
+      g11 = graph_from_group_action(S4, ll, (x, g) -> g * x, adj_neq)
+      @test n_vertices(g11) == 4
+      @test n_edges(g11) == 12
+
+      # edge cases and errors
+      @test n_vertices(graph_from_group_action(S4, Int[], ^, (x, y) -> true)) == 0
+      trivial = trivial_subgroup(S4)[1]
+      g9 = graph_from_group_action(trivial, [1, 2, 3], ^, (x, y) -> x < y)
+      @test n_edges(g9) == 3
+      @test_throws ArgumentError graph_from_group_action(S4, [1, 2], ^, adj_neq)
+      @test_throws ArgumentError graph_from_group_action(S4, [1, 1, 2, 3], ^, adj_neq)
+      @test_throws ArgumentError graph_from_group_action(free_group(2), Int[], ^,
+                                                         (x, y) -> true)
+    end
+
       @testset "graph_from_labeled_edges" begin
         G1 = graph_from_edges([[1, 2], [3, 4]])
         vertex_labels = Dict(1 => 2, 3 => 4)
