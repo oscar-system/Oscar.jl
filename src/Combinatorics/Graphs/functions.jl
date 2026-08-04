@@ -2220,12 +2220,12 @@ function _group_action_index_key(x)
     H = GapObj(x.H)
     r = GapObj(representative(x))
     if is_right(x)
-      canon = GAP.Globals.CanonicalRightCosetElement(H, r)
+      canon = GAPWrap.CanonicalRightCosetElement(H, r)
     else
       # A left coset x*H is determined by the right coset H*x^-1, and its
       # canonical representative is the inverse of the canonical
       # representative of that right coset.
-      canon = GAP.Globals.CanonicalRightCosetElement(H, GAPWrap.Inverse(r))
+      canon = GAPWrap.CanonicalRightCosetElement(H, GAPWrap.Inverse(r))
       canon = GAPWrap.Inverse(canon)
     end
     return group_element(x.G, canon)

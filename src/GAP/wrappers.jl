@@ -29,6 +29,7 @@ GAP.@wrap Basis(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BrauerCharacterValue(x::GapObj)::GAP.Obj
 GAP.@wrap CanonicalBasis(x::GapObj)::GapObj
+GAP.@wrap CanonicalRightCosetElement(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CentralCharacter(x::GapObj)::GapObj
 GAP.@wrap Centralizer(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
