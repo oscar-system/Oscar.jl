@@ -134,12 +134,6 @@ function flux_instance(
   completeness_check::Bool=true,
   consistency_check::Bool=true,
 )
-  if length(int_coeffs) == 0 && length(rat_coeffs) == 0
-    m = model(fgs)
-    r = cohomology_ring(ambient_space(m); completeness_check)
-    tcc = cohomology_class(ambient_space(m), zero(r); completeness_check)
-    return g4_flux(m, tcc; completeness_check, consistency_check)
-  end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
 

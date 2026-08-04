@@ -396,7 +396,7 @@ function blow_up(
   if ambient_space(model) isa NormalToricVariety
     index = index_of_exceptional_ray(bd)
     @req index == ngens(coordinate_ring(ambient_space(model))) "Inconsistency encountered. Contact the authors"
-    indices = exceptional_divisor_indices(model)
+    indices = copy(exceptional_divisor_indices(model))
     push!(indices, index)
     set_attribute!(model, :exceptional_divisor_indices, indices)
 
@@ -505,7 +505,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
   for k in 1:nr_blowups
 
     # Replace parameters in the blow_up_center with explicit_model_sections
-    blow_up_center = centers[k]
+    blow_up_center = copy(centers[k])
     for l in 1:length(blow_up_center)
       model_sections = explicit_model_sections(resolved_model)
       if haskey(model_sections, blow_up_center[l])

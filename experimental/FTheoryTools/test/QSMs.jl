@@ -85,4 +85,19 @@ end
   @test is_integer(solution[1])
   reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end, :])
   @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
+
+  # Empty coefficient lists must retain the affine offset of a flux family.
+  shifted_offset = copy(offset(fg))
+  shifted_offset[1] = 1
+  shifted_fg = family_of_g4_fluxes(
+    qsm_model, M1, M2, shifted_offset; completeness_check=false
+  )
+  empty_coeff_flux = flux_instance(
+    shifted_fg, Int[], Rational{Int}[]; completeness_check=false, consistency_check=false
+  )
+  zero_matrix_flux = flux_instance(
+    shifted_fg, zero_matrix(ZZ, ncols(M1), 1), zero_matrix(QQ, ncols(M2), 1);
+    completeness_check=false, consistency_check=false,
+  )
+  @test cohomology_class(empty_coeff_flux) == cohomology_class(zero_matrix_flux)
 end
