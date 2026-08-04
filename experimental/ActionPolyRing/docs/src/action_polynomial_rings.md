@@ -224,14 +224,3 @@ are not just restricted to pseudo-divison by the leader of the second input. How
 pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
 pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
 ```
-
----
-
-We provide the following methods for reducing the action polynomial ``p`` with respect to the action polynomial ``q`` and to verify reducedness:
-
-```@docs
-is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-```

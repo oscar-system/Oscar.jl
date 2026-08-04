@@ -10,12 +10,9 @@ export apply_action
 export difference_polynomial_ring
 export differential_polynomial_ring
 export index_ordering_matrix
-export is_partially_reduced
-export is_reduced
 export leader
 export n_action_indeterminates
 export n_action_maps
-export partially_reduce
 export partition
 export ranking
 export riquier_matrix
