@@ -409,6 +409,19 @@ function blow_up(
       # Update exceptional classes and their indices
       divs = torusinvariant_prime_divisors(ambient_space(model))
 
+      # The ambient cohomology ring changes under a toric blowup. Recompute the
+      # zero-section class in the new ring rather than retaining the stale class
+      # copied from the pre-blowup model.
+      if has_attribute(model, :zero_section_index)
+        index = zero_section_index(model)
+        @req index <= length(divs) "Inconsistency encountered. Contact the authors"
+        set_attribute!(
+          model,
+          :zero_section_class =>
+            cohomology_class(divs[index]; completeness_check=false),
+        )
+      end
+
       indets = [
         lift(g) for
         g in gens(cohomology_ring(ambient_space(model); completeness_check=false))
