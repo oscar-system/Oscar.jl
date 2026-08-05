@@ -3,7 +3,7 @@
 #######################################################
 
 @doc raw"""
-    literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+    literature_model(; kwargs...)
 
 Return a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
 Many such models are well-known in the field—e.g., the *U(1)-restricted SU(5)-GUT model
@@ -15,6 +15,7 @@ To identify and retrieve a model from the database, supply one or more of the fo
 * `arxiv_id`: A string specifying the arXiv identifier of the preprint version or the journal print version.
 * `version`: A string specifying the arXiv version (e.g. `"v1"`).
 * `equation`: A string indicating the equation label used to define the model within the source publication.
+* `type`: A string restricting the result to a model type such as `"tate"`, `"weierstrass"`, or `"hypersurface"`.
 
 The method attempts to match the given identifiers with a unique entry in the database. If no match is found, or if the information
 is ambiguous (i.e., multiple matches exist), an error is raised.
@@ -22,6 +23,7 @@ is ambiguous (i.e., multiple matches exist), an error is raised.
 Some literature models require additional input to be uniquely determined and constructed. For such cases, more optional arguments must be provided:
 
 * `model_parameters`: A dictionary specifying parameters needed to fix a model within a family, e.g. `Dict("k" => 5)`.
+* `model_sections`: A dictionary specifying model-section data required to construct certain models.
 * `defining_classes`: A dictionary specifying divisor classes necessary to fully define the geometry.
 * `base_space`: Optionally specify a concrete base over which the model should be constructed. Currently, only toric base spaces are supported.
 * `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
