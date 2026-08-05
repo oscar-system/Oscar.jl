@@ -147,10 +147,10 @@ function literature_model(;
   version::String="",
   equation::String="",
   type::String="",
-  model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
+  model_parameters::StringKeyedMapType=Dict{String,Any}(),
   base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
-  model_sections::Dict{String,<:Any}=Dict{String,Any}(),
-  defining_classes::Dict{String,<:Any}=Dict{String,Any}(),
+  model_sections::StringKeyedMapType=Dict{String,Any}(),
+  defining_classes::StringKeyedMapType=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
@@ -168,10 +168,10 @@ end
 
 function literature_model(
   k::Int;
-  model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
+  model_parameters::StringKeyedMapType=Dict{String,Any}(),
   base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
-  model_sections::Dict{String,<:Any}=Dict{String,Any}(),
-  defining_classes::Dict{String,<:Any}=Dict{String,Any}(),
+  model_sections::StringKeyedMapType=Dict{String,Any}(),
+  defining_classes::StringKeyedMapType=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
@@ -188,11 +188,11 @@ function literature_model(
 end
 
 function literature_model(
-  model_dict::AbstractDict{String,Any};
-  model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
+  model_dict::StringKeyedMapType;
+  model_parameters::StringKeyedMapType=Dict{String,Any}(),
   base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
-  model_sections::Dict{String,<:Any}=Dict{String,Any}(),
-  defining_classes::Dict{String,<:Any}=Dict{String,Any}(),
+  model_sections::StringKeyedMapType=Dict{String,Any}(),
+  defining_classes::StringKeyedMapType=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
@@ -376,9 +376,9 @@ end
 
 # Construct literature model over concrete base
 function _construct_literature_model_over_concrete_base(
-  model_dict::AbstractDict{String,Any},
+  model_dict::StringKeyedMapType,
   base_space::FTheorySpace,
-  defining_classes::Dict{String,<:Any},
+  defining_classes::StringKeyedMapType,
   completeness_check::Bool,
   rng::AbstractRNG=Random.default_rng(),
 )
@@ -580,7 +580,7 @@ end
 
 # Construct literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(
-  model_dict::AbstractDict{String,Any}
+  model_dict::StringKeyedMapType
 )
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "tunable_sections") "No base coordinates specified for model"
@@ -677,8 +677,8 @@ end
 
 function _set_all_attributes(
   model::AbstractFTheoryModel,
-  model_dict::AbstractDict{String,Any},
-  model_parameters::Dict{String,<:Any},
+  model_dict::StringKeyedMapType,
+  model_parameters::StringKeyedMapType,
 )
 
   # Metadata
@@ -990,7 +990,7 @@ Model 46:
 JSON.Object{String, Any}("journal_section" => "2", "arxiv_page" => "3", "journal_page" => "3", "arxiv_id" => "1511.03209", "arxiv_equation" => "2.11", "gauge_algebra" => Any["e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)"], "arxiv_version" => "3", "journal_doi" => "https://doi.org/10.1007/JHEP12(2015)164", "journal_equation" => "2.11", "arxiv_section" => "2", "journal" => "JHEP", "file" => "model1511_03209.json", "arxiv_doi" => "10.48550/arXiv.1511.03209", "model_index" => "46", "type" => "tate")
 ```
 """
-function display_all_literature_models(model_fields::Dict{String,<:Any}=Dict{String,Any}())
+function display_all_literature_models(model_fields::StringKeyedMapType=Dict{String,Any}())
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   @req issubset(keys(model_fields), keys(file_index[1])) "The inputted criteria aren't supported"
   for field in keys(model_fields)

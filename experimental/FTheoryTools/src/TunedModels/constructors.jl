@@ -84,7 +84,7 @@ false
 ```
 """
 function tune(
-  w::WeierstrassModel, input_sections::Dict{String,<:Any}; completeness_check::Bool=true
+  w::WeierstrassModel, input_sections::TuningDataType; completeness_check::Bool=true
 )
   # Consistency checks
   @req base_space(w) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
@@ -276,7 +276,7 @@ false
 ```
 """
 function tune(
-  t::GlobalTateModel, input_sections::Dict{String,<:Any}; completeness_check::Bool=true
+  t::GlobalTateModel, input_sections::TuningDataType; completeness_check::Bool=true
 )
   # Consistency checks
   @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
@@ -461,7 +461,7 @@ false
 ```
 """
 function tune(
-  h::HypersurfaceModel, input_sections::Dict{String,<:Any}; completeness_check::Bool=true
+  h::HypersurfaceModel, input_sections::TuningDataType; completeness_check::Bool=true
 )
   # Consistency checks
   @req base_space(h) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
