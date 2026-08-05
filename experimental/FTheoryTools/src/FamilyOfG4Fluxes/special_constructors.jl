@@ -55,10 +55,10 @@ function special_flux_family(
   m::AbstractFTheoryModel;
   not_breaking::Bool=false,
   completeness_check::Bool=true,
-  algorithm::Symbol=:default,
+  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
-  @req algorithm in (:default, :special) "Unknown value for keyword `algorithm`: $algorithm"
+  algorithm = _normalize_flux_family_algorithm(algorithm, :special_flux_family)
 
   # (1) Is result known?
   if !not_breaking

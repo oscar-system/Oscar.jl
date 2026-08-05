@@ -56,7 +56,15 @@ end
   end
   qsm_g4_flux = qsm_flux(qsm_model)
 
-  # Check that flux-family wrappers forward algorithm selection and randomness.
+  # Check that flux-family wrappers normalize and forward algorithm selection and randomness.
+  @test_deprecated Oscar._normalize_flux_family_algorithm(
+    "default", :special_flux_family
+  ) ===
+    :default
+  @test_deprecated Oscar._normalize_flux_family_algorithm(
+    "special", :special_flux_family
+  ) ===
+    :special
   @test_throws ArgumentError g4_flux_family(
     qsm_g4_flux;
     completeness_check=false,
@@ -75,6 +83,12 @@ end
     algorithm=:special,
     rng=Random.Xoshiro(1234),
   ) isa FamilyOfG4Fluxes
+  @test_deprecated g4_flux_family(
+    qsm_g4_flux;
+    completeness_check=false,
+    algorithm="special",
+    rng=Random.Xoshiro(1234),
+  )
 
   h22_basis = gens_of_h22_hypersurface_indices(qsm_model; completeness_check=false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))

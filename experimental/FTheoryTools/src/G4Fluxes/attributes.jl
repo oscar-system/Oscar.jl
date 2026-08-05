@@ -170,9 +170,10 @@ Family of G4 fluxes:
 @attr FamilyOfG4Fluxes function g4_flux_family(
   gf::G4Flux;
   completeness_check::Bool=true,
-  algorithm::Symbol=:default,
+  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
+  algorithm = _normalize_flux_family_algorithm(algorithm, :g4_flux_family)
   nb = breaks_non_abelian_gauge_group(gf)
   gfs = special_flux_family(
     model(gf); not_breaking=(!nb), completeness_check, algorithm, rng

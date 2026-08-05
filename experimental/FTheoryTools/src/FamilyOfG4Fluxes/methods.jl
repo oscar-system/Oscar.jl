@@ -314,9 +314,10 @@ function random_flux(
   m::AbstractFTheoryModel;
   not_breaking::Bool=false,
   completeness_check::Bool=true,
-  algorithm::Symbol=:default,
+  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
+  algorithm = _normalize_flux_family_algorithm(algorithm, :random_flux)
   family = special_flux_family(m; not_breaking, completeness_check, algorithm, rng)
   return random_flux_instance(
     family; completeness_check=completeness_check, consistency_check=false, rng=rng
