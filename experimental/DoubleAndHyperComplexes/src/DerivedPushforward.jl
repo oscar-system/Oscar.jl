@@ -1527,6 +1527,6 @@ function capture_support_sets(
     end
     push!(F, finish(ctx))
   end
-  return F, SR_to_SB
+  return X, F, S_to_SR, SR_to_SB
 end
 
