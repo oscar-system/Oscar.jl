@@ -167,17 +167,19 @@ Family of G4 fluxes:
   - Non-abelian gauge group: unbroken
 ```
 """
-@attr FamilyOfG4Fluxes function g4_flux_family(
+function g4_flux_family(
   gf::G4Flux;
   completeness_check::Bool=true,
   algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   algorithm = _normalize_flux_family_algorithm(algorithm, :g4_flux_family)
+  has_attribute(gf, :g4_flux_family) && return get_attribute(gf, :g4_flux_family)
   nb = breaks_non_abelian_gauge_group(gf)
   gfs = special_flux_family(
     model(gf); not_breaking=(!nb), completeness_check, algorithm, rng
   )
+  set_attribute!(gf, :g4_flux_family, gfs)
   return gfs
 end
 
