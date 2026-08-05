@@ -173,44 +173,7 @@ const AnySpaceGermGeometricPoint = Union{SpaceGerm{BRT, RT, AST},
                                       DeterminantalGerm{BRT, RT, AST, <: MatTypeVal}
                                     } where {BRT <: Ring, RT <: Ring, AST <: GermAtGeometricPoint}
 
-##############################################################################
-## conversion constructors (forgetful functors)
-##############################################################################
-#TODO: docstrings
-
-SpaceGerm(X::SpaceGerm) = X
-DeterminantalGerm(X::DeterminantalGerm) = X
-CompleteIntersectionGerm(X::CompleteIntersectionGerm) = X
-HypersurfaceGerm(X::HypersurfaceGerm) = X
-
-
-function SpaceGerm(X::AnySpaceGerm)
-  return SpaceGerm(underlying_scheme(X))
-end
-
-
-
-function CompleteIntersectionGerm(X::HypersurfaceGerm)
-  return CompleteIntersectionGerm(underlying_scheme(X), [defining_ring_element(X)])
-end
-
-
-
-function DeterminantalGerm(X::HypersurfaceGerm)
-  g = defining_ring_element(X) 
-  A = matrix(parent(g), 1, 1, [g])
-  return DeterminantalGerm(underlying_scheme(X), A, 1)
-end
-
-
-
-function DeterminantalGerm(X::CompleteIntersectionGerm)
-  v = defining_ring_elements(X)
-  A = matrix(parent(v[1]), 1, length(v), v)
-  return DeterminantalGerm(underlying_scheme(X), A, 1)
-end
-
-
+                                 
 
 ##############################################################################
 ### Getter functions

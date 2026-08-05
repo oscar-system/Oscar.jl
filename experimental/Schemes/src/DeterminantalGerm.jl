@@ -208,7 +208,7 @@ _mat_type(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, T}) where {T<:Val
 ################################################################################
 
 #TODO: To add more constructors (mostly snake_case constructors with embedding)
-# TODO: constructor accepting a SpaceGerm as input
+
 
 #TODO: Docstring for this constructor
 function DeterminantalGerm(A::MatElem{T}, t::Int;
@@ -267,7 +267,7 @@ Spectrum
 julia> X_A == X_B
 false
 
-julia> SpaceGerm(X_A) == SpaceGerm(X_B)
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B), point(X_B))
 true
 ```
 """
@@ -431,7 +431,7 @@ julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric);
 julia> X_A == X_A_sym
 false
 
-julia> SpaceGerm(X_A) == SpaceGerm(X_A_sym)
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_A_sym), point(X_A_sym))
 true
 
 julia> T1_A = T1_GL_module(X_A)
@@ -532,7 +532,7 @@ julia> X_B = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 julia> X_A == X_B
 false
 
-julia> SpaceGerm(X_A) == SpaceGerm(X_B)
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B), point(X_B))
 true
 
 julia> tjurina_GL_number(X_A)
@@ -584,7 +584,7 @@ julia> B = matrix([x*y-w*z])
 
 julia> X_B = DeterminantalGerm(B, 1, [0,0,0,0]);
 
-julia> SpaceGerm(X_A) == SpaceGerm(X_B)
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B), point(X_B))
 true
 
 julia> is_determinantally_rigid(X_A)
@@ -658,7 +658,7 @@ julia> X_B_sym = DeterminantalGerm(B, 2, [0,0,0,0,0], mat_type = :symmetric);
 julia> X_A == X_B_sym
 false
 
-julia> SpaceGerm(X_A) == SpaceGerm(X_B_sym)
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B_sym), point(X_B_sym))
 true
 
 julia> basis_versal_determinantal_unfolding(X_A)
