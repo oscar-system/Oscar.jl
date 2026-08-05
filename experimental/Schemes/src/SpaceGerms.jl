@@ -2,7 +2,7 @@
 import AbstractAlgebra: Ring
 
 @doc raw"""
-    AbsSpaceGerm{BaseRingType<:Ring,RingType<:Ring}
+    AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring}
 
 A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`` of type `RingType` over a coefficient field ``k`` of type `BaseRingType`.
 """
@@ -12,14 +12,14 @@ abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsAffineSchem
 ####################################################################
 ## three short hand definitions for internal use only
 ####################################################################
-const GermAtClosedPoint = AffineScheme{<:Field,
+const GermAtClosedPoint = AbsAffineScheme{<:Field,
                          <:AbsLocalizedRing{<:Ring, <:RingElem,
                                             <:MPolyComplementOfKPointIdeal}
                         }
 
 ## the following is currently unused....
 ## as no backend for groebner computations is currently available in this case
-const GermAtGeometricPoint = AffineScheme{<:Field,
+const GermAtGeometricPoint = AbsAffineScheme{<:Field,
                             <:AbsLocalizedRing{<:Ring, <:RingElem,
                                                <:MPolyComplementOfPrimeIdeal}
                            }
@@ -35,9 +35,10 @@ const GermAtPoint = Union{GermAtClosedPoint, GermAtGeometricPoint}
 A space germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct SpaceGerm{
-                BaseRingType<:Ring,
-                RingType<:Ring,
-                AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
+                  BaseRingType <: Ring,
+                  RingType <: Ring,
+                  AffineSchemeType <: AbsAffineScheme
+            } <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
 
   function SpaceGerm(X::GermAtPoint)
@@ -51,9 +52,10 @@ end
 A hypersurface germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct HypersurfaceGerm{
-                 BaseRingType<:Ring,
-                 RingType<:Ring,
-                 AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
+                  BaseRingType <: Ring,
+                  RingType <: Ring,
+                  AffineSchemeType <: AbsAffineScheme
+            } <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
   f::RingElem
 
@@ -71,7 +73,11 @@ end
 
 A complete intersection germ ``(X, O_{(X,x)})``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
-@attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
+@attributes mutable struct CompleteIntersectionGerm{
+                  BaseRingType <: Ring, 
+                  RingType <: Ring, 
+                  AffineSchemeType <: AbsAffineScheme
+            } <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
   v::Vector{<:RingElem}
 
@@ -126,7 +132,7 @@ A determinantal germ $(X_A^t, O_{(X_A^t, x)})$, i.e. a ringed space with underly
 @attributes mutable struct DeterminantalGerm{
                   BaseRingType <: Ring,
                   RingType <: Ring,
-                  AffineSchemeType <: AffineScheme, 
+                  AffineSchemeType <: AbsAffineScheme, 
                   MatType <: MatTypeVal
             } <: AbsSpaceGerm{BaseRingType, RingType}
   X::AffineSchemeType
