@@ -45,7 +45,7 @@ Global Tate model over a concrete base
 """
 function put_over_concrete_base(
   m::AbstractFTheoryModel,
-  concrete_data::Dict{String,<:Any};
+  concrete_data::ConcreteModelDataType;
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
