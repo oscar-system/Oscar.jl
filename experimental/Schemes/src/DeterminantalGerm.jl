@@ -401,18 +401,26 @@ end
 
 
 function _T1_GL_module(A::MatElem; val_type::Type = Val{:generic})
+  n, m = size(A)
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
-  # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
-  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
-  return SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_GL_rels(A, val_type))))
+  function symb_fun()
+    return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
+  end
+  F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
+  T1_GL = SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_GL_rels(A, val_type))))
+  # interpretation map
+  im(v::FreeModElem) = parent(A)(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
+  pre(B::MatElem) = F(_vec(transpose(B)))
+  interp =  MapFromFunc(F, parent(A), im, pre)
+  return T1_GL, interp
 end
 
 @doc raw"""
-    T1_GL_module(X::DeterminantalGerm) -> SubquoModule
+    T1_GL_module(X::DeterminantalGerm) -> SubquoModule, MapFromFunc
 
-Return the $T^1_{GL}$-module of the defining matrix `A` of the determinantal germ of `X`. 
+Return the $T^1_{GL}(A)$-module of the defining matrix `A` of the determinantal germ of `X` and an interpretation map, which maps the representative of elements of the $T1_GL(A)$-module to their corresponding matrices in the matix space of `A`. 
 !!! note
     Different determinantal structures for the same underlying space germ may yield different $T^1_{GL}$-modules.
 
@@ -434,7 +442,9 @@ false
 julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_A_sym), point(X_A_sym))
 true
 
-julia> T1_A = T1_GL_module(X_A)
+julia> T1_A, _ = T1_GL_module(X_A);
+
+julia> T1_A
 Subquotient of submodule with 4 generators
   1: E[1,1]
   2: E[1,2]
@@ -455,7 +465,9 @@ by submodule with 10 generators
 julia> vector_space_dim(T1_A)
 6
 
-julia> T1_A_sym = T1_GL_module(X_A_sym)
+julia> T1_A_sym, _ = T1_GL_module(X_A_sym);
+
+julia> T1_A_sym
 Subquotient of submodule with 3 generators
   1: E[1,1]
   2: E[1,2] + E[2,1]
@@ -489,7 +501,9 @@ Spectrum
       by ideal (t^3)
     at complement of maximal ideal of point (0)
 
-julia> T1_B_skew = T1_GL_module(X_B_skew)
+julia> T1_B_skew, _  = T1_GL_module(X_B_skew);
+
+julia> T1_B_skew
 Subquotient of submodule with 1 generator
   1: E[1,2] - E[2,1]
 by submodule with 5 generators
@@ -500,7 +514,7 @@ by submodule with 5 generators
   5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
-@attr SubquoModule T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val_type = _mat_type(X))
+@attr Tuple{SubquoModule, MapFromFunc} T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val_type = _mat_type(X))
 
 
 
@@ -557,7 +571,7 @@ julia> tjurina_GL_number(X_C_skew)
 12
 ```
 """
-tjurina_GL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_GL_module(X))
+tjurina_GL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_GL_module(X)[1])
 
 
 
@@ -594,7 +608,7 @@ julia> is_determinantally_rigid(X_B)
 false
 ```
 """
-is_determinantally_rigid(X::DeterminantalGerm) = is_zero(T1_GL_module(X))
+is_determinantally_rigid(X::DeterminantalGerm) = is_zero(T1_GL_module(X)[1])
 
 
 
@@ -626,7 +640,7 @@ julia> is_EIDS(X_B)
 false
 ```
 """
-@attr Bool is_EIDS(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, Val{:generic}}) = krull_dim(T1_GL_module(X)) <= 0
+@attr Bool is_EIDS(X::DeterminantalGerm{<:Ring, <:Ring, <:AffineScheme, Val{:generic}}) = krull_dim(T1_GL_module(X)[1]) <= 0
 
 
 
@@ -691,7 +705,7 @@ julia> basis_versal_determinantal_unfolding(X_C_skew)
  E[3,4] - E[4,3]
 ```
 """
-basis_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X))
+basis_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X)[1])
 
 
 
@@ -744,25 +758,33 @@ end
 
 
 function _T1_SL_module(A::MatElem; val_type::Type = Val{:generic})
+  n, m = size(A)
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   L = base_ring(A)
-  # 'ncols(A)' and 'nrows(A)' is swaped, since we transposed
-  F = FreeMod(L, [Symbol("E[$i,$j]") for i in 1:ncols(A) for j in 1:nrows(A)])
-  return SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_SL_rels(A, val_type))))
+  function symb_fun()
+    return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
+  end
+  F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
+  T1_SL = SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_SL_rels(A, val_type))))
+  # interpretation map
+  im(v::FreeModElem) = parent(A)(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
+  pre(B::MatElem) = F(_vec(transpose(B)))
+  interp =  MapFromFunc(F, parent(A), im, pre)
+  return T1_SL, interp
 end
 
 
 
 @doc raw"""
-    T1_SL_module(X::DeterminantalGerm) -> SubquoModule
+    T1_SL_module(X::DeterminantalGerm) -> SubquoModule, MapFromFunc
 
-Return the $T^1_{SL}$-module of the defining matrix `A` of the determinantal germ of `X`. 
+Return the $T^1_{SL}(A)$-module of the defining matrix `A` of the determinantal germ of `X` and an interpretation map, which maps the representative of elements of the $T1_{SL}(A)$-module to their corresponding matrices in the matix space of `A`. 
 !!! note
     Different determinantal structures for the same underlying space germ may yield different $T^1_{SL}$-modules.
 
 """
-@attr SubquoModule T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val_type = _mat_type(X))
+@attr Tuple{SubquoModule, MapFromFunc} T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val_type = _mat_type(X))
 
 
 
@@ -775,4 +797,4 @@ Return the `tjurina_SL_number` of the determinantal germ `X`.
     Different determinantal structures for the same underlying space germ may yield different `tjurina_SL_number`s.
 
 """
-tjurina_SL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_SL_module(X))
+tjurina_SL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_SL_module(X)[1])

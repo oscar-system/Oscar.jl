@@ -166,7 +166,7 @@ end
   A = R[x y z;
         v w 0]
   X_A = DeterminantalGerm(A, 2, [0,0,0,0,0])
-  @test krull_dim(T1_GL_module(X_A)) == 2
+  @test krull_dim(T1_GL_module(X_A)[1]) == 2
   @test tjurina_GL_number(X_A) == PosInf()
   B = R[x y z;
         v w x]
