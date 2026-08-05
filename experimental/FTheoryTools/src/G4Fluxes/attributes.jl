@@ -140,6 +140,12 @@ non-abelian gauge group.
   consuming. To skip this check, pass the optional keyword argument 
   `completeness_check=false`.
 
+!!! note "Randomness"
+  The random source used for randomized computations can be set with the `rng` keyword.
+
+The `algorithm` keyword selects the algorithm used to construct the flux family;
+see [`special_flux_family`](@ref).
+
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
@@ -161,10 +167,15 @@ Family of G4 fluxes:
   - Non-abelian gauge group: unbroken
 ```
 """
-@attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; completeness_check::Bool=true)
+@attr FamilyOfG4Fluxes function g4_flux_family(
+  gf::G4Flux;
+  completeness_check::Bool=true,
+  algorithm::Symbol=:default,
+  rng::AbstractRNG=Random.default_rng(),
+)
   nb = breaks_non_abelian_gauge_group(gf)
   gfs = special_flux_family(
-    model(gf); not_breaking=(!nb), completeness_check=completeness_check
+    model(gf); not_breaking=(!nb), completeness_check, algorithm, rng
   )
   return gfs
 end

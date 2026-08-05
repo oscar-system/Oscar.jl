@@ -6,8 +6,10 @@
     weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
 Construct a Weierstrass model over a given toric base space. The Weierstrass sections
-``f`` and ``g`` are automatically generated with (pseudo)random coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.
@@ -114,8 +116,10 @@ end
 
 Construct a Weierstrass model over the ``d``-dimensional projective space,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -135,8 +139,10 @@ weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG=Random.default_
 
 Construct a Weierstrass model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -156,8 +162,10 @@ weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG=Random.defaul
 
 Construct a Weierstrass model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest

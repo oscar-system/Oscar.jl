@@ -27,6 +27,9 @@ Some literature models require additional input to be uniquely determined and co
 * `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
 * `rng`: Set the random source used to create generic sections.
 
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
+
 See the [Literature Models](@ref literature_models) documentation page for a deeper discussion of these fields.
 
 First, notice how you can create the global Tate model from [Krause, Mayrhofer, Weigand 2011](@cite KMW12)

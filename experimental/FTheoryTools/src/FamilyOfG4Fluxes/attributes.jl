@@ -168,6 +168,9 @@ the numerical coefficient values into this polynomial.
   consuming. To skip this check, pass the optional keyword argument 
   `completeness_check=false`.
 
+!!! note "Randomness"
+  The random source used for randomized computations can be set with the `rng` keyword.
+
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;

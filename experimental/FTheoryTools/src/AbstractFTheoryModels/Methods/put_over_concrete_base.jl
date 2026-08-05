@@ -5,8 +5,10 @@ Put an F-theory model defined over a family of spaces over a concrete base.
 
 Currently, this functionality is limited to Tate and Weierstrass models.
 
-Internally, this function uses generic sections of line bundles. The random source
-used in the creation of said generic sections can be set with the optional argument `rng`.
+Internally, this function uses generic sections of line bundles.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.

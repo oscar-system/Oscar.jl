@@ -55,6 +55,27 @@ end
     @test obj1 == obj2
   end
   qsm_g4_flux = qsm_flux(qsm_model)
+
+  # Check that flux-family wrappers forward algorithm selection and randomness.
+  @test_throws ArgumentError g4_flux_family(
+    qsm_g4_flux;
+    completeness_check=false,
+    algorithm=:unknown,
+    rng=Random.Xoshiro(1234),
+  )
+  @test_throws ArgumentError random_flux(
+    qsm_model;
+    completeness_check=false,
+    algorithm=:unknown,
+    rng=Random.Xoshiro(1234),
+  )
+  @test g4_flux_family(
+    qsm_g4_flux;
+    completeness_check=false,
+    algorithm=:special,
+    rng=Random.Xoshiro(1234),
+  ) isa FamilyOfG4Fluxes
+
   h22_basis = gens_of_h22_hypersurface_indices(qsm_model; completeness_check=false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
   ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))

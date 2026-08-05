@@ -10,6 +10,9 @@ Optional keyword arguments:
 - `completeness_check`: if `false`, skips completeness check of the ambient toric variety for improved performance.
 - `algorithm`: selects the computation method; the default uses Gröbner basis computations in the cohomology ring, while setting `algorithm = :special` activates a faster variant described in [BMT25](@cite BMT25).
 
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
+
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
@@ -55,6 +58,7 @@ function special_flux_family(
   algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
+  @req algorithm in (:default, :special) "Unknown value for keyword `algorithm`: $algorithm"
 
   # (1) Is result known?
   if !not_breaking
@@ -62,13 +66,13 @@ function special_flux_family(
       has_attribute(m, :matrix_rational_quant_transverse) &&
       has_attribute(m, :offset_quant_transverse)
       fgs_m_int = matrix_integral_quant_transverse(
-        m; completeness_check=completeness_check, rng=rng
+        m; completeness_check, algorithm, rng
       )
       fgs_m_rat = matrix_rational_quant_transverse(
-        m; completeness_check=completeness_check, rng=rng
+        m; completeness_check, algorithm, rng
       )
       fgs_offset = offset_quant_transverse(
-        m; completeness_check=completeness_check, rng=rng
+        m; completeness_check, algorithm, rng
       )
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)
@@ -80,13 +84,13 @@ function special_flux_family(
       has_attribute(m, :matrix_rational_quant_transverse_nobreak) &&
       has_attribute(m, :offset_quant_transverse_nobreak)
       fgs_m_int = matrix_integral_quant_transverse_nobreak(
-        m; completeness_check=completeness_check, rng=rng
+        m; completeness_check, algorithm, rng
       )
       fgs_m_rat = matrix_rational_quant_transverse_nobreak(
-        m; completeness_check=completeness_check, rng=rng
+        m; completeness_check, algorithm, rng
       )
       fgs_offset = offset_quant_transverse_nobreak(
-        m; completeness_check=completeness_check, rng=rng
+        m; completeness_check, algorithm, rng
       )
       fgs = family_of_g4_fluxes(m, fgs_m_int, fgs_m_rat, fgs_offset; completeness_check)
       set_attribute!(fgs, :is_well_quantized, true)

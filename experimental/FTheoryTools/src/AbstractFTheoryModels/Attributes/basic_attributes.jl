@@ -137,39 +137,43 @@ end
 @attr QQMatrix function matrix_integral_quant_transverse(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_integral(
-    special_flux_family(m; completeness_check=completeness_check, rng=rng)
+    special_flux_family(m; completeness_check, algorithm, rng)
   )
 end
 
 @attr QQMatrix function matrix_rational_quant_transverse(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_rational(
-    special_flux_family(m; completeness_check=completeness_check, rng=rng)
+    special_flux_family(m; completeness_check, algorithm, rng)
   )
 end
 
 @attr Vector{QQFieldElem} function offset_quant_transverse(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
-  return offset(special_flux_family(m; completeness_check=completeness_check, rng=rng))
+  return offset(special_flux_family(m; completeness_check, algorithm, rng))
 end
 
 @attr QQMatrix function matrix_integral_quant_transverse_nobreak(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_integral(
     special_flux_family(
-      m; not_breaking=true, completeness_check=completeness_check, rng=rng
+      m; not_breaking=true, completeness_check, algorithm, rng
     ),
   )
 end
@@ -177,11 +181,12 @@ end
 @attr QQMatrix function matrix_rational_quant_transverse_nobreak(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_rational(
     special_flux_family(
-      m; not_breaking=true, completeness_check=completeness_check, rng=rng
+      m; not_breaking=true, completeness_check, algorithm, rng
     ),
   )
 end
@@ -189,11 +194,12 @@ end
 @attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
+  algorithm::Symbol=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return offset(
     special_flux_family(
-      m; not_breaking=true, completeness_check=completeness_check, rng=rng
+      m; not_breaking=true, completeness_check, algorithm, rng
     ),
   )
 end
