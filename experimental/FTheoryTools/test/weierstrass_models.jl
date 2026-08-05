@@ -120,6 +120,31 @@ weierstrass_generic = weierstrass_model(
   @test dim(ambient_space(weierstrass_generic)) == 5
 end
 
+# Test specialization of a generic Weierstrass model to a concrete toric base.
+@testset "Put Weierstrass model over concrete base" begin
+  specialized_model = put_over_concrete_base(
+    weierstrass_generic,
+    Dict{String,Any}("base" => P3);
+    completeness_check=false,
+    rng=Random.Xoshiro(1234),
+  )
+  @test base_space(specialized_model) === P3
+  @test parent(weierstrass_section_f(specialized_model)) === coordinate_ring(P3)
+  @test parent(weierstrass_section_g(specialized_model)) === coordinate_ring(P3)
+  @test degree(weierstrass_section_f(specialized_model)) ==
+    degree(generic_section(anticanonical_bundle(P3)^4; rng=Random.Xoshiro(1234)))
+  @test degree(weierstrass_section_g(specialized_model)) ==
+    degree(generic_section(anticanonical_bundle(P3)^6; rng=Random.Xoshiro(1234)))
+  @test_throws ArgumentError put_over_concrete_base(
+    weierstrass_generic, Dict{String,Any}(); completeness_check=false
+  )
+  @test_throws ArgumentError put_over_concrete_base(
+    weierstrass_generic,
+    Dict{String,Any}("base" => base_space(weierstrass_generic));
+    completeness_check=false,
+  )
+end
+
 @testset "Error messages in Weierstrass models over generic base space" begin
   @test_throws ArgumentError weierstrass_model(
     auxiliary_base_ring, auxiliary_base_grading, 3, f, section_f
