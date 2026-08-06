@@ -637,7 +637,9 @@ end
 @doc raw"""
     molien_series([S::PolyRing], I::FinGroupInvarRing, [chi::GAPGroupClassFunction])
 
-In the non-modular case, return the Molien series of `I` as a rational function.
+Return the Molien series of `I` as a rational function.
+This function is implemented in the non-modular case or if `group(I)` is of type
+`PermGroup`.
 
 If a univariate polynomial ring with rational coefficients is specified by the
 optional argument `S::PolyRing`, then return the Molien series as an element
@@ -702,6 +704,10 @@ function molien_series(
 
   if characteristic(coefficient_ring(I)) == 0 && chi === nothing
     return _molien_series_char0(S, I)
+  elseif group(I) isa PermGroup && chi === nothing
+    # For a group permuting a basis, we can just pretend we are in characteristic 0
+    I0 = invariant_ring(QQ, group(I))
+    return _molien_series_char0(S, I0)
   else
     if !is_modular(I)
       return _molien_series_nonmodular_via_gap(S, I, chi)
@@ -728,8 +734,8 @@ end
 
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
-# And maybe some day we can also compute Molien series in some modular cases.
 is_molien_series_implemented(I::FinGroupInvarRing) = !is_modular(I)
+is_molien_series_implemented(I::FinGroupInvarRing{<:Any, <:PermGroup}) = true
 
 ################################################################################
 #
