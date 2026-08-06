@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message Node {
+  oneof kind {
+    string scalar = 1;
+    NodeArray array = 2;
+    NodeDict dict = 3;
+  }
+}
+
+message NodeArray {
+  repeated Node items = 1;
+}
+
+message NodeDict {
+  map<string, Node> entries = 1;
+}
