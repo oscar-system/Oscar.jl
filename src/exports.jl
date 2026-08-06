@@ -739,6 +739,7 @@ export grading_group
 export graph
 export graph_curve
 export graph_from_adjacency_matrix
+export graph_from_edge_orbits
 export graph_from_edges
 export graph_from_labeled_edges
 export grassmann_pluecker_ideal
