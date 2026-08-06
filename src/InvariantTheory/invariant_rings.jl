@@ -735,7 +735,7 @@ end
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
 is_molien_series_implemented(I::FinGroupInvarRing) = !is_modular(I)
-is_molien_series_implemented(I::FinGroupInvarRing{<:Any, <:PermGroup}) = true
+is_molien_series_implemented(I::FinGroupInvarRing{<:Any,<:PermGroup}) = true
 
 ################################################################################
 #

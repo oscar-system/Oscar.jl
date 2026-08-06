@@ -88,7 +88,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
     end
 
     # If G is of type PermGroup, we generate invariants via orbit sums.
-    # Otherwise, here are two possible strategies to find new candidates in
+    # Otherwise, there are two possible strategies to find new candidates in
     # degree d:
     # 1) apply the Reynolds operator to monomials of R of degree d which are
     #    not divisible by any leading monomial in G.S (this is what [Kin13]
@@ -117,7 +117,10 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
       @vprintln :FundamentalInvariants "Generating invariants via orbit sums"
       exps = [AbstractAlgebra.exponent_vector(m, 1) for m in mons]
       mon_orbits = orbits(gset(group(RG), permuted, exps))
-      invs = (Rgraded([one(coefficient_ring(RG)) for _ in 1:length(orb)], elements(orb)) for orb in mon_orbits)
+      invs = (
+        Rgraded([one(coefficient_ring(RG)) for _ in 1:length(orb)], elements(orb)) for
+        orb in mon_orbits
+      )
     elseif X * time_rey < time_lin_alg
       # Reynolds approach
       @vprintln :FundamentalInvariants "Generating invariants via Reynolds operator"
