@@ -334,7 +334,7 @@ function iterate_basis_reynolds(
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
 
   return FinGroupInvarRingBasisIterator{
-    typeof(R),typeof(reynolds),typeof(monomials),eltype(monomials),typeof(N), Nothing
+    typeof(R),typeof(reynolds),typeof(monomials),eltype(monomials),typeof(N),Nothing
   }(
     R, d, k, :reynolds, reynolds, monomials, Vector{eltype(monomials)}(), N, nothing
   )
@@ -364,7 +364,7 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
     N = identity_matrix(base_ring(R), 1)
     dummy_mons = monomials_of_degree(R, 0)
     return FinGroupInvarRingBasisIterator{
-      typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N), Nothing
+      typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N),Nothing
     }(
       IR, d, k, :linear_algebra, nothing, mons_iterator, mons, N, nothing
     )
@@ -400,18 +400,18 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   N = kernel(M; side=:right)
 
   return FinGroupInvarRingBasisIterator{
-    typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N), Nothing
+    typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N),Nothing
   }(
     IR, d, ncols(N), :linear_algebra, nothing, mons_iterator, mons, N, nothing
   )
 end
 
-function iterate_basis_orbit_sums(R::FinGroupInvarRing{T, <:PermGroup}, d::Int) where T
+function iterate_basis_orbit_sums(R::FinGroupInvarRing{T,<:PermGroup}, d::Int) where {T}
   @assert d >= 0 "Degree must be non-negative"
 
   S = polynomial_ring(R)
   # Generate all exponent vectors of monomials of degree d
-  exps = data.(collect(weak_compositions(d, ngens(S), inplace = false)))
+  exps = data.(collect(weak_compositions(d, ngens(S); inplace=false)))
 
   mon_orbits = orbits(gset(group(R), permuted, exps))
 
@@ -419,12 +419,11 @@ function iterate_basis_orbit_sums(R::FinGroupInvarRing{T, <:PermGroup}, d::Int) 
   N = zero_matrix(base_ring(S), 0, 0)
 
   return FinGroupInvarRingBasisIterator{
-                                        typeof(R),Nothing,Nothing,elem_type(S),typeof(N), typeof(mon_orbits)
+    typeof(R),Nothing,Nothing,elem_type(S),typeof(N),typeof(mon_orbits)
   }(
     R, d, k, :orbit_sums, nothing, nothing, elem_type(S)[], N, mon_orbits
   )
 end
-
 
 Base.eltype(
   ::Type{
@@ -541,7 +540,9 @@ function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
   end
 end
 
-function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Union{Int, Nothing} = nothing)
+function iterate_linear_algebra(
+  BI::FinGroupInvarRingBasisIterator, state::Union{Int,Nothing}=nothing
+)
   @assert BI.method === :linear_algebra
   s = isnothing(state) ? 1 : state
   if s > BI.dim
@@ -564,7 +565,9 @@ function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Union
   return inv(AbstractAlgebra.leading_coefficient(f)) * f, s + 1
 end
 
-function iterate_orbit_sums(BI::FinGroupInvarRingBasisIterator, state::Union{Int, Nothing} = nothing)
+function iterate_orbit_sums(
+  BI::FinGroupInvarRingBasisIterator, state::Union{Int,Nothing}=nothing
+)
   @assert BI.method === :orbit_sums
   s = isnothing(state) ? 1 : state
   if s > BI.dim
