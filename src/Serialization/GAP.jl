@@ -62,7 +62,7 @@ function load_object(s::DeserializerState, T::Type{GapObj})
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{GapObj, GapObj})
-  F = parameters(tp)
+  F = params(tp)
   load_node(s) do
     @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
     GAP_T = load_node(s, :GapType) do

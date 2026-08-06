@@ -376,10 +376,20 @@ end
 #      using what is called `RepresentativeAction` in GAP.
 
 function Base.in(omega::S, Omega::GSetByElements{T,S}) where {T,S}
-    omega in Omega.seeds && return true
-    return omega in elements(Omega)
+  is_in_seeds = (omega in Omega.seeds)::Bool
+  is_in_seeds && return true
+  # If all elements of Omega are seeds, we don't need to check everything again.
+  # This prominently happens if Omega was computed as an orbit. In that case,
+  # Omega already knows its elements, so the following length check is cheap.
+  # This is not just a micro-optimization: looking up omega in Omega.seeds is
+  # in O(1) because seeds is an IndexedSet, but the look-up in elements(Omega)
+  # takes linear time.
+  elts = elements(Omega)
+  if length(Omega.seeds)::Int == length(elts)
+    return is_in_seeds
+  end
+  return omega in elts
 end
-
 
 #############################################################################
 ##

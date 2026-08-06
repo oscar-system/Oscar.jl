@@ -142,8 +142,30 @@ end
 @doc raw"""
     tropical_polyhedron(A::MatElem{TropicalSemiringElem{M}}, B::MatElem{TropicalSemiringElem{M}}) where M<:MinOrMax
 
-Construct a `TropicalPolyhedron` as the set of points in the tropical projective torus satisfying the inequalities $A\odot x\leq B\odot x$
-using `M` as the tropical addition.
+Construct a `TropicalPolyhedron` as the set of points in the tropical projective
+torus satisfying the inequalities $A\odot x\leq B\odot x$ using `M` as the
+tropical addition.
+
+# Examples
+Testing whether a system of tropical inequalities is solvable:
+```jldoctest
+julia> T = tropical_semiring(max)
+Max tropical semiring
+
+julia> A = matrix(T, [[0, 1, 2], [1, 0, 3]])
+[(0)   (1)   (2)]
+[(1)   (0)   (3)]
+
+julia> B = matrix(T, [[1, 2, 0], [0, 4, 1]])
+[(1)   (2)   (0)]
+[(0)   (4)   (1)]
+
+julia> P = tropical_polyhedron(A,B)
+Max tropical polyhedron in tropical projective torus of dimension 2
+
+julia> is_feasible(P)
+true
+```
 """
 function tropical_polyhedron(A::MatElem{TropicalSemiringElem{M}}, B::MatElem{TropicalSemiringElem{M}}) where {M<:MinOrMax}
   p = Polymake.tropical.Polytope{M.instance}(INEQUALITIES=(A,B))
@@ -156,4 +178,3 @@ function tropical_polyhedron(A::QQMatrix, B::QQMatrix, convention::MinOrMax=min)
 
   return TropicalPolyhedron{typeof(convention)}(p)
 end
-

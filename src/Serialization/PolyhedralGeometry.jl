@@ -45,7 +45,7 @@ end
 type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}} = TypeAndParams(T, coefficient_field(obj))
 
 function type_and_params(obj::T) where {S, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}}
-  par = parameters(type_and_params(feasible_region(obj)))
+  par = params(type_and_params(feasible_region(obj)))
   return TypeAndParams(T, par...)
 end
 
@@ -66,18 +66,20 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyhedralObject, <:Union{QQField, AbstractAlgebra.Floats}})
-  field = parameters(tp)
-  return load_from_polymake(tp.type{elem_type(field)}, load_json(s, Dict{String, Any}))
+  field = params(tp)
+  T = type(tp)
+  return load_from_polymake(T{elem_type(field)}, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyhedralObject{S}, <:Union{QQField, AbstractAlgebra.Floats}}) where S <: Union{QQFieldElem, Float64}
-  return load_from_polymake(tp.type, load_json(s, Dict{String, Any}))
+  T = type(tp)
+  return load_from_polymake(T, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T <: PolyhedralObject
   field = tp[:field]
   polymake_dict = Dict{String, Any}()
-  for (k, v) in parameters(tp)
+  for (k, v) in params(tp)
     k === :field && continue
     polymake_dict[string(k)] = load_object(s, v, k)
   end
@@ -120,7 +122,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:LinearProgram, QQ
   if node_is_string(s)
     error("Loading this file requires using the LPSerializer")
   end
-  field = parameters(tp)
+  field = params(tp)
   coeff_type = elem_type(field)
   fr = load_object(s, TypeAndParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
@@ -145,7 +147,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:LinearProgram, <:
   end
   field = tp[:field]
   coeff_type = elem_type(field)
-  fr = load_object(s, TypeAndParams(Polyhedron, parameters(tp)...), :feasible_region)
+  fr = load_object(s, TypeAndParams(Polyhedron, params(tp)...), :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_object(s, TypeAndParams(Vector{coeff_type}, field), :lpcoeffs)
   all = Polymake._lookup_multi(pm_object(fr), "LP")
@@ -202,7 +204,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{<:Field
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:MixedIntegerLinearProgram, QQField})
-  field = parameters(tp)
+  field = params(tp)
   fr = load_object(s, TypeAndParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do
@@ -237,7 +239,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:MixedIntegerLinea
   field = tp[:field]
   coeff_type = elem_type(field)
   conv = load_object(s, String, :convention)
-  fr = load_object(s, TypeAndParams(Polyhedron, parameters(tp)...), :feasible_region)
+  fr = load_object(s, TypeAndParams(Polyhedron, params(tp)...), :feasible_region)
   milp_coeffs = load_object(s, TypeAndParams(Vector{coeff_type}, field), :milp_coeffs)
   int_vars = load_object(s, Vector{Int}, :int_vars)
 

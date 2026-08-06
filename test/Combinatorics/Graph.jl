@@ -7,12 +7,17 @@
         add_edge!(g, 1, 2)
         @test n_edges(g) == 1
         @test has_edge(g, 1, 2)
+        h = copy(g)
         rem_edge!(g, 1, 2)
         @test n_edges(g) == 0
+        @test n_edges(h) == 1
         @test !has_edge(g, 1, 2)
+        @test has_edge(h, 1, 2)
         @test add_vertex!(g)
         @test n_vertices(g) == 6
+        @test n_vertices(h) == 5
         @test has_vertex(g, 6)
+        @test !has_vertex(h, 6)
         rem_vertex!(g, 1)
         @test n_vertices(g) == 5
         @test has_vertex(g, 1)
@@ -474,5 +479,9 @@
       @test G.label[2, 1] == 10
       @test G.label[1, 3] == 20
       @test G.color[2] == "red"
+
+      H = copy(G)
+      permute_nodes!(H, p)
+      @test G.label[1, 3] == H.label[2, 3]
     end
 end

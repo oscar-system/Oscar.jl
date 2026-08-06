@@ -15,7 +15,12 @@
             }
           },
           "type": "object",
-          "not": { "required": [ "_ns" ] }
+          "not": {
+            "anyOf": [
+              { "required": [ "_ns" ] },
+              { "required": [ "_type" ] }
+            ]
+          }
         },
         {
           "items": {
