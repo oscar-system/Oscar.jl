@@ -69,7 +69,10 @@ our context due to two independent problems:
     real or complex numbers, in Julia `det(ones(Int, (1,1))) == 1.0`, so the
     fact that this is exactly the integer `1`  is lost. Furthermore, more
     general rings cannot be embedded into the reals at all.
-  
+
+For a more detailed discussion, see the
+[Introduction to the Linear Algebra documentation](@ref linear_algebra).
+
 ---
 
 **Q: Why can `zero(T)` for a type `T` not work?**

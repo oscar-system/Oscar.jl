@@ -91,9 +91,14 @@ end
   @test_throws ArgumentError birational_literature_models(t1)
 end
 
+# Resolving a model must not mutate its stored resolution data or exceptional indices.
+resolution_data = deepcopy(resolutions(t1))
+initial_exceptional_indices = copy(exceptional_divisor_indices(t1))
 t2 = resolve(t1, 1)
 
 @testset "Test resolving literature Tate model over concrete base" begin
+  @test resolutions(t1) == resolution_data
+  @test exceptional_divisor_indices(t1) == initial_exceptional_indices
   @test is_smooth(ambient_space(t2)) == false
   @test is_partially_resolved(t2) == true
   @test base_space(t1) == base_space(t2)

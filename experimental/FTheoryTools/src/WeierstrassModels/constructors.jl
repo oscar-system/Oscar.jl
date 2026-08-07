@@ -3,11 +3,13 @@
 #####################################################################
 
 @doc raw"""
-    weierstrass_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+    weierstrass_model(base::NormalToricVariety; kwargs...)
 
 Construct a Weierstrass model over a given toric base space. The Weierstrass sections
-``f`` and ``g`` are automatically generated with (pseudo)random coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+``f`` and ``g`` are automatically generated with (pseudo)random coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.
@@ -32,7 +34,7 @@ function weierstrass_model(
 end
 
 @doc raw"""
-    weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
+    weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; kwargs...)
 
 Construct a Weierstrass model over a given toric base space ``X``. The Weierstrass sections
 ``f`` and ``g`` are explicitly specified by the user as polynomials in the Cox ring of ``X``.
@@ -110,12 +112,14 @@ function weierstrass_model(base::NormalToricVariety,
 end
 
 @doc raw"""
-    weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
+    weierstrass_model_over_projective_space(d::Int; kwargs...)
 
 Construct a Weierstrass model over the ``d``-dimensional projective space,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -131,12 +135,14 @@ weierstrass_model_over_projective_space(d::Int; rng::AbstractRNG=Random.default_
   )
 
 @doc raw"""
-    weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
+    weierstrass_model_over_hirzebruch_surface(r::Int; kwargs...)
 
 Construct a Weierstrass model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -152,12 +158,14 @@ weierstrass_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG=Random.defaul
   )
 
 @doc raw"""
-    weierstrass_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
+    weierstrass_model_over_del_pezzo_surface(b::Int; kwargs...)
 
 Construct a Weierstrass model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Weierstrass sections ``f`` and ``g`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest

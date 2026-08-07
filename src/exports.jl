@@ -511,6 +511,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_graph
 export cycle_length
 export cycle_matroid
 export cycle_structure
@@ -1300,10 +1301,12 @@ export n_gon
 export n_maximal_cells
 export n_maximal_cones
 export n_maximal_polyhedra
+export n_minimal_faces
 export n_points
 export n_polyhedra
 export n_pseudovertices
 export n_rays
+export n_rays_modulo_lineality
 export n_vertices
 export name
 export names_of_fusion_sources
@@ -1381,6 +1384,7 @@ export numerical_lattice_of_K3_cover
 export objective_function
 export omega_group
 export on_echelon_form_mats
+export on_graph
 export on_indeterminates
 export on_lines
 export on_sets
@@ -1412,6 +1416,7 @@ export orders_perfect_groups
 export ordinary_table
 export orthogonal_components
 export orthogonal_group
+export orthogonal_group_bilinear
 export orthogonal_sign
 export outdegree
 export outneighbors
@@ -1445,6 +1450,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
 export petersen_graph
 export phylogenetic_tree
 export picard_class
@@ -1590,6 +1596,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_action_homomorphism
 export regular_character
 export regular_triangulation
 export regular_triangulations
@@ -1855,6 +1862,7 @@ export underlying_quotient
 export underlying_word
 export undirected_component
 export uniform_matroid
+export unimodular_primitive_extensions
 export unit
 export unitary_group
 export units_of

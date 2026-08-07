@@ -6,9 +6,10 @@
 ###########################################################################
 
 @doc raw"""
-    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
+    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; kwargs...)
 
 Blow up the toric variety along a toric ideal sheaf.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 !!! warning
     This function is type unstable. The type of the domain of the output `f` is always a subtype of `AbsCoveredScheme` (meaning that `domain(f) isa AbsCoveredScheme` is always true). 
@@ -58,7 +59,7 @@ function _martins_desired_blowup(
 end
 
 @doc raw"""
-    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
+    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; kwargs...)
 
 Blow up the toric variety by subdividing the cone in the list
 of *all* cones of the fan of `v` which corresponds to the
@@ -117,9 +118,10 @@ end
 ##################################################################
 
 @doc raw"""
-    blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+    blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; kwargs...)
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 # Examples
 ```jldoctest
@@ -175,9 +177,10 @@ function blow_up(
 end
 
 @doc raw"""
-    blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+    blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; kwargs...)
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 # Examples
 ```jldoctest
@@ -245,10 +248,11 @@ function _ideal_sheaf_to_minimal_supercone_coordinates(
 end
 
 @doc raw"""
-    blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
+    blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; kwargs...)
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
 For this method, the blowup center is encoded by an ideal sheaf.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 # Examples
 ```jldoctest
@@ -396,7 +400,7 @@ function blow_up(
   if ambient_space(model) isa NormalToricVariety
     index = index_of_exceptional_ray(bd)
     @req index == ngens(coordinate_ring(ambient_space(model))) "Inconsistency encountered. Contact the authors"
-    indices = exceptional_divisor_indices(model)
+    indices = copy(exceptional_divisor_indices(model))
     push!(indices, index)
     set_attribute!(model, :exceptional_divisor_indices, indices)
 
@@ -505,7 +509,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
   for k in 1:nr_blowups
 
     # Replace parameters in the blow_up_center with explicit_model_sections
-    blow_up_center = centers[k]
+    blow_up_center = copy(centers[k])
     for l in 1:length(blow_up_center)
       model_sections = explicit_model_sections(resolved_model)
       if haskey(model_sections, blow_up_center[l])
