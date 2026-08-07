@@ -7,7 +7,9 @@
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
-The random source used in their creation can be set with the optional argument `rng`.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.
@@ -126,8 +128,10 @@ end
 
 Construct a global Tate model over the ``d``-dimensional projective space,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -147,8 +151,10 @@ global_tate_model_over_projective_space(d::Int; rng::AbstractRNG=Random.default_
 
 Construct a global Tate model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -168,8 +174,10 @@ global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG=Random.defaul
 
 Construct a global Tate model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest

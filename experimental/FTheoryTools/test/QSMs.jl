@@ -55,6 +55,13 @@ end
     @test obj1 == obj2
   end
   qsm_g4_flux = qsm_flux(qsm_model)
+
+  # Check that string-valued algorithm names are deprecated.
+  @test_deprecated Oscar._normalize_flux_family_algorithm(
+    "special", :special_flux_family
+  ) ===
+    :special
+
   h22_basis = gens_of_h22_hypersurface_indices(qsm_model; completeness_check=false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
   ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
