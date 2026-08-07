@@ -57,3 +57,11 @@
   o5 = origami(h4, v5)
   @test are_equivalent(o4, o5) == true
 end
+
+@testset "Listing strata" begin
+  include("stratum_lists.jl")
+  actual_strat_list = origamis([1, 1, 1, 1], 8)
+  actual_strat_list_normal = [normal_form(o) for o in actual_strat_list]
+  expected_strat_list_normal = [normal_form(o) for o in expected_strat_list]
+  @test issetequal(expected_strat_list_normal, actual_strat_list_normal)
+end

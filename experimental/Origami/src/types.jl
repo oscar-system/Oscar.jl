@@ -32,3 +32,15 @@ struct CylinderDiagram
     new(bot, top, length(bot), max + 1)
   end
 end
+
+struct CanonicalOrigamiKey
+  h::Vector{Int}
+  v::Vector{Int}
+end
+
+Base.:(==)(a::CanonicalOrigamiKey, b::CanonicalOrigamiKey) =
+  a.h == b.h && a.v == b.v
+
+function Base.hash(key::CanonicalOrigamiKey, ha::UInt)
+  return hash(key.v, hash(key.h, ha))
+end
