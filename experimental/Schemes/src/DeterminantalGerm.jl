@@ -6,7 +6,7 @@
 
 Return the determinantal ideal `I` defining the determinantal germ `X` in the ring of the ambient germ of `X`.
 !!! warning
-    The `determinantal_ideal` might differ from the `defining_ideal`, if the determinantal structure was endowed onto an existing scheme.
+    The generators of the `determinantal_ideal` might differ from the generators of the `defining_ideal`, if the determinantal structure was later endowed onto an existing scheme.
 
 !!! note
     The returned determinantal ideal `I` is not an ideal of a polynomial ring, but an ideal of a localization of a polynomial ring at the complement of a prime ideal. (Hence each generator of `I` has a numerator and a denominator.)
@@ -364,9 +364,9 @@ end
 # TODO: move to a more fitting place (maybe AbstractAlgebra)
 function _skew_sym_mat_gens(M::MatSpace)
   AbstractAlgebra.check_square(M)
-  n = nrows(M)
   R = base_ring(M)
   characteristic(R) == 2 && return _sym_mat_gens(M)
+  n = nrows(M)
   gens = sizehint!(elem_type(M)[], div(n*(n-1), 2))
   for i in 1:n
     for j in i+1:n
@@ -400,7 +400,9 @@ end
 
 
 
-function _T1_GL_module(A::MatElem; val_type::Type = Val{:generic})
+function _T1_GL_module(A::MatElem, val_type::Type{<:Val})
+  @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
+  M = parent(A)
   n, m = size(A)
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
@@ -411,16 +413,53 @@ function _T1_GL_module(A::MatElem; val_type::Type = Val{:generic})
   F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
   T1_GL = SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_GL_rels(A, val_type))))
   # interpretation map
-  im(v::FreeModElem) = parent(A)(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
+  im(v::FreeModElem) = M(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
   pre(B::MatElem) = F(_vec(transpose(B)))
-  interp =  MapFromFunc(F, parent(A), im, pre)
+  interp = MapFromFunc(ambient_free_module(T1_GL), M, im, pre)
   return T1_GL, interp
 end
+
+
+
+@doc raw"""
+    T1_GL_module(A::MatElem; mat_type::Symbol = :generic) -> SubquoModule, MapFromFunc
+
+Return for a matrix `A` with entries in either a `MPolyRing` or a `MPolyLocRing` the $T^1_{GL}(A)$-module of `A` and an interpretation map, which is an isomorphism from the `ambient_free_module` of the $T1_GL(A)$-module to the matrix space of `A`.
+
+# Examples:
+```jldoctest
+julia> R, (x,y,z) = QQ[:x, :y, :z];
+
+julia> A = R[x 0 z; 0 y z]
+[x   0   z]
+[0   y   z]
+
+julia> T1_GL, intr = T1_GL_module(A, mat_type=:generic);
+
+julia> B = vector_space_basis(T1_GL)
+3-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ E[1,2]
+ E[1,3]
+ E[2,1]
+
+julia> intr.(repres.(B))
+3-element Vector{AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}}:
+ [0 1 0; 0 0 0]
+ [0 0 1; 0 0 0]
+ [0 0 0; 1 0 0]
+```
+"""
+function T1_GL_module(A::MatElem; mat_type::Symbol = :generic)
+  @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
+  return _T1_GL_module(A, Val{mat_type})
+end
+
+
 
 @doc raw"""
     T1_GL_module(X::DeterminantalGerm) -> SubquoModule, MapFromFunc
 
-Return the $T^1_{GL}(A)$-module of the defining matrix `A` of the determinantal germ of `X` and an interpretation map, which maps the representative of elements of the $T1_GL(A)$-module to their corresponding matrices in the matix space of `A`. 
+Return for a determinantal germ of `X` the $T^1_{GL}(A)$-module of the defining matrix `A` and an interpretation map, which is an isomorphism from the `ambient_free_module` of the $T1_GL(A)$-module to the matrix space of `A`. 
 !!! note
     Different determinantal structures for the same underlying space germ may yield different $T^1_{GL}$-modules.
 
@@ -514,7 +553,7 @@ by submodule with 5 generators
   5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
-@attr Tuple{SubquoModule, MapFromFunc} T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), val_type = _mat_type(X))
+@attr Tuple{SubquoModule, MapFromFunc} T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), _mat_type(X))
 
 
 
@@ -597,6 +636,9 @@ julia> B = matrix([x*y-w*z])
 [-w*z + x*y]
 
 julia> X_B = DeterminantalGerm(B, 1, [0,0,0,0]);
+
+julia> X_A == X_B
+false
 
 julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B), point(X_B))
 true
@@ -714,12 +756,13 @@ basis_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:Aff
 ################################################################################
 
 function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
-  rels = _J(A)
+  rels = _J(A)    # partial derivatives of matrix
   n, m = size(A)
+  sizehint!(rels, length(rels) + n^2-1 + m^2-1)
   for i in 1:m
     for j in 1:m
-      if i == j 
-        i == m && continue
+      if i == j   # entry on diagonal - use bottom right entry to make trace zero
+        i == m && continue    # skip bottom right entry
         push!(rels, _C_ij(A, i, i) - _C_ij(A, m, m))
       else
         push!(rels, _C_ij(A, i, j))
@@ -728,8 +771,8 @@ function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
   end
   for j in 1:n
     for i in 1:n
-      if i == j 
-        i == n && continue
+      if i == j   # entry on diagonal - use bottom right entry to make trace zero
+        i == n && continue    # skip bottom right entry
         push!(rels, _R_ij(A, i, i) - _R_ij(A, n, n))
       else
         push!(rels, _R_ij(A, i, j))
@@ -740,12 +783,13 @@ function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
 end
 
 function _T1_SL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
-  rels = _J(A)
+  rels = _J(A)    # partial derivatives of matrix
   n = nrows(A)
+  sizehint!(rels, length(rels) + n^2-1)
   for i in 1:n
     for j in 1:n
-      if i == j 
-        i == n && continue
+      if i == j   # entry on diagonal - use bottom right entry to make trace zero
+        i == n && continue    # skip bottom right entry
         push!(rels, _R_ij(A, i, i) + _C_ij(A, i, i) - _R_ij(A, n, n) - _C_ij(A, n, n))
       else
         push!(rels, _R_ij(A, i, j) + _C_ij(A, i, j))
@@ -757,7 +801,9 @@ end
 
 
 
-function _T1_SL_module(A::MatElem; val_type::Type = Val{:generic})
+function _T1_SL_module(A::MatElem, val_type::Type{<:Val})
+  @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
+  M = parent(A)
   n, m = size(A)
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
@@ -768,10 +814,47 @@ function _T1_SL_module(A::MatElem; val_type::Type = Val{:generic})
   F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
   T1_SL = SubquoModule(F, F.(_vec.(_T1_gens(A, val_type))), F.(_vec.(_T1_SL_rels(A, val_type))))
   # interpretation map
-  im(v::FreeModElem) = parent(A)(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
+  im(v::FreeModElem) = M(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
   pre(B::MatElem) = F(_vec(transpose(B)))
-  interp =  MapFromFunc(F, parent(A), im, pre)
+  interp = MapFromFunc(ambient_free_module(T1_SL), M, im, pre)
   return T1_SL, interp
+end
+
+
+
+@doc raw"""
+    T1_SL_module(A::MatElem; mat_type::Symbol = :generic) -> SubquoModule, MapFromFunc
+
+Return for a matrix `A` with entries in either a `MPolyRing` or a `MPolyLocRing` the $T^1_{GL}(A)$-module of `A` and an interpretation map, which is an isomorphism from the `ambient_free_module` of the $T1_GL(A)$-module to the matrix space of `A`.
+
+# Examples:
+```jldoctest
+julia> R, (x,y,z) = QQ[:x, :y, :z];
+
+julia> A = R[z y x^2; 0 x y]
+[z   y   x^2]
+[0   x     y]
+
+julia> T1_SL, intr = T1_SL_module(A, mat_type=:generic);
+
+julia> B = vector_space_basis(T1_SL)
+4-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ E[1,2]
+ E[1,3]
+ E[2,1]
+ E[2,2]
+
+julia> intr.(repres.(B))
+4-element Vector{AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}}:
+ [0 1 0; 0 0 0]
+ [0 0 1; 0 0 0]
+ [0 0 0; 1 0 0]
+ [0 0 0; 0 1 0]
+```
+"""
+function T1_SL_module(A::MatElem; mat_type::Symbol = :generic)
+  @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
+  return _T1_SL_module(A, Val{mat_type})
 end
 
 
@@ -779,12 +862,71 @@ end
 @doc raw"""
     T1_SL_module(X::DeterminantalGerm) -> SubquoModule, MapFromFunc
 
-Return the $T^1_{SL}(A)$-module of the defining matrix `A` of the determinantal germ of `X` and an interpretation map, which maps the representative of elements of the $T1_{SL}(A)$-module to their corresponding matrices in the matix space of `A`. 
+Return the $T^1_{SL}(A)$-module of the defining matrix `A` of the determinantal germ of `X` and an interpretation map, which maps the representative of elements of the $T1_{SL}(A)$-module to their corresponding matrices in the matrix space of `A`. 
 !!! note
     Different determinantal structures for the same underlying space germ may yield different $T^1_{SL}$-modules.
 
+# Examples:
+```jldoctest
+julia> R, (x,y) = QQ[:x, :y];
+
+julia> A = R[x 0;  0 x*y+y^3]
+[x           0]
+[0   x*y + y^3]
+
+julia> X_A = DeterminantalGerm(A, 2, [0,0]);
+
+julia> X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric);
+
+julia> X_A == X_A_sym
+false
+
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_A_sym), point(X_A_sym))
+true
+
+julia> T1_A, _ = T1_GL_module(X_A);
+
+julia> T1_A
+Subquotient of submodule with 4 generators
+  1: E[1,1]
+  2: E[1,2]
+  3: E[2,1]
+  4: E[2,2]
+by submodule with 10 generators
+  1: E[1,1] + y*E[2,2]
+  2: (x + 3*y^2)*E[2,2]
+  3: x*E[1,1]
+  4: (x*y + y^3)*E[1,2]
+  5: x*E[2,1]
+  6: (x*y + y^3)*E[2,2]
+  7: x*E[1,1]
+  8: (x*y + y^3)*E[2,1]
+  9: x*E[1,2]
+  10: (x*y + y^3)*E[2,2]
+
+julia> T1_A_sym, _ = T1_GL_module(X_A_sym);
+
+julia> T1_A_sym
+Subquotient of submodule with 3 generators
+  1: E[1,1]
+  2: E[1,2] + E[2,1]
+  3: E[2,2]
+by submodule with 6 generators
+  1: E[1,1] + y*E[2,2]
+  2: (x + 3*y^2)*E[2,2]
+  3: 2*x*E[1,1]
+  4: (x*y + y^3)*E[1,2] + (x*y + y^3)*E[2,1]
+  5: x*E[1,2] + x*E[2,1]
+  6: (2*x*y + 2*y^3)*E[2,2]
+
+julia> vector_space_dim(T1_A)
+9
+
+julia> vector_space_dim(T1_A_sym)
+6
+```
 """
-@attr Tuple{SubquoModule, MapFromFunc} T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), val_type = _mat_type(X))
+@attr Tuple{SubquoModule, MapFromFunc} T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), _mat_type(X))
 
 
 
@@ -796,5 +938,30 @@ Return the `tjurina_SL_number` of the determinantal germ `X`.
 !!! note
     Different determinantal structures for the same underlying space germ may yield different `tjurina_SL_number`s.
 
+# Examples:
+```jldoctest
+julia> R, (x,y) = QQ[:x, :y];
+
+julia> A = R[0 x y;  x y 0; y 0 x^2]
+[0   x     y]
+[x   y     0]
+[y   0   x^2]
+
+julia> X_A = DeterminantalGerm(A, 3, [0,0]);
+
+julia> X_A_sym = DeterminantalGerm(A, 3, [0,0], mat_type = :symmetric);
+
+julia> X_A == X_A_sym
+false
+
+julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_A_sym), point(X_A_sym))
+true
+
+julia> tjurina_SL_number(X_A)
+9
+
+julia> tjurina_SL_number(X_A_sym)
+6
+```
 """
 tjurina_SL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_SL_module(X)[1])

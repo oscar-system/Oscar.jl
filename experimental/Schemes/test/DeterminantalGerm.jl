@@ -1,34 +1,34 @@
 @testset "DeterminantalGerm" begin
   R, (x,y,z) = QQ[:x, :y, :z]
-  L, _ = localization(complement_of_point_ideal(R, [0,0,0]))
-  A = L[x 0 -z; 
-        0 y  z]
+  L, _ = localization(complement_of_point_ideal(R, [2,1,0]))
+  A = L[x-2 0 -z; 
+        0 y-1  z]
   X_A = DeterminantalGerm(A, 2)
   @test determinantal_type(X_A) == (2,3,2)
-  @test determinantal_ideal(X_A) == ideal(L, [x*y, x*z, y*z])
+  @test determinantal_ideal(X_A) == ideal(L, [(x-2)*(y-1), (x-2)*z, (y-1)*z])
   @test defining_matrix(X_A) === A
   @test Oscar._mat_type(X_A) === Val{:generic}
   @test dim(X_A) == 1
   @test codim(X_A) == 2
-  @test point(X_A) == QQ.([0,0,0])
-  @test modulus(OO(X_A)) == ideal(L, [x*y, x*z, y*z])
+  @test point(X_A) == QQ.([2,1,0])
+  @test modulus(OO(X_A)) == ideal(L, [(x-2)*(y-1), (x-2)*z, (y-1)*z])
 end
 
-@testset "Symmetric DeterminantalGerm" begin
+@testset "Symmetric DeterminantalGerm (Pinkham's example)" begin
   R, (v,w,x,y,z) = QQ[:v,:w,:x,:y,:z]
-  L, _ = localization(complement_of_point_ideal(R, [0,0,0,0,0]))
-  A = L[v w x; 
-        w x y; 
-        x y z]
+  L, _ = localization(complement_of_point_ideal(R, [23,0,0,0,0]))
+  A = L[v-23 w  x; 
+         w   x  y; 
+         x   y  z]
   X_A = DeterminantalGerm(A, 2, mat_type = :symmetric)
   @test determinantal_type(X_A) == (3,3,2)
-  @test determinantal_ideal(X_A) == ideal(minors(L[v w x y; w x y z], 2))
+  @test determinantal_ideal(X_A) == ideal(minors(L[v-23 w x y; w x y z], 2))
   @test defining_matrix(X_A) === A
   @test Oscar._mat_type(X_A) === Val{:symmetric}
   @test dim(X_A) == 2
   @test codim(X_A) == 3
-  @test point(X_A) == QQ.([0,0,0,0,0])
-  @test modulus(OO(X_A)) == ideal(minors(L[v w x y; w x y z], 2))
+  @test point(X_A) == QQ.([23,0,0,0,0])
+  @test modulus(OO(X_A)) == ideal(minors(L[v-23 w x y; w x y z], 2))
 end
 
 @testset "Skew-symmetric DeterminantalGerm" begin
@@ -148,16 +148,18 @@ end
   B = R[x 0  0;
         0 y  x;
         0 x y^2]
-  X_B = DeterminantalGerm(B, 3, [0,0])
-  X_B_sym = DeterminantalGerm(B, 3, [0,0], mat_type = :symmetric)
-  @test tjurina_GL_number(X_B) == 11
-  @test tjurina_GL_number(X_B_sym) == 7
+  @test vector_space_dim(T1_GL_module(B, mat_type = :generic)[1]) == 11
+  @test vector_space_dim(T1_GL_module(B, mat_type = :symmetric)[1]) == 7
   C = R[0     0    x    0;
         0     0    0 x^2+y^3;
        -x     0    0    0;
         0 -x^2-y^3 0    0]
   X_C = DeterminantalGerm(C, 4, [0,0])
   X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric)
+  M1, intr_1 = T1_GL_module(X_C_skew)
+  L = localized_ring(OO(X_C_skew))
+  M2, intr_2 = T1_GL_module(L.(C), mat_type = :skew_symmetric)
+  @test intr_1.(repres.(vector_space_basis(M1))) == intr_2.(repres.(vector_space_basis(M2)))
   @test tjurina_GL_number(X_C) == PosInf()
   @test tjurina_GL_number(X_C_skew) == 16
 
@@ -165,12 +167,67 @@ end
   R, (v,w,x,y,z) = QQ[:v,:w,:x,:y,:z]
   A = R[x y z;
         v w 0]
+  T1_GL_A = T1_GL_module(A)[1]
+  @test krull_dim(T1_GL_A) == 2
+  @test vector_space_dim(T1_GL_A) == PosInf()
   X_A = DeterminantalGerm(A, 2, [0,0,0,0,0])
-  @test krull_dim(T1_GL_module(X_A)[1]) == 2
-  @test tjurina_GL_number(X_A) == PosInf()
+  @test !is_EIDS(X_A)
   B = R[x y z;
         v w x]
-  X_B = DeterminantalGerm(B, 2, [0,0,0,0,0])
-  @test tjurina_GL_number(X_B) == 1
+  @test vector_space_dim(T1_GL_module(B)[1]) == 1
+  @test_throws ArgumentError("Val{:wrong_symbol} is not supported") Oscar._T1_GL_module(B, Val{:wrong_symbol})
+  @test_throws ArgumentError T1_GL_module(B, mat_type = :wrong_symbol)
 end
 
+@testset "T1_SL module" begin
+  R, (x, y) = QQ[:x,:y]
+  A = R[x^2  y;
+         y  x^3]
+  X_A = DeterminantalGerm(A, 2, [0,0])
+  X_A_sym = DeterminantalGerm(A, 2, [0,0], mat_type = :symmetric)
+  @test tjurina_SL_number(X_A) == 6
+  @test tjurina_SL_number(X_A_sym) == 4
+  B = R[x  0 y^2;
+        0  y  x;
+       y^2 x  0]
+  X_B = DeterminantalGerm(B, 3, [0,0])
+  X_B_sym = DeterminantalGerm(B, 3, [0,0], mat_type = :symmetric)
+  @test vector_space_dim(T1_SL_module(B, mat_type = :generic)[1]) == 12
+  @test vector_space_dim(T1_SL_module(B, mat_type = :symmetric)[1]) == 8
+  # for ambient dimension 2 is tau_{GL}^{sym} equal to the milnor_number of a symmetric determinantal hypersurface germ
+  @test milnor_number(HypersurfaceGerm(representative(X_B_sym), point(X_B_sym))) == tjurina_SL_number(X_B_sym)
+  C = R[0    0   x  y^2;
+        0    0  y^2 x^2;
+       -x  -y^2  0   0;
+      -y^2 -x^2  0   0]
+  X_C = DeterminantalGerm(C, 4, [0,0])
+  X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric)
+  M1, intr_1 = T1_SL_module(X_C_skew)
+  L = localized_ring(OO(X_C_skew))
+  M2, intr_2 = T1_SL_module(L.(C), mat_type = :skew_symmetric)
+  @test intr_1.(repres.(vector_space_basis(M1))) == intr_2.(repres.(vector_space_basis(M2)))
+  @test tjurina_SL_number(X_C) == PosInf()
+  @test tjurina_SL_number(X_C_skew) == 12
+
+
+  # for ambient dimension 3 is tau_{GL}^{sq} equal to the milnor_number of a generic determinantal hypersurface germ
+  R, (x,y,z) = QQ[:x,:y,:z]
+  A = R[  x   −y;
+        y+z^7  x]
+  X_A = DeterminantalGerm(A, 2, [0,0,0])
+  @test tjurina_SL_number(X_A) == 13
+  @test milnor_number(HypersurfaceGerm(representative(X_A), point(X_A))) == tjurina_SL_number(X_A)
+
+
+  R, (v,w,x,y,z) = QQ[:v,:w,:x,:y,:z]
+  A = R[x y z;
+        v 0 0]
+  T1_SL_A = T1_SL_module(A)[1]
+  @test krull_dim(T1_SL_A) == 4
+  @test vector_space_dim(T1_SL_A) == PosInf()
+  B = R[x y z;
+        v w x^2+y^2]
+  @test vector_space_dim(T1_SL_module(B)[1]) == 3
+  @test_throws ArgumentError("Val{:wrong_symbol} is not supported") Oscar._T1_SL_module(B, Val{:wrong_symbol})
+  @test_throws ArgumentError T1_SL_module(B, mat_type=:wrong_symbol)
+end

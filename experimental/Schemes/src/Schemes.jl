@@ -79,6 +79,8 @@ export is_determinantally_rigid
 export is_EIDS
 export basis_versal_determinantal_unfolding
 export T1_SL_module
+export tjurina_SL_number
+
 
 # Deprecated after 0.15
 Base.@deprecate_binding base_glueing base_gluing
