@@ -520,6 +520,7 @@ function tune(
     new_classes_of_model_sections[key] = toric_divisor_class(base_space(model), m[1, :])
   end
   set_attribute!(model, :classes_of_model_sections => new_classes_of_model_sections)
+  _copy_exceptional_divisor_attributes!(model, h)
 
   # 5. Return the model
   return model

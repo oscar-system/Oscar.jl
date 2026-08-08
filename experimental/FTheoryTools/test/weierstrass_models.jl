@@ -31,6 +31,8 @@ weierstrass_P3 = weierstrass_model(P3; completeness_check=false, rng=our_rng)
   @test length(singular_loci(weierstrass_P3; rng=our_rng)) == 1
   @test is_base_space_fully_specified(weierstrass_P3) == true
   @test is_partially_resolved(weierstrass_P3) == false
+  @test isempty(exceptional_classes(weierstrass_P3))
+  @test isempty(exceptional_divisor_indices(weierstrass_P3))
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin

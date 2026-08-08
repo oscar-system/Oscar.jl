@@ -448,7 +448,31 @@ function deepmap(f, x)
 end
 
 ###########################################################################
-# 8: Macro for function generation
+# 8: Exceptional divisor attributes
+###########################################################################
+
+function _initialize_exceptional_divisor_attributes!(model::AbstractFTheoryModel)
+  set_attribute!(
+    model,
+    :exceptional_classes => CohomologyClass[],
+    :exceptional_divisor_indices => Int[],
+  )
+  return model
+end
+
+function _copy_exceptional_divisor_attributes!(
+  target::AbstractFTheoryModel, source::AbstractFTheoryModel
+)
+  set_attribute!(
+    target,
+    :exceptional_classes => copy(exceptional_classes(source)),
+    :exceptional_divisor_indices => copy(exceptional_divisor_indices(source)),
+  )
+  return target
+end
+
+###########################################################################
+# 9: Macro for function generation
 ###########################################################################
 
 macro define_model_attribute_getter(

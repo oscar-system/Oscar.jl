@@ -407,7 +407,8 @@ julia> exceptional_classes(foah11_B3)
 """
 function exceptional_classes(m::AbstractFTheoryModel)
   @req base_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models over a concrete base"
-  return get_attribute(m, :exceptional_classes, Vector{CohomologyClass}())
+  @req has_attribute(m, :exceptional_classes) "Required exceptional divisor data is missing; please inform the FTheoryTools authors"
+  return get_attribute(m, :exceptional_classes)::Vector{CohomologyClass}
 end
 
 @doc raw"""
@@ -442,5 +443,6 @@ julia> exceptional_divisor_indices(foah11_B3)
 """
 @attr Vector{Int} function exceptional_divisor_indices(m::AbstractFTheoryModel)
   @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
-  return get_attribute(m, :exceptional_divisor_indices, Vector{Int64}())
+  @req has_attribute(m, :exceptional_divisor_indices) "Required exceptional divisor data is missing; please inform the FTheoryTools authors"
+  return get_attribute(m, :exceptional_divisor_indices)::Vector{Int}
 end

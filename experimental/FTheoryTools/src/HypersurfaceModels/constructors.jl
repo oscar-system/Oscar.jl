@@ -200,6 +200,7 @@ function _build_hypersurface_model(
     fiber_ambient_space,
   )
   set_attribute!(model, :partially_resolved, false)
+  _initialize_exceptional_divisor_attributes!(model)
   return model
 end
 
