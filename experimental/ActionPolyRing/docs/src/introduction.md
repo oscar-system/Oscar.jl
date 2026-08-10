@@ -23,7 +23,7 @@ integers. The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, t
 ``J \in \mathbb{Z}_{\geq 0}^n`` are called *jets*. Note that depending on the specific setting, the 
 action maps and action indeterminates get a more specific name, e.g. if ``S`` is a difference polynomial ring then
 the ``\sigma_j`` are called *shift operators* and the ``u_i`` are called *difference indeterminates*. If instead,
-``S`` is a differential polynomial ring, the then the ``\sigma_j`` are called *derivatives* and the ``u_i``
+``S`` is a differential polynomial ring, then the ``\sigma_j`` are called *derivatives* and the ``u_i``
 are called *differential indeterminates*.
 
 We put ``\Delta \coloneqq \{ \sigma_1, \ldots, \sigma_n\}`` and denote the set of monomials in ``\Delta`` by
@@ -90,7 +90,7 @@ Let ``p, q \in S = R[\, (u_i)_J \mid i \in \lbrace 1, \ldots, m \rbrace, J \in \
 action polynomials and let ``v`` denote the leader of ``q``, so that both ``p`` and ``q`` can be regarded as univariate polynomials
 in the jet variable ``v``. For the implementations of the concepts discussed below, see [polynomial reduction methods](@ref polynomial_reduction_methods_apr).
 
-#### [Pseudo-divsion and notions of reducedness for action polynomials](@id pseudodiv_and_notions_of_reducedness_for_action_polynomials)
+#### [Pseudo-division and notions of reducedness for action polynomials](@id pseudodiv_and_notions_of_reducedness_for_action_polynomials)
 
 Classical long-division of ``p`` by ``q`` will usually fail since ``\operatorname{init}(q)`` need not be invertible in ``S``. This can be fixed by
 pre-multiplying the dividend ``p`` by the initial of ``q`` to some high enough power. In fact, it is easy to see that one can always
@@ -116,8 +116,8 @@ Keep the notations from above. We have the following notions of reducedness for 
 
 !!! note "partially reduced differential polynomials"
     In the case where ``S`` is a differential polynomial, the degree of ``\Theta(q)`` in each proper transform ``w`` of
-    ``q`` is one. Thus, being partially reduced amounts to the condition that ``p`` does not contain no proper derivative
-    of ``v`` occurs as a variable in ``p``.
+    ``q`` is one. Thus, being partially reduced amounts to the condition that ``p`` contains no proper derivative
+    of ``v`` as a variable.
 
 ## Content
 
