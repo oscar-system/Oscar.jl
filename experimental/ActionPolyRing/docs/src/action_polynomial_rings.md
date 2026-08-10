@@ -210,15 +210,15 @@ univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 ## [Polynomial reduction methods](@id polynomial_reduction_methods_apr)
 
 The following two methods `pseudorem` and `pseudodivrem` for the pseudo-division of an action polynomial ``p`` by another action polynomial
-``q`` form the backbone of most reduction methods. Recall that if ``s`` is the pseudo-quotient and the pseudo-remainder ``r``, of ``p`` by ``q``,
+``q`` form the backbone of most reduction methods. Recall that if ``s`` is the pseudo-quotient and the pseudo-remainder ``r`` of ``p`` by ``q``,
 we have the identity
 ```math
 \operatorname{init}(q)^a p = s \cdot q + r,
 ```
 with ``\operatorname{deg}_{v}(r) < \operatorname{deg}_{v}(q)`` or ``r = 0``, ``v = \operatorname{ld}(q)`` and some ``a \in \mathbb{N}_0``.
 In order to avoid coefficient swell, both methods specifically return the values for ``r`` and ``s``, where the exponent ``a`` is minimal. For
-addtional flexibility, both methods also allow the user to specify with respect to which jet variable the pseudo-division should be performed, so they
-are not just restricted to pseudo-divison by the leader of the second input. However, if no such jet variable is specified, the leader is used by default.
+additional flexibility, both methods also allow the user to specify with respect to which jet variable the pseudo-division should be performed, so they
+are not just restricted to pseudo-division by the leader of the second input. However, if no such jet variable is specified, the leader is used by default.
 
 ```@docs
 pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}

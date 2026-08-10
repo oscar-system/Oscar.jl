@@ -445,7 +445,7 @@ is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 @doc raw"""
     vars(p::ActionPolyRingElem; sorted::Bool=true)
 
-Return the jet variables actually occuring in `p` as a vector. 
+Return the jet variables actually occurring in `p` as a vector. 
 If `sorted` is `true` (the default), the jet variables are sorted with respect to the
 ranking of the action polynomial ring containing `p`, leading with the largest jet variable.
 """
@@ -546,7 +546,7 @@ gens(apr::ActionPolyRing, jet_idxs::Vector{Tuple{Int, Vector{Int}}}) = [gen(apr,
 
 Return the currently tracked jet variables of the action polynomial ring `A` as a vector. The jet variables are
 sorted with respect to the ranking of `A`, leading with the largest jet variable.
-/do
+
 # Examples
 
 ```jldoctest
@@ -752,7 +752,7 @@ end
 @doc raw"""
     apply_action(p::DifferencePolyRingElem, i::Int)
 
-Apply the `i`-th endomorphism to the polynomial `p`.
+Apply the `i`-th shift operator to the difference polynomial `p`.
 
 # Examples
 
@@ -783,7 +783,7 @@ end
 @doc raw"""
     apply_action(p::DifferentialPolyRingElem, i::Int)
 
-Apply the `i`-th derivation to the polynomial `p`.
+Apply the `i`-th derivation to the differential polynomial `p`.
 
 # Examples
 
@@ -854,9 +854,9 @@ function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
 end
 
 @doc raw"""
-    apply_action(p::ActionPolyRingElem, d::Vector{Int}) -> ActionPolyRingElem
+    apply_action(p::DifferencePolyRingElem, d::Vector{Int})
 
-Successively apply the `i`-th diff-action `d[i]`-times to the polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
+Successively apply the `i`-th shift operator `d[i]`-times to the difference polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
 """
 function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
@@ -900,6 +900,11 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   return dpr(finish(C))
 end
 
+@doc raw"""
+    apply_action(p::DifferentialPolyRingElem, d::Vector{Int})
+
+Successively apply the `i`-th derivation `d[i]`-times to the differential polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
+"""
 function apply_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
   len = length(d)
   @req len == n_action_maps(parent(dpre)) && all(>=(0), d) "Invalid vector of multiplicities"

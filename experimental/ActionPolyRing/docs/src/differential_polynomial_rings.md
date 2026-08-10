@@ -24,5 +24,5 @@ The action maps of a differential polynomial ring over the commutative ring `R` 
 
 ```@docs
 apply_action(p::DifferentialPolyRingElem, i::Int)
-apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
+apply_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
 ```
