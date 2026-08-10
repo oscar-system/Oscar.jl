@@ -216,10 +216,6 @@
      "Miscellaneous" => [
          "CommutativeAlgebra/Miscellaneous/binomial_ideals.md",
      ],
-     "Frameworks for Developers" => [
-        "CommutativeAlgebra/FrameWorks/ring_localizations.md",
-        "CommutativeAlgebra/FrameWorks/module_localizations.md",
-     ],
   ],
 
   "Invariant Theory" => [
@@ -291,9 +287,6 @@
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
      ],
-     "Frameworks for Developers" => [
-        "AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes.md",
-     ],
   ],
 
   "Tropical Geometry" => [
@@ -359,7 +352,7 @@
       "DeveloperDocumentation/debugging.md",
       "DeveloperDocumentation/timing-tool.md",
     ],
-    "Data and Interoperability" => [
+    "Data" => [
       "DeveloperDocumentation/serialization.md",
       "DeveloperDocumentation/artifacts.md",
     ],
@@ -367,13 +360,22 @@
       "DeveloperDocumentation/release.md",
       "DeveloperDocumentation/changelog.md",
     ],
-    "Polyhedral Geometry" => [
-      "DeveloperDocumentation/AbstractCollection.md",
-      "DeveloperDocumentation/SubObjectIterator.md",
-    ],
-    "Linear Algebra" => [
-      "AbstractAlgebra/matrix_implementation.md",
-      "AbstractAlgebra/linear_solving.md",
+    "Topic-specific internals" => [
+      "Algebraic Geometry" => [
+        "AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes.md",
+      ],
+      "Commutative Algebra" => [
+        "CommutativeAlgebra/FrameWorks/ring_localizations.md",
+        "CommutativeAlgebra/FrameWorks/module_localizations.md",
+      ],
+      "Linear Algebra" => [
+        "AbstractAlgebra/matrix_implementation.md",
+        "AbstractAlgebra/linear_solving.md",
+      ],
+      "Polyhedral Geometry" => [
+        "DeveloperDocumentation/AbstractCollection.md",
+        "DeveloperDocumentation/SubObjectIterator.md",
+      ],
     ],
   ],
 ]
