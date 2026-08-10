@@ -2221,9 +2221,22 @@ end
 end
 
 @testset "modular standard bases" begin
+  AbstractAlgebra.set_dodgy_mode(true)
   R, (x, y) = QQ[:x, :y]
   F = free_module(R, 1)
   I, _ = sub(F, [x*F[1], y*F[1]])
-  @test Oscar.standard_basis_modular(I) isa Oscar.ModuleGens
+  @test Oscar.compute_standard_basis_modular(I) isa Oscar.ModuleGens
+  @test is_empty(AbstractAlgebra.dodgy_steps_get())
+  # start from scratch to avoid interferring caches
+  I, _ = sub(F, [x*F[1], y*F[1]])
+  M, _ = quo(F, I)
+  @test !is_zero(M[1]) # triggers a dodgy GB computation
+  @test !is_empty(AbstractAlgebra.dodgy_steps_get())
+  AbstractAlgebra.set_dodgy_mode(false)
+  AbstractAlgebra.dodgy_steps_clear()
+  I, _ = sub(F, [x*F[1], y*F[1]])
+  M, _ = quo(F, I)
+  @test !is_zero(M[1])
+  @test is_empty(AbstractAlgebra.dodgy_steps_get())
 end
 
