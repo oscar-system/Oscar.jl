@@ -2159,6 +2159,11 @@ function compute_standard_basis_modular(
   return res
 end
 
+### get a dodgy groebner basis, i.e. one which has been 
+# computed via modular methods and is probably correct, 
+# but not verified. This is an internal function which 
+# takes care of caching the result of the above calls for 
+# computation for the specific use case of a "dodgy" object.
 function dodgy_groebner_basis(
     I::SubModuleOfFreeModule{QQMPolyRingElem}; 
     ordering::ModuleOrdering=default_ordering(I)

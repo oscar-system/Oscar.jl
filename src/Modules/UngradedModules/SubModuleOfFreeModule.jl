@@ -178,7 +178,7 @@ function standard_basis(
 
   # In case of "dodgy_mode" over QQ we can take the cheap computation.
   if base_ring(submod) isa QQMPolyRing && AbstractAlgebra.get_dodgy_mode()
-    gb = dodgy_groebner_basis(submod; ordering)
+    return dodgy_groebner_basis(submod; ordering)
   end
 
   gb = get!(submod.groebner_basis, ordering) do
