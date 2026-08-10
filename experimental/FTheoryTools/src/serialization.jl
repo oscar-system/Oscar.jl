@@ -3,7 +3,7 @@
 ###########################################################################
 
 const COMMON_FIELDS = [
-  :Kbar3,
+  :kbar3,
   :_ambient_space_base_divisor_pairs_to_be_considered,
   :_ambient_space_divisor_pairs_to_be_considered,
   :ambient_space_models_of_g4_fluxes,
@@ -21,9 +21,9 @@ const COMMON_FIELDS = [
   :components_of_simplified_dual_graph,
   :converter_dict_h22_ambient,
   :converter_dict_h22_hypersurface,
-  :degree_of_Kbar_of_tv_restricted_to_ci,
-  :degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph,
-  :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph,
+  :degrees_of_kbar_restrictions_to_ci_curves,
+  :degrees_of_kbar_restrictions_to_components_of_dual_graph,
+  :degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph,
   :dual_graph,
   :estimated_number_of_triangulations,
   :euler_characteristic,
@@ -32,18 +32,20 @@ const COMMON_FIELDS = [
   :g4_flux_tuple_list,
   :gauge_algebra,
   :generating_sections,
-  :genus_ci,
-  :genus_of_components_of_dual_graph,
-  :genus_of_components_of_simplified_dual_graph,
-  :global_gauge_group_quotients,
-  :h11,
-  :h12,
-  :h13,
-  :h22,
-  :index_facet_interior_divisors,
+  :genera_of_ci_curves,
+  :genera_of_components_of_dual_graph,
+  :genera_of_components_of_simplified_dual_graph,
+  :global_gauge_group_quotient,
+  :global_tate_model,
+  :has_quick_triangulation,
+  :hodge_h11,
+  :hodge_h12,
+  :hodge_h13,
+  :hodge_h22,
+  :indices_of_trivial_ci_curves,
   :inter_dict,
-  :intersection_number_among_ci_cj,
-  :intersection_number_among_nontrivial_ci_cj,
+  :topological_intersection_numbers_among_ci_curves,
+  :topological_intersection_numbers_among_nontrivial_ci_curves,
   :is_calabi_yau,
   :literature_identifier,
   :matrix_integral_quant_transverse,
@@ -56,14 +58,13 @@ const COMMON_FIELDS = [
   :offset_quant_transverse,
   :offset_quant_transverse_nobreak,
   :partially_resolved,
-  :poly_index,
+  :polytope_index,
   :resolutions,
   :resolution_generating_sections,
   :resolution_zero_sections,
   :s_inter_dict,
   :simplified_dual_graph,
   :torsion_sections,
-  :triang_quick,
   :tunable_sections,
   :vertices,
   :weierstrass_model,
@@ -101,6 +102,44 @@ const COMMON_FIELDS = [
 @register_serialization_type WeierstrassModel uses_id COMMON_FIELDS
 @register_serialization_type HypersurfaceModel uses_id COMMON_FIELDS
 @register_serialization_type GlobalTateModel uses_id COMMON_FIELDS
+
+const LEGACY_FTHEORY_MODEL_ATTRIBUTE_NAMES = Dict(
+  :Kbar3 => :kbar3,
+  :degree_of_Kbar_of_tv_restricted_to_ci => :degrees_of_kbar_restrictions_to_ci_curves,
+  :degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph =>
+    :degrees_of_kbar_restrictions_to_components_of_dual_graph,
+  :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph =>
+    :degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph,
+  :genus_ci => :genera_of_ci_curves,
+  :genus_of_components_of_dual_graph => :genera_of_components_of_dual_graph,
+  :genus_of_components_of_simplified_dual_graph => :genera_of_components_of_simplified_dual_graph,
+  :global_gauge_group_quotients => :global_gauge_group_quotient,
+  :h11 => :hodge_h11,
+  :h12 => :hodge_h12,
+  :h13 => :hodge_h13,
+  :h22 => :hodge_h22,
+  :index_facet_interior_divisors => :indices_of_trivial_ci_curves,
+  :intersection_number_among_ci_cj => :topological_intersection_numbers_among_ci_curves,
+  :intersection_number_among_nontrivial_ci_cj =>
+    :topological_intersection_numbers_among_nontrivial_ci_curves,
+  :poly_index => :polytope_index,
+  :triang_quick => :has_quick_triangulation,
+)
+
+function load_attrs(
+  s::DeserializerState, m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}
+)
+  !with_attrs(s) && return
+
+  haskey(s, :attrs) && load_node(s, :attrs) do d
+    serialized_attributes = keys(d)
+    for old_name in serialized_attributes
+      new_name = get(LEGACY_FTHEORY_MODEL_ATTRIBUTE_NAMES, old_name, old_name)
+      old_name != new_name && new_name in serialized_attributes && continue
+      set_attribute!(m, new_name, load_typed_object(s, old_name))
+    end
+  end
+end
 
 ###########################################################################
 # (2) Type parameters
