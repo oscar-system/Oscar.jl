@@ -2128,33 +2128,47 @@ end
 # communicated to the user. 
 ########################################################################
 
-function standard_basis_modular(
+function compute_standard_basis_modular(
     I::SubquoModule{<:MPolyRingElem{T}}; 
     ordering::ModuleOrdering=default_ordering(I),
     check::Bool=true
   ) where {T <: QQFieldElem}
   @assert !isdefined(I, :quo) || is_zero(I.quo) "module must be a submodule of a free module"
-  return standard_basis_modular(I.sub; ordering, check)
+  return compute_standard_basis_modular(I.sub; ordering, check)
 end
 
-function standard_basis_modular(
+function compute_standard_basis_modular(
     I::SubModuleOfFreeModule{<:MPolyRingElem{T}}; 
     ordering::ModuleOrdering=default_ordering(I),
     check::Bool=true
   ) where {T <: QQFieldElem}
-  return standard_basis_modular(I.gens; ordering, check)
+  return compute_standard_basis_modular(I.gens; ordering, check)
 end
 
-function standard_basis_modular(
+function compute_standard_basis_modular(
     I::ModuleGens{<:MPolyRingElem{T}}; 
     ordering::ModuleOrdering=default_ordering(I),
     check::Bool=true
   ) where {T <: QQFieldElem}
   sgens = singular_generators(I)
   gb = Singular.LibModstd.modStd(sgens, Int(check))
+  gb.isGB = true # needs to be set manually, as it seems.
   res = ModuleGens(I.F, gb)
   res.isGB = true
   res.ordering = ordering
   return res
+end
+
+function dodgy_groebner_basis(
+    I::SubModuleOfFreeModule{QQMPolyRingElem}; 
+    ordering::ModuleOrdering=default_ordering(I)
+  )
+  if !isdefined(I, :dogdy_groebner_basis)
+    I.dodgy_groebner_basis = Dict{ModuleOrdering, ModuleGens{QQMPolyRingElem}}()
+  end
+  return get!(I.dodgy_groebner_basis, ordering) do
+    AbstractAlgebra.@RegisterDodgyStep(:standard_basis, Any[I])
+    compute_standard_basis_modular(I; ordering)
+  end
 end
 
