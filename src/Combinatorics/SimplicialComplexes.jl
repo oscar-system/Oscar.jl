@@ -5,8 +5,10 @@ import Oscar: Polymake, pm_object
 ##  Constructing
 ################################################################################
 
-struct SimplicialComplex
+mutable struct SimplicialComplex
     pm_simplicialcomplex::Polymake.BigObject
+    face_cache::Dict{Int,Vector{Set{Int}}}
+    SimplicialComplex(bo::Polymake.BigObject) = new(bo)
 end
 
 pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
@@ -142,19 +144,29 @@ function facets(K::SimplicialComplex)
     return Vector{Set{Int}}(the_facets)
 end
 
+function _get_face_cache(K::SimplicialComplex)
+  if !isdefined(K, :face_cache)
+    K.face_cache = Dict{Int,Vector{Set{Int}}}()
+  end
+  return K.face_cache
+end
+
 @doc raw"""
     faces(K::SimplicialComplex [, dim::Int])
 
 Return the faces of the abstract simplicial complex `K`, passing `dim` as the second argument returns faces of dimension `dim` (sets of size `dim + 1`).
 """
-function faces(K::SimplicialComplex, dim::Int)
-  po = face_poset(K)
-  return Set.(data.(elements_of_rank(po, dim + 1)))
+function faces(K::SimplicialComplex, d::Int)
+  @req -1 <= d <= dim(K) "Dimension must be between -1 and dim(K)"
+  fc = _get_face_cache(K)
+  return get!(fc, d) do
+    po = face_poset(K)
+    Set.(data.(elements_of_rank(po, d + 1)))
+  end
 end
 
 function faces(K::SimplicialComplex)
-  po = face_poset(K)
-  return Set.(data.(elements(po)))
+  return reduce(vcat, faces(K,i) for i in -1:dim(K))
 end
 
 @doc raw"""
