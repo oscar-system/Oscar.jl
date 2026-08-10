@@ -112,7 +112,8 @@ const LEGACY_FTHEORY_MODEL_ATTRIBUTE_NAMES = Dict(
     :degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph,
   :genus_ci => :genera_of_ci_curves,
   :genus_of_components_of_dual_graph => :genera_of_components_of_dual_graph,
-  :genus_of_components_of_simplified_dual_graph => :genera_of_components_of_simplified_dual_graph,
+  :genus_of_components_of_simplified_dual_graph =>
+    :genera_of_components_of_simplified_dual_graph,
   :global_gauge_group_quotients => :global_gauge_group_quotient,
   :h11 => :hodge_h11,
   :h12 => :hodge_h12,
@@ -126,17 +127,17 @@ const LEGACY_FTHEORY_MODEL_ATTRIBUTE_NAMES = Dict(
   :triang_quick => :has_quick_triangulation,
 )
 
-function load_attrs(
+function Serialization.load_attrs(
   s::DeserializerState, m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}
 )
-  !with_attrs(s) && return
+  !with_attrs(s) && return nothing
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
     serialized_attributes = keys(d)
     for old_name in serialized_attributes
       new_name = get(LEGACY_FTHEORY_MODEL_ATTRIBUTE_NAMES, old_name, old_name)
       old_name != new_name && new_name in serialized_attributes && continue
-      set_attribute!(m, new_name, load_typed_object(s, old_name))
+      set_attribute!(m, new_name, Serialization.load_typed_object(s, old_name))
     end
   end
 end

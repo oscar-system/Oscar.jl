@@ -10,7 +10,8 @@
   31
   ```
   """,
-  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details.")
+  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details."
+)
 
 @define_model_attribute_getter((hodge_h12, Int),
   """
@@ -24,7 +25,8 @@
   10
   ```
   """,
-  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details.")
+  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details."
+)
 
 @define_model_attribute_getter((hodge_h13, Int),
   """
@@ -38,7 +40,8 @@
   34
   ```
   """,
-  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details.")
+  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details."
+)
 
 @define_model_attribute_getter((hodge_h22, Int),
   """
@@ -52,7 +55,8 @@
   284
   ```
   """,
-  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details.")
+  "See [Advanced Mathematical Attributes](@ref non_yet_algorithmic_advanced_attributes) for more details."
+)
 
 @define_model_attribute_getter((kbar3, Int),
   """
