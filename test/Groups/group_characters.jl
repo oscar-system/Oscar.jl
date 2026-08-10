@@ -1450,10 +1450,12 @@ end
   mat = matrix(K, 6, 6, vcat(map(values, modtbl)...))
   @test kronecker_product(mat1, mat2) == mat
 
-  modtbl_alt = t % 5
+  modtbl_alt = tbl % 5
   @test modtbl !== modtbl_alt  # the involved tables would not have the info
   @test map(values, modtbl) == map(values, modtbl_alt)
   @test map(values, modtbl) == map(values, ordinary_table(modtbl))
+  @test_throws ArgumentError tbl1 * modtbl1
+  @test_throws ArgumentError modtbl1 * tbl1
 
   # character table of a wreath product with a symmetric group
   wreathtbl = character_table_wreath_symmetric(tbl1, 2)
