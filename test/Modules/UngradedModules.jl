@@ -2219,3 +2219,11 @@ end
   @test normal_form(v, SB) == -x*F[3]
   @test normal_form(w, SB) == zero(F)
 end
+
+@testset "modular standard bases" begin
+  R, (x, y) = QQ[:x, :y]
+  F = free_module(R, 1)
+  I, _ = sub(F, [x*F[1], y*F[1]])
+  @test Oscar.standard_basis_modular(I) isa Oscar.ModuleGens
+end
+
