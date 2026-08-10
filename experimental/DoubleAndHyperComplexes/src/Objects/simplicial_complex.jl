@@ -75,7 +75,7 @@ end
 function show_elem(io::IO, C::SimplicialCochainComplex, a::FreeModElem, p::Int)
   @req parent(a) === C[p] "parent mismatch"
   fst = true
-  f = faces(C, p)
+  f = faces(simplicial_complex(C), p)
   for (c, g) in coordinates(a)
     !fst && print(io, " + ")
     fst = false
@@ -101,9 +101,7 @@ end
 
 # We return Polymake sets instead of Oscar Sets to avoid the expense of conversion.
 function get_faces(fac::SimplicialCochainFactory, i::Int)
-  fps = face_poset(fac.K)
-  els = elements_of_rank(fps, i+1)
-  return _get_decoration.(Ref(fps), node_id.(els))
+  return faces(fac.K, i)::Vector{Set{Int}}
 end
 
 # a dynamic table for faster multiplication
