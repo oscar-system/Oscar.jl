@@ -550,7 +550,15 @@ function free_resolution(M::SubquoModule{T};
 
   #= This is the single computational hard part of this function =#
   if algorithm == :fres && T <: MPolyRingElem
-    gbpres = Singular.std(singular_kernel_entry)
+    # in case of dodgy mode take that shortcut
+    gbpres = (coefficient_type(T) === QQFieldElem && AbstractAlgebra.get_dodgy_mode()) ? 
+      begin
+        AbstractAlgebra.@RegisterDodgyStep(:free_resolution, Any[M])
+        gb = Singular.LibModstd.modStd(singular_kernel_entry)
+        gb.isGB = true #YOLO (dodgy)
+        gb
+      end : 
+      Singular.std(singular_kernel_entry)
     res = Singular.fres(gbpres, length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
