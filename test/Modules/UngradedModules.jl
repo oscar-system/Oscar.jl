@@ -2232,6 +2232,9 @@ end
   M, _ = quo(F, I)
   @test !is_zero(M[1]) # triggers a dodgy GB computation
   @test !is_empty(AbstractAlgebra.dodgy_steps_get())
+  AbstractAlgebra.dodgy_steps_clear()
+  free_resolution(I)
+  @test length(AbstractAlgebra.dodgy_steps_get()) == 2 # dodgy syzygies for presentation and dodgy gb for resolution.
   AbstractAlgebra.set_dodgy_mode(false)
   AbstractAlgebra.dodgy_steps_clear()
   I, _ = sub(F, [x*F[1], y*F[1]])
