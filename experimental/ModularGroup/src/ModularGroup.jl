@@ -2,9 +2,6 @@ include("exports.jl")
 include("types.jl")
 
 function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
-  if !defines_coset_action_s_t(s, t)
-    throw(ArgumentError("s and t do not describe the action of the generators S and T on the cosets of a finite-index subgroup of SL(2,Z)"))
-  end
   return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1)
 end
 
