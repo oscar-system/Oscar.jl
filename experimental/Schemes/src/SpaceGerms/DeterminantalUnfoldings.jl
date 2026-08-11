@@ -377,7 +377,7 @@ tjurina_GL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) 
 
 
 @doc raw"""
-    is_determinantally_rigid(X::DeterminantalGerm)
+    is_determinantally_GL_rigid(X::DeterminantalGerm)
 
 Return whether the determinantal germ `X` is determinantally rigid. 
 
@@ -405,10 +405,10 @@ false
 julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B), point(X_B))
 true
 
-julia> is_determinantally_rigid(X_A)
+julia> is_determinantally_GL_rigid(X_A)
 true
 
-julia> is_determinantally_rigid(X_B)
+julia> is_determinantally_GL_rigid(X_B)
 false
 ```
 """

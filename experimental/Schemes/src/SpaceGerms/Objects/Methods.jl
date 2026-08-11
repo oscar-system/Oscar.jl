@@ -28,7 +28,7 @@ julia> A = R[x 0 z;  0 y z]
 julia> X_A = DeterminantalGerm(A, 2, [0,0,0]);
 
 
-julia> BaseRingType = R[0 y z;  x 0 z]
+julia> B = R[0 y z;  x 0 z]
 [0   y   z]
 [x   0   z]
 
