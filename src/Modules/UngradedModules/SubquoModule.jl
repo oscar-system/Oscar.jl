@@ -2150,7 +2150,6 @@ function compute_standard_basis_modular(
     ordering::ModuleOrdering=default_ordering(I),
     check::Bool=true
   ) where {T <: QQFieldElem}
-  @show "yes"
   sgens = singular_generators(I)
   gb = Singular.LibModstd.modStd(sgens, Int(check))
   gb.isGB = true # needs to be set manually, as it seems.

@@ -177,7 +177,7 @@ function standard_basis(
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
 
   # In case of "dodgy_mode" over QQ we can take the cheap computation.
-  if base_ring(submod) <: MPolyRing{<:QQFieldElem} && AbstractAlgebra.get_dodgy_mode()
+  if typeof(base_ring(submod)) <: MPolyRing{<:QQFieldElem} && AbstractAlgebra.get_dodgy_mode()
     return dodgy_groebner_basis(submod; ordering, check=false)
   end
 
