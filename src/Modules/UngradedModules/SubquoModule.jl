@@ -2165,10 +2165,10 @@ end
 # takes care of caching the result of the above calls for 
 # computation for the specific use case of a "dodgy" object.
 function dodgy_groebner_basis(
-    I::SubModuleOfFreeModule{QQMPolyRingElem}; 
+    I::SubModuleOfFreeModule{T};
     ordering::ModuleOrdering=default_ordering(I), 
     check::Bool=true
-  )
+  ) where {T<:MPolyRingElem{QQFieldElem}}
   if !isdefined(I, :dogdy_groebner_basis)
     I.dodgy_groebner_basis = Dict{ModuleOrdering, ModuleGens{QQMPolyRingElem}}()
   end
