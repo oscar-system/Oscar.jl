@@ -121,10 +121,6 @@
         "Nemo/matrix.md",
         "Hecke/manual/misc/sparse.md",
      ],
-     "Developer documentation" => [
-        "AbstractAlgebra/matrix_implementation.md",
-        "AbstractAlgebra/linear_solving.md"
-     ]
   ],
 
   "Number Theory" => [
@@ -220,10 +216,6 @@
      "Miscellaneous" => [
          "CommutativeAlgebra/Miscellaneous/binomial_ideals.md",
      ],
-     "Frameworks for Developers" => [
-        "CommutativeAlgebra/FrameWorks/ring_localizations.md",
-        "CommutativeAlgebra/FrameWorks/module_localizations.md",
-     ],
   ],
 
   "Invariant Theory" => [
@@ -295,9 +287,6 @@
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
      ],
-     "Frameworks for Developers" => [
-        "AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes.md",
-     ],
   ],
 
   "Tropical Geometry" => [
@@ -346,24 +335,47 @@
   "References" => "references.md",
   "Index" => "manualindex.md",
   "Developer Documentation" => [
-    "DeveloperDocumentation/new_developers.md",
-    "DeveloperDocumentation/styleguide.md",
-    "DeveloperDocumentation/documentation.md",
-    "DeveloperDocumentation/printing_details.md",
-    "DeveloperDocumentation/debugging.md",
-    "DeveloperDocumentation/timing-tool.md",
-    "DeveloperDocumentation/extra_long.md",
-    "DeveloperDocumentation/caching.md",
-    "DeveloperDocumentation/serialization.md",
-    "DeveloperDocumentation/artifacts.md",
-    "DeveloperDocumentation/design_decisions.md",
-    "DeveloperDocumentation/known_properties.md",
-    "DeveloperDocumentation/gap_integration.md",
-    "DeveloperDocumentation/release.md",
-    "DeveloperDocumentation/changelog.md",
-    "Polyhedral Geometry" => [
+    "Contributing" => [
+      "DeveloperDocumentation/new_developers.md",
+      "DeveloperDocumentation/styleguide.md",
+      "DeveloperDocumentation/documentation.md",
+    ],
+    "Implementation Details" => [
+      "DeveloperDocumentation/printing_details.md",
+      "DeveloperDocumentation/caching.md",
+      "DeveloperDocumentation/design_decisions.md",
+      "DeveloperDocumentation/known_properties.md",
+      "DeveloperDocumentation/gap_integration.md",
+    ],
+    "Testing, Debugging, and Performance" => [
+      "DeveloperDocumentation/extra_long.md",
+      "DeveloperDocumentation/debugging.md",
+      "DeveloperDocumentation/timing-tool.md",
+    ],
+    "Data" => [
+      "DeveloperDocumentation/serialization.md",
+      "DeveloperDocumentation/artifacts.md",
+    ],
+    "Maintenance" => [
+      "DeveloperDocumentation/release.md",
+      "DeveloperDocumentation/changelog.md",
+    ],
+    "Topic-specific internals" => [
+      "Algebraic Geometry" => [
+        "AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes.md",
+      ],
+      "Commutative Algebra" => [
+        "CommutativeAlgebra/FrameWorks/ring_localizations.md",
+        "CommutativeAlgebra/FrameWorks/module_localizations.md",
+      ],
+      "Linear Algebra" => [
+        "AbstractAlgebra/matrix_implementation.md",
+        "AbstractAlgebra/linear_solving.md",
+      ],
+      "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",
+      ],
     ],
   ],
 ]
