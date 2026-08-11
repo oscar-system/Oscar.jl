@@ -70,6 +70,21 @@ function Base.show(io::IO, G::ModularGroup)
   print(io, "Modular subgroup of index $(idx)")
 end
 
+elem_type(::Type{ModularGroup}) = ModularGroupElem
+elem_type(::ModularGroup) = ModularGroupElem
+
+parent(x::ModularGroupElem) = x.parent
+matrix(x::ModularGroupElem) = x.mat
+
+one(G::ModularGroup) = ModularGroupElem(G, identity_matrix(ZZ, 2))
+one(x::ModularGroupElem) = one(parent(x))
+
+function is_finite_order(x::ModularGroupElem)
+  A = matrix(x)
+  t = tr(A)
+  return abs(t) < 2 || (t == 2 && isone(A)) || (t == -2 && A == -one(A))
+end
+
 @doc raw"""
     s_right_perm(G::ModularGroup)
 
@@ -170,6 +185,16 @@ end
   return hom(SL2Z, P, [s_right_perm(G), t_right_perm(G)])
 end
 
+inv(x::ModularGroupElem) = ModularGroupElem(parent(x), inv(matrix(x)))
+
+*(x::ModularGroupElem, y::ModularGroupElem) = ModularGroupElem(parent(x), matrix(x) * matrix(y))
+
+^(x::ModularGroupElem, n::Integer) =
+  ModularGroupElem(parent(x), matrix(x)^n)
+
+==(x::ModularGroupElem, y::ModularGroupElem) =
+  parent(x) === parent(y) && matrix(x) == matrix(y)
+
 function word_gens(G::ModularGroup)
 
   P = _perm_group(G)
@@ -183,10 +208,26 @@ function word_gens(G::ModularGroup)
   return [inc(h) for h in gens(H)]
 end
 
-function gens(G::ModularGroup)
+@attr function gens(G::ModularGroup)
   w_gens = word_gens(G)
   phi = _matrix_hom()
-  return [matrix(phi(w)) for w in w_gens]
+  return [ModularGroupElem(G, matrix(phi(w))) for w in w_gens]
+end
+
+function gen(G::ModularGroup, i::Int)
+  gs = gens(G)
+  @req abs(i) <= length(gs) "Given integer is larger than the number of generators"
+  if i > 0
+    return gens(G)[i]
+  elseif i < 0
+    return inv(gens(G)[-i])
+  else
+    return one(G)
+  end
+end
+
+function number_of_generators(G::ModularGroup)
+  return length(gens(G))
 end
 
 function s_t_decomposition(M::ZZMatrix)
@@ -266,3 +307,10 @@ end
 function Base.issubset(H::ModularGroup, G::ModularGroup)
   return all(A -> A in G, gens(H))
 end
+
+is_abelian(::ModularGroup) = false
+is_finite(::ModularGroup) = false
+is_cyclic(::ModularGroup) = false
+has_gens(::ModularGroup) = true
+is_trivial(::ModularGroup) = false
+is_finitely_generated(::ModularGroup) = true

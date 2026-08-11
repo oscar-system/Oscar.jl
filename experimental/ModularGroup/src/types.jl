@@ -1,4 +1,4 @@
-@attributes mutable struct ModularGroup
+@attributes mutable struct ModularGroup <: Group
   s::PermGroupElem
   t::PermGroupElem
   r::PermGroupElem
@@ -13,4 +13,9 @@
     end
     return new(s, t, r, j)
   end
+end
+
+struct ModularGroupElem <: GroupElem
+  parent::ModularGroup
+  mat::ZZMatrix
 end
