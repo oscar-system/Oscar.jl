@@ -2150,6 +2150,7 @@ function compute_standard_basis_modular(
     ordering::ModuleOrdering=default_ordering(I),
     check::Bool=true
   ) where {T <: QQFieldElem}
+  @show "yes"
   sgens = singular_generators(I)
   gb = Singular.LibModstd.modStd(sgens, Int(check))
   gb.isGB = true # needs to be set manually, as it seems.
@@ -2166,14 +2167,15 @@ end
 # computation for the specific use case of a "dodgy" object.
 function dodgy_groebner_basis(
     I::SubModuleOfFreeModule{QQMPolyRingElem}; 
-    ordering::ModuleOrdering=default_ordering(I)
+    ordering::ModuleOrdering=default_ordering(I), 
+    check::Bool=true
   )
   if !isdefined(I, :dogdy_groebner_basis)
     I.dodgy_groebner_basis = Dict{ModuleOrdering, ModuleGens{QQMPolyRingElem}}()
   end
   return get!(I.dodgy_groebner_basis, ordering) do
     AbstractAlgebra.@RegisterDodgyStep(:standard_basis, Any[I])
-    compute_standard_basis_modular(I; ordering)
+    compute_standard_basis_modular(I; ordering, check)
   end
 end
 
