@@ -914,6 +914,11 @@ end
     syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
 """
 function syzygy_module(F::ModuleGens{T}; sub = FreeMod(base_ring(F.F), length(oscar_generators(F)))) where {T <: MPolyRingElem}
+  # shortcut for dodgy mode over QQ
+  if T <: MPolyRingElem{<:QQFieldElem} && AbstractAlgebra.get_dodgy_mode()
+    AbstractAlgebra.@RegisterDodgyStep(:syzygy_module, Any[F])
+    return SubquoModule(sub, Singular.LibModstd.modSyz(singular_generators(F)))
+  end
   # TODO Obtain the Gröbner basis and cache it
   s = Singular.syz(singular_generators(F))
   return SubquoModule(sub, s)
