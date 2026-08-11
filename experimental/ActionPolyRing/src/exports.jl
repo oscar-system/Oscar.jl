@@ -1,11 +1,16 @@
+export ActionDerivation
+export ActionMap
 export ActionPolyRing
 export ActionPolyRingElem
 export ActionPolyRingRanking
+export ActionShift
 export DifferencePolyRing
 export DifferencePolyRingElem
 export DifferentialPolyRing
 export DifferentialPolyRingElem
+export action_derivation
 export action_indeterminates
+export action_shift
 export apply_action
 export autoreduce
 export difference_polynomial_ring
