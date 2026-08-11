@@ -388,6 +388,7 @@ export character_lattice
 export character_parameters
 export character_table
 export character_table_complex_reflection_group
+export character_table_of_direct_product
 export character_table_rational
 export character_table_wreath_symmetric
 export character_to_rational_function
