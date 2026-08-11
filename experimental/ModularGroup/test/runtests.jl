@@ -31,7 +31,10 @@
     [1 0; -5 1]
   ]
   @test Set(actual_mat_gens) == Set([ZZMatrix(m) for m in expected_mat_gens])
+  @test ZZMatrix(expected_mat_gens[3]) in G
 
   M = matrix(ZZ, [1 0; -4 1])
   @test (@inferred s_t_decomposition(M)) == S * T^4 * S^-1
+  w = expected_gens[3]
+  @test (@inferred Oscar._image_of_pt(w, G, 1)) == 1
 end

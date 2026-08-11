@@ -231,13 +231,36 @@ function coset_left_action_of(A::ZZMatrix, G::ModularGroup)
   return coset_action_of(A, G)^-1
 end
 
+function _image_of_pt(w::FPGroupElem, G::ModularGroup, pt::Integer)
+
+  @req 1 <= pt <= index(G) "Non-valid point"
+
+  s = s_right_perm(G)
+  t = t_right_perm(G)
+  gens = (s, t)
+
+  for (i, e) in syllables(w) # i = 1 or 2, e = exponent
+    p = gens[i]
+    if e < 0
+      p = inv(p)
+      e = -e
+    end
+    for _ in 1:e
+      pt = pt^p
+    end
+  end
+  return pt
+end
+
 function Base.in(A::ZZMatrix, G::ModularGroup)
-    return det(A) == 1 && coset_action_of(A, G)(1) == 1
+    det(A) == 1 || return false
+    w = s_t_decomposition(A)
+    return _image_of_pt(w, G, 1) == 1
 end
 
 function is_word_elm_of(w::FPGroupElem, G::ModularGroup)
   phi = _coset_action_hom(G)
-  return phi(w)(1) == 1
+  return _image_of_pt(w, G, 1) == 1
 end
 
 function Base.issubset(H::ModularGroup, G::ModularGroup)
