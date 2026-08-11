@@ -29,8 +29,12 @@ h = hypersurface_model(
 end
 
 @testset "Error messages in hypersurface models over concrete base spaces" begin
-  @test_throws ArgumentError weierstrass_model(h)
-  @test_throws ArgumentError global_tate_model(h)
+  @test_throws ArgumentError(
+    "OSCAR cannot currently compute an explicit Weierstrass model for the given hypersurface model"
+  ) weierstrass_model(h)
+  @test_throws ArgumentError(
+    "OSCAR cannot currently compute an explicit global Tate model for the given hypersurface model"
+  ) global_tate_model(h)
   @test_throws ArgumentError discriminant(h)
   @test_throws ArgumentError singular_loci(h; rng=our_rng)
 end
@@ -86,6 +90,20 @@ foah1_B3 = literature_model(;
   rng=our_rng,
 )
 
+# The literature reference stays typed independently of the computed model cache.
+@testset "Stable derived-model attributes of hypersurface literature models" begin
+  @test !has_attribute(foah1_B3, :weierstrass_model)
+  @test get_attribute(foah1_B3, :weierstrass_model_index) isa Int
+  weierstrass_index = get_attribute(foah1_B3, :weierstrass_model_index)
+  explicit_weierstrass_model = weierstrass_model(foah1_B3)
+  @test get_attribute(foah1_B3, :weierstrass_model) === explicit_weierstrass_model
+  @test get_attribute(foah1_B3, :weierstrass_model_index) === weierstrass_index
+  @test (@inferred weierstrass_model(foah1_B3)) === explicit_weierstrass_model
+  @test_throws ArgumentError(
+    "OSCAR cannot currently compute an explicit global Tate model for the given hypersurface model"
+  ) global_tate_model(foah1_B3)
+end
+
 @testset "Saving and loading hypersurface literature model and some of their attributes" begin
   mktempdir() do path
     test_save_load_roundtrip(path, foah1_B3) do loaded
@@ -96,6 +114,8 @@ foah1_B3 = literature_model(;
       @test fiber_ambient_space(foah1_B3) == fiber_ambient_space(loaded)
       @test explicit_model_sections(foah1_B3) == explicit_model_sections(loaded)
       @test defining_classes(foah1_B3) == defining_classes(loaded)
+      @test get_attribute(loaded, :weierstrass_model) isa WeierstrassModel
+      @test get_attribute(loaded, :weierstrass_model_index) isa Int
       for (key, value) in foah1_B3.__attrs
         if value isa String || value isa Vector{String} || value isa Bool
           @test foah1_B3.__attrs[key] == loaded.__attrs[key]
@@ -115,16 +135,30 @@ h3 = literature_model(;
   rng=our_rng,
 )
 
-# Currently, none of the hypersurface models in our database has corresponding Weierstrass/Tate models.
-# This code thus only tests if the code works, but the assignment is mathematically speaking wrong.
+# Exercise the explicit setters independently of literature links.
+# The assigned models are not mathematically related to this hypersurface model.
 w_model = weierstrass_model_over_projective_space(2; rng=our_rng)
 gt_model = global_tate_model_over_projective_space(2; rng=our_rng)
 set_weierstrass_model(h3, w_model)
 set_global_tate_model(h3, gt_model)
 
 @testset "Test assignment of Weierstrass and global Tate models to hypersurface models" begin
-  @test weierstrass_model(h3) == w_model
-  @test global_tate_model(h3) == gt_model
+  @test (@inferred weierstrass_model(h3)) == w_model
+  @test (@inferred global_tate_model(h3)) == gt_model
+  mktempdir() do path
+    test_save_load_roundtrip(path, h3) do loaded
+      @test get_attribute(loaded, :weierstrass_model) isa WeierstrassModel
+      @test get_attribute(loaded, :global_tate_model) isa GlobalTateModel
+    end
+  end
+end
+
+# A known global Tate model also provides a computable Weierstrass model.
+@testset "Weierstrass model conversion from a hypersurface model's Tate model" begin
+  set_global_tate_model(h, gt_model)
+  @test weierstrass_model(h) === weierstrass_model(gt_model)
+  @test get_attribute(h, :global_tate_model) isa GlobalTateModel
+  @test get_attribute(h, :weierstrass_model) isa WeierstrassModel
 end
 
 # Explicitly assigned related models are preserved by serialization.
