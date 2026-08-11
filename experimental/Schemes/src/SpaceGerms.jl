@@ -145,15 +145,14 @@ A determinantal germ $(X_A^t, O_{(X_A^t, x)})$, i.e. a ringed space with underly
     @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
     (n, m) = size(A)
     @req (1 <= t <= min(n, m)) "'t' must be in the range of 1:minimum(size(A))"
+    I = modulus(OO(X))
+    L = base_ring(I)
+    @req L == base_ring(A) "baserings do not match"
     val_type = Val{mat_type}
-
-    @check begin
-      I = modulus(OO(X))
-      R = base_ring(I)
-
-      R == base_ring(A) || error("baserings do not match")      
+    
+    @check begin           
       I == _determinantal_ideal(A, t, val_type) || error("given matrix does not generate modulus")
-      krull_dim(R) - krull_dim(I) == _expected_codim(n, m, t, val_type) || error(_codim_error(val_type))
+      krull_dim(L) - dim(X) == _expected_codim(n, m, t, val_type) || error(_codim_error(val_type))
     end
     
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X), val_type}(X, A, t)
@@ -705,7 +704,7 @@ arising from the given representative `X` or the given
 `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
-- by a maximal ideal `I`in the coordinate ring of `X` or
+- by a maximal ideal `I` in the coordinate ring of `X` or
 - by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
@@ -782,7 +781,7 @@ end
 Return a CompleteIntersectionGerm `(X,p)` and the corresponding inclusion morphism of spectra arising from the given representative `X` or the given `X = Spec(A)` for a local ring `A`, where the point `p` may be specified in several
 equivalent ways:
 - by its coordinates `a` in the ambient_space of `X` or
-- by a maximal ideal `I`in the coordinate ring of `X` or
+- by a maximal ideal `I` in the coordinate ring of `X` or
 - by a maximal ideal `I` in the ambient\_coordinate_ring of `X`
 - by the maximal ideal of the local ring `A`
 
