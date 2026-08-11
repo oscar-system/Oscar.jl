@@ -82,19 +82,26 @@ _J(A::MatElem) = [derivative.(A, i) for i in 1:ngens(base_ring(A))]
 
 ## dispatch relations based on the val type
 
-function _T1_GL_rels(A::MatElem, ::Type{Val{:generic}}) 
+
+# relations for T1_GL_module
+
+function _T1_mat_rels(A::MatElem, ::Type{Val{:generic}}, ::Type{Val{:GL}}) 
   return vcat(_J(A), [_C_ij(A, i, j) for i in 1:ncols(A) for j in 1:ncols(A)], 
                      [_R_ij(A, i, j) for i in 1:nrows(A) for j in 1:nrows(A)])
 end
 
-function _T1_GL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
+function _T1_mat_rels(A::MatElem, 
+                       ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}}, 
+                       ::Type{Val{:GL}})
   AbstractAlgebra.check_square(A)
   return vcat(_J(A), [_R_ij(A, i, j) + _C_ij(A, i, j) for i in 1:nrows(A) for j in 1:ncols(A)])
 end
 
 
 
-function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
+# relations for T1_SL_module
+
+function _T1_mat_rels(A::MatElem, ::Type{Val{:generic}}, ::Type{Val{:SL}})
   rels = _J(A)    # partial derivatives of matrix
   n, m = size(A)
   sizehint!(rels, length(rels) + n^2-1 + m^2-1)
@@ -121,7 +128,9 @@ function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
   return rels
 end
 
-function _T1_SL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
+function _T1_mat_rels(A::MatElem, 
+                       ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}}, 
+                       ::Type{Val{:SL}})
   AbstractAlgebra.check_square(A)
   rels = _J(A)    # partial derivatives of matrix
   n = nrows(A)
@@ -145,48 +154,27 @@ end
 ## internal workhorse for 'T1_GL module' and 'T1_SL_module'
 ################################################################################
 
-function _T1_GL_module(A::MatElem, val_type::Type{<:Val})
-  @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
+function _T1_mat_module(A::MatElem, mat_type::Type{<:Val}, rel_type::Type{<:Val})
+  @req mat_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "matirx structure $mat_type is not supported"
+  @req rel_type <: Union{Val{:GL}, Val{:SL}} "relation $rel_type is not supported"
   M = parent(A)
   n, m = size(A)
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   # transitive function calls by '_T1_gens' throws an errow for a non-square matrix in the (skew-)symmetric case, therefore call it already here
-  erz = _T1_mat_gens(A, val_type)
+  erz = _T1_mat_gens(A, mat_type)
+  rel_gens = _T1_mat_rels(A, mat_type, rel_type)
   L = base_ring(A)
   function symb_fun()
     return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
   end
   F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
-  T1_GL = SubquoModule(F, F.(_vec.(erz)), F.(_vec.(_T1_GL_rels(A, val_type))))
+  T1_mat = SubquoModule(F, F.(_vec.(erz)), F.(_vec.(rel_gens)))
   # interpretation map
   im(v::FreeModElem) = M(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
   pre(B::MatElem) = F(_vec(transpose(B)))
-  interp = MapFromFunc(ambient_free_module(T1_GL), M, im, pre)
-  return T1_GL, interp
-end
-
-
-
-function _T1_SL_module(A::MatElem, val_type::Type{<:Val})
-  @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
-  M = parent(A)
-  n, m = size(A)
-  # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
-  A = transpose(A)
-  # transitive function calls by '_T1_gens' throws an errow for a non-square matrix in the (skew-)symmetric case, therefore call it already here
-  erz = _T1_mat_gens(A, val_type)
-  L = base_ring(A)
-  function symb_fun()
-    return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
-  end
-  F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
-  T1_SL = SubquoModule(F, F.(_vec.(erz)), F.(_vec.(_T1_SL_rels(A, val_type))))
-  # interpretation map
-  im(v::FreeModElem) = M(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
-  pre(B::MatElem) = F(_vec(transpose(B)))
-  interp = MapFromFunc(ambient_free_module(T1_SL), M, im, pre)
-  return T1_SL, interp
+  interp = MapFromFunc(ambient_free_module(T1_mat), M, im, pre)
+  return T1_mat, interp
 end
 
 
@@ -225,7 +213,7 @@ julia> intr.(repres.(B))
 """
 function T1_GL_module(A::MatElem; mat_type::Symbol = :generic)
   @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
-  return _T1_GL_module(A, Val{mat_type})
+  return _T1_mat_module(A, Val{mat_type}, Val{:GL})
 end
 
 
@@ -327,7 +315,7 @@ by submodule with 5 generators
   5: t^3*E[1,2] - t^3*E[2,1]
 ```
 """
-@attr Tuple{SubquoModule, MapFromFunc} T1_GL_module(X::DeterminantalGerm) = _T1_GL_module(defining_matrix(X), _mat_type(X))
+@attr Tuple{SubquoModule, MapFromFunc} T1_GL_module(X::DeterminantalGerm) = _T1_mat_module(defining_matrix(X), _mat_type(X), Val{:GL})
 
 
 
@@ -561,7 +549,7 @@ julia> intr.(repres.(B))
 """
 function T1_SL_module(A::MatElem; mat_type::Symbol = :generic)
   @req mat_type in (:generic, :symmetric, :skew_symmetric) "'mat_type' must be either ':generic', ':symmetric' or 'skew_symmetric'"
-  return _T1_SL_module(A, Val{mat_type})
+  return _T1_mat_module(A, Val{mat_type}, Val{:SL})
 end
 
 
@@ -633,7 +621,7 @@ julia> vector_space_dim(T1_A_sym)
 6
 ```
 """
-@attr Tuple{SubquoModule, MapFromFunc} T1_SL_module(X::DeterminantalGerm) = _T1_SL_module(defining_matrix(X), _mat_type(X))
+@attr Tuple{SubquoModule, MapFromFunc} T1_SL_module(X::DeterminantalGerm) = _T1_mat_module(defining_matrix(X), _mat_type(X), Val{:SL})
 
 
 

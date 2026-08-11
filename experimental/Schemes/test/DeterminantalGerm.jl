@@ -175,7 +175,7 @@ end
   B = R[x y z;
         v w x]
   @test vector_space_dim(T1_GL_module(B)[1]) == 1
-  @test_throws ArgumentError("Val{:wrong_symbol} is not supported") Oscar._T1_GL_module(B, Val{:wrong_symbol})
+  @test_throws ArgumentError Oscar._T1_mat_module(B, Val{:wrong_symbol}, Val{:GL})
   @test_throws ArgumentError T1_GL_module(B, mat_type = :wrong_symbol)
 end
 
@@ -228,6 +228,6 @@ end
   B = R[x y z;
         v w x^2+y^2]
   @test vector_space_dim(T1_SL_module(B)[1]) == 3
-  @test_throws ArgumentError("Val{:wrong_symbol} is not supported") Oscar._T1_SL_module(B, Val{:wrong_symbol})
+  @test_throws ArgumentError Oscar._T1_mat_module(B, Val{:wrong_symbol}, Val{:SL})
   @test_throws ArgumentError T1_SL_module(B, mat_type=:wrong_symbol)
 end
