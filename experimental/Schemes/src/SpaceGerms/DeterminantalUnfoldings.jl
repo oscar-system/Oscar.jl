@@ -1,20 +1,9 @@
 ################################################################################
-## T1_GL module
+## generators of ambient_module of T1_GL_module and T1_SL_module
 ################################################################################
 
-function _R_ij(A::MatElem, i::Integer, j::Integer)
-  R_ij = zero(A)
-  R_ij[i, :] = A[j, :]
-  return R_ij
-end
+# TODO: move some of them to a more fitting place (maybe AbstractAlgebra)
 
-function _C_ij(A::MatElem, i::Integer, j::Integer)
-  C_ij = zero(A)
-  C_ij[:, i] = A[:, j]
-  return C_ij
-end
-
-# TODO: move to a more fitting place (maybe AbstractAlgebra)
 function _mat_space_gens(M::MatSpace)
   R = base_ring(M)
   gens = sizehint!(elem_type(M)[], nrows(M)*ncols(M))
@@ -28,7 +17,6 @@ function _mat_space_gens(M::MatSpace)
   return gens
 end
 
-# TODO: move to a more fitting place (maybe AbstractAlgebra)
 function _sym_mat_gens(M::MatSpace)
   AbstractAlgebra.check_square(M)
   n = nrows(M)
@@ -45,7 +33,6 @@ function _sym_mat_gens(M::MatSpace)
   return gens
 end
 
-# TODO: move to a more fitting place (maybe AbstractAlgebra)
 function _skew_sym_mat_gens(M::MatSpace)
   AbstractAlgebra.check_square(M)
   R = base_ring(M)
@@ -64,14 +51,36 @@ function _skew_sym_mat_gens(M::MatSpace)
 end
 
 
+## dispatch generators of 'ambient_module' based on the Val type
 
-# T1-module helper functions
+_T1_mat_gens(A::MatElem, ::Type{Val{:generic}}) = _mat_space_gens(parent(A))
+_T1_mat_gens(A::MatElem, ::Type{Val{:symmetric}}) = _sym_mat_gens(parent(A))
+_T1_mat_gens(A::MatElem, ::Type{Val{:skew_symmetric}}) = _skew_sym_mat_gens(parent(A))
 
-_T1_gens(A::MatElem, ::Type{Val{:generic}}) = _mat_space_gens(parent(A))
-_T1_gens(A::MatElem, ::Type{Val{:symmetric}}) = _sym_mat_gens(parent(A))
-_T1_gens(A::MatElem, ::Type{Val{:skew_symmetric}}) = _skew_sym_mat_gens(parent(A))
+
+################################################################################
+## relations of T1_GL_module and T1_SL_module
+################################################################################
+
+## internal helper functions for relations of T1_GL_module and T1_SL_module
+
+function _R_ij(A::MatElem, i::Integer, j::Integer)
+  R_ij = zero(A)
+  R_ij[i, :] = A[j, :]
+  return R_ij
+end
+
+function _C_ij(A::MatElem, i::Integer, j::Integer)
+  C_ij = zero(A)
+  C_ij[:, i] = A[:, j]
+  return C_ij
+end
 
 _J(A::MatElem) = [derivative.(A, i) for i in 1:ngens(base_ring(A))]
+
+
+
+## dispatch relations based on the val type
 
 function _T1_GL_rels(A::MatElem, ::Type{Val{:generic}}) 
   return vcat(_J(A), [_C_ij(A, i, j) for i in 1:ncols(A) for j in 1:ncols(A)], 
@@ -85,6 +94,57 @@ end
 
 
 
+function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
+  rels = _J(A)    # partial derivatives of matrix
+  n, m = size(A)
+  sizehint!(rels, length(rels) + n^2-1 + m^2-1)
+  for i in 1:m
+    for j in 1:m
+      if i == j   # entry on diagonal - use bottom right entry to make trace zero
+        i == m && continue    # skip bottom right entry
+        push!(rels, _C_ij(A, i, i) - _C_ij(A, m, m))
+      else
+        push!(rels, _C_ij(A, i, j))
+      end
+    end
+  end
+  for j in 1:n
+    for i in 1:n
+      if i == j   # entry on diagonal - use bottom right entry to make trace zero
+        i == n && continue    # skip bottom right entry
+        push!(rels, _R_ij(A, i, i) - _R_ij(A, n, n))
+      else
+        push!(rels, _R_ij(A, i, j))
+      end
+    end
+  end
+  return rels
+end
+
+function _T1_SL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
+  AbstractAlgebra.check_square(A)
+  rels = _J(A)    # partial derivatives of matrix
+  n = nrows(A)
+  sizehint!(rels, length(rels) + n^2-1)
+  for i in 1:n
+    for j in 1:n
+      if i == j   # entry on diagonal - use bottom right entry to make trace zero
+        i == n && continue    # skip bottom right entry
+        push!(rels, _R_ij(A, i, i) + _C_ij(A, i, i) - _R_ij(A, n, n) - _C_ij(A, n, n))
+      else
+        push!(rels, _R_ij(A, i, j) + _C_ij(A, i, j))
+      end
+    end
+  end
+  return rels
+end
+
+
+
+################################################################################
+## internal workhorse for 'T1_GL module' and 'T1_SL_module'
+################################################################################
+
 function _T1_GL_module(A::MatElem, val_type::Type{<:Val})
   @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
   M = parent(A)
@@ -92,7 +152,7 @@ function _T1_GL_module(A::MatElem, val_type::Type{<:Val})
   # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
   A = transpose(A)
   # transitive function calls by '_T1_gens' throws an errow for a non-square matrix in the (skew-)symmetric case, therefore call it already here
-  erz = _T1_gens(A, val_type)
+  erz = _T1_mat_gens(A, val_type)
   L = base_ring(A)
   function symb_fun()
     return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
@@ -107,6 +167,33 @@ function _T1_GL_module(A::MatElem, val_type::Type{<:Val})
 end
 
 
+
+function _T1_SL_module(A::MatElem, val_type::Type{<:Val})
+  @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
+  M = parent(A)
+  n, m = size(A)
+  # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
+  A = transpose(A)
+  # transitive function calls by '_T1_gens' throws an errow for a non-square matrix in the (skew-)symmetric case, therefore call it already here
+  erz = _T1_mat_gens(A, val_type)
+  L = base_ring(A)
+  function symb_fun()
+    return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
+  end
+  F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
+  T1_SL = SubquoModule(F, F.(_vec.(erz)), F.(_vec.(_T1_SL_rels(A, val_type))))
+  # interpretation map
+  im(v::FreeModElem) = M(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
+  pre(B::MatElem) = F(_vec(transpose(B)))
+  interp = MapFromFunc(ambient_free_module(T1_SL), M, im, pre)
+  return T1_SL, interp
+end
+
+
+
+################################################################################
+## T1_GL module
+################################################################################
 
 @doc raw"""
     T1_GL_module(A::MatElem; mat_type::Symbol = :generic) -> SubquoModule, MapFromFunc
@@ -337,7 +424,7 @@ julia> is_determinantally_rigid(X_B)
 false
 ```
 """
-is_determinantally_rigid(X::DeterminantalGerm) = is_zero(T1_GL_module(X)[1])
+is_determinantally_GL_rigid(X::DeterminantalGerm) = is_zero(T1_GL_module(X)[1])
 
 
 
@@ -374,7 +461,7 @@ false
 
 
 @doc raw"""
-    basis_versal_determinantal_unfolding(X::DeterminantalGerm) -> Vector{SubquoModuleElem}
+    basis_GL_versal_determinantal_unfolding(X::DeterminantalGerm) -> Vector{SubquoModuleElem}
 
 Return a basis of a versal determinantal unfolding of the determinantal germ `X`. 
 
@@ -404,13 +491,13 @@ false
 julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B_sym), point(X_B_sym))
 true
 
-julia> basis_versal_determinantal_unfolding(X_A)
+julia> basis_GL_versal_determinantal_unfolding(X_A)
 3-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,2]
  E[1,3]
  E[1,4]
 
-julia> basis_versal_determinantal_unfolding(X_B_sym)
+julia> basis_GL_versal_determinantal_unfolding(X_B_sym)
 1-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,3] + E[3,1]
 
@@ -426,7 +513,7 @@ julia> C = P[0 0 a b;  0 0 b a;  -a -b 0 0; -b -a 0 0]
 
 julia> X_C_skew = DeterminantalGerm(C, 2, [0,0], mat_type = :skew_symmetric);
 
-julia> basis_versal_determinantal_unfolding(X_C_skew)
+julia> basis_GL_versal_determinantal_unfolding(X_C_skew)
 4-element Vector{SubquoModuleElem{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}}:
  E[1,2] - E[2,1]
  E[1,3] - E[3,1]
@@ -434,83 +521,13 @@ julia> basis_versal_determinantal_unfolding(X_C_skew)
  E[3,4] - E[4,3]
 ```
 """
-basis_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X)[1])
+basis_GL_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_GL_module(X)[1])
 
 
 
 ################################################################################
 ## T1_SL module
 ################################################################################
-
-function _T1_SL_rels(A::MatElem, ::Type{Val{:generic}})
-  rels = _J(A)    # partial derivatives of matrix
-  n, m = size(A)
-  sizehint!(rels, length(rels) + n^2-1 + m^2-1)
-  for i in 1:m
-    for j in 1:m
-      if i == j   # entry on diagonal - use bottom right entry to make trace zero
-        i == m && continue    # skip bottom right entry
-        push!(rels, _C_ij(A, i, i) - _C_ij(A, m, m))
-      else
-        push!(rels, _C_ij(A, i, j))
-      end
-    end
-  end
-  for j in 1:n
-    for i in 1:n
-      if i == j   # entry on diagonal - use bottom right entry to make trace zero
-        i == n && continue    # skip bottom right entry
-        push!(rels, _R_ij(A, i, i) - _R_ij(A, n, n))
-      else
-        push!(rels, _R_ij(A, i, j))
-      end
-    end
-  end
-  return rels
-end
-
-function _T1_SL_rels(A::MatElem, ::Union{Type{Val{:symmetric}}, Type{Val{:skew_symmetric}}})
-  AbstractAlgebra.check_square(A)
-  rels = _J(A)    # partial derivatives of matrix
-  n = nrows(A)
-  sizehint!(rels, length(rels) + n^2-1)
-  for i in 1:n
-    for j in 1:n
-      if i == j   # entry on diagonal - use bottom right entry to make trace zero
-        i == n && continue    # skip bottom right entry
-        push!(rels, _R_ij(A, i, i) + _C_ij(A, i, i) - _R_ij(A, n, n) - _C_ij(A, n, n))
-      else
-        push!(rels, _R_ij(A, i, j) + _C_ij(A, i, j))
-      end
-    end
-  end
-  return rels
-end
-
-
-
-function _T1_SL_module(A::MatElem, val_type::Type{<:Val})
-  @req val_type <: Union{Val{:generic}, Val{:symmetric}, Val{:skew_symmetric}} "$val_type is not supported"
-  M = parent(A)
-  n, m = size(A)
-  # transposing, since '_vec' vcats the columms of A and we would rather read rowwise
-  A = transpose(A)
-  # transitive function calls by '_T1_gens' throws an errow for a non-square matrix in the (skew-)symmetric case, therefore call it already here
-  erz = _T1_gens(A, val_type)
-  L = base_ring(A)
-  function symb_fun()
-    return [Symbol("E[$i,$j]") for i in 1:n for j in 1:m]
-  end
-  F = FreeMod{elem_type(L)}(n*m, L, symb_fun) 
-  T1_SL = SubquoModule(F, F.(_vec.(erz)), F.(_vec.(_T1_SL_rels(A, val_type))))
-  # interpretation map
-  im(v::FreeModElem) = M(transpose(reshape(Vector(coordinates(v), n*m), (m,n))))
-  pre(B::MatElem) = F(_vec(transpose(B)))
-  interp = MapFromFunc(ambient_free_module(T1_SL), M, im, pre)
-  return T1_SL, interp
-end
-
-
 
 @doc raw"""
     T1_SL_module(A::MatElem; mat_type::Symbol = :generic) -> SubquoModule, MapFromFunc
@@ -655,3 +672,28 @@ julia> tjurina_SL_number(X_A_sym)
 ```
 """
 tjurina_SL_number(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_dim(T1_SL_module(X)[1])
+
+
+# TODO: doctest
+@doc raw"""
+    is_determinantally_SL_rigid(X::DeterminantalGerm)
+
+Return whether the determinantal germ `X` is determinantally rigid. 
+
+!!! note
+    Different determinantal structures for the same underlying space germ may yield different results.
+
+"""
+is_determinantally_SL_rigid(X::DeterminantalGerm) = is_zero(T1_SL_module(X)[1])
+
+# TODO: doctest
+@doc raw"""
+    basis_SL_versal_determinantal_unfolding(X::DeterminantalGerm) -> Vector{SubquoModuleElem}
+
+Return a basis of a versal determinantal unfolding of the determinantal germ `X`. 
+
+!!! note
+    Different determinantal structures for the same underlying space germ may yield different versal determinantal unfoldings.
+
+"""
+basis_SL_versal_determinantal_unfolding(X::DeterminantalGerm{<:Field, <:Ring, <:AffineScheme, <:Val}) = vector_space_basis(T1_SL_module(X)[1])

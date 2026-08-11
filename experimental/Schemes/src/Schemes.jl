@@ -78,11 +78,13 @@ export determinantal_ideal
 export determinantal_type
 export T1_GL_module
 export tjurina_GL_number
-export is_determinantally_rigid
+export is_determinantally_GL_rigid
 export is_EIDS
-export basis_versal_determinantal_unfolding
+export basis_GL_versal_determinantal_unfolding
 export T1_SL_module
 export tjurina_SL_number
+export is_determinantally_SL_rigid
+export basis_SL_versal_determinantal_unfolding
 
 
 # Deprecated after 0.15
