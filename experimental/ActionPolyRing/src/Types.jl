@@ -1,5 +1,51 @@
 ###############################################################################
 #
+#  Action maps 
+#
+###############################################################################
+
+abstract type ActionMap{D <: Ring} <: Map{D, D, Any, Any} end
+
+# =============================================================================
+# Shifts
+# =============================================================================
+
+abstract type ActionShift{D <: Ring} <: ActionMap{D} end
+
+struct TrivialActionShift{D <: Ring} <: ActionShift{D}
+  base_ring::D
+end
+
+struct NontrivialActionShift{D <: Ring} <: ActionShift{D}
+  underlying_map::Map{D, D}
+    
+  function NontrivialActionShift{D}(m::Map{D, D}) where {D <: Ring}
+    @req domain(m) === codomain(m) "The domain and codomain of a shift operator must coincide"
+    return new{D}(m)
+  end
+end
+
+# =============================================================================
+# Derivations
+# =============================================================================
+
+abstract type ActionDerivation{D <: Ring} <: ActionMap{D} end
+
+struct TrivialActionDerivation{D <: Ring} <: ActionDerivation{D}
+  base_ring::D
+end
+
+struct NontrivialActionDerivation{D <: Ring} <: ActionDerivation{D}
+  underlying_map::Map{D, D}
+    
+  function NontrivialActionDerivation{D}(m::Map{D, D}) where {D <: Ring}
+    @req domain(m) === codomain(m) "The domain and codomain of a derivation must coincide"
+    return new{D}(m)
+  end
+end
+
+###############################################################################
+#
 #  Action polynomial rings 
 #
 ###############################################################################
