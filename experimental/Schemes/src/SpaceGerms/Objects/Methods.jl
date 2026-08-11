@@ -39,6 +39,7 @@ true
 
 julia> X_A == X_B
 false
+```
 """
 function ==(X::DeterminantalGerm, Y::DeterminantalGerm)
   X === Y && return true
