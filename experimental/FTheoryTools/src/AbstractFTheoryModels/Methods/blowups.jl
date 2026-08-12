@@ -505,16 +505,15 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # Resolve the model
   resolved_model = m
-  blow_up_chain = []
+  blow_up_chain = typeof(m)[]
   for k in 1:nr_blowups
 
     # Replace parameters in the blow_up_center with explicit_model_sections
     blow_up_center = copy(centers[k])
+    model_sections = explicit_model_sections(resolved_model)
     for l in 1:length(blow_up_center)
-      model_sections = explicit_model_sections(resolved_model)
       if haskey(model_sections, blow_up_center[l])
-        new_locus = string(explicit_model_sections(resolved_model)[blow_up_center[l]])
-        blow_up_center[l] = new_locus
+        blow_up_center[l] = string(model_sections[blow_up_center[l]])
       end
     end
 
@@ -546,7 +545,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
       # Compute strict transform of ideal sheaves appearing in blowup center
       exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
-      positions = [findfirst(==(l), exceptionals) for l in exceptional_center]
+      positions = [findfirst(==(l), exceptionals)::Int for l in exceptional_center]
       exceptional_divisors = [
         exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for
         l in positions

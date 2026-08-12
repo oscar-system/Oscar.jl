@@ -150,14 +150,9 @@ function special_flux_family_with_default_algorithm(
 )
 
   # (1) Are intersection numbers known?
-  # These instructions appear twice, once in the default and once in the special algorithnm. Code duplication? Improve it!
   inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4,Int64},ZZRingElem}()
   end::Dict{NTuple{4,Int64},ZZRingElem}
-  s_inter_dict = get_attribute!(m, :s_inter_dict) do
-    Dict{String,ZZRingElem}()
-  end::Dict{String,ZZRingElem}
-
   # (2) Obtain critical information - this may take significant time!
   ambient_space_flux_candidates_basis = gens_of_h22_hypersurface(m; completeness_check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(
@@ -169,11 +164,15 @@ function special_flux_family_with_default_algorithm(
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(
     m
   )
-  S = coordinate_ring(ambient_space(m))
   exceptional_divisor_positions = exceptional_divisor_indices(m)
-  tds = torusinvariant_prime_divisors(ambient_space(m))
+  ambient = ambient_space(m)
+  tds = torusinvariant_prime_divisors(ambient)
   cds = [cohomology_class(td) for td in tds]
-  pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
+  pt_class = cohomology_class(anticanonical_divisor_class(ambient))
+  zsc = zero_section_class(m)
+  pos_zero_section = zero_section_index(m)
+  @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
+  number_of_base_rays = n_rays(base_space(m))
 
   # (3) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints & (if desired) does not break the non-abelian gauge group.
   transversality_constraint_matrix = Vector{Vector{ZZRingElem}}()
@@ -182,11 +181,9 @@ function special_flux_family_with_default_algorithm(
 
     # Compute against pairs of base divisors
     for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
-      my_tuple = Tuple(
-        sort([
-          ambient_space_flux_candidates_basis_indices[i]...,
-          list_of_base_divisor_pairs_to_be_considered[j]...,
-        ]),
+      my_tuple = _sorted_tuple(
+        ambient_space_flux_candidates_basis_indices[i]...,
+        list_of_base_divisor_pairs_to_be_considered[j]...,
       )
       push!(
         condition,
@@ -201,12 +198,9 @@ function special_flux_family_with_default_algorithm(
     end
 
     # Compute against zero section and base divisor
-    zsc = zero_section_class(m)
-    pos_zero_section = zero_section_index(m)
-    @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
-    for j in 1:n_rays(base_space(m))
-      my_tuple = Tuple(
-        sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...])
+    for j in 1:number_of_base_rays
+      my_tuple = _sorted_tuple(
+        ambient_space_flux_candidates_basis_indices[i]..., j, pos_zero_section
       )
       push!(
         condition,
@@ -219,14 +213,12 @@ function special_flux_family_with_default_algorithm(
 
     # Compute against exceptional divisors
     if not_breaking
-      for j in 1:n_rays(base_space(m))
+      for j in 1:number_of_base_rays
         for k in 1:length(exceptional_divisor_positions)
-          my_tuple = Tuple(
-            sort([
-              ambient_space_flux_candidates_basis_indices[i]...,
-              j,
-              exceptional_divisor_positions[k]...,
-            ]),
+          my_tuple = _sorted_tuple(
+            ambient_space_flux_candidates_basis_indices[i]...,
+            j,
+            exceptional_divisor_positions[k],
           )
           push!(
             condition,
@@ -253,11 +245,9 @@ function special_flux_family_with_default_algorithm(
   for i in 1:length(ambient_space_flux_candidates_basis)
     condition = Vector{ZZRingElem}()
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
-      my_tuple = Tuple(
-        sort([
-          ambient_space_flux_candidates_basis_indices[i]...,
-          list_of_divisor_pairs_to_be_considered[j]...,
-        ]),
+      my_tuple = _sorted_tuple(
+        ambient_space_flux_candidates_basis_indices[i]...,
+        list_of_divisor_pairs_to_be_considered[j]...,
       )
       push!(
         condition,
@@ -318,11 +308,13 @@ function special_flux_family_with_special_algorithm(
 )
 
   # (1) Compute data, that is frequently used by the sophisticated intersection product below
-  S = coordinate_ring(ambient_space(m))
-  gS = gens(coordinate_ring(ambient_space(m)))
-  linear_relations = matrix(ZZ, rays(ambient_space(m)))
+  ambient = ambient_space(m)
+  hypersurface = hypersurface_equation(m)
+  S = coordinate_ring(ambient)
+  gS = gens(S)
+  linear_relations = matrix(ZZ, rays(ambient))
   scalings = [c.coeff for c in S.d]
-  mnf = Oscar._minimal_nonfaces(ambient_space(m))
+  mnf = Oscar._minimal_nonfaces(ambient)
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
   data = (
     S=S,
@@ -353,6 +345,9 @@ function special_flux_family_with_special_algorithm(
   )
   # TODO: This line is a bit fragile. Fix it!
   exceptional_divisor_positions = exceptional_divisor_indices(m)
+  pos_zero_section = zero_section_index(m)
+  @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
+  number_of_base_rays = n_rays(base_space(m))
 
   # (5) Work out the relevant intersection numbers to tell if a flux passes the transversality constraints & (if desired) if the flux is not breaking the gauge group.
   transversality_constraint_matrix = Vector{Vector{ZZRingElem}}()
@@ -361,18 +356,16 @@ function special_flux_family_with_special_algorithm(
 
     # Compute against pairs of base divisors
     for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
-      my_tuple = Tuple(
-        sort([
-          ambient_space_flux_candidates_basis_indices[i]...,
-          list_of_base_divisor_pairs_to_be_considered[j]...,
-        ]),
+      my_tuple = _sorted_tuple(
+        ambient_space_flux_candidates_basis_indices[i]...,
+        list_of_base_divisor_pairs_to_be_considered[j]...,
       )
       push!(
         condition,
         sophisticated_intersection_product(
-          ambient_space(m),
+          ambient,
           my_tuple,
-          hypersurface_equation(m),
+          hypersurface,
           inter_dict,
           s_inter_dict,
           data;
@@ -382,17 +375,16 @@ function special_flux_family_with_special_algorithm(
     end
 
     # Compute against zero section and base divisor
-    pos_zero_section = zero_section_index(m)
-    for j in 1:n_rays(base_space(m))
-      my_tuple = Tuple(
-        sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...])
+    for j in 1:number_of_base_rays
+      my_tuple = _sorted_tuple(
+        ambient_space_flux_candidates_basis_indices[i]..., j, pos_zero_section
       )
       push!(
         condition,
         sophisticated_intersection_product(
-          ambient_space(m),
+          ambient,
           my_tuple,
-          hypersurface_equation(m),
+          hypersurface,
           inter_dict,
           s_inter_dict,
           data;
@@ -403,20 +395,19 @@ function special_flux_family_with_special_algorithm(
 
     # Compute against exceptional divisors if desired
     if not_breaking
-      for j in 1:n_rays(base_space(m))
+      for j in 1:number_of_base_rays
         for k in 1:length(exceptional_divisor_positions)
-          my_tuple = Tuple(
-            sort([
-              ambient_space_flux_candidates_basis_indices[i]...,
-              [j, exceptional_divisor_positions[k]]...,
-            ]),
+          my_tuple = _sorted_tuple(
+            ambient_space_flux_candidates_basis_indices[i]...,
+            j,
+            exceptional_divisor_positions[k],
           )
           push!(
             condition,
             sophisticated_intersection_product(
-              ambient_space(m),
+              ambient,
               my_tuple,
-              hypersurface_equation(m),
+              hypersurface,
               inter_dict,
               s_inter_dict,
               data;
@@ -439,18 +430,16 @@ function special_flux_family_with_special_algorithm(
   for i in 1:length(ambient_space_flux_candidates_basis)
     condition = Vector{ZZRingElem}()
     for j in 1:length(list_of_divisor_pairs_to_be_considered)
-      my_tuple = Tuple(
-        sort([
-          ambient_space_flux_candidates_basis_indices[i]...,
-          list_of_divisor_pairs_to_be_considered[j]...,
-        ]),
+      my_tuple = _sorted_tuple(
+        ambient_space_flux_candidates_basis_indices[i]...,
+        list_of_divisor_pairs_to_be_considered[j]...,
       )
       push!(
         condition,
         sophisticated_intersection_product(
-          ambient_space(m),
+          ambient,
           my_tuple,
-          hypersurface_equation(m),
+          hypersurface,
           inter_dict,
           s_inter_dict,
           data;
@@ -474,14 +463,14 @@ function special_flux_family_with_special_algorithm(
   for j in 1:length(list_of_divisor_pairs_to_be_considered)
     inter_numb = QQ(0)
     for k in 1:length(non_zero_exponents)
-      my_tuple = Tuple(
-        sort([non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...])
+      my_tuple = _sorted_tuple(
+        non_zero_exponents[k]..., list_of_divisor_pairs_to_be_considered[j]...
       )
       inter_numb +=
         coeffs[k] * sophisticated_intersection_product(
-          ambient_space(m),
+          ambient,
           my_tuple,
-          hypersurface_equation(m),
+          hypersurface,
           inter_dict,
           s_inter_dict,
           data;

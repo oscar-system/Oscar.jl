@@ -153,14 +153,14 @@ function literature_model(;
   equation::String="",
   type::String="",
   model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
+  base_space::Union{Nothing,FTheorySpace}=nothing,
   model_sections::StringKeyedMapType=Dict{String,Any}(),
   defining_classes::StringKeyedMapType=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
-  return literature_model(
+  return _literature_model(
     model_dict;
     model_parameters=model_parameters,
     base_space=base_space,
@@ -174,14 +174,14 @@ end
 function literature_model(
   k::Int;
   model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
+  base_space::Union{Nothing,FTheorySpace}=nothing,
   model_sections::StringKeyedMapType=Dict{String,Any}(),
   defining_classes::StringKeyedMapType=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
   model_dict = _find_model(k)
-  return literature_model(
+  return _literature_model(
     model_dict;
     model_parameters=model_parameters,
     base_space=base_space,
@@ -195,12 +195,35 @@ end
 function literature_model(
   model_dict::StringKeyedMapType;
   model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
+  base_space::Union{Nothing,FTheorySpace}=nothing,
   model_sections::StringKeyedMapType=Dict{String,Any}(),
   defining_classes::StringKeyedMapType=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
+  Base.@nospecialize model_dict
+  return _literature_model(
+    deepcopy(model_dict);
+    model_parameters,
+    base_space,
+    model_sections,
+    defining_classes,
+    completeness_check,
+    rng,
+  )
+end
+
+function _literature_model(
+  model_dict::StringKeyedMapType;
+  model_parameters::StringKeyedMapType=Dict{String,Any}(),
+  base_space::Union{Nothing,FTheorySpace}=nothing,
+  model_sections::StringKeyedMapType=Dict{String,Any}(),
+  defining_classes::StringKeyedMapType=Dict{String,Any}(),
+  completeness_check::Bool=true,
+  rng::AbstractRNG=Random.default_rng(),
+)
+  Base.@nospecialize model_dict
+
   # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
@@ -271,7 +294,7 @@ function literature_model(
   end
 
   # (3) Construct the model over concrete or arbitrary base
-  if dim(base_space) > 0
+  if !isnothing(base_space) && dim(base_space) > 0
 
     # Currently, support only for toric bases
     @req base_space isa NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
@@ -297,7 +320,7 @@ function literature_model(
       @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
     end
 
-    # Add additional information that is always known for weierstrass/tate 
+    # Add additional information that is always known for weierstrass/tate
     if (model_dict["model_descriptors"]["type"] == "weierstrass") ||
       (model_dict["model_descriptors"]["type"] == "tate")
       model_dict["model_data"]["zero_section_class"] = "z"
@@ -802,73 +825,88 @@ function _set_all_attributes(
     )
   end
 
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))); cached=false)
-  f = hom(
-    R, coordinate_ring(base_space(model)), collect(values(explicit_model_sections(model)))
+  model_data = model_dict["model_data"]
+  section_attributes = (
+    "resolution_generating_sections",
+    "resolution_zero_sections",
+    "weighted_resolution_generating_sections",
+    "weighted_resolution_zero_sections",
+    "zero_section",
+    "generating_sections",
+    "torsion_sections",
   )
-
-  if haskey(model_dict["model_data"], "resolution_generating_sections")
-    vs = [
-      [[string.(k) for k in sec] for sec in res] for
-      res in model_dict["model_data"]["resolution_generating_sections"]
-    ]
-    result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
-    set_attribute!(model, :resolution_generating_sections => result)
-  end
-
-  if haskey(model_dict["model_data"], "resolution_zero_sections")
-    vs = [
-      [string.(a) for a in b] for b in model_dict["model_data"]["resolution_zero_sections"]
-    ]
-    result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
-    set_attribute!(model, :resolution_zero_sections => result)
-  end
-
-  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
-    vs = [
-      [[string.(k) for k in sec] for sec in res] for
-      res in model_dict["model_data"]["weighted_resolution_generating_sections"]
-    ]
-    result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
-    set_attribute!(model, :weighted_resolution_generating_sections => result)
-  end
-
-  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
-    vs = [
-      [string.(a) for a in b] for
-      b in model_dict["model_data"]["weighted_resolution_zero_sections"]
-    ]
-    result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
-    set_attribute!(model, :weighted_resolution_zero_sections => result)
-  end
-
-  if haskey(model_dict["model_data"], "zero_section")
-    vs = string.(model_dict["model_data"]["zero_section"])
-    set_attribute!(model, :zero_section => [f(eval_poly(l, R)) for l in vs])
-  end
-
-  if haskey(model_dict["model_data"], "generating_sections")
-    vs = map(k -> string.(k), model_dict["model_data"]["generating_sections"])
-    set_attribute!(
-      model, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
+  if any(name -> haskey(model_data, name), section_attributes)
+    R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))); cached=false)
+    f = hom(
+      R, coordinate_ring(base_space(model)), collect(values(explicit_model_sections(model)))
     )
+
+    if haskey(model_dict["model_data"], "resolution_generating_sections")
+      vs = [
+        [[string.(k) for k in sec] for sec in res] for
+        res in model_dict["model_data"]["resolution_generating_sections"]
+      ]
+      result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+      set_attribute!(model, :resolution_generating_sections => result)
+    end
+
+    if haskey(model_dict["model_data"], "resolution_zero_sections")
+      vs = [
+        [string.(a) for a in b] for
+        b in model_dict["model_data"]["resolution_zero_sections"]
+      ]
+      result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+      set_attribute!(model, :resolution_zero_sections => result)
+    end
+
+    if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
+      vs = [
+        [[string.(k) for k in sec] for sec in res] for
+        res in model_dict["model_data"]["weighted_resolution_generating_sections"]
+      ]
+      result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+      set_attribute!(model, :weighted_resolution_generating_sections => result)
+    end
+
+    if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
+      vs = [
+        [string.(a) for a in b] for
+        b in model_dict["model_data"]["weighted_resolution_zero_sections"]
+      ]
+      result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+      set_attribute!(model, :weighted_resolution_zero_sections => result)
+    end
+
+    if haskey(model_dict["model_data"], "zero_section")
+      vs = string.(model_dict["model_data"]["zero_section"])
+      set_attribute!(model, :zero_section => [f(eval_poly(l, R)) for l in vs])
+    end
+
+    if haskey(model_dict["model_data"], "generating_sections")
+      vs = map(k -> string.(k), model_dict["model_data"]["generating_sections"])
+      set_attribute!(
+        model, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
+      )
+    end
+
+    if haskey(model_dict["model_data"], "torsion_sections")
+      vs = map(k -> string.(k), model_dict["model_data"]["torsion_sections"])
+      set_attribute!(
+        model, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
+      )
+    end
   end
 
-  if haskey(model_dict["model_data"], "torsion_sections")
-    vs = map(k -> string.(k), model_dict["model_data"]["torsion_sections"])
-    set_attribute!(
-      model, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
-    )
-  end
+  has_toric_divisor_classes =
+    haskey(model_data, "zero_section_class") || haskey(model_data, "exceptional_classes")
+  if base_space(model) isa NormalToricVariety &&
+    ambient_space(model) isa NormalToricVariety && has_toric_divisor_classes
+    ambient = ambient_space(model)
+    divs = torusinvariant_prime_divisors(ambient)
+    cox_gens = symbols(coordinate_ring(ambient))
 
-  if base_space(model) isa NormalToricVariety && ambient_space(model) isa NormalToricVariety
-    divs = torusinvariant_prime_divisors(ambient_space(model))
-    cohomology_ring(ambient_space(model); completeness_check=false)
-    cox_gens = symbols(coordinate_ring(ambient_space(model)))
-
-    if haskey(model_dict["model_data"], "zero_section_class") &&
-      base_space(model) isa NormalToricVariety
-      desired_value = Symbol(string.(model_dict["model_data"]["zero_section_class"]))
+    if haskey(model_data, "zero_section_class")
+      desired_value = Symbol(string.(model_data["zero_section_class"]))
       @req desired_value in cox_gens "Specified zero section is invalid"
       index = findfirst(==(desired_value), cox_gens)
       set_attribute!(model, :zero_section_index => index::Int)
@@ -879,9 +917,8 @@ function _set_all_attributes(
       )
     end
 
-    if haskey(model_dict["model_data"], "exceptional_classes") &&
-      base_space(model) isa NormalToricVariety
-      desired_value = string.(model_dict["model_data"]["exceptional_classes"])
+    if haskey(model_data, "exceptional_classes")
+      desired_value = string.(model_data["exceptional_classes"])
       @req issubset(Symbol.(desired_value), cox_gens) "Specified exceptional classes are invalid"
       exceptional_divisor_indices = Vector{Int}()
       for class in desired_value
@@ -893,8 +930,10 @@ function _set_all_attributes(
       )
       set_attribute!(
         model,
-        :exceptional_classes =>
-          [cohomology_class(divs[index]) for index in exceptional_divisor_indices],
+        :exceptional_classes => [
+          cohomology_class(divs[index]; completeness_check=false) for
+          index in exceptional_divisor_indices
+        ],
       )
     end
   end

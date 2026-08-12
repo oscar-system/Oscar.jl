@@ -18,6 +18,23 @@ section_a6 = generic_section(anticanonical_bundle(P3)^6; rng=our_rng)
 # Global Tate model over P3
 tate_P3 = global_tate_model(P3; completeness_check=false, rng=our_rng)
 
+# Check that conversion preserves source data without transferring model-dependent caches.
+source_hypersurface = calabi_yau_hypersurface(tate_P3)
+converted_model = weierstrass_model(tate_P3)
+converted_model_had_no_hypersurface =
+  !has_attribute(converted_model, :calabi_yau_hypersurface)
+converted_hypersurface = calabi_yau_hypersurface(converted_model)
+
+@testset "Tate-to-Weierstrass conversion cache ownership" begin
+  @test converted_model_had_no_hypersurface
+  @test converted_hypersurface !== source_hypersurface
+  @test defining_ideal(converted_hypersurface) ==
+    ideal([weierstrass_polynomial(converted_model)])
+  @test defining_ideal(converted_hypersurface) != ideal([tate_polynomial(tate_P3)])
+  @test defining_classes(converted_model) == defining_classes(tate_P3)
+  @test defining_classes(converted_model) !== defining_classes(tate_P3)
+end
+
 @testset "Attributes of global Tate models over concrete base space" begin
   @test parent(tate_section_a1(tate_P3)) == coordinate_ring(base_space(tate_P3))
   @test parent(tate_section_a2(tate_P3)) == coordinate_ring(base_space(tate_P3))

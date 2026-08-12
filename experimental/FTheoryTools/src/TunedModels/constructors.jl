@@ -89,85 +89,8 @@ function tune(
   # Consistency checks
   @req base_space(w) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return w
-  secs_names = tunable_sections(w)
-  tuned_secs_names = collect(keys(input_sections))
-  @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
 
-  # 0. Prepare for computation by setting up some information
-  explicit_secs = deepcopy(explicit_model_sections(w))
-  def_secs_param = deepcopy(model_section_parametrization(w))
-  weierstrass_sections = ["f", "g"]
-
-  # 1. Tune model sections different from Weierstrass sections
-  for x in setdiff(tuned_secs_names, weierstrass_sections)
-    @req parent(input_sections[x]) == parent(explicit_model_sections(w)[x]) "Parent mismatch between given and existing model section"
-    if is_zero(input_sections[x]) == false
-      @req degree(input_sections[x]) == divisor_class(classes_of_model_sections(w)[x]) "Degree mismatch between given and existing model section"
-    end
-    explicit_secs[x] = input_sections[x]
-  end
-
-  # 2. Use model sections to reevaluate the Weierstrass sections via their known parametrization
-  parametrization_keys = collect(keys(def_secs_param))
-  if !isempty(parametrization_keys) && !isempty(secs_names)
-    R = parent(def_secs_param[parametrization_keys[1]])
-    S = parent(explicit_secs[secs_names[1]])
-    vars = [string(k) for k in symbols(R)]
-    images = [
-      if k in secs_names
-        explicit_secs[k]
-      elseif k == "Kbar"
-        eval_poly("0", S)
-      else
-        eval_poly(k, S)
-      end for k in vars
-    ]
-    map = hom(R, S, images)
-    for section in weierstrass_sections
-      haskey(def_secs_param, section) &&
-        (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
-    end
-  end
-
-  # 3. Does the user want to set some Weierstrass sections? If so, overwrite existing choice with desired value.
-  for sec in weierstrass_sections
-    if haskey(input_sections, sec)
-      @req parent(input_sections[sec]) == parent(explicit_model_sections(w)[sec]) "Parent mismatch between given and existing Weierstrass section"
-      if is_zero(input_sections[sec]) == false
-        @req degree(input_sections[sec]) == divisor_class(classes_of_model_sections(w)[sec]) "Degree mismatch between given and existing Weierstrass section"
-      end
-      explicit_secs[sec] = input_sections[sec]
-      delete!(def_secs_param, sec)
-    end
-  end
-
-  # 4. There could be unused model sections...
-  if !isempty(parametrization_keys)
-    polys = [
-      eval_poly(string(def_secs_param[section]), R) for
-      section in weierstrass_sections if haskey(def_secs_param, section)
-    ]
-    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
-    all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
-    potentially_redundant_sections = gens(R)
-    for k in 1:length(potentially_redundant_sections)
-      string(potentially_redundant_sections[k]) in weierstrass_sections && continue
-      is_used = any(
-        all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents)
-      )
-      is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
-    end
-  end
-
-  # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
-  if !isempty(def_secs_param)
-    naive_vars = string.(gens(parent(first(values(def_secs_param)))))
-    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
-    desired_ring, _ = polynomial_ring(QQ, filtered_vars; cached=false)
-    for (key, value) in def_secs_param
-      def_secs_param[key] = eval_poly(string(value), desired_ring)
-    end
-  end
+  explicit_secs, def_secs_param = _tuned_model_sections(w, input_sections, ["f", "g"])
 
   # 6. Build the new model
   resulting_model = weierstrass_model(
@@ -281,85 +204,10 @@ function tune(
   # Consistency checks
   @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(input_sections) && return t
-  secs_names = tunable_sections(t)
-  tuned_secs_names = collect(keys(input_sections))
-  @req all(in(secs_names), tuned_secs_names) "Provided section names are not among the tunable sections of the model"
 
-  # 0. Prepare for computation by setting up some information
-  explicit_secs = deepcopy(explicit_model_sections(t))
-  def_secs_param = deepcopy(model_section_parametrization(t))
-  tate_sections = ["a1", "a2", "a3", "a4", "a6"]
-
-  # 1. Tune model sections different from Tate sections
-  for x in setdiff(tuned_secs_names, tate_sections)
-    @req parent(input_sections[x]) == parent(explicit_model_sections(t)[x]) "Parent mismatch between given and existing model section"
-    if is_zero(input_sections[x]) == false
-      @req degree(input_sections[x]) == divisor_class(classes_of_model_sections(t)[x]) "Degree mismatch between given and existing model section"
-    end
-    explicit_secs[x] = input_sections[x]
-  end
-
-  # 2. Use model sections to reevaluate the Tate sections via their known parametrization
-  parametrization_keys = collect(keys(def_secs_param))
-  if !isempty(parametrization_keys) && !isempty(secs_names)
-    R = parent(def_secs_param[parametrization_keys[1]])
-    S = parent(explicit_secs[secs_names[1]])
-    vars = [string(k) for k in symbols(R)]
-    images = [
-      if k in secs_names
-        explicit_secs[k]
-      elseif k == "Kbar"
-        eval_poly("0", S)
-      else
-        eval_poly(k, S)
-      end for k in vars
-    ]
-    map = hom(R, S, images)
-    for section in tate_sections
-      haskey(def_secs_param, section) &&
-        (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
-    end
-  end
-
-  # 3. Does the user want to set some Tate sections? If so, overwrite existing choice with desired value.
-  for sec in tate_sections
-    if haskey(input_sections, sec)
-      @req parent(input_sections[sec]) == parent(explicit_model_sections(t)[sec]) "Parent mismatch between given and existing Tate section"
-      if is_zero(input_sections[sec]) == false
-        @req degree(input_sections[sec]) == divisor_class(classes_of_model_sections(t)[sec]) "Degree mismatch between given and existing Tate section"
-      end
-      explicit_secs[sec] = input_sections[sec]
-      delete!(def_secs_param, sec)
-    end
-  end
-
-  # 4. There could be unused model sections...
-  if !isempty(parametrization_keys)
-    polys = [
-      eval_poly(string(def_secs_param[section]), R) for
-      section in tate_sections if haskey(def_secs_param, section)
-    ]
-    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
-    all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
-    potentially_redundant_sections = gens(R)
-    for k in 1:length(potentially_redundant_sections)
-      string(potentially_redundant_sections[k]) in tate_sections && continue
-      is_used = any(
-        all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents)
-      )
-      is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
-    end
-  end
-
-  # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
-  if !isempty(def_secs_param)
-    naive_vars = string.(gens(parent(first(values(def_secs_param)))))
-    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
-    desired_ring, _ = polynomial_ring(QQ, filtered_vars; cached=false)
-    for (key, value) in def_secs_param
-      def_secs_param[key] = eval_poly(string(value), desired_ring)
-    end
-  end
+  explicit_secs, def_secs_param = _tuned_model_sections(
+    t, input_sections, ["a1", "a2", "a3", "a4", "a6"]
+  )
 
   # 6. Build the new model
   resulting_model = global_tate_model(
@@ -474,7 +322,7 @@ function tune(
   end
 
   # 1. Tune model sections
-  explicit_secs = deepcopy(explicit_model_sections(h))
+  explicit_secs = copy(explicit_model_sections(h))
   for x in tuned_secs_names
     section_parent = parent(input_sections[x])
     @req section_parent == parent(explicit_model_sections(h)[x]) "Parent mismatch between given and existing model section"
@@ -523,6 +371,94 @@ function tune(
 
   # 5. Return the model
   return model
+end
+
+function _tuned_model_sections(
+  m::Union{WeierstrassModel,GlobalTateModel},
+  input_sections::Dict{String,<:Any},
+  defining_sections::Vector{String},
+)
+  section_names = tunable_sections(m)
+  tuned_section_names = collect(keys(input_sections))
+  @req all(in(section_names), tuned_section_names) "Provided section names are not among the tunable sections of the model"
+
+  source_sections = explicit_model_sections(m)
+  section_classes = classes_of_model_sections(m)
+  explicit_sections = copy(source_sections)
+  parametrizations = copy(model_section_parametrization(m))
+
+  for name in setdiff(tuned_section_names, defining_sections)
+    section = input_sections[name]
+    @req parent(section) == parent(source_sections[name]) "Parent mismatch between given and existing model section"
+    if !is_zero(section)
+      @req degree(section) == divisor_class(section_classes[name]) "Degree mismatch between given and existing model section"
+    end
+    explicit_sections[name] = section
+  end
+
+  if !isempty(parametrizations) && !isempty(section_names)
+    parametrization_ring = parent(first(values(parametrizations)))
+    section_ring = parent(explicit_sections[first(section_names)])
+    variables = string.(symbols(parametrization_ring))
+    images = [
+      if name in section_names
+        explicit_sections[name]
+      elseif name == "Kbar"
+        zero(section_ring)
+      else
+        eval_poly(name, section_ring)
+      end for name in variables
+    ]
+    evaluation_map = hom(parametrization_ring, section_ring, images)
+    for name in defining_sections
+      if haskey(parametrizations, name)
+        explicit_sections[name] = evaluation_map(parametrizations[name])
+      end
+    end
+  end
+
+  for name in defining_sections
+    if haskey(input_sections, name)
+      section = input_sections[name]
+      @req parent(section) == parent(source_sections[name]) "Parent mismatch between given and existing defining section"
+      if !is_zero(section)
+        @req degree(section) == divisor_class(section_classes[name]) "Degree mismatch between given and existing defining section"
+      end
+      explicit_sections[name] = section
+      delete!(parametrizations, name)
+    end
+  end
+
+  if !isempty(parametrizations)
+    parametrization_ring = parent(first(values(parametrizations)))
+    relevant_polynomials = [
+      parametrizations[name] for name in defining_sections if haskey(parametrizations, name)
+    ]
+    if !isempty(relevant_polynomials)
+      appearing_monomials = collect(
+        Iterators.flatten(monomials(p) for p in relevant_polynomials)
+      )
+      appearing_exponents = [first(exponents(monomial)) for monomial in appearing_monomials]
+      for (index, generator) in enumerate(gens(parametrization_ring))
+        name = string(generator)
+        name in defining_sections && continue
+        is_used = any(exponent[index] != 0 for exponent in appearing_exponents)
+        is_used || delete!(explicit_sections, name)
+      end
+    end
+  end
+
+  if !isempty(parametrizations)
+    parametrization_ring = parent(first(values(parametrizations)))
+    variables = string.(gens(parametrization_ring))
+    retained_variables = filter(name -> haskey(explicit_sections, name), variables)
+    desired_ring, _ = polynomial_ring(QQ, retained_variables; cached=false)
+    for (name, value) in parametrizations
+      parametrizations[name] = eval_poly(string(value), desired_ring)
+    end
+  end
+
+  return explicit_sections, parametrizations
 end
 
 # FIXME: The below tune function is not consistent with our other "tune" functions (it does not correspond mathematically to a tuning)
