@@ -2,7 +2,7 @@
 @doc raw"""
     action_derivation(R::Ring)
 
-Construct the zero derivation for the given ring `R`.
+Construct the zero derivation on the ring `R`.
 """
 action_derivation(R::Ring) = TrivialActionDerivation{typeof(R)}(R)
 
@@ -21,7 +21,7 @@ end
 @doc raw"""
     action_shift(R::Ring)
 
-Construct the trivial shift, i.e. the identity map for the given ring `R`.
+Construct the trivial shift, i.e. the identity map on the ring `R`.
 """
 action_shift(R::Ring) = TrivialActionShift{typeof(R)}(R)
 
