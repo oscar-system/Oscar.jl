@@ -225,7 +225,6 @@ function add!(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
         end
       end
       isempty(a.coeff) && return zero(A)
-      @show a.is_zero
       a.is_zero = nothing # reset since we have messed with the internals and this has to be reevaluated
       return a
     else # b is homogeneous
