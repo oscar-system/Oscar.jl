@@ -187,6 +187,7 @@ end
 
 function deepcopy_internal(a::DGAlgCohRingElem, d::IdDict)
   result = parent(a)()
+  result.is_zero = a.is_zero
   if !isnothing(a.homog_elem)
     result.homog_elem = deepcopy_internal(a.homog_elem, d)
     result.homog_deg = deepcopy(a.homog_deg)
@@ -224,6 +225,8 @@ function add!(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
         end
       end
       isempty(a.coeff) && return zero(A)
+      @show a.is_zero
+      a.is_zero = nothing # reset since we have messed with the internals and this has to be reevaluated
       return a
     else # b is homogeneous
       q = b.homog_deg
@@ -239,11 +242,13 @@ function add!(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
         end
       end
       isempty(a.coeff) && return zero(A)
+      a.is_zero = nothing # reset since we have messed with the internals and this has to be reevaluated
       return a
     end
   else # a is homogeneous
     q = a.homog_deg
     result = zero(A) # we allocate new because we can not delete a.homog_elem
+    result.is_zero = nothing # reset to "not known" as we are messing with the internals
     if isnothing(b.homog_elem) # b is not homogeneous
       result.coeff = deepcopy(b.coeff) # result will not be homogeneously stored
       w = get(result.coeff, q, nothing)
@@ -448,7 +453,8 @@ function generate_homogeneous_element(R::Oscar.DGAlgCohRing{ZZRingElem})
   x = zero(R)
   for i=1:n_gens
     n = rand(-100:100)
-    x = x+n*R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
+    c = R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
+    x = x+n*c
   end
   return x
 end
