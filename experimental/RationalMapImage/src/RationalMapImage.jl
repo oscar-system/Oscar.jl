@@ -37,12 +37,53 @@ import ..Oscar:
   is_homogeneous,
   total_degree,
   coefficients,
-  monomials
+  monomials,
+  evaluate
 
 export partial_image,
        total_image,
        is_closed_image,
-       print_image_tree
+       is_contained,
+       print_image_tree,
+       ConstructibleSetTree
+
+################################################################################
+# ConstructibleSetTree
+################################################################################
+
+@doc raw"""
+    ConstructibleSetTree{T <: MPolyIdeal}
+
+The image of a rational/polynomial map as a constructible set, structured as a
+rooted tree of projective varieties.
+
+- `nodes[1]` is the root: the Zariski closure of the image in the target space
+- Each non-root node `nodes[i]` is a subvariety where the image is not
+  Zariski-closed relative to its parent
+- `edges` is a vector of pairs `(i, j)` meaning `V(nodes[j])` lies in the
+  exceptional locus of `V(nodes[i])`
+
+Supports tuple-style destructuring: `(nodes, edges) = t`.
+"""
+struct ConstructibleSetTree{T <: MPolyIdeal}
+  nodes::Vector{T}
+  edges::Vector{Tuple{Int,Int}}
+end
+
+# Support (N, E) = tree destructuring.
+Base.length(::ConstructibleSetTree) = 2
+Base.iterate(t::ConstructibleSetTree) = (t.nodes, :edges)
+Base.iterate(t::ConstructibleSetTree, ::Symbol) = (t.edges, nothing)
+Base.iterate(::ConstructibleSetTree, ::Nothing) = nothing
+
+function Base.show(io::IO, t::ConstructibleSetTree)
+  n = length(t.nodes)
+  print(io, "ConstructibleSetTree with ", n, " node", n == 1 ? "" : "s")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", t::ConstructibleSetTree)
+  print_image_tree(t.nodes, t.edges)
+end
 
 ################################################################################
 # Phase 1 – Core algebraic helpers
@@ -745,8 +786,7 @@ function total_image(L::Vector{<:MPolyRingElem}, X::MPolyIdeal;
     tree = (nodes, edges)
   end
 
-  print_image_tree(tree[1], tree[2])
-  return tree
+  return ConstructibleSetTree(tree[1], tree[2])
 end
 
 function total_image(L::Vector{<:MPolyRingElem};
@@ -847,17 +887,69 @@ function is_closed_image(L::Vector{<:MPolyRingElem};
   return is_closed_image(L, ideal(R, elem_type(R)[]); verbose = verbose, tries = tries)
 end
 
+# Return true if all generators of I vanish at the point x.
+function _point_in_variety(x::Vector, I::MPolyIdeal)
+  all(f -> iszero(evaluate(f, x)), gens(I))
+end
+
+# Recursive containment check on the subtree rooted at root_idx.
+# root_idx must be an "image" node (Zariski closure of some sub-image).
+# Children of an image node are "exceptional locus" nodes; their children in
+# turn are the next level of "image" nodes.  A leaf exceptional node with no
+# image-children represents an empty sub-image, so points there are NOT in
+# the constructible set.
+function _is_in_constructible(x::Vector, nodes, children::Vector{Vector{Int}}, root_idx::Int)
+  _point_in_variety(x, nodes[root_idx]) || return false
+  exc_children = children[root_idx]  # odd-depth: exceptional locus nodes
+  # x lies in the generic open stratum (avoids all exceptional children).
+  all(c -> !_point_in_variety(x, nodes[c]), exc_children) && return true
+  # x lies in some exceptional locus; recurse into the sub-image children
+  # of that exceptional node (two-level skip preserves correct semantics).
+  for exc_c in exc_children
+    _point_in_variety(x, nodes[exc_c]) || continue
+    for img_c in children[exc_c]  # even-depth: next image nodes
+      _is_in_constructible(x, nodes, children, img_c) && return true
+    end
+  end
+  return false
+end
+
+@doc raw"""
+    is_contained(x::Vector, C::ConstructibleSetTree) -> Bool
+
+Return `true` if the point `x` is contained in the constructible set `C`.
+
+The point `x` must be given as a vector of coordinates matching the variables
+of the target ring of `C`.  For a projective map (the default), these are
+homogeneous coordinates `[b_0 : b_1 : \cdots : b_m]`; for an affine map
+(computed with `affine = true`) they are affine coordinates `[b_1, \ldots, b_m]`
+(with `b_0 = 1` substituted).
+
+The constructible set is the actual image (not just the Zariski closure). A
+point lies in it if and only if it belongs to the Zariski closure of the image
+(the root of the tree) and, whenever it falls in an exceptional subvariety,
+it also lies in the sub-constructible set of that subvariety.
+"""
+function is_contained(x::Vector, C::ConstructibleSetTree)
+  isempty(C.nodes) && return false
+  (children, _) = _children_and_parents(C.nodes, C.edges)
+  return _is_in_constructible(x, C.nodes, children, 1)
+end
+
 ################################################################################
 # Phase 5 – Pretty printing
 ################################################################################
 
 @doc raw"""
     print_image_tree(N::Vector{<:MPolyIdeal}, E::Vector{<:Tuple{Int,Int}})
+    print_image_tree(t::ConstructibleSetTree)
 
 Print the image tree returned by `total_image` in a human-readable format.
 Each line is prefixed by `(d)` where `d` is the projective dimension of the
 variety, followed by indentation showing the tree structure.
 """
+print_image_tree(t::ConstructibleSetTree) = print_image_tree(t.nodes, t.edges)
+
 function print_image_tree(N::AbstractVector{<:MPolyIdeal},
                           E::Vector{<:Tuple{Int,Int}})
   isempty(N) && return
