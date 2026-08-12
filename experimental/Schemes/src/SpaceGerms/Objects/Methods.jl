@@ -25,14 +25,27 @@ julia> A = R[x 0 z;  0 y z]
 [x   0   z]
 [0   y   z]
 
-julia> X_A = DeterminantalGerm(A, 2, [0,0,0]);
-
+julia> X_A = DeterminantalGerm(A, 2, [0,0,0])
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal (x*y, x*z, -y*z)
+    at complement of maximal ideal of point (0, 0, 0)
 
 julia> B = R[0 y z;  x 0 z]
 [0   y   z]
 [x   0   z]
 
-julia> X_B = DeterminantalGerm(B, 2, [0,0,0]);
+julia> X_B = DeterminantalGerm(B, 2, [0,0,0])
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal (-x*y, -x*z, y*z)
+    at complement of maximal ideal of point (0, 0, 0)
 
 julia> SpaceGerm(representative(X_A), point(X_A)) == SpaceGerm(representative(X_B), point(X_B))
 true
