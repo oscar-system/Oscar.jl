@@ -8,6 +8,7 @@ injsonpath = "timing_summary.json"
 indict = isfile(injsonpath) ? JSON.parsefile(injsonpath) : JSON.parse("{}")
 filelist = readdir()
 filelist = filter(endswith("csv"), filelist)
+juliaVersion = join(split("$VERSION", ".")[1:2], ".")
 
 if isempty(indict)
     indict["jobs"] = Dict()
@@ -16,10 +17,6 @@ end
 for file in filelist
     (timestr, platform, juliaVersion, subset, commitHash) = split(file[1:end-4], "_")[2:end]
     # filenames on github must not contain colons so we convert to the correct timestamp format here
-    if "$(subset)_$(commitHash)" == "extra_long"
-        subset = "extra_long"
-        commitHash = split(file[1:end-4], "_")[end]
-    end
     timestamp = Dates.format(DateTime(timestr, dateformat"yyyy-mm-ddTHH-MM-SSZ"),
                              dateformat"yyyy-mm-ddTHH:MM:SS")
     if startswith(commitHash, "v")
