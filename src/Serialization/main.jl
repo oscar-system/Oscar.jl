@@ -903,8 +903,8 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   # by hash characters rather than by upgrade state, which can wrongly skip upgrades.
   if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
     # we need a mutable dictionary
-    jsondict = copy(s.obj)
-    jsondict = upgrade(file_version, jsondict)
+    #jsondict = copy(s.obj[])
+    jsondict = upgrade(file_version, load_json(s, Dict{String, Any}))
     jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
