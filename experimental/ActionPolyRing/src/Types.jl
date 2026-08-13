@@ -67,7 +67,7 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.UniversalPolyRingElem{T}
  #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
  #   action_indeterminates(R::MyActionPolyRing) -> Vector{Symbols}
- #   n_action_maps(R::MyActionPolyRing) -> Int
+ #   action_maps(R::MyActionPolyRing) -> Vector{ActionMap}
  #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
  #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
  #   ranking(R::MyActionPolyRing{T}) -> ActionPolyRingRanking{MyActionPolyRing{T}}
@@ -111,7 +111,7 @@ abstract type ActionPolyRingElem{T} <: RingElem end
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.UniversalPolyRing{T}
   action_indeterminates::Vector{Symbol}
-  n_action_maps::Int
+  action_maps::Any #Always of type Vector{Union{TrivialActionShift{parent_type(T)}, NontrivialActionShift{parent_type(T)}}}
   are_perms_up_to_date::Bool
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}
@@ -119,22 +119,23 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type ActionPolyRanking{T, DifferencePolyRing{T}}
   permutation::Vector{Int}
 
-  function DifferencePolyRing{T}(R::Ring, n_action_indeterminates::Int, n_action_maps::Int) where {T}
+  function DifferencePolyRing{T}(R::D, n_action_indeterminates::Int, action_maps::Vector{<:Union{TrivialActionShift{D}, NontrivialActionShift{D}}}) where {D <: Ring, T}
     @req n_action_indeterminates >= 1 "The number of action indeterminates must be positive"
     action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
-    return DifferencePolyRing{T}(R, action_indeterminates, n_action_maps)
+
+    return DifferencePolyRing{T}(R, action_indeterminates, action_maps)
   end
  
-  function DifferencePolyRing{T}(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int) where {T}
+  function DifferencePolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:Union{TrivialActionShift{D}, NontrivialActionShift{D}}}) where {D <: Ring, T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
-    @req n_action_maps >= 1 "The number of endomorphisms must be positive"
+    @req !is_empty(action_maps) "The number of shift operators must be positive"
     upoly_ring = universal_polynomial_ring(R; cached = false)
     
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
     
-    return new{T}(upoly_ring, action_indeterminates, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
+    return new{T}(upoly_ring, action_indeterminates, action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
 end
@@ -158,30 +159,31 @@ end
 mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.UniversalPolyRing{T}
   action_indeterminates::Vector{Symbol}
-  n_action_maps::Int
+  action_maps::Any #Always of type Vector{Union{TrivialActionDerivation{parent_type(T)}, NontrivialActionDerivation{parent_type(T)}}}
   are_perms_up_to_date::Bool
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}
   var_to_jet::Any #Always of type Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}
   jet_to_upoly_idx::Dict{Tuple{Int, Vector{Int}}, Int}
-  ranking::Any #Alyways of type ActionPolyRanking{T, DifferentialPolyRing{T}}
+  ranking::Any #Always of type ActionPolyRanking{T, DifferentialPolyRing{T}}
   permutation::Vector{Int}
 
-  function DifferentialPolyRing{T}(R::Ring, n_action_indeterminates::Int, n_action_maps::Int) where {T}
+  function DifferentialPolyRing{T}(R::D, n_action_indeterminates::Int, action_maps::Vector{<:Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
     @req n_action_indeterminates >= 1 "The number of action indeterminates must be positive"
     action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
-    return DifferentialPolyRing{T}(R, action_indeterminates, n_action_maps)
+
+    return DifferentialPolyRing{T}(R, action_indeterminates, action_maps)
   end
  
-  function DifferentialPolyRing{T}(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int) where {T}
+  function DifferentialPolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
-    @req n_action_maps >= 1 "The number of endomorphisms must be nonnegative"
+    @req !is_empty(action_maps) "The number of derivations must be positive"
     upoly_ring = universal_polynomial_ring(R; cached = false)
-    
+        
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}()
     var_to_jet = Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
-    return new{T}(upoly_ring, action_indeterminates, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
+        
+    return new{T}(upoly_ring, action_indeterminates, action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
 end
