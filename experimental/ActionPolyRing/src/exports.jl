@@ -10,6 +10,8 @@ export DifferentialPolyRing
 export DifferentialPolyRingElem
 export action_derivation
 export action_indeterminates
+export action_map
+export action_maps
 export action_shift
 export apply_action
 export autoreduce
