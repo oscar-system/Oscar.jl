@@ -89,7 +89,7 @@ Affine variety
 defined by ideal (x, y)
 ```
 
-See also section [Supporting unicode printing](@ref) for additional information.
+See also section [Supporting unicode printing](@ref "Supporting Unicode printing") for additional information.
 
 ## LaTeX and HTML printing
 
