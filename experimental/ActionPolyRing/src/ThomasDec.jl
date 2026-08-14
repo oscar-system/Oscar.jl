@@ -252,7 +252,7 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
         break
       end
       
-      # Reduce by coefficients in the base ring 
+      # Reduce by elements in the coefficient ring 
       c_gcd = foldl(gcd, coefficients(p))
       if !isone(c_gcd)
         p = divexact(p, c_gcd)
