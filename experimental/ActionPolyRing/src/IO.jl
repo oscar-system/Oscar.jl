@@ -181,7 +181,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
     end
   end
 
-  if ld_ind == 0 # a is an element of the base ring
+  if ld_ind == 0 # a is an element of the coefficient ring
     return Expr(:call, :+, expressify(coeff(a, 1), context = context))  
   end
 

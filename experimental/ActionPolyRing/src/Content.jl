@@ -1031,58 +1031,6 @@ function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   return dpr(finish(C))
 end
 
-#=
-function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
-  dpr = parent(dpre)
-  @req i in 1:n_action_maps(dpr) "index out of range"
-
-  # Remove constant term: d_i(1) = 0
-  dpre -= constant_coefficient(dpre)
-
-  if is_zero(dpre)
-    return dpre
-  end
- 
-  d = fill(0, n_action_maps(dpr))
-  d[i] = 1
-  dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
-  add_new_vars_idx = filter(new_idx -> !haskey(__jtu_idx(dpr), new_idx), map(idx -> (idx[1], idx[2] + d), dpre_vars_idxs))
-  if !is_empty(add_new_vars_idx)
-    __add_new_jetvar!(dpr, add_new_vars_idx)
-  end
-  jtu = __jtu_idx(dpr)
-  old_to_new_pos = Dict{Int, Int}() #Dictionary that links the positions of old with new variables
-  for i in 1:length(dpre_vars_idxs)
-    (i, idx) = dpre_vars_idxs[i]
-    new_idx = jtu[(i, idx + d)]
-    old_to_new_pos[jtu[(i, idx)]] = new_idx
-  end 
-
-  upr = base_ring(dpr)
-  upre = data(dpre)
-  C = MPolyBuildCtx(upr)
-
-  for term in terms(upre)
-    coeff_t = coeff(term, 1)
-    vars_t = vars(term)
-    ev = append!(exponent_vector(term, 1), fill(0, ngens(upr) - length(exponent_vector(term, 1))))
-
-    for var in vars_t
-      var_pos = findfirst(==(var), gens(upr))
-      exp = ev[var_pos]
-      shifted_var_pos = old_to_new_pos[var_pos]
-
-      new_exp_vec = copy(ev)
-      new_exp_vec[var_pos] -= 1
-      new_exp_vec[shifted_var_pos] += 1
-
-      push_term!(C, coeff_t * exp, new_exp_vec)
-    end
-  end
-  return dpr(finish(C))
-end
-=#
-
 @doc raw"""
     apply_action(p::DifferencePolyRingElem, d::Vector{Int})
 
