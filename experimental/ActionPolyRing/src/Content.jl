@@ -106,7 +106,7 @@ end
     difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, action_maps::Vector{<:ActionShift}; kwargs...) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
 This constructor behaves exactly like and comes with the same features as [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
-but additionally allows the user to pass a custom vector of shift operators `action_maps`. In particular, this constructor allows for nontrivial shift operators/
+but additionally allows the user to pass a custom vector of shift operators `action_maps`. In particular, this constructor allows for nontrivial shift operators.
 
 # Examples
 ```jldoctest
@@ -121,7 +121,28 @@ julia> dpr, (u, v) = difference_polynomial_ring(S, [:u, :v], nontrivial_shifts)
 (Difference polynomial ring in 2 action indeterminates over S, DifferencePolyRingElem{QQPolyRingElem}[u[0,0], v[0,0]])
 ```
 """
+
+@doc raw"""
+    difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, action_maps::Vector{<:ActionShift}; kwargs...) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+
+This constructor behaves exactly like and comes with the same features as [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
+but additionally allows the user to pass a custom vector of shift operators `action_maps`. In particular, this constructor allows for nontrivial shift operators.
+
+# Examples
+```jldoctest
+julia> S, x = polynomial_ring(QQ, :x);
+
+julia> nontrivial_shifts = action_shift.([hom(S, S, x + 1), hom(S, S, x + 2)])
+2-element Vector{NontrivialActionShift{QQPolyRing}}:
+ Shift operator on S
+ Shift operator on S
+
+julia> dpr, (u, v) = difference_polynomial_ring(S, [:u, :v], nontrivial_shifts)
+(Difference polynomial ring in 2 action indeterminates over S, DifferencePolyRingElem{QQPolyRingElem}[u[0,0], v[0,0]])
+```
+"""
 function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  @req __are_probably_commuting(action_maps) "The shift operators do not commute on the coefficient ring"
   n_maps = length(action_maps)
   dpr = DifferencePolyRing{elem_type(D)}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -129,6 +150,7 @@ function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_m
 end
 
 function difference_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  @req __are_probably_commuting(action_maps) "The shift operators do not commute on the coefficient ring"
   n_maps = length(action_maps)
   dpr = DifferencePolyRing{elem_type(D)}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -263,6 +285,7 @@ julia> dpr, (u, v) = differential_polynomial_ring(S, [:u, :v], nontrivial_deriva
 ```
 """
 function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  @req __are_probably_commuting(action_maps) "The derivations do not commute on the coefficient ring"
   n_maps = length(action_maps)
   dpr = DifferentialPolyRing{elem_type(D)}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -270,6 +293,7 @@ function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action
 end
 
 function differential_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  @req __are_probably_commuting(action_maps) "The derivations do not commute on the coefficient ring"
   n_maps = length(action_maps)
   dpr = DifferentialPolyRing{elem_type(D)}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
