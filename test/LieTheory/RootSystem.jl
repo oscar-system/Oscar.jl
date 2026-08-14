@@ -316,9 +316,12 @@
       ("F4", root_system(:F, 4)),
       ("G2", root_system(:G, 2)),
     ]
+      @test iszero(dual(zero(RootSpaceElem, R)))
+      @test iszero(dual(zero(DualRootSpaceElem, R)))
+
       for i in 1:number_of_roots(R)
-        @test dual(root(R, i)) == coroot(R, i)
-        @test dual(coroot(R, i)) == root(R, i)
+        @test (@inferred dual(root(R, i))) == coroot(R, i)
+        @test (@inferred dual(coroot(R, i))) == root(R, i)
       end
 
       for _ in 1:10
