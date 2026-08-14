@@ -35,6 +35,32 @@ w2 = tune(w, my_choice; completeness_check=false)
   # @test fiber_ambient_space(tuned_w3) == fiber_ambient_space(w3)
 end
 
+# Check that tuning a parametrized model recomputes its defining sections without changing its source.
+parametrized_base = projective_space(NormalToricVariety, 2)
+parametrized_divisor = torusinvariant_prime_divisors(parametrized_base)[1]
+parametrized_w = literature_model(;
+  arxiv_id="1208.2695",
+  equation="B.19",
+  base_space=parametrized_base,
+  defining_classes=Dict("b" => parametrized_divisor),
+  completeness_check=false,
+  rng=Random.Xoshiro(1234),
+)
+source_sections = copy(explicit_model_sections(parametrized_w))
+source_parametrization = copy(model_section_parametrization(parametrized_w))
+x1, x2, _ = gens(coordinate_ring(base_space(parametrized_w)))
+parametrized_w2 = tune(
+  parametrized_w, Dict("b" => x2, "c2" => x1^6); completeness_check=false
+)
+
+@testset "Tuning of a parametrized Weierstrass model" begin
+  @test explicit_model_sections(parametrized_w2)["c2"] == x1^6
+  @test weierstrass_section_f(parametrized_w2) != weierstrass_section_f(parametrized_w)
+  @test weierstrass_section_g(parametrized_w2) != weierstrass_section_g(parametrized_w)
+  @test explicit_model_sections(parametrized_w) == source_sections
+  @test model_section_parametrization(parametrized_w) == source_parametrization
+end
+
 other_Kbar = anticanonical_bundle(projective_space(NormalToricVariety, 3))
 
 @testset "Error messages from tuning Weierstrass models over concrete toric base" begin

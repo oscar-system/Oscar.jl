@@ -9,6 +9,9 @@ Determine the fiber of a (singular) global Tate model over a particular base loc
 
 !!! warning
     This method may run for very long time and is currently not tested as part of the regular OSCAR CI due to its excessive run times.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 """
 function analyze_fibers(
   model::GlobalTateModel,
