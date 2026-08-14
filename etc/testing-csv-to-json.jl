@@ -8,7 +8,6 @@ injsonpath = "timing_summary.json"
 indict = isfile(injsonpath) ? JSON.parsefile(injsonpath) : JSON.parse("{}")
 filelist = readdir()
 filelist = filter(endswith("csv"), filelist)
-juliaVersion = join(split("$VERSION", ".")[1:2], ".")
 
 if isempty(indict)
     indict["jobs"] = Dict()

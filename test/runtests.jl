@@ -215,7 +215,7 @@ if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
   commitHash = metadata.commit
-  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(test_subset)_$(commitHash).csv"
+  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(replace("$test_subset", '_' => '-'))_$(commitHash).csv"
   open(joinpath(pkgdir(Oscar), statsFileName), "a") do io
     println(io, "path,time,ctime,rctime,gctime,alloc")
     DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in stats), ",")
