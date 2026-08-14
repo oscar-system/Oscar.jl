@@ -110,9 +110,8 @@ end
   @test_throws ArgumentError birational_literature_models(t1)
 end
 
-# Resolving a toric model must refresh ambient-dependent data without mutating the input.
-zero_section_index_t1 =
-  findfirst(==(:z), symbols(coordinate_ring(ambient_space(t1))))::Int
+# Toric resolution preserves base data and lazily rebuilds ambient divisor classes.
+zero_section_index_t1 = findfirst(==(:z), symbols(coordinate_ring(ambient_space(t1))))::Int
 zero_section_divisor_t1 = torusinvariant_prime_divisors(ambient_space(t1))[zero_section_index_t1]
 set_attribute!(t1, :zero_section_index => zero_section_index_t1)
 set_attribute!(
@@ -127,6 +126,8 @@ initial_exceptional_indices = copy(exceptional_divisor_indices(t1))
 t2 = resolve(t1, 1)
 
 @testset "Test resolving literature Tate model over concrete base" begin
+  @test !has_attribute(t2, :zero_section_class)
+  @test !has_attribute(t2, :exceptional_classes)
   @test zero_section_class(t1) === initial_zero_section_class
   @test toric_variety(zero_section_class(t1)) === ambient_space(t1)
   @test zero_section_index(t2) == zero_section_index_t1
@@ -136,6 +137,13 @@ t2 = resolve(t1, 1)
     completeness_check=false,
   )
   @test resolutions(t1) == resolution_data
+  @test classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes(t2) === D
+  @test classes_of_model_sections(t2) === classes_of_model_sections(t1)
+  @test discriminant(t2) === discriminant(t1)
+  @test singular_loci(t2) === singular_loci(t1)
+  @test !has_attribute(t2, :weierstrass_model)
+  @test !has_attribute(t2, :generating_sections)
+  @test has_attribute(t2, :zero_section_class)
   @test exceptional_divisor_indices(t1) == initial_exceptional_indices
   @test is_smooth(ambient_space(t2)) == false
   @test is_partially_resolved(t2) == true
@@ -144,6 +152,7 @@ t2 = resolve(t1, 1)
   @test length(exceptional_divisor_indices(t2)) ==
     length(exceptional_divisor_indices(t1)) + 5
   @test length(exceptional_classes(t2)) == length(exceptional_classes(t1)) + 5
+  @test has_attribute(t2, :exceptional_classes)
 end
 
 add_resolution!(

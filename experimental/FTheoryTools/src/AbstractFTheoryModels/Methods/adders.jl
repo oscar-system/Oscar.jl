@@ -251,6 +251,7 @@ julia> length(resolutions(m))
 function add_resolution!(
   m::AbstractFTheoryModel, centers::Vector{BlowupCenterType}, exceptionals::Vector{String}
 )
+  @req !isempty(centers) "A resolution must contain at least one blowup"
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
   new_entry = (centers, exceptionals)
   known_resolutions = get_attribute(

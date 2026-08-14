@@ -55,15 +55,17 @@ end
   @test isempty(exceptional_divisor_indices(tate_P3))
 end
 
-# Missing exceptional divisor attributes must expose inconsistent internal state.
-@testset "Missing exceptional divisor attributes" begin
+# Exceptional classes are lazy, but their defining indices are required.
+@testset "Missing exceptional divisor indices" begin
   message = "Required exceptional divisor data is missing; please inform the FTheoryTools authors"
-  for (getter, attribute) in (
-    (exceptional_classes, :exceptional_classes),
-    (exceptional_divisor_indices, :exceptional_divisor_indices),
-  )
+  model_without_class_cache = deepcopy(tate_P3)
+  delete!(model_without_class_cache.__attrs, :exceptional_classes)
+  @test isempty(exceptional_classes(model_without_class_cache))
+  for getter in (exceptional_classes, exceptional_divisor_indices)
     broken_model = deepcopy(tate_P3)
-    delete!(broken_model.__attrs, attribute)
+    delete!.(
+      Ref(broken_model.__attrs), (:exceptional_classes, :exceptional_divisor_indices)
+    )
     caught_error = try
       getter(broken_model)
       nothing
