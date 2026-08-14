@@ -26,10 +26,19 @@ The jet variables are sorted with respect to a user-defined [ranking](@ref actio
     currently tracked jet variables is obtained using
     [`gens`](@ref gens(apr::ActionPolyRing)).
 
-Currently, there are two concrete subtypes available, namely `DifferencePolyRing{T}` and
-`DifferentialPolyRing{T}` with element types `DifferencePolyRingElem{T}` and `DifferentialPolyRingElem{T}`.
-See [difference polynomial rings](@ref differencepolyring)
-and [differential polynomial rings](@ref differentialpolyring) for their unique functionality.
+Additionally, each action polynomial ring maintains a vector of pairwise commuting action maps associated with it. 
+These action maps are implemented via the new abstract type `ActionMap{D} <: Map{D,D,Any,Any}`, with type parameter
+`D <: Ring`.
+
+Depending on the type of the action polynomial ring, `ActionMap` branches into two core abstract subtypes:
+- `ActionShift`: Represents shift operators used in difference polynomial rings.
+- `ActionDerivation`: Represents derivations used in differential polynomial rings.
+
+---
+
+For details on the construction of both action maps and action polynomial rings, please refer to the following sections:
+- [Constructing difference polynomial rings](@ref differencepolyring_construction)
+- [Constructing differential polynomial rings](@ref differentialpolyring_construction)
 
 ## [Specifying jet variables](@id specifying_jet_variables)
 
@@ -92,6 +101,8 @@ zero(A::ActionPolyRing)
 one(A::ActionPolyRing)
 n_action_indeterminates(A::ActionPolyRing)
 action_indeterminates(A::DifferencePolyRing)
+action_maps(A::DifferencePolyRing)
+action_map(A::DifferencePolyRing, i::Int)
 n_action_maps(A::DifferencePolyRing)
 ```
 
