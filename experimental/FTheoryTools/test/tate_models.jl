@@ -18,6 +18,23 @@ section_a6 = generic_section(anticanonical_bundle(P3)^6; rng=our_rng)
 # Global Tate model over P3
 tate_P3 = global_tate_model(P3; completeness_check=false, rng=our_rng)
 
+# Check that conversion preserves source data without transferring model-dependent caches.
+source_hypersurface = calabi_yau_hypersurface(tate_P3)
+converted_model = weierstrass_model(tate_P3)
+converted_model_had_no_hypersurface =
+  !has_attribute(converted_model, :calabi_yau_hypersurface)
+converted_hypersurface = calabi_yau_hypersurface(converted_model)
+
+@testset "Tate-to-Weierstrass conversion cache ownership" begin
+  @test converted_model_had_no_hypersurface
+  @test converted_hypersurface !== source_hypersurface
+  @test defining_ideal(converted_hypersurface) ==
+    ideal([weierstrass_polynomial(converted_model)])
+  @test defining_ideal(converted_hypersurface) != ideal([tate_polynomial(tate_P3)])
+  @test defining_classes(converted_model) == defining_classes(tate_P3)
+  @test defining_classes(converted_model) !== defining_classes(tate_P3)
+end
+
 @testset "Attributes of global Tate models over concrete base space" begin
   @test parent(tate_section_a1(tate_P3)) == coordinate_ring(base_space(tate_P3))
   @test parent(tate_section_a2(tate_P3)) == coordinate_ring(base_space(tate_P3))
@@ -165,6 +182,45 @@ tate_generic_nonminimal = global_tate_model(
   @test is_base_space_fully_specified(tate_generic_I5s) == false
   @test is_base_space_fully_specified(tate_generic_I5s) ==
     is_base_space_fully_specified(weierstrass_model(tate_generic_I5s))
+end
+
+# Test specialization of a parametrized Tate model to a concrete toric base.
+@testset "Put global Tate model over concrete base" begin
+  generic_model = literature_model(;
+    arxiv_id="1109.3454",
+    equation="3.1",
+    completeness_check=false,
+    rng=Random.Xoshiro(1234),
+  )
+  divisor_bundle = toric_line_bundle(torusinvariant_prime_divisors(P3)[1])
+  anticanonical = anticanonical_bundle(P3)
+  concrete_data = Dict{String,Any}(
+    "base" => P3,
+    "w" => generic_section(divisor_bundle; rng=Random.Xoshiro(1)),
+    "a21" => generic_section(anticanonical^2 * divisor_bundle^(-1); rng=Random.Xoshiro(2)),
+    "a32" => generic_section(anticanonical^3 * divisor_bundle^(-2); rng=Random.Xoshiro(3)),
+    "a43" => generic_section(anticanonical^4 * divisor_bundle^(-3); rng=Random.Xoshiro(4)),
+  )
+  specialized_model = put_over_concrete_base(
+    generic_model,
+    concrete_data;
+    completeness_check=false,
+    rng=Random.Xoshiro(1234),
+  )
+  @test base_space(specialized_model) === P3
+  sections = [
+    tate_section_a1(specialized_model),
+    tate_section_a2(specialized_model),
+    tate_section_a3(specialized_model),
+    tate_section_a4(specialized_model),
+    tate_section_a6(specialized_model),
+  ]
+  @test all(section -> parent(section) === coordinate_ring(P3), sections)
+  @test degree.(sections[1:4]) ==
+    degree.([
+    generic_section(anticanonical^k; rng=Random.Xoshiro(k)) for k in 1:4
+  ])
+  @test iszero(sections[5])
 end
 
 @testset "Error messages in global Tate models over generic base space" begin

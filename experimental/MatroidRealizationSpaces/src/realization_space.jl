@@ -608,7 +608,7 @@ function gens_2_prime_divisors(Sgens::Vector{<:RingElem})
 end
 
 function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
-  for f in Sgens
+  for f in sort(Sgens; by=total_degree)
     I = saturation(I, ideal([f]))
   end
   return I
@@ -874,6 +874,20 @@ function matrix_clear_den(X::Oscar.MatElem)
   return X
 end
 
+# Compare the complexity of the realization matrix before and after a
+# substitution step of reduce_ideal_one_step. The step is considered a blow-up
+# if the maximal total degree of the entries grows by more than 1 or the total
+# number of terms grows by more than 20% (and at least 4 terms).
+function _matrix_complexity_blows_up(X::Oscar.MatElem, nX::Oscar.MatElem)
+  entries = [X[i, j] for i in 1:nrows(X) for j in 1:ncols(X)]
+  new_entries = [nX[i, j] for i in 1:nrows(nX) for j in 1:ncols(nX)]
+  maxdeg = maximum(total_degree, entries)
+  new_maxdeg = maximum(total_degree, new_entries)
+  nterms = sum(length, entries)
+  new_nterms = sum(length, new_entries)
+  return new_maxdeg > maxdeg + 1 || new_nterms > nterms + max(4, div(nterms, 5))
+end
+
 function reduce_ideal_one_step(
   MRS::MatroidRealizationSpace, elim::Vector{<:RingElem}, fullyReduced::Bool
 )
@@ -903,11 +917,19 @@ function reduce_ideal_one_step(
     end
 
     Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs)
-    push!(elim, x)
 
     phiX = matrix(FR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
     nX_FR = matrix_clear_den(phiX)
     nX = matrix(R, [numerator(nX_FR[i, j]) for i in 1:nr, j in 1:nc])
+
+    # Only eliminate x if the substitution does not blow up the realization
+    # matrix: denser, higher-degree entries make every downstream Groebner
+    # computation (e.g. saturations) drastically more expensive than the
+    # variable elimination gains.
+    if _matrix_complexity_blows_up(X, nX)
+      continue
+    end
+    push!(elim, x)
 
     GBnew = collect(groebner_basis(ideal(R, Igens_new)))
 
