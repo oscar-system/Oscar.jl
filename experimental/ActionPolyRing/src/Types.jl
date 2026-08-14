@@ -13,7 +13,7 @@ abstract type ActionMap{D <: Ring} <: Map{D, D, Any, Any} end
 abstract type ActionShift{D <: Ring} <: ActionMap{D} end
 
 struct TrivialActionShift{D <: Ring} <: ActionShift{D}
-  base_ring::D
+  domain::D
 end
 
 struct NontrivialActionShift{D <: Ring} <: ActionShift{D}
@@ -32,7 +32,7 @@ end
 abstract type ActionDerivation{D <: Ring} <: ActionMap{D} end
 
 struct TrivialActionDerivation{D <: Ring} <: ActionDerivation{D}
-  base_ring::D
+  domain::D
 end
 
 struct NontrivialActionDerivation{D <: Ring} <: ActionDerivation{D}

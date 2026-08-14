@@ -38,8 +38,8 @@ function action_shift(m::Map{D, D}; check::Bool=true) where {D <: Ring}
 end
 
 ### Getters
-domain(m::Union{TrivialActionDerivation, TrivialActionShift}) = m.base_ring
-codomain(m::Union{TrivialActionDerivation, TrivialActionShift}) = m.base_ring
+domain(m::Union{TrivialActionDerivation, TrivialActionShift}) = m.domain
+codomain(m::Union{TrivialActionDerivation, TrivialActionShift}) = domain(m)
 
 __underlying_map(m::Union{NontrivialActionDerivation, NontrivialActionShift}) = m.underlying_map
 
