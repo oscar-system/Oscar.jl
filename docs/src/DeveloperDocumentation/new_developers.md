@@ -117,7 +117,8 @@ to define helper functions that are used in multiple test files, for example
 `test_save_load_roundtrip` for serialization.
 
 ### Adding documentation
-For more information on docstrings, please read our page on [Documenting Code](@ref).  There are two places where documentation can be added:
+For more information on docstrings, please read our page on [Documenting Code](@ref).
+There are two places where documentation can be added:
 1. In the docstrings above the functions in the `src` folder;
 2. In the documentation files in the `docs/src` folder. The overall structure
    is fixed in the file `docs/doc.main`. If you create a new file in

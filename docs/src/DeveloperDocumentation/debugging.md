@@ -194,7 +194,7 @@ Instead of writing `x = a + b` to compute a sum, one writes `x = add!(x, a, b)`
 with the idea that the object to which `x` is pointing is modified instead of
 having `x` point to a newly allocated object. In order for this to work, `x`
 must point to a *fully independent* object, that is, an object whose
-modification through the interface [Unsafe operators](@ref "Unsafe ring operators") will not change
+modification through the interface [Unsafe ring operators](@ref) will not change
 the values of other existing objects.
 The actual definition of "fully independent" is left to the implementation of
 the ring element type. For example, there is no distinction for immutables.

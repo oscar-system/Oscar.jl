@@ -933,11 +933,11 @@ Return an abstract variety by specifying its dimension `n` and its Chow ring `A`
     We allow (graded) polynomial rings here since for the construction of a new abstract variety,
     the expert user may find it convenient to start from the underlying graded polynomial ring of the Chow ring,
     and add its defining relations step by step. In fact, not all applications require that we specify all
-    relations. See section [Some Particular Constructions](@ref "Some particular constructions") of the documentation for an example.
+    relations. See section [Some particular constructions](@ref) of the documentation for an example.
 
 !!! note
     In addition to the dimension and the Chow ring, further data making up an abstract variety can be set.
-    See the corresponding setter functions in the section [Some Particular Constructions](@ref "Some particular constructions") of the documentation.
+    See the corresponding setter functions in the section [Some particular constructions](@ref) of the documentation.
 
 # Examples
 ```jldoctest
