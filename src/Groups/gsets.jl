@@ -1685,30 +1685,6 @@ function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) 
   return [(orbreps2[i], stabs[i]) for i in 1:length(res)]
 end
 
-# Compute orbit representatives and their stabilizers over `GF(2)` using Hecke's
-# native Schreier-Sims (`orbit_representatives_and_stabilizers_mod_2`), which
-# returns a strong generating set of each stabilizer directly, avoiding a GAP
-# stabilizer computation.
-function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) where E<: FinFieldElem
-  @assert order(base_ring(G))==2
-  F = base_ring(G)
-  n = degree(G)
-  V = vector_space(F, n)
-  k == 0 && return [(sub(V, [])[1], G)]
-  if order(G)>1
-    gens_mat = matrix.(small_generating_set(G))
-  else 
-    gens_mat = [identity_matrix(F,n)]
-  end
-  res = Hecke.orbit_representatives_and_stabilizers_mod_2(gens_mat, k; group_order=order(G))
-  orbreps = first.(res)
-  orbreps2 = [sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1] for M in orbreps]
-  # The stabilizer generators are 0/1 matrices that are genuine elements of `G`
-  # (products of the given generators), so membership need not be re-checked.
-  stabs = [sub(G, elem_type(G)[G(map_entries(F, s); check = false) for s in r[3]])[1] for r in res]
-  return [(orbreps2[i], stabs[i]) for i in 1:length(res)]
-end
-
 function _orbit_representatives_and_stabilizers_gset_gap(G::MatGroup{E}, k::Int) where E <: FinFieldElem
   n = degree(G)
   V = vector_space(base_ring(G), n)
