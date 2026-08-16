@@ -154,7 +154,7 @@ Enumerate all realizable separatrix lengths and cylinder heights
 for square-tiled surfaces of total area `degree`.
 
 This is a translation of surface_dynamics' `CylinderDiagram.widths_and_heights_iterator`.
-https://flatsurf.github.io/surface-dynamics/
+https://flatsurf.github.io/surface-dynamics/, last changed on 07/08/2026.
 """
 function possible_lengths_and_heights(cyl_diagram::CylinderDiagram, degree::Int)
 
