@@ -73,7 +73,6 @@ end
 function System(I::MPolyIdeal{QQMPolyRingElem}; args...)
   R = base_ring(I)
   return HomotopyContinuation.System(Expression.(gens(I)); variables=Variable.(symbols(R)), args...)
-
 end
 
 function Oscar.solve_numerical(I::Vector{QQMPolyRingElem}; show_progress=false, threading=false, args...)
