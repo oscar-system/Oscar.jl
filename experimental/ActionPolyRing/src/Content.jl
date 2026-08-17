@@ -463,7 +463,7 @@ parent(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.par
 @doc raw"""
     coeff(p::ActionPolyRingElem, i::Int)
 
-Return coefficient of the `i`-th term of `p`.
+Return the coefficient of the `i`-th term of `p`.
 """
 coeff(apre::ActionPolyRingElem, i::Int) = coeff(data(apre), __perm_for_sort_poly(apre)[i])
 
