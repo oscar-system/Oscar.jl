@@ -21,7 +21,7 @@ julia> p = x* y^2 + x^2
 x^2 + x*y^2
 
 julia> Expression(p)
-1.0*x*y^2 + 1.0*x^2
+x*y^2 + x^2
 ```
 """
 function Expression(f::QQMPolyRingElem)
@@ -53,15 +53,15 @@ julia> System(I)
 System of length 2
  2 variables: x, y
 
- -1.0*x*y + 1.0*x^2
- -1.0*x + 1.0*y^2
+ -x*y + x^2
+ -x + y^2
 
 julia> System(gens(I))
 System of length 2
  2 variables: x, y
 
- -1.0*x*y + 1.0*x^2
- -1.0*x + 1.0*y^2
+ -x*y + x^2
+ -x + y^2
 ```
 """
 function System(F::Vector{QQMPolyRingElem}; args...)
