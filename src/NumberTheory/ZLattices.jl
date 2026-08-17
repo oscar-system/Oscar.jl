@@ -222,13 +222,24 @@ function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, ca
 end
 
 
-function _get_edge_labeled_graph(cv_set::Vector{Union{ZZMatrix, Matrix{Int}}}, gram::ZZMatrix)
+function _get_edge_labeled_graph(cv_set::Union{Vector{ZZMatrix}, Vector{Matrix{Int}}}, gram::ZZMatrix)
+  vectors = []
   if cv_set[1] isa Matrix{Int}
-    return _get_edge_labeled_graph_inner(cv_set, gram, LinearAlgebra.mul!)
+    result = cv_set
+    return _get_edge_labeled_graph_inner(cv_set, Matrix{Int}(gram), vectors)
   else 
-    n = maximum(v -> (v*gram*transpose(v))[1], cv_set)
-    if n^2 < typemax(Int) # convert to Int
-      result = [Matrix{Int}(undef, m, n) for _ in eachindex(cv_set)]
+    n = ZZ(typemin(Int))
+    for v in cv_set
+      s = 0
+      for i in axes(gram, 1)
+        for j in axes(gram, 2)
+          s += v[i] * gram[i, j] * v[j]
+        end
+      end
+    n = max(n, s)
+    end
+    if n^2 < ZZ(typemax(Int)) # check Cauchy-Schwarz inequality and convert to Int if holds
+      result = [Matrix{Int}(undef,1, length(v)) for v in cv_set]
       for k in eachindex(cv_set)
           A = cv_set[k]
           B = result[k]
@@ -239,25 +250,31 @@ function _get_edge_labeled_graph(cv_set::Vector{Union{ZZMatrix, Matrix{Int}}}, g
               end
           end
       end
-      return _get_edge_labeled_graph_inner(result, gram, LinearAlgebra.mul!)
     else 
-      _get_edge_labeled_graph_inner(cv_set, gram, mul!)
+      push!(vectors, zero_matrix(ZZ, 1, number_of_columns(gram)))
+      push!(vectors, zero_matrix(ZZ, number_of_rows(gram), 1))
+      push!(vectors, zero_matrix(ZZ, 1, 1))
+      return _get_edge_labeled_graph_inner(cv_set, gram, vectors)
     end
   end
+  push!(vectors, Matrix{Int}(undef, 1, number_of_columns(gram)))
+  push!(vectors, Matrix{Int}(undef, number_of_rows(gram), 1))
+  push!(vectors, Matrix{Int}(undef, 1, 1))
+  return _get_edge_labeled_graph_inner(result, Matrix{Int}(gram), vectors)
 end
 
-function _get_edge_labeled_graph_inner(cv_set::Vector{ZZMatrix}, gram::ZZMatrix, usedMul!::Function)
+function _get_edge_labeled_graph_inner(cv_set::Union{Vector{ZZMatrix}, Vector{Matrix{Int}}}, gram::Union{ZZMatrix, Matrix{Int}}, vectors::Vector{Any})
   p = length(cv_set)
   res_graph = graph(Undirected, p+2)
   max_w = QQ(0) # we need to use QQ element, as graph can be created only with this type of weights
   label!(res_graph, Dict{Tuple{Int64, Int64}, QQFieldElem,}(), nothing; name=:edge)
-  v_i = zero_matrix(ZZ, 1, number_of_columns(gram))
-  t_i = zero_matrix(ZZ, number_of_rows(gram), 1)
-  w_i = zero_matrix(ZZ, 1, 1)
+  v_i = vectors[1]
+  t_i = vectors[2]
+  w_i = vectors[3]
   for i = 1:p 
-    v_i = usedMul!(v_i, cv_set[i], gram)
+    v_i = mul!(v_i, cv_set[i], gram)
     for j = i+1:p
-      w_i = usedMul!(w_i, v_i, transpose!(t_i, cv_set[j]))
+      w_i = mul!(w_i, v_i, transpose!(t_i, cv_set[j]))
       w = Int64(w_i[1])
       if w>max_w
         max_w = w
@@ -266,7 +283,7 @@ function _get_edge_labeled_graph_inner(cv_set::Vector{ZZMatrix}, gram::ZZMatrix,
       res_graph.edge[i, j] = w
     end
     add_edge!(res_graph, i, p+1)
-    w_i = usedMul!(w_i, v_i, transpose!(t_i, cv_set[i]))
+    w_i = mul!(w_i, v_i, transpose!(t_i, cv_set[i]))
     w = Int64(w_i[1])
     res_graph.edge[i, p+1] = w
   end
