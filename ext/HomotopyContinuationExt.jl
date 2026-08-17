@@ -64,8 +64,13 @@ System of length 2
  -1.0*x + 1.0*y^2
 ```
 """
-System(I::Vector{QQMPolyRingElem}; args...) = System(Expression.(I); args...)
-System(I::MPolyIdeal{QQMPolyRingElem}; args...) = System(gens(I); args...)
+function System(F::Vector{QQMPolyRingElem}; args...)
+  R = parent(first(F))
+  all(f -> parent(f) === R, F) || throw(ArgumentError("All polynomials must have the same parent"))
+  return HomotopyContinuation.System(Expression.(F); variables=Variable.(symbols(R)), args...)
+end
+
+function System(I::MPolyIdeal{QQMPolyRingElem}; args...) = System(gens(I); args...)
 
 function Oscar.solve_numerical(I::Vector{QQMPolyRingElem}; show_progress=false, threading=false, args...)
   return HomotopyContinuation.solve(System(I); show_progress=show_progress, threading=threading, args...)
