@@ -212,7 +212,7 @@ function characteristic_vectors(L::ZZLat)
   return cvL
 end
 
-function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, canonical_ordering::Vector{Int})::ZZMatrix
+function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, canonical_ordering::Vector{Int})
   p = length(char_vectors_set)
   filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
   can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
@@ -221,7 +221,32 @@ function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, ca
   return transpose(U_inv)*A*U_inv
 end
 
-function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Graph{Undirected}
+
+function _get_edge_labeled_graph(cv_set::Vector{Union{ZZMatrix, Matrix{Int}}}, gram::ZZMatrix)
+  if cv_set[1] isa Matrix{Int}
+    return _get_edge_labeled_graph_inner(cv_set, gram, LinearAlgebra.mul!)
+  else 
+    n = maximum(v -> (v*gram*transpose(v))[1], cv_set)
+    if n^2 < typemax(Int) # convert to Int
+      result = [Matrix{Int}(undef, m, n) for _ in eachindex(cv_set)]
+      for k in eachindex(cv_set)
+          A = cv_set[k]
+          B = result[k]
+
+          for j in axes(A, 2)
+              for i in axes(A, 1)
+                  B[i, j] = Int(A[i, j])
+              end
+          end
+      end
+      return _get_edge_labeled_graph_inner(result, gram, LinearAlgebra.mul!)
+    else 
+      _get_edge_labeled_graph_inner(cv_set, gram, mul!)
+    end
+  end
+end
+
+function _get_edge_labeled_graph_inner(cv_set::Vector{ZZMatrix}, gram::ZZMatrix, usedMul!::Function)
   p = length(cv_set)
   res_graph = graph(Undirected, p+2)
   max_w = QQ(0) # we need to use QQ element, as graph can be created only with this type of weights
@@ -229,16 +254,10 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Grap
   v_i = zero_matrix(ZZ, 1, number_of_columns(gram))
   t_i = zero_matrix(ZZ, number_of_rows(gram), 1)
   w_i = zero_matrix(ZZ, 1, 1)
-  n = maximum(v -> (v*gram*transpose(v))[1], cv_set)
-  if n^2 < typemax(Int)
-    usedMul! = mul!
-  else 
-    usedMul! = LinearAlgebra.mul!
-  end
   for i = 1:p 
-    usedMul!(v_i, cv_set[i], gram)
+    v_i = usedMul!(v_i, cv_set[i], gram)
     for j = i+1:p
-      usedMul!(w_i, v_i, transpose!(t_i, cv_set[j]))
+      w_i = usedMul!(w_i, v_i, transpose!(t_i, cv_set[j]))
       w = Int64(w_i[1])
       if w>max_w
         max_w = w
@@ -247,7 +266,7 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)::Grap
       res_graph.edge[i, j] = w
     end
     add_edge!(res_graph, i, p+1)
-    usedMul!(w_i, v_i, transpose!(t_i, cv_set[i]))
+    w_i = usedMul!(w_i, v_i, transpose!(t_i, cv_set[i]))
     w = Int64(w_i[1])
     res_graph.edge[i, p+1] = w
   end
@@ -272,7 +291,7 @@ We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
     We do not give any guarantees that the canonical form stays the same 
     between different versions of Oscar.
 """
-function canonical_form(L::ZZLat)::ZZMatrix
+function canonical_form(L::ZZLat)
   gram = matrix(ZZ, gram_matrix(L))
   char_vectors_set = characteristic_vectors(L)
   graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
