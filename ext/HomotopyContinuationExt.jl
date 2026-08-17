@@ -29,7 +29,7 @@ function Expression(f::QQMPolyRingElem)
   # same as the ones in the Oscar polynomial f.
   v = Variable.(symbols(parent(f)))
   # Make the HomotopyContinuation expression
-  return sum(Rational{Int}(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f))
+  return sum(Rational{Int}(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f); init=Expression(0))
 end
 
 @doc raw"""
