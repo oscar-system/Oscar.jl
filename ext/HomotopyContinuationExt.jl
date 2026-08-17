@@ -70,7 +70,11 @@ function System(F::Vector{QQMPolyRingElem}; args...)
   return HomotopyContinuation.System(Expression.(F); variables=Variable.(symbols(R)), args...)
 end
 
-function System(I::MPolyIdeal{QQMPolyRingElem}; args...) = System(gens(I); args...)
+function System(I::MPolyIdeal{QQMPolyRingElem}; args...)
+  R = base_ring(I)
+  return HomotopyContinuation.System(Expression.(gens(I)); variables=Variable.(symbols(R)), args...)
+
+end
 
 function Oscar.solve_numerical(I::Vector{QQMPolyRingElem}; show_progress=false, threading=false, args...)
   return HomotopyContinuation.solve(System(I); show_progress=show_progress, threading=threading, args...)
