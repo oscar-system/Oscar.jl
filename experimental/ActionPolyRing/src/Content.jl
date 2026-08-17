@@ -317,7 +317,7 @@ end
 ### Union ###
 (apr::ActionPolyRing)() = elem_type(apr)(apr)
 (apr::ActionPolyRing)(upre::AbstractAlgebra.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
-(apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
+(apr::ActionPolyRing)(mpre::MPolyRingElem) = apr(base_ring(apr)(mpre))
 (apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(base_ring(apr)(a))
 
 ### Difference ###
@@ -1532,6 +1532,8 @@ rand(apr::ActionPolyRing, term_range, exp_bound, v...) = rand(Random.default_rng
 
 ConformanceTests.generate_element(R::ActionPolyRing{ZZRingElem}) = rand(R, 0:4, 0:10, -10:10)
 ConformanceTests.generate_element(R::ActionPolyRing{ZZModRingElem}) = rand(R, 0:4, 0:10, -10:10)
+ConformanceTests.generate_element(R::ActionPolyRing{QQPolyRingElem}) = rand(R, 0:4, 0:5, 0:2, -10:10)
+ConformanceTests.generate_element(R::ActionPolyRing{QQMPolyRingElem}) = rand(R, 0:4, 0:5, 0:2, 0:2, -10:10)
 
 ###############################################################################
 #

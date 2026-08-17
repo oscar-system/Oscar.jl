@@ -33,7 +33,7 @@
     @test d_QQ(QQ(4//9)) == 0
   end
 
-  @testset "Univariate polynomial rings and derivatives" begin
+  @testset "Univariate polynomial rings" begin
     R, x = polynomial_ring(QQ, :x)
     
     zero_R = action_derivation(map_from_func(R, R, p -> zero(R)))
