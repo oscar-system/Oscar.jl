@@ -113,7 +113,7 @@ but additionally allows the user to pass a custom vector of shift operators `act
 julia> S, x = polynomial_ring(QQ, :x);
 
 julia> nontrivial_shifts = action_shift.([hom(S,S,x+1), hom(S,S,-x)])
-2-element Vector{NontrivialActionShift{QQPolyRing}}:
+2-element Vector{Oscar.NontrivialActionShift{QQPolyRing}}:
  Shift operator on S
  Shift operator on S
 
@@ -133,7 +133,7 @@ but additionally allows the user to pass a custom vector of shift operators `act
 julia> S, x = polynomial_ring(QQ, :x);
 
 julia> nontrivial_shifts = action_shift.([hom(S, S, x + 1), hom(S, S, x + 2)])
-2-element Vector{NontrivialActionShift{QQPolyRing}}:
+2-element Vector{Oscar.NontrivialActionShift{QQPolyRing}}:
  Shift operator on S
  Shift operator on S
 
