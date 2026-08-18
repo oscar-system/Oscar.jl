@@ -36,9 +36,9 @@ Depending on the type of the action polynomial ring, `ActionMap` branches into t
 
 ---
 
-For details on the construction of both action maps and action polynomial rings, please refer to the following sections:
-- [Constructing difference polynomial rings](@ref differencepolyring_construction)
-- [Constructing differential polynomial rings](@ref differentialpolyring_construction)
+For detailed information on constructing specific action polynomial rings, see:
+- [Difference polynomial rings](@ref differencepolyring_construction)
+- [Differential polynomial rings](@ref differentialpolyring_construction)
 
 ## [Specifying jet variables](@id specifying_jet_variables)
 
