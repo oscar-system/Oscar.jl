@@ -753,16 +753,6 @@ end
 #
 ################################################################################
 
-@attributes mutable struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
-   X::T
-   repr::S
-   CC::GapObj
-
-   function GAPGroupConjClass(G::T, obj::S, C::GapObj) where T<:GAPGroup where S<:Union{GAPGroupElem, GAPGroup}
-     return new{T, S}(G, obj, C, Dict{Symbol,Any}())
-   end
-end
-
 GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
 Base.eltype(::Type{GAPGroupConjClass{T,S}}) where {T,S} = S

@@ -32,7 +32,7 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
 as a `K`-vector space, `false` otherwise.
 
-!!! note 
+!!! note
     `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
     less or equal to zero. This condition is checked by the function.
 
@@ -147,7 +147,7 @@ end
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
-Given an affine algebra `A` which is graded by a free group of type `FinGenAbGroup`, 
+Given an affine algebra `A` which is graded by a free group of type `FinGenAbGroup`,
 and which is defined over a field `K`, say, and given an element `g` of the free group,
 return a vector of monomials of `R` such that the residue classes of
 these monomials form a `K`-basis of the graded component of `A` of degree `g`.
@@ -167,7 +167,7 @@ group of `A` and proceed as above.
 !!! note
     The function first computes a monomial basis of the `g`-graded component of `base_ring(A)`.
     If this component is infinite dimensional, an error message will be thrown. This does not
-    neccessarily mean, however, that the `g`-graded component of `A` itself is infinite dimensional.
+    necessarily mean, however, that the `g`-graded component of `A` itself is infinite dimensional.
     In the case where `A` has Krull dimension zero, you may alternatively enter `monomial_basis(A)`
     to obtain a monomial basis for all of `A`.
 
@@ -1829,7 +1829,7 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   BRtoR = hom(BR, R, ba[1:b])
   RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
-  
+
   # compute the ideal J of the graph of F
   Rels = [ba[b+i]-BRtoR(m) for (i,m) in enumerate(M)]
   if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoR(g)) end end
