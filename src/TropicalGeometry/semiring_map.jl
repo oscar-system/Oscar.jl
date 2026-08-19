@@ -346,8 +346,8 @@ julia> nu(0)
 ```
 """
 function tropical_semiring_map(R::PuiseuxMPolyRing, t::PuiseuxMPolyRingElem, minOrMax::Union{typeof(min),typeof(max)}=min)
-    @assert ngens(R) == 1 "The tropical_semiring_map is only implemented for Puiseux polynomial rings in one variable."
-    @assert t == first(gens(R)) "The uniformizer must be the generator of the Puiseux polynomial ring."
+    @req ngens(R) == 1 "The tropical_semiring_map is only implemented for Puiseux polynomial rings in one variable."
+    @req t == first(gens(R)) "The uniformizer must be the generator of the Puiseux polynomial ring."
 
     valuedField = nothing
     uniformizerField = nothing
