@@ -42,4 +42,14 @@ G_2_4_1 = graph_from_edges(Directed, [[8,1],[4,8],[5,8],[5,9],[9,10],[9,4],[4,6]
 
 # unbalanced hexagon 
 
-G_2_4_2 = graph_from_edges(Directed,)
+G_2_4_2 = graph_from_edges(Directed,[[]])
+
+#function which glues two cycles along an edge e 
+
+quad = graph_from_edges(Directed, [[1,2],[2,3],[1,4],[3,4]])
+pent = graph_from_edges(Directed, [[1,2],[1,5],[2,3],[3,4],[4,5]])
+
+function glue_cycles(G,H,e)
+
+
+end 
