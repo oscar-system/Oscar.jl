@@ -14,6 +14,9 @@ parent_type(::Type{ZZCliffordOrderElem}) = ZZCliffordOrder
 base_ring_type(::Type{CliffordOrder{T, C}}) where {T, C} = parent_type(T)
 base_ring_type(::Type{ZZCliffordOrder}) = ZZRing
 
+coefficient_ring_type(::Type{CliffordOrder{T, C}}) where {T, C} = parent_type(T)
+coefficient_ring_type(::Type{ZZCliffordOrder}) = ZZRing
+
 is_domain_type(::Type{CliffordOrderElem{T, C, S}}) where {T, C, S} = false
 is_domain_type(::Type{ZZCliffordOrderElem}) = false
 
@@ -235,6 +238,9 @@ Return the base ring of the Clifford order `C`.
 """
 base_ring(C::CliffordOrder) = C.base_ring::base_ring_type(typeof(C))
 base_ring(C::ZZCliffordOrder) = C.base_ring::ZZRing
+
+coefficient_ring(C::CliffordOrder) = base_ring(C)
+coefficient_ring(C::ZZCliffordOrder) = base_ring(C)
 
 @doc raw"""
     ambient_algebra(C::Union{CliffordOrder, ZZCliffordOrder}) -> CliffordAlgebra
@@ -876,21 +882,19 @@ is_odd(x::Union{CliffordOrderElem, ZZCliffordOrderElem}) = (odd_part(x) == x)
 
 #############################################################
 #
-#  Promotion rules 
+#  Promotion rules
 #
 #############################################################
 
-function AbstractAlgebra.promote_rule(::Type{COE}, ::Type{V}) where
-        {T<:RingElement, S, COE<:CliffordOrderElem{T, S}, V<:RingElement}
-    AbstractAlgebra.promote_rule(T, V) == T ? COE : Union{}
+function AbstractAlgebra.promote_rule(::Type{CliffordOrderElem{T, S}}, ::Type{V}) where {T<:RingElement, S, V<:RingElement}
+  AbstractAlgebra.promote_rule(T, V) == T ? CliffordOrderElem{T, S} : Union{}
 end
 
-AbstractAlgebra.promote_rule(::Type{COE}, ::Type{COE}) where
-        {T<:RingElement, S, COE<:CliffordOrderElem{T, S}} = COE
+AbstractAlgebra.promote_rule(::Type{CliffordOrderElem{T, S}}, ::Type{CliffordOrderElem{T, S}}) where {T<:RingElement, S} = CliffordOrderElem{T, S}
 
 ### ZZ ###
 function AbstractAlgebra.promote_rule(::Type{ZZCliffordOrderElem}, ::Type{V}) where {V<:RingElement}
-    AbstractAlgebra.promote_rule(ZZRingElem, V) == ZZRingElem ? ZZCliffordOrderElem : Union{}
+  AbstractAlgebra.promote_rule(ZZRingElem, V) == ZZRingElem ? ZZCliffordOrderElem : Union{}
 end
 
 AbstractAlgebra.promote_rule(::Type{ZZCliffordOrderElem}, ::Type{ZZCliffordOrderElem}) = ZZCliffordOrderElem
