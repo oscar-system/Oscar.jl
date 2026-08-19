@@ -21,6 +21,7 @@ G_2_2 = graph_from_edges(Directed, [[3,1],[4,2],[5,4],[6,4],[5,3],[6,3],[7,5],[7
 
 #diamond with "interior leaf" 
 
+#FIXME: doesn't have the right leaf set, apply a permutation to fix this! 
 G_2_3_1 =  graph_from_edges(Directed, [[3,1],[4,2],[5,4],[6,4],[5,3],[6,3],[7,5],[7,6],[7,8]])
 
 A = [[3,1],[4,2],[5,4],[6,4],[5,3],[6,3],[7,5],[7,6],[7,8]] 
@@ -34,6 +35,9 @@ G_2_3_2 = graph_from_edges(Directed, [[8,1],[4,8],[5,8],[5,4],[4,6],[5,7],[7,6],
 # 4 leaves 
 
 #pentagon with "interior leaf" 
+
+#FIXME: doesn't have the right leaf set, apply a permutation to fix this! 
+
 G_2_4_1 = graph_from_edges(Directed, [[8,1],[4,8],[5,8],[5,9],[9,10],[9,4],[4,6],[5,7],[7,6],[6,2],[7,3]] ) 
 
 # unbalanced hexagon 
