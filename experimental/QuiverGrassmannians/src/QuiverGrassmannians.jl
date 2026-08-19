@@ -25,12 +25,12 @@ end
 #Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
 struct QuiverRepresentation
     quiver::Graph{Directed}
+struct QuiverRepresentation{C <: FieldElem}
+    quiver::Graph{Directed}
     ambient_dims::Vector{Int}
-    vertex_vector_spaces::Vector
-    edge_morphisms::Vector{<:MatElem}
-QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
-
-    base_field::Field
+    vertex_vector_spaces::Vector{Generic.FreeModule{C}}
+    edge_morphisms::Vector{Generic.ModuleHomomorphism{C}}
+    base_field::Field # elem_type(C)
     function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
