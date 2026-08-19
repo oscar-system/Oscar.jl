@@ -59,7 +59,13 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #      @req parent(x) === R "Wrong parent"
  #      return a
  #    end
- #
+ # 
+ #  Type getters
+ #  is_domain_type(::Type{MyActionPolyRingElem{T}}) where {T} = is_domain_type(T)
+ #  is_exact_type(::Type{MyActionPolyRingElem{T}}) where {T} = is_exact_type(T)
+ #  base_ring_type(::Type{MyActionPolyRing{T}}) where {T} = universal_poly_ring_type(T)
+ #  coefficient_ring_type(::Type{MyActionPolyRing{T}}) where {T} = parent_type(T)
+
 
 ### Difference ###
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}

@@ -220,9 +220,9 @@ end
 
 ### Union ###
 function Base.deepcopy_internal(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}, dict::IdDict)
-    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
-    pp = deepcopy_internal(data(dpre), dict)
-    return typeof(dpre)(parent(dpre), pp)
+  # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
+  pp = deepcopy_internal(data(dpre), dict)
+  return typeof(dpre)(parent(dpre), pp)
 end
 
 ### Difference ###
@@ -234,8 +234,11 @@ elem_type(::Type{DifferentialPolyRing{T}}) where {T} = DifferentialPolyRingElem{
 parent_type(::Type{DifferentialPolyRingElem{T}}) where {T} = DifferentialPolyRing{T}
 
 ### generic ###
-is_domain_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_domain_type(T)
-is_exact_type(::Type{<:ActionPolyRingElem{T}}) where {T} = is_exact_type(T)
+is_domain_type(::Union{Type{DifferencePolyRingElem{T}}, Type{DifferentialPolyRingElem{T}}}) where {T} = is_domain_type(T)
+is_exact_type(::Union{Type{DifferencePolyRingElem{T}}, Type{DifferentialPolyRingElem{T}}}) where {T} = is_exact_type(T)
+
+base_ring_type(::Union{Type{DifferencePolyRing{T}}, Type{DifferentialPolyRing{T}}}) where {T} = universal_poly_ring_type(T)
+coefficient_ring_type(::Union{Type{DifferencePolyRing{T}}, Type{DifferentialPolyRing{T}}}) where {T} = parent_type(T)
 
 @doc raw"""
     zero(A::ActionPolyRing)
@@ -250,10 +253,6 @@ zero(apr::ActionPolyRing) = apr()
 Return the multiplicative identity of the action polynomial ring `A`.
 """
 one(apr::ActionPolyRing) = apr(one(base_ring(apr)))
-
-base_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = universal_poly_ring_type(T)
-
-coefficient_ring_type(::Type{<:ActionPolyRing{T}}) where {T} = parent_type(T)
 
 is_square(apre::ActionPolyRingElem) = is_square(data(apre))
 
@@ -1287,13 +1286,19 @@ Base.eltype(::Type{ActionPolyTerms{PolyT}}) where {PolyT<:ActionPolyRingElem} = 
 #
 ###############################################################################
 
-function AbstractAlgebra.promote_rule(::Type{PolyT}, ::Type{V}) where
-        {T<:RingElement, V<:RingElement, PolyT<:ActionPolyRingElem{T}}
-    AbstractAlgebra.promote_rule(T, V) == T ? PolyT : Union{}
+# Difference
+function AbstractAlgebra.promote_rule(::Type{DifferencePolyRingElem{T}}, ::Type{V}) where {T<:RingElement, V<:RingElement}
+  AbstractAlgebra.promote_rule(T, V) == T ? DifferencePolyRingElem{T} : Union{}
 end
 
-AbstractAlgebra.promote_rule(::Type{PolyT}, ::Type{PolyT}) where
-        {T<:RingElement, PolyT<:ActionPolyRingElem{T}} = PolyT
+AbstractAlgebra.promote_rule(::Type{DifferencePolyRingElem{T}}, ::Type{DifferencePolyRingElem{T}}) where {T<:RingElement} = DifferencePolyRingElem{T}
+
+# Differential
+function AbstractAlgebra.promote_rule(::Type{DifferentialPolyRingElem{T}}, ::Type{V}) where {T<:RingElement, V<:RingElement}
+  AbstractAlgebra.promote_rule(T, V) == T ? DifferentialPolyRingElem{T} : Union{}
+end
+
+AbstractAlgebra.promote_rule(::Type{DifferentialPolyRingElem{T}}, ::Type{DifferentialPolyRingElem{T}}) where {T<:RingElement} = DifferentialPolyRingElem{T}
 
 ###############################################################################
 #
