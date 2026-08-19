@@ -893,7 +893,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   file_version = load_node(s) do obj
     serialization_version_info(obj)
   end
-  if file_version < VERSION_NUMBER
+  # A file needs upgrading iff some upgrade script targets a version newer than the
+  # file's effective version. Gate on the newest upgrade script rather than on
+  # VERSION_NUMBER: for DEV builds the file's version string carries a commit hash
+  # (e.g. "1.8.0-DEV-<hash>"), and comparing that against VERSION_NUMBER orders the two
+  # by hash characters rather than by upgrade state, which can wrongly skip upgrades.
+  if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
     # we need a mutable dictionary
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)

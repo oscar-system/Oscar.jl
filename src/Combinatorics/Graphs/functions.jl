@@ -5,6 +5,28 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+function _copy_labels(G::Graph{T}, G_copy::Graph{T}, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
+  for label in labels
+    graph_map = _graph_maps(G)[label]
+    new_vertex_labels = nothing
+    new_edge_labels = nothing
+    if !isnothing(graph_map.vertex_map)
+      new_vertex_labels = Dict(v => graph_map.vertex_map[v] for v in 1:n_vertices(G))
+    end
+
+    if !isnothing(graph_map.edge_map)
+      new_edge_labels = Dict((src(e), dst(e)) => graph_map.edge_map[e] for e in edges(G))
+    end
+    label!(G_copy, new_edge_labels, new_vertex_labels; name=label)
+  end
+end
+
+function copy(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+  copyG = Graph{T}(copy(pm_object(G)))
+  !isempty(labelings(G)) && _copy_labels(G, copyG, labelings(G))
+  return copyG
+end
+
 _directed_component(G::MixedGraph) = G.directed_component
 @doc raw"""
     directed_component(G::MixedGraph)
@@ -938,7 +960,7 @@ end
 @doc raw"""
     signed_incidence_matrix(g::Graph)
 
-Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targest will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
+Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targets will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
 
 # Examples
 ```jldoctest
@@ -1816,6 +1838,28 @@ function complete_bipartite_graph(n::Int64, m::Int64)
 end
 
 
+@doc raw"""
+    cycle_graph(n::Int)
+
+Return the graph consisting of a single `n`-cycle.
+
+# Examples
+```jldoctest
+julia> g = cycle_graph(4);
+
+julia> collect(edges(g))
+4-element Vector{Edge}:
+ Edge(2, 1)
+ Edge(3, 2)
+ Edge(4, 1)
+ Edge(4, 3)
+```
+"""
+function cycle_graph(n::Int)
+    bigobj = Polymake.graph.cycle_graph(n)
+    return Graph{Undirected}(bigobj.ADJACENCY)
+end
+
 
 @doc raw"""
     visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
@@ -2000,10 +2044,17 @@ end
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
+    graph_from_edges(p::Polyhedron)
+    graph_from_edges(::Type{Undirected}, p::Polyhedron)
 
 
-Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
-ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
+Create a graph from a vector of edges or from the edges of a polyhedron.
+
+For vector of edges, there is an optional input for number of vertices,
+`graph_from_edges` will ignore any negative integers and throw an error when the
+input is less than the maximum vertex index in edges.
+
+For polyhedron, the return is the same as [`vertex_edge_graph`](@ref).
 
 # Examples
 ```jldoctest
@@ -2036,6 +2087,11 @@ Directed edges:
 (1, 2)(3, 4)
 Undirected edges:
 (3, 2)(4, 1)
+
+julia> graph_from_edges(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+
 ```
 """
 function graph_from_edges(::Type{T},
@@ -2085,6 +2141,16 @@ function graph_from_edges(::Type{Mixed},
                           undirected_edges::EdgeIterator,
                           n_vertices::Int=-1)
   return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
+end
+
+function graph_from_edges(::Type{Undirected},
+                          p::Polyhedron;
+                          modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
+end
+
+function graph_from_edges(p::Polyhedron; modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
 end
 
 @doc raw"""

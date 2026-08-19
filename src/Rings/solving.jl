@@ -217,7 +217,7 @@ end
 @doc raw"""
     rational_solutions(K::Field, I::MPolyIdeal) -> Vector{Vector}
 
-Given a zero-dimensional ideal or homogenous one-dimension ideal, return all
+Given a zero-dimensional ideal or homogeneous one-dimension ideal, return all
 rational elements of the vanishing set over the field $K$.
 
 ```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
