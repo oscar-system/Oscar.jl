@@ -368,11 +368,11 @@ function Base.show(io::IO, nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxM
 end
 
 # Mapping an element of the valued field or ring to the tropical semiring
-function (nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax})(c::PuiseuxMPolyRingElem) where MinOrMax<:Union{typeof(min),typeof(max)}
+function (nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax})(c::Union{RingElem,Integer,Rational}) where MinOrMax<:Union{typeof(min),typeof(max)}
     # return tropical zero if c is zero and valuation otherwise
     iszero(c) && return zero(tropical_semiring(nu))
     # preserve_ordering ensures that valuation is negated if convention(nu)==max
-    return tropical_semiring(nu)(valuation(c); preserve_ordering=true)
+    return tropical_semiring(nu)(valuation(valued_ring(nu)(c)); preserve_ordering=true)
 end
 
 # Mapping an element of the valued field or ring to the residue field
