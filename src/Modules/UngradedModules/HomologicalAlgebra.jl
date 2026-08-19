@@ -156,15 +156,15 @@ end
 # Tor
 #############################
 @doc raw"""
-    tensor_product(M::OFPModule, C::ComplexOfMorphisms{OFPModule})
+    tensor_product(M::OFPModule, C::ComplexOfMorphisms{OFPModule}; minimal::Bool=true)
 
 Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 """
-function tensor_product(P::OFPModule, C::Hecke.ComplexOfMorphisms{OFPModule})
+function tensor_product(P::OFPModule, C::Hecke.ComplexOfMorphisms{OFPModule}; minimal::Bool=true)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
-  tensor_modules = [tensor_product(P, domain(map(C,first(chain_range(C)))), task=:cache_morphism)[1]]
-  append!(tensor_modules, [tensor_product(P, codomain(map(C,i)), task=:cache_morphism)[1] for i in Hecke.map_range(C)])
+  tensor_modules = [tensor_product(P, domain(map(C,first(chain_range(C)))); task=:cache_morphism, minimal=minimal)[1]]
+  append!(tensor_modules, [tensor_product(P, codomain(map(C,i)); task=:cache_morphism, minimal=minimal)[1] for i in Hecke.map_range(C)])
 
   for i in 1:length(Hecke.map_range(C))
     A = tensor_modules[i]
@@ -184,23 +184,23 @@ function tensor_product(P::OFPModule, C::Hecke.ComplexOfMorphisms{OFPModule})
   return Hecke.ComplexOfMorphisms(OFPModule, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-function tensor_product(M::OFPModule, F::FreeResolution)
-  return tensor_product(M, F.C)
+function tensor_product(M::OFPModule, F::FreeResolution; minimal::Bool=true)
+  return tensor_product(M, F.C; minimal=minimal)
 end
 
 
 @doc raw"""
-    tensor_product(C::ComplexOfMorphisms{<:OFPModule}, M::OFPModule)
+    tensor_product(C::ComplexOfMorphisms{<:OFPModule}, M::OFPModule; minimal::Bool=true)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
-function tensor_product(C::Hecke.ComplexOfMorphisms{<:OFPModule}, P::OFPModule)
+function tensor_product(C::Hecke.ComplexOfMorphisms{<:OFPModule}, P::OFPModule; minimal::Bool=true)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_chain = Map[]
   chain_range = Hecke.map_range(C)
-  tensor_modules = [tensor_product(domain(map(C,first(chain_range))), P, task=:cache_morphism)[1]]
-  append!(tensor_modules, [tensor_product(codomain(map(C,i)), P, task=:cache_morphism)[1] for i in chain_range])
+  tensor_modules = [tensor_product(domain(map(C,first(chain_range))), P; task=:cache_morphism, minimal=minimal)[1]]
+  append!(tensor_modules, [tensor_product(codomain(map(C,i)), P; task=:cache_morphism, minimal=minimal)[1] for i in chain_range])
 
   for i=1:length(chain_range)
     A = tensor_modules[i]
@@ -213,8 +213,8 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{<:OFPModule}, P::OFPModule)
   return Hecke.ComplexOfMorphisms(OFPModule, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-function tensor_product(F::FreeResolution, M::OFPModule)
-  return tensor_product(F.C, M)
+function tensor_product(F::FreeResolution, M::OFPModule; minimal::Bool=true)
+  return tensor_product(F.C, M; minimal=minimal)
 end
 
 @doc raw"""
@@ -238,28 +238,26 @@ julia> Q, _ = quo(F, [x*F[1]]);
 
 julia> T0 = tor(Q, M, 0)
 Subquotient of submodule with 2 generators
-  1: (e[1] \otimes e[1])
-  2: (e[1] \otimes e[2])
-by submodule with 7 generators
-  1: x*(e[1] \otimes e[1])
-  2: -y*(e[1] \otimes e[1]) + x*(e[1] \otimes e[2])
-  3: y^2*(e[1] \otimes e[2])
-  4: y^3*(e[1] \otimes e[1])
-  5: z^4*(e[1] \otimes e[1])
-  6: z^4*(e[1] \otimes e[2])
-  7: x*(e[1] \otimes e[2])
+  1: e[1] \otimes e[1]
+  2: e[1] \otimes e[2]
+by submodule with 6 generators
+  1: x*e[1] \otimes e[1]
+  2: -y*e[1] \otimes e[1] + x*e[1] \otimes e[2]
+  3: y^2*e[1] \otimes e[2]
+  4: z^4*e[1] \otimes e[1]
+  5: z^4*e[1] \otimes e[2]
+  6: x*e[1] \otimes e[2]
 
 julia> T1 = tor(Q, M, 1)
 Subquotient of submodule with 2 generators
-  1: (e[1] \otimes e[1])
-  2: x*(e[1] \otimes e[2])
-by submodule with 6 generators
-  1: x*(e[1] \otimes e[1])
-  2: -y*(e[1] \otimes e[1]) + x*(e[1] \otimes e[2])
-  3: y^2*(e[1] \otimes e[2])
-  4: y^3*(e[1] \otimes e[1])
-  5: z^4*(e[1] \otimes e[1])
-  6: z^4*(e[1] \otimes e[2])
+  1: e[1] \otimes e[1]
+  2: x*e[1] \otimes e[2]
+by submodule with 5 generators
+  1: x*e[1] \otimes e[1]
+  2: -y*e[1] \otimes e[1] + x*e[1] \otimes e[2]
+  3: y^2*e[1] \otimes e[2]
+  4: z^4*e[1] \otimes e[1]
+  5: z^4*e[1] \otimes e[2]
 
 julia> T2 =  tor(Q, M, 2)
 Submodule with 0 generators
@@ -632,4 +630,3 @@ function ext(M::OFPModule, N::OFPModule, i::Int)
   lifted_resolution = hom(free_res.C[first(Hecke.map_range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return simplify_light(homology(lifted_resolution,i))[1]
 end
-
