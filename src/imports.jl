@@ -81,7 +81,6 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
-  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.push_term!,
   gens,

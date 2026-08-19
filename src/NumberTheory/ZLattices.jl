@@ -1,15 +1,17 @@
-function _overlattice_orbits(L::ZZLat; even=true)
+function _overlattice_orbits(L::ZZLat, g::Union{ZZGenus,Nothing}=nothing; even=true)
+  # if given a genus g, this function returns a (list of one) lattice in the genus g that contains L (not necessarily primitively);
+  # otherwise, it returns the list of all overlattices M of L up to isometries of M preserving L
   d = ZZ(det(L))
   D = discriminant_group(L)
-  idD = hom(D,D,gens(D))
+  idD = hom(D, D, gens(D))
   G,iG = image_in_Oq(L)
-  orders = [i for i in divisors(d) if divides(d,i^2)[1]]
+  orders = [i for i in divisors(d) if divides(d, i^2)[1]]
   result = ZZLat[]
   for ord in orders 
     #@show ord, D
     b, l, p = is_prime_power_with_data(ord)
     if b && is_elementary(D, p)
-      sg = first.(first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, valuation(ord,p);do_stab=false)))
+      sg = first.(first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(D, iG, valuation(ord, p); do_stab=false)))
     else 
       # slooow
       sg = domain.(first.(_subgroups_orbit_representatives_and_stabilizers(idD, G, ord)))
@@ -18,8 +20,15 @@ function _overlattice_orbits(L::ZZLat; even=true)
       M = cover(S)
       if !is_integral(M) || (even && !is_even(M))
         continue
-      end 
-      push!(result,M)        
+      end
+      if (g !== nothing)
+        em2 = primitive_embeddings(g, M; classification=:first)
+        if em2[1] == true
+          return [em2[2][1][1]] #returns list of one element for type stability
+        end
+      else
+        push!(result,M)
+      end
     end
   end
   return result

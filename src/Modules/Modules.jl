@@ -12,3 +12,5 @@ include("ExteriorPowers/ExteriorPowers.jl")
 include("deRhamComplexes.jl")
 
 #include("Iterators.jl") # inclusion postponed to src/InvariantTheory/InvariantTheory.jl due to dependencies
+include("finite_extensions_types.jl")
+include("finite_extensions.jl")

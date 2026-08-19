@@ -1818,7 +1818,7 @@ function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingE
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
 
-function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+function Oscar.direct_sum(a::Vector{<:OFPModuleHom})
   @req allequal(domain, a) "All maps must have equal domain"
   D = direct_sum(codomain.(a); task = :none)
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
@@ -1865,7 +1865,7 @@ end
 # create a free module with type "compatible" with that of `M`
 _similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
 _similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n; cached = false)
-_similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
+_similar_free_module(M::Oscar.OFPModule, n::Int) = FreeMod(base_ring(M), n)
 
 """
 Compute

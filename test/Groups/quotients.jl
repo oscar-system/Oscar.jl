@@ -185,6 +185,11 @@ end
    @test G([1 => 2, 2 => -3]) == G[1]^2 * G[2]^-3
    @test_throws MethodError S([1 => 2])
 
+   # quotient of non-free FPGroup by list of relators
+   rels = [gen(G, 1)^2]
+   G2, f2 = quo(G, rels)
+   @test free_group(G2) === free_group(G)
+
    S = symmetric_group(4)
    G,f = quo(S, [cperm(S,[1,3,2])])
    @test order(G) == 2

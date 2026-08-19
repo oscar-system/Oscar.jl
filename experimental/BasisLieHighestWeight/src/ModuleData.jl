@@ -22,6 +22,7 @@ mutable struct SimpleModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: ModuleD
   function SimpleModuleData(
     L::LieAlgebra{C}, highest_weight::WeightLatticeElem
   ) where {C<:FieldElem}
+    @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
     return new{C,elem_type(L)}(L, highest_weight)
   end
 end
@@ -67,6 +68,7 @@ mutable struct DemazureModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} <:
   function DemazureModuleData(
     L::LieAlgebra{C}, highest_weight::WeightLatticeElem, weyl_group_elem::WeylGroupElem
   ) where {C<:FieldElem}
+    @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
     return new{C,elem_type(L)}(L, highest_weight, weyl_group_elem)
   end
 end

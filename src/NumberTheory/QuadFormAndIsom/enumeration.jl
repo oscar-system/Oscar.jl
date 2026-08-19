@@ -634,7 +634,8 @@ end
       m::Int = 1,
       fix_root::Int = -1;
       cond::Vector{Int}=Int[-1, -1, -1],
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     )  -> Vector{ZZLatWithIsom}
@@ -662,9 +663,12 @@ See also [`type(::ZZLatWithIsom)`](@ref).
       positive signature, negative signature), one can control whether the
       lattice $L$ in input has the good rank or signatures;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists of lattices of maximum $-2$. In such a case, the enumeration is
@@ -693,7 +697,8 @@ function representatives_of_hermitian_type(
     m::Int = 1,
     fix_root::Int = -1;
     cond::Vector{Int}=Int[-1, -1, -1],
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
@@ -708,7 +713,7 @@ function representatives_of_hermitian_type(
   n = order_of_isometry(Lf)
   @req is_finite(n) "Isometry must be of finite order"
   k = n*m
-  _reps = representatives_of_hermitian_type(genus(Lf), cyclotomic_polynomial(k), fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local, invariant_function)
+  _reps = representatives_of_hermitian_type(genus(Lf), cyclotomic_polynomial(k), fix_root; cond, genusDB, update_genusDB, root_test, info_depth, discriminant_annihilator, _local, invariant_function)
   # We test the type condition
   if fix_root == k
     # In this case, we have fixed a generator for a cyclic group: we need
@@ -738,7 +743,8 @@ end
       fix_root::Int = -1;
       first::Bool=false,
       cond::Vector{Int}=Int[-1, -1, -1],
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
     )  -> Vector{ZZLatWithIsom}
@@ -769,9 +775,12 @@ isometry by default.
       positive signature, negative signature), one can control whether the
       genus $G$ in input has the good rank or signatures;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists of lattices of maximum $-2$. In such a case, the enumeration is
@@ -826,7 +835,8 @@ end
       fix_root::Int = -1;
       first::Bool=false,
       cond::Vector{Int}=Int[-1, -1, -1],
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
     ) -> Vector{ZZLatWithIsom}
@@ -856,9 +866,12 @@ isometry by default.
       positive signature, negative signature), one can control whether the
       genus $G$ in input has the good rank or signatures;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists of lattices of maximum $-2$. In such a case, the enumeration is
@@ -899,7 +912,8 @@ function representatives_of_hermitian_type(
     fix_root::Int = -1;
     first::Bool=false,
     cond::Vector{Int}=Int[-1, -1, -1],
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
@@ -944,7 +958,7 @@ function representatives_of_hermitian_type(
     end
     # local conditions are okay, enumerate the genus
     allow_info && !_local && println("Enumerate Z-genus $G")
-    repre = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local, invariant_function)
+    repre = oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local, invariant_function)
     if root_test && _local && signature_pair(G)[1]==0 && rank(G)<=12
       if numerator(mass(G))==1 && mass(G) == 1//automorphism_group_order(T)
         # T is unique in its genus, we can do the root test even when working locally 
@@ -952,7 +966,7 @@ function representatives_of_hermitian_type(
       end
       # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
       if rank(G) <= 6 && scale(G) == 1
-        repre1 = oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=30, _local=false, invariant_function)
+        repre1 = oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=30, _local=false, invariant_function)
         if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
           return reps 
         end
@@ -1093,7 +1107,8 @@ end
       fix_root::Int = -1;
       even::Bool=true,
       first::Bool=false,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
     ) where T <: IntegerUnion -> Vector{ZZLatWithIsom}
 
@@ -1122,9 +1137,12 @@ element.
 !!! note "For the advanced users"
     One can use some keyword arguments for further features:
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists of lattices of maximum $-2$. In such a case, the enumeration is
@@ -1154,7 +1172,8 @@ function representatives_of_hermitian_type(
     fix_root::Int = -1;
     even::Bool=true,
     first::Bool=false,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     _local::Bool=false,
@@ -1190,7 +1209,7 @@ function representatives_of_hermitian_type(
       end
       repre = ZZLat[]
       for G in int_gene
-        append!(repre, oscar_genus_representatives(G; genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local))
+        append!(repre, oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local))
         first && !isempty(repre) && break
       end
       allow_info && println("$(length(repre)) representative(s)")
@@ -1362,7 +1381,8 @@ end
       b::Int = 0;
       eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       check::Bool=true,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
@@ -1396,9 +1416,12 @@ $(L, f)$ is of hermitian type.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -1440,7 +1463,8 @@ function splitting_of_hermitian_type(
     b::Int = 0;
     eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     check::Bool=true,
     info_depth::Int=1,
@@ -1461,8 +1485,7 @@ function splitting_of_hermitian_type(
   @check begin
     @req is_of_hermitian_type(Lf) "Lattice with isometry must be of hermitian type"
   end
-  ctx = enum_lat_with_isom_init(;eiglat_cond,fix_root,genusDB, root_test, info_depth,_local,
-                             discriminant_annihilator_lb=discriminant_annihilator)
+  ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth,_local, discriminant_annihilator_lb=discriminant_annihilator)
   return _splitting_of_hermitian_type(Lf, p, b; ctx)
 end 
 
@@ -1476,6 +1499,7 @@ function _representatives_of_hermitian_type(G::ZZGenus, n::Int; ctx::ZZLatWithIs
       ctx.fix_root;
       cond = get(cond,n,[-1,-1,-1]),
       genusDB = ctx.genusDB,
+      update_genusDB = ctx.update_genusDB,
       root_test = ctx.root_test,
       info_depth = ctx.info_depth,
       discriminant_annihilator = ctx.discriminant_annihilator_lb,
@@ -1502,6 +1526,7 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
     reps = representatives_of_hermitian_type(L, k, ctx.fix_root; 
                                               _local=ctx._local,
                                               genusDB=ctx.genusDB,
+                                              update_genusDB=ctx.update_genusDB,
                                               info_depth=ctx.info_depth,
                                               root_test=ctx.root_test,
                                               discriminant_annihilator=ctx.discriminant_annihilator_lb)
@@ -1540,6 +1565,7 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
     HH = representatives_of_hermitian_type(L, g, ctx.orig_fix_root; 
                                            _local=ctx._local,
                                            genusDB=ctx.genusDB,
+                                           update_genusDB=ctx.update_genusDB,
                                            info_depth=ctx.info_depth,
                                            root_test=ctx.root_test)
     _reps_j = [i^j for i in HH]
@@ -1745,7 +1771,8 @@ end
       b::Int = 0;
       eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     ) -> Vector{ZZLatWithIsom}
@@ -1776,9 +1803,12 @@ negative signature.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -1812,14 +1842,14 @@ function splitting_of_prime_power(
     b::Int = 0;
     eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     _local::Bool=false,
   )
-  ctx = enum_lat_with_isom_init(;eiglat_cond,fix_root,genusDB, root_test, info_depth,_local,
-                             discriminant_annihilator_lb=discriminant_annihilator)
+  ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth,_local, discriminant_annihilator_lb=discriminant_annihilator)
   return _splitting_of_prime_power(Lf, p, b; ctx)
 end 
 
@@ -1892,7 +1922,8 @@ end
       p::Int;
       eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     ) -> Vector{ZZLatWithIsom}
@@ -1921,9 +1952,12 @@ negative signature.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -1939,14 +1973,14 @@ function splitting_of_pure_mixed_prime_power(
     p::Int;
     eiglat_cond::Vector{Dict{Int, Vector{Int}}}=[Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     _local::Bool=false,
   )
-  ctx = enum_lat_with_isom_init(;eiglat_cond,fix_root,genusDB, root_test, info_depth,_local,
-                             discriminant_annihilator_lb=discriminant_annihilator)
+  ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth,_local, discriminant_annihilator_lb=discriminant_annihilator)
   return _splitting_of_pure_mixed_prime_power(Lf, p; ctx)
 end 
 
@@ -1972,7 +2006,7 @@ function _splitting_of_pure_mixed_prime_power(
   if length(pd) == 1
     #=
     for cond in unique!([get(i, p*n, Int[-1, -1, -1]) for i in eiglat_cond])
-      append!(reps, representatives_of_hermitian_type(Lf, p, ctx.fix_root; cond, genusDB=ctx.genusDB, root_test=ctx.root_test, info_depth=ctx.info_depth, discriminant_annihilator=ctx.discriminant_annihilator_lb, _local=ctx._local))
+      append!(reps, representatives_of_hermitian_type(Lf, p, ctx.fix_root; cond, genusDB=ctx.genusDB, update_genusDB=ctx.update_genusDB, root_test=ctx.root_test, info_depth=ctx.info_depth, discriminant_annihilator=ctx.discriminant_annihilator_lb, _local=ctx._local))
     end
     =#
     reps = _representatives_of_hermitian_type(Lf, n, n*p; ctx)
@@ -2020,7 +2054,8 @@ end
       b::Int = 1;
       eiglat_cond::Vector{Dict{Int,Vector{Int}}}=[Dict{Int, Vector{Int}}()],
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     ) -> Vector{ZZLatWithIsom}
@@ -2051,9 +2086,12 @@ negative signature.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -2102,14 +2140,14 @@ function splitting_of_mixed_prime_power(
     b::Int = 1;
     eiglat_cond::Vector{Dict{Int, Vector{Int}}} = [Dict{Int, Vector{Int}}()],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     _local::Bool=false,
   )
-  ctx = enum_lat_with_isom_init(;eiglat_cond,fix_root,genusDB, root_test, info_depth,_local,
-                             discriminant_annihilator_lb=discriminant_annihilator)
+  ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth,_local, discriminant_annihilator_lb=discriminant_annihilator)
   return _splitting_of_mixed_prime_power(Lf, p, b; ctx)
 end 
 
@@ -2189,7 +2227,8 @@ end
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}[],
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB:Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
     ) -> Vector{ZZLatWithIsom}
@@ -2236,9 +2275,12 @@ keyword argument `eiglat_cond`.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -2262,7 +2304,8 @@ function splitting(
     neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     eiglat_cond::Vector{Dict{Int, Vector{Int}}}= Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_default_discriminant_annihilator(Lf),
@@ -2292,7 +2335,7 @@ function splitting(
   if isempty(eiglat_cond)
     eiglat_cond = [_conditions_from_input(p*n, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
   end
-  ctx = enum_lat_with_isom_init(;eiglat_cond,fix_root,genusDB, root_test,info_depth,discriminant_annihilator_lb=discriminant_annihilator,_local)
+  ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test,info_depth,discriminant_annihilator_lb=discriminant_annihilator,_local)
   return _splitting(Lf, p, b; ctx, min_poly)
 end 
 
@@ -2400,7 +2443,8 @@ end
       neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
       eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}[],
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       keep_partial_result::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(L),
@@ -2437,9 +2481,12 @@ keyword argument `eiglat_cond`.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -2479,7 +2526,8 @@ function enumerate_classes_of_lattices_with_isometry(
     neg_sigs::Vector{Tuple{Int, Int}}=Tuple{Int, Int}[],
     eiglat_cond::Vector{Dict{Int, Vector{Int}}} = Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     keep_partial_result::Bool=false,
     info_depth::Int=1,
@@ -2507,7 +2555,7 @@ function enumerate_classes_of_lattices_with_isometry(
   if m == 1
     reps = ZZLatWithIsom[]
     for cond in unique!([get(i, 1, Int[-1, -1, -1]) for i in eiglat_cond])
-      append!(reps, representatives_of_hermitian_type(L, 1, fix_root; cond, genusDB, root_test, info_depth, discriminant_annihilator, _local))
+      append!(reps, representatives_of_hermitian_type(L, 1, fix_root; cond, genusDB, update_genusDB, root_test, info_depth, discriminant_annihilator, _local))
     end
     return reps
   end
@@ -2519,7 +2567,7 @@ function enumerate_classes_of_lattices_with_isometry(
   o = Int(1)
   pds = reverse!(sort!(prime_divisors(m)))
   
-  ctx = enum_lat_with_isom_init(;eiglat_cond, fix_root, genusDB, root_test, info_depth,
+  ctx = enum_lat_with_isom_init(;eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth,
                              discriminant_annihilator_lb=discriminant_annihilator,
                              _local, discriminant_action)
   for p in pds
@@ -2555,7 +2603,8 @@ end
       v::Int;
       eiglat_cond::Vector{Dict{Int, Vector{Int}}}=Dict{Int, Vector{Int}}(),
       fix_root::Int=-1,
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
       discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}, Nothing}=nothing
     ) -> Vector{ZZLatWithIsom}
@@ -2585,9 +2634,12 @@ negative signature.
       only computes one generator for every conjugacy class of finite cyclic
       groups when computing the corresponding $\Phi_k$-kernel sublattices;
     - if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
     - if `root_test` is set to true, the genus enumeration algorithm determines
       whether any new genus of negative definite lattices to be enumerated
       consists only of lattices of maximum $-2$. In such a case, the
@@ -2604,13 +2656,14 @@ function splitting_by_prime_power!(
     v::Int;
     eiglat_cond::Vector{Dict{Int,Vector{Int}}}=Dict{Int, Vector{Int}}[],
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}, Nothing}=nothing,
     _local::Bool=false,
   )
-  ctx = enum_lat_with_isom_init(;eiglat_cond,fix_root,genusDB, root_test,info_depth,discriminant_annihilator_lb=discriminant_annihilator,_local)
+  ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth, discriminant_annihilator_lb=discriminant_annihilator,_local)
   return _splitting_by_prime_power(Np, p, v; ctx)
 end   
 
@@ -2913,7 +2966,8 @@ _roger_upper_bound_test(G::ZZGenus) =_packing_density_test(G)
       save_path::Union{IO, String, Nothing}=nothing,
       stop_after::IntExt=1000,
       max_lat::IntExt=inf
-      genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+      genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+      update_genusDB::Bool=false,
       root_test::Bool=false,
     ) -> Vector{ZZLat}
 
@@ -2982,11 +3036,14 @@ The `default_invariant_function` currently computes:
 !!! note "For the advanced users"
     When using this function, one can use some extra keyword arguments
     which are carried along the computation:
-    * if available, one can use any database of genera of definite lattices
-      using the keyword argument `genusDB` (which should be a dictionary whose
-      keys are genus symbols, and the corresponding value is a list of lattices
-      of this genus);
-    * if `root_test` is set to true, the algorithm determines whether the genus
+    - if available, one can use any database of genera of definite lattices
+      using the keyword argument `genusDB`. It should be an object with
+      dictionary functionalities such as `haskey` and `getindex`.
+      Object of type `ZZGenus` should be allowed as keys and the corresponding
+      values should be lists of objects of type `ZZLat`. Moreover, by setting
+      `update_genusDB` to `true`, any new genus enumerated is stored in the
+      `genusDB` (only for databases with a `setindex!` functionality).
+    - if `root_test` is set to true, the algorithm determines whether the genus
       `G` consists only of negative definite lattices of maximum $-2$ (which
       can sometimes be predicted using sphere packing conditions). In such a
       case, the enumeration is skipped.
@@ -3000,7 +3057,8 @@ function oscar_genus_representatives(
   save_path::Union{IO, String, Nothing}=nothing,
   stop_after::IntExt=20000,
   max_lat::IntExt=inf,
-  genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+  genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+  update_genusDB::Bool=false,
   root_test::Bool=false,
   info_depth::Int=1,
   _local::Bool=false,
@@ -3019,14 +3077,12 @@ function oscar_genus_representatives(
   end
 
   # Maybe the genus `G` is already known in the datatabse genusDB
-  if !isnothing(genusDB)
-    if haskey(genusDB, G)
-      return deepcopy(genusDB[G])
-    end
-    G2 = rescale(G, -1)
-    if haskey(genusDB, G2)
-      return ZZLat[rescale(LL, -1; cached=false) for LL in genusDB[G2]]
-    end
+  if haskey(genusDB, G)
+    return deepcopy(genusDB[G])
+  end
+  G2 = rescale(G, -1)
+  if haskey(genusDB, G2)
+    return ZZLat[rescale(LL, -1; cached=false) for LL in genusDB[G2]]
   end
   r = rank(G)
 
@@ -3096,9 +3152,9 @@ function oscar_genus_representatives(
       for (A, B) in atp
         # before we look for representatives, we should make sure that our admissible triple glues genus!
         # so do the local computation first:
-        Bs_loc = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+1,_local=true)
+        Bs_loc = representatives_of_hermitian_type(B, p; genusDB, update_genusDB, info_depth=info_depth+1,_local=true)
         isempty(Bs_loc) && continue
-        As_loc = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+1,_local=true)
+        As_loc = representatives_of_hermitian_type(A, 1; genusDB, update_genusDB, info_depth=info_depth+1,_local=true)
         isempty(As_loc) && continue
         Ns_loc = admissible_equivariant_primitive_extensions(As_loc[1], Bs_loc[1], Lf, p; check=false, _local=true)
         if isempty(Ns_loc)
@@ -3106,9 +3162,9 @@ function oscar_genus_representatives(
           continue
         end
         # lets go global (somewhat awkwardly ... but since it is just prime order that is not too bad)
-        Bs = representatives_of_hermitian_type(B, p; genusDB, info_depth=info_depth+2)
+        Bs = representatives_of_hermitian_type(B, p; genusDB, update_genusDB, info_depth=info_depth+2)
         isempty(Bs) && continue
-        As = representatives_of_hermitian_type(A, 1; genusDB, info_depth=info_depth+2, invariant_function)
+        As = representatives_of_hermitian_type(A, 1; genusDB, update_genusDB, info_depth=info_depth+2, invariant_function)
         isempty(As) && continue
         for LA in As, LB in Bs
           Ns = admissible_equivariant_primitive_extensions(LA, LB, Lf, p; check=false, _local=false)
@@ -3155,13 +3211,13 @@ function oscar_genus_representatives(
   # If we have a lattice database, then we add the new genus there to be
   # used later... or to update the global database on
   # https://github.com/StevellM/DefLatDB
-  if !isnothing(genusDB)
+  if update_genusDB
     genusDB[G] = deepcopy(l)
   end
   return l
 end
     
-oscar_genus_representatives(G::ZZGenus, algorithm::Symbol=:default;kwargs...) = oscar_genus_representatives([representative(G)], algorithm; kwargs...)
+oscar_genus_representatives(G::ZZGenus, algorithm::Symbol=:default; kwargs...) = oscar_genus_representatives([representative(G)], algorithm; kwargs...)
 
 ###############################################################################
 #
@@ -3460,7 +3516,8 @@ function enum_lat_with_isom_init(;
     discriminant_action::Union{Nothing,TorQuadModuleWithIsom}=nothing,
     _local::Bool=false,
     fix_root::Int=-1,
-    genusDB::Dict{ZZGenus, Vector{ZZLat}}=Dict{ZZGenus, Vector{ZZLat}}(),
+    genusDB=Dict{ZZGenus, Vector{ZZLat}}(),
+    update_genusDB::Bool=false,
     root_test::Bool=false,
     info_depth::Int=1,
     ) 
@@ -3492,7 +3549,8 @@ function enum_lat_with_isom_init(;
   ctx.fix_root = fix_root
   ctx.orig_fix_root = fix_root
   ctx._local = _local 
-  ctx.genusDB = genusDB 
+  ctx.genusDB = genusDB
+  ctx.update_genusDB = update_genusDB
   ctx.info_depth = info_depth
   return ctx
 end
