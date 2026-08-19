@@ -4,6 +4,7 @@ using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
+using LinearAlgebra
 
 if VERSION < v"1.11.0-DEV.1562"
   using Compat: allequal, allunique

@@ -223,68 +223,48 @@ end
 
 
 function _get_edge_labeled_graph(cv_set::Union{Vector{ZZMatrix}, Vector{Matrix{Int}}}, gram::ZZMatrix)
-  vectors = []
+  tmp = ZZ(0)
   if cv_set[1] isa Matrix{Int}
-    result = cv_set
-    return _get_edge_labeled_graph_inner(cv_set, Matrix{Int}(gram), vectors)
-  else 
-    n = ZZ(typemin(Int))
+    cv_set_int = cv_set
+  else
+    n = ZZ(0)
+    tmp1 = zero_matrix(ZZ, 1, number_of_columns(gram))
+    tmp2 = zero_matrix(ZZ, number_of_rows(gram), 1)
+    tmp3 = zero_matrix(ZZ, 1, 1)
     for v in cv_set
-      s = 0
-      for i in axes(gram, 1)
-        for j in axes(gram, 2)
-          s += v[i] * gram[i, j] * v[j]
-        end
-      end
-    n = max(n, s)
+      tmp1 = mul!(tmp1, v, gram)
+      tmp3 = mul!(tmp3, tmp1, transpose!(tmp2, v))
+      n = max(n, tmp3[1])
     end
-    if n^2 < ZZ(typemax(Int)) # check Cauchy-Schwarz inequality and convert to Int if holds
-      result = [Matrix{Int}(undef,1, length(v)) for v in cv_set]
-      for k in eachindex(cv_set)
-          A = cv_set[k]
-          B = result[k]
-
-          for j in axes(A, 2)
-              for i in axes(A, 1)
-                  B[i, j] = Int(A[i, j])
-              end
-          end
-      end
+    if n-2 < ZZ(typemax(Int)) # we use Cauchy-Schwarz to check if char vector inner products are small enough to be converted to Int. As we need at least w_max+1 and w_max+2 weights further, we need to lower bound by -2.
+      cv_set_int = [Hecke._int_matrix_with_overflow(v, tmp) for v in cv_set]
     else 
-      push!(vectors, zero_matrix(ZZ, 1, number_of_columns(gram)))
-      push!(vectors, zero_matrix(ZZ, number_of_rows(gram), 1))
-      push!(vectors, zero_matrix(ZZ, 1, 1))
-      return _get_edge_labeled_graph_inner(cv_set, gram, vectors)
+      throw(OverflowError("The characteristic vectors may have to large inner products to be converted to Int."))
     end
   end
-  push!(vectors, Matrix{Int}(undef, 1, number_of_columns(gram)))
-  push!(vectors, Matrix{Int}(undef, number_of_rows(gram), 1))
-  push!(vectors, Matrix{Int}(undef, 1, 1))
-  return _get_edge_labeled_graph_inner(result, Matrix{Int}(gram), vectors)
+  return _get_edge_labeled_graph_inner(cv_set_int, Hecke._int_matrix_with_overflow(gram, tmp))
 end
 
-function _get_edge_labeled_graph_inner(cv_set::Union{Vector{ZZMatrix}, Vector{Matrix{Int}}}, gram::Union{ZZMatrix, Matrix{Int}}, vectors::Vector{Any})
+function _get_edge_labeled_graph_inner(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
   p = length(cv_set)
   res_graph = graph(Undirected, p+2)
-  max_w = QQ(0) # we need to use QQ element, as graph can be created only with this type of weights
-  label!(res_graph, Dict{Tuple{Int64, Int64}, QQFieldElem,}(), nothing; name=:edge)
-  v_i = vectors[1]
-  t_i = vectors[2]
-  w_i = vectors[3]
+  max_w = 0
+  label!(res_graph, Dict{Tuple{Int, Int}, Int,}(), nothing; name=:edge)
+  v_i = Matrix{Int}(undef, 1, number_of_columns(gram))
+  t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
+  w_i = Matrix{Int}(undef, 1, 1)
   for i = 1:p 
-    v_i = mul!(v_i, cv_set[i], gram)
+    v_i = LinearAlgebra.mul!(v_i, cv_set[i], gram)
     for j = i+1:p
-      w_i = mul!(w_i, v_i, transpose!(t_i, cv_set[j]))
-      w = Int64(w_i[1])
-      if w>max_w
-        max_w = w
-      end
+      w_i = LinearAlgebra.mul!(w_i, v_i, LinearAlgebra.transpose!(t_i, cv_set[j]))
+      w = w_i[1]
+      max_w = max(w, max_w)
       add_edge!(res_graph, i, j)
       res_graph.edge[i, j] = w
     end
     add_edge!(res_graph, i, p+1)
-    w_i = mul!(w_i, v_i, transpose!(t_i, cv_set[i]))
-    w = Int64(w_i[1])
+    w_i = LinearAlgebra.mul!(w_i, v_i, LinearAlgebra.transpose!(t_i, cv_set[i]))
+    w = w_i[1]
     res_graph.edge[i, p+1] = w
   end
   a = 1+max_w 
