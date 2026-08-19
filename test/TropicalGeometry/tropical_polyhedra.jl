@@ -220,6 +220,9 @@ end
      __sign*[-1, 0]
     ])
 
+  # issue 6095
+  @test f_vector(covector_decomposition(C2)) isa Vector{Int64}
+
   pts3 = TT[0 1__sign 4__sign; oo 0 2__sign; oo oo 0]
   C3 = tropical_point_configuration(pts3)
   @test issetequal(points(C3), eachrow(pts3))
@@ -232,4 +235,12 @@ end
       IncidenceMatrix([[1],Int[],[2,3]]),
       IncidenceMatrix([[1],[2],[3]])
     ])
+end
+
+@testset "Solvability of tropical inequalities" begin
+  T = tropical_semiring(max)
+  A = matrix(T, [[0, 1, 2], [1, 0, 3]])
+  B = matrix(T, [[1, 2, 0], [0, 4, 1]])
+  P = tropical_polyhedron(A, B)
+  @test is_feasible(P)
 end

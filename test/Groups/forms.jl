@@ -608,7 +608,7 @@ end
       @test orthogonal_sign(orthogonal_group(-1, 4, 3)) == -1
       @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
       # Odd dimensional orthogonal groups in char. 2 are not irreducible.
-      @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
+      @test_throws GAP.GAPError orthogonal_sign(orthogonal_group(0, 5, 2))
       @test orthogonal_sign(general_linear_group(4, 2)) === nothing
       # If the abs. irred. module preserves an antisymmetric invariant
       # bilinear form then there is no nondegenerate quadratic form.

@@ -113,6 +113,7 @@ RootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 RootSpaceElem(::RootSystem, ::QQMatrix)
 RootSpaceElem(::WeightLatticeElem)
 zero(::Type{RootSpaceElem}, ::RootSystem)
+dual(::DualRootSpaceElem)
 ```
 
 ```@docs
@@ -158,6 +159,7 @@ reflect!(::RootSpaceElem, ::RootSpaceElem)
 DualRootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 DualRootSpaceElem(::RootSystem, ::QQMatrix)
 zero(::Type{DualRootSpaceElem}, ::RootSystem)
+dual(::RootSpaceElem)
 ```
 
 ```@docs

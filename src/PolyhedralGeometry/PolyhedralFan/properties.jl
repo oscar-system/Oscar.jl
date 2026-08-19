@@ -649,6 +649,31 @@ n_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _n_rays(PF) : 0
 _n_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 @doc raw"""
+    n_rays_modulo_lineality(PF::PolyhedralFan)
+
+Return the number of rays of `PF` modulo lineality.
+
+# Examples
+The 2-cube in 3-space lies in a 2-dimensional subspace and has 4 maximal
+proper faces. Accordingly, its normal fan has a 1-dimenional lineality
+space modulo which it has 4 rays.
+```jldoctest
+julia> C = convex_hull([0 0 0; 1 0 0; 1 1 0; 0 1 0])
+Polyhedron in ambient dimension 3
+
+julia> PF = normal_fan(C)
+Polyhedral fan in ambient dimension 3
+
+julia> n_rays(PF)
+0
+
+julia> n_rays_modulo_lineality(PF)
+4
+```
+"""
+n_rays_modulo_lineality(PF::_FanLikeType) = _n_rays(PF)
+
+@doc raw"""
     f_vector(PF::PolyhedralFan)
 
 Compute the vector $(f₁,f₂,...,f_{dim(PF)-1})$ where $f_i$ is the number of

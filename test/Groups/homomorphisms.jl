@@ -126,7 +126,7 @@ end
    h = sub(g, [x^2])[1]
    @test_throws ArgumentError quo(h, [h(x^10)])
    n = normal_closure(h, sub(h, [h(x^10)])[1])[1]
-   @test_throws ErrorException quo(h, n)
+   @test_throws GAP.GAPError quo(h, n)
 
    h = sub(q2, [q2[2]^5])[1]
    @test_throws ArgumentError quo(h, [h[1]^2])
@@ -933,4 +933,40 @@ end
    comp = compose(epi, iso)
    @test domain(comp) == domain(epi)
    @test codomain(comp) == codomain(iso)
+end
+
+@testset "regular_action_homomorphism" begin
+   @testset for G in [symmetric_group(4), dihedral_group(8), quaternion_group(8), alternating_group(5)]
+     hom = regular_action_homomorphism(G)
+     H = image(hom)[1]
+
+     @test hom isa Oscar.GAPGroupHomomorphism
+     @test domain(hom) === G
+     @test codomain(hom) == H
+     @test H isa PermGroup
+     @test degree(H) == order(G)
+     @test order(H) == order(G)
+     @test number_of_moved_points(H) == order(G)
+     @test is_injective(hom)
+     @test is_surjective(hom)
+     @test is_bijective(hom)
+
+     x = rand(G)
+     img = hom(x)
+     @test img in H
+     @test order(img) == order(x)
+     @test preimage(hom, img) == x
+   end
+
+   G = symmetric_group(5)
+   hom = regular_action_homomorphism(G)
+   H = image(hom)[1]
+   @test hom(gens(G)[1]) != one(H)
+
+   G = cyclic_group(6)
+   hom = regular_action_homomorphism(G)
+   H = image(hom)[1]
+   @test degree(H) == 6
+
+   @test_throws ArgumentError regular_action_homomorphism(free_group(2))
 end

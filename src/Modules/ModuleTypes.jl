@@ -584,7 +584,6 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
     a=Vector{elem_type(G)}(a)
-    image_module = sub_object(G, a)
     function im_func(x::AbstractFreeModElem)
      # The lines below were an attempt to speed up mapping. 
      # However, it turns out that checking the equality is more 
@@ -610,7 +609,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       @assert parent(x) === G
       r.generators_map_to_generators === true && return FreeModElem(coordinates(simplify!(x)), F)
       #c = coordinates(repres(simplify!(x)), image_module)
-      c = coordinates(repres(x), image_module)
+      c = coordinates(repres(x), image_module(r))
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
