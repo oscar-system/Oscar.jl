@@ -135,7 +135,7 @@ function _rational_solutions(
     @assert coefficient_ring(I) == QQ
     AI = AlgebraicSolving.Ideal(gens(I))
 
-    info_level = get_verbosity_level(:AlgebraicSolving) > 2 ? 2 : get_verbosity_level(:AlgebraicSolving)
+    info_level = min(2, get_verbosity_level(:AlgebraicSolving))
     AlgebraicSolving.rational_solutions(AI,
              initial_hts = initial_hts,
              nr_thrds = nr_thrds,
