@@ -31,12 +31,12 @@ struct QuiverRepresentation{C <: FieldElem}
     vertex_vector_spaces::Vector{Generic.FreeModule{C}}
     edge_morphisms::Vector{Generic.ModuleHomomorphism{C}}
     base_field::Field # elem_type(C)
-    function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector)
+    function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector, base_field)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
-        #add req to remind user that the dimension of the domain and codomain are "switched" for module homs
+        #add check that base_ring(first(A)) is subring of base_field
         check_matrix_dimensions(quiver, ambient_dims, input_matrices)
-        base_field = base_ring(first(input_matrices))
+        input_matrices = [matrix(base_field,A) for A in input_matrices] #allows user to 
         vertex_vector_spaces = [vector_space(base_field,ambient_dims[i]) for i in vertices(quiver)]
         new(quiver, ambient_dims, vertex_vector_spaces, edge_morphisms(quiver,input_matrices,vertex_vector_spaces), base_field)
     end
@@ -73,7 +73,7 @@ julia> Q = quiver_representation(G,[2,4],[A])
 QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
 ```
 """
-function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem})
+function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem}, base_field)
     return QuiverRepresentation(quiver, ambient_dims, maps)
 end
 
