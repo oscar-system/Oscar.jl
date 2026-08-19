@@ -112,6 +112,32 @@ function tree_edges(N::PhylogeneticNetwork)
   return [e for e in edges(N) if !haskey(hyb, dst(e))]
 end
 
+# Functions for displayed trees of trees of level k > 1 
+
+
+#INPUT: a phylogenetic_network pn with k hybrid (reticulation) vertices 
+#OUTPUT: a dictionary s =>  T_s 
+#       s \in {0,1}^k
+#       T_s is the tree obtained by removing the hybrid edge hybrids[v][s] for each hybrid vertex v 
+#       warning: the keys of hybrids are not sorted!  
+function displayed_trees(pn::PhylogeneticNetwork)
+    hyb_dict = hybrids(pn)
+    k = length(hyb_dict) 
+    indxs = [digits(i, base=2, pad=k) for i in 0:2^k-1]
+    L = [] 
+    for indx in indxs 
+        T_indx = graph_from_edges(Directed, edges(pn))
+        for i in 1:k
+            rem_edge!(T_indx, hyb_dict[collect(keys(hyb_dict))[i]][indx[i]+1])
+        end 
+        push!(L, [indx, T_indx])
+    end 
+    #return L 
+    return Dict(L)
+end 
+
+displayed_trees(G::Graph{Directed}) = displayed_trees(phylogenetic_network(G))
+
 ###################################################################################
 #
 #       Auxiliary functions to access parameters
