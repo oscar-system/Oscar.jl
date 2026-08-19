@@ -87,7 +87,7 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     return I.gb[ordering]
   end
   # If DodgyMode & user did not specify an algorithm, use :modular if possible
-  if AbstractAlgebra.get_dodgy_mode() && algorithm == :default && base_ring(I) isa QQMPolyRing
+  if AbstractAlgebra.get_dodgy_mode(:groebner) && algorithm == :default && base_ring(I) isa QQMPolyRing
     AbstractAlgebra.@RegisterDodgyStep(:standard_basis, (I,));
     algorithm = :modular
   end
