@@ -239,7 +239,7 @@ function _get_edge_labeled_graph(cv_set::Union{Vector{ZZMatrix}, Vector{Matrix{I
     if n-2 < ZZ(typemax(Int)) # we use Cauchy-Schwarz to check if char vector inner products are small enough to be converted to Int. As we need at least w_max+1 and w_max+2 weights further, we need to lower bound by -2.
       cv_set_int = [Hecke._int_matrix_with_overflow(v, tmp) for v in cv_set]
     else 
-      throw(OverflowError("The characteristic vectors may have to large inner products to be converted to Int."))
+      throw(OverflowError("The characteristic vectors have to large inner products to be converted to Int."))
     end
   end
   return _get_edge_labeled_graph_inner(cv_set_int, Hecke._int_matrix_with_overflow(gram, tmp))
