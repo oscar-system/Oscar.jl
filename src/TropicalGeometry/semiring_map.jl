@@ -317,26 +317,28 @@ end
 
 
 @doc raw"""
-    tropical_semiring_map(K::Field, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_semiring_map(R::PuiseuxMPolyRing, t::PuiseuxMPolyRingElem, minOrMax::Union{typeof(min),typeof(max)}=min)
 
-Return a map `nu` from `K` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=one(T)` for `c` non-zero.  In other words, `nu` extends the trivial valuation on `K`.
+Return a map `nu` from `R` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and and `nu(c)=+/-val(c)` for `c` non-zero, where `val` denotes the `t`-adic valuation with uniformizer `t`.  Requires `R` to be a puiseux polynomial ring in a single variable `t`.
 
 # Examples
 ```jldoctest
-julia> nu = tropical_semiring_map(QQ) # arbitrary rings possible
-Map into Min tropical semiring encoding the trivial valuation on Rational field
+julia> Kt, (t,) = puiseux_polynomial_ring(QQ,["t"]);
 
-julia> nu(1)
-(0)
+julia> nu = tropical_semiring_map(Kt,t)
+Map into Min tropical semiring encoding the t-adic valuation on Multivariate polynomial ring in 1 variable over multivariate Laurent polynomial ring
+
+julia> nu(t)
+(1)
 
 julia> nu(0)
 infty
 
-julia> nu = tropical_semiring_map(QQ,max) # arbitrary rings possible
-Map into Max tropical semiring encoding the trivial valuation on Rational field
+julia> nu = tropical_semiring_map(Kt,t,max)
+Map into Max tropical semiring encoding the t-adic valuation on Multivariate polynomial ring in 1 variable over multivariate Laurent polynomial ring
 
-julia> nu(1)
-(0)
+julia> nu(t)
+(-1)
 
 julia> nu(0)
 -infty
