@@ -114,6 +114,8 @@ solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) whe
 solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T}
 solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 support_function(P::Polyhedron{T}; convention::Symbol = :max) where T<:scalar_types
+slack_ideal_non_saturated
+slack_ideal
 ```
 
 

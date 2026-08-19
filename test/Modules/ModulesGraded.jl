@@ -727,14 +727,14 @@ end
   T0 = tor(M, Q, 0)
   T1 = tor(M, Q, 1)
   T2 = tor(M, Q, 2)
-  @test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
+  @test is_canonically_isomorphic(simplify(present_as_cokernel(T0))[1], simplify(M_coker)[1])
   # todo simplify
   @test iszero(T2)
 
   E0 = ext(Q, M, 0)
   E1 = ext(Q, M, 1)
   E2 = ext(Q, M, 2)
-  @test is_canonically_isomorphic(present_as_cokernel(E0), M_coker)
+  @test is_canonically_isomorphic(simplify(present_as_cokernel(E0))[1], simplify(M_coker)[1])
   @test ngens(present_as_cokernel(E1)) == ngens(M_coker)
   @test iszero(E2)
   E0 = ext(M, Q, 0)
@@ -1330,4 +1330,22 @@ end
   J = ideal(Q, gens(Q))
   ideal_as_module(J)
   quotient_ring_as_module(J)
+end
+
+@testset "graded presentation shortcut" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  G = grading_group(S)
+  g = G[1]
+  F = graded_free_module(S, [g for _ in 1:2])
+  I, _ = sub(F, gens(F))
+  J, _ = sub(F, [F[1]])
+  M1, _ = quo(I, I)
+  M2, _ = quo(I, J)
+  p1 = presentation(M1)
+  p2 = presentation(M2)
+  @test is_graded(map(p1, 1))
+  @test is_graded(map(p2, 1))
+
+  @test all(!is_zero, degree.(gens(p1[0])))
+  @test all(!is_zero, degree.(gens(p2[0])))
 end

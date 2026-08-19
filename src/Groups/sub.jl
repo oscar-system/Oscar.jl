@@ -756,7 +756,7 @@ false
 
 function quo(G::FPGroup, elements::Vector{FPGroupElem})
   elems_in_gap = GapObj(elements; recursive=true)
-  Q = FPGroup((GapObj(G)/elems_in_gap)::GapObj)
+  Q = fp_group((GapObj(G)/elems_in_gap)::GapObj, free_group(G))
   Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
   Qgens = GAPWrap.GeneratorsOfGroup(GapObj(Q))
   if length(Ggens) == 0

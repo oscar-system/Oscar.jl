@@ -11,19 +11,19 @@ then `compose(a, b)` refers to the composition `b` $\circ$ `a`. If an isomorphis
 `a` is given, then `inv(a)` refers to its inverse.
 
 ```@docs
-hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
+hom_product(M::OFPModule, N::OFPModule, A::Matrix{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}})
 ```
 
 ```@docs
-hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+hom_tensor(M::OFPModule, N::OFPModule, V::Vector{<:OFPModuleHom})
 ```
 
 ```@docs
-lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi:: ModuleFPHom)
+lift_homomorphism_contravariant(Hom_MP::OFPModule, Hom_NP::OFPModule, phi:: OFPModuleHom)
 ```
 
 ```@docs
-lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi:: ModuleFPHom)
+lift_homomorphism_covariant(Hom_PM::OFPModule, Hom_PN::OFPModule, phi:: OFPModuleHom)
 ```
 
 

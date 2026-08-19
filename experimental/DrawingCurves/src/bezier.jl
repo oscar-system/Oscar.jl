@@ -80,7 +80,7 @@ function bezier_curve(p::Vector{Vector{QQFieldElem}})
   end
 end
 
-function _draw_edge_sequence_bernstein(T::MatrixElem)
+function _draw_edge_sequence_bernstein(T::MatElem)
   return function _draw_edge_sequence_bernstein(
     io, ptsmapped::Vector{_Point}, scale; color::String="black"
   )

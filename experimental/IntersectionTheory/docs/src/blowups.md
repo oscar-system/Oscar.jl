@@ -26,18 +26,6 @@ blowup(i::AbstractVarietyMap; symbol::String = "e")
 blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
 ```
 
-## The Chow ring of a blow-up
-
-Let $\widetilde{X}$ be the blow-up of $X$ along $Z$ with exceptional divisor $E$.
-The Chow ring $\mathrm{N}^*(\widetilde{X})$ is generated as an $\mathrm{N}^*(X)$-algebra
-by the class $e = [E]$ of the exceptional divisor, subject to the relation
-
-$$\sum_{k=0}^{r} (-1)^k c_k(N_{Z/X})\, e^{r-k} = 0$$
-
-where $r$ is the codimension of $Z$ in $X$, together with the multiplication rule
-$j_*(x) \cdot j_*(y) = -j_*(x \cdot y \cdot \zeta)$ for classes on $E$
-(see [EH16](@cite), Proposition 13.12).
-
 ## Worked examples
 
 ### Blow-up of the Veronese surface
@@ -119,35 +107,3 @@ julia> integral(quad^2 * cubic)   # residual intersection
 
 ```
 
-### Blow-up of $\mathbb P^2 \times \mathbb P^2$ (Segre embedding)
-
-Blow up $\mathbb P^8$ along the Segre image of $\mathbb P^2 \times \mathbb P^2$.
-We verify the Betti numbers of the resulting variety:
-
-```jldoctest
-julia> P2xP2 = abstract_projective_space(2, symbol = "k") * abstract_projective_space(2, symbol = "l");
-
-julia> P8 = abstract_projective_space(8);
-
-julia> k, l = gens(P2xP2);
-
-julia> Se = map(P2xP2, P8, [k + l]);
-
-julia> Bl, E, j = blowup(Se);
-
-julia> betti_numbers(Bl)
-9-element Vector{Int64}:
- 1
- 2
- 4
- 7
- 8
- 7
- 4
- 2
- 1
-
-julia> euler_number(Bl)
-36
-
-```

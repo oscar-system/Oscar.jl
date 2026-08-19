@@ -103,7 +103,7 @@ function koszul_complex(v::FreeModElem; cached::Bool=true)
   return chain_complex(boundary_maps, seed=-1, check=false)
 end
 
-function koszul_complex(v::FreeModElem, M::ModuleFP; cached::Bool=true)
+function koszul_complex(v::FreeModElem, M::OFPModule; cached::Bool=true)
   K = koszul_complex(v, cached=cached)
   KM = tensor_product(K, M)
   return KM
@@ -130,7 +130,7 @@ function koszul_homology(v::FreeModElem, i::Int; cached::Bool=true)
   return homology(K, 1)
 end
 
-function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
+function koszul_homology(v::FreeModElem, M::OFPModule, i::Int; cached::Bool=true)
   F = parent(v)
   n = rank(F)
 

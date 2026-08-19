@@ -1,10 +1,10 @@
-import Oscar.Serialization: save_object, load_object, type_params
+import Oscar.Serialization: save_object, load_object, type_and_params
 
 @register_serialization_type MatroidRealizationSpace uses_id
-function type_params(M::MatroidRealizationSpace)
+function type_and_params(M::MatroidRealizationSpace)
   mat = realization_matrix(M)
   p =  isnothing(mat) ? nothing : parent(mat)
-  return TypeParams(MatroidRealizationSpace,
+  return TypeAndParams(MatroidRealizationSpace,
                                       :matrix_space => p,
                                       :ideal_ring => base_ring(defining_ideal(M)),
                                       :ground_ring=>M.ground_ring)
@@ -45,10 +45,10 @@ end
 
 
 @register_serialization_type MatroidRealizationSpaceSelfProjecting uses_id
-function type_params(M::MatroidRealizationSpaceSelfProjecting)
+function type_and_params(M::MatroidRealizationSpaceSelfProjecting)
   mat = selfprojecting_realization_matrix(M)
   p =  isnothing(mat) ? nothing : parent(mat)
-  return TypeParams(MatroidRealizationSpaceSelfProjecting,
+  return TypeAndParams(MatroidRealizationSpaceSelfProjecting,
                                       :matrix_space => p,
                                       :ideal_ring => base_ring(defining_ideal(M)),
                                       :ground_ring=>M.ground_ring)
@@ -85,12 +85,12 @@ end
 
 
 @register_serialization_type SelfProjectingMatroidRealizations uses_id
-function type_params(M::SelfProjectingMatroidRealizations)
+function type_and_params(M::SelfProjectingMatroidRealizations)
   rs = realization_space(M)
   matrix_rs = isnothing(rs) ? nothing : realization_matrix(rs)
   sprs = selfprojecting_realization_space(M)
   matrix_sprs = isnothing(sprs) ? nothing : selfprojecting_realization_matrix(sprs)
-  TypeParams(SelfProjectingMatroidRealizations,
+  TypeAndParams(SelfProjectingMatroidRealizations,
              :matrix_space_mrs => isnothing(matrix_rs) ? nothing : parent(realization_matrix(rs)),
              :matrix_space_sp_mrs => isnothing(matrix_sprs) ? nothing : parent(selfprojecting_realization_matrix(sprs)),
              :ideal_ring_rs => isnothing(rs) ? nothing : base_ring(defining_ideal(rs)),
