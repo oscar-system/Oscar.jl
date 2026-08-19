@@ -1330,9 +1330,9 @@ end
 
 @attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
-  if level(N) > 1
-    error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
-  end
+  # if level(N) > 1
+  #   error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
+  # end
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -1355,6 +1355,38 @@ end
     map = map + l.*map_subtree
   end
   return hom(R, S, reduce(vcat, map))
+end
+
+function remove_edge(G::Graph{Directed}, e::Edge)
+    H = copy(G)
+    rem_edge!(H, e)
+    return H
+end
+
+function network_subtree_parametrization(M::PhylogeneticModel{<:PhylogeneticNetwork})
+    T = M.phylo_model.graph
+    T_graph = M.phylo_model.graph.graph
+    
+    l = leaves(T_graph)
+    k = length(l)
+    leaves_position = Dict(v => i for (i, v) in enumerate(l))
+
+    R, x = parameter_ring(M)
+
+    splits = Dict(e => intersect(weakly_connected_components(remove_edge(T_graph, e))[1], l)
+                for e in edges(T_graph))
+
+    images = []
+    good_vectors = [collect(x) for x in Iterators.product(([0, 1] for _ in 1:k)...) if sum(x) % 2 == 0]
+
+
+    for g in good_vectors
+        push!(images, prod([sum([g[leaves_position[i]] 
+                                for i in splits[e]]) % 2 == 0 ? 
+                                x[(:x, e)] : x[(:y, e)] 
+                                for e in edges(T_graph)]))
+    end
+    return images
 end
 
 @doc raw"""
