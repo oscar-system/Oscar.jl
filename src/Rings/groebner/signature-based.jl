@@ -68,7 +68,7 @@ function groebner_basis_signature_based(
   signature_ordering::Symbol=:POT
 )
 
-  info_level = get_verbosity_level(:AlgebraicSolving) > 1 ? 1 : get_verbosity_level(:AlgebraicSolving)
+  info_level = min(1, get_verbosity_level(:AlgebraicSolving))
 
   ordering = degrevlex(base_ring(I))
   if haskey(I.gb, ordering)
