@@ -34,14 +34,12 @@ struct QuiverRepresentation{C <: FieldElem}
     function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector, base_field)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
-        K = base_ring(first(input_matrices))
         try
-            base_field(K(1))
+            input_matrices = change_base_ring(base_field,Ref(input_matrices))
         catch
             error("The matrix entries cannot be coerced into the specified ring")
         end
         check_matrix_dimensions(quiver, ambient_dims, input_matrices)
-        input_matrices = [matrix(base_field, A) for A in input_matrices]
         vertex_vector_spaces = [vector_space(base_field,ambient_dims[i]) for i in vertices(quiver)]
         new(quiver, ambient_dims, vertex_vector_spaces, edge_morphisms(quiver,input_matrices,vertex_vector_spaces), base_field)
     end
