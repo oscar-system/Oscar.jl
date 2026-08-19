@@ -35,7 +35,7 @@ struct QuiverRepresentation{C <: FieldElem}
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
         try
-            input_matrices = change_base_ring(base_field,Ref(input_matrices))
+            input_matrices = change_base_ring.(base_field,Ref(input_matrices))
         catch
             error("The matrix entries cannot be coerced into the specified ring")
         end
