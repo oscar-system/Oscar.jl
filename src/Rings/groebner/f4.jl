@@ -24,6 +24,7 @@ See [Fau99](@cite) for more information.
 - `complete_reduction::Bool=true`: compute a reduced Gröbner basis for `I`
 - `normalize::Bool=true`: normalizes elements in computed Gröbner basis for `I`
 - `truncate_lifting::Int=0`: degree up to which the elements of the Gröbner basis are lifted to `QQ`, `0` for complete lifting
+- `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 
 # Examples
 ```jldoctest
@@ -55,7 +56,8 @@ function groebner_basis_f4(
         eliminate::Int=0,
         complete_reduction::Bool=true,
         normalize::Bool=true,
-        truncate_lifting::Int=0
+        truncate_lifting::Int=0,
+        info_level::Int=0
         )
 
     info_level = min(2, get_verbosity_level(:AlgebraicSolving))
