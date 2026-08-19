@@ -274,7 +274,7 @@ GAP: [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]
 julia> map_entries(f, n) == m
 true
 
-julia> R = GAP.Globals.PolynomialRing(GAP.Globals.Rationals);
+julia> R = GAPWrap.PolynomialRing(GAP.Globals.Rationals);
 
 julia> f = Oscar.iso_gap_oscar(R);
 

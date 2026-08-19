@@ -103,7 +103,7 @@ Symmetric group of degree 6
 @attributes mutable struct PermGroup <: GAPGroup
    X::GapObj
    deg::Int64       # G < Sym(deg)
-   
+
    function PermGroup(G::GapObj)
      @assert GAPWrap.IsPermGroup(G)
      n = GAPWrap.LargestMovedPoint(G)::Int
@@ -116,7 +116,7 @@ Symmetric group of degree 6
      z = new(G, n)
      return z
    end
-   
+
    function PermGroup(G::GapObj, deg::Int)
      @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)::Int
      z = new(G, deg)
@@ -176,9 +176,9 @@ function pc_group(G::GapObj)
 
   # Switch to a full pcp or pc group.
   if GAPWrap.IsPcpGroup(G)
-    return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
+    return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G))::GapObj)
   elseif GAPWrap.IsPcGroup(G)
-    return PcGroup(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
+    return PcGroup(GAP.Globals.PcGroupWithPcgs(GAPWrap.Pcgs(G))::GapObj)
   end
   throw(ArgumentError("G must be in IsPcGroup or IsPcpGroup"))
 end

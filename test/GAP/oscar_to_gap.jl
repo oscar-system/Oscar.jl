@@ -10,7 +10,7 @@ end
 @testset "GapGroup and GapGroupElem" begin
   # `GapGroup` to GAP group, Perm
   G = symmetric_group(5)
-  val = GAP.Globals.SymmetricGroup(5)
+  val = GAPWrap.SymmetricGroup(5)
   @test GAP.Obj(G) == val
 
   # `GapGroupElem` to GAP group element, Perm

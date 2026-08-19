@@ -343,7 +343,7 @@ function Base.deepcopy_internal(c::GAP_Collector{T}, dict::IdDict) where T <: In
     if GAP.Globals.IsSingleCollectorRep(c.X)
       # For this type of collectors, `GAP.Globals.ShallowCopy`
       # returns an independent copy.
-      cc.X = GAP.Globals.ShallowCopy(c.X)::GapObj
+      cc.X = GAPWrap.ShallowCopy(c.X)::GapObj
     elseif GAP.Globals.IsFromTheLeftCollectorRep(c.X)
       # Currently there is no `GAP.Globals.ShallowCopy` method for `c.X`.
       # Create the GAP object anew.
