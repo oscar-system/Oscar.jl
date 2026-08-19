@@ -8,7 +8,11 @@ S, a = parameter_ring(PM)
 phi = parametrization(PM)
 
 H = components_of_kernel(2, phi, show_progress = true)
+<<<<<<< HEAD
 I = ideal(reduce(vcat, collect(values(H))))
+=======
+I = ideal(reduce(vcat, collect(values(I))))
+>>>>>>> origin
 
 
 # two 6 sunlets glued along an edge

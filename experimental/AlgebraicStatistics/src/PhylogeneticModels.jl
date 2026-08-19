@@ -1308,7 +1308,60 @@ end
   return hom(R, S, map_array) 
 end
 
+<<<<<<< HEAD
 function remove_edge(G, e)
+=======
+@doc raw"""
+    full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
+    full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
+
+Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
+configurations) to the parameter ring (with generators from the Fourier parameters).
+"""
+@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
+  gr = graph(PM)
+
+  R, _ = full_model_ring(PM)
+  S, _ = parameter_ring(PM)
+
+  lvs = sort(leaves(gr))
+  lvs_indices = leaves_indices(PM)
+
+  map = [leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
+  return hom(R, S, reduce(vcat, map))
+end
+
+@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
+  N = graph(PM)
+  # if level(N) > 1
+  #   error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
+  # end
+
+  R, _ = full_model_ring(PM)
+  S, _ = parameter_ring(PM)
+
+  lvs = sort(leaves(N))
+  lvs_indices = leaves_indices(PM)
+  h_indices = hybrid_indices(PM)
+
+  t_edges = tree_edges(N)
+  hyb = hybrids(N)
+  h_nodes = collect(keys(hyb))
+
+  map = [0 for i in lvs_indices]
+
+  for idx in h_indices
+    subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
+    subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
+    l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
+    map_subtree = [Oscar.leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
+    map = map + l.*map_subtree
+  end
+  return hom(R, S, reduce(vcat, map))
+end
+
+function remove_edge(G::Graph{Directed}, e::Edge)
+>>>>>>> origin
     H = copy(G)
     rem_edge!(H, e)
     return H
@@ -1335,55 +1388,6 @@ function network_subtree_parametrization(M, T)
                                 for e in edges(T)]))
     end
     return images
-end
-
-@doc raw"""
-    full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
-    full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
-
-Constructs the parametrization map from the full model ring in _Fourier_ coordinates (with generators for all leaf probability
-configurations) to the parameter ring (with generators from the Fourier parameters).
-"""
-@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
-  gr = graph(PM)
-
-  R, _ = full_model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  lvs = sort(leaves(gr))
-  lvs_indices = leaves_indices(PM)
-
-  map = [leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(gr))) for k in lvs_indices]
-  return hom(R, S, reduce(vcat, map))
-end
-
-@attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
-  N = graph(PM)
-  if level(N) > 1
-    error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
-  end
-
-  R, _ = full_model_ring(PM)
-  S, _ = parameter_ring(PM)
-
-  lvs = sort(leaves(N))
-  lvs_indices = leaves_indices(PM)
-  h_indices = hybrid_indices(PM)
-
-  t_edges = tree_edges(N)
-  hyb = hybrids(N)
-  h_nodes = collect(keys(hyb))
-
-  map = [0 for i in lvs_indices]
-
-  for idx in h_indices
-    subtree_h_edges = [hyb[h_nodes[i]][idx[i]] for i in eachindex(h_nodes)]
-    subtree = graph_from_edges(Directed, vcat(subtree_h_edges, t_edges))
-    l = prod([Oscar.entry_hybrid_parameter(PM, e) for e in subtree_h_edges])
-    map_subtree = [Oscar.leaves_fourier(PM, Dict(lvs[i] => k[i] for i in 1:n_leaves(N)), subtree) for k in lvs_indices]
-    map = map + l.*map_subtree
-  end
-  return hom(R, S, reduce(vcat, map))
 end
 
 @doc raw"""
