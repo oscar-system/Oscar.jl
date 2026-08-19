@@ -118,17 +118,17 @@ end
 #INPUT: a phylogenetic_network pn with k hybrid (reticulation) vertices 
 #OUTPUT: a dictionary s =>  T_s 
 #       s \in {0,1}^k
-#       T_s is the tree obtained by removing the hybrid edge hybrids[v][s] for each hybrid vertex v 
-#       warning: the keys of hybrids are not sorted!  
+#       T_s is the tree obtained by removing the hybrid edge hybrids[v][s] for each hybrid vertex v   
 function displayed_trees(pn::PhylogeneticNetwork)
     hyb_dict = hybrids(pn)
+    hyb_vs = hybrid_vertices(pn)
     k = length(hyb_dict) 
     indxs = [digits(i, base=2, pad=k) for i in 0:2^k-1]
     L = [] 
     for indx in indxs 
         T_indx = graph_from_edges(Directed, edges(pn))
         for i in 1:k
-            rem_edge!(T_indx, hyb_dict[collect(keys(hyb_dict))[i]][indx[i]+1])
+            rem_edge!(T_indx, hyb_dict[hyb_vs[i]][indx[i]+1])
         end 
         push!(L, [indx, T_indx])
     end 
