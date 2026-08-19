@@ -66,7 +66,7 @@ System of length 2
 """
 function System(F::Vector{QQMPolyRingElem}; args...)
   R = parent(first(F))
-  all(f -> parent(f) === R, F) || throw(ArgumentError("All polynomials must have the same parent"))
+  @req all(f -> parent(f) === R, F) "All polynomials must have the same parent"
   return HomotopyContinuation.System(Expression.(F); variables=Variable.(symbols(R)), args...)
 end
 
