@@ -237,7 +237,7 @@ end
 function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem, b::Bool; parent=1)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-    fl, r, s = Hecke.rational_reconstruction(c, d)
+    fl, r, s = Hecke.rational_reconstruction(c, d; error_tolerant = true)
     if !fl
       return false, finish(g)
     end
@@ -246,6 +246,7 @@ function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem, b::Bo
   return true, finish(g)
 end
 
+#=
 function induce_crt(f::ZZMPolyRingElem, d::ZZRingElem, g::ZZMPolyRingElem, p::ZZRingElem, b::Bool)
   mu = MPolyBuildCtx(parent(f))
   for i=1:length(f)
@@ -255,6 +256,7 @@ function induce_crt(f::ZZMPolyRingElem, d::ZZRingElem, g::ZZMPolyRingElem, p::ZZ
   end
   return finish(mu), d*p
 end
+=#
 
 function exp_groebner_basis(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   return exp_groebner_assure(I, ordering)
