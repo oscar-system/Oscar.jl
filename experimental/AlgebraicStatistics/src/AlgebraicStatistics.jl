@@ -73,6 +73,7 @@ export n_hybrid
 export hybrid_vertices
 export hybrids
 export hybrid_edges
+export displayed_trees 
 
 # Gaussian Graphical Model Exports
 export GaussianGraphicalModel
