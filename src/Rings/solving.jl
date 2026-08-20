@@ -63,7 +63,8 @@ function real_solutions(::Type{Vector{Vector{QQFieldElem}}},
         max_nr_pairs::Int=0,                  # number of pairs maximally chosen
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
-        precision::Int=32,                     # precision of the solution set
+        info_level::Int=0,                    # info level for print outs
+        precision::Int=32,                    # precision of the solution set
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
