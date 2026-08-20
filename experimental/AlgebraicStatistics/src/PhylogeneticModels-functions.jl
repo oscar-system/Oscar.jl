@@ -405,7 +405,9 @@ end
 
 function group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
   G = group(PM)
-  return sum(G[collect(values(states))])
+  # `states` is empty for the edges of a displayed tree which have no leaf below
+  # them; this happens for networks of level at least 2.
+  return sum(G[collect(values(states))]; init = zero(parent(first(G))))
 end
 
 is_zero_group_sum(PM::GroupBasedPhylogeneticModel, states::Dict{Int, Int}) = iszero(group_sum(PM, states))

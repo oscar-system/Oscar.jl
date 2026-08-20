@@ -1308,9 +1308,6 @@ end
   return hom(R, S, map_array) 
 end
 
-<<<<<<< HEAD
-function remove_edge(G, e)
-=======
 @doc raw"""
     full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree})
     full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
@@ -1333,9 +1330,6 @@ end
 
 @attr MPolyAnyMap function full_parametrization(PM::GroupBasedPhylogeneticModel{<:PhylogeneticNetwork})
   N = graph(PM)
-  # if level(N) > 1
-  #   error("At the moment, this is only defined for level-1 networks. The input network is level $(level(N)).")
-  # end
 
   R, _ = full_model_ring(PM)
   S, _ = parameter_ring(PM)
@@ -1361,7 +1355,6 @@ end
 end
 
 function remove_edge(G::Graph{Directed}, e::Edge)
->>>>>>> origin
     H = copy(G)
     rem_edge!(H, e)
     return H
