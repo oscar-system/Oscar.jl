@@ -136,6 +136,7 @@ function _rational_solutions(
         max_nr_pairs::Int=0,                  # number of pairs maximally chosen
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
+        info_level::Int=0,                    # info level for print outs
         precision::Int=32                     # precision of the solution set
         )
 
