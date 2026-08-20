@@ -17,7 +17,10 @@ A `PhylogeneticModel` is defined by a directed tree, a base field, the symbolic 
 
 ```@docs
 PhylogeneticModel
-phylogenetic_model
+phylogenetic_model(F::Field, G::AbstractGraph{Directed},
+                            trans_matrix_structure::Matrix,
+                            root_distribution::Union{Nothing, Vector} = nothing,
+                            varnames::VarName=:p)
 ```
 
 Here are some examples of how to construct phylogenetic models. The Jukes Cantor model on a 3-leaf tree can be constructed:
@@ -66,7 +69,7 @@ For models exhibiting symmetries that can be captured by a finite abelian group,
 
 ```@docs
 GroupBasedPhylogeneticModel
-group_based_phylogenetic_model
+group_based_phylogenetic_model(F::Field, G::AbstractGraph{Directed}, trans_matrix_structure::Matrix{<: VarName}, fourier_param_structure::Vector{<: VarName}, group::Union{Nothing, Vector{FinGenAbGroupElem}} = nothing, root_distribution::Union{Nothing, Vector} = nothing, varnames_phylo_model::VarName=:p, varnames_group_based::VarName=:q)
 ```
 
 For example, the Jukes-Cantor model can be defined as a group-based model:
