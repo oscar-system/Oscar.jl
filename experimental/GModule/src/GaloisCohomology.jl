@@ -10,7 +10,8 @@ import Oscar: pretty, Lowercase, Indent, Dedent, terse
 
 export is_coboundary, idele_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
-export local_index, units_mod_ideal, brauer_group
+export local_index, units_mod_ideal, brauer_group, fixed_group
+export induce_hom, add_prime, change_precision
 
 import AbstractAlgebra: @show_name, @show_special, extra_name
 
@@ -27,40 +28,40 @@ end
 #not type restricted: used for number fields as well as
 #LocalFields
 #could be extended to allow more group types
-function Oscar.automorphism_group(::Type{PermGroup}, k)
+function Oscar.automorphism_group(::Type{T}, k) where T <: Oscar.GAPGroup
   a = _can_cache_aut(k)
-  if a !== nothing && haskey(a, (PermGroup, ))
-    mG = a[(PermGroup, )]
+  if a !== nothing && haskey(a, (T, ))
+    mG = a[(T, )]
     return domain(mG), mG
   end
   G, mG = automorphism_group(k)
-  mH = isomorphism(PermGroup, G)
+  mH = isomorphism(T, G)
   mmH = inv(mH)*mG
   if a !== nothing 
-    a[(PermGroup, )] = mmH
+    a[(T, )] = mmH
   end
   return codomain(mH), mmH
 end
 
-function Oscar.automorphism_group(::Type{PermGroup}, K, k)
-  a = _can_cache_aut(k)
-  if a !== nothing && haskey(a, (PermGroup, k))
-    mG = a[(PermGroup, k)]
+function Oscar.automorphism_group(::Type{T}, K, k) where T <: Oscar.GAPGroup
+  a = _can_cache_aut(K)
+  if a !== nothing && haskey(a, (T, k))
+    mG = a[(T, k)]
     return domain(mG), mG
   end
 
   G, mG = automorphism_group(K, k)
-  mH = isomorphism(PermGroup, G)
+  mH = isomorphism(T, G)
   mmH = inv(mH)*mG
   if a !== nothing 
-    a[(PermGroup, k)] = mmH
+    a[(T, k)] = mmH
   end
   return codomain(mH), mmH
 end
 
-function Oscar.absolute_automorphism_group(::Type{PermGroup}, k)
+function Oscar.absolute_automorphism_group(::Type{T}, k) where T <: Oscar.GAPGroup
   G, mG = absolute_automorphism_group(k)
-  mH = isomorphism(PermGroup, G)
+  mH = isomorphism(T, G)
   return codomain(mH), inv(mH)*mG
 end
 
@@ -427,17 +428,22 @@ the quotient is just `ZZ`, for tame fields, it will be isomorphic to
 for the residue field `F_q`. In the wild case a suitable induced
 module is factored out.
 
+If conductor is set to `n`, then the module factored out is guaranteed to 
+be contained in the principal units of level `n`.
+
 Returns: 
  - the gmodule
  - the map from G = Gal(K/k) -> Set of actual automorphisms
  - the map from the module into K
 """
-function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false, conductor::Int = 0, extra::Int = 4)
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
   #if K/k is tame, then the 1-units are cohomological trivial, hence
   #   Z time k^* is enough...
+  
+  @req conductor >= 0 "conductor must not be negative"
 
   e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
   f = divexact(absolute_degree(K), e)
@@ -446,9 +452,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
 
   G, mG = automorphism_group(PermGroup, K, k)
 
-  if e == 1 && !full
+  if e == 1 && conductor == 0 #if ramified, then the units are not
+    #cohomologically trivial...
     @vprint :GaloisCohomology 2 " .. unramified, only the free part ..\n"
-#    @show :unram
     A = abelian_group([0])
     Hecke.assure_has_hnf(A)
     pi = uniformizer(K)
@@ -457,7 +463,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
       MapFromFunc(A, K, x->pi^x[1], y->Int(e*valuation(y))*A[1])
   end
 
-  if e % prime(K) != 0 && !full #tame!
+  if e % prime(K) != 0 && conductor < 2
     @vprint :GaloisCohomology 2 " .. tame, no 1-units ..\n"
 #    @show :tame
     k, mk = residue_field(K)
@@ -478,7 +484,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
       im = [A[1]+preimage(mu, mk(mG(g)(pi)*inv(pi)))[1]*A[2], preimage(mu, mk(mG(g)(gk)))[1]*A[2]]
       push!(h, hom(A, A, im))
     end
-    return gmodule(G, h),
+    C = gmodule(G, h)
+    @hassert :GaloisCohomology 1 is_consistent(C)
+    return C, 
       mG,
       MapFromFunc(A, K, x->pi^x[1] * gk^x[2],
         function(y)
@@ -487,7 +495,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
         end)
   end
- 
+#TODO: make sure the field has enough precision!! 
 #  @show :wild
   @vprint :GaloisCohomology 2 " .. wild case (or requested), unit group ..\n"
   U, mU = unit_group(K)
@@ -503,7 +511,8 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
     a = sum(b[i]*rand(-5:5) for i=1:length(b))
     o = [mG(g)(a) for g = G]
     m = matrix(k, n, n, vcat([coordinates(x, k) for x = o]...))
-    dm = det(m)
+    dm = det(m) #TODO: try to find small dm? be more specific? want
+                #      s.th. that has low level 1-units, a small quotient
     cnt += 1
     if cnt > 10
       error("dnw")
@@ -516,23 +525,23 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   end
 
   #o needs to be expanded to be an absolute basis
-  b = absolute_basis(k)
+  #we have a k-basis, but now we construct a Q_p-basis:
+  b = absolute_basis(k) 
+  #and expand
   o = [x*y for x = b for y = o]
 
-
   @vprint :GaloisCohomology 2 " .. quotient ..\n"
-  if prime(k) == 2
-    #we need val(p^k) > 1/(p-1)
-    #val(p) = 1 and the only critical one is p=2, where k>1 is
-    #necessary
-    ex = 2
-  else
-    ex = 1
-  end
+  #we need k*val(pi) = val(pi^k) > 1/(p-1)
+  #val(pi) = 1/e and the only critical one is p=2, where k>1 is
+  #necessary
+  # k/e > 1/(p-1), k > e/(p-1)
+  ex = Int(1+floor(ZZRingElem, absolute_ramification_index(K)//(prime(K)-1)))
+  ex = max(ex, conductor)
+
   #x -> 1+pi*x is in general, not injective, not even for a basis
   # if valuation(dm) == 0, then by Lorenz Alg II, 26.F10 it should
   # be, but we're not using it. This was used to avoid exp
-  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^ex*x)) for x = o])
+  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^(ex+extra)*x)) for x = o])
   S, mS = snf(Q)
   Q = S
   mQ = mQ*inv(mS)
@@ -546,7 +555,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   @vprint :GaloisCohomology 2 " .. the module ..\n"
   hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]; check = false) for i=gens(G)]
   Hecke.assure_has_hnf(Q)
-  return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
+  C = gmodule(G, hh)
+  @hassert :GaloisCohomology 1 is_consistent(C)
+  return C, mG, pseudo_inv(mQ)*mU
 end
 
 #=  Not used
@@ -653,16 +664,18 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert all(x->sigma(sigma(x)) == x, gens(M))
   @assert is_free(M) && torsion_free_rank(M) == ngens(M)
 
+  @assert matrix(hom(sigma*sigma - id_hom(M))) == 0
   K, mK = kernel(id_hom(M)+sigma)
   fl, mX = has_complement(mK)
   @assert fl
   X = domain(mX)
+  @assert order(intersect(mX, mK)[1]) == 1
+  @assert order(quo(M, vcat(map(mK, gens(K)), map(mX, gens(X))))[1]) == 1
   _X, _mX = snf(X)
 
   S, mS = image(sigma -id_hom(M))
   fl, mSK = is_subgroup(S, K)
   @assert fl
-
 
   _K, _mK = snf(K)
   _S, _mS = snf(S)
@@ -694,6 +707,19 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert is_surjective(phi)
   A = vcat([preimage(mB, phi(k)).coeff for k = gens(_X)]...)
   h, t = hnf_with_transform(A)
+  #we need h to be diag 1 mod 2, problem is odd numbers on diag.
+  #needs fixing
+  for i=ncols(h):-1:1
+    if !isone(h[i,i])
+      for j=i-1:-1:1
+        if !iseven(h[j,i])
+          add_row!(h, -1, i, j)
+          add_row!(t, -1, i, j)
+        end
+      end
+    end
+  end
+  @assert t*A == h
   #t*A = h = diag(1) vcat 0
   x = [sum(t[i,j]*_X[j] for j=1:ngens(_X)) for i=1:ngens(_X)]
   sm1 = sigma - id_hom(M)
@@ -730,9 +756,14 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   end
   =#
 
-  return vcat(b[r+1:end], y[r+1:end]), [-y[i] - b[i] for i=1:r]
+  return vcat(b[r+1:end], y[r+1:end]), FinGenAbGroupElem[-y[i] - b[i] for i=1:r]
 end
 
+"""
+    m: K -> K_p the completion map
+taking elements in K to elements in K_p. Return a map that takes factored
+elements to the completion.
+"""
 function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AbsSimpleNumField})
   k = base_ring(L)
   @assert k == domain(m)
@@ -747,6 +778,13 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AbsSimpleNumFie
   return MapFromFunc(L, codomain(m), to, from)
 end
 
+"""
+   m: K -> K_p
+  mu: K_p -> A
+m the completion map, elements into a completion, mu a "logarithmic map",
+e.g. mapping K_p^* -> A as an abelian group (the disc-log map)
+Return a map from factored elements on K into A.
+"""
 function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AbsSimpleNumField})
   k = base_ring(L)
   @assert k == domain(m)
@@ -809,6 +847,964 @@ mutable struct IdeleParent
   end
 end
 
+function _sign(x::FacElem{<:NumFieldElem}, e::AbsSimpleNumFieldEmbedding)
+  p = 32
+  while true
+    ex = e(x, p)
+    if !contains_zero(imag(ex))
+      error("element not real")
+    end
+    if contains_zero(real(ex))
+      p *= 2
+      continue
+    end
+    return is_negative(real(ex)) ? -1 : 1
+  end
+end
+
+"""
+  mG: G -> Aut(k)
+  mU: U -> k (in factored form)
+   E: U as a G-module
+
+U is some S-units according to Chinburg.
+Returns the (abstract) module W and the injection U -> W
+for the embedding ce
+"""
+function get_W(k, mG, mU, E)
+  #TODO: this computes W.
+  #      need U_S -> W
+  # and enough info for U_S -> U_T (different fields possible!!)
+  #         to compute  W_S -> W_T
+  # for real -> real: easy as U_S = W_S
+  # for complex U = (tor, Z) + A + B
+  #             W = (tor, Z) + L + B
+  #   where a in A -> l*s(l) in L (L decomposes into 2-dim C_2 modules
+  #   <l, s(l)> chosen so a = l*s(l))
+  # for A direct sum of 1-dim trivial C_2-modules and
+  #     B direct sum of 2-dim irr.    C_2-modules
+  #     (tor, Z) too is a C_2-module
+  # so U_S -> U_T induces a map on the decomposition above
+  #  -> complex: 
+  # u a generator in U_S = (tor, Z) + A + B
+  #  u in (tor, Z)
+  #  u in A => u = sigma u = l s(l) for l as above
+  #  u = prod v_i^n_i in U_S
+  #  l -> prod l_i^n^i for the A bit
+  #       in B: <v, w> a C_2 sub-block, then u has the same expo in v and W to 
+  #              be invariant
+  #       so l -> w should be fine
+  #  u in B
+  #
+  U = domain(mU)
+  ce = complex_embeddings(k)[1]
+  if is_totally_real(k)
+    @vprint :GaloisCohomology 2 " .. real field, easy case ..\n"
+    mG_inf = Oscar.decomposition_group(k, ce, mG)
+    G_inf = domain(mG_inf)
+    Et = gmodule(G_inf, mU, mG)
+    @hassert :GaloisCohomology 1 is_consistent(Et)
+    iU = id_hom(U)
+    set_attribute!(Et, :get_W => iU)
+    return Et, iU
+  else
+    #TODO: failing on x^8 + 70*x^4 + 15625
+    @vprint :GaloisCohomology 2 " .. complex field, hard case ..\n"
+    mG_inf = Oscar.decomposition_group(k, ce, mG)
+    G_inf = domain(mG_inf)
+    sigma = action(E, mG_inf(G_inf[1]))
+    @assert order(G_inf[1]) == 2 == order(G_inf)
+
+    @assert order(U[1]) >0
+    q, mq = quo(U, [U[1]]) 
+    q, _mq = snf(q)
+    mq = mq*pseudo_inv(_mq)
+    sigma_q = hom(q, q, [mq(sigma(preimage(mq, x))) for x = gens(q)])
+    x, y = debeerst(q, sigma_q)
+    # just to verify... Gunter Malle: the C_2 modules are visible over GF(2)...
+    if get_assert_level(:GaloisCohomology) > 0
+      _M = gmodule(GF(2), gmodule(G_inf, [sigma_q]))
+      _i = indecomposition(_M)
+      @hassert :GaloisCohomology 1 length(findall(x->dim(x[1]) == 2, _i)) == length(y)
+      @hassert :GaloisCohomology 1 length(findall(x->dim(x[1]) == 1, _i)) == length(x)
+    end
+      #possibly: now the H^2 is correct, but the H^1 is not...
+      # x^8 - 12*x^7 + 44*x^6 - 24*x^5 - 132*x^4 + 120*x^3 + 208*x^2 - 528*x + 724
+
+    #theta:
+    theta = U[1] #should be a generator for torsion, torsion is even,
+                 #hence this elem cannot be a square
+
+    x = [preimage(mq, i) for i = x]
+    y = [preimage(mq, i) for i = y]
+
+    z, mz = sub(U, [sigma(U[1]) - U[1]])
+    theta_i = [sigma(t)-t for t = x]
+    inv = Int[]
+    not_inv = Int[]
+    for i=1:length(x)
+      w = theta_i[i]
+      fl, pe = has_preimage_with_preimage(mz, w)
+      if fl
+        push!(inv, i)
+        zz = mq(x[i])
+        x[i] -= pe[1]*U[1]
+        @assert zz == mq(x[i])
+        theta_i[i] = sigma(x[i]) - x[i]
+        @assert iszero(theta_i[i])
+      else
+        push!(not_inv, i)
+      end
+    end
+
+    @assert length(not_inv) > 0
+    @assert length(not_inv) + length(inv) == length(x)
+    x = vcat(x[not_inv], x[inv]) #reordering
+    theta_i = vcat(theta_i[not_inv], theta_i[inv])
+    
+    U_t, mU_t = sub(U, [U[1]])
+    
+    sm1 = hom(U_t, U, [sigma(mU_t(g)) - mU_t(g) for g = gens(U_t)])
+    eta_i = [preimage(sm1, theta - theta_i[i]) for i=1:length(not_inv)]
+
+    eta_i = map(mU_t, eta_i)
+    V = abelian_group(elementary_divisors(U))
+    im_psi = [U[1], x[1]+ eta_i[1]]
+    mo = divexact(order(U[1]), 2) * U[1]
+    @assert evaluate(mU(mo)) == -1
+    for i=2:length(not_inv)
+      push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
+      if _sign(mU(im_psi[end]), ce) < 0
+        im_psi[end] += mo
+        @assert _sign(mU(im_psi[end]), ce) > 0
+      end
+      @assert sigma(im_psi[end]) == im_psi[end]
+    end
+    for i=length(not_inv)+1:length(x)
+      push!(im_psi, x[i])
+      if _sign(mU(im_psi[end]), ce) < 0
+        im_psi[end] += mo
+        @assert _sign(mU(im_psi[end]), ce) > 0
+      end
+      #should be chosen to be pos. at place, flip signs...
+      @assert sigma(im_psi[end]) == im_psi[end]
+    end
+    for i=1:length(y)
+      push!(im_psi, y[i])
+      push!(im_psi, sigma(y[i]))
+    end
+    psi = hom(V, U, im_psi)
+    @hassert :GaloisCohomology 5 all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
+    @hassert :GaloisCohomology 5 is_bijective(psi)
+    F = free_abelian_group(length(x)-1)
+    Hecke.assure_has_hnf(F)
+    W, pro, inj = direct_product(V, F, task = :both)
+    @assert isdefined(W, :hnf)
+
+    #the embedding is
+    # V[1] -> W[1]
+    # V[2] -> W[2], sigma(<V[1], V[2]>) = <V[1], V[2]>
+    # x[1] = V[2],
+    # sigma(x[i]) = x[i] = W[i+1] + W[..+i](due to V[1] = W[1] torsion)
+    #       and sigma(W[i+1]) = W[...+i]  (those are the lambda's)
+    # in y are gens for 2-dim module.
+
+    si = FinGenAbGroupHom(psi*sigma*pseudo_inv(psi))
+    @assert si(V[2]) == V[1] + V[2]
+    @assert si(V[1]) == -V[1]
+
+    si_im = [inj[1](si(V[1])), inj[1](si(V[2]))]
+    em_im = [inj[1](V[1]), inj[1](V[2])]
+    for i=2:length(x)
+      push!(si_im, inj[2](F[i-1]))
+      push!(em_im, W[i+1] + inj[2](F[i-1]))
+    end
+    @assert length(si_im) == length(x) + 1
+    for i=length(x)+2:2:ngens(V)
+      push!(si_im, W[i+1])
+      push!(si_im, W[i])
+      push!(em_im, W[i])
+      push!(em_im, W[i+1])
+    end
+    @assert length(si_im) == ngens(V)
+    for i=1:ngens(F)  
+      push!(si_im, W[i+2])
+    end
+    ac = hom(W, W, si_im)
+    mq = hom(V, W, em_im)
+    
+    @hassert :GaloisCohomology 2 mq*ac == si*mq
+
+
+    Et = gmodule(G_inf, [ac])
+    @hassert :GaloisCohomology 1 is_consistent(Et)
+
+    mq = FinGenAbGroupHom(pseudo_inv(psi)*mq)
+    hom(gmodule(Et.G, [action(E, E.G(Et.G[1]))]), Et, mq) #test mq to be G-lin
+
+    set_attribute!(Et, :get_W => mq)
+    return Et, mq
+  end
+end
+
+@doc """
+    fixed_group(mGK, mGk, mkK)
+
+    Given K/Q, k/Q and mkK: k -> K
+ the Galois group of k/Q should be a quotient of K/Q.
+ This find the projection, ie. Gal(K/Q) -> Gal(k/Q)
+ as well as the subgroup fixing k.
+
+ It returns the injection Fix(k) -> Gal(K) and the
+ projection Gal(K) -> Gal(k).
+
+ mGK is the map returned by `automorphis_group(K)`, ie. maps the abstract group
+ to explicit automorphism of `K`. mGk is the same for the subfield, while
+ mkK is the embedding of fields.
+"""
+function fixed_group(mGK::Map{<:Oscar.GAPGroup, <:Hecke.NfMorSet}, mGk::Map{<:Oscar.GAPGroup, <:Hecke.NfMorSet}, mkK::NumFieldHom)
+  GK = domain(mGK)
+  Gk = domain(mGk)
+  k = domain(mkK)
+  K = codomain(mkK)
+  a = mkK(gen(k))
+  U, mU = sub(GK, [x for x = GK if mGK(x)(a) == a])
+  all_g = [x for x = Gk]  
+  all_a = [mGk(x)(gen(k)) for x = all_g]  
+  mq = hom(GK, Gk, [all_g[findfirst(isequal(preimage(mkK, mGK(g)(a))), all_a)] for g = gens(GK)]) 
+  return mU, mq
+end
+
+"""
+    mp    : U -> V a G-module map between the S-unit groups
+    alpha : U -> W_U
+    beta  : V -> W_V the embedding into W for the 1st complex embedding
+
+    sigma : U -> U
+    tau   : V -> V
+
+    c_U : W_U -> W_U the complex conjugation in W_U
+    c_V : W_V -> W_V the complex conjugation in W_V
+
+    V -   tau -> V -  beta -> W_V
+  mp|                          | gamma
+    U - sigma -> U - alpha -> W_U
+
+    find gamma s.th. mp*tau*beta = sigma*alpha*gamma, the diagram commutes
+                     mp * Beta       Alpha * gamma
+
+Needs sigma, tau to make "sense"
+
+All maps are just maps between abelian groups - as the groups are all
+different.
+"""
+function induce_hom_W(mp, Alpha, Beta, c_U, c_V)
+  #TODO/ think: the infinite places have to be compatible as well!
+  #(same prob for the finite ones)
+  #or maybe conjugate the groups?
+  #"sorted" in the induce code
+
+#  @show matrix(action(W1, W1.G[1]))
+#  @show matrix(action(W2, W2.G[1]))
+#  @assert is_surjective(mp)
+
+  local tr::Union{Nothing, FinGenAbGroupHom} = nothing
+  local ke::Union{Nothing, Tuple{FinGenAbGroup, FinGenAbGroupHom}} = nothing
+
+  i = 0
+  seen = FinGenAbGroupElem[]
+  seen_im = FinGenAbGroupElem[]
+  im = FinGenAbGroupElem[]
+  for g = gens(codomain(Alpha))
+    i += 1
+    #generators of W are either in U OR, the wierd case
+    #g+sigma(g) is in W
+    #2 cases:
+    # gen in U, then gen -> U -> V -> W' is the unique image
+    # gen not in U, then gen + sigma(gen) in U
+    #  gen + sigma(gen) -> U -> V -> W' gives some x
+    #  x should be of the form y + sigma(y)
+    # so map gen -> y
+    fl, pre = has_preimage(Alpha, g)
+    @assert is_injective(Alpha)
+    @assert is_injective(Beta)
+    if fl
+      push!(im, Beta(mp(pre)))
+    else
+      @assert !(g in seen)
+      h = c_U(g)
+      p = findall(isequal(h), seen)
+      @assert length(p) <= 1
+      if length(p) == 1
+        push!(im, c_V(seen_im[p[1]]))
+        continue
+      end
+     
+      fl, pre = has_preimage(Alpha, g + c_U(g))
+      @assert fl
+      if isnothing(tr)
+        tr = FinGenAbGroupHom(id_hom(codomain(Beta)) + c_V)
+      end
+      pre = Beta(mp(pre))
+      fl, pre = has_preimage(tr, pre)
+      @assert fl
+      #
+      nU = ngens(domain(Beta))
+      #in W: (tor, Z^-) Z^+... +C2 s(l)
+      for i=1:ngens(codomain(Beta))-nU
+        #<l, s(l)> -> l + s(l) has kernel <1, -1>
+        #<1, -1>^(1+s) = <1, -1> + <-1, 1> = 0
+        # s(<a,b>) = <b, a>, <a, b>^(1+s) = <a+b, a+b> 
+        #<a,b> -> c => <a+b, 0> -> c
+        #<a,b> -> (a-(b-a)/2, b+(b-a)/2)
+        a = pre.coeff[2+i]
+        b = pre.coeff[nU+i]
+        k = div(b-1, 2)  #b-a??
+        pre.coeff[2+i] += k
+        pre.coeff[nU+i] -= k
+      end
+      for i=ngens(codomain(Beta))-nU+3:2:nU
+        k = div(pre.coeff[i+1] - pre.coeff[i], 2)
+        pre.coeff[i] += k
+        pre.coeff[i+1] -= k
+      end
+      #
+
+      push!(im, pre)
+      push!(seen, g)
+      push!(seen_im, pre)
+    end
+  end
+  h = hom(codomain(Alpha), codomain(Beta), im)
+  return h
+end
+
+#= (further) plan: I1, I2 IdeleParents, 
+                   mp field map from nf(I1) -> nf(I2)
+                   (can be identity)
+    primes(I1) subseteq primes(I2)                
+    and the full lattices in the local components fit.
+
+    Obtain a map between I1.data[1] -> I2.data[1] induced by mp
+    as this seems to be THE gmodule.
+
+    for each prime P in I1 we need the prime in I2 above
+    this will be over s(T) | mp(S)  
+    T a prime in I2, s and automorphism so that this holds.
+    The choices need to be compatible
+    Then use this to get a map between the completions, then the gmodules:
+    k_S -> k -> mp -> inv(s) in K -> K_T
+    then induce_hom_to_induced_mod will get the map between the induced ones
+
+    for the infinite places:
+      find s s.th. mp(1st embedding k) matches s(1st embedding K)
+      find map between U_S -> U_K:
+       U_S -> k -> mp -> inv(c) in K -> U_T
+      find map between the W
+      induce... to find the map between the induced ones
+
+    build the map between the products
+
+    and infer the map between the modules! (The S-units should work
+    automatically)
+
+    This should work if mp(S) <= T (and the rest)
+      application: mp = id, enlarge T
+                   mp: k -> K: for inflation and gfc
+                   mp = id, S = T, change precision
+                       here, the larger precision needs to be in S
+              for mp = id, there are shortcuts possible
+                enlarge T: the old components are just linked by id
+                           the W have to be computed
+                enlarge prec: since the completion should be the same
+                  from quot -> completion -> other quot
+      special signatures for adding primes and increasing prec?            
+=#
+
+"""
+In I1 and I2 are S-Units (rep. T-units). This finds
+ - G-complement for the S-units in the T-units
+ - both embeddings and the projection:
+
+ 1 -> V -> U_T -> U_S -> 1
+
+It finds V -> U_T, U_S -> U_T and U_T -> U_S
+
+
+Optionally V is changed to be positive at the 1st complex embedding.
+(Then it is no longer a G-complement, but a C_2 one for the decomposition group
+  of the place)
+"""
+function split_units(I1::IdeleParent, I2::IdeleParent; positive::Bool = true)
+  zk = order(I1.S[1])
+  k = number_field(zk)
+
+  @assert number_field(order(I2.S[1])) == k
+ 
+  #assume I1.S larger than I2.S, strictly
+
+  p1 = ZZRingElem[]
+  for P = I1.S
+    !(minimum(P) in map(minimum, I2.S)) && push!(p1, minimum(P))
+  end
+  @assert length(p1) > 0
+ 
+  P1 = collect(keys(factor(prod(p1)*zk)))
+  val_S = matrix(ZZ, [[valuation(I1.mU(x), p) for p = P1] for x = gens(domain(I1.mU))])
+  h = hom(domain(I1.mU), free_abelian_group(length(P1)), val_S)
+  E1 = I1.data[6] #S-units as G-module
+
+  mo = domain(I1.mU)[1]
+  mo = divexact(order(mo), 2)*mo #should be -1 now
+  @assert evaluate(I1.mU(mo)) == -1
+
+  q = Dict{typeof(I1.S[1]), FinGenAbGroupElem}()
+  for i=1:length(I1.S)
+    !(minimum(I1.S[i]) in p1) && continue
+
+    D, mD = decomposition_group(k, I1.S[i], I1.mG)
+    #need an S-unit s.th val at I1.S[i] = 1, and 0 at all others outside
+    #I2.S (and the span)
+    u, _ = kernel(action(E1, mD(D[1])) - id_hom(E1.M))
+    for i=2:ngens(D)
+      u = intersect(u, kernel(action(E1, mD(D[i])) - id_hom(E1.M))[1])
+    end
+    fl, mu = is_subgroup(u, domain(I1.mU))
+    @assert fl
+    z = codomain(h)[findfirst(isequal(I1.S[i]), P1)]
+    fl, v = has_preimage(FinGenAbGroupHom(mu*h), z)
+    @assert fl
+    for r = right_transversal(codomain(mD), image(mD)[1])
+      q[I1.mG(r)(I1.S[i])] = action(I1.data[6], r, mo + mu(v))
+    end
+  end
+
+  if positive
+    #
+    #the subgroup generated by values(q) is a G-complement for I2
+    #but we need more: the C2-1-dim subspaces need to be generated
+    #by positive elements.
+    s, ms = sub(domain(I1.mU), collect(values(q)))
+    S, = sub(I1.data[6], ms)
+    si = action(S, S.G(I2.data[7].G[1]))
+    d1, d2 = debeerst(s, si)
+    @assert all(x->x == si(x), d1)
+    ce = complex_embeddings(number_field(order(I1.S[1])))[1]
+    d1 = FinGenAbGroupElem[ms(x) for x = d1]
+    for i = 1:length(d1)
+      if _sign(I1.mU(d1[i]), ce) < 0
+        d1[i] += mo #this turns it away from a G-module complement
+                    #henceforth it is only a C_2 complement.
+        @assert _sign(I1.mU(d1[i]), ce) > 0
+      end
+    end
+    s, ms = sub(domain(I1.mU), vcat(d1, FinGenAbGroupElem[ms(x) for x = vcat(d2, map(si, d2))]))
+    @assert is_injective(ms)
+    @assert length(P1) == ngens(s)
+    for k = keys(q)
+      q[k] = ms(preimage(ms*h, codomain(h)[findfirst(isequal(k), P1)]))
+    end
+  end
+  #
+
+  h21 = hom(domain(I2.mU), domain(I1.mU), [preimage(I1.mU, I2.mU(x)) for x = gens(domain(I2.mU))])
+  @assert is_injective(h21)
+  im = FinGenAbGroupElem[]
+  for u = gens(domain(I1.mU))
+    u -= sum(h(u)[findfirst(isequal(x), P1)] * q[x] for x = keys(q))
+    push!(im, preimage(h21, u))
+  end
+
+  h12 = hom(domain(I1.mU), domain(I2.mU), im) #projection
+
+  @hassert :GaloisCohomology 5 h21*h12 == identity_map(domain(I2.mU)) #h21 is a section
+  c, mc = sub(domain(I1.mU), collect(values(q)))
+  @hassert :GaloisCohomology 5 order(intersect(c, image(h21)[1])) == 1 #c is a complement
+  @hassert :GaloisCohomology 5 order(quo(domain(I1.mU), c + image(h21)[1])[1]) == 1
+
+  return h12, h21, mc
+end
+
+
+#TODO/ Think: in case of precision increase, the preimage into the
+# kernel should be easy and may deserve a special implementation
+# In case of more primes this would be good too.
+#
+# the the map into the larger field, this is irrelevant (for the applicaton):
+# we want to "lift" cocycles along short exact equences
+#  1 -> A -> B -> C -> 1
+# given s.th. in H(C), find a lift to H(B). This need preimages in A->B
+# For the larger field, we need only A -> B
+@doc """
+    induce_hom(I1::IdeleParent, I2::IdeleParent, mp::NumFieldHom)
+
+Compute the canonical map from I1 to I2 induced by the field embedding mp.
+
+Covers 3 cases
+  - mp = id: I1_k -> I2_k will be a projection
+    either more primes
+    or more precision in I1_k (at some place)
+  - mp is en embedding k -> K (and places are the "same")  
+"""
+function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFieldHom} = nothing)
+
+  if I1.S === I2.S && isnothing(mp)
+    mUV = hom(domain(I1.mU), domain(I2.mU), gens(domain(I2.mU)))
+  else
+    #if V has more primes, this is the injection map - but this
+    # does not give an induced map
+    #mUV = hom(domain(I1.mU), domain(I2.mU), [preimage(I2.mU, mp(image(I1.mU, g))) for g = gens(domain(I1.mU))])
+    # assume I1.S > I2.S
+  end
+
+  if isnothing(mp)
+    GrpHom = id_hom(domain(I1.mG))
+    k = I1.k
+    mp = hom(k, k, k[1])
+  else
+    _, GrpHom = fixed_group(I2.mG, I1.mG, mp)
+  end
+
+  #need to align the infinite place...
+  #
+  local twist = nothing
+
+  k = domain(mp)
+  K = codomain(mp)
+  if istotally_real(k)
+    i1 = real_embeddings(k)[1]
+  else
+    i1 = complex_embeddings(k)[1]
+  end
+  if istotally_real(K)
+    i2 = real_embeddings(K)[1]
+  else
+    i2 = complex_embeddings(K)[1]
+  end
+  A = mp(gen(k))
+  a = gen(k)
+
+  #
+
+  change_field = domain(GrpHom) != codomain(GrpHom)
+  local h
+
+  if !change_field && I1.S == I2.S
+    h = identity_map(I1.data[8][1].M)
+  else
+    mU_W1 = get_attribute(I1.data[7], :get_W)
+    mU_W2 = get_attribute(I2.data[7], :get_W)
+    @assert is_injective(mU_W1)
+    @assert is_injective(mU_W2)
+    gC = get_attribute(I1.data[8][1].M, :induce)[2]
+    gD = get_attribute(I2.data[8][1].M, :induce)[2]
+
+    h = zero_map(I1.data[8][1].M, I2.data[8][1].M)
+    if is_totally_real(k)
+      c_U = identity_map(domain(mU_W1))
+      @assert codomain(mU_W1) == domain(mU_W1)
+    else
+      c_U = action(I1.data[7], I1.data[7].G[1])
+    end
+    if is_totally_real(parent(A))
+      c_V = identity_map(domain(mU_W2))
+      @assert codomain(mU_W1) == domain(mU_W1)
+    else
+      c_V = action(I2.data[7], I2.data[7].G[1])
+    end
+    mUV = hom(domain(I1.mU), domain(I2.mU), [preimage(I2.mU, mp(I1.mU(g))) for g = gens(domain(I1.mU))])
+
+    for i=1:length(gC)
+      for j=1:length(gD)
+        if contains_zero(i1(I1.mG(gC[i])(a)) - i2(I2.mG(gD[j])(A)))
+          h += canonical_projection(I1.data[8][1].M, i) *
+             induce_hom_W(mUV,
+               action(I1.data[6], inv(gC[i])) * mU_W1,
+               action(I2.data[6], inv(gD[j])) * mU_W2,
+               c_U, c_V)*
+               canonical_injection(I2.data[8][1].M, j)
+          continue     
+        end
+      end
+    end
+  end
+
+  if get_assert_level(:GaloisCohomology) > 4
+    @show :test_W, twist
+    hom(inflate(I1.data[8][1], GrpHom), I2.data[8][1], h)
+  end
+
+  X = canonical_projection(I1.M, 1) * h * canonical_injection(I2.M, 1)
+  if get_assert_level(:GaloisCohomology) > 4
+    hom(inflate(I1.data[2], GrpHom), I2.data[2], hom(X))
+  end
+
+  missing = Int[]
+  for i = 1:length(I1.S)
+    local h, twist
+    local found = false
+    for j = 1:length(I2.S)
+      minimum(I2.S[j]) == minimum(I1.S[i]) || continue
+      found = true
+      if isnothing(mp) && I1.S[i] == I2.S[j] #easy case, just new precision
+        h = hom(domain(I1.L[i]), domain(I2.L[j]), [preimage(I2.L[j], I1.L[i](x)) for x = gens(domain(I1.L[i]))])
+        #easy Induced map? all the same projections?
+      else
+        #need s in Gal(I2) s.th. val(s(I2.S[j]), mp(I1.S[i])) > 0
+        I = mp(I1.S[i])
+        
+        IndI1 = I1.data[5]
+        IndI2 = I2.data[5]
+        gC = get_attribute(IndI1[i][1].M, :induce)[2]
+        gD = get_attribute(IndI2[j][1].M, :induce)[2]
+        h = zero_map(IndI1[i][1].M, IndI2[j][1].M)
+        for ii = 1:length(gC)
+          for jj = 1:length(gD)
+            valuation(mp(I1.mG(gC[ii])(I1.S[i])), I2.mG(gD[jj])(I2.S[j])) == 0 && continue
+            h += hom(canonical_projection(IndI1[i][1].M, ii) *
+              I1.L[i]*pseudo_inv(I1.C[i]) * I1.mG(gC[ii]) * mp *
+              inv(I2.mG(gD[jj])) * I2.C[j] * pseudo_inv(I2.L[j])*
+              canonical_injection(IndI2[j][1].M, jj))
+          end
+        end
+      end
+      
+      if get_assert_level(:GaloisCohomology) > 4
+        @show :test_S
+        hom(inflate(IndI1[i][1], GrpHom), IndI2[j][1], h)
+      end
+      X += canonical_projection(I1.M, i+1) * h * canonical_injection(I2.M, j+1)
+      if get_assert_level(:GaloisCohomology) > 4
+        hom(inflate(I1.data[2], GrpHom), I2.data[2], hom(X))
+      end
+      break
+    end
+    if !found #drop a place.
+      push!(missing, i)
+    end
+  end
+  for i = missing
+    error("too bad")
+    #U_T -> I_T               -> Ind I_p
+    mp = I1.data[3].module_map * canonical_projection(I1.M, i+1)
+    # T-units -> I_T -> K_P^*
+    pe = [preimage(mp, g) for g = gens(codomain(mp))]
+    # K_P* (well the product of the completions of the conjugate primes)
+    # mod the lattice is just Z - only the valuation is left
+    #so the preimage gives a T-unit with valuation 1 at P, zero at the
+    # conjugate and s.th. in S
+    #TODO use the same unit (and pass them down) as in split_units
+    # we want
+    #      U_T -> U_S
+    #       |      |
+    #      I_T -> I_S
+    # to commute, for proper S-units, this is trivial.
+    # for the T\S units we have to work on the bottom arrow.
+    # I_T = W_T + J_T = W_T + J_S + J_(T\S) where J_T is the product
+    # of the completions, factored by the lattices, in particular 
+    # J_(T\S) = Z^(T\S) only (unramified)
+    # 
+#    hom(I1.data[6], I2.data[6], unit_pro)
+
+    h = hom(codomain(mp), I2.M, [I2.data[3].module_map(unit_pro(x))-X(I1.data[3].module_map(x)) for x = pe])
+    X += canonical_projection(I1.M, i+1)*h
+  end
+
+  return hom(pseudo_inv(I1.mq)*X*I2.mq)
+end
+
+#=
+putting things together
+
+K/k and ZG = free_res(Gal(K))
+        zg = free_res(Gal(k))
+        mp : Gal(K) -> Gal(k) projection
+        a  : I_k -> I_K "embedding" (it is not)
+
+    want: H^2(k) -> H^2(K)       
+  
+    x in ker((zg[2], I_k) -> (zg[3], I_k))
+    T : ZG[2] -> zg[2] (via change_group(ZG, zg, mp)) (and .maps[2])
+
+    x in I_k^l via T in ZG^(l x k) 
+      -> I_k^k
+      -> I_K^k via a
+
+    probably needs simultaneously: G does not act on k (through mp it would)   
+
+
+    k, _ = wildanger_field(3, 23)
+    k, _ = normal_closure(k)
+    K = compositum(k, cyclotomic_field(3)[1])
+
+    I_K = idele_class_gmodule(K[1])
+    I_k = idele_class_gmodule(k, [2, 3, 5, 7, 17, 19, 23, 47])
+
+    a = Oscar.GaloisCohomology_Mod.induce_hom(I_k, I_K, K[2])
+
+    ZG = Oscar.GrpCoh.free_res(group_algebra(ZZ, domain(I_K.mG)); side = :right)
+    Zg = Oscar.GrpCoh.free_res(group_algebra(ZZ, domain(I_k.mG)); side = :right)
+
+    @time hG = hom(ZG, I_K.data[1])
+    @time hg = hom(Zg, I_k.data[1])
+
+    q = Oscar.GaloisCohomology_Mod.fixed_group(I_K.mG, I_k.mG, K[2])
+    m = Oscar.GrpCoh.change_group(ZG, Zg, q[2])
+    Oscar.GaloisCohomology_Mod.magic_inf(I_k.data[1], hg[2][2], m.maps[2], a, hG[2])
+    Oscar.GaloisCohomology_Mod.shrink(I_K.data[1])
+=#
+"""
+  I_k
+  x in hom(zg, I_k)[i]
+  h in ZG[i] -> zg[i]
+  a : I_k -> I_K
+  H : hom(ZG, I_K)[i]
+"""
+function magic_inf(I_k::GModule, x, h, a, H)
+  X = zero(H)
+  m = matrix(h)
+  pro = canonical_projections(parent(x))
+  inj = canonical_injections(H)
+  for i=1:nrows(m)
+    for j=1:ncols(m)
+      X += inj[j](a(action(I_k, m[i,j], pro[i](x))))
+    end
+  end
+  return X
+end
+
+"""
+Enlarges the support of I. All the new primes are neccessarily
+unramified and the local G-module will be Z only.
+  (all local units will be factored out)
+"""
+function add_prime(I::IdeleParent, lp::Vector{Int})
+  mp = map(minimum, I.S)
+  @req all(p -> !(p in mp), lp) "primes must be new"
+  J = IdeleParent()
+  J.C = copy(I.C)
+  J.L = copy(I.L)
+  J.D = copy(I.D)
+  k = J.k = I.k
+  mG = J.mG = I.mG
+  J.S = copy(I.S)
+  zk = maximal_order(I.k)
+  S_old = vcat([prime_ideals_over(zk, p) for p = mp]...)
+  S_new = vcat([prime_ideals_over(zk, p) for p = lp]...)
+  mU = J.mU = sunit_group_fac_elem(vcat(S_old, S_new))[2]
+
+  G = domain(mG)
+
+  E = gmodule(G, mU, mG)
+  Hecke.assure_has_hnf(E.M)
+  @hassert :GaloisCohomology 1 is_consistent(E)
+  J.data = (nothing, nothing, nothing, nothing, nothing, E, nothing, nothing)
+
+  D = copy(I.data[5])
+  #D[1] = (Ind K_p, U -> Ind K_p)
+  for i=1:length(D)
+    D[i] = (D[i][1], Oscar.GrpCoh.induce_map(E, mU*Hecke.extend_easy(J.C[i], J.L[i], codomain(mU)), D[i][1]))
+  end
+
+  for p = lp
+    P = prime_decomposition(zk, p)[1][1]
+    push!(J.S, P)
+
+    L = completion(k, P)
+    push!(J.C, L[2])
+    C = gmodule(L[1], absolute_base_field(L[1]))
+    push!(J.D, C[2])
+    push!(J.L, C[3])
+    push!(D, Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, L[2], mG, C[2]), E, (mU*Hecke.extend_easy(L[2], C[3], codomain(mU)))))
+  end
+
+  unit_pro, unit_inj, comp = split_units(J, I)
+  if is_totally_real(k) #easy case...
+    mU_W = identity_map(domain(mU))
+    Et = gmodule(I.data[7].G, [mU_W])
+  else
+    U_W2 = get_attribute(I.data[7], :get_W) #W2 as a G-module
+    W2 = codomain(U_W2)
+    @assert W2 == I.data[7].M
+
+    acC = hom(comp*action(E, G(I.data[7].G[1]))*pseudo_inv(comp)) #comp conj on new units
+    d1, d2 = debeerst(domain(comp), acC)
+    #d1 is C2-invariant and positive, d2 are the C2-module generators
+    ng = copy(d1)
+    for x = d2
+      push!(ng, x)
+      push!(ng, acC(x))
+    end
+    hd12 = hom(domain(comp), domain(comp), ng)
+#    comp = hom(h*comp) #should give the new units sorted in 1d and 2d
+
+
+    _, pro, inj = direct_product(domain(unit_inj), domain(comp); task = :both)
+    #                                    = U_S            = V
+    # writes the large unit group as a direct product of Z[sigma] submodules
+    hprodU = hom(pro[1]*unit_inj+pro[2]*comp)
+    @assert is_bijective(hprodU)
+    comp_pro = inv(hprodU)*pro[2]
+    # so U_T -> V, unit_pro is U_T -> U_S, the projection matching the
+    # complement.
+    # U_T        = U_S x V, U_S -> U_T is unit_inj, V -> U_T is comp
+    # U_S -> W_S = V_S x F_S
+    # and V_S = (tor, Z) + 1-dim + 2-dim
+    # V  =  V1 x V2 where V1 are 1-dim and V2 2-dim
+    # U_T -> ((tor, Z) x 1-dim x V1 x 2-dim x V2) x (F_S x V1-bar)
+    #
+    # in W: W[1] = tor, W[2] = Z^-, W[3]... the 1-dim part, then 
+    # pairs giving 2-dim
+    # ngens(W) - ngens(U) = # 1-dim part
+    
+    V = abelian_group(elementary_divisors(domain(mU)))
+   
+    W2_1_dim = ngens(W2) - ngens(domain(U_W2))
+    F = free_abelian_group(W2_1_dim + length(d1))
+    W = direct_product(V, F; task = :none)
+    #need U_T -> W and W -> W2, and W2 -> W and comp -> W
+    # W2 -> W: (tor, Z^-) x 1dim x 2dim x conj  ->
+    #          (tor, Z^-) x 1dim x 0 V1 x 2dim x 0 V2 x conj
+    #                              
+    # comp -> W: V1 x V2 -> 
+    #               0     x 0    x V1   x 0    x  V2  x 0    x conj(V1)
+    # W -> W2: (tor, Z^-) x 1dim x V1 x 2dim x V2 x conj x conj(V1)
+    #   ->     (tor, Z^-) x 1dim    x   2dim    x   conj                     
+    # action on W: action on W2 and action on comp-ish
+    dim1 = ngens(W2) - ngens(domain(U_W2))
+    dim2 = ngens(domain(U_W2)) - 2 - dim1
+    v1 = length(d1)
+    v2 = 2*length(d2)
+
+    W2_W = hom(W2, W, vcat([W[i] for i=1:2+dim1],
+                           [W[i+v1] for i=2+dim1+1:2+dim1+dim2],
+                           [W[i+v1+v2] for i=2+dim1+dim2+1:2+dim1+dim2+v2]))
+    W_W2 = hom(W, W2, vcat([W2[i] for i=1:2+dim1], 
+                           [zero(W2) for i=2+dim1+1:2+dim1+v1],
+                           [W2[i-v1] for i=2+dim1+v1+1:2+dim1+v1+dim2],
+                           [zero(W2) for i=2+dim1+v1+dim2+1:2+dim1+v1+dim2+v2],
+                           [W2[i-v1-v2] for i=2+dim1+v1+dim2+v2+1:2+dim1+v1+dim2+v2+dim1],
+                           [zero(W2) for i=1:v1]))
+
+    C_W = hom(domain(comp), W, vcat([W[2+dim1+i] + W[2+dim1+v1+dim2+v2+dim1+i] for i=1:v1],
+                                    [W[2+dim1+v1+dim2+i] for i=1:v2]))
+
+    U_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*C_W))
+    acW = hom(W, W, vcat([zero(W) for i=1:2+dim1],
+               [W[i+v1+dim2+v2+dim1] for i=2+dim1+1:2+dim1+v1],
+               [zero(W) for i=2+dim1+v1+1:2+dim1+v1+dim2],
+               [W[(isodd(i) ? i+1 : i-1)+2+dim1+v1+dim2] for i=1:v2],
+               [zero(W) for i=2+dim1+v1+dim2+v2+1:2+dim1+v1+dim2+v2+dim1],
+               [W[2+dim1+i] for i=1:v1]))
+               
+    mU_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*inv(hd12)*C_W))           
+    acW = hom(W_W2*action(I.data[7], I.data[7].G[1])*W2_W + acW)
+    Et = gmodule(I.data[7].G, [acW])
+    if get_assert_level(:GaloisCohomology) > 2
+      @assert hom(acW*acW) == id_hom(W)
+      inv(acW)
+      is_consistent(Et)
+    end
+  end
+  set_attribute!(Et, :get_W => mU_W)
+  fl, mG_inf = is_subgroup(group(Et), G)
+  @assert fl
+  iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mU_W)
+  if get_assert_level(:GaloisCohomology) > 2
+    hom(E, iEt[1], iEt[2])
+  end
+
+    #maybe all downstream in seperate function? the block is there 3 times
+  F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
+  J.M = F[1].M
+
+  @hassert :GaloisCohomology 1 is_consistent(F[1])
+
+    #h: U -> F
+  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(J.L));
+   hom(E, F[1], h)
+  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  J.mq = mq
+  #TODO: think how much of the data should be returned - in what format?
+  J.data = (q, F[1], hom(E, F[1], h), hom(F[1], q, mq), D, E, Et, iEt)
+  return J
+end
+
+"""
+Ensure that for all pairs (p, v) passed in at most
+  1+p^v+1 is factored out in the 1-units at p
+allowing for local conductor up to v
+"""
+function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
+  J = IdeleParent()
+  J.C = I.C #same completion
+  J.L = copy(I.L)
+  J.D = copy(I.D) #same automorphisms (careful with precision!)
+  k = J.k = I.k
+  mG = J.mG = I.mG
+  mU = J.mU = I.mU
+  J.S = I.S #identical primes!
+  zk = order(I.S[1])
+
+  E = I.data[6]
+
+  D = copy(I.data[5])
+  for i = 1:length(J.C)
+    f = findfirst(isequal(minimum(I.S[i])), [x[1] for x = p])
+    if !isnothing(f)
+      kp = codomain(I.C[i])
+      C = gmodule(kp, absolute_base_field(kp); conductor = p[f][2])
+      J.D[i] = C[2]
+      J.L[i] = C[3]
+      D[i] = Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, J.C[i], mG, C[2]), E, (mU*Hecke.extend_easy(J.C[i], C[3], codomain(mU))))
+    end
+  end
+
+  iEt = I.data[8]
+  F = direct_product(iEt[1], [x[1] for x = D]..., task = :both)
+  J.M = F[1].M
+
+  @hassert :GaloisCohomology 1 is_consistent(F[1])
+
+    #h: U -> F
+  h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(D))
+  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
+  @hassert :GaloisCohomology 1 is_consistent(q)
+  J.mq = mq
+  #TODO: think how much of the data should be returned - in what format?
+  Et = I.data[7]
+  J.data = (q, F[1], hom(E, F[1], h), hom(F[1], q, mq), D, E, Et, iEt)
+  return J
+end
+
+"""
+A dictionary containing information about the finite places, i.e.
+how much has been factored out.
+"""
+function Oscar.conductor(I::IdeleParent)
+  c = Dict{Int, Int}()
+  for P = I.S
+    kp, mkp, mGp, D = completion(I, P)
+    if ngens(domain(D)) > 1 #so not only Z (i.e the valuation)
+      i = 1
+      while !iszero(preimage(D, kp(1+uniformizer(kp)^i)))
+        i += 1
+      end
+    else
+      i = 0
+    end
+    c[Int(minimum(P))] = i
+  end
+  return c
+end
+
 """
     idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[])
 
@@ -819,7 +1815,7 @@ or Ali,
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
 of the idele class group. The primes in `s` will always be used.
 """
-function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false)
+function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false, do_shrink::Bool = false, extra_cond ::Int = 0)
   @vprint :GaloisCohomology 2 "Ideal class group cohomology for $k\n"
   I = get_attribute(k, :IdeleClassGmodule)
   if !redo && I !== nothing
@@ -876,109 +1872,16 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   @vprint :GaloisCohomology 2 " .. S-units (for all) ..\n"
   U, mU = sunit_group_fac_elem(S)
   I.mU = mU
-  z = MapFromFunc(codomain(mU), k, evaluate, FacElem)
+#  z = MapFromFunc(codomain(mU), k, evaluate, FacElem)
   E = gmodule(G, mU, mG)
   Hecke.assure_has_hnf(E.M)
-  @hassert :GaloisCohomology -1 is_consistent(E)
+  @hassert :GaloisCohomology 1 is_consistent(E)
 
-  if is_totally_real(k)
-    @vprint :GaloisCohomology 2 " .. real field, easy case ..\n"
-    mG_inf = Oscar.decomposition_group(k, real_embeddings(k)[1], mG)
-    G_inf = domain(mG_inf)
-    Et = gmodule(G_inf, mU, mG)
-    @hassert :GaloisCohomology 1 is_consistent(Et)
-    iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, id_hom(U))
-  else
-    #TODO: failing on x^8 + 70*x^4 + 15625
-    @vprint :GaloisCohomology 2 " .. complex field, hard case ..\n"
-    mG_inf = Oscar.decomposition_group(k, complex_embeddings(k)[1], mG)
-    G_inf = domain(mG_inf)
-    sigma = action(E, mG_inf(G_inf[1]))
-    @assert order(G_inf[1]) == 2 == order(G_inf)
+  Et, mU_W = get_W(k, mG, mU, E) 
+  fl, mG_inf = is_subgroup(group(Et), G)
+  @assert fl
+  iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mU_W)
 
-    @assert order(U[1]) >0
-    q, mq = quo(U, [U[1]]) 
-    q, _mq = snf(q)
-    mq = mq*pseudo_inv(_mq)
-    sigma_q = hom(q, q, [mq(sigma(preimage(mq, x))) for x = gens(q)])
-    x, y = debeerst(q, sigma_q)
-    # just to verify... Gunter Malle: the C_2 modules are visible over GF(2)...
-    _M = gmodule(GF(2), gmodule(G_inf, [sigma_q]))
-    _i = indecomposition(_M)
-    @assert length(findall(x->dim(x[1]) == 2, _i)) == length(y)
-    @assert length(findall(x->dim(x[1]) == 1, _i)) == length(x)
-      #possibly: now the H^2 is correct, but the H^1 is not...
-      # x^8 - 12*x^7 + 44*x^6 - 24*x^5 - 132*x^4 + 120*x^3 + 208*x^2 - 528*x + 724
-
-    #theta:
-    theta = U[1] #should be a generator for torsion, torsion is even,
-                 #hence this elem cannot be a square
-
-    x = [preimage(mq, i) for i = x]
-    y = [preimage(mq, i) for i = y]
-
-    z, mz = sub(U, [sigma(U[1]) - U[1]])
-    theta_i = [sigma(t)-t for t = x]
-    inv = Int[]
-    not_inv = Int[]
-    for i=1:length(x)
-      w = theta_i[i]
-      fl, pe = has_preimage_with_preimage(mz, w)
-      if fl
-        push!(inv, i)
-        zz = mq(x[i])
-        x[i] -= pe[1]*U[1]
-        @assert zz == mq(x[i])
-        theta_i[i] = sigma(x[i]) - x[i]
-        @assert iszero(theta_i[i])
-      else
-        push!(not_inv, i)
-      end
-    end
-
-    @assert length(not_inv) > 0
-    @assert length(not_inv) + length(inv) == length(x)
-    x = vcat(x[not_inv], x[inv]) #reordering
-    theta_i = vcat(theta_i[not_inv], theta_i[inv])
-    
-    U_t, mU_t = sub(U, [U[1]])
-    
-    sm1 = hom(U_t, U, [sigma(mU_t(g)) - mU_t(g) for g = gens(U_t)])
-    eta_i = [preimage(sm1, theta - theta_i[i]) for i=1:length(not_inv)]
-
-    eta_i = map(mU_t, eta_i)
-    V = abelian_group(elementary_divisors(U))
-    im_psi = [U[1], x[1]+ eta_i[1]]
-    for i=2:length(not_inv)
-      push!(im_psi, x[i] - x[1] + eta_i[i] - eta_i[1])
-      @assert sigma(im_psi[end]) == im_psi[end]
-      #should be chosen to be pos. at place, flip signs...
-    end
-    for i=length(not_inv)+1:length(x)
-      push!(im_psi, x[i])
-      @assert sigma(im_psi[end]) == im_psi[end]
-      #should be chosen to be pos. at place, flip signs...
-    end
-    for i=1:length(y)
-      push!(im_psi, y[i])
-      push!(im_psi, sigma(y[i]))
-    end
-    psi = hom(V, U, im_psi)
-    @assert all(i->psi(V[i]) == im_psi[i], 1:length(im_psi))
-    @assert is_bijective(psi)
-    F = abelian_group([0 for i=2:length(x)])
-    Hecke.assure_has_hnf(F)
-    W, pro, inj = direct_product(V, F, task = :both)
-    @assert isdefined(W, :hnf)
-
-    ac = FinGenAbGroupHom(pro[1]*psi*sigma*pseudo_inv(psi)*inj[1]) +
-         FinGenAbGroupHom(pro[2]*hom(F, W, FinGenAbGroupElem[inj[1](V[i+1]) - inj[2](F[i-1]) for i=2:length(x)]))
-
-    Et = gmodule(G_inf, [ac])
-    @assert is_consistent(Et)
-    mq = pseudo_inv(psi)*inj[1]
-    iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mq)
-  end
   #test if the G-action is the same:
   # induce returns a map U -> E that should be a Z[G]-hom
   function is_G_lin(U, E, mUE, acU)
@@ -994,7 +1897,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   end
   @hassert :GaloisCohomology 1 is_G_lin(U, iEt[1], iEt[2], g->action(E, g))
   @hassert :GaloisCohomology 1 is_consistent(iEt[1])
-  
+
   S = S[s]
   I.S = S
 
@@ -1006,7 +1909,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. gathering the local modules ..\n"
   Hecke.pushindent()
-  C = [gmodule(x[1], absolute_base_field(x[1])) for x = L];
+  C = [gmodule(x[1], absolute_base_field(x[1]); conductor = extra_cond) for x = L];
   I.D = [x[2] for x = C]
   I.L = [x[3] for x = C]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), C)
@@ -1023,6 +1926,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
 
   @hassert :GaloisCohomology 1 is_consistent(F[1])
 
+    #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(S));
   @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
@@ -1030,7 +1934,8 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
   I.mq = mq
-  I.data = (q, F[1])
+  #TODO: think how much of the data should be returned - in what format?
+  I.data = (q, F[1], hom(E, F[1], h), hom(F[1], q, mq), D, E, Et, iEt)
   set_attribute!(k, :IdeleClassGmodule=>I)
   return I
 end
@@ -1073,12 +1978,18 @@ function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p
   return Y
 end
 
-
 #maybe we need Idele's as independent objects?
 #realizes C -> Cl (or the coprime version into a ray class group:
 #for the idele `a` in `I` find an "equivalent" ideal.
-function Oscar.ideal(I::IdeleParent, a::FinGenAbGroupElem; coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing})
-  a = preimage(I.mq, a)
+function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; 
+   coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing} = nothing,
+   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
+  if parent(_a) == codomain(I.mq)
+    a = preimage(I.mq, _a)
+  else
+    a = _a
+  end
+
   zk = maximal_order(I.k)
   o_zk = zk
   if coprime !== nothing && order(coprime) !== zk
@@ -1086,28 +1997,81 @@ function Oscar.ideal(I::IdeleParent, a::FinGenAbGroupElem; coprime::Union{AbsSim
     coprime = zk*coprime
     @assert order(coprime) === zk
   end
-  id = 1*zk
+  id = FacElem(Dict((1*o_zk)=>1))
   for p = I.S
     lp = prime_decomposition(zk, minimum(p))
     for P = lp
       Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
       x = mUp(pro(a))
+      vx = Int(valuation(x) * absolute_ramification_index(parent(x)))
       if coprime === nothing
-        id *= fractional_ideal(zk, P[1])^Int(valuation(x)*absolute_ramification_index(parent(x)))
+        id *= FacElem(Dict(o_zk*P[1]=>Int(vx)))
       else
-        if valuation(x) > 0
-          id *= _local_norm(coprime, zk(preimage(nKp, x)), P[1])
+        if vx != 0
+          u = x*uniformizer(parent(x), -vx)
         else
-          id *= inv(_local_norm(coprime, zk(preimage(nKp, inv(x))), P[1]))
+          u = x
+        end
+        @assert valuation(u) == 0
+        iv = _local_norm(coprime, zk(preimage(nKp, u)), P[1])
+        if !isnothing(sign) && length(sign) > 0
+          iv = approximate(iv, coprime, sign)
+        end
+        iu = o_zk*iv
+        if vx != 0
+          iv = _local_norm(coprime, zk(preimage(nKp, uniformizer(parent(u)))), P[1])
+          if !isnothing(sign) && length(sign) > 0
+            iv = approximate(iv, coprime, sign)
+          end
+          ip = o_zk*iv
+          id *= FacElem(Dict(iu => 1, ip => vx))
+        else
+          id *= iu
         end
       end
     end
   end
-  return o_zk*id
+  return inv(id)
 end
 
 function Oscar.galois_group(A::ClassField)
   return permutation_group(codomain(A.quotientmap))
+end
+
+"""
+    induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true) -> Map
+
+Computes the projection from the idele class group (partly represented by I) to
+the ray class group represented by `mR` (the domain of `mR`). If `do_map` is 
+`true` the function operates pointwise, if set to false, a "proper" homomorphism
+is returned: if `true`, the function call itself does nothing but each 
+application of the function has to work, if `false` images
+of all generators of `I` will be computed, so the function call is expensive,
+but the application is cheap.
+"""
+function induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true, check::Bool = true)
+  m0, inf = defining_modulus(mR)
+  if check
+    c = conductor(I)
+    for (p, v) = factor(minimum(m0))
+      @assert haskey(c, Int(p)) && c[Int(p)] >= v
+    end
+  end
+
+  A = domain(mR)
+  function idl(x)
+    px = parent(x)
+    x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
+    J = ideal(I, x; coprime = m0, sign = inf)
+    return (preimage(mR, J))
+  end
+
+  if do_map
+    return map_from_func(I.data[1].M, domain(mR), idl)
+  else
+    h = hom(I.data[1].M, domain(mR), [idl(g) for g = gens(I.data[1].M)])
+    return h
+  end
 end
 
 """
@@ -1140,11 +2104,12 @@ julia> [describe(x[1]) for x = b]
 """    
 function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleParent,Nothing} = nothing) 
 
-  m0, m_inf = defining_modulus(A)
-  @assert length(m_inf) == 0
   if !is_normal(A)
+    @vprint :GaloisCohomology 2 "abelian field is not relative normal, computing closure"
     A = normal_closure(A)
   end
+  m0, m_inf = defining_modulus(A)
+
   mR = A.rayclassgroupmap
   mQ = A.quotientmap
   zk = order(m0)
@@ -1157,20 +2122,90 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
     idele_parent = idele_class_gmodule(base_field(A))
   end
 
-  qI = cohomology_group(idele_parent, 2)
-  q, mq = snf(qI[1])
-  a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
-  @assert Oscar.GrpCoh.istwo_cocycle(a)
-  gA = gmodule(A, idele_parent.mG)
-  qA = cohomology_group(gA, 2)
   n = degree(Hecke.nf(zk))
-  aa = map_entries(a, parent = gA) do x
-    x = parent(x)(Hecke.mod_sym(x.coeff, gcd(n, degree(A))))
-    J = ideal(idele_parent, x, coprime = m0)
-    mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
+
+  gA = gmodule(A, idele_parent.mG)
+  G = group(gA)
+  F = free_res(group_algebra(ZZ, G); side = :right)
+  hA = hom(F, gA)
+  hI = hom(F, idele_parent.data[1]) #need more caching, the class possibly..
+ 
+  m3 = kernel(map(hI, 2))
+  m2 = image(map(hI, 1))
+  q = quo(m3[1], m2[1])
+  s = snf(q[1])
+
+  gamma = image(m3[2], preimage(q[2], s[2](s[1][1])))
+
+  c = conductor(idele_parent)
+  mis = Int[]
+  val = Tuple{Int, Int}[]
+  for (p, k) = factor(minimum(m0))
+    if !haskey(c, Int(p))
+      push!(mis, Int(p))
+      push!(val, (Int(p), k))
+    else
+      if c[Int(p)] < k
+        push!(val, (Int(p), k))
+      end
+    end
   end
-  @assert Oscar.GrpCoh.istwo_cocycle(aa)
-  return permutation_group(aa), (aa, gA)
+
+  id = identity_map(F[2])
+
+  if length(mis) > 0
+    @vprintln :GaloisCohomology 2 "need to add $mis primes..."
+    @vtime :GaloisCohomology 2 ip = add_prime(idele_parent, mis)
+    @vprintln :GaloisCohomology 2 "lifting cycle..."
+    phi = induce_hom(idele_parent, ip)
+    hII = hom(F, ip.data[1])
+    phi = change_module(hI, hII, phi)
+    hI = hII
+    gamma = phi[2](gamma)
+    idele_parent = ip
+  end
+
+  if length(val) > 0
+    @vprintln :GaloisCohomology 2 "fixing precision to $mis..."
+    @vtime :GaloisCohomology 2 ip = change_precision(idele_parent, val)
+    @vprint :GaloisCohomology 2 "lifting cycle..."
+    phi = induce_hom(ip, idele_parent)
+    hII = hom(F, ip.data[1])
+    mII = change_module(hII, hI, phi)
+    gamma = preimage(mII[2], gamma)
+    #this is not a chain...yet
+    #  0 -> k -> II -> I -> 0 is exact
+    # so we take preimages from I to II, then use the
+    # differential, then map to k, ...
+    co = map(hII, 2)(gamma)
+    if !iszero(co) #mostly false
+      k = kernel(hom(ip.data[1], idele_parent.data[1], phi))
+      hk = hom(F, k[1])
+      mkI = change_module(hk, hII, k[2].module_map)
+      co = preimage(mkI[3], co)
+      co = preimage(map(hk, 2), co)
+      co = mkI[2](co)
+      gamma -= co
+    end
+    idele_parent = ip
+    @assert iszero(map(hII, 2)(gamma))
+    hI = hII
+  end
+
+  function idl(x)
+    px = parent(x)
+    x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
+    J = ideal(idele_parent, x; coprime = m0, sign = m_inf)
+    return mQ(preimage(mR, J))
+  end
+
+  @vprint :GaloisCohomology 2 "projecting to ray class group..."
+  @vtime :GaloisCohomology 4 phi = induce_hom(idele_parent, mR; do_map = true, check = false)
+  @vtime :GaloisCohomology 4 phi = change_module(hI, hA, phi*mQ)
+  @vtime :GaloisCohomology 4 aa = phi[2](gamma)
+
+  @hassert :GaloisCohomology 2 is_zero(map(hA, 2)(aa))
+  return permutation_group(GrpCoh.two_chain(aa)), (aa, gA)
 end
 
 function Oscar.components(A::FinGenAbGroup)
@@ -1190,7 +2225,6 @@ function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
   inj = canonical_injection(I.M, p+1) #units are first
   pro = canonical_projection(I.M, p+1)
 
-
   @assert domain(inj) == codomain(pro)
 
   J = components(I.M)[p+1]
@@ -1202,6 +2236,7 @@ function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
   mG = I.mG
 
   z = findall(pr -> mG(pr)(mKp.P) == P, prm)
+  @assert length(z) == 1
   pr = inv(prm[z[1]])
   
   nKp = MapFromFunc(I.k, Kp, x->mKp(mG(pr)(x)), y->mG(inv(pr))(preimage(mKp, y)))
@@ -1217,15 +2252,6 @@ function Oscar.map_entries(mp::Union{Map, Function}, C::GrpCoh.CoChain{N, G, M};
     return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
   end
 end
-
-#=
- Currently automorphism_group maps are not cached and thus will return
- different groups each time. Thus to be consistent bewtween calls one 
- should compute the group (map) once and pass it around.
-
- Maybe we introduce the caching - however, there might be some data
- dependency problems adding "random" fields into the attributes
-=#
 
 """
 For a 2-cochain with with values in the multiplicative group of a number field,
@@ -1310,8 +2336,8 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   rt = coeff(mL(mkK(preimage(ml, l(preimage(mrl, gen(rl)))))), 0)
   f = map_coefficients(x->preimage(mrL, rL(x)), defining_polynomial(rl))
   rt = Hecke.refine_roots1(f, [rt])[1]
-#  setprecision!(ml, pr_ml)
-#  setprecision!(mL, pr_mL)
+  setprecision!(ml, pr_ml)
+  setprecision!(mL, pr_mL)
   return hom(l, L, hom(bl, bL, rt), im_data)
 end
 
@@ -1380,7 +2406,7 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
         l, ml = completion(B.k, pp)
         setprecision!(ml, precision(codomain(mL)))
         mlL = induce_hom(ml, mL, B.mkK)
-        s = Hecke.Hecke.local_fundamental_class_serre(mlL)
+        s = Hecke.local_fundamental_class_serre(mlL)
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
       end
       @assert Oscar.GrpCoh.istwo_cocycle(can)
@@ -1506,7 +2532,7 @@ end
 end
 
 function extra_name(B::BrauerGroup)
-  sK = get_name(B.k)
+  sK = AbstractAlgebra.get_name(B.k)
   if sK !== nothing 
     return "Br($sK)"
   end
@@ -1604,6 +2630,11 @@ function Oscar.order(b::RelativeBrauerGroupElem)
   return lcm([order(v) for v = values(b.data)]...)
 end
 
+function (B::RelativeBrauerGroup)(d::Dict{<:Any, <:Union{<:Rational, QQFieldElem}}; check::Bool = true)
+  qz = Hecke.QmodnZ()
+  return B(Dict(k => qz(v) for (k,v) = d); check)
+end
+
 function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem}; check::Bool = true)
   d = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
   if check
@@ -1624,9 +2655,25 @@ function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem}; check::Bool 
 end
 
 
+function (B::BrauerGroup)(d::Dict{<:Any, <:Union{<:Rational, QQFieldElem}})
+  qz = Hecke.QmodnZ()
+  return B(Dict(k => qz(v) for (k,v) = d))
+end
+
 function (B::BrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem})
-  d = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
-  return BrauerGroupElem(B, d)
+  dd = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}()
+  for (k,v) = d
+    if isa(k, Nemo.IntegerUnion) 
+      if degree(B.k) == 1
+        push!(dd, k*maximal_order(B.k)=>v)
+      else
+        error("Field must be Q")
+      end
+    else
+      push!(dd, (k=>v))
+    end
+  end
+  return BrauerGroupElem(B, dd)
 end
 
 """
@@ -1895,6 +2942,10 @@ function brauer_group(K::AbsSimpleNumField)
                        cocycle_to_elem)
   return B, B.map
 end
+function brauer_group(::QQField)
+  k, _ = rationals_as_number_field()
+  return brauer_group(k)
+end
 
 function (B::RelativeBrauerGroup)(M::GModule{<:Group, AbstractAlgebra.Generic.FreeModule{AbsSimpleNumFieldElem}})
   @assert B.K == base_ring(M)
@@ -2031,8 +3082,8 @@ function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
   C = A.data[1]
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
-  qr = restrict(C, mp)
-  s = Hecke.Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
+#  qr = restrict(C, mp)
+  s = Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
 #  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
 
   z = gmodule(domain(mGp), [hom(domain(mUp), domain(mUp), [preimage(mUp, mGp(g)(mUp(u))) for u = gens(domain(mUp))]) for g = gens(domain(mGp))])
@@ -2057,7 +3108,8 @@ function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   @assert domain(inj) == domain(mUp) 
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
  
-  tt = serre(A, A.S[t])
+  tt = serre(A, A.S[t]) # 1 2-chain on Gp with values in the abstract
+                        # (quotient of) the unit group.
   @assert tt.C.G == domain(mGp)
 
   I = domain(Inj)    
@@ -2065,7 +3117,11 @@ function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   #the induced module
   mu = cohomology_group(zz, 2)
   q, mq = snf(mu[1])
-  g = mu[2](mq(q[1]))
+  if ngens(q) == 0
+    g = mu[2](zero(mu[1]))
+  else
+    g = mu[2](mq(q[1]))
+  end
   #g is the (non-canonical) generator of H^2 of the induced module
   hg = map_entries(Inj*A.mq, g, parent = C)
   #hg is the (non-canonical) generator of H^2 of the induced module
@@ -2104,16 +3160,16 @@ function global_fundamental_class(A::IdeleParent)
   d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
   G = C.G
   if d != order(G)
-    error("sorry - no can do(yet)")
+    error("sorry - no can do (yet)")
   end
 
   z = cohomology_group(C, 2)
 
   q, mq = snf(z[1])
   @assert ngens(q) == 1
-  g = z[2](mq(gen(q, 1))) # to get a 2-CoCycle
+  gg = z[2](mq(gen(q, 1))) # to get a 2-CoCycle
   #g is the non-canonical generator
-  @assert Oscar.GrpCoh.istwo_cocycle(g)
+  @assert Oscar.GrpCoh.istwo_cocycle(gg)
   n = order(q)
   g = mq(gen(q, 1))
 
@@ -2133,18 +3189,26 @@ function global_fundamental_class(A::IdeleParent)
     k = findfirst(k->k * preimage(z[2], s[2]) == divexact(n, d)*g, 1:d)
     #so (n/d) * k * g = res(g, G_p) = s[2]
     #   s[1] * k * (n/d) * g = canonical at P
-    push!(scale, ((s[1]*k) % d, d))
+    push!(scale, (k, s[1], d))
   end
   #put together..
   #want x s.th. (n/d[2]) * x = d[1] mod d[2]
   #cannot use CRT as the d[2] are not necc. coprime
-  a = abelian_group([x[2] for x = scale])
+  a = abelian_group([x[3] for x = scale])
   b = abelian_group([n])
-  h = hom(b, a, [sum(a[i] * divexact(n, scale[i][2]) for i=1:length(scale))])
-  p = preimage(h, sum(a[i] * scale[i][1] for i=1:length(scale)))
+  h = hom(b, a, [sum(a[i] * scale[i][1] for i=1:length(scale))])
+  p = preimage(h, sum(a[i] * scale[i][2] for i=1:length(scale)))
   @assert gcd(p[1], n) == 1  
   #so p[1]* g is canonical!!!
-  return p[1]
+  return z[2](p[1] * g)
+end
+
+function Oscar.group(A::IdeleParent)
+  return domain(A.mG)
+end
+
+function Oscar.hom(C::ComplexOfMorphisms{Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, A::IdeleParent)
+  return hom(C, A.data[1])
 end
 
 function Oscar.cohomology_group(A::IdeleParent, i::Int)
@@ -2169,7 +3233,7 @@ Return a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
-  mq = hom(C.M, C.M, gens(C.M))
+  mq = id_hom(C.M)
   q = C
   first = true
   while true
@@ -2226,5 +3290,10 @@ export is_coboundary,
        idele_class_gmodule,
        relative_brauer_group,
        units_mod_ideal,
-       brauer_group
+       brauer_group,
+       global_fundamental_class,
+       fixed_group,
+       induce_hom,
+       change_precision,
+       add_prime
 
