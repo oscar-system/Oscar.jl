@@ -753,6 +753,16 @@ end
 #
 ################################################################################
 
+@attributes mutable struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
+   X::T
+   repr::S
+   CC::GapObj
+
+   function GAPGroupConjClass(G::T, obj::S, C::GapObj) where T<:GAPGroup where S<:Union{GAPGroupElem, GAPGroup}
+     return new{T, S}(G, obj, C, Dict{Symbol,Any}())
+   end
+end
+
 GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
 Base.eltype(::Type{GAPGroupConjClass{T,S}}) where {T,S} = S
@@ -1108,8 +1118,8 @@ julia> G = symmetric_group(5);
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of Sym(5) in G
- Conjugacy class of Alt(5) in G
  Conjugacy class of permutation group in G
+ Conjugacy class of Alt(5) in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)

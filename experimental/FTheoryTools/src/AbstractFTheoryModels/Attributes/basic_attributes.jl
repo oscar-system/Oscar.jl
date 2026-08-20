@@ -134,61 +134,42 @@ end
 ### Attributes for flux families (not exported, rather for serialization overhaul)
 ######################################################################################
 
-function _normalize_flux_family_algorithm(
-  algorithm::Union{Symbol,String}, caller::Symbol
-)
-  normalized_algorithm = algorithm isa String ? Symbol(algorithm) : algorithm
-  normalized_algorithm in (:default, :special) ||
-    throw(ArgumentError("Unknown value for keyword `algorithm`: $algorithm"))
-  if algorithm isa String
-    Base.depwarn(
-      "Passing `algorithm=\"$algorithm\"` is deprecated; use `algorithm=:$algorithm` instead",
-      caller,
-    )
-  end
-  return normalized_algorithm
-end
-
 @attr QQMatrix function matrix_integral_quant_transverse(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
-  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_integral(
-    special_flux_family(m; completeness_check, algorithm, rng)
+    special_flux_family(m; completeness_check=completeness_check, rng=rng)
   )
 end
 
 @attr QQMatrix function matrix_rational_quant_transverse(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
-  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_rational(
-    special_flux_family(m; completeness_check, algorithm, rng)
+    special_flux_family(m; completeness_check=completeness_check, rng=rng)
   )
 end
 
 @attr Vector{QQFieldElem} function offset_quant_transverse(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
-  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
-  return offset(special_flux_family(m; completeness_check, algorithm, rng))
+  return offset(special_flux_family(m; completeness_check=completeness_check, rng=rng))
 end
 
 @attr QQMatrix function matrix_integral_quant_transverse_nobreak(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
-  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_integral(
     special_flux_family(
-      m; not_breaking=true, completeness_check, algorithm, rng
+      m; not_breaking=true, completeness_check=completeness_check, rng=rng
     ),
   )
 end
@@ -196,12 +177,11 @@ end
 @attr QQMatrix function matrix_rational_quant_transverse_nobreak(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
-  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return matrix_rational(
     special_flux_family(
-      m; not_breaking=true, completeness_check, algorithm, rng
+      m; not_breaking=true, completeness_check=completeness_check, rng=rng
     ),
   )
 end
@@ -209,12 +189,11 @@ end
 @attr Vector{QQFieldElem} function offset_quant_transverse_nobreak(
   m::AbstractFTheoryModel;
   completeness_check::Bool=true,
-  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
   return offset(
     special_flux_family(
-      m; not_breaking=true, completeness_check, algorithm, rng
+      m; not_breaking=true, completeness_check=completeness_check, rng=rng
     ),
   )
 end

@@ -109,7 +109,6 @@ test_subsets = Dict(
                                "experimental/FTheoryTools/test/singular_loci.jl",
                                "experimental/FTheoryTools/test/paper_tests.jl",
                                "experimental/DoubleAndHyperComplexes/test/min_k_tester.jl",
-                               "experimental/DoubleAndHyperComplexes/test/LeGreuelFormulaOnStratifiedSpaces.jl",
                               ],
 
                     :long  => [
@@ -145,8 +144,7 @@ test_subsets = Dict(
                      :book => [
                                "test/book/test.jl",
                      ],
-                 :oscar_db => ["experimental/OscarDB/test/runtests.jl"],
-                     :exts => ["experimental/Extensions/test/runtests.jl"]
+  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
 )
 
 tests_on_main = Dict(
@@ -210,12 +208,11 @@ else
   print_stats(stdout, stats; max=10)
 end
 if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
-  metadata = Oscar._test_stats_metadata()
-  timestamp = metadata.timestamp
+  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H-%M-%S"`)
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
-  commitHash = metadata.commit
-  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(replace("$test_subset", '_' => '-'))_$(commitHash).csv"
+  commitHash = readchomp(`git rev-parse --verify --short HEAD`)
+  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(test_subset)_$(commitHash).csv"
   open(joinpath(pkgdir(Oscar), statsFileName), "a") do io
     println(io, "path,time,ctime,rctime,gctime,alloc")
     DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in stats), ",")

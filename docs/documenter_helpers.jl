@@ -1,13 +1,11 @@
 import DelimitedFiles
-import Oscar
 
 const docstats = Dict{String,NamedTuple}()
 if haskey(ENV, "GITHUB_ACTION") || haskey(ENV, "OSCAR_TEST_STATS")
-  metadata = Oscar._test_stats_metadata()
-  timestamp = metadata.timestamp
+  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H-%M-%S"`)
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
-  commitHash = metadata.commit
+  commitHash = readchomp(`git rev-parse --verify --short HEAD`)
   statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_doctests_$(commitHash).csv"
 
   Base.atexit() do

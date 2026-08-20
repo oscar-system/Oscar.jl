@@ -148,8 +148,8 @@ elliptic fibration structure.
 Users can construct global Tate models over such concrete toric bases with the following constructors:
 
 ```@docs
-global_tate_model(base::NormalToricVariety)
-global_tate_model(base::NormalToricVariety, ais::Vector{T}) where {T<:MPolyRingElem}
+global_tate_model(base::NormalToricVariety; completeness_check::Bool = true)
+global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
 ```
 
 For convenience—ideal for quick experiments and educational use—we also support constructors for global Tate models

@@ -168,9 +168,6 @@ the numerical coefficient values into this polynomial.
   consuming. To skip this check, pass the optional keyword argument 
   `completeness_check=false`.
 
-!!! note "Randomness"
-  The random source used for randomized computations can be set with the `rng` keyword.
-
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
 julia> using Random;
@@ -275,7 +272,7 @@ julia> d3_tadpole_constraint(fgs, rng = Random.Xoshiro(1234));
           val = gen1[l1] * gen2[l2]
           is_zero(val) && continue
 
-          my_tuple = _sorted_tuple(basis_indices[l1]..., basis_indices[l2]...)
+          my_tuple = Tuple(sort([basis_indices[l1]..., basis_indices[l2]...]))
 
           if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
             change = sophisticated_intersection_product(

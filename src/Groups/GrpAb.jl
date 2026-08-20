@@ -71,6 +71,11 @@ end
 #
 ################################################################################
 
+struct FinGenAbGroupConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
+   X::T
+   repr::S
+end
+
 function Base.hash(C::FinGenAbGroupConjClass, h::UInt)
   return Base.hash(Representative(C), h)
 end

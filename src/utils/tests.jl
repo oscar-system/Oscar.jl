@@ -1,14 +1,3 @@
-function _test_stats_metadata(git_info::AbstractDict=_get_oscar_git_info())
-  if haskey(git_info, :commit) && haskey(git_info, :date)
-    timestamp = replace(git_info[:date][1:19], " " => "T", ":" => "-")
-    commit = git_info[:commit][1:7]
-    return (; timestamp, commit)
-  end
-
-  timestamp = Base.Libc.strftime("%Y-%m-%dT%H-%M-%S", time())
-  return (; timestamp, commit="v$(VERSION_NUMBER)")
-end
-
 function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION > v"1.11.0"))
   has_ctime_stat || (compile_elapsedtimes = Base.cumulative_compile_time_ns())
   stats = @timed Base.include(identity, mod, str)

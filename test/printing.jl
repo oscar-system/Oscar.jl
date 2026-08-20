@@ -24,17 +24,3 @@
   # Restore old flag
   allow_unicode(old_flag; temporary=true)
 end
-
-# Test statistics metadata generation with and without Git information.
-@testset "Test statistics metadata" begin
-  metadata = Oscar._test_stats_metadata(Dict{Symbol,String}())
-  @test occursin(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}$", metadata.timestamp)
-  @test metadata.commit == "v$(Oscar.VERSION_NUMBER)"
-
-  git_info = Dict(
-    :commit => "0123456789abcdef",
-    :date => "2026-07-24 12:17:12 +0200",
-  )
-  metadata = Oscar._test_stats_metadata(git_info)
-  @test metadata == (timestamp="2026-07-24T12-17-12", commit="0123456")
-end

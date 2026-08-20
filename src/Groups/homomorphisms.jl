@@ -1195,6 +1195,10 @@ function isomorphism(::Type{FPGroup}, A::FinGenAbGroup; on_gens::Bool=false)
 end
 
 ####
+mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFromFunc}
+    map::MapFromFunc{R, T}
+end
+
 function GroupIsomorphismFromFunc{R, T}(D::R, C::T, f, g) where {R, T}
   return GroupIsomorphismFromFunc{R, T}(MapFromFunc(D, C, f, g))
 end

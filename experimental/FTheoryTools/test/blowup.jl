@@ -31,15 +31,8 @@ add_resolution!(
   ["e1", "e4", "e2", "e3", "s"],
 )
 explicit_model_sections(t)["w"] = w
-
-# Ensure resolving a model does not mutate its stored resolution metadata.
-set_attribute!(t, :exceptional_divisor_indices, Int[])
-original_resolutions = deepcopy(resolutions(t))
-original_exceptional_indices = copy(exceptional_divisor_indices(t))
 t_res = resolve(t, 1)
 
 @testset "Custom blowup of a global Tate model" begin
   @test typeof(ambient_space(t_res)) == CoveredScheme{QQField}
-  @test resolutions(t) == original_resolutions
-  @test exceptional_divisor_indices(t) == original_exceptional_indices
 end

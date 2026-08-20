@@ -79,7 +79,6 @@ diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 ```@docs
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
-cycle_graph(n::Int64)
 petersen_graph()
 clebsch_graph()
 ```            
@@ -110,8 +109,6 @@ maximal_cliques(g::Graph{Undirected})
 labelings(G::Graph)
 has_disjoint_automorphisms(G::Graph)
 disjoint_automorphisms(G::Graph)
-on_graph
-permute_nodes!
 ```
 
 ### Edges

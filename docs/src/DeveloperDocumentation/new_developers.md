@@ -93,7 +93,8 @@ bug this is probably a minor question).
 ### Adding tests
 There are two ways to add tests:
   - There are combined tests and examples in the docstrings, namely the
-    `jldoctest` blocks. For these have a closer look at [Documenting Code](@ref).
+    `jldoctest` blocks. For these have a closer look at [Documenting OSCAR
+    code](@ref).
   - Larger tests and tests that aren't useful examples are in the `test`
     folder. The main file there is `test/runtests.jl` which then includes other
     testfiles. 
@@ -117,8 +118,8 @@ to define helper functions that are used in multiple test files, for example
 `test_save_load_roundtrip` for serialization.
 
 ### Adding documentation
-For more information on docstrings, please read our page on [Documenting Code](@ref).
-There are two places where documentation can be added:
+For more information on docstrings, please read our page on [Documenting OSCAR
+code](@ref).  There are two places where documentation can be added:
 1. In the docstrings above the functions in the `src` folder;
 2. In the documentation files in the `docs/src` folder. The overall structure
    is fixed in the file `docs/doc.main`. If you create a new file in
@@ -162,7 +163,8 @@ Please have a look at the [Developer Style Guide](@ref) to get an overview over
 naming conventions, code formatting, etc.
 
 ### Building the documentation
-To build and test the documentation, please have a look at [Documenting Code](@ref).
+To build and test the documentation, please have a look at [Documenting OSCAR
+code](@ref).
 
 ### [Rebasing](@id rebasing)
 One way to stay up to date with the current master is rebasing. In order to do

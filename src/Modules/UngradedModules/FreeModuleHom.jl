@@ -651,8 +651,3 @@ function lift(f::FreeModuleHom, g::FreeModuleHom)
   h = hom(domain(f), domain(g), lifted_imgs)
   return h
 end
-
-@attr SubquoModule{T} function image_module(phi::FreeModuleHom{FreeMod{T}, <:OFPModule{T}, Nothing}) where {T}
-  return sub_object(codomain(phi), images_of_generators(phi))
-end
-

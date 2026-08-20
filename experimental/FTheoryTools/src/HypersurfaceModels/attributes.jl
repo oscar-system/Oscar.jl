@@ -56,10 +56,9 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) =
 
 Return the Weierstrass model corresponding to the given hypersurface model, if known.
 
-If needed, this function constructs a literature model, which may create generic sections.
-
-!!! note "Randomness"
-    The random source used for randomized computations can be set with the `rng` keyword.
+If needed, this function constructs a literature model, the process of which may include the
+creation of generic sections. The random source used in the creation of said generic sections
+can be set with the optional argument `rng`.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -123,10 +122,9 @@ end
 
 Return the global Tate model corresponding to the given hypersurface model, if known.
 
-If needed, this function constructs a literature model, which may create generic sections.
-
-!!! note "Randomness"
-    The random source used for randomized computations can be set with the `rng` keyword.
+If needed, this function constructs a literature model, the process of which may include the
+creation of generic sections. The random source used in the creation of said generic sections
+can be set with the optional argument `rng`.
 
 In the example below, we construct a hypersurface model and its corresponding global
 Tate model (see [BMT25](@cite BMT25) for background), and then establish the relationship
@@ -253,9 +251,7 @@ model (see [BMT25](@cite BMT25) for background), in order to demonstrate this fu
 !!! warning
     The classification of singularities is performed using a Monte Carlo algorithm, involving randomized sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
-
-!!! note "Randomness"
-    The random source used for randomized computations can be set with the `rng` keyword.
+    The random source can be set with the optional argument `rng`.
 
 # Examples
 ```jldoctest

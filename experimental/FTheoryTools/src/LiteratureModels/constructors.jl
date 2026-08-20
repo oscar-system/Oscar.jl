@@ -3,7 +3,7 @@
 #######################################################
 
 @doc raw"""
-    literature_model(; kwargs...)
+    literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
 
 Return a model from the F-theory literature identified by bibliographic metadata such as arXiv ID, DOI, or equation reference.
 Many such models are well-known in the field—e.g., the *U(1)-restricted SU(5)-GUT model
@@ -15,7 +15,6 @@ To identify and retrieve a model from the database, supply one or more of the fo
 * `arxiv_id`: A string specifying the arXiv identifier of the preprint version or the journal print version.
 * `version`: A string specifying the arXiv version (e.g. `"v1"`).
 * `equation`: A string indicating the equation label used to define the model within the source publication.
-* `type`: A string restricting the result to a model type such as `"tate"`, `"weierstrass"`, or `"hypersurface"`.
 
 The method attempts to match the given identifiers with a unique entry in the database. If no match is found, or if the information
 is ambiguous (i.e., multiple matches exist), an error is raised.
@@ -23,14 +22,10 @@ is ambiguous (i.e., multiple matches exist), an error is raised.
 Some literature models require additional input to be uniquely determined and constructed. For such cases, more optional arguments must be provided:
 
 * `model_parameters`: A dictionary specifying parameters needed to fix a model within a family, e.g. `Dict("k" => 5)`.
-* `model_sections`: A dictionary specifying model-section data required to construct certain models.
 * `defining_classes`: A dictionary specifying divisor classes necessary to fully define the geometry.
 * `base_space`: Optionally specify a concrete base over which the model should be constructed. Currently, only toric base spaces are supported.
 * `completeness_check`: Set this to `false` to skip time consuming completeness checks of the base geometry to gain more performance.
 * `rng`: Set the random source used to create generic sections.
-
-!!! note "Randomness"
-    The random source used for randomized computations can be set with the `rng` keyword.
 
 See the [Literature Models](@ref literature_models) documentation page for a deeper discussion of these fields.
 
@@ -152,15 +147,15 @@ function literature_model(;
   version::String="",
   equation::String="",
   type::String="",
-  model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::Union{Nothing,FTheorySpace}=nothing,
-  model_sections::StringKeyedMapType=Dict{String,Any}(),
-  defining_classes::StringKeyedMapType=Dict{String,Any}(),
+  model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
+  base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
+  model_sections::Dict{String,<:Any}=Dict{String,Any}(),
+  defining_classes::Dict{String,<:Any}=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
-  return _literature_model(
+  return literature_model(
     model_dict;
     model_parameters=model_parameters,
     base_space=base_space,
@@ -173,15 +168,15 @@ end
 
 function literature_model(
   k::Int;
-  model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::Union{Nothing,FTheorySpace}=nothing,
-  model_sections::StringKeyedMapType=Dict{String,Any}(),
-  defining_classes::StringKeyedMapType=Dict{String,Any}(),
+  model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
+  base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
+  model_sections::Dict{String,<:Any}=Dict{String,Any}(),
+  defining_classes::Dict{String,<:Any}=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
   model_dict = _find_model(k)
-  return _literature_model(
+  return literature_model(
     model_dict;
     model_parameters=model_parameters,
     base_space=base_space,
@@ -193,37 +188,14 @@ function literature_model(
 end
 
 function literature_model(
-  model_dict::StringKeyedMapType;
-  model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::Union{Nothing,FTheorySpace}=nothing,
-  model_sections::StringKeyedMapType=Dict{String,Any}(),
-  defining_classes::StringKeyedMapType=Dict{String,Any}(),
+  model_dict::AbstractDict{String,Any};
+  model_parameters::Dict{String,<:Any}=Dict{String,Any}(),
+  base_space::FTheorySpace=affine_space(NormalToricVariety, 0),
+  model_sections::Dict{String,<:Any}=Dict{String,Any}(),
+  defining_classes::Dict{String,<:Any}=Dict{String,Any}(),
   completeness_check::Bool=true,
   rng::AbstractRNG=Random.default_rng(),
 )
-  Base.@nospecialize model_dict
-  return _literature_model(
-    deepcopy(model_dict);
-    model_parameters,
-    base_space,
-    model_sections,
-    defining_classes,
-    completeness_check,
-    rng,
-  )
-end
-
-function _literature_model(
-  model_dict::StringKeyedMapType;
-  model_parameters::StringKeyedMapType=Dict{String,Any}(),
-  base_space::Union{Nothing,FTheorySpace}=nothing,
-  model_sections::StringKeyedMapType=Dict{String,Any}(),
-  defining_classes::StringKeyedMapType=Dict{String,Any}(),
-  completeness_check::Bool=true,
-  rng::AbstractRNG=Random.default_rng(),
-)
-  Base.@nospecialize model_dict
-
   # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
@@ -294,7 +266,7 @@ function _literature_model(
   end
 
   # (3) Construct the model over concrete or arbitrary base
-  if !isnothing(base_space) && dim(base_space) > 0
+  if dim(base_space) > 0
 
     # Currently, support only for toric bases
     @req base_space isa NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
@@ -320,7 +292,7 @@ function _literature_model(
       @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
     end
 
-    # Add additional information that is always known for weierstrass/tate
+    # Add additional information that is always known for weierstrass/tate 
     if (model_dict["model_descriptors"]["type"] == "weierstrass") ||
       (model_dict["model_descriptors"]["type"] == "tate")
       model_dict["model_data"]["zero_section_class"] = "z"
@@ -404,9 +376,9 @@ end
 
 # Construct literature model over concrete base
 function _construct_literature_model_over_concrete_base(
-  model_dict::StringKeyedMapType,
+  model_dict::AbstractDict{String,Any},
   base_space::FTheorySpace,
-  defining_classes::StringKeyedMapType,
+  defining_classes::Dict{String,<:Any},
   completeness_check::Bool,
   rng::AbstractRNG=Random.default_rng(),
 )
@@ -608,7 +580,7 @@ end
 
 # Construct literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(
-  model_dict::StringKeyedMapType
+  model_dict::AbstractDict{String,Any}
 )
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "tunable_sections") "No base coordinates specified for model"
@@ -705,8 +677,8 @@ end
 
 function _set_all_attributes(
   model::AbstractFTheoryModel,
-  model_dict::StringKeyedMapType,
-  model_parameters::StringKeyedMapType,
+  model_dict::AbstractDict{String,Any},
+  model_parameters::Dict{String,<:Any},
 )
 
   # Metadata
@@ -825,88 +797,73 @@ function _set_all_attributes(
     )
   end
 
-  model_data = model_dict["model_data"]
-  section_attributes = (
-    "resolution_generating_sections",
-    "resolution_zero_sections",
-    "weighted_resolution_generating_sections",
-    "weighted_resolution_zero_sections",
-    "zero_section",
-    "generating_sections",
-    "torsion_sections",
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))); cached=false)
+  f = hom(
+    R, coordinate_ring(base_space(model)), collect(values(explicit_model_sections(model)))
   )
-  if any(name -> haskey(model_data, name), section_attributes)
-    R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(model))); cached=false)
-    f = hom(
-      R, coordinate_ring(base_space(model)), collect(values(explicit_model_sections(model)))
-    )
 
-    if haskey(model_dict["model_data"], "resolution_generating_sections")
-      vs = [
-        [[string.(k) for k in sec] for sec in res] for
-        res in model_dict["model_data"]["resolution_generating_sections"]
-      ]
-      result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
-      set_attribute!(model, :resolution_generating_sections => result)
-    end
-
-    if haskey(model_dict["model_data"], "resolution_zero_sections")
-      vs = [
-        [string.(a) for a in b] for
-        b in model_dict["model_data"]["resolution_zero_sections"]
-      ]
-      result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
-      set_attribute!(model, :resolution_zero_sections => result)
-    end
-
-    if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
-      vs = [
-        [[string.(k) for k in sec] for sec in res] for
-        res in model_dict["model_data"]["weighted_resolution_generating_sections"]
-      ]
-      result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
-      set_attribute!(model, :weighted_resolution_generating_sections => result)
-    end
-
-    if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
-      vs = [
-        [string.(a) for a in b] for
-        b in model_dict["model_data"]["weighted_resolution_zero_sections"]
-      ]
-      result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
-      set_attribute!(model, :weighted_resolution_zero_sections => result)
-    end
-
-    if haskey(model_dict["model_data"], "zero_section")
-      vs = string.(model_dict["model_data"]["zero_section"])
-      set_attribute!(model, :zero_section => [f(eval_poly(l, R)) for l in vs])
-    end
-
-    if haskey(model_dict["model_data"], "generating_sections")
-      vs = map(k -> string.(k), model_dict["model_data"]["generating_sections"])
-      set_attribute!(
-        model, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
-      )
-    end
-
-    if haskey(model_dict["model_data"], "torsion_sections")
-      vs = map(k -> string.(k), model_dict["model_data"]["torsion_sections"])
-      set_attribute!(
-        model, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
-      )
-    end
+  if haskey(model_dict["model_data"], "resolution_generating_sections")
+    vs = [
+      [[string.(k) for k in sec] for sec in res] for
+      res in model_dict["model_data"]["resolution_generating_sections"]
+    ]
+    result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+    set_attribute!(model, :resolution_generating_sections => result)
   end
 
-  has_toric_divisor_classes =
-    haskey(model_data, "zero_section_class") || haskey(model_data, "exceptional_classes")
-  if base_space(model) isa NormalToricVariety &&
-    ambient_space(model) isa NormalToricVariety && has_toric_divisor_classes
-    ambient = ambient_space(model)
-    divs = torusinvariant_prime_divisors(ambient)
-    cox_gens = symbols(coordinate_ring(ambient))
+  if haskey(model_dict["model_data"], "resolution_zero_sections")
+    vs = [
+      [string.(a) for a in b] for b in model_dict["model_data"]["resolution_zero_sections"]
+    ]
+    result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+    set_attribute!(model, :resolution_zero_sections => result)
+  end
 
-    if haskey(model_data, "zero_section_class")
-      desired_value = Symbol(string.(model_data["zero_section_class"]))
+  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
+    vs = [
+      [[string.(k) for k in sec] for sec in res] for
+      res in model_dict["model_data"]["weighted_resolution_generating_sections"]
+    ]
+    result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+    set_attribute!(model, :weighted_resolution_generating_sections => result)
+  end
+
+  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
+    vs = [
+      [string.(a) for a in b] for
+      b in model_dict["model_data"]["weighted_resolution_zero_sections"]
+    ]
+    result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+    set_attribute!(model, :weighted_resolution_zero_sections => result)
+  end
+
+  if haskey(model_dict["model_data"], "zero_section")
+    vs = string.(model_dict["model_data"]["zero_section"])
+    set_attribute!(model, :zero_section => [f(eval_poly(l, R)) for l in vs])
+  end
+
+  if haskey(model_dict["model_data"], "generating_sections")
+    vs = map(k -> string.(k), model_dict["model_data"]["generating_sections"])
+    set_attribute!(
+      model, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
+    )
+  end
+
+  if haskey(model_dict["model_data"], "torsion_sections")
+    vs = map(k -> string.(k), model_dict["model_data"]["torsion_sections"])
+    set_attribute!(
+      model, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs]
+    )
+  end
+
+  if base_space(model) isa NormalToricVariety && ambient_space(model) isa NormalToricVariety
+    divs = torusinvariant_prime_divisors(ambient_space(model))
+    cohomology_ring(ambient_space(model); completeness_check=false)
+    cox_gens = symbols(coordinate_ring(ambient_space(model)))
+
+    if haskey(model_dict["model_data"], "zero_section_class") &&
+      base_space(model) isa NormalToricVariety
+      desired_value = Symbol(string.(model_dict["model_data"]["zero_section_class"]))
       @req desired_value in cox_gens "Specified zero section is invalid"
       index = findfirst(==(desired_value), cox_gens)
       set_attribute!(model, :zero_section_index => index::Int)
@@ -917,8 +874,9 @@ function _set_all_attributes(
       )
     end
 
-    if haskey(model_data, "exceptional_classes")
-      desired_value = string.(model_data["exceptional_classes"])
+    if haskey(model_dict["model_data"], "exceptional_classes") &&
+      base_space(model) isa NormalToricVariety
+      desired_value = string.(model_dict["model_data"]["exceptional_classes"])
       @req issubset(Symbol.(desired_value), cox_gens) "Specified exceptional classes are invalid"
       exceptional_divisor_indices = Vector{Int}()
       for class in desired_value
@@ -930,10 +888,8 @@ function _set_all_attributes(
       )
       set_attribute!(
         model,
-        :exceptional_classes => [
-          cohomology_class(divs[index]; completeness_check=false) for
-          index in exceptional_divisor_indices
-        ],
+        :exceptional_classes =>
+          [cohomology_class(divs[index]) for index in exceptional_divisor_indices],
       )
     end
   end
@@ -1034,7 +990,7 @@ Model 46:
 JSON.Object{String, Any}("journal_section" => "2", "arxiv_page" => "3", "journal_page" => "3", "arxiv_id" => "1511.03209", "arxiv_equation" => "2.11", "gauge_algebra" => Any["e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)"], "arxiv_version" => "3", "journal_doi" => "https://doi.org/10.1007/JHEP12(2015)164", "journal_equation" => "2.11", "arxiv_section" => "2", "journal" => "JHEP", "file" => "model1511_03209.json", "arxiv_doi" => "10.48550/arXiv.1511.03209", "model_index" => "46", "type" => "tate")
 ```
 """
-function display_all_literature_models(model_fields::StringKeyedMapType=Dict{String,Any}())
+function display_all_literature_models(model_fields::Dict{String,<:Any}=Dict{String,Any}())
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   @req issubset(keys(model_fields), keys(file_index[1])) "The inputted criteria aren't supported"
   for field in keys(model_fields)

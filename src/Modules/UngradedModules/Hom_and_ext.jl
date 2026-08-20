@@ -4,7 +4,7 @@
 Return true iff `f` is the zero map.
 """
 function iszero(f::OFPModuleHom)
-  return all(iszero, images_of_generators(f))
+  return all(iszero, map(f, gens(domain(f))))
 end
 
 @doc raw"""

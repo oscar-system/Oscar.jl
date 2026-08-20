@@ -76,15 +76,6 @@ end
 # 2: Construct the Weierstrass polynomial
 ################################################################
 
-function _weierstrass_sections_from_tate(a1, a2, a3, a4, a6)
-  b2 = 4 * a2 + a1^2
-  b4 = 2 * a4 + a1 * a3
-  b6 = 4 * a6 + a3^2
-  f = -1//48 * (b2^2 - 24 * b4)
-  g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
-  return f, g
-end
-
 function _weierstrass_sections(
   base::NormalToricVariety; rng::AbstractRNG=Random.default_rng()
 )
@@ -193,14 +184,6 @@ function _kodaira_type(
       monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"]
     )
   else
-    is_multiplicative = f_ord == 0 && g_ord == 0
-    is_type_iv = d_ord == 4 && g_ord == 2 && f_ord >= 2
-    is_type_istar = f_ord == 2 && g_ord == 3 && d_ord >= 7
-    is_type_ivstar = d_ord == 8 && g_ord == 4 && f_ord >= 3
-    if !(is_multiplicative || is_type_iv || is_type_istar || is_type_ivstar)
-      return "Unrecognized"
-    end
-
     # If the base is arbitrary, we tune the model over projective space of the
     # appropriate dimension. This allows us to use the same algorithm for all
     # cases. The choice of projective space here is an attempt to minimize the
@@ -244,7 +227,7 @@ function _kodaira_type(
 
     f = weierstrass_section_f(w)
     g = weierstrass_section_g(w)
-    d = is_type_istar ? discriminant(w) : nothing
+    d = discriminant(w)
 
     # For now, we explicitly require that the gauge ideal is principal
     @req (ngens(id) == 1) "Gauge ideal is not principal"
@@ -254,31 +237,22 @@ function _kodaira_type(
     # could give an incorrect result (radical or not), so we actually try this
     # five times and see if we get agreement among all of the results
     num_gens = ngens(parent(f))
-    gauge = forget_decoration(gens(id)[1])
-    needs_f = is_multiplicative || is_type_istar
-    undecorated_f = needs_f ? forget_decoration(f) : nothing
-    undecorated_g = forget_decoration(g)
-    undecorated_d = is_type_istar ? forget_decoration(d) : nothing
     gauge2s, f2s, g2s, d2s = [], [], [], []
     for _ in 1:5
       coord_inds = randperm(rng, num_gens)[1:(end - 2)]
       rand_ints = rand(rng, -100:100, num_gens - 2)
 
-      push!(gauge2s, evaluate(gauge, coord_inds, rand_ints))
-      if needs_f
-        push!(f2s, evaluate(undecorated_f, coord_inds, rand_ints))
-      end
-      push!(g2s, evaluate(undecorated_g, coord_inds, rand_ints))
-      if is_type_istar
-        push!(d2s, evaluate(undecorated_d, coord_inds, rand_ints))
-      end
+      push!(gauge2s, evaluate(forget_decoration(gens(id)[1]), coord_inds, rand_ints))
+      push!(f2s, evaluate(forget_decoration(f), coord_inds, rand_ints))
+      push!(g2s, evaluate(forget_decoration(g), coord_inds, rand_ints))
+      push!(d2s, evaluate(forget_decoration(d), coord_inds, rand_ints))
     end
 
     # Check monodromy conditions for remaining cases.
     # Default to split when there is disagreement among the five attempts,
     # because this approach seems to skew toward accidentally identifying
     # a singularity as non-split
-    if is_multiplicative
+    if f_ord == 0 && g_ord == 0
       quotients = []
       for i in eachindex(gauge2s)
         push!(
@@ -292,7 +266,7 @@ function _kodaira_type(
       else
         "Split I_$d_ord"
       end
-    elseif is_type_iv
+    elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
       quotients = []
       for i in eachindex(gauge2s)
         push!(
@@ -305,7 +279,7 @@ function _kodaira_type(
       else
         "Split IV"
       end
-    elseif is_type_istar
+    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
       quotients = []
       if d_ord % 2 == 0
         for i in eachindex(gauge2s)
@@ -334,7 +308,7 @@ function _kodaira_type(
       else
         "Split I^*_$(d_ord - 6)"
       end
-    else
+    elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
       quotients = []
       for i in eachindex(gauge2s)
         push!(
@@ -347,95 +321,12 @@ function _kodaira_type(
       else
         "Split IV^*"
       end
+    else
+      kod_type = "Unrecognized"
     end
   end
 
   return kod_type
-end
-
-const _MODEL_METADATA_ATTRIBUTES = (
-  :associated_literature_models,
-  :arxiv_doi,
-  :arxiv_id,
-  :arxiv_link,
-  :arxiv_model_equation_number,
-  :arxiv_model_page,
-  :arxiv_model_section,
-  :arxiv_version,
-  :birational_literature_models,
-  :journal_doi,
-  :journal_link,
-  :journal_model_equation_number,
-  :journal_model_page,
-  :journal_model_section,
-  :journal_name,
-  :journal_pages,
-  :journal_report_numbers,
-  :journal_volume,
-  :journal_year,
-  :literature_identifier,
-  :model_description,
-  :model_parameters,
-  :paper_authors,
-  :paper_buzzwords,
-  :paper_description,
-  :paper_title,
-)
-
-function _copy_model_metadata!(target::AbstractFTheoryModel, source::AbstractFTheoryModel)
-  for name in _MODEL_METADATA_ATTRIBUTES
-    if has_attribute(source, name)
-      set_attribute!(target, name, deepcopy(get_attribute(source, name)))
-    end
-  end
-  return target
-end
-
-function _sorted_tuple(a::Int, b::Int, c::Int, d::Int)
-  a, b = minmax(a, b)
-  c, d = minmax(c, d)
-  a, c = minmax(a, c)
-  b, d = minmax(b, d)
-  b, c = minmax(b, c)
-  return (a, b, c, d)
-end
-
-function _show_model_over_base(
-  io::IO,
-  model::AbstractFTheoryModel,
-  model_name::String;
-  show_literature_data::Bool=true,
-  partially_resolved_model_name::String=model_name,
-)
-  io = pretty(io)
-  properties = String[]
-  if is_partially_resolved(model)
-    push!(properties, "Partially resolved " * partially_resolved_model_name * " over a")
-  else
-    push!(properties, model_name * " over a")
-  end
-  if is_base_space_fully_specified(model)
-    push!(properties, "concrete base")
-  else
-    push!(properties, "not fully specified base")
-  end
-  if show_literature_data && has_attribute(model, :model_description)
-    push!(properties, "-- " * model_description(model))
-    if has_attribute(model, :model_parameters)
-      parameters = sort!(collect(model_parameters(model)); by=first)
-      parameter_text = join(
-        (string(key, " = ", value) for (key, value) in parameters), ", "
-      )
-      push!(properties, "with parameter values (" * parameter_text * ")")
-    end
-  end
-  if show_literature_data && has_attribute(model, :arxiv_id)
-    push!(properties, "based on arXiv paper " * arxiv_id(model))
-  end
-  if show_literature_data && has_attribute(model, :arxiv_model_equation_number)
-    push!(properties, "Eq. (" * arxiv_model_equation_number(model) * ")")
-  end
-  return join(io, properties, " ")
 end
 
 ###########################################################################

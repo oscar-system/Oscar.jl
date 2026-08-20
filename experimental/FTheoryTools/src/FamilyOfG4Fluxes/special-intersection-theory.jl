@@ -13,7 +13,7 @@ function sophisticated_intersection_product(
 )
 
   # (A) Have we computed this intersection number in the past? If so, just use that result...
-  indices = _sorted_tuple(indices...)
+  indices = Tuple(sort(collect(indices)))
   if haskey(inter_dict, indices)
     return inter_dict[indices]
   end
@@ -26,11 +26,16 @@ function sophisticated_intersection_product(
     end
   end
 
-  # (C) Deal with self-intersections.
-  if !allunique(indices)
+  # (C) Deal with self-intersection and should-never-happen case.
+  distinct_variables = Set(indices)
+  if length(distinct_variables) < 4 && length(distinct_variables) >= 1
     return intersection_from_equivalent_cycle(
       v, indices, hypersurface_equation, inter_dict, s_inter_dict, data; rng
     )
+  end
+  if length(distinct_variables) == 0
+    println("WEIRD! THIS SHOULD NEVER HAPPEN! INFORM THE AUTHORS!")
+    println("")
   end
 
   # (D) Deal with transverse intersection...
@@ -39,6 +44,17 @@ function sophisticated_intersection_product(
   pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations = Oscar._reduce_hypersurface_equation(
     v, hypersurface_equation, indices, data
   )
+  if haskey(
+    s_inter_dict,
+    string([pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations]),
+  )
+    numb = s_inter_dict[string([
+      pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations
+    ])]
+    inter_dict[indices] = numb
+    return numb
+  end
+
   # D.2 If pt == 0, then we are not looking at a transverse intersection. So take an equivalent cycle and try again...
   if is_zero(pt_reduced)
     return intersection_from_equivalent_cycle(
@@ -138,16 +154,7 @@ function sophisticated_intersection_product(
     end
   end
 
-  # C.9 In all other cases, proceed via a rationally equivalent cycle.
-  # Construct the serialization-compatible string key only for this expensive fallback.
-  reduction_key = string([
-    pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations
-  ])
-  if haskey(s_inter_dict, reduction_key)
-    numb = s_inter_dict[reduction_key]
-    inter_dict[indices] = numb
-    return numb
-  end
+  # C.9 In all other cases, proceed via a rationally equivalent cycle
   #=
   println("")
   println("FOUND CASE THAT CANNOT YET BE DECIDED!")
@@ -162,7 +169,9 @@ function sophisticated_intersection_product(
   numb = intersection_from_equivalent_cycle(
     v, indices, hypersurface_equation, inter_dict, s_inter_dict, data; rng
   )
-  s_inter_dict[reduction_key] = numb
+  s_inter_dict[string([
+    pt_reduced, gs_reduced, remaining_vars, reduced_scaling_relations
+  ])] = numb
   return numb
 end
 
@@ -316,14 +325,14 @@ function _rationally_equivalent_cycle(
       new_tuple = (
         indices[1:(pos_power_variable - 1)]..., k, indices[(pos_power_variable + 1):end]...
       )
-      new_tuple = _sorted_tuple(new_tuple...)
+      new_tuple = Tuple(sort(collect(new_tuple)))
 
       pos = findfirst(==(new_tuple), tuples)
       if pos !== nothing
         coeffs[pos] += employed_relation[k]
       else
         push!(coeffs, employed_relation[k])
-        push!(tuples, new_tuple)
+        push!(tuples, Tuple(new_tuple))
       end
     end
   end

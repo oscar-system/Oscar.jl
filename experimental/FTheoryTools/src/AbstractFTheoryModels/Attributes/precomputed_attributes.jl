@@ -272,7 +272,7 @@
 ##########################################
 
 @define_model_attribute_getter(
-  (resolutions, ResolutionsType),
+  (resolutions, Vector{Tuple{Vector{Vector{String}},Vector{String}}}),
   """
   ```jldoctest
   julia> using Random;
@@ -289,7 +289,10 @@
 )
 
 @define_model_attribute_getter(
-  (weighted_resolutions, WeightedResolutionsType),
+  (
+    weighted_resolutions,
+    Vector{Tuple{Vector{Tuple{Vector{String},Vector{Int64}}},Vector{String}}},
+  ),
   """
   ```jldoctest
   julia> using Random;

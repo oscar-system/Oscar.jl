@@ -37,9 +37,9 @@ over the resolution process.
 You can execute individual blowups, whether toric or not, using the following methods:
 
 ```@docs
-blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String})
-blow_up(m::AbstractFTheoryModel, I::MPolyIdeal)
-blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf)
+blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
 ```
 
 ### Data Format for Resolutions

@@ -33,17 +33,6 @@ weierstrass_P3 = weierstrass_model(P3; completeness_check=false, rng=our_rng)
   @test is_partially_resolved(weierstrass_P3) == false
 end
 
-# Check detailed display for a model carrying parameter metadata.
-set_attribute!(weierstrass_P3, :model_description, "Parameterized model")
-set_attribute!(weierstrass_P3, :model_parameters, Dict("z" => 2, "a" => 1))
-
-@testset "Detailed display of a parameterized Weierstrass model" begin
-  displayed_model = sprint(show, MIME("text/plain"), weierstrass_P3)
-  @test occursin(
-    "Parameterized model with parameter values (a = 1, z = 2)", displayed_model
-  )
-end
-
 @testset "Error messages in Weierstrass models over concrete base spaces" begin
   @test_throws ArgumentError weierstrass_model(
     P3, section_f, section_g; completeness_check=false
@@ -129,33 +118,6 @@ weierstrass_generic = weierstrass_model(
     coordinate_ring(ambient_space(weierstrass_generic))
   @test dim(base_space(weierstrass_generic)) == 3
   @test dim(ambient_space(weierstrass_generic)) == 5
-end
-
-# Test specialization of a generic Weierstrass model to a concrete toric base.
-@testset "Put Weierstrass model over concrete base" begin
-  specialized_model = put_over_concrete_base(
-    weierstrass_generic,
-    Dict{String,Any}("base" => P3);
-    completeness_check=false,
-    rng=Random.Xoshiro(1234),
-  )
-  @test isempty(model_section_parametrization(weierstrass_generic))
-  @test is_base_space_fully_specified(specialized_model)
-  @test base_space(specialized_model) === P3
-  @test parent(weierstrass_section_f(specialized_model)) === coordinate_ring(P3)
-  @test parent(weierstrass_section_g(specialized_model)) === coordinate_ring(P3)
-  @test degree(weierstrass_section_f(specialized_model)) ==
-    degree(generic_section(anticanonical_bundle(P3)^4; rng=Random.Xoshiro(1234)))
-  @test degree(weierstrass_section_g(specialized_model)) ==
-    degree(generic_section(anticanonical_bundle(P3)^6; rng=Random.Xoshiro(1234)))
-  @test_throws ArgumentError put_over_concrete_base(
-    weierstrass_generic, Dict{String,Any}(); completeness_check=false
-  )
-  @test_throws ArgumentError put_over_concrete_base(
-    weierstrass_generic,
-    Dict{String,Any}("base" => base_space(weierstrass_generic));
-    completeness_check=false,
-  )
 end
 
 @testset "Error messages in Weierstrass models over generic base space" begin

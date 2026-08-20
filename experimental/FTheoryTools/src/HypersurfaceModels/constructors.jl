@@ -495,10 +495,19 @@ end
 
 # Detailed printing
 function Base.show(io::IO, ::MIME"text/plain", h::HypersurfaceModel)
-  return _show_model_over_base(
-    io, h, "Hypersurface model"; show_literature_data=false,
-    partially_resolved_model_name="hypersurface model",
-  )
+  io = pretty(io)
+  properties_string = String[]
+  if is_partially_resolved(h)
+    push!(properties_string, "Partially resolved hypersurface model over a")
+  else
+    push!(properties_string, "Hypersurface model over a")
+  end
+  if is_base_space_fully_specified(h)
+    push!(properties_string, "concrete base")
+  else
+    push!(properties_string, "not fully specified base")
+  end
+  join(io, properties_string, " ")
 end
 
 # Terse and one line printing
