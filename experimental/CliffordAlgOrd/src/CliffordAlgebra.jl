@@ -68,6 +68,8 @@ Return the base ring of the Clifford algebra `C`.
 """
 base_ring(C::CliffordAlgebra) = C.base_ring::base_ring_type(typeof(C))
 
+coefficient_ring(C::CliffordAlgebra) = base_ring(C)
+
 @doc raw"""
     space(C::CliffordAlgebra) -> QuadSpace
 
@@ -112,6 +114,7 @@ coefficients(x::CliffordAlgebraElem) = x.coeffs
 ################################################################################
 
 base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
+coefficient_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
 elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S}
 is_domain_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = false
 is_exact_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = true
@@ -445,13 +448,11 @@ is_odd(x::CliffordAlgebraElem) = (x == odd_part(x))
 #
 ################################################################################
 
-function AbstractAlgebra.promote_rule(::Type{CAE}, ::Type{V}) where
-        {T<:RingElement, S, CAE<:CliffordAlgebraElem{T, S}, V<:RingElement}
-    AbstractAlgebra.promote_rule(T, V) == T ? CAE : Union{}
+function AbstractAlgebra.promote_rule(::Type{CliffordAlgebraElem{T, S}}, ::Type{V}) where {T<:RingElement, S, V<:RingElement}
+  AbstractAlgebra.promote_rule(T, V) == T ? CliffordAlgebraElem{T, S} : Union{}
 end
 
-AbstractAlgebra.promote_rule(::Type{CAE}, ::Type{CAE}) where
-        {T<:RingElement, S, CAE<:CliffordAlgebraElem{T, S}} = CAE
+AbstractAlgebra.promote_rule(::Type{CliffordAlgebraElem{T, S}}, ::Type{CliffordAlgebraElem{T, S}}) where {T<:RingElement, S} = CliffordAlgebraElem{T, S}
 
 ################################################################################
 #
