@@ -84,10 +84,11 @@ function _analyse_singularity_msolve(
   end
 end
 
-function msolve_wrapper(I; info_level::Int=0, precision::Int=128)
+function msolve_wrapper(I; precision::Int=128)
   # Just to remember how to get more debug info
-  # (sings, rs2) = real_solutions(ideal(f) + ideal(derivative(f, y)); info_level=2, precision=solver_precision, interval=true)
-  (sings, _) = real_solutions(Vector{Vector{QQFieldElem}}, I; info_level, precision)
+  # set_verbosity_level(:AlgebraicSolving, 2)
+  # (sings, rs2) = real_solutions(ideal(f) + ideal(derivative(f, y)); precision=solver_precision, interval=true)
+  (sings, _) = real_solutions(Vector{Vector{QQFieldElem}}, I; precision)
   sort!(sings; by=first)
   return sings
 end
