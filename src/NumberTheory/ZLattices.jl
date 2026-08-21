@@ -221,31 +221,28 @@ function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, ca
   return transpose(U_inv)*A*U_inv
 end
 
-
-function _get_edge_labeled_graph(cv_set::Union{Vector{ZZMatrix}, Vector{Matrix{Int}}}, gram::ZZMatrix)
+function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)
   tmp = ZZ(0)
-  if cv_set[1] isa Matrix{Int}
-    cv_set_int = cv_set
-  else
-    n = ZZ(0)
-    tmp1 = zero_matrix(ZZ, 1, number_of_columns(gram))
-    tmp2 = zero_matrix(ZZ, number_of_rows(gram), 1)
-    tmp3 = zero_matrix(ZZ, 1, 1)
-    for v in cv_set
-      tmp1 = mul!(tmp1, v, gram)
-      tmp3 = mul!(tmp3, tmp1, transpose!(tmp2, v))
-      n = max(n, tmp3[1])
-    end
-    if n-2 < ZZ(typemax(Int)) # we use Cauchy-Schwarz to check if char vector inner products are small enough to be converted to Int. As we need at least w_max+1 and w_max+2 weights further, we need to lower bound by -2.
-      cv_set_int = [Hecke._int_matrix_with_overflow(v, tmp) for v in cv_set]
-    else 
-      throw(OverflowError("The characteristic vectors have to large inner products to be converted to Int."))
-    end
+  n = ZZ(0)
+  tmp1 = zero_matrix(ZZ, 1, number_of_columns(gram))
+  tmp2 = zero_matrix(ZZ, number_of_rows(gram), 1)
+  tmp3 = zero_matrix(ZZ, 1, 1)
+  for v in cv_set
+    tmp1 = mul!(tmp1, v, gram)
+    tmp3 = mul!(tmp3, tmp1, transpose!(tmp2, v))
+    n = max(n, tmp3[1])
   end
-  return _get_edge_labeled_graph_inner(cv_set_int, Hecke._int_matrix_with_overflow(gram, tmp))
+  if n-2 < ZZ(typemax(Int)) # we use Cauchy-Schwarz to check if char vector inner products are small enough to be converted to Int. As we need at least w_max+1 and w_max+2 weights further, we need to lower bound by -2.
+    cv_set_int = [Hecke._int_matrix_with_overflow(v, tmp) for v in cv_set]
+  else 
+    throw(OverflowError("The characteristic vectors have to large inner products to be converted to Int."))
+  end
+  return _get_edge_labeled_graph(cv_set_int, Hecke._int_matrix_with_overflow(gram, tmp))
 end
 
-function _get_edge_labeled_graph_inner(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
+_get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _get_edge_labeled_graph(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
+
+function _get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
   p = length(cv_set)
   res_graph = graph(Undirected, p+2)
   max_w = 0
@@ -254,16 +251,16 @@ function _get_edge_labeled_graph_inner(cv_set::Vector{Matrix{Int}}, gram::Matrix
   t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
   w_i = Matrix{Int}(undef, 1, 1)
   for i = 1:p 
-    v_i = LinearAlgebra.mul!(v_i, cv_set[i], gram)
+    v_i = AbstractAlgebra.LinearAlgebra.mul!(v_i, cv_set[i], gram)
     for j = i+1:p
-      w_i = LinearAlgebra.mul!(w_i, v_i, LinearAlgebra.transpose!(t_i, cv_set[j]))
+      w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[j]))
       w = w_i[1]
       max_w = max(w, max_w)
       add_edge!(res_graph, i, j)
       res_graph.edge[i, j] = w
     end
     add_edge!(res_graph, i, p+1)
-    w_i = LinearAlgebra.mul!(w_i, v_i, LinearAlgebra.transpose!(t_i, cv_set[i]))
+    w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[i]))
     w = w_i[1]
     res_graph.edge[i, p+1] = w
   end
