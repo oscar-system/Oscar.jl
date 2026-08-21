@@ -741,6 +741,7 @@ export graph
 export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
+export graph_from_group_action
 export graph_from_labeled_edges
 export grassmann_pluecker_ideal
 export greatest_element
