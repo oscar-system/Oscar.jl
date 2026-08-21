@@ -496,4 +496,46 @@
       permute_nodes!(H, p)
       @test G.label[1, 3] == H.label[2, 3]
     end
+
+    @testset "graph_from_edge_orbits" begin
+      G = @permutation_group(5, (1, 3), (1, 2)(3, 4))
+      D = graph_from_edge_orbits(Directed, G, [[1, 2], [4, 5]], 5)
+      @test n_vertices(D) == 5
+      @test n_edges(D) == 12
+      @test [outneighbors(D, i) for i in 1:5] ==
+            [[2, 4, 5], [1, 3, 5], [2, 4, 5], [1, 3, 5], Int[]]
+
+      # the undirected version interprets the orbit pairs as undirected edges
+      U = graph_from_edge_orbits(Undirected, G, [[1, 2], [4, 5]], 5)
+      @test n_vertices(U) == 5
+      @test n_edges(U) == 8
+      @test has_edge(U, 1, 2) && has_edge(U, 2, 1)
+      @test has_edge(U, 4, 5)
+      @test !has_edge(U, 1, 3)
+
+      # a single edge is also accepted
+      D2 = graph_from_edge_orbits(Directed, @permutation_group(3, ()), [3, 2], 3)
+      @test n_vertices(D2) == 3
+      @test n_edges(D2) == 1
+      @test has_edge(D2, 3, 2)
+      @test !has_edge(D2, 2, 3)
+
+      # default n is the largest moved point
+      D3 = graph_from_edge_orbits(Directed, @permutation_group(3, ()), [3, 2])
+      @test n_vertices(D3) == 0
+      @test n_edges(D3) == 0
+
+      # the group may move points beyond n as long as 1:n is fixed setwise
+      G4 = @permutation_group(5, (1, 2), (2, 3), (4, 5))
+      D4 = graph_from_edge_orbits(Directed, G4, [[1, 2]], 3)
+      @test n_vertices(D4) == 3
+      @test n_edges(D4) == 6
+
+      # input checks
+      G5 = @permutation_group(3, ())
+      @test_throws ArgumentError graph_from_edge_orbits(Directed, G5, [[1, 2], [3, 6, 5]], 3)
+      @test_throws ArgumentError graph_from_edge_orbits(Directed, G5, [[1, 2], [3, -6]], 3)
+      @test_throws ArgumentError graph_from_edge_orbits(Directed, G5, [[1, 2], [3, 6]], -1)
+      @test_throws ArgumentError graph_from_edge_orbits(Directed, G5, [[1, 2], [3, 6]], 2)
+    end
 end

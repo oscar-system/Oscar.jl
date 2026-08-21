@@ -2154,6 +2154,79 @@ function graph_from_edges(p::Polyhedron; modulo_lineality=false)
 end
 
 @doc raw"""
+    graph_from_edge_orbits(::Type{T}, G::PermGroup, edges, n::Int=largest_moved_point(G)) where {T <: Union{Directed, Undirected}}
+
+Return the graph of type `T` with vertex set `1:n` whose edge set is the union
+of the orbits of the edges in `edges` under the action of the permutation
+group `G` on ordered pairs, i.e. the set
+$\bigcup_{e \in edges} \{ [g(e_1), g(e_2)] : g \in G \}$.
+
+Here `edges` is either a single edge `[u, v]` or a list of edges
+`[[u, v], ...]`, where an edge is a pair of positive integers. The group `G`
+must fix the vertex set `1:n` setwise, and the vertices of the given edges
+must lie in `1:n`. In the undirected case, the pairs in the union of orbits
+are interpreted as undirected edges, and hence each edge occurs at most once.
+If `n` is not given, then the largest moved point of `G` is used.
+
+# Examples
+```jldoctest
+julia> G = @permutation_group(5, (1, 3), (1, 2)(3, 4));
+
+julia> D = graph_from_edge_orbits(Directed, G, [[1, 2], [4, 5]], 5)
+Directed graph with 5 nodes and the following edges:
+(1, 2)(1, 4)(1, 5)(2, 1)(2, 3)(2, 5)(3, 2)(3, 4)(3, 5)(4, 1)(4, 3)(4, 5)
+
+julia> outneighbors(D, 1)
+3-element Vector{Int64}:
+ 2
+ 4
+ 5
+
+julia> U = graph_from_edge_orbits(Undirected, G, [[1, 2], [4, 5]], 5)
+Undirected graph with 5 nodes and the following edges:
+(2, 1)(3, 2)(4, 1)(4, 3)(5, 1)(5, 2)(5, 3)(5, 4)
+
+julia> graph_from_edge_orbits(Directed, @permutation_group(3, ()), [3, 2])
+Directed graph with 0 nodes and no edges
+```
+"""
+function graph_from_edge_orbits(::Type{T},
+                                G::PermGroup,
+                                edges::Vector{Vector{Int}},
+                                n::Int=largest_moved_point(G)) where {T <: Union{Directed, Undirected}}
+  @req n >= 0 "n must be a non-negative integer"
+  n == 0 && return graph(T, 0)
+  @req !isempty(edges) "edges must be a nonempty list of pairs of positive integers"
+  @req all(e -> length(e) == 2 && all(>(0), e), edges) "edges must be a list of pairs of positive integers"
+  @req all(e -> all(<=(n), e), edges) "the vertices of the edges must be at most n"
+
+  Omega = gset(G, edges)
+  out = [Vector{Int}() for _ in 1:n]
+  for orb in orbits(Omega)
+    for e in orb
+      @req e[1] <= n && e[2] <= n "the orbit of the edge contains a vertex outside 1:$n"
+      push!(out[e[1]], e[2])
+    end
+  end
+
+  D = graph(T, n)
+  for i in 1:n
+    sort!(out[i])
+    for j in out[i]
+      add_edge!(D, i, j)
+    end
+  end
+  return D
+end
+
+function graph_from_edge_orbits(::Type{T},
+                                G::PermGroup,
+                                edge::Vector{Int},
+                                n::Int=largest_moved_point(G)) where {T <: Union{Directed, Undirected}}
+  return graph_from_edge_orbits(T, G, [edge], n)
+end
+
+@doc raw"""
     label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}
 Given a graph `G`, add labels to the edges and optionally to the vertices with the given `name`.
 
