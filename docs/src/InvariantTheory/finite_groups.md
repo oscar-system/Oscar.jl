@@ -102,7 +102,7 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> coefficient_ring(IR)
-Number field with defining polynomial _$^2 + _$ + 1
+Cyclotomic field of order 3 with defining polynomial _$^2 + _$ + 1
   over rational field
 
 julia> R = polynomial_ring(IR)
