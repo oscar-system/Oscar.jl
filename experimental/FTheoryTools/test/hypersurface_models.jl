@@ -24,6 +24,8 @@ h = hypersurface_model(
   @test symbols(coordinate_ring(fiber_ambient_space(h))) == [:x, :y, :z]
   @test toric_variety(calabi_yau_hypersurface(h)) == ambient_space(h)
   @test is_base_space_fully_specified(h) == true
+  @test isempty(exceptional_classes(h))
+  @test isempty(exceptional_divisor_indices(h))
 end
 
 @testset "Error messages in hypersurface models over concrete base spaces" begin

@@ -1923,13 +1923,15 @@ function _primitive_embeddings_in_unimodular_safe(
   if is_even(G1)
     parity = :even
     par = :even
+    as_bilinear_module = false
   else
     parity = :odd
     par = :both
+    as_bilinear_module = true
   end
   sign = signature_pair(G1) .- signature_pair(G2)
   q = rescale(discriminant_group(G2), -1; cached=false)
-  GKs = _integer_genera(q, sign, par)
+  GKs = _integer_genera(q, sign, par; as_bilinear_module)
   isempty(GKs) && return false, results
 
   for GK in GKs
@@ -1964,16 +1966,18 @@ function _primitive_embeddings_coprime_det_safe(
   if is_even(G1)
     parity = :even
     par = :even
+    as_bilinear_module = false
   else
     parity = :odd
     par = :both
+    as_bilinear_module = true
   end
   sign = signature_pair(G1) .- signature_pair(G2)
   q1 = discriminant_group(G1)
   q2 = discriminant_group(G2)
   # q is up to parity the discriminant form a complement of G2 inside G1
-  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false, as_bilinear_module=(par !== :even))
-  GKs = _integer_genera(q, sign, par)
+  q, _ = direct_sum(q1, rescale(q2, -1; cached=false); cached=false, as_bilinear_module)
+  GKs = _integer_genera(q, sign, par; as_bilinear_module)
   isempty(GKs) && return false, results
 
   for GK in GKs
@@ -2140,17 +2144,14 @@ function _primitive_embeddings_generic_safe(
 )
   results = NTuple{3, ZZLat}[]
   R = rescale(representative(G1), -1; cached=false)
-  U = hyperbolic_plane_lattice()
-  # In the odd case, to be sure that T is unique in its genus and that
-  # O(T) surjects onto O(q_T), we might need to add two copies of U (2-adic issue)
   if is_even(G1)
     parity = :even
-    T, _ = direct_sum(R, U; cached=false)
+    as_bilinear_module = false
   else
     parity = :both
-    T, _ = direct_sum(R, U, U; cached=false)
+    as_bilinear_module = true
   end
-  q1n = discriminant_group(T)
+  q1n = discriminant_group(R)
   signK = signature_pair(G1) .- signature_pair(G2)
   # As always, we want our `TorQuadModule` to be meaningful, so they
   # should be of the form L^\vee/L where L is in the given genus
@@ -2177,7 +2178,6 @@ function _primitive_embeddings_generic_safe(
   Fac = gluing_factory(q2, q1n; parity, Ctx, vi)
   init_gluing_factory!(Fac) # Not that here Fac is never trivial since there is the trivial gluing
   _order_list = sort!(collect(possible_glue_order(Fac)))
-  as_bilinear_module = (Fac.par !== :even)
 
   need_setup = true
   for o in _order_list
@@ -2191,7 +2191,7 @@ function _primitive_embeddings_generic_safe(
       # primitive extension. If for this local gluing, there are no
       # possible complement, this will also hold for any other gluing
       # obtained from that one
-      GKs = _integer_genera(qK, signK, parity)
+      GKs = _integer_genera(qK, signK, parity; as_bilinear_module)
       isempty(GKs) && continue
 
       if exist_only && (!is_even(G2) || any(!is_even, GKs) || is_even(G1))

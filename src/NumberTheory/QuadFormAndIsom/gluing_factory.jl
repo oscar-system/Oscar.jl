@@ -184,17 +184,18 @@ end
 function _integer_genera(
   q::TorQuadModule,
   sign::NTuple{2, Int},
-  par::Symbol,
+  par::Symbol;
+  as_bilinear_module::Bool=false,
 )
   p, n = sign
   GKs = Set{ZZGenus}()
   if par != :odd
-    ok, _G = is_genus_with_genus(q, (p, n); parity=2)
+    ok, _G = is_genus_with_genus(q, (p, n); parity=2, as_bilinear_module)
     ok && push!(GKs, _G)
   end
 
   if par != :even
-    ok, _G = is_genus_with_genus(q, (p, n); parity=1)
+    ok, _G = is_genus_with_genus(q, (p, n); parity=1, as_bilinear_module)
     ok && push!(GKs, _G)
   end
   return GKs

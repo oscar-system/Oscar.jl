@@ -373,22 +373,6 @@ equal to the modulus of its bilinear form, then this is the same as calling
   return __orthogonal_group(T; as_bilinear_module=true)
 end
 
-# Forget about the quadratic form on `T`, if any. The difference with the Hecke
-# function is that we also record the same set of generators
-# TODO: Modify the Hecke version to specify whether to keep the same
-# generators and delete this version
-function __as_finite_bilinear_module(
-  T::TorQuadModule,
-)
-  n = modulus_bilinear_form(T)
-  if n == modulus_quadratic_form(T)
-    return T
-  end
-
-  Tb =  torsion_quadratic_module(cover(T), relations(T); modulus=n, modulus_qf=n, gens=lift.(gens(T)))
-  return Tb
-end
-
 # If `T` is bilinear or `as_bilinear_module` is `true`, return the orthogonal
 # group of the associated torsion bilinear form, otherwise the orthogonal group
 # of the torsion quadratic form
@@ -399,7 +383,7 @@ function __orthogonal_group(
   if !as_bilinear_module || modulus_bilinear_form(T) == modulus_quadratic_form(T)
     return orthogonal_group(T)
   end
-  Tb = __as_finite_bilinear_module(T)
+  Tb = Hecke._as_finite_bilinear_module(T)
   return _orthogonal_group(T, _orthogonal_group_gens(Tb); check=false)
 end
 
