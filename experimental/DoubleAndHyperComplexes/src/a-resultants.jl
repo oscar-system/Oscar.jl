@@ -22,6 +22,7 @@ function a_resultant_complex(support_sets::Vector{T};
 
   n = ncols(first(support_sets))
   @assert all(ncols(A) == n for A in support_sets) "the number of columns (variables) must coincide"
+  @assert length(support_sets) == n+1 "wrong number of support sets"
 
   # partition the generators of `parent` to match the rows of the matrices 
   # in `support_sets`
