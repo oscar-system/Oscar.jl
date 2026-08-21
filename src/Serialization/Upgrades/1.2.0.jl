@@ -6,7 +6,7 @@
   
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.2.0",
-  function upgrade_1_2_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+  function upgrade_1_2_0(s::UpgradeState, dict::AbstractDict{String, Any})
     renamings = Dict{String,String}([
       ("FreeAssAlgebra", "FreeAssociativeAlgebra"),
       ("FreeAssAlgElem", "FreeAssociativeAlgebraElem"),
@@ -15,8 +15,8 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     upgraded_dict = rename_types(dict, renamings)
 
-    if haskey(dict, :data) && dict[:data] isa AbstractDict
-      upgraded_dict[:data] = upgrade_1_2_0(s, dict[:data])
+    if haskey(dict, "data") && dict["data"] isa AbstractDict
+      upgraded_dict["data"] = upgrade_1_2_0(s, dict["data"])
     end
 
     return upgraded_dict
