@@ -2116,3 +2116,65 @@ end
   end
   return krull_dim(base_ring(F))
 end
+
+########################################################################
+# modular standard bases
+#
+# This is to wrap functionality from Singular's library ModStd 
+#     https://www.singular.uni-kl.de/hannes/sing_1410.htm#SEC1491
+# Unless the module put in is homogeneous or computations are done 
+# w.r.t a local ordering, the result is a Groebner basis only with 
+# high probability. Hence this functionality will not (yet) be 
+# communicated to the user. 
+########################################################################
+
+function compute_standard_basis_modular(
+    I::SubquoModule{<:MPolyRingElem{T}}; 
+    ordering::ModuleOrdering=default_ordering(I),
+    check::Bool=true
+  ) where {T <: QQFieldElem}
+  @assert !isdefined(I, :quo) || is_zero(I.quo) "module must be a submodule of a free module"
+  return compute_standard_basis_modular(I.sub; ordering, check)
+end
+
+function compute_standard_basis_modular(
+    I::SubModuleOfFreeModule{<:MPolyRingElem{T}}; 
+    ordering::ModuleOrdering=default_ordering(I),
+    check::Bool=true
+  ) where {T <: QQFieldElem}
+  return compute_standard_basis_modular(I.gens; ordering, check)
+end
+
+function compute_standard_basis_modular(
+    I::ModuleGens{<:MPolyRingElem{T}}; 
+    ordering::ModuleOrdering=default_ordering(I),
+    check::Bool=true
+  ) where {T <: QQFieldElem}
+  sgens = singular_generators(I)
+  gb = Singular.LibModstd.modStd(sgens, Int(check))
+  gb.isGB = true # needs to be set manually, as it seems.
+  res = ModuleGens(I.F, gb)
+  res.isGB = true
+  res.ordering = ordering
+  return res
+end
+
+### get a dodgy groebner basis, i.e. one which has been 
+# computed via modular methods and is probably correct, 
+# but not verified. This is an internal function which 
+# takes care of caching the result of the above calls for 
+# computation for the specific use case of a "dodgy" object.
+function dodgy_groebner_basis(
+    I::SubModuleOfFreeModule{T};
+    ordering::ModuleOrdering=default_ordering(I), 
+    check::Bool=true
+  ) where {T<:MPolyRingElem{QQFieldElem}}
+  if !isdefined(I, :dogdy_groebner_basis)
+    I.dodgy_groebner_basis = Dict{ModuleOrdering, ModuleGens{QQMPolyRingElem}}()
+  end
+  return get!(I.dodgy_groebner_basis, ordering) do
+    AbstractAlgebra.@RegisterDodgyStep(:standard_basis, Any[I])
+    compute_standard_basis_modular(I; ordering, check)
+  end
+end
+

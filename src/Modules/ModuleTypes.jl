@@ -239,6 +239,8 @@ generate the submodule) (computed via `generator_matrix()`) are cached.
                         # So this field stores any gb for cases where the actual 
                         # ordering does not matter. Then this field here can be used. 
   any_gb_with_transition::ModuleGens{T} # The same but for one with transition matrix
+  dodgy_groebner_basis::Dict{ModuleOrdering, ModuleGens{T}} # Groebner bases computed with Singular's ModStd 
+                                                            # in case "dodgy_mode" is on. 
   matrix::MatElem
 
   function SubModuleOfFreeModule{R}(F::FreeMod{R}) where {R}
