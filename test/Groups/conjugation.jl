@@ -1,3 +1,5 @@
+import Random
+
 @testset "Conjugacy classes in symmetric groups" begin
   n = 5
   G = symmetric_group(n)
@@ -285,6 +287,45 @@ end
    @test order(C)==81^2*80^2
    @testset for y in gens(C)
       @test x*y==y*x
+   end
+
+   actual_gap_order(H) = ZZRingElem(Oscar.GAPWrap.Size(GapObj(H)))
+   function exhaustive_centralizer_test(G)
+      for c in conjugacy_classes(G)
+         x = representative(c)
+         C = centralizer(G, x)[1]
+         # does it centralize?
+         @test all(y -> x * y == y * x, gens(C))
+         # is the stored order consistent?
+         @test order(C) * length(c) == order(G)
+         # does the stored order agree with what GAP computes as order?
+         if order(C) <= 1000
+            if actual_gap_order(C) != order(C)
+              @show x
+              @show C
+            end
+            @test actual_gap_order(C) == order(C)
+         end
+      end
+      return true
+   end
+   function random_centralizer_test(G, reps)
+      for _ in 1:reps
+         x = rand(G)
+         C = centralizer(G, x)[1]
+         all(y -> x * y == y * x, gens(C)) || return false
+      end
+      return true
+   end
+
+   BOUND = 1000  # use larger value for more comprehensive tests
+   @testset "Exhaustive centralizer checks in $func($n,$q)" for n in 2:12, q in filter(q -> q^n <= BOUND, [2, 3, 4, 5, 7, 8, 9]), func in (GL, SL)
+      @test exhaustive_centralizer_test(func(n, q))
+   end
+
+   @testset "Randomized centralizer checks in $func($n,$q)" for n in 1:16, q in [2, 3, 4, 5, 7, 8, 9, 25, 37, 64], func in (GL, SL)
+      @test random_centralizer_test(GL(n, q), (q < 64) ? 5 : 1)
+      @test random_centralizer_test(SL(n, q), (q < 64) ? 5 : 1)
    end
 
 end
