@@ -409,6 +409,7 @@ GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap Sqrt(x::Int64)::GAP.Obj
 GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Stabilizer(x::GapObj, y::Any, z::GapObj)::GapObj
+GAP.@wrap String(x::Any)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj
