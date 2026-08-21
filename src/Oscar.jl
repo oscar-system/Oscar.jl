@@ -183,6 +183,8 @@ function __init__()
 
   add_verbosity_scope(:f4ncgb)
 
+  add_verbosity_scope(:FundamentalInvariants)
+
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
   if is_dev && false === (VERSION < v"1.11.0-DEV.1135" ?
