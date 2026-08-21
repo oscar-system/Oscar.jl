@@ -1,5 +1,7 @@
 include("exports.jl")
 include("Types.jl")
+include("ActionMap.jl")
 include("Content.jl")
+include("ThomasDec.jl")
 include("IO.jl")
 include("Operators.jl")
