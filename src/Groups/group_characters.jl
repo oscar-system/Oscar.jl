@@ -3769,6 +3769,62 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
 end
 
 @doc raw"""
+    character_table_of_direct_product(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable)
+    tbl1 * tbl2
+
+Return the character table of the direct product of the groups of `tbl1` and
+`tbl2`.
+The values of the irreducible characters of the result are given by the
+Kronecker product of the irreducible characters of `tbl1` and `tbl2`.
+
+Also the syntax `tbl1 * tbl2` is supported.
+
+Note that the result does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> tbl = character_table( "C2" )
+C2
+
+  2  1  1
+         
+    1a 2a
+ 2P 1a 1a
+         
+X_1  1  1
+X_2  1 -1
+
+julia> tbl * tbl
+C2xC2
+
+  2  2  2  2  2
+               
+    1a 2a 2b 2c
+ 2P 1a 1a 1a 1a
+               
+X_1  1  1  1  1
+X_2  1 -1  1 -1
+X_3  1  1 -1 -1
+X_4  1 -1 -1  1
+```
+"""
+function character_table_of_direct_product(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable)
+  p = characteristic(ZZRingElem, tbl1)
+  @req p == characteristic(ZZRingElem, tbl2) "characteristics must be equal"
+  dp = GAP.Globals.CharacterTableDirectProduct(GapObj(tbl1), GapObj(tbl2))::GapObj
+  result = GAPGroupCharacterTable(dp, p)
+  if p != 0
+    ordtbl = GAPGroupCharacterTable(GAP.Globals.OrdinaryCharacterTable(dp), 0)
+    set_attribute!(result, :ordinary_table, ordtbl)
+  end
+
+  return result
+end
+
+Base.:*(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable) = character_table_of_direct_product(tbl1, tbl2)
+
+
+@doc raw"""
     character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
 
 Return the character table of the wreath product (see [`wreath_product`](@ref))

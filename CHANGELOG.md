@@ -9,6 +9,20 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
+## [1.8.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.8.1) - 2026-08-10
+
+### Lie Theory
+
+#### Fixed bugs that resulted in unexpected errors
+
+- [#6147](https://github.com/oscar-system/Oscar.jl/pull/6147) Fix `dual(::RootSpaceElem)` for a zero input
+
+### Other changes
+
+#### Improvements or additions to documentation
+
+- [#6119](https://github.com/oscar-system/Oscar.jl/pull/6119) Overhaul linear algebra documentation
+
 ## [1.8.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.8.0) - 2026-07-14
 
 ### Algebraic Geometry
