@@ -1,0 +1,9 @@
+#this file contains representatives of level-2 networks on n leaves.
+
+###########
+# 4 leafs #
+###########
+
+# type (1,1,2)
+
+g = graph_from _edges(directed, [[11,1],[11,5],[5,6],[5,9],[9,10],[10,4],[10,6],[6,7],[]])
