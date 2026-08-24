@@ -1,0 +1,52 @@
+# here are functions relating to the enumeration of level-2 (hopefully level-k in general) phylogenetic networks.
+
+# given number of leaves n generates the possible simple level-2 network topologies, which are uniquely given by partitions of n.
+# note that n must be at least 2
+function lvl2_leaf_partition(n::Int64)
+
+    partitions = []
+
+    #get partitions of the form [a,b,0]
+
+    for i in 1:(div(n,2))
+
+        push!(partitions, [n-i, i, 0])
+    end
+    #get partitions of the form [a,b,c]
+
+    for i in 0:(n - 2 - Int64(ceil(n/3)))
+        for j in 0:(div(i,2))
+
+            if  (3 + 2*i - n) > j
+                continue
+            end
+
+            push!(partitions, [n-(2+i), 1+i-j, 1+j])
+        end
+    end
+
+    return partitions
+end
+
+# function for creating the (undirected) graph corresponding to network topology given by partition (a,b,c)
+
+function graph_from_partition
+
+end
+
+
+#General plan for enumerating lvl-2 networks
+#it should take a natural number n >= 2 and return all simple leve-2 semi-directed phylogenetic networks (encoded as directed graphs)
+#up to isomorphism.
+
+function main(n)
+
+    #get all valid partitions for tree topology
+    partitions = lvl2_leaf_partition(n)
+
+    #for each partition return a tuple of directed graphs which are pairwise non-isomorphic and which have the topology encoded by partition.
+    for partition in partitions
+
+        partition_induced_networks = networks_from_partition(partition)
+    end
+    
