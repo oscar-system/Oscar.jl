@@ -23,6 +23,7 @@ end
       bacher_depth::Int=0,
       _set_nice_mono::Bool=true,
       _howell::Bool = true,
+      use_everything::Bool=true,
      ) -> MatGroup
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
@@ -139,7 +140,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything)
     _gens = L.automorphism_group_generators
     return matrix_group(_gens)
   end
