@@ -2232,11 +2232,12 @@ function graph_from_group_action(::Type{T}, G::Union{Group, FinGenAbGroup}, L,
 
   # Orbits of H on the vertices and their representatives.
   orbs = orbits(gset(H, dom))
-  reps = [first(collect(o)) for o in orbs]
+  reps = representative.(orbs)
 
   # Neighbours of each orbit representative: `adj` is constant on the
-  # orbits of the stabilizer of the representative, so one call to `adj`
-  # per stabilizer orbit suffices.
+  # orbits of the stabilizer of the representative (on all vertices,
+  # including the other orbits of G), so one call to `adj` per such
+  # orbit suffices.
   rep_neighbors = Vector{Vector{Int}}(undef, length(reps))
   for (i, r) in enumerate(reps)
     st = stabilizer(H, r)[1]
@@ -2244,7 +2245,7 @@ function graph_from_group_action(::Type{T}, G::Union{Group, FinGenAbGroup}, L,
       rep_neighbors[i] = [j for j in dom if adj(verts[r], verts[j])]
     else
       nb = Int[]
-      for o in orbits(gset(st, collect(orbs[i])))
+      for o in orbits(gset(st, dom))
         oo = collect(o)
         adj(verts[r], verts[oo[1]]) && append!(nb, oo)
       end
