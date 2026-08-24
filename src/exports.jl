@@ -356,6 +356,7 @@ export bump!
 export canonical_bundle
 export canonical_divisor
 export canonical_divisor_class
+export canonical_form
 export canonical_isomorphism
 export canonical_matrix
 export cartan_bilinear_form
