@@ -1,7 +1,8 @@
-# Test defining data, arithmetic, and representative-independent degree of toric line bundles.
+# Test line-bundle accessors and compatibility checks for their defining data.
 @testset "Line bundles" begin
   dP1 = del_pezzo_surface(NormalToricVariety, 1)
   dP3 = del_pezzo_surface(NormalToricVariety, 3)
+  P2 = projective_space(NormalToricVariety, 2)
 
   l = toric_line_bundle(dP3, [1, 2, 3, 4])
   l2 = canonical_bundle(dP3)
@@ -13,6 +14,11 @@
 
   @testset "Should fail due to bad arguments (toric line bundles)" begin
     @test_throws ArgumentError l * l5
+    another_P2 = projective_space(NormalToricVariety, 2)
+    @test_throws ArgumentError toric_line_bundle(another_P2, toric_divisor(P2, [1, 0, 0]))
+    @test_throws ArgumentError toric_line_bundle(
+      another_P2, toric_divisor_class(P2, [1])
+    )
   end
 
   @testset "Basic properties" begin
@@ -28,6 +34,8 @@
     @test degree(l6^(-1)) == -2
     @test degree(l6 * l6) == 4
     @test picard_class(l).coeff == AbstractAlgebra.matrix(ZZ, [1 2 3 4])
+    @test divisor_class(l6) == divisor_class(toric_divisor_class(l6))
+    @test coefficients(l6) == coefficients(toric_divisor(l6))
     @test dim(toric_variety(l)) == 2
   end
 
