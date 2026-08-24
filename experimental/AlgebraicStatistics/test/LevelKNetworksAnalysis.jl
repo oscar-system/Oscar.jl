@@ -10,7 +10,6 @@ end
 function cfn_model_from_the_internet_graph(numbers)
     my_edges = pair_list(numbers)
     my_graph = graph_from_edges(Directed, my_edges)
-    println(my_edges)
     N = phylogenetic_network(my_graph)
 
     return cavender_farris_neyman_model(N)
@@ -52,16 +51,26 @@ end
 
 function evaluate_at_points(f, M_2)
     sample = 1000
+    F = GF(32003)
 
     phi = parametrization(M_2)
     R, y = parameter_ring(M_2)
     S, x = model_ring(M_2)
 
-    M_points = [[QQ(rand(-100:100)) for _ in 1:ngens(R)] for _ in 1:sample]
+    RF, yF = polynomial_ring(F, ["y$i" for i in 1:ngens(R)])
+    SF, xF = polynomial_ring(F, ["x$i" for i in 1:ngens(S)])
 
-    points = [[evaluate(im, p) for im in [phi(x) for x in gens(domain(phi))]]  for p in M_points]
+    M_points = [[rand(F) for _ in 1:ngens(RF)] for _ in 1:sample]
 
-    return any(evaluate(f, p) != 0 for p in points)
+    phi_images = [phi(xi) for xi in gens(domain(phi))]
+
+    phi_F = [RF(im) for im in phi_images]
+
+    points = [[evaluate(im, p) for im in phi_F] for p in M_points]
+
+    f_F = SF(f)
+
+    return any(evaluate(f_F, p) != 0 for p in points)
 end
 
 function check_polynomials(I, M_2)
