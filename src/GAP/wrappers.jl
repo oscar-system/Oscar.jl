@@ -383,6 +383,7 @@ GAP.@wrap RelativeOrders(x::GapObj)::GapObj
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap RepresentativeAction(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap RepresentativeAction(x::GapObj, y::Int, z::Int)::GapObj
 GAP.@wrap RepresentativeTom(x::GapObj, y::Int)::GapObj
 GAP.@wrap RestrictedMapping(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap RightCoset(x::GapObj, y::GapObj)::GapObj

@@ -325,11 +325,13 @@
       @test n_vertices(g10) == 4
       @test n_edges(g10) == 12
 
-      # left cosets with the left action
+      # left cosets with the left action, expressed in its right-action
+      # form act(x, g) = inv(g)*x (as in the G-set of left cosets)
       ll = collect(left_cosets(S4, H4))
-      g11 = graph_from_group_action(S4, ll, (x, g) -> g * x, adj_neq)
+      g11 = graph_from_group_action(S4, ll, (x, g) -> inv(g) * x, adj_neq)
       @test n_vertices(g11) == 4
       @test n_edges(g11) == 12
+      @test same_neighbors(g11, graph_from_group_action(left_cosets(S4, H4), adj_neq))
 
       # edge cases and errors
       @test n_vertices(graph_from_group_action(S4, Int[], ^, (x, y) -> true)) == 0

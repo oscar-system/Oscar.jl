@@ -2153,10 +2153,6 @@ function graph_from_edges(p::Polyhedron; modulo_lineality=false)
   return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
 end
 
-################################################################################
-##  Graphs from group actions
-################################################################################
-
 @doc raw"""
     graph_from_group_action([::Type{T},] G, L, act, adj) where {T <: Union{Directed, Undirected}}
     graph_from_group_action([::Type{T},] Omega::GSet, adj) where {T <: Union{Directed, Undirected}}
@@ -2166,16 +2162,19 @@ if and only if `adj(L[i], L[j])` returns `true`.
 
 The group `G` must act on the list `L` via the action function `act`, i.e.
 `act(x, g)` is the image of `x in L` under `g in G`, and `L` must be invariant
-under this action. The elements of `L` must be pairwise distinct. The
-adjacency predicate `adj` must be invariant under the action of `G`, i.e.
-`adj(x, y) == adj(act(x, g), act(y, g))` holds for all `x, y in L` and all
-`g in G`.
+under this action. As for all group actions in Oscar and GAP, `act` must
+define a *right* action: `act(act(x, g1), g2) == act(x, g1*g2)` for all
+`x in L` and `g1, g2 in G`. (Left actions such as `(x, g) -> g*x` must be
+rewritten in the right-action form `(x, g) -> inv(g)*x`, as in the G-sets
+returned by `left_cosets`.) The elements of `L` must be pairwise distinct,
+and `adj` must be invariant under the action of `G`, i.e.
+`adj(x, y) == adj(act(x, g), act(y, g))` for all `x, y in L` and `g in G`.
 
-If a G-set `Omega` is passed instead of `G`, `L`, `act`, then the group, the
-vertex list and the action function are taken from `Omega`; the call is
-equivalent to `graph_from_group_action(T, acting_group(Omega), collect(Omega),
-action_function(Omega), adj)`. The vertices of the resulting graph are the
-elements of `collect(Omega)` in their given order.
+If a G-set `Omega` is passed instead of `G`, `L`, `act`, the group, the
+vertices and the action function are taken from `Omega`; the call is
+equivalent to `graph_from_group_action(T, acting_group(Omega),
+collect(Omega), action_function(Omega), adj)`, with the vertices in the
+order of `collect(Omega)`.
 
 If the first argument is omitted, or is `Directed`, then the returned graph is
 directed; if it is `Undirected`, then the returned graph is undirected and its
@@ -2212,27 +2211,6 @@ function graph_from_group_action(G::Union{Group, FinGenAbGroup}, L, act::Functio
   return graph_from_group_action(Directed, G, L, act, adj)
 end
 
-# Index key of a vertex element for the vertex lookup table. GAP-backed
-# cosets have a constant hash (a FIXME in Oscar) and expensive equality, so
-# the canonical representative of the coset is used instead.
-function _group_action_index_key(x)
-  if x isa GroupCoset
-    H = GapObj(x.H)
-    r = GapObj(representative(x))
-    if is_right(x)
-      canon = GAPWrap.CanonicalRightCosetElement(H, r)
-    else
-      # A left coset x*H is determined by the right coset H*x^-1, and its
-      # canonical representative is the inverse of the canonical
-      # representative of that right coset.
-      canon = GAPWrap.CanonicalRightCosetElement(H, GAPWrap.Inverse(r))
-      canon = GAPWrap.Inverse(canon)
-    end
-    return group_element(x.G, canon)
-  end
-  return x
-end
-
 function graph_from_group_action(::Type{T}, G::Union{Group, FinGenAbGroup}, L,
                                  act::Function,
                                  adj::Function) where {T <: Union{Directed, Undirected}}
@@ -2241,190 +2219,49 @@ function graph_from_group_action(::Type{T}, G::Union{Group, FinGenAbGroup}, L,
   verts = collect(L)
   n = length(verts)
   n == 0 && return graph(T, 0)
+  @req length(unique(verts)) == n "the elements of L must be pairwise distinct"
 
-  keys = [_group_action_index_key(x) for x in verts]
-  index = Dict{eltype(keys), Int}()
-  sizehint!(index, n)
-  for (i, k) in enumerate(keys)
-    @req !haskey(index, k) "the elements of L must be pairwise distinct"
-    index[k] = i
-  end
+  # L must be closed under the action of G; the closure of the seeds is
+  # larger than L exactly when L is not closed.
+  @req length(collect(gset(G, act, verts))) == n "L is not invariant under the action of G"
 
-  gens_list = gens(G)
-  m = length(gens_list)
-  invgens = [inv(g) for g in gens_list]
+  # Permutation image of the action of G on the vertices.
+  acthom = action_homomorphism(gset(G, act, verts; closed = true))
+  H = image(acthom)[1]          # PermGroup acting on 1:n
+  dom = 1:n
 
-  # Permutation of the vertex indices induced by each generator of G.
-  # Afterwards, all orbit and translation computations act on vertex indices
-  # only, so that the action function is not called in the inner loops.
-  gen_perm = Vector{Vector{Int}}(undef, m)
-  for h in 1:m
-    ph = Vector{Int}(undef, n)
-    for i in 1:n
-      v = get(index, _group_action_index_key(act(verts[i], gens_list[h])), 0)
-      @req v != 0 "L is not invariant under the action of G"
-      ph[i] = v
-    end
-    gen_perm[h] = ph
-  end
+  # Orbits of H on the vertices and their representatives.
+  orbs = orbits(gset(H, dom))
+  reps = [first(collect(o)) for o in orbs]
 
-  # Compute the orbits of G on the indices of verts by a breadth-first
-  # search. For every vertex the generator by which it was first reached and
-  # its predecessor in the search tree are stored; this is the Schreier
-  # vector of the orbit.
-  parent = zeros(Int, n)
-  gidx = zeros(Int, n)
-  reps = Int[]
-  orbs = Vector{Vector{Int}}()
-
-  for i in 1:n
-    parent[i] == 0 || continue
-    parent[i] = -1
-    orb = Int[i]
-    push!(reps, i)
-    k = 1
-    while k <= length(orb)
-      u = orb[k]
-      for h in 1:m
-        v = gen_perm[h][u]
-        if parent[v] == 0
-          parent[v] = u
-          gidx[v] = h
-          push!(orb, v)
-        end
-      end
-      k += 1
-    end
-    push!(orbs, orb)
-  end
-
-  # word in the generators from the orbit representative to the vertex v,
-  # together with the representative itself
-  function word_to_rep(v::Int)
-    word = Int[]
-    u = v
-    while parent[u] > 0
-      push!(word, gidx[u])
-      u = parent[u]
-    end
-    return reverse!(word), u
-  end
-
-  # Generators of the stabilizer of verts[r] in G. For GAP-backed groups
-  # Oscar's stabilizer is used, provided its generators indeed fix
-  # verts[r] (for exotic point types and Julia action functions the GAP
-  # stabilizer computation can be unreliable). Any subgroup of the true
-  # stabilizer is safe: it only refines the stabilizer orbits, and the
-  # adjacency predicate is invariant under the whole group. For other group
-  # types, or if the check fails, the Schreier generators of the orbit BFS
-  # tree are constructed as explicit group elements.
-  function stabilizer_generators(t::Int, r::Int)
-    if G isa GAPGroup
-      hgens = gens(stabilizer(G, verts[r], act)[1])
-      if all(hg -> act(verts[r], hg) == verts[r], hgens)
-        return hgens
-      end
-    end
-    result = typeof(one(G))[]
-    for u in orbs[t]
-      tau_u, _ = word_to_rep(u)
-      for h in 1:m
-        v = gen_perm[h][u]
-        tau_v, _ = word_to_rep(v)
-        # Schreier generators for a right action (tau_u * g_h * tau_v^-1)
-        # and for a left action (tau_v^-1 * g_h * tau_u). Which formula is
-        # correct depends on the orientation of the action, so we keep
-        # exactly those elements that fix the representative; the elements
-        # from the correct formula always fix it, hence their union still
-        # generates the stabilizer.
-        elt = one(G)
-        for e in tau_u
-          elt = elt * gens_list[e]
-        end
-        elt = elt * gens_list[h]
-        for e in reverse(tau_v)
-          elt = elt * invgens[e]
-        end
-        act(verts[r], elt) == verts[r] && push!(result, elt)
-        elt = one(G)
-        for e in reverse(tau_u)
-          elt = elt * invgens[e]
-        end
-        elt = elt * gens_list[h]
-        for e in tau_v
-          elt = elt * gens_list[e]
-        end
-        act(verts[r], elt) == verts[r] && push!(result, elt)
-      end
-    end
-    return result
-  end
-
-  reppos = Dict(reps[i] => i for i in eachindex(reps))
+  # Neighbours of each orbit representative: `adj` is constant on the
+  # orbits of the stabilizer of the representative, so one call to `adj`
+  # per stabilizer orbit suffices.
   rep_neighbors = Vector{Vector{Int}}(undef, length(reps))
-  hseen = falses(n)
-
-  for (t, r) in enumerate(reps)
-    # Permutation of the vertex indices induced by each generator of the
-    # stabilizer of verts[r].
-    hgens = stabilizer_generators(t, r)
-    hperm = Vector{Vector{Int}}(undef, length(hgens))
-    for (j, hg) in enumerate(hgens)
-      ph = Vector{Int}(undef, n)
-      for i in 1:n
-        ph[i] = index[_group_action_index_key(act(verts[i], hg))]
-      end
-      hperm[j] = ph
-    end
-
-    if isempty(hperm)
-      # trivial stabilizer
-      rep_neighbors[t] = [j for j in 1:n if adj(verts[r], verts[j])]
+  for (i, r) in enumerate(reps)
+    st = stabilizer(H, r)[1]
+    if order(st) == 1
+      rep_neighbors[i] = [j for j in dom if adj(verts[r], verts[j])]
     else
-      # Orbits of the stabilizer of verts[r] on the vertices: a vertex y is
-      # in the orbit of x if and only if it can be reached from x by
-      # applying the stabilizer generators. Since adj is invariant under the
-      # action, the whole stabilizer orbit of x is adjacent to verts[r] as
-      # soon as x is.
-      fill!(hseen, false)
       nb = Int[]
-      for j in 1:n
-        hseen[j] && continue
-        hseen[j] = true
-        ho = Int[j]
-        k = 1
-        while k <= length(ho)
-          u = ho[k]
-          for ph in hperm
-            q = ph[u]
-            if !hseen[q]
-              hseen[q] = true
-              push!(ho, q)
-            end
-          end
-          k += 1
-        end
-        if adj(verts[r], verts[ho[1]])
-          append!(nb, ho)
-        end
+      for o in orbits(gset(st, collect(orbs[i])))
+        oo = collect(o)
+        adj(verts[r], verts[oo[1]]) && append!(nb, oo)
       end
-      sort!(nb)
-      rep_neighbors[t] = nb
+      rep_neighbors[i] = sort!(nb)
     end
   end
 
-  # Translate the neighbour list of each representative along its orbit via
-  # the Schreier vector, and build the graph.
+  # Translate the neighbour lists along the orbits: for each vertex v,
+  # apply the element of H that maps the representative of its orbit to v.
   g = graph(T, n)
-  for v in 1:n
-    word, r = word_to_rep(v)
-    nb = rep_neighbors[reppos[r]]
-    for e in word
-      ph = gen_perm[e]
-      nb = [ph[x] for x in nb]
-    end
-    for w in sort!(nb)
-      add_edge!(g, v, w)
+  for (i, o) in enumerate(orbs)
+    r = reps[i]
+    for v in collect(o)
+      h = group_element(H, GAPWrap.RepresentativeAction(GapObj(H), r, v))
+      for w in sort!([h(x) for x in rep_neighbors[i]])
+        add_edge!(g, v, w)
+      end
     end
   end
   return g
