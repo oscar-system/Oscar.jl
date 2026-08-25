@@ -165,12 +165,8 @@ function list_of_perm(v::Vector{Int64})
     G = symmetric_group(no_inner_vertex)
     perm_list = [G([i for i in 1:no_inner_vertex])]
 
-    check1 = false
-    check2 = false
-
     if v[1] == v[2]
 
-        check1 = true
         #this function requires the Permutations.jl package
         # Permutation(perm_vec1)
         perm_vec1 = [ vcat([1], [i for i in (v[1]+3):(v[1]+v[2]+2)], [v[1]+2], [i for i in 2:(v[1]+1)]) ]
@@ -180,16 +176,9 @@ function list_of_perm(v::Vector{Int64})
 
     if v[2]==v[3]
 
-        check2 = true
         perm_vec2 = [ vcat([i for i in 1:(v[1]+2)], [i for i in v[1]+v[2]+3:v[1]+v[2]+v[3]+2], [i for i in v[1]+3:v[1]+v[2]+2]) ]
         push!(perm_list, G( perm_vec2[1] ) )
 
-    end
-
-    if check1==true && check2==true
-        
-        push!(perm_list, perm_list[1]*perm_list[2])
-        
     end
 
     perm_vec3 = [ vcat( 
@@ -201,11 +190,16 @@ function list_of_perm(v::Vector{Int64})
                 )]
     push!(perm_list, G(perm_vec3[1])) 
 
-    return perm_list
+    H = sub(G, perm_list)
+
+    all_perm = collect(H[1])
+
+    return all_perm
 
 end
 
 #creates all possible pairs of inner vertices for reticulation and mods out by symmetries of network topology
+#and removes impossible pairs.
 function hybrid_vertex_mod_sym(v::Vector{Int64})
 
     perms = list_of_perm(v)
@@ -250,6 +244,7 @@ function hybrid_vertex_mod_sym(v::Vector{Int64})
     # for tau in perms
     #     push!(deletion_list, [tau(h_pair[1]) tau(h_pair[2])])
     # end
+
 
     rep_list = []
     
