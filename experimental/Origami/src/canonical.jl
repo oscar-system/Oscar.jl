@@ -1,3 +1,17 @@
+@doc raw"""
+      normal_form(o::Origami)
+
+Computes a normal form of a given origami. This normal form has the property that two origamis are equivalent if and only if their normal forms are equal. Note that this method does not copy any previously computed attributes from the old origami to the new one.
+
+# Examples
+```jldoctest
+julia> o = origami(cperm([1,3,2,4]),cperm([2,3]))
+Origami ((1,3,2,4),(2,3), 4)
+
+julia> normal_form(o)
+Origami ((1,2,3,4),(3,4), 4)
+```
+"""
 function normal_form(o::Origami)
   n = degree(o)
 
