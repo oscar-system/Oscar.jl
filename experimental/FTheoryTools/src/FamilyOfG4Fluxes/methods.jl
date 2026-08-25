@@ -134,12 +134,6 @@ function flux_instance(
   completeness_check::Bool=true,
   consistency_check::Bool=true,
 )
-  if length(int_coeffs) == 0 && length(rat_coeffs) == 0
-    m = model(fgs)
-    r = cohomology_ring(ambient_space(m); completeness_check)
-    tcc = cohomology_class(ambient_space(m), zero(r); completeness_check)
-    return g4_flux(m, tcc; completeness_check, consistency_check)
-  end
   @req all(x -> x isa Int, int_coeffs) "Provided integral coefficient is not an integer"
   @req all(x -> x isa Rational{Int64}, rat_coeffs) "Provided integral coefficient is not an integer"
 
@@ -221,7 +215,7 @@ Create a random element of a family of G4-fluxes.
   pass the optional keyword argument `consistency_check=false`.
 
 !!! note "Randomness"
-  The random source can be set with the optional argument `rng`
+  The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
@@ -296,7 +290,10 @@ Create a random ``G_4``-flux on a given F-theory model.
   pass the optional keyword argument `consistency_check=false`.
 
 !!! note "Randomness"
-  The random source can be set with the optional argument `rng`
+  The random source used for randomized computations can be set with the `rng` keyword.
+
+The `algorithm` keyword selects the algorithm used to construct the underlying flux family;
+see [`special_flux_family`](@ref).
 
 # Examples
 ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
@@ -317,9 +314,11 @@ function random_flux(
   m::AbstractFTheoryModel;
   not_breaking::Bool=false,
   completeness_check::Bool=true,
+  algorithm::Union{Symbol,String}=:default,
   rng::AbstractRNG=Random.default_rng(),
 )
-  family = special_flux_family(m; not_breaking, completeness_check, rng=rng)
+  algorithm = _normalize_flux_family_algorithm(algorithm, :random_flux)
+  family = special_flux_family(m; not_breaking, completeness_check, algorithm, rng)
   return random_flux_instance(
     family; completeness_check=completeness_check, consistency_check=false, rng=rng
   )

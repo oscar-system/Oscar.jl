@@ -1,3 +1,4 @@
+# Test canonical bundles of total spaces without using a rank-dependent scalar degree.
 @testset "Total space of direct sum of line bundles on toric space" begin
   @testset "Test that some vector bundles on P1 are Calabi-Yau" begin
     P1 = projective_space(NormalToricVariety, 1)
@@ -25,7 +26,7 @@
         @test torsion_free_rank(picard_group_with_map(X)[1]) ==
           torsion_free_rank(picard_group_with_map(S)[1])
         @test dim(X) == 3
-        @test degree(canonical_bundle(X)) == 0
+        @test is_trivial(canonical_bundle(X))
       end
     end
 
@@ -38,7 +39,7 @@
         @test torsion_free_rank(picard_group_with_map(X)[1]) ==
           torsion_free_rank(picard_group_with_map(S)[1])
         @test dim(X) == 3
-        @test degree(canonical_bundle(X)) == 0
+        @test is_trivial(canonical_bundle(X))
       end
     end
   end

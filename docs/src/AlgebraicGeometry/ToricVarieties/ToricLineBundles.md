@@ -54,7 +54,9 @@ is_very_ample(l::ToricLineBundle)
 ## Attributes
 
 ```@docs
+coefficients(l::ToricLineBundle)
 degree(l::ToricLineBundle)
+divisor_class(l::ToricLineBundle)
 picard_class(l::ToricLineBundle)
 toric_divisor(l::ToricLineBundle)
 toric_divisor_class(l::ToricLineBundle)

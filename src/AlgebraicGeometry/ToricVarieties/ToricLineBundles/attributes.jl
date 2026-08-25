@@ -22,6 +22,21 @@ Abelian group element [2]
 picard_class(l::ToricLineBundle) = l.picard_class
 
 @doc raw"""
+    divisor_class(l::ToricLineBundle)
+
+Return the element of the class group represented by the toric line bundle `l`.
+"""
+divisor_class(l::ToricLineBundle) =
+  map_from_picard_group_to_class_group(toric_variety(l))(picard_class(l))
+
+@doc raw"""
+    coefficients(l::ToricLineBundle)
+
+Return the coefficients of the chosen toric divisor representative of `l`.
+"""
+coefficients(l::ToricLineBundle) = coefficients(toric_divisor(l))
+
+@doc raw"""
     toric_variety(l::ToricLineBundle)
 
 Return the toric variety over which the toric line bundle `l` is defined.
@@ -94,13 +109,16 @@ true
 ```
 """
 @attr ToricDivisorClass toric_divisor_class(l::ToricLineBundle) = toric_divisor_class(
-  toric_divisor(l)
+  toric_variety(l), divisor_class(l)
 )
 
 @doc raw"""
     degree(l::ToricLineBundle)
 
-Return the degree of the toric line bundle `l`.
+Return the degree of the toric line bundle `l` when the Picard group of the
+underlying toric variety is free of rank one. The degree is the coefficient of
+the Picard class with respect to the chosen generator of the Picard group. An
+error is raised otherwise.
 
 # Examples
 ```jldoctest
@@ -114,7 +132,13 @@ julia> degree(l)
 2
 ```
 """
-@attr ZZRingElem degree(l::ToricLineBundle) = sum(coefficients(toric_divisor(l)))
+@attr ZZRingElem function degree(l::ToricLineBundle)
+  class = picard_class(l)
+  picard_group = parent(class)
+  has_degree = is_free(picard_group) && torsion_free_rank(picard_group) == 1
+  @req has_degree "The degree is only defined for toric line bundles whose Picard group is free of rank one"
+  return _coeff(class)[1]
+end
 
 #############################
 # 2. Basis of global sections
@@ -204,7 +228,7 @@ julia> basis_of_global_sections(l)
       return MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}[]
     end
   end
-  return monomial_basis(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
+  return monomial_basis(cox_ring(toric_variety(l)), divisor_class(l))
 end
 basis_of_global_sections(l::ToricLineBundle) =
   basis_of_global_sections_via_homogeneous_component(
@@ -371,7 +395,7 @@ julia> sheaf_cohomology(toric_line_bundle(dP3, [-3,-2,-2,-2]); algorithm = :loca
     return _all_cohomologies_via_cech(l)
   elseif algorithm === :local
     ctx = local_cohomology_context_object(v)
-    d = divisor_class(toric_divisor_class(l))
+    d = divisor_class(l)
     coh = cohomology_model(ctx, d)
     return ZZRingElem[ZZ(ngens(coh[i])) for i in 0:-1:(-dim(v))]
   else

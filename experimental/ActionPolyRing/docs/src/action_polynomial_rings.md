@@ -23,10 +23,10 @@ polynomial rings.
 ---
 In Oscar we provide the action polynomial interface via the abstract types `ActionPolyRing{T} <: Ring`
 and `ActionPolyRingElem{T} <: RingElem`. The type parameter `T` is the element type of the coefficient
-ring. All concrete subtypes use the functionality of [universal polynomials](@ref "Universal polynomial")
+ring. All concrete subtypes use the functionality of [universal polynomials](@ref "Universal polynomial ring")
 from the AbstractAlgebra package for polynomial arithmetic, as well as maintaining variables and adding
 new ones on demand. Any action polynomial ring maintains a sorted list of currently tracked jet variables,
-that can be accessed and extended by a number of methods, see, e.g., [Element Constructors](@ref). The jet
+that can be accessed and extended by a number of methods, see, e.g., [Element Constructors](@ref element_constructors_apr). The jet
 variables are sorted with respect to a user-defined [ranking](@ref actionpolyranking).
 
 !!! note "Tracked jet variables"

@@ -356,6 +356,7 @@ export bump!
 export canonical_bundle
 export canonical_divisor
 export canonical_divisor_class
+export canonical_form
 export canonical_isomorphism
 export canonical_matrix
 export cartan_bilinear_form
@@ -388,6 +389,7 @@ export character_lattice
 export character_parameters
 export character_table
 export character_table_complex_reflection_group
+export character_table_of_direct_product
 export character_table_rational
 export character_table_wreath_symmetric
 export character_to_rational_function
@@ -511,6 +513,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_graph
 export cycle_length
 export cycle_matroid
 export cycle_structure
@@ -1415,6 +1418,7 @@ export orders_perfect_groups
 export ordinary_table
 export orthogonal_components
 export orthogonal_group
+export orthogonal_group_bilinear
 export orthogonal_sign
 export outdegree
 export outneighbors
@@ -1860,6 +1864,7 @@ export underlying_quotient
 export underlying_word
 export undirected_component
 export uniform_matroid
+export unimodular_primitive_extensions
 export unit
 export unitary_group
 export units_of
