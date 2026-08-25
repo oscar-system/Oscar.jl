@@ -223,24 +223,24 @@ function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, ca
   return transpose(U_inv)*A*U_inv
 end
 
-function _reduce_characteristic_vectors(cv_set::Vector{ZZMatrix}, L::ZZLat)
+_reduce_characteristic_vectors(cv_set::Vector{ZZMatrix}, L::ZZLat) = _reduce_characteristic_vectors(_convert_cv_set_to_int(cv_set, matrix(ZZ, gram_matrix(L))), L)
+function _reduce_characteristic_vectors(cv_set::Vector{Matrix{Int}}, L::ZZLat)
   R, _, _ = root_lattice_recognition_fundamental(L)
   A = basis_matrix(R)
   gram = matrix(ZZ, gram_matrix(L))
-  tmp = ZZ(0)
-  gram_int = Hecke._int_matrix_with_overflow(gram, tmp)
   B_lat = basis_matrix(L)
   A_lat = change_base_ring(ZZ, solve(B_lat, A))
   v_i = Matrix{Int}(undef, 1, number_of_columns(gram))
   t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
   w_i = Matrix{Int}(undef, 1, 1)
+  tmp = ZZ(0)
+  gram_int = Hecke._int_matrix_with_overflow(gram, tmp)
   A_lat_int = Hecke._int_matrix_with_overflow(A_lat, tmp)
   fundamental_roots = [reshape(A_lat_int[i, :], :, 1) for i in 1:number_of_rows(A_lat_int)]
   res::Vector{Matrix{Int}} = []
   for v in cv_set
-    v_int = Hecke._int_matrix_with_overflow(v, tmp)
-    AbstractAlgebra.LinearAlgebra.mul!(v_i, v_int, gram_int)
-    AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, v_int))
+    AbstractAlgebra.LinearAlgebra.mul!(v_i, v, gram_int)
+    AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, v))
     if w_i[1] == 1 || w_i[1] == 2
       continue
     end
@@ -253,7 +253,7 @@ function _reduce_characteristic_vectors(cv_set::Vector{ZZMatrix}, L::ZZLat)
       end
     end
     if in_chamber
-      push!(res, v_int)
+      push!(res, v)
     end
   end
   for f_root in fundamental_roots
@@ -262,7 +262,7 @@ function _reduce_characteristic_vectors(cv_set::Vector{ZZMatrix}, L::ZZLat)
   return res
 end
 
-function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)
+function _convert_cv_set_to_int(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)
   tmp = ZZ(0)
   n = ZZ(0)
   tmp1 = zero_matrix(ZZ, 1, number_of_columns(gram))
@@ -278,7 +278,7 @@ function _get_edge_labeled_graph(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)
   else 
     throw(OverflowError("The characteristic vectors have to large inner products to be converted to Int."))
   end
-  return _get_edge_labeled_graph(cv_set_int, Hecke._int_matrix_with_overflow(gram, tmp))
+  return cv_set_int
 end
 
 _get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _get_edge_labeled_graph(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
