@@ -4,7 +4,7 @@
 # note that n must be at least 2
 function lvl2_leaf_partition(n::Int64)
 
-    partitions = []
+    partitions = Vector{Vector{Int}}()
 
     #get partitions of the form [a,b,0]
 
@@ -181,6 +181,6 @@ function hybrid_vertex_mod_sym(v::Vector{Int64})
     end
 
     return unique!(rep_list)
-
+    
 end
 

@@ -15,10 +15,12 @@ function cfn_model_from_the_internet_graph(numbers)
     return cavender_farris_neyman_model(N)
 end
 
-function degree_two_component_stats(M)
+function degree_two_component_stats(M, name)
     stats = deserialize("stats")
-    net = M.phylo_model.graph
-    if !haskey(stats, net)
+    net = M.phylo_model.graph.graph
+    net_edges = string.(edges(net))
+    n_leaves = count(v -> outdegree(net, v) == 0, vertices(net))
+    if !haskey(stats, [net_edges, n_leaves])
         phi = parametrization(M)
         H = components_of_kernel(2, phi, show_progress = true)
         if isempty(H)
@@ -31,14 +33,19 @@ function degree_two_component_stats(M)
         I_degree = degree(I)
         is_I_prime = is_prime(I)
 
-        stats[net] = [I, dimension, I_degree, is_I_prime, phi] 
+        Oscar.save(name, I)
+
+        stats[[net_edges, n_leaves]] = [name, dimension, I_degree, is_I_prime] 
         serialize("stats", stats)
     end
-    return stats[net]   
+    data = stats[[net_edges, n_leaves]]
+    my_ideal = Oscar.load(data[1])
+    data[1] = my_ideal
+    return data
 end
 
-function print_stats(M)
-    stats = degree_two_component_stats(M)
+function print_stats(M, name)
+    stats = degree_two_component_stats(M, name)
     if stats == nothing
         println("This network has zero_ideal")
     else
@@ -77,12 +84,16 @@ function check_polynomials(I, M_2)
     any(evaluate_at_points(f, M_2) for f in generators(I))
 end
 
-function compare_two_networks(M_1, M_2)
+function compare_two_networks(net_1, net_2)
     # first one means left inclusion, the other means right inclusion
     result = [false, false]
-
-    stats_1 = degree_two_component_stats(M_1)
-    stats_2 = degree_two_component_stats(M_2)
+    M_1 = net_1[1]
+    name_1 = net_1[2]
+    M_2 = net_2[1]
+    name_2 = net_2[2]
+    
+    stats_1 = degree_two_component_stats(M_1, name_1)
+    stats_2 = degree_two_component_stats(M_2, name_2)
 
     if stats_1 == nothing && stats_2 == nothing
         println("These networks are NOT distinguishable")
@@ -94,8 +105,8 @@ function compare_two_networks(M_1, M_2)
         return true
     end
 
-    I_1, dim_1, deg_1, prime_1, phi_1 = stats_1
-    I_2, dim_2, deg_2, prime_2, phi_2 = stats_2
+    I_1, dim_1, deg_1, prime_1 = stats_1
+    I_2, dim_2, deg_2, prime_2 = stats_2
     println("Stats calculated!")
 
     if dim_1 > dim_2
@@ -128,7 +139,7 @@ function compare_networks(M)
     result = true
     for (i,m) in enumerate(M)
         println("Network no. ", i)
-        print_stats(m)
+        print_stats(m[1], m[2])
     end
 
     for i in 1:length(M)-1
@@ -143,47 +154,3 @@ function compare_networks(M)
         println("All networks were distinguishable!")
     end
 end
-
-M_1  = cfn_model_from_the_internet_graph([3 1 
-4 6 
-11 4 
-11 3 
-6 5 
-3 5 
-4 2 
-1 2 
-6 10 
-5 8 
-2 9 
-1 7])
-
-M_2 = cfn_model_from_the_internet_graph([7 8 
-6 8 
-3 7 
-6 2 
-10 6 
-7 10 
-10 11 
-8 9 
-3 5 
-2 4 
-1 3 
-1 2])
-
-M_3 = cfn_model_from_the_internet_graph([5 6 
-6 4 
-6 7 
-3 5 
-5 4 
-4 2 
-2 1 
-2 8 
-3 10 
-1 9 
-11 3 
-11 1])
-
-compare_two_networks(M_1, M_2)
-
-compare_networks([M_1, M_2, M_3])
-

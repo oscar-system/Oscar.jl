@@ -65,9 +65,9 @@ function draw_network(ret, par)
         end
 
         if (v_1 in p_2) && (v_2 in p_3)
-            q_1 = p_3
-            q_2 = p_1
-            q_3 = p_2
+            q_1 = p_1
+            q_2 = p_2
+            q_3 = p_3
         end
 
         append!(edges, draw_path(q_1))
@@ -91,12 +91,11 @@ function draw_network(ret, par)
         append!(edges, add_leaves(sum, paths[i]))
         sum = sum + par[i]
     end
-    println(edges)
-    println(typeof(edges))
-    println(eltype(edges))
     g = graph_from_edges(Directed, edges)
     n = phylogenetic_network(g)
     M = cavender_farris_neyman_model(n)
 
     return M
 end
+
+draw_network([5,6], [2,1,1])
