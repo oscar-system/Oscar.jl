@@ -5,7 +5,6 @@ partitions = lvl2_leaf_partition(n)
 for part in partitions
     push!(M, [hybrid_vertex_mod_sym(part), part])
 end
-
 counter = 0
 types = [1]
 for m in M
