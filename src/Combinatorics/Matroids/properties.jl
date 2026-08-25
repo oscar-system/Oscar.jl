@@ -1117,7 +1117,7 @@ true
 
 ```
 """
-function is_isomorphic(M1,M2)
+function is_isomorphic(M1::Matroid, M2::Matroid)
     B1 = bases(M1)
     B2 = bases(M2)
     b1 = length(B1)
