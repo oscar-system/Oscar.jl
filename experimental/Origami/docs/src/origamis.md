@@ -31,6 +31,12 @@ is_hyperelliptic(o::Origami)
 cylinder_structure(o::Origami)
 ```
 
+## Normal forms of origamis
+
+```@docs
+normal_form(o::Origami)
+```
+
 ## ${\rm SL}_2(\mathbb{Z})$ actions on origamis
 
 ```@docs
@@ -39,4 +45,11 @@ action_t(o::Origami)
 action_s_inv(o::Origami)
 action_t_inv(o::Origami)
 action_sl2(A::ZZMatrix,o::Origami)
+```
+
+## Cyclic torus covers
+
+```@docs
+generalized_cyclic_torus_cover(n::Int64, d::Int64, vslits::Vector, hslits::Vector)
+comb_origami(n::Int64, x::Int64, y::Int64)
 ```

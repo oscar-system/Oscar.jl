@@ -47,7 +47,7 @@ julia> v = @perm (2,3)
 
 julia> o = origami(h,v)
 Origami ((1,2),(2,3), 3)
-```
+```ori
 """
 function origami(h::PermGroupElem, v::PermGroupElem)
   d = max(degree(h), degree(v))
