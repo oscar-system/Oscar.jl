@@ -354,11 +354,15 @@ true
 ```
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+  @req x in domain(f) "the element is not in the domain of f"
   return group_element(codomain(f), GAPWrap.ImagesRepresentative(GapObj(f), GapObj(x)))
 end
 
 # images under a `GAPGroupEmbedding` are computed by unwrapping and wrapping
-image(f::GAPGroupEmbedding, x::GAPGroupElem) = group_element(codomain(f), GapObj(x))
+function image(f::GAPGroupEmbedding, x::GAPGroupElem)
+  @req x in domain(f) "the element is not in the domain of f"
+  return group_element(codomain(f), GapObj(x))
+end
 
 (f::Union{GAPGroupHomomorphism, GAPGroupEmbedding})(x::GAPGroupElem) = image(f, x)
 Base.:^(x::GAPGroupElem,f::Union{GAPGroupHomomorphism, GAPGroupEmbedding}) = image(f,x)
