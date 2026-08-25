@@ -1118,8 +1118,8 @@ true
 ```
 """
 function is_isomorphic(M1::Matroid, M2::Matroid)
-    B1 = bases(M1)
-    B2 = bases(M2)
+    B1 = bases(Int, M1)
+    B2 = bases(Int, M2)
     b1 = length(B1)
     b2 = length(B2)
     n1 = length(M1)
