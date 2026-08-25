@@ -15,6 +15,10 @@ include("MultigradedImplicitization.jl")
 
 include("serialization.jl")
 
+include("LevelKNetworksAnalysis.jl")
+
+
+
 export indexed_ring
 
 # export Abstract Graphical Model
@@ -114,3 +118,9 @@ export moralization
 # Multigradedimplicitization
 export components_of_kernel
 export jacobian
+
+#LevelKAnalysis
+export lvl2_leaf_partition
+export hybrid_vertex_mod_sym
+export draw_network
+export compare_networks
