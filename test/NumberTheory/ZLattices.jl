@@ -40,8 +40,8 @@ end
   L2 = integer_lattice(gram = G2)
   L3 = lattice_in_same_ambient_space(L1,U*basis_matrix(L1))
   can_form1 = canonical_form(L1)
-  # can_form2 =  canonical_form(L2) # too long time, circa 1 hour to calculate can form
+  can_form2 =  canonical_form(L2) # has 2400 char vectors, after reducing it has 18
   can_form3 =  canonical_form(L3)
-  # @test can_form1 != can_form2
+  @test can_form1 != can_form2
   @test can_form1 == can_form3
 end
