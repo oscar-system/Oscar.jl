@@ -1248,7 +1248,7 @@ end
 function _build_weyman_projection(wctx::WeymanCtx, p::Int, q::Int, j::Int, e::Int; check::Bool=false)
   mac_mod = get_macro_block!(wctx, p, q, :cohomology)
   mic_zero = MicroVec(mac_mod, j; check)
-  alpha = degree(mic_zero; check=false)
+  alpha = degree(mic_zero)
   d = _minimal_exponent_vector(pushforward_ctx(wctx), alpha)
   # reconstruct the whole exponent vector (fragile!)
   ee = Int[e for _ in 1:length(d)]
