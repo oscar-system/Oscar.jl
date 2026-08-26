@@ -476,7 +476,27 @@ function realization_space(
   end
 
   if simplify && saturate
-    RS = reduce_realization_space(RS)
+    # Reducing after saturation can destroy saturatedness: eliminating a
+    # variable via a solution with a nontrivial denominator (a unit on the
+    # localized space, certified through the inequations) clears that
+    # denominator into the substituted generators, and the resulting ideal can
+    # pick up components supported inside its vanishing locus. Saturating
+    # again can in turn expose new generators that admit further eliminations,
+    # so alternate the two steps until the reduction stabilizes; each
+    # productive reduction strictly decreases the number of variables, so this
+    # terminates. The final returned ideal is always saturated, as promised by
+    # `saturate=true`.
+    while true
+      nvars_before = RS.ambient_ring isa MPolyRing ? ngens(RS.ambient_ring) : 0
+      RS = reduce_realization_space(RS)
+      nvars_after = RS.ambient_ring isa MPolyRing ? ngens(RS.ambient_ring) : 0
+      (nvars_after < nvars_before && RS.defining_ideal isa MPolyIdeal) || break
+      RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
+      if isone(RS.defining_ideal)
+        set_attribute!(RS, :is_realizable, :false)
+        return RS
+      end
+    end
   end
 
   # we filter out the inequalities that don't actually meet the realization space:
