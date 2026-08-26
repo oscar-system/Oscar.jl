@@ -597,7 +597,7 @@ Base.length(x::GAPGroup)::Int = order(Int, x)
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
 """
-Base.in(g::GAPGroupElem, G::GAPGroup) = GapObj(g) in GapObj(G)
+Base.in(g::GAPGroupElem, G::GAPGroup) = parent(g) === G || GapObj(g) in GapObj(G)
 
 """
     gens(G::Group)
