@@ -104,7 +104,14 @@ function edge_gens(e::Edge, nsi::Vector{Int}, dsi::Vector{Int}, A::MatElem, xdic
     T = [P_gen(A, I, J, e, nsi[1], xdict) for (I,J) in X]
     return unique(filter!(!iszero, T))
 end
-
+#creates weights for graded ring
+function grading_weights(Ls, e)
+    [begin
+        z = zeros(Int, length(e))
+        z[l[1]] = 1
+        z
+    end for l in Ls]
+end
 
 #Creat coordinate ring of Quiver Grassmannian
 struct QuiverGrassmannian#add types
@@ -112,7 +119,6 @@ struct QuiverGrassmannian#add types
     ambient_ring::MPolyRing
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int}
-    ambient_space::NormalToricVariety
 end
 function Base.show(io::IO, Q::QuiverGrassmannian)
     print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " defined by ", Q.defining_ideal)
@@ -150,12 +156,8 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     #create labels for ambient ring variables
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
     sort!(Ls)
-    RR, xx = polynomial_ring(F, :x=>Ls)
-    ambient = prod([projective_space(NormalToricVariety, binomial(a,b)-1) for (a,b) in zip(ns,dims)])
-    set_coordinate_names(ambient, string.(xx))
-    #create ambient ring
-    R = cox_ring(RR, ambient)
-    x = gens(R)
+    #create ring
+    R,x = graded_polynomial_ring(F, :x=>Ls; weights = grading_weights(Ls, ns))
     #index dictionary
     xdict = Dict(Ls[i] => x[i] for i in 1:length(Ls))
     #create ideal generators for each edge
@@ -178,5 +180,5 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
             append!(Gs, phiG)
         end
     end
-    return QuiverGrassmannian(Q, R, ideal(Gs), dims, ambient)
+    return QuiverGrassmannian(Q, R, ideal(Gs), dims)
 end
