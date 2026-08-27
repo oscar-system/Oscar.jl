@@ -4,20 +4,20 @@ export QuiverGrassmannian
 export quiver_grassmannian
 export quiver_representation
 #checks that the dimensions of the input matrices match the dimension labels on vertices
-function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector{<:MatElem})
+function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::AbstractVector{<:MatElem})
     for (e, A) in zip(edges(quiver), input_matrices)
         u = src(e)
         v = dst(e)
 
         @req nrows(A) == ambient_dims[u] begin
             "Matrix for edge $u → $v has $(nrows(A)) rows, " *
-            "but the source vertex has dimension $(ambient_dims[u])."
+            "but the source vertex has dimension $(ambient_dims[u])." *
             "Check input matrices satisfy OSCAR's freemodule morphism convention."
         end
 
         @req ncols(A) == ambient_dims[v] begin
             "Matrix for edge $u → $v has $(ncols(A)) columns, " *
-            "but the target vertex has dimension $(ambient_dims[v])."
+            "but the target vertex has dimension $(ambient_dims[v])." *
             "Check input matrices satisfy OSCAR's freemodule morphism convention."
         end
     end
@@ -29,7 +29,7 @@ struct QuiverRepresentation{C <: FieldElem}
     vertex_vector_spaces::Vector{Generic.FreeModule{C}}
     edge_morphisms::Vector{Generic.ModuleHomomorphism{C}}
     base_field::Field # elem_type(C)
-    function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::Vector, base_field)
+    function QuiverRepresentation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, input_matrices::AbstractVector{<:MatElem}, base_field::Field)
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
         try
@@ -44,8 +44,7 @@ struct QuiverRepresentation{C <: FieldElem}
 end
 
 #convert matrices to free module morphisms
-function edge_morphisms(G, As, vertex_vector_spaces)
-    R = base_ring(As[1])
+function edge_morphisms(G::Graph{Directed}, As::AbstractVector{<:MatElem},}, vertex_vector_spaces::Vector{Generic.FreeModule{C}}) where {C <: FieldElem}
     Vs = vertex_vector_spaces
     return [
         hom(Vs[src(e)],
@@ -77,25 +76,25 @@ julia> Q = quiver_representation(G,[2,4],[A],QQ)
 Quiver representation over Rational field with ambient dimensions [2, 4] and 1 arrows
 ```
 """
-function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem}, base_field::Field)
+function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::AbstractVector{<:MatElem}, base_field::Field)
     return QuiverRepresentation(quiver, ambient_dims, maps, base_field)
 end
 
 ####Internal functions for Quiver Grassmannian
-function sign_j(j::Int, I::Vector{Int},J::Vector{Int})
+function sign_j(j::Int, I::Vector{Int}, J::Vector{Int})
     g = count(>(j), J) + count(>(j), I)  
     return (-1)^(g)
 end
 
 #returns generator for (I,J) pair associated with an edge
-function P_gen(A::MatElem, I, J, e, n1, xdict)
+function P_gen(A::MatElem, I::Vector{Int}, J::Vector{Int}, e::Edge, n1::Int, xdict::AbstractDict)
     N = 1:n1
     return sum(sign_j(j, I, J)*A[i,j]*xdict[(src(e),sort(union(I,j)))]*xdict[(dst(e),setdiff(J,i))] for 
                 j in setdiff(N,I), i in J);# init=0)
 end
 
 #generators associated with an edge
-function edge_gens(e, nsi, dsi, A, xdict)
+function edge_gens(e::Edge, nsi::Vector{Int}, dsi::Vector{Int}, A::MatElem, xdict::AbstractDict)
     #variable labels
     L1 = subsets(nsi[1], dsi[1]-1)
     L2 = subsets(nsi[2], dsi[2]+1)
@@ -112,7 +111,7 @@ struct QuiverGrassmannian#add types
     quiver_representation::QuiverRepresentation
     ambient_ring::MPolyRing
     defining_ideal::MPolyIdeal
-    dimension_vector::Vector{Int64}
+    dimension_vector::Vector{Int}
 end
 function Base.show(io::IO, Q::QuiverGrassmannian)
     print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " and ", Q.defining_ideal)
@@ -138,7 +137,7 @@ Qsr = quiver_grassmannian(Q,[1,2])
 Quiver Grassmannian over Rational field with subspace dimensions [1, 2] and Ideal with 5 generators
 ```
 """
-function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
+function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     #quiver rep data
     G = Q.quiver
     ns = Q.ambient_dims
@@ -173,5 +172,5 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
             append!(Gs, phiG)
         end
     end
-    return QuiverGrassmannian(Q,R,ideal(Gs),dims)
+    return QuiverGrassmannian(Q, R, ideal(Gs), dims)
 end
