@@ -105,7 +105,7 @@ function edge_gens(e::Edge, nsi::Vector{Int}, dsi::Vector{Int}, A::MatElem, xdic
     return unique(filter!(!iszero, T))
 end
 #creates weights for graded ring
-function grading_weights(Ls, e)
+function grading_weights(Ls::Vector{Tuple{Int, Vector{Int}}}, e::Vector{Int})
     [begin
         z = zeros(Int, length(e))
         z[l[1]] = 1
@@ -154,7 +154,7 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
                                                         equal to the ambient dimension"
     F = Q.base_field
     #create labels for ambient ring variables
-    Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
+    Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i], dims[i])]
     sort!(Ls)
     #create ring
     R,x = graded_polynomial_ring(F, :x=>Ls; weights = grading_weights(Ls, ns))
