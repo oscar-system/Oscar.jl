@@ -394,7 +394,7 @@ function keygen(uov::UOV)
     if uov.pkc
         pk = vcat(seed_pk, p3)
     else
-        pk = vcat(p1, p2, p3)
+        pk = vcat(p1, sks, p3)
     end
     
     if uov.skc
