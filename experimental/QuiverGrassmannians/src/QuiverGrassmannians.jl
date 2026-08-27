@@ -11,13 +11,13 @@ function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{I
 
         @req nrows(A) == ambient_dims[u] begin
             "Matrix for edge $u → $v has $(nrows(A)) rows, " *
-            "but the source vertex has dimension $(ambient_dims[u])." *
+            "but the source vertex has dimension $(ambient_dims[u]). " *
             "Check input matrices satisfy OSCAR's freemodule morphism convention."
         end
 
         @req ncols(A) == ambient_dims[v] begin
             "Matrix for edge $u → $v has $(ncols(A)) columns, " *
-            "but the target vertex has dimension $(ambient_dims[v])." *
+            "but the target vertex has dimension $(ambient_dims[v]). " *
             "Check input matrices satisfy OSCAR's freemodule morphism convention."
         end
     end
@@ -44,7 +44,7 @@ struct QuiverRepresentation{C <: FieldElem}
 end
 
 #convert matrices to free module morphisms
-function edge_morphisms(G::Graph{Directed}, As::AbstractVector{<:MatElem},}, vertex_vector_spaces::Vector{Generic.FreeModule{C}}) where {C <: FieldElem}
+function edge_morphisms(G::Graph{Directed}, As::AbstractVector{<:MatElem}, vertex_vector_spaces::Vector{Generic.FreeModule{C}}) where {C <: FieldElem}
     Vs = vertex_vector_spaces
     return [
         hom(Vs[src(e)],
@@ -58,7 +58,7 @@ function Base.show(io::IO, qR::QuiverRepresentation)
     print(io, "Quiver representation over ",qR.base_field," with ambient dimensions ",qR.ambient_dims, " and ",length(qR.edge_morphisms)," arrows")
 end
 @doc raw"""
-    quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector, base_field::Field)
+    quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::AbstractVector{<:MatElem}, base_field::Field)
 
 Returns `QuiverRepresentation` object corresponding to a directed graph `quiver`, ambient dimension vector `ambient_dims` corresponding to vertices, and list of linear maps `maps` corresponding to the edges of the graph.
 
@@ -133,7 +133,7 @@ julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
 julia> Q = quiver_representation(G,[2,4], [A], QQ)
 Quiver representation over Rational field with ambient dimensions [2, 4] and 1 arrows
 
-Qsr = quiver_grassmannian(Q,[1,2])
+julia> Qsr = quiver_grassmannian(Q,[1,2])
 Quiver Grassmannian over Rational field with subspace dimensions [1, 2] and Ideal with 5 generators
 ```
 """
