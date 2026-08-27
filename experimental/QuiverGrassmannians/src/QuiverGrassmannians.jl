@@ -150,11 +150,11 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     #create labels for ambient ring variables
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
     sort!(Ls)
-    _, xx = graded_polynomial_ring(F, :x=>Ls)
+    RR, xx = polynomial_ring(F, :x=>Ls)
     ambient = prod([projective_space(NormalToricVariety, binomial(a,b)-1) for (a,b) in zip(ns,dims)])
     set_coordinate_names(ambient, string.(xx))
     #create ambient ring
-    R = cox_ring(ambient)
+    R = cox_ring(RR, ambient)
     x = gens(R)
     #index dictionary
     xdict = Dict(Ls[i] => x[i] for i in 1:length(Ls))
