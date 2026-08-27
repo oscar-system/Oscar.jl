@@ -23,8 +23,6 @@ function check_matrix_dimensions(quiver::Graph{Directed}, ambient_dims::Vector{I
     end
 end
 #Create quiver representation from directed graphs, ambient vector space dimensions, linear maps
-struct QuiverRepresentation
-    quiver::Graph{Directed}
 struct QuiverRepresentation{C <: FieldElem}
     quiver::Graph{Directed}
     ambient_dims::Vector{Int}
@@ -35,13 +33,13 @@ struct QuiverRepresentation{C <: FieldElem}
         @req n_vertices(quiver) == length(ambient_dims) "each vertex needs an ambient dimension"
         @req n_edges(quiver) == length(input_matrices) "each edge needs a linear map"
         try
-            input_matrices = change_base_ring.(base_field, Ref(input_matrices))
+            input_matrices = change_base_ring.(Ref(base_field), input_matrices)
         catch
             error("The matrix entries cannot be coerced into the specified ring")
         end
         check_matrix_dimensions(quiver, ambient_dims, input_matrices)
         vertex_vector_spaces = [vector_space(base_field,ambient_dims[i]) for i in vertices(quiver)]
-        new(quiver, ambient_dims, vertex_vector_spaces, edge_morphisms(quiver,input_matrices,vertex_vector_spaces), base_field)
+        new{elem_type(base_field)}(quiver, ambient_dims, vertex_vector_spaces, edge_morphisms(quiver, input_matrices, vertex_vector_spaces), base_field)
     end
 end
 
@@ -56,9 +54,12 @@ function edge_morphisms(G, As, vertex_vector_spaces)
         for (A, e) in zip(As, edges(G))
     ]
 end
-
+#print functions
+function Base.show(io::IO, qR::QuiverRepresentation)
+    print(io, "Quiver representation over ",qR.base_field," with ambient dimensions ",qR.ambient_dims, " and ",length(qR.edge_morphisms)," arrows")
+end
 @doc raw"""
-    quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector)
+    quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector, base_field::Field)
 
 Returns `QuiverRepresentation` object corresponding to a directed graph `quiver`, ambient dimension vector `ambient_dims` corresponding to vertices, and list of linear maps `maps` corresponding to the edges of the graph.
 
@@ -72,12 +73,12 @@ julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
 [1   0   0   0]
 [0   1   0   0]
 
-julia> Q = quiver_representation(G,[2,4],[A])
-QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
+julia> Q = quiver_representation(G,[2,4],[A],QQ)
+Quiver representation over Rational field with ambient dimensions [2, 4] and 1 arrows
 ```
 """
-function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem}, base_field)
-    return QuiverRepresentation(quiver, ambient_dims, maps)
+function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::Vector{<:MatElem}, base_field::Field)
+    return QuiverRepresentation(quiver, ambient_dims, maps, base_field)
 end
 
 ####Internal functions for Quiver Grassmannian
@@ -113,7 +114,9 @@ struct QuiverGrassmannian#add types
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int64}
 end
-
+function Base.show(io::IO, Q::QuiverGrassmannian)
+    print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " and ", Q.defining_ideal)
+end
 @doc raw"""
      quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
 
@@ -128,11 +131,11 @@ julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
 [1   0   0   0]
 [0   1   0   0]
 
-julia> Q = quiver_representation(G,[2,4],[A])
-QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field)
+julia> Q = quiver_representation(G,[2,4], [A], QQ)
+Quiver representation over Rational field with ambient dimensions [2, 4] and 1 arrows
 
 Qsr = quiver_grassmannian(Q,[1,2])
-QuiverGrassmannian(QuiverRepresentation(Directed graph with 2 nodes and 1 edges, [2, 4], AbstractAlgebra.Generic.FreeModule{QQFieldElem}[Vector space of dimension 2 over QQ, Vector space of dimension 4 over QQ], AbstractAlgebra.Generic.ModuleHomomorphism{QQFieldElem}[Hom: vector space of dimension 2 over QQ -> vector space of dimension 4 over QQ], Rational field), Graded multivariate polynomial ring in 8 variables over QQ, Ideal with 5 generators, [1, 2])
+Quiver Grassmannian over Rational field with subspace dimensions [1, 2] and Ideal with 5 generators
 ```
 """
 function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
@@ -141,8 +144,8 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
     ns = Q.ambient_dims
     As = transpose.(matrix.(Q.edge_morphisms))
     @req length(dims) == length(ns) "each vertex needs a subspace dimension"
-    @req all([dims[i]<= ns[i] for i in 1:length(ns)]) "dimension on vertex must be less or
-                                                        equal to than ambient dimension"
+    @req all([dims[i]<= ns[i] for i in 1:length(ns)]) "subspace dimension of vertex must be less than or
+                                                        equal to the ambient dimension"
     #ambient ring
     F = Q.base_field
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
@@ -167,7 +170,7 @@ function quiver_grassmannian(Q::QuiverRepresentation,dims::Vector{Int})
             Gr_di_ni = gens(grassmann_pluecker_ideal(dims[j],ns[j]))
             phi_i = hom(parent(Gr_di_ni[1]),R,xx)  
             phiG = phi_i.(Gr_di_ni)
-            append!(Gs,phiG)
+            append!(Gs, phiG)
         end
     end
     return QuiverGrassmannian(Q,R,ideal(Gs),dims)
