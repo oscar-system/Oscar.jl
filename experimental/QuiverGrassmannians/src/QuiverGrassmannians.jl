@@ -112,9 +112,10 @@ struct QuiverGrassmannian#add types
     ambient_ring::MPolyRing
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int}
+    ambient_space::NormalToricVariety
 end
 function Base.show(io::IO, Q::QuiverGrassmannian)
-    print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " and ", Q.defining_ideal)
+    print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " defined by ", Q.defining_ideal)
 end
 @doc raw"""
      quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
@@ -134,7 +135,7 @@ julia> Q = quiver_representation(G,[2,4], [A], QQ)
 Quiver representation over Rational field with ambient dimensions [2, 4] and 1 arrows
 
 julia> Qsr = quiver_grassmannian(Q,[1,2])
-Quiver Grassmannian over Rational field with subspace dimensions [1, 2] and Ideal with 5 generators
+Quiver Grassmannian over Rational field with subspace dimensions [1, 2] defined by Ideal with 5 generators
 ```
 """
 function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
@@ -145,20 +146,25 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     @req length(dims) == length(ns) "each vertex needs a subspace dimension"
     @req all([dims[i]<= ns[i] for i in 1:length(ns)]) "subspace dimension of vertex must be less than or
                                                         equal to the ambient dimension"
-    #ambient ring
     F = Q.base_field
+    #create labels for ambient ring variables
     Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i],dims[i])]
     sort!(Ls)
-    R,x = graded_polynomial_ring(F,:x=>Ls)
+    _, xx = graded_polynomial_ring(F, :x=>Ls)
+    ambient = prod([projective_space(NormalToricVariety, binomial(a,b)-1) for (a,b) in zip(ns,dims)])
+    set_coordinate_names(ambient, string.(xx))
+    #create ambient ring
+    R = cox_ring(ambient)
+    x = gens(R)
     #index dictionary
     xdict = Dict(Ls[i] => x[i] for i in 1:length(Ls))
     #create ideal generators for each edge
     Gs = elem_type(R)[]
     for (e, A) in zip(edges(G), As)
         #quiver generators for node
-        nsi = [ns[src(e)],ns[dst(e)]]
-        dsi = [dims[src(e)],dims[dst(e)]]
-        Ge = edge_gens(e,nsi,dsi,A,xdict)
+        nsi = [ns[src(e)], ns[dst(e)]]
+        dsi = [dims[src(e)], dims[dst(e)]]
+        Ge = edge_gens(e, nsi, dsi, A, xdict)
         append!(Gs,Ge)
     end
     #create grassmann generators for each node
@@ -166,11 +172,11 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
         if ns[j]-1 >dims[j]>1
             Jj = filter(t -> t[1] == j, Ls)
             xx = [xdict[t] for t in Jj]
-            Gr_di_ni = gens(grassmann_pluecker_ideal(dims[j],ns[j]))
-            phi_i = hom(parent(Gr_di_ni[1]),R,xx)  
+            Gr_di_ni = gens(grassmann_pluecker_ideal(dims[j], ns[j]))
+            phi_i = hom(parent(Gr_di_ni[1]), R, xx)  
             phiG = phi_i.(Gr_di_ni)
             append!(Gs, phiG)
         end
     end
-    return QuiverGrassmannian(Q, R, ideal(Gs), dims)
+    return QuiverGrassmannian(Q, R, ideal(Gs), dims, ambient)
 end
