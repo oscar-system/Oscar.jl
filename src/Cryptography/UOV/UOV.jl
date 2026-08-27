@@ -18,6 +18,7 @@ struct UOV
     v_sz::Int
     n_sz::Int
     m_sz::Int
+    sig_sz::Int
     seed_sk_sz::Int
     seed_pk_sz::Int
     so_sz::Int
@@ -256,7 +257,8 @@ end
 function calc_f2_p3(uov::UOV, p1::Vector{UInt8}, p2::Vector{UInt8}, so::Vector{UInt8})
     m1 = unpack_mtri(p1, uov.v, uov.m_sz)
     m2 = unpack_mrect(p2, uov.v, uov.m, uov.m_sz)
-    mo = [gf_unpack(so[i:i+uov.v-1], uov.gf) for i in 1:uov.v:uov.so_sz]
+    # mo is a m x v matrix (m rows, each with v GF elements)
+    mo = [gf_unpack(so[i:i+((uov.gf == 16) ? uov.v÷2 : uov.v)-1], uov.gf) for i in 1:((uov.gf == 16) ? uov.v÷2 : uov.v):uov.so_sz]
     
     m3 = [BigInt[BigInt(0) for _ in 1:uov.m] for _ in 1:uov.m]
     
@@ -550,6 +552,7 @@ function make_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
     seed_sk_sz = 32
     seed_pk_sz = 16
     salt_sz = 16
+    sig_sz = v_sz + m_sz + salt_sz
     
     mm = BigInt(0)
     for i in 1:m
@@ -561,7 +564,7 @@ function make_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
         mm = mm ⊻ 0x13
     end
     
-    return UOV(gf, n, m, v, pkc, skc, name, default_rbg, gf_bits, gf_mul, gf_mulm, v_sz, n_sz, m_sz, seed_sk_sz, seed_pk_sz, gf_bits * v * m ÷ 8, m_sz * v * (v + 1) ÷ 2, m_sz * v * m, m_sz * m * (m + 1) ÷ 2, salt_sz, mm)
+    return UOV(gf, n, m, v, pkc, skc, name, default_rbg, gf_bits, gf_mul, gf_mulm, v_sz, n_sz, m_sz, sig_sz, seed_sk_sz, seed_pk_sz, gf_bits * v * m ÷ 8, m_sz * v * (v + 1) ÷ 2, m_sz * v * m, m_sz * m * (m + 1) ÷ 2, salt_sz, mm)
 end
 
 # Parameter sets
