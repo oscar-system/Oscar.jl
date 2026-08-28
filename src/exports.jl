@@ -753,6 +753,7 @@ export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
 export group_with_class_number
+export group_with_class_number_identification
 export gset
 export h_star_polynomial
 export h_vector
@@ -764,6 +765,7 @@ export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_edge
 export has_groups_with_class_number
+export has_groups_with_class_number_identification
 export has_nonempty_intersection
 export has_perfect_groups
 export has_preimage_with_preimage
