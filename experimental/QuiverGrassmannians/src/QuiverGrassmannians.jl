@@ -140,7 +140,7 @@ julia> A = matrix(QQ,[1 0 0 0;0 1 0 0])
 julia> Q = quiver_representation(G,[2,4], [A], QQ)
 Quiver representation over Rational field with ambient dimensions [2, 4] and 1 arrows
 
-julia> Qsr = quiver_grassmannian(Q,[1,2])
+julia> Qsr = quiver_grassmannian(Q, [1,2])
 Quiver Grassmannian over Rational field with subspace dimensions [1, 2] defined by Ideal with 5 generators
 ```
 """
