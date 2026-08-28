@@ -38,37 +38,48 @@ println("Testing UOV module structure...")
 
 println("Module structure tests passed!")
 
-# Test signing
-println("Testing signing...")
+# Test signing and verification
+println("Testing signing and verification...")
 
 msg = rand(UInt8, 32)
 
-# Test uov_1p
-pk1, sk1 = Oscar.keygen(Oscar.uov_1p)
-sig1 = Oscar.UOV.sign(Oscar.uov_1p, msg, sk1)
-@test length(sig1) == Oscar.uov_1p.sig_sz
-# Verification failing - public key uses modified m2 (sks) instead of original
-# @test Oscar.UOV.verify(Oscar.uov_1p, sig1, msg, pk1)
+# Test uov_1p (and its pkc/skc variants)
+for uov in (Oscar.uov_1p, Oscar.uov_1p_pkc, Oscar.uov_1p_pkc_skc)
+    pk, sk = Oscar.keygen(uov)
+    sig = Oscar.UOV.sign(uov, msg, sk)
+    @test length(sig) == uov.sig_sz
+    @test Oscar.UOV.verify(uov, sig, msg, pk)
+end
 
-# Test uov_1s
-    pk2, sk2 = Oscar.keygen(Oscar.uov_1s)
-    sig2 = Oscar.UOV.sign(Oscar.uov_1s, msg, sk2)
-    @test length(sig2) == Oscar.uov_1s.sig_sz
-    # Verification failing - public key uses modified m2 (sks) instead of original
-    # @test Oscar.UOV.verify(Oscar.uov_1s, sig2, msg, pk2)
+# Test uov_1s (GF(16) field)
+for uov in (Oscar.uov_1s, Oscar.uov_1s_pkc, Oscar.uov_1s_pkc_skc)
+    pk, sk = Oscar.keygen(uov)
+    sig = Oscar.UOV.sign(uov, msg, sk)
+    @test length(sig) == uov.sig_sz
+    @test Oscar.UOV.verify(uov, sig, msg, pk)
+end
 
-    # Test uov_3
-    pk3, sk3 = Oscar.keygen(Oscar.uov_3)
-    sig3 = Oscar.UOV.sign(Oscar.uov_3, msg, sk3)
-    @test length(sig3) == Oscar.uov_3.sig_sz
-    # Verification failing - public key uses modified m2 (sks) instead of original
-    # @test Oscar.UOV.verify(Oscar.uov_3, sig3, msg, pk3)
+# Test uov_3
+for uov in (Oscar.uov_3, Oscar.uov_3_pkc, Oscar.uov_3_pkc_skc)
+    pk, sk = Oscar.keygen(uov)
+    sig = Oscar.UOV.sign(uov, msg, sk)
+    @test length(sig) == uov.sig_sz
+    @test Oscar.UOV.verify(uov, sig, msg, pk)
+end
 
-    # Test uov_5
-    pk4, sk4 = Oscar.keygen(Oscar.uov_5)
-    sig4 = Oscar.UOV.sign(Oscar.uov_5, msg, sk4)
-    @test length(sig4) == Oscar.uov_5.sig_sz
-    # Verification failing - public key uses modified m2 (sks) instead of original
-    # @test Oscar.UOV.verify(Oscar.uov_5, sig4, msg, pk4)
+# Test uov_5 (largest parameter set)
+for uov in (Oscar.uov_5, Oscar.uov_5_pkc, Oscar.uov_5_pkc_skc)
+    pk, sk = Oscar.keygen(uov)
+    sig = Oscar.UOV.sign(uov, msg, sk)
+    @test length(sig) == uov.sig_sz
+    @test Oscar.UOV.verify(uov, sig, msg, pk)
+end
 
-println("Signing tests passed!")
+# Test that verification rejects a tampered signature
+pk, sk = Oscar.keygen(Oscar.uov_1p)
+sig = Oscar.UOV.sign(Oscar.uov_1p, msg, sk)
+sig_bad = copy(sig)
+sig_bad[1] = sig_bad[1] ⊻ 0xFF
+@test !Oscar.UOV.verify(Oscar.uov_1p, sig_bad, msg, pk)
+
+println("Signing and verification tests passed!")

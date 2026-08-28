@@ -35,7 +35,7 @@ function gf16_mul(a::Int, b::Int)::Int
     for i in 1:3
         t = a & 8
         a = ((a ⊻ t) << 1) ⊻ (t >> 2) ⊻ (t >> 3)
-        r ⊻= a & (-(b >> i) & 1)
+        r ⊻= a & (-((b >> i) & 1))
     end
     return r
 end
@@ -71,7 +71,7 @@ function gf256_mul(a::Int, b::Int)::Int
     r = a & (-(b & 1))
     for i in 1:7
         a = (a << 1) ⊻ ((-(a >> 7)) & 0x11B)
-        r ⊻= a & (-(b >> i) & 1)
+        r ⊻= a & (-((b >> i) & 1))
     end
     return r
 end
@@ -141,17 +141,18 @@ function gf_unpack(b::Vector{UInt8}, gf::Int)::Vector{Int}
 end
 
 # Unpack an upper triangular matrix from bytes
+# Returns a full d x d matrix (lower triangle is 0), matching the reference layout
 function unpack_mtri(b::Vector{UInt8}, d::Int, m_sz::Int)
     m = Vector{BigInt}[]
     p = 1
     for i in 1:d
-        row = BigInt[]
+        row = BigInt[BigInt(0) for _ in 1:d]
         for j in i:d
             t = BigInt(0)
             for k in 0:m_sz-1
                 t = t * 256 + BigInt(b[p + k])
             end
-            push!(row, t)
+            row[j] = t
             p += m_sz
         end
         push!(m, row)
@@ -164,10 +165,9 @@ function pack_mtri(m::Vector{Vector{BigInt}}, d::Int, m_sz::Int)::Vector{UInt8}
     b = UInt8[]
     for i in 1:d
         for j in i:d
-            t = m[i][j - i + 1]
-            for k in m_sz:-1:1
-                push!(b, UInt8(t & 0xFF))
-                t = t >>> 8
+            t = m[i][j]
+            for k in m_sz-1:-1:0
+                push!(b, UInt8((t >> (8 * k)) & 0xFF))
             end
         end
     end
@@ -199,9 +199,8 @@ function pack_mrect(m::Vector{Vector{BigInt}}, h::Int, w::Int, m_sz::Int)::Vecto
     for i in 1:h
         for j in 1:w
             t = m[i][j]
-            for k in m_sz:-1:1
-                push!(b, UInt8(t & 0xFF))
-                t = t >>> 8
+            for k in m_sz-1:-1:0
+                push!(b, UInt8((t >> (8 * k)) & 0xFF))
             end
         end
     end
@@ -260,13 +259,14 @@ function calc_f2_p3(uov::UOV, p1::Vector{UInt8}, p2::Vector{UInt8}, so::Vector{U
     # mo is a m x v matrix (m rows, each with v GF elements)
     mo = [gf_unpack(so[i:i+((uov.gf == 16) ? uov.v÷2 : uov.v)-1], uov.gf) for i in 1:((uov.gf == 16) ? uov.v÷2 : uov.v):uov.so_sz]
     
+    # m3 is a full m x m matrix (upper triangle used)
     m3 = [BigInt[BigInt(0) for _ in 1:uov.m] for _ in 1:uov.m]
     
     for j in 1:uov.m
         for i in 1:uov.v
             t = m2[i][j]
             for k in i:uov.v
-                t = t ⊻ uov.gf_mulm(m1[i][k - i + 1], mo[j][k], uov.mm)
+                t = t ⊻ uov.gf_mulm(m1[i][k], mo[j][k], uov.mm)
             end
             for k in 1:uov.m
                 u = uov.gf_mulm(t, mo[k][i], uov.mm)
@@ -283,10 +283,10 @@ function calc_f2_p3(uov::UOV, p1::Vector{UInt8}, p2::Vector{UInt8}, so::Vector{U
         for j in 1:uov.m
             t = m2[i][j]
             for k in 1:i
-                t = t ⊻ uov.gf_mulm(m1[k][i - k + 1], mo[j][k], uov.mm)
+                t = t ⊻ uov.gf_mulm(m1[k][i], mo[j][k], uov.mm)
             end
             for k in i:uov.v
-                t = t ⊻ uov.gf_mulm(m1[i][k - i + 1], mo[j][k], uov.mm)
+                t = t ⊻ uov.gf_mulm(m1[i][k], mo[j][k], uov.mm)
             end
             m2[i][j] = t
         end
@@ -365,7 +365,7 @@ function pubmap(uov::UOV, z::Vector{UInt8}, tm::Vector{UInt8})
     # P1
     for i in 1:v
         for j in i:v
-            y ⊻= uov.gf_mulm(m1[i][j - i + 1], uov.gf_mul(Int(x[i]), Int(x[j])), uov.mm)
+            y ⊻= uov.gf_mulm(m1[i][j], uov.gf_mul(Int(x[i]), Int(x[j])), uov.mm)
         end
     end
     
@@ -377,7 +377,7 @@ function pubmap(uov::UOV, z::Vector{UInt8}, tm::Vector{UInt8})
     
     for i in 1:m
         for j in i:m
-            y ⊻= uov.gf_mulm(m3[i][j - i + 1], uov.gf_mul(Int(x[v + i]), Int(x[v + j])), uov.mm)
+            y ⊻= uov.gf_mulm(m3[i][j], uov.gf_mul(Int(x[v + i]), Int(x[v + j])), uov.mm)
         end
     end
     
@@ -396,7 +396,7 @@ function keygen(uov::UOV)
     if uov.pkc
         pk = vcat(seed_pk, p3)
     else
-        pk = vcat(p1, sks, p3)
+        pk = vcat(p1, p2, p3)
     end
     
     if uov.skc
@@ -421,6 +421,7 @@ function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     
     m1 = unpack_mtri(p1, uov.v, uov.m_sz)
     ms = unpack_mrect(sks, uov.v, uov.m, uov.m_sz)
+    mo = [gf_unpack(so[i:i+((uov.gf == 16) ? uov.v÷2 : uov.v)-1], uov.gf) for i in 1:((uov.gf == 16) ? uov.v÷2 : uov.v):uov.so_sz]
     
     salt = uov.rbg(uov.salt_sz)
     t = shake_256(vcat(msg, salt), uov.m_sz)
@@ -447,7 +448,7 @@ function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
         for i in 1:uov.v
             u = BigInt(0)
             for j in i:uov.v
-                u = u ⊻ uov.gf_mulm(m1[i][j - i + 1], v[j], uov.mm)
+                u = u ⊻ uov.gf_mulm(m1[i][j], v[j], uov.mm)
             end
             r = r ⊻ uov.gf_mulm(u, v[i], uov.mm)
         end
@@ -460,7 +461,7 @@ function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     y = vcat(v)
     for i in 1:uov.m
         for j in 1:uov.v
-            y[j] ⊻= uov.gf_mul(Int(ms[j][i] & 0xFF), x[i])
+            y[j] ⊻= uov.gf_mul(mo[i][j], x[i])
         end
     end
     
@@ -556,12 +557,7 @@ function make_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
     
     mm = BigInt(0)
     for i in 1:m
-        mm = (mm << 1) ⊻ (i <= m ? 0 : 0)
-    end
-    if gf == 256
-        mm = mm ⊻ 0x11B
-    elseif gf == 16
-        mm = mm ⊻ 0x13
+        mm = gf * mm + (gf >> 1)
     end
     
     return UOV(gf, n, m, v, pkc, skc, name, default_rbg, gf_bits, gf_mul, gf_mulm, v_sz, n_sz, m_sz, sig_sz, seed_sk_sz, seed_pk_sz, gf_bits * v * m ÷ 8, m_sz * v * (v + 1) ÷ 2, m_sz * v * m, m_sz * m * (m + 1) ÷ 2, salt_sz, mm)
