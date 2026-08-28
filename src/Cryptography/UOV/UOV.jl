@@ -2,6 +2,56 @@ module UOV
 
 using Random: rand
 using Keccak: shake_256
+using Oscar: GF, Nemo, AbstractAlgebra
+
+# ---------------------------------------------------------------------------
+# Field setup: build fast multiplication and inverse tables using Oscar's
+# finite field implementation. We use the UOV reference polynomials
+#   GF(256): x^8 + x^4 + x^3 + x + 1   (0x11B)
+#   GF(16) : x^4 + x + 1               (0x13)
+# so that the resulting signatures match the official UOV KAT vectors.
+# The tables are built once and cached per field size.
+# ---------------------------------------------------------------------------
+
+const _MUL_TAB = Dict{Int,Matrix{UInt8}}()
+const _INV_TAB = Dict{Int,Vector{UInt8}}()
+
+function _field_tables(gf::Int)
+    haskey(_MUL_TAB, gf) && return _MUL_TAB[gf], _INV_TAB[gf]
+    F2 = GF(2)
+    R, x = AbstractAlgebra.polynomial_ring(F2, :x)
+    f = (gf == 256) ? x^8 + x^4 + x^3 + x + 1 : x^4 + x + 1
+    K = GF(f)
+    nb = (gf == 256) ? 8 : 4
+    byte2elem(b) = begin
+        r = zero(K)
+        for i in 0:nb-1
+            if (b >> i) & 1 == 1
+                r += Nemo.gen(K)^i
+            end
+        end
+        r
+    end
+    elem2byte(el) = UInt8(sum([(Int(Nemo._coeff(el, i)) & 1) << i for i in 0:nb-1]))
+    be = [byte2elem(b) for b in 0:gf-1]
+    tab = zeros(UInt8, gf, gf)
+    invtab = zeros(UInt8, gf)
+    for a in 0:gf-1
+        for b in 0:gf-1
+            tab[a+1, b+1] = elem2byte(be[a+1] * be[b+1])
+        end
+    end
+    for a in 1:gf-1
+        invtab[a+1] = elem2byte(inv(be[a+1]))
+    end
+    _MUL_TAB[gf] = tab
+    _INV_TAB[gf] = invtab
+    return tab, invtab
+end
+
+# ---------------------------------------------------------------------------
+# UOV parameter structure
+# ---------------------------------------------------------------------------
 
 struct UOV
     gf::Int
@@ -13,8 +63,8 @@ struct UOV
     name::String
     rbg::Function
     gf_bits::Int
-    gf_mul::Function
-    gf_mulm::Function
+    mul_tab::Matrix{UInt8}
+    inv_tab::Vector{UInt8}
     v_sz::Int
     n_sz::Int
     m_sz::Int
@@ -26,185 +76,143 @@ struct UOV
     p2_sz::Int
     p3_sz::Int
     salt_sz::Int
-    mm::BigInt
 end
 
-# GF(16) multiplication
-function gf16_mul(a::Int, b::Int)::Int
-    r = a & (-(b & 1))
-    for i in 1:3
-        t = a & 8
-        a = ((a ⊻ t) << 1) ⊻ (t >> 2) ⊻ (t >> 3)
-        r ⊻= a & (-((b >> i) & 1))
+# ---------------------------------------------------------------------------
+# Field arithmetic (using Oscar-generated tables)
+# ---------------------------------------------------------------------------
+
+@inline gf_mul(uov::UOV, a::Integer, b::Integer) =
+    uov.mul_tab[Int(a)+1, Int(b)+1]
+
+@inline gf_inv(uov::UOV, a::Integer) = uov.inv_tab[Int(a)+1]
+
+# multiply a vector (of m GF elements) by a scalar, elementwise
+function gf_mulm(uov::UOV, vec::Vector{UInt8}, scalar::Integer)
+    r = Vector{UInt8}(undef, length(vec))
+    row = view(uov.mul_tab, Int(scalar)+1, :)
+    @inbounds for i in eachindex(vec)
+        r[i] = row[Int(vec[i])+1]
     end
     return r
 end
 
-# GF(16) vector * scalar multiply (BigInt version)
-function gf16_mulm(v::BigInt, a::Int, mm::BigInt)::BigInt
-    r = v & (-(a & 1))
-    for i in 1:3
-        t = v & mm
-        v = ((v ⊻ t) << 1) ⊻ (t >> 3) ⊻ (t >> 2)
-        if (a >> i) & 1 == 1
-            r ⊻= v
-        end
+# elementwise XOR (addition in characteristic 2), in place on dest
+@inline function vecxor!(dest::Vector{UInt8}, src::Vector{UInt8})
+    @inbounds for i in eachindex(dest)
+        dest[i] ⊻= src[i]
     end
-    return r
+    return dest
 end
 
-# GF(16) vector * scalar multiply (Int version)
-function gf16_mulm(v::Int, a::Int, mm::Int)::Int
-    r = v & (-(a & 1))
-    for i in 1:3
-        t = v & mm
-        v = ((v ⊻ t) << 1) ⊻ (t >> 3) ⊻ (t >> 2)
-        if (a >> i) & 1 == 1
-            r ⊻= v
-        end
-    end
-    return r
-end
+# ---------------------------------------------------------------------------
+# Serialization helpers
+# ---------------------------------------------------------------------------
 
-# GF(256) multiplication
-function gf256_mul(a::Int, b::Int)::Int
-    r = a & (-(b & 1))
-    for i in 1:7
-        a = (a << 1) ⊻ ((-(a >> 7)) & 0x11B)
-        r ⊻= a & (-((b >> i) & 1))
-    end
-    return r
-end
-
-# GF(256) vector * scalar multiply (BigInt version)
-function gf256_mulm(v::BigInt, a::Int, mm::BigInt)::BigInt
-    r = v & (-(a & 1))
-    for i in 1:7
-        t = v & mm
-        v = ((v ⊻ t) << 1) ⊻ (t >> 7) ⊻ (t >> 6) ⊻ (t >> 4) ⊻ (t >> 3)
-        if (a >> i) & 1 == 1
-            r ⊻= v
-        end
-    end
-    return r
-end
-
-# GF(256) vector * scalar multiply (Int version)
-function gf256_mulm(v::Int, a::Int, mm::Int)::Int
-    r = v & (-(a & 1))
-    for i in 1:7
-        t = v & mm
-        v = ((v ⊻ t) << 1) ⊻ (t >> 7) ⊻ (t >> 6) ⊻ (t >> 4) ⊻ (t >> 3)
-        if (a >> i) & 1 == 1
-            r ⊻= v
-        end
-    end
-    return r
-end
-
-# GF inverse (using extended Euclidean algorithm)
-function gf_inv(a::Int, gf::Int, gf_bits::Int, gf_mul::Function)::Int
-    r = a
-    for _ in 2:gf_bits-1
-        a = gf_mul(a, a)
-        r = gf_mul(r, a)
-    end
-    r = gf_mul(r, r)
-    return r
-end
-
-# Pack a vector of GF elements into bytes
-function gf_pack(v::Vector{Int}, gf::Int)::Vector{UInt8}
-    if gf == 256
-        return UInt8.(v .& 0xFF)
-    elseif gf == 16
-        result = UInt8[]
+# Convert a vector of GF elements (length m) to bytes
+function pack_vec(uov::UOV, v::Vector{UInt8})
+    if uov.gf == 256
+        return UInt8.(v)
+    else
+        res = UInt8[]
         for i in 1:2:length(v)-1
-            push!(result, UInt8((v[i] & 0xF) + ((v[i + 1] & 0xF) << 4)))
+            push!(res, UInt8((v[i] & 0x0F) | ((v[i+1] & 0x0F) << 4)))
         end
-        return result
+        return res
     end
 end
 
-# Unpack bytes into a vector of GF elements
-function gf_unpack(b::Vector{UInt8}, gf::Int)::Vector{Int}
-    if gf == 256
-        return Int.(b)
-    elseif gf == 16
-        v = Int[]
-        for x in b
-            push!(v, Int(x & 0xF))
-            push!(v, Int(x >> 4))
+# Convert bytes to a vector of GF elements
+function unpack_vec(uov::UOV, b::Vector{UInt8})
+    if uov.gf == 256
+        return UInt8.(b)
+    else
+        res = zeros(UInt8, 2 * length(b))
+        for (k, byte) in enumerate(b)
+            res[2k-1] = byte & 0x0F
+            res[2k] = byte >> 4
         end
-        return v
+        return res
     end
 end
 
-# Unpack an upper triangular matrix from bytes
-# Returns a full d x d matrix (lower triangle is 0), matching the reference layout
-function unpack_mtri(b::Vector{UInt8}, d::Int, m_sz::Int)
-    m = Vector{BigInt}[]
+# Unpack an upper triangular matrix. Each entry is a vector of m GF elements.
+function unpack_mtri(uov::UOV, b::Vector{UInt8}, d::Int=uov.v)
+    mtx = Vector{Vector{Vector{UInt8}}}(undef, d)
     p = 1
     for i in 1:d
-        row = BigInt[BigInt(0) for _ in 1:d]
+        row = Vector{Vector{UInt8}}(undef, d)
         for j in i:d
-            t = BigInt(0)
-            for k in 0:m_sz-1
-                t = t * 256 + BigInt(b[p + k])
+            if uov.gf == 256
+                row[j] = b[p:p+uov.m-1]
+            else
+                row[j] = unpack_vec(uov, b[p:p+(uov.m÷2)-1])
             end
-            row[j] = t
-            p += m_sz
+            p += uov.m_sz
         end
-        push!(m, row)
+        for j in 1:i-1
+            row[j] = zeros(UInt8, uov.m)
+        end
+        mtx[i] = row
     end
-    return m
+    return mtx
 end
 
 # Pack an upper triangular matrix to bytes
-function pack_mtri(m::Vector{Vector{BigInt}}, d::Int, m_sz::Int)::Vector{UInt8}
+function pack_mtri(uov::UOV, mtx, d::Int=uov.v)
     b = UInt8[]
     for i in 1:d
         for j in i:d
-            t = m[i][j]
-            for k in m_sz-1:-1:0
-                push!(b, UInt8((t >> (8 * k)) & 0xFF))
-            end
+            append!(b, pack_vec(uov, mtx[i][j]))
         end
     end
     return b
 end
 
-# Unpack a rectangular matrix from bytes
-function unpack_mrect(b::Vector{UInt8}, h::Int, w::Int, m_sz::Int)
-    m = Vector{BigInt}[]
+# Unpack a rectangular (h x w) matrix of m-element vectors
+function unpack_mrect(uov::UOV, b::Vector{UInt8}, h::Int, w::Int)
+    mtx = Vector{Vector{Vector{UInt8}}}(undef, h)
     p = 1
     for i in 1:h
-        row = BigInt[]
+        row = Vector{Vector{UInt8}}(undef, w)
         for j in 1:w
-            t = BigInt(0)
-            for k in 0:m_sz-1
-                t = t * 256 + BigInt(b[p + k])
+            if uov.gf == 256
+                row[j] = b[p:p+uov.m-1]
+            else
+                row[j] = unpack_vec(uov, b[p:p+(uov.m÷2)-1])
             end
-            push!(row, t)
-            p += m_sz
+            p += uov.m_sz
         end
-        push!(m, row)
+        mtx[i] = row
     end
-    return m
+    return mtx
 end
 
 # Pack a rectangular matrix to bytes
-function pack_mrect(m::Vector{Vector{BigInt}}, h::Int, w::Int, m_sz::Int)::Vector{UInt8}
+function pack_mrect(uov::UOV, mtx, h::Int, w::Int)
     b = UInt8[]
     for i in 1:h
         for j in 1:w
-            t = m[i][j]
-            for k in m_sz-1:-1:0
-                push!(b, UInt8((t >> (8 * k)) & 0xFF))
-            end
+            append!(b, pack_vec(uov, mtx[i][j]))
         end
     end
     return b
+end
+
+# Unpack a m x v matrix of scalars (from the "so" secret material)
+function unpack_rect(uov::UOV, b::Vector{UInt8})
+    mtx = Vector{Vector{UInt8}}(undef, uov.m)
+    p = 1
+    step = (uov.gf == 256) ? uov.v : (uov.v ÷ 2)
+    for i in 1:uov.m
+        if uov.gf == 256
+            mtx[i] = UInt8.(b[p:p+uov.v-1])
+        else
+            mtx[i] = unpack_vec(uov, b[p:p+(uov.v÷2)-1])
+        end
+        p += step
+    end
+    return mtx
 end
 
 # Simple CTR mode (replaces AES-128-CTR)
@@ -254,78 +262,65 @@ end
 
 # UOV.ExpandP2()
 function calc_f2_p3(uov::UOV, p1::Vector{UInt8}, p2::Vector{UInt8}, so::Vector{UInt8})
-    m1 = unpack_mtri(p1, uov.v, uov.m_sz)
-    m2 = unpack_mrect(p2, uov.v, uov.m, uov.m_sz)
-    # mo is a m x v matrix (m rows, each with v GF elements)
-    mo = [gf_unpack(so[i:i+((uov.gf == 16) ? uov.v÷2 : uov.v)-1], uov.gf) for i in 1:((uov.gf == 16) ? uov.v÷2 : uov.v):uov.so_sz]
-    
+    m1 = unpack_mtri(uov, p1)
+    m2 = unpack_mrect(uov, p2, uov.v, uov.m)
+    mo = unpack_rect(uov, so)
+
     # m3 is a full m x m matrix (upper triangle used)
-    m3 = [BigInt[BigInt(0) for _ in 1:uov.m] for _ in 1:uov.m]
-    
+    m3 = [ [zeros(UInt8, uov.m) for _ in 1:uov.m] for _ in 1:uov.m ]
+
     for j in 1:uov.m
         for i in 1:uov.v
-            t = m2[i][j]
+            t = copy(m2[i][j])
             for k in i:uov.v
-                t = t ⊻ uov.gf_mulm(m1[i][k], mo[j][k], uov.mm)
+                vecxor!(t, gf_mulm(uov, m1[i][k], mo[j][k]))
             end
             for k in 1:uov.m
-                u = uov.gf_mulm(t, mo[k][i], uov.mm)
+                u = gf_mulm(uov, t, mo[k][i])
                 if j < k
-                    m3[j][k] = m3[j][k] ⊻ u
+                    vecxor!(m3[j][k], u)
                 else
-                    m3[k][j] = m3[k][j] ⊻ u
+                    vecxor!(m3[k][j], u)
                 end
             end
         end
     end
-    
+
     for i in 1:uov.v
         for j in 1:uov.m
-            t = m2[i][j]
+            t = copy(m2[i][j])
             for k in 1:i
-                t = t ⊻ uov.gf_mulm(m1[k][i], mo[j][k], uov.mm)
+                vecxor!(t, gf_mulm(uov, m1[k][i], mo[j][k]))
             end
             for k in i:uov.v
-                t = t ⊻ uov.gf_mulm(m1[i][k], mo[j][k], uov.mm)
+                vecxor!(t, gf_mulm(uov, m1[i][k], mo[j][k]))
             end
             m2[i][j] = t
         end
     end
-    
-    p3 = pack_mtri(m3, uov.m, uov.m_sz)
-    sks = pack_mrect(m2, uov.v, uov.m, uov.m_sz)
-    
+
+    p3 = pack_mtri(uov, m3, uov.m)
+    sks = pack_mrect(uov, m2, uov.v, uov.m)
     return sks, p3
 end
 
-# Gaussian elimination solver
-function gauss_solve(uov::UOV, l::Vector{BigInt}, c::Vector{Int})
+# Gaussian elimination solver (elements are UInt8 GF values)
+function gauss_solve(uov::UOV, l::Vector{Vector{UInt8}}, c::Vector{UInt8})
     h = uov.m
     w = uov.m + 1
-    
-    L = Vector{Int}[]
-    for i in 1:uov.m
-        bytes = int_to_bytes(l[i], uov.m_sz)
-        li = gf_unpack(bytes, uov.gf)
-        push!(L, li)
-    end
-    
-    @assert length(L) == uov.m "L should have $uov.m rows, has $(length(L))"
-    @assert length(L[1]) == uov.m "L[1] should have $uov.m columns, has $(length(L[1]))"
-    
-    m = [zeros(Int, w) for _ in 1:uov.m]
-    for j in 1:uov.m
-        for i in 1:uov.m
-            m[j][i] = L[i][j]
+    m = [zeros(UInt8, w) for _ in 1:h]
+    for j in 1:h
+        for i in 1:h
+            m[j][i] = l[i][j]
         end
         m[j][w] = c[j]
     end
-    
-    for i in 1:uov.m
+
+    for i in 1:h
         j = i
         while m[j][i] == 0
             j += 1
-            if j > uov.m
+            if j > h
                 return nothing
             end
         end
@@ -334,54 +329,51 @@ function gauss_solve(uov::UOV, l::Vector{BigInt}, c::Vector{Int})
                 m[i][k] ⊻= m[j][k]
             end
         end
-        x = gf_inv(m[i][i], uov.gf, uov.gf_bits, uov.gf_mul)
+        x = gf_inv(uov, m[i][i])
         for k in 1:w
-            m[i][k] = uov.gf_mul(m[i][k], x)
+            m[i][k] = gf_mul(uov, m[i][k], x)
         end
-        for j in 1:uov.m
+        for j in 1:h
             x = m[j][i]
             if j != i
                 for k in 1:w
-                    m[j][k] ⊻= uov.gf_mul(m[i][k], x)
+                    m[j][k] ⊻= gf_mul(uov, m[i][k], x)
                 end
             end
         end
     end
-    
-    return [m[i][w] for i in 1:uov.m]
+
+    return [m[i][w] for i in 1:h]
 end
 
 # Apply public map to z
 function pubmap(uov::UOV, z::Vector{UInt8}, tm::Vector{UInt8})
     v = uov.v
     m = uov.m
-    
-    m1 = unpack_mtri(tm[1:uov.p1_sz], v, uov.m_sz)
-    m2 = unpack_mrect(tm[uov.p1_sz+1:uov.p1_sz+uov.p2_sz], v, m, uov.m_sz)
-    m3 = unpack_mtri(tm[uov.p1_sz+uov.p2_sz+1:end], m, uov.m_sz)
-    x = gf_unpack(z, uov.gf)
-    
-    y = BigInt(0)
-    # P1
+
+    m1 = unpack_mtri(uov, tm[1:uov.p1_sz], v)
+    m2 = unpack_mrect(uov, tm[uov.p1_sz+1:uov.p1_sz+uov.p2_sz], v, m)
+    m3 = unpack_mtri(uov, tm[uov.p1_sz+uov.p2_sz+1:end], m)
+    x = unpack_vec(uov, z)
+
+    y = zeros(UInt8, uov.m)
     for i in 1:v
         for j in i:v
-            y ⊻= uov.gf_mulm(m1[i][j], uov.gf_mul(Int(x[i]), Int(x[j])), uov.mm)
+            vecxor!(y, gf_mulm(uov, m1[i][j], gf_mul(uov, x[i], x[j])))
         end
     end
-    
     for i in 1:v
         for j in 1:m
-            y ⊻= uov.gf_mulm(m2[i][j], uov.gf_mul(Int(x[i]), Int(x[v + j])), uov.mm)
+            vecxor!(y, gf_mulm(uov, m2[i][j], gf_mul(uov, x[i], x[v+j])))
         end
     end
-    
     for i in 1:m
         for j in i:m
-            y ⊻= uov.gf_mulm(m3[i][j], uov.gf_mul(Int(x[v + i]), Int(x[v + j])), uov.mm)
+            vecxor!(y, gf_mulm(uov, m3[i][j], gf_mul(uov, x[v+i], x[v+j])))
         end
     end
-    
-    return int_to_bytes(y, uov.m_sz)
+
+    return pack_vec(uov, y)
 end
 
 # Key generation
@@ -392,19 +384,19 @@ function keygen(uov::UOV)
     so = seed_pk_so[uov.seed_pk_sz+1:end]
     p1, p2 = expand_p(uov, seed_pk)
     sks, p3 = calc_f2_p3(uov, p1, p2, so)
-    
+
     if uov.pkc
         pk = vcat(seed_pk, p3)
     else
         pk = vcat(p1, p2, p3)
     end
-    
+
     if uov.skc
         sk = seed_sk
     else
         sk = vcat(seed_sk, so, p1, sks)
     end
-    
+
     return pk, sk
 end
 
@@ -413,60 +405,55 @@ function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     if uov.skc
         sk = expand_sk(uov, sk)
     end
-    
+
     seed_sk = sk[1:uov.seed_sk_sz]
     so = sk[uov.seed_sk_sz+1:uov.seed_sk_sz+uov.so_sz]
     p1 = sk[uov.seed_sk_sz+uov.so_sz+1:uov.seed_sk_sz+uov.so_sz+uov.p1_sz]
     sks = sk[uov.seed_sk_sz+uov.so_sz+uov.p1_sz+1:end]
-    
-    m1 = unpack_mtri(p1, uov.v, uov.m_sz)
-    ms = unpack_mrect(sks, uov.v, uov.m, uov.m_sz)
-    mo = [gf_unpack(so[i:i+((uov.gf == 16) ? uov.v÷2 : uov.v)-1], uov.gf) for i in 1:((uov.gf == 16) ? uov.v÷2 : uov.v):uov.so_sz]
-    
+
+    m1 = unpack_mtri(uov, p1)
+    ms = unpack_mrect(uov, sks, uov.v, uov.m)
+    mo = unpack_rect(uov, so)
+
     salt = uov.rbg(uov.salt_sz)
     t = shake_256(vcat(msg, salt), uov.m_sz)
-    
+
     ctr = 0
     x = nothing
-    v = Int[]
+    v = UInt8[]
     while x === nothing && ctr < 256
-        v = gf_unpack(shake_256(vcat(msg, salt, seed_sk, UInt8[ctr]), uov.v_sz), uov.gf)
+        v = unpack_vec(uov, shake_256(vcat(msg, salt, seed_sk, UInt8[ctr]), uov.v_sz))
         ctr += 1
-        
-        ll = [BigInt(0) for _ in 1:uov.m]
-        
+
+        ll = [zeros(UInt8, uov.m) for _ in 1:uov.m]
         for i in 1:uov.m
+            acc = zeros(UInt8, uov.m)
             for j in 1:uov.v
-                ll[i] = ll[i] ⊻ uov.gf_mulm(ms[j][i], v[j], uov.mm)
+                vecxor!(acc, gf_mulm(uov, ms[j][i], v[j]))
             end
+            ll[i] = acc
         end
-        
-        r = BigInt(0)
-        for (idx, byte_val) in enumerate(t)
-            r = r * 256 + BigInt(byte_val)
-        end
+
+        r = unpack_vec(uov, t)
         for i in 1:uov.v
-            u = BigInt(0)
+            u = zeros(UInt8, uov.m)
             for j in i:uov.v
-                u = u ⊻ uov.gf_mulm(m1[i][j], v[j], uov.mm)
+                vecxor!(u, gf_mulm(uov, m1[i][j], v[j]))
             end
-            r = r ⊻ uov.gf_mulm(u, v[i], uov.mm)
+            vecxor!(r, gf_mulm(uov, u, v[i]))
         end
-        r = gf_unpack(int_to_bytes(r, uov.m_sz), uov.gf)
-        
+
         x = gauss_solve(uov, ll, r)
-        
     end
-    
-    y = vcat(v)
+
+    y = copy(v)
     for i in 1:uov.m
         for j in 1:uov.v
-            y[j] ⊻= uov.gf_mul(mo[i][j], x[i])
+            y[j] ⊻= gf_mul(uov, mo[i][j], x[i])
         end
     end
-    
-    sig = vcat(gf_pack(y, uov.gf), gf_pack(x, uov.gf), salt)
-    
+
+    sig = vcat(pack_vec(uov, y), pack_vec(uov, x), salt)
     return sig
 end
 
@@ -475,12 +462,12 @@ function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UIn
     if uov.pkc
         pk = expand_pk(uov, pk)
     end
-    
+
     z = sig[1:uov.n_sz]
     salt = sig[uov.n_sz+1:end]
-    
+
     t = shake_256(vcat(msg, salt), uov.m_sz)
-    
+
     return t == pubmap(uov, z, pk)
 end
 
@@ -489,11 +476,11 @@ function open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
     msg_sz = length(sm) - uov.sig_sz
     msg = sm[1:msg_sz]
     sig = sm[msg_sz+1:end]
-    
+
     if !verify(uov, sig, msg, pk)
         return nothing
     end
-    
+
     return msg
 end
 
@@ -502,65 +489,25 @@ function default_rbg(n::Int=32)
     return rand(UInt8, n)
 end
 
-# Int to bytes conversion
-function int_to_bytes(val::Int, n::Int)::Vector{UInt8}
-    result = UInt8[]
-    for i in 1:n
-        push!(result, UInt8((val >>> (8 * (n - i))) & 0xFF))
-    end
-    return result
-end
-
-function int_to_bytes(val::BigInt, n::Int)::Vector{UInt8}
-    result = UInt8[]
-    for i in 1:n
-        push!(result, UInt8((val >>> (8 * (n - i))) & 0xFF))
-    end
-    return result
-end
-
 # Instantiate UOV parameter sets
 function make_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
     v = n - m
-    
-    if pkc
-        kc = "pkc"
-    else
-        kc = "classic"
-    end
-    if skc
-        kc *= "-skc"
-    end
-    
-    katname = "OV($gf,$n,$m)-$kc"
-    
-    if gf == 256
-        gf_bits = 8
-        gf_mul = gf256_mul
-        gf_mulm = gf256_mulm
-    elseif gf == 16
-        gf_bits = 4
-        gf_mul = gf16_mul
-        gf_mulm = gf16_mulm
-    else
-        throw(ArgumentError("Invalid gf: $gf. Must be 256 or 16."))
-    end
-    
+    gf_bits = (gf == 256) ? 8 : 4
+    mul_tab, inv_tab = _field_tables(gf)
+
     v_sz = gf_bits * v ÷ 8
     n_sz = gf_bits * n ÷ 8
     m_sz = gf_bits * m ÷ 8
-    
+
     seed_sk_sz = 32
     seed_pk_sz = 16
     salt_sz = 16
     sig_sz = v_sz + m_sz + salt_sz
-    
-    mm = BigInt(0)
-    for i in 1:m
-        mm = gf * mm + (gf >> 1)
-    end
-    
-    return UOV(gf, n, m, v, pkc, skc, name, default_rbg, gf_bits, gf_mul, gf_mulm, v_sz, n_sz, m_sz, sig_sz, seed_sk_sz, seed_pk_sz, gf_bits * v * m ÷ 8, m_sz * v * (v + 1) ÷ 2, m_sz * v * m, m_sz * m * (m + 1) ÷ 2, salt_sz, mm)
+
+    return UOV(gf, n, m, v, pkc, skc, name, default_rbg, gf_bits, mul_tab, inv_tab,
+               v_sz, n_sz, m_sz, sig_sz, seed_sk_sz, seed_pk_sz,
+               gf_bits * v * m ÷ 8, m_sz * v * (v + 1) ÷ 2, m_sz * v * m,
+               m_sz * m * (m + 1) ÷ 2, salt_sz)
 end
 
 # Parameter sets
