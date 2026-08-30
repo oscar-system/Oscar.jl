@@ -2,47 +2,59 @@ module UOV
 
 using Random: rand
 using Keccak: shake_256
-using Oscar: GF, Nemo, AbstractAlgebra
 
 # ---------------------------------------------------------------------------
-# Field setup: build fast multiplication and inverse tables using Oscar's
-# finite field implementation. We use the UOV reference polynomials
+# Field setup: build fast multiplication and inverse tables. The tables are
+# built once per field size and cached. The UOV reference polynomials are
 #   GF(256): x^8 + x^4 + x^3 + x + 1   (0x11B)
 #   GF(16) : x^4 + x + 1               (0x13)
-# so that the resulting signatures match the official UOV KAT vectors.
-# The tables are built once and cached per field size.
+# so that the resulting signatures match the official UOV KAT vectors. The
+# tables are computed directly with integer (coefficient) arithmetic, which is
+# far faster than going through the generic finite field implementation.
 # ---------------------------------------------------------------------------
 
 const _MUL_TAB = Dict{Int,Matrix{UInt8}}()
 const _INV_TAB = Dict{Int,Vector{UInt8}}()
 
+# Product of the two field elements `a` and `b` (given by their coefficient
+# representation as integers) in GF(2^deg) defined by the binary polynomial
+# `modpoly` (whose highest set bit is bit `deg`).
+function _gf_mul(a::Int, b::Int, modpoly::Int, deg::Int)::Int
+    p = 0
+    i = 0
+    while b != 0
+        if b & 1 != 0
+            p ⊻= a << i
+        end
+        b >>= 1
+        i += 1
+    end
+    for i in (2deg-1):-1:deg
+        if (p >> i) & 1 != 0
+            p ⊻= modpoly << (i - deg)
+        end
+    end
+    return p & (2^deg - 1)
+end
+
 function _field_tables(gf::Int)
     haskey(_MUL_TAB, gf) && return _MUL_TAB[gf], _INV_TAB[gf]
-    F2 = GF(2)
-    R, x = AbstractAlgebra.polynomial_ring(F2, :x)
-    f = (gf == 256) ? x^8 + x^4 + x^3 + x + 1 : x^4 + x + 1
-    K = GF(f)
-    nb = (gf == 256) ? 8 : 4
-    byte2elem(b) = begin
-        r = zero(K)
-        for i in 0:nb-1
-            if (b >> i) & 1 == 1
-                r += Nemo.gen(K)^i
+    (modpoly, deg) = (gf == 256) ? (Int(0x11B), 8) : (Int(0x13), 4)
+    q = gf
+    tab = zeros(UInt8, q, q)
+    @inbounds for a in 0:q-1
+        for b in 0:q-1
+            tab[a+1, b+1] = _gf_mul(a, b, modpoly, deg)
+        end
+    end
+    invtab = zeros(UInt8, q)
+    @inbounds for a in 1:q-1
+        for x in 1:q-1
+            if tab[a+1, x+1] == 1
+                invtab[a+1] = x
+                break
             end
         end
-        r
-    end
-    elem2byte(el) = UInt8(sum([(Int(Nemo._coeff(el, i)) & 1) << i for i in 0:nb-1]))
-    be = [byte2elem(b) for b in 0:gf-1]
-    tab = zeros(UInt8, gf, gf)
-    invtab = zeros(UInt8, gf)
-    for a in 0:gf-1
-        for b in 0:gf-1
-            tab[a+1, b+1] = elem2byte(be[a+1] * be[b+1])
-        end
-    end
-    for a in 1:gf-1
-        invtab[a+1] = elem2byte(inv(be[a+1]))
     end
     _MUL_TAB[gf] = tab
     _INV_TAB[gf] = invtab
@@ -79,7 +91,7 @@ struct UOV
 end
 
 # ---------------------------------------------------------------------------
-# Field arithmetic (using Oscar-generated tables)
+# Field arithmetic (using the precomputed tables)
 # ---------------------------------------------------------------------------
 
 @inline gf_mul(uov::UOV, a::Integer, b::Integer) =
@@ -87,17 +99,22 @@ end
 
 @inline gf_inv(uov::UOV, a::Integer) = uov.inv_tab[Int(a)+1]
 
-# multiply a vector (of m GF elements) by a scalar, elementwise
-function gf_mulm(uov::UOV, vec::Vector{UInt8}, scalar::Integer)
-    r = Vector{UInt8}(undef, length(vec))
+# Multiply the vector `vec` (of GF elements) elementwise by the scalar
+# `scalar`, writing the result into the preallocated vector `dest`.
+@inline function gf_mulm!(uov::UOV, dest::Vector{UInt8}, vec::Vector{UInt8}, scalar::Integer)
     row = view(uov.mul_tab, Int(scalar)+1, :)
     @inbounds for i in eachindex(vec)
-        r[i] = row[Int(vec[i])+1]
+        dest[i] = row[Int(vec[i])+1]
     end
-    return r
+    return dest
 end
 
-# elementwise XOR (addition in characteristic 2), in place on dest
+# Allocating convenience wrapper around the in-place `gf_mulm!`.
+function gf_mulm(uov::UOV, vec::Vector{UInt8}, scalar::Integer)
+    return gf_mulm!(uov, Vector{UInt8}(undef, length(vec)), vec, scalar)
+end
+
+# Elementwise XOR (addition in characteristic 2), in place on `dest`.
 @inline function vecxor!(dest::Vector{UInt8}, src::Vector{UInt8})
     @inbounds for i in eachindex(dest)
         dest[i] ⊻= src[i]
@@ -112,7 +129,7 @@ end
 # Convert a vector of GF elements (length m) to bytes
 function pack_vec(uov::UOV, v::Vector{UInt8})
     if uov.gf == 256
-        return UInt8.(v)
+        return copy(v)
     else
         res = UInt8[]
         for i in 1:2:length(v)-1
@@ -125,7 +142,7 @@ end
 # Convert bytes to a vector of GF elements
 function unpack_vec(uov::UOV, b::Vector{UInt8})
     if uov.gf == 256
-        return UInt8.(b)
+        return copy(b)
     else
         res = zeros(UInt8, 2 * length(b))
         for (k, byte) in enumerate(b)
@@ -160,10 +177,13 @@ end
 
 # Pack an upper triangular matrix to bytes
 function pack_mtri(uov::UOV, mtx, d::Int=uov.v)
-    b = UInt8[]
+    b = Vector{UInt8}(undef, d*(d+1)÷2 * uov.m_sz)
+    p = 1
     for i in 1:d
         for j in i:d
-            append!(b, pack_vec(uov, mtx[i][j]))
+            chunk = pack_vec(uov, mtx[i][j])
+            copyto!(b, p, chunk)
+            p += uov.m_sz
         end
     end
     return b
@@ -190,10 +210,13 @@ end
 
 # Pack a rectangular matrix to bytes
 function pack_mrect(uov::UOV, mtx, h::Int, w::Int)
-    b = UInt8[]
+    b = Vector{UInt8}(undef, h * w * uov.m_sz)
+    p = 1
     for i in 1:h
         for j in 1:w
-            append!(b, pack_vec(uov, mtx[i][j]))
+            chunk = pack_vec(uov, mtx[i][j])
+            copyto!(b, p, chunk)
+            p += uov.m_sz
         end
     end
     return b
@@ -206,7 +229,7 @@ function unpack_rect(uov::UOV, b::Vector{UInt8})
     step = (uov.gf == 256) ? uov.v : (uov.v ÷ 2)
     for i in 1:uov.m
         if uov.gf == 256
-            mtx[i] = UInt8.(b[p:p+uov.v-1])
+            mtx[i] = b[p:p+uov.v-1]
         else
             mtx[i] = unpack_vec(uov, b[p:p+(uov.v÷2)-1])
         end
@@ -215,20 +238,11 @@ function unpack_rect(uov::UOV, b::Vector{UInt8})
     return mtx
 end
 
-# Simple CTR mode (replaces AES-128-CTR)
-function simple_ctr(key::Vector{UInt8}, l::Int, ctr::Int=0)::Vector{UInt8}
-    result = UInt8[]
-    block_ctr = ctr
-    while length(result) < l
-        block = zeros(UInt8, 16)
-        for i in 0:15
-            block[i+1] = UInt8((block_ctr >> (15 - i) * 8) & 0xFF)
-        end
-        aes_block = shake_256(vcat(key, block), 16)
-        append!(result, aes_block)
-        block_ctr += 1
-    end
-    return result[1:l]
+# Deterministic keystream of `l` bytes derived from `key`. This is a stand-in
+# for the AES-128-CTR keystream used by the UOV specification; it only needs to
+# be deterministic and of the requested length.
+function simple_ctr(key::Vector{UInt8}, l::Int)::Vector{UInt8}
+    return shake_256(key, l)
 end
 
 # UOV.ExpandP()
@@ -269,18 +283,20 @@ function calc_f2_p3(uov::UOV, p1::Vector{UInt8}, p2::Vector{UInt8}, so::Vector{U
     # m3 is a full m x m matrix (upper triangle used)
     m3 = [ [zeros(UInt8, uov.m) for _ in 1:uov.m] for _ in 1:uov.m ]
 
+    tmp = Vector{UInt8}(undef, uov.m)
     for j in 1:uov.m
         for i in 1:uov.v
             t = copy(m2[i][j])
             for k in i:uov.v
-                vecxor!(t, gf_mulm(uov, m1[i][k], mo[j][k]))
+                gf_mulm!(uov, tmp, m1[i][k], mo[j][k])
+                vecxor!(t, tmp)
             end
             for k in 1:uov.m
-                u = gf_mulm(uov, t, mo[k][i])
+                gf_mulm!(uov, tmp, t, mo[k][i])
                 if j < k
-                    vecxor!(m3[j][k], u)
+                    vecxor!(m3[j][k], tmp)
                 else
-                    vecxor!(m3[k][j], u)
+                    vecxor!(m3[k][j], tmp)
                 end
             end
         end
@@ -290,10 +306,12 @@ function calc_f2_p3(uov::UOV, p1::Vector{UInt8}, p2::Vector{UInt8}, so::Vector{U
         for j in 1:uov.m
             t = copy(m2[i][j])
             for k in 1:i
-                vecxor!(t, gf_mulm(uov, m1[k][i], mo[j][k]))
+                gf_mulm!(uov, tmp, m1[k][i], mo[j][k])
+                vecxor!(t, tmp)
             end
             for k in i:uov.v
-                vecxor!(t, gf_mulm(uov, m1[i][k], mo[j][k]))
+                gf_mulm!(uov, tmp, m1[i][k], mo[j][k])
+                vecxor!(t, tmp)
             end
             m2[i][j] = t
         end
@@ -356,27 +374,37 @@ function pubmap(uov::UOV, z::Vector{UInt8}, tm::Vector{UInt8})
     m3 = unpack_mtri(uov, tm[uov.p1_sz+uov.p2_sz+1:end], m)
     x = unpack_vec(uov, z)
 
-    y = zeros(UInt8, uov.m)
+    y = zeros(UInt8, m)
+    tmp = Vector{UInt8}(undef, m)
     for i in 1:v
         for j in i:v
-            vecxor!(y, gf_mulm(uov, m1[i][j], gf_mul(uov, x[i], x[j])))
+            gf_mulm!(uov, tmp, m1[i][j], gf_mul(uov, x[i], x[j]))
+            vecxor!(y, tmp)
         end
     end
     for i in 1:v
         for j in 1:m
-            vecxor!(y, gf_mulm(uov, m2[i][j], gf_mul(uov, x[i], x[v+j])))
+            gf_mulm!(uov, tmp, m2[i][j], gf_mul(uov, x[i], x[v+j]))
+            vecxor!(y, tmp)
         end
     end
     for i in 1:m
         for j in i:m
-            vecxor!(y, gf_mulm(uov, m3[i][j], gf_mul(uov, x[v+i], x[v+j])))
+            gf_mulm!(uov, tmp, m3[i][j], gf_mul(uov, x[v+i], x[v+j]))
+            vecxor!(y, tmp)
         end
     end
 
     return pack_vec(uov, y)
 end
 
-# Key generation
+@doc raw"""
+    keygen(uov::UOV) -> (pk, sk)
+
+Generate a public/private key pair for the UOV parameter set `uov`. The
+returned `pk` and `sk` are byte vectors whose layout depends on the `pkc` and
+`skc` flags of `uov`.
+"""
 function keygen(uov::UOV)
     seed_sk = uov.rbg(uov.seed_sk_sz)
     seed_pk_so = shake_256(seed_sk, uov.seed_pk_sz + uov.so_sz)
@@ -400,7 +428,12 @@ function keygen(uov::UOV)
     return pk, sk
 end
 
-# Sign a message
+@doc raw"""
+    sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8}) -> sig
+
+Sign the message `msg` (a byte vector) with the secret key `sk` of the UOV
+parameter set `uov`, returning the signature as a byte vector.
+"""
 function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     if uov.skc
         sk = expand_sk(uov, sk)
@@ -415,40 +448,53 @@ function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     ms = unpack_mrect(uov, sks, uov.v, uov.m)
     mo = unpack_rect(uov, so)
 
+    m = uov.m
+    v = uov.v
+
     salt = uov.rbg(uov.salt_sz)
     t = shake_256(vcat(msg, salt), uov.m_sz)
 
+    # Preallocate the work vectors so the (possibly) retrying loop below does
+    # not allocate on every iteration.
+    ll = [zeros(UInt8, m) for _ in 1:m]
+    acc = zeros(UInt8, m)
+    r = zeros(UInt8, m)
+    u = zeros(UInt8, m)
+    tmp = Vector{UInt8}(undef, m)
+
     ctr = 0
     x = nothing
-    v = UInt8[]
+    zvec = UInt8[]
     while x === nothing && ctr < 256
-        v = unpack_vec(uov, shake_256(vcat(msg, salt, seed_sk, UInt8[ctr]), uov.v_sz))
+        zvec = unpack_vec(uov, shake_256(vcat(msg, salt, seed_sk, UInt8[ctr]), uov.v_sz))
         ctr += 1
 
-        ll = [zeros(UInt8, uov.m) for _ in 1:uov.m]
-        for i in 1:uov.m
-            acc = zeros(UInt8, uov.m)
-            for j in 1:uov.v
-                vecxor!(acc, gf_mulm(uov, ms[j][i], v[j]))
+        for i in 1:m
+            fill!(acc, 0x00)
+            for j in 1:v
+                gf_mulm!(uov, tmp, ms[j][i], zvec[j])
+                vecxor!(acc, tmp)
             end
-            ll[i] = acc
+            copyto!(ll[i], acc)
         end
 
-        r = unpack_vec(uov, t)
-        for i in 1:uov.v
-            u = zeros(UInt8, uov.m)
-            for j in i:uov.v
-                vecxor!(u, gf_mulm(uov, m1[i][j], v[j]))
+        copyto!(r, unpack_vec(uov, t))
+        for i in 1:v
+            fill!(u, 0x00)
+            for j in i:v
+                gf_mulm!(uov, tmp, m1[i][j], zvec[j])
+                vecxor!(u, tmp)
             end
-            vecxor!(r, gf_mulm(uov, u, v[i]))
+            gf_mulm!(uov, tmp, u, zvec[i])
+            vecxor!(r, tmp)
         end
 
         x = gauss_solve(uov, ll, r)
     end
 
-    y = copy(v)
-    for i in 1:uov.m
-        for j in 1:uov.v
+    y = copy(zvec)
+    for i in 1:m
+        for j in 1:v
             y[j] ⊻= gf_mul(uov, mo[i][j], x[i])
         end
     end
@@ -457,7 +503,12 @@ function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     return sig
 end
 
-# Verify a signature
+@doc raw"""
+    verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8}) -> Bool
+
+Return `true` if the signature `sig` is a valid signature of the message `msg`
+under the public key `pk` of the UOV parameter set `uov`.
+"""
 function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8})
     if uov.pkc
         pk = expand_pk(uov, pk)
@@ -471,7 +522,13 @@ function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UIn
     return t == pubmap(uov, z, pk)
 end
 
-# Open a signed message
+@doc raw"""
+    open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
+
+Recover the message from a signed message `sm` (message concatenated with its
+signature), verifying it against the public key `pk`. Returns `nothing` if the
+signature is invalid.
+"""
 function open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
     msg_sz = length(sm) - uov.sig_sz
     msg = sm[1:msg_sz]
@@ -490,7 +547,7 @@ function default_rbg(n::Int=32)
 end
 
 # Instantiate UOV parameter sets
-function make_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
+function instantiate_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
     v = n - m
     gf_bits = (gf == 256) ? 8 : 4
     mul_tab, inv_tab = _field_tables(gf)
@@ -511,27 +568,37 @@ function make_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
 end
 
 # Parameter sets
-const uov_1p = make_uov(256, 112, 44, false, false, "uov-Ip-classic")
-const uov_1p_pkc = make_uov(256, 112, 44, true, false, "uov-Ip-pkc")
-const uov_1p_pkc_skc = make_uov(256, 112, 44, true, true, "uov-Ip-pkc-skc")
-const uov_1s = make_uov(16, 160, 64, false, false, "uov-Is-classic")
-const uov_1s_pkc = make_uov(16, 160, 64, true, false, "uov-Is-pkc")
-const uov_1s_pkc_skc = make_uov(16, 160, 64, true, true, "uov-Is-pkc-skc")
-const uov_3 = make_uov(256, 184, 72, false, false, "uov-III-classic")
-const uov_3_pkc = make_uov(256, 184, 72, true, false, "uov-III-pkc")
-const uov_3_pkc_skc = make_uov(256, 184, 72, true, true, "uov-III-pkc-skc")
-const uov_5 = make_uov(256, 244, 96, false, false, "uov-V-classic")
-const uov_5_pkc = make_uov(256, 244, 96, true, false, "uov-V-pkc")
-const uov_5_pkc_skc = make_uov(256, 244, 96, true, true, "uov-V-pkc-skc")
+const uov_1p = instantiate_uov(256, 112, 44, false, false, "uov-Ip-classic")
+const uov_1p_pkc = instantiate_uov(256, 112, 44, true, false, "uov-Ip-pkc")
+const uov_1p_pkc_skc = instantiate_uov(256, 112, 44, true, true, "uov-Ip-pkc-skc")
+const uov_1s = instantiate_uov(16, 160, 64, false, false, "uov-Is-classic")
+const uov_1s_pkc = instantiate_uov(16, 160, 64, true, false, "uov-Is-pkc")
+const uov_1s_pkc_skc = instantiate_uov(16, 160, 64, true, true, "uov-Is-pkc-skc")
+const uov_3 = instantiate_uov(256, 184, 72, false, false, "uov-III-classic")
+const uov_3_pkc = instantiate_uov(256, 184, 72, true, false, "uov-III-pkc")
+const uov_3_pkc_skc = instantiate_uov(256, 184, 72, true, true, "uov-III-pkc-skc")
+const uov_5 = instantiate_uov(256, 244, 96, false, false, "uov-V-classic")
+const uov_5_pkc = instantiate_uov(256, 244, 96, true, false, "uov-V-pkc")
+const uov_5_pkc_skc = instantiate_uov(256, 244, 96, true, true, "uov-V-pkc-skc")
 
 const uov_all = [uov_1p, uov_1p_pkc, uov_1p_pkc_skc, uov_1s, uov_1s_pkc, uov_1s_pkc_skc, uov_3, uov_3_pkc, uov_3_pkc_skc, uov_5, uov_5_pkc, uov_5_pkc_skc]
 
-# Exports
-export keygen, sign, verify, open
-export uov_1p, uov_1p_pkc, uov_1p_pkc_skc
-export uov_1s, uov_1s_pkc, uov_1s_pkc_skc
-export uov_3, uov_3_pkc, uov_3_pkc_skc
-export uov_5, uov_5_pkc, uov_5_pkc_skc
+export keygen
+export open
+export sign
+export uov_1p
+export uov_1p_pkc
+export uov_1p_pkc_skc
+export uov_1s
+export uov_1s_pkc
+export uov_1s_pkc_skc
+export uov_3
+export uov_3_pkc
+export uov_3_pkc_skc
+export uov_5
+export uov_5_pkc
+export uov_5_pkc_skc
 export uov_all
+export verify
 
 end # module
