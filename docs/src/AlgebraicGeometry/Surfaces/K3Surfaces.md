@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Automorphism Groups of  K3 surfaces
 
 A complex K3 surface is a compact complex surface $X$

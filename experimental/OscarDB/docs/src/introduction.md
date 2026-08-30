@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # OscarDB
 
 This module provides a general database framework which, conceptually, works for all OSCAR types.

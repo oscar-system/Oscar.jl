@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Action polynomial rings](@id actionpolyring)
 
 An *action polynomial ring* over the commutative ring ``R`` is a polynomial ring

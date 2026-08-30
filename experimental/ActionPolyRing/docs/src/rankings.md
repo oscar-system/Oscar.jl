@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Rankings](@id actionpolyranking)
 
 Let ``A`` be an action polynomial ring with ``m`` elementary symbols and ``n`` commuting action maps.  

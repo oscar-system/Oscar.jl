@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Some particular constructions
 
 In this section, we illustrate the construction of abstract varieties in Oscar by particular examples.
