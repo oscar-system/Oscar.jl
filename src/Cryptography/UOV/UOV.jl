@@ -1,4 +1,3 @@
-module UOV
 
 using Random: rand
 using Keccak: shake_256
@@ -582,23 +581,3 @@ const uov_5_pkc = instantiate_uov(256, 244, 96, true, false, "uov-V-pkc")
 const uov_5_pkc_skc = instantiate_uov(256, 244, 96, true, true, "uov-V-pkc-skc")
 
 const uov_all = [uov_1p, uov_1p_pkc, uov_1p_pkc_skc, uov_1s, uov_1s_pkc, uov_1s_pkc_skc, uov_3, uov_3_pkc, uov_3_pkc_skc, uov_5, uov_5_pkc, uov_5_pkc_skc]
-
-export keygen
-export open
-export sign
-export uov_1p
-export uov_1p_pkc
-export uov_1p_pkc_skc
-export uov_1s
-export uov_1s_pkc
-export uov_1s_pkc_skc
-export uov_3
-export uov_3_pkc
-export uov_3_pkc_skc
-export uov_5
-export uov_5_pkc
-export uov_5_pkc_skc
-export uov_all
-export verify
-
-end # module
