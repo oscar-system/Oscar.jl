@@ -318,23 +318,30 @@ include("InvariantTheory/InvariantTheory.jl")
 include("LieTheory/LieTheory.jl")
 
 include("Cryptography/UOV/UOV.jl")
-using .UOV: keygen, sign, verify, open
-# Constants must be imported explicitly after the module is loaded
-# They are defined in the UOV module, so we can access them directly
-const uov_1p = Oscar.UOV.uov_1p
-const uov_1p_pkc = Oscar.UOV.uov_1p_pkc
-const uov_1p_pkc_skc = Oscar.UOV.uov_1p_pkc_skc
-const uov_1s = Oscar.UOV.uov_1s
-const uov_1s_pkc = Oscar.UOV.uov_1s_pkc
-const uov_1s_pkc_skc = Oscar.UOV.uov_1s_pkc_skc
-const uov_3 = Oscar.UOV.uov_3
-const uov_3_pkc = Oscar.UOV.uov_3_pkc
-const uov_3_pkc_skc = Oscar.UOV.uov_3_pkc_skc
-const uov_5 = Oscar.UOV.uov_5
-const uov_5_pkc = Oscar.UOV.uov_5_pkc
-const uov_5_pkc_skc = Oscar.UOV.uov_5_pkc_skc
-const uov_all = Oscar.UOV.uov_all
-export uov_1p, uov_1p_pkc, uov_1p_pkc_skc, uov_1s, uov_1s_pkc, uov_1s_pkc_skc, uov_3, uov_3_pkc, uov_3_pkc_skc, uov_5, uov_5_pkc, uov_5_pkc_skc, uov_all
+# `sign` and `open` are intentionally not imported here: they already refer to
+# Base functions in Oscar, and importing the UOV versions would be misleading.
+# They remain available as `Oscar.UOV.sign` and `Oscar.UOV.open`.
+# using .UOV: keygen, verify,
+#             uov_1p, uov_1p_pkc, uov_1p_pkc_skc,
+#             uov_1s, uov_1s_pkc, uov_1s_pkc_skc,
+#             uov_3, uov_3_pkc, uov_3_pkc_skc,
+#             uov_5, uov_5_pkc, uov_5_pkc_skc,
+#             uov_all
+# export keygen
+# export uov_1p
+# export uov_1p_pkc
+# export uov_1p_pkc_skc
+# export uov_1s
+# export uov_1s_pkc
+# export uov_1s_pkc_skc
+# export uov_3
+# export uov_3_pkc
+# export uov_3_pkc_skc
+# export uov_5
+# export uov_5_pkc
+# export uov_5_pkc_skc
+# export uov_all
+# export verify
 
 
 # Serialization should always come at the end of Oscar source code
