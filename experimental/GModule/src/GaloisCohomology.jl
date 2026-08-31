@@ -1467,11 +1467,8 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
         end
       end
       if length(fnd) != 2
-        @show :incr
-        @show pr *= 2
         if pr > 1000
-          global last_eval = (i1, I1.mG, gC, a, i2, I2.mG, gD, A)
-          error("too bad")
+          error("too bad - precisiion too large $(pr) to be plausible")
         end
       else
         break
@@ -3406,7 +3403,7 @@ function global_fundamental_class(A::IdeleParent)
     # - compare
     pos = findfirst(isequal(minimum(good_P)), map(minimum, B.S))
     Kp, mKKp, mGp, mUp, proBUp, injUpB = completion(B, B.S[pos])
-    @vprint :GaloisCohomology 1 "Serre's algorithm (for $(minimum(B.S[pos])))...\n"
+    @vprint :GaloisCohomology 1 "Serre's algorithm (for p = $(minimum(B.S[pos])))...\n"
     @vtime :GaloisCohomology 2 s = Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
     #a 2-cycle with values in Kp
     mGpG = decomposition_group(K, mKKp, B.mG, mGp)
@@ -3447,14 +3444,22 @@ function global_fundamental_class(A::IdeleParent)
 
     @vtime :GaloisCohomology 2 c = cohomology_group(hsK, 2; no_kernel = true) #H^2, H^2 -> B, H^2 -> 2-chain
 #      new_g = magic_inf(B.data[1], new_g, identity_map(fK[2]), msC, hsK[2])
-    pc = preimage(c[2], genIC)
-    pg = preimage(c[2], new_g)
-    @show order(pI), order(pc), order(pca)
+    @vtime :GaloisCohomology 2 pc = preimage(c[2], genIC)
+    @vtime :GaloisCohomology 2 pg = preimage(c[2], new_g)
     hh = hom(h2i[1], c[1], [pI], [pc])
     hpca = hh(pca)
     push!(scale, (findall(x->x*pg == hpca, 1:degree(number_field(A))), order(h2i[1])))
   end
-  return scale
+  @assert all(x->length(x[1]) == 1, scale)
+  mod = Int[]
+  val = Int[]
+  for x = scale
+    g = gcd(x[1][1], degree(number_field(A)))
+    @assert g*x[2] == degree(number_field(A))
+    push!(mod, x[2])
+    push!(val, divexact(x[1][1], g))
+  end
+  return z[3](crt(val, mod)*z[1][1])
 end
 
 function Oscar.number_field(C::IdeleParent)
