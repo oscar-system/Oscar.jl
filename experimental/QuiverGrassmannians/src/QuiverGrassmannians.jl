@@ -56,6 +56,7 @@ end
 function Base.show(io::IO, qR::QuiverRepresentation)
     print(io, "Quiver representation over ",qR.base_field," with ambient dimensions ",qR.ambient_dims, " and ",length(qR.edge_morphisms)," arrows")
 end
+
 @doc raw"""
     quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::AbstractVector{<:MatElem}, base_field::Field)
 
