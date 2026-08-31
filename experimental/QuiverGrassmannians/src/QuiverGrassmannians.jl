@@ -106,7 +106,7 @@ function edge_gens(e::Edge, nsi::Vector{Int}, dsi::Vector{Int}, A::MatElem, xdic
 end
 #creates weights for graded ring
 function grading_weights(Ls::Vector{Tuple{Int, Vector{Int}}}, e::Vector{Int})
-    [begin
+    return [begin
         z = zeros(Int, length(e))
         z[l[1]] = 1
         z
