@@ -118,7 +118,11 @@ function show(io::IO, kappa::DrinfeldHeckeForm)
 
   println(io, "given by alternating bilinear forms")
   n = degree(group(kappa))
-  for (k,(g, kappa_g)) in enumerate(alternating_bilinear_forms(kappa))
+  forms = collect(alternating_bilinear_forms(kappa))
+  sort!(
+    forms; by = p -> (!is_one(first(p)), string(matrix(first(p))), string(matrix(last(p))))
+  )
+  for (k,(g, kappa_g)) in enumerate(forms)
     A = matrix(g)
     B = matrix(kappa_g)
 
