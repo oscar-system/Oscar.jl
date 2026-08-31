@@ -53,7 +53,6 @@ function edge_morphisms(G::Graph{Directed}, As::AbstractVector{<:MatElem}, verte
         for (A, e) in zip(As, edges(G))
     ]
 end
-#print functions
 function Base.show(io::IO, qR::QuiverRepresentation)
     print(io, "Quiver representation over ",qR.base_field," with ambient dimensions ",qR.ambient_dims, " and ",length(qR.edge_morphisms)," arrows")
 end
