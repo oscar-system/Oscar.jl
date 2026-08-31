@@ -1,6 +1,6 @@
+function overlattices_no_new_roots(L::ZZLat; even::Bool=true)
 # compute representatives of the O(L) orbits 
 # of overlattices L < M such that M and L have the same roots
-function overlattices_no_new_roots(L::ZZLat; even::Bool=true)
   d = ZZ(det(L))
   primes = [p for (p,v) in factor(d) if v>1]
   result = ZZLat[L]
@@ -41,34 +41,32 @@ function _overlattices_no_new_roots_index_p(L::ZZLat, p::ZZRingElem; even::Bool=
   D = discriminant_group(L)
   timesp = hom(D, D, [p*x for x in gens(D)])
   Kp,iKp = kernel(timesp)
-  if isone(order(Kp))
-    return ZZLat[]
-  end
-  OKp = orthogonal_group(Kp)
-  qq = gram_matrix_quadratic(Kp)
-
-  G, iG = image_in_Oq(L) #kinda slow, probably inevitable
-  Gp,ip = restrict_automorphism_group(G, iKp; check=false)
-  b,j = is_subgroup(Gp, OKp; check=false); @assert b  
   result = ZZLat[]
-  nrootsL = length(short_vectors(L, 2))
-  @assert OKp === codomain(j)
-  if lines==false
-    @vprintln :ZZLatWithIsom 1 "computing isotropic subspace orbits by permutation representation (GAP)"
-    sg = first.(first.(Oscar._isotropic_subspaces_representatives_and_stabilizers_elementary(Kp, j, 1; do_stab=false)))
-    @vprintln :ZZLatWithIsom 1 "found $(length(sg))"
-  else @vprintln :ZZLatWithIsom 1 "computing isotropic subspace orbits by line orbits (Hecke)"
-    sg = _isotropic_lines_representatives(p, Kp, Gp)
-    @vprintln :ZZLatWithIsom 1 "found $(length(sg))"
-  end
-  for S in sg
-    M = cover(S)
-    if (even && p==2 && !is_even(M))
-      continue
+  if !isempty(gram_matrix_quadratic(Kp))
+    OKp = orthogonal_group(Kp)
+    qq = gram_matrix_quadratic(Kp)
+    G, iG = image_in_Oq(L) 
+    Gp,ip = restrict_automorphism_group(G, iKp; check=false)
+    b,j = is_subgroup(Gp, OKp; check=false); @assert b  
+    nrootsL = length(short_vectors(L, 2))
+    @assert OKp === codomain(j)
+    if lines==false
+      @vprintln :ZZLatWithIsom 1 "computing isotropic subspace orbits by permutation representation (GAP)"
+      sg = first.(first.(_isotropic_subspaces_representatives_and_stabilizers_elementary(Kp, j, 1; do_stab=false)))
+      @vprintln :ZZLatWithIsom 1 "found $(length(sg))"
+    else @vprintln :ZZLatWithIsom 1 "computing isotropic subspace orbits by line orbits (Hecke)"
+      sg = _isotropic_lines_representatives(p, Kp, Gp)
+      @vprintln :ZZLatWithIsom 1 "found $(length(sg))"
     end
-    nrootsM = length(short_vectors(M,2))
-    if nrootsL == nrootsM
-      push!(result, M)
+    for S in sg
+      M = cover(S)
+      if (even && p==2 && !is_even(M))
+        continue
+      end
+      nrootsM = length(short_vectors(M,2))
+      if nrootsL == nrootsM
+        push!(result, M)
+      end
     end
   end
   return result

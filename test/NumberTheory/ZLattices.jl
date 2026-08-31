@@ -40,8 +40,12 @@ end
   L2 = integer_lattice(gram = G2)
   L3 = lattice_in_same_ambient_space(L1,U*basis_matrix(L1))
   can_form1 = canonical_form(L1)
-  # can_form2 =  canonical_form(L2) # too long time, circa 1 hour to calculate can form
+  can_form2 =  canonical_form(L2) # has 2400 char vectors, after reducing it has 18
   can_form3 =  canonical_form(L3)
-  # @test can_form1 != can_form2
+  @test can_form1 != can_form2
   @test can_form1 == can_form3
+
+  G = matrix(QQ, 4, 4, [2,0,0,0, 0,3,1,1, 0,1,3,-1, 0,1,-1,5])
+  U = matrix(QQ, 4, 4, [0,1,1,0, 0,0,0,-1, 0,0,-1,1, 1,-1,-1,1])
+  @test canonical_form(integer_lattice(gram = G)) == canonical_form(integer_lattice(gram = U*G*transpose(U)))
 end

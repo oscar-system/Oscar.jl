@@ -23,6 +23,7 @@ end
       bacher_depth::Int=0,
       _set_nice_mono::Bool=true,
       _howell::Bool = true,
+      use_everything::Bool=true,
      ) -> MatGroup
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
@@ -49,7 +50,7 @@ is chosen heuristically depending on the rank of `L`. By default,
   bacher_depth::Int=0,
   _set_nice_mono::Bool=true,
   _howell::Bool = true,
-  use_everything::Bool=false,
+  use_everything::Bool=true,
 )
   # G is represented w.r.t the basis of L
   G = Hecke._assert_has_automorphisms_ZZLat(L; algorithm, depth, bacher_depth, _set_nice_mono, _howell, use_everything)
@@ -65,6 +66,7 @@ end
 
 # Algorithm selection in `isometry_group` and `is_isometric_with_isometry` 
 function _direct_is_faster(L::ZZLat)
+  return true  # with the improved algorithm in Hecke it is almost always faster. 
   # most of these values are just gut feeling and testing a few in detail
   # tested for 10 0000 lattices of rank 16-20 and smallish rank that the computations finish
   # a more thorough algorithm selection might be in order
@@ -124,8 +126,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
                                                redo::Bool=false,
                                                _set_nice_mono::Bool=true,
                                                try_small::Bool=true,
-                                               use_everything::Bool=false,
-                                               use_weyl::Bool=true
+                                               use_everything::Bool=true
 )
   # look in the cache
   if !redo && isdefined(L, :automorphism_group_generators)
@@ -140,7 +141,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_weyl=true)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything)
     _gens = L.automorphism_group_generators
     return matrix_group(_gens)
   end
