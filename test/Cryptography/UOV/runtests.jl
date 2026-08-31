@@ -41,39 +41,39 @@ end
   # Test uov_1p (and its pkc/skc variants)
   for uov in (Oscar.uov_1p, Oscar.uov_1p_pkc, Oscar.uov_1p_pkc_skc)
       pk, sk = Oscar.keygen(uov)
-      sig = Oscar.UOV.sign(uov, msg, sk)
+      sig = Oscar.sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test Oscar.UOV.verify(uov, sig, msg, pk)
+      @test Oscar.verify(uov, sig, msg, pk)
   end
 
   # Test uov_1s (GF(16) field)
   for uov in (Oscar.uov_1s, Oscar.uov_1s_pkc, Oscar.uov_1s_pkc_skc)
       pk, sk = Oscar.keygen(uov)
-      sig = Oscar.UOV.sign(uov, msg, sk)
+      sig = Oscar.sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test Oscar.UOV.verify(uov, sig, msg, pk)
+      @test Oscar.verify(uov, sig, msg, pk)
   end
 
   # Test uov_3
   for uov in (Oscar.uov_3, Oscar.uov_3_pkc, Oscar.uov_3_pkc_skc)
       pk, sk = Oscar.keygen(uov)
-      sig = Oscar.UOV.sign(uov, msg, sk)
+      sig = Oscar.sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test Oscar.UOV.verify(uov, sig, msg, pk)
+      @test Oscar.verify(uov, sig, msg, pk)
   end
 
   # Test uov_5 (largest parameter set)
   for uov in (Oscar.uov_5, Oscar.uov_5_pkc, Oscar.uov_5_pkc_skc)
       pk, sk = Oscar.keygen(uov)
-      sig = Oscar.UOV.sign(uov, msg, sk)
+      sig = Oscar.sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test Oscar.UOV.verify(uov, sig, msg, pk)
+      @test Oscar.verify(uov, sig, msg, pk)
   end
 
   # Test that verification rejects a tampered signature
   pk, sk = Oscar.keygen(Oscar.uov_1p)
-  sig = Oscar.UOV.sign(Oscar.uov_1p, msg, sk)
+  sig = Oscar.sign(Oscar.uov_1p, msg, sk)
   sig_bad = copy(sig)
   sig_bad[1] = sig_bad[1] ⊻ 0xFF
-  @test !Oscar.UOV.verify(Oscar.uov_1p, sig_bad, msg, pk)
+  @test !Oscar.verify(Oscar.uov_1p, sig_bad, msg, pk)
 end
