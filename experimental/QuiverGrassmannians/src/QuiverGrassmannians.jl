@@ -113,8 +113,7 @@ function grading_weights(Ls::Vector{Tuple{Int, Vector{Int}}}, e::Vector{Int})
     end for l in Ls]
 end
 
-#Creat coordinate ring of Quiver Grassmannian
-struct QuiverGrassmannian#add types
+struct QuiverGrassmannian
     quiver_representation::QuiverRepresentation
     ambient_ring::MPolyRing
     defining_ideal::MPolyIdeal
@@ -150,16 +149,16 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     #quiver rep data
     G = Q.quiver
     ns = Q.ambient_dims
-    As = transpose.(matrix.(Q.edge_morphisms))
+    As = matrix.(Q.edge_morphisms)
     @req length(dims) == length(ns) "each vertex needs a subspace dimension"
-    @req all([dims[i]<= ns[i] for i in 1:length(ns)]) "subspace dimension of vertex must be less than or
+    @req all([dims[i] <= ns[i] for i in 1:length(ns)]) "subspace dimension of vertex must be less than or
                                                         equal to the ambient dimension"
     F = Q.base_field
     #create labels for ambient ring variables
-    Ls = [(i,s) for i in 1:length(ns) for s in subsets(ns[i], dims[i])]
+    Ls = [(i, s) for i in 1:length(ns) for s in subsets(ns[i], dims[i])]
     sort!(Ls)
     #create ring
-    R,x = graded_polynomial_ring(F, :x=>Ls; weights = grading_weights(Ls, ns))
+    R, x = graded_polynomial_ring(F, :x=>Ls; weights = grading_weights(Ls, ns))
     #index dictionary
     xdict = Dict(Ls[i] => x[i] for i in 1:length(Ls))
     #create ideal generators for each edge
@@ -168,12 +167,12 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
         #quiver generators for node
         nsi = [ns[src(e)], ns[dst(e)]]
         dsi = [dims[src(e)], dims[dst(e)]]
-        Ge = edge_gens(e, nsi, dsi, A, xdict)
-        append!(Gs,Ge)
+        Ge = edge_gens(e, nsi, dsi, transpose(A), xdict)
+        append!(Gs, Ge)
     end
     #create grassmann generators for each node
     for j in 1:length(ns)
-        if ns[j]-1 >dims[j]>1
+        if ns[j]-1 > dims[j] > 1
             Jj = filter(t -> t[1] == j, Ls)
             xx = [xdict[t] for t in Jj]
             Gr_di_ni = gens(grassmann_pluecker_ideal(dims[j], ns[j]))
