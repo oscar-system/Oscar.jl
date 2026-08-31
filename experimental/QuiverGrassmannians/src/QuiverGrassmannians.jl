@@ -150,7 +150,6 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     #quiver rep data
     G = Q.quiver
     ns = Q.ambient_dims
-    As = matrix.(Q.edge_morphisms)
     @req length(dims) == length(ns) "each vertex needs a subspace dimension"
     @req all([dims[i] <= ns[i] for i in 1:length(ns)]) "subspace dimension of vertex must be less than or
                                                         equal to the ambient dimension"
