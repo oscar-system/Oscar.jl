@@ -168,7 +168,7 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
         #quiver generators for node
         nsi = [ns[src(e)], ns[dst(e)]]
         dsi = [dims[src(e)], dims[dst(e)]]
-        Ge = edge_gens(e, nsi, dsi, transpose(A), xdict)
+        Ge = edge_gens(e, nsi, dsi, transpose(matrix(A)), xdict)
         append!(Gs, Ge)
     end
     #create grassmann generators for each node
