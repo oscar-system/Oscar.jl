@@ -60,7 +60,7 @@ end
 @doc raw"""
     quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int}, maps::AbstractVector{<:MatElem}, base_field::Field)
 
-Returns `QuiverRepresentation` object corresponding to a directed graph `quiver`, ambient dimension vector `ambient_dims` corresponding to vertices, and list of linear maps `maps` corresponding to the edges of the graph.
+Return a `QuiverRepresentation` object corresponding to a directed graph `quiver`, ambient dimension vector `ambient_dims` corresponding to vertices, and list of linear maps `maps` corresponding to the edges of the graph.
 
 # Examples
 ```jldoctest
