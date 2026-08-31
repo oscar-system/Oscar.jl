@@ -90,6 +90,8 @@ Base.hash(a::MultGrpElem, h::UInt) = hash(a.data, h)
     r.G = G
     r.ac = ac
     r.M = M
+    r.action_cache = Dict{elem_type(G), typeof(M[1])}()
+    r.action_count = Dict{elem_type(G), Int}()
     @assert all(x -> domain(x) === codomain(x) === r.M, ac)
     if isa(G, Group)
       @assert length(ac) == ngens(G)
@@ -115,6 +117,8 @@ Base.hash(a::MultGrpElem, h::UInt) = hash(a.data, h)
   mF::GAPGroupHomomorphism  # G -> F, maps G[i] to F[i]
 
   iac::Vector{Map} # the inverses of ac
+  action_cache::Dict{GroupElem, Map}
+  action_count::Dict{GroupElem, Int}
 end
 
 function Base.:(==)(F::GModule{gT,mT}, E::GModule{gT,mT}) where {gT, mT}
@@ -226,12 +230,17 @@ action of `g`, ie. an array where each entry is mapped.
 """
 function action(C::GModule, g, v::T) where T <: Array
   @assert parent(g) == Group(C)
-  if has_attribute(C, :is_trivial)
+  if has_attribute(C, :is_trivial) || isone(g)
     return v::T
   end
 
   if has_attribute(C, :action)
     return get_attribute(C, :action)(C, g, v)::T
+  end
+
+  if haskey(C.action_cache, g)
+    C.action_count[g] += length(v)
+    return map(C.action_cache[g], v)
   end
 
   ac = action(C)
@@ -305,20 +314,32 @@ function action(C::GModule, g)
     return C.ac[1]
   end
 
+  if haskey(C.action_cache, g)
+    C.action_count[g] += 1
+    return C.action_cache[g]
+  end
+
   ac = action(C)
   G = Group(C)
   f = findfirst(isequal(g), gens(G))
   if f !== nothing
+    C.action_count[g] = 0
+    C.action_cache[g] = ac[f]
     return ac[f]
   end
   iac = inv_action(C)
   f = findfirst(isequal(inv(g)), gens(G))
   if f !== nothing
+    C.action_count[g] = 0
+    C.action_cache[g] = iac[f]
     return iac[f]
   end
 
   if has_attribute(C, :action)
-    return get_attribute(C, :action)(C, g)
+    a = get_attribute(C, :action)(C, g)
+    C.action_cache[g] = a
+    C.action_count[g] = 0
+    return a
   end
 
   h = id_hom(C.M)
@@ -326,18 +347,10 @@ function action(C::GModule, g)
 #    return map_word(g, ac, genimgs_inv = iac, init = h)
 #  end
   F, mF = fp_group_with_isomorphism(C)
-  return map_word(mF(g), ac, genimgs_inv = iac, init = h)
-
-  for i = word(mF(g))
-    if i > 0
-      h = h*ac[i]
-#      v = map(ac[i], v)
-    else
-      h = h*iac[-i]
-#      v = map(iac[-i], v)
-    end
-  end
-  return h
+  a = map_word(mF(g), ac, genimgs_inv = iac, init = h)
+  C.action_cache[g] = a
+  C.action_count[g] = 0
+  return a
 end
 
 function AbstractAlgebra.Generic.add_direct_sum_injection!(a::FinGenAbGroupElem, i::Int, b::FinGenAbGroupElem)
@@ -485,8 +498,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
   end
 
   function ind_action(::GModule, s, v::T) where T <: Array
-    @show s
-    @show sigma = ra(s)
+    sigma = ra(s)
     u = [ preimage(h, g[i]*s*g[i^sigma]^-1) for i=1:length(g)]
     au = [action(C, x) for x = u]
     im_q = T()
@@ -844,6 +856,16 @@ function Oscar.restrict(c::CoChain{N, G, M}, m::Map) where {N, G, M}
   end 
 end
 
+function Oscar.inflate(c::CoChain{N, G, M}, m::Map) where {N, G, M}
+  if isdefined(c, :D)
+    return CoChain{N, G, M}(inflate(c.C, m), Dict(map(pseudo_inv(m), k)=>v for (k,v) = c.d),  x->c.D(map(m, x)))
+  else
+    return CoChain{N, G, M}(inflate(c.C, m), c.d)
+    return CoChain{N, G, M}(inflate(c.C, m), Dict(map(pseudo_inv(m), k)=>v for (k,v) = c.d))
+  end 
+end
+
+
 #TODO: careful with lazy chains!!!
 function ==(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
   @assert c.C === d.C
@@ -1140,16 +1162,16 @@ end
 
 
 function confluent_fp_group_pc(G::Oscar.GAPGroup)
-   @vtime :GroupCohomology 1 g = isomorphism(PcGroup, G)
-   P = codomain(g)
-   f = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(GapObj(P)), GAP.Obj("g"))
-   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
-   H = FPGroup(GAPWrap.Image(f))
-   R = relations(H)
-   ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
-   for r = R
-     push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(GapObj(r[1]))),
-                map(Int, GAP.Globals.LetterRepAssocWord(GapObj(r[2])))))
+  @vtime :GroupCohomology 1 g = isomorphism(PcGroup, G)
+  P = codomain(g)
+  f = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(GapObj(P)), GAP.Obj("g"))
+  @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+  H = FPGroup(GAPWrap.Image(f))
+  R = relations(H)
+  ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
+  for r = R
+    push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(GapObj(r[1]))),
+               map(Int, GAP.Globals.LetterRepAssocWord(GapObj(r[2])))))
   end
   i = 0
   ex = []
@@ -1168,6 +1190,7 @@ function confluent_fp_group_pc(G::Oscar.GAPGroup)
       @assert r[1][1] < 0 && -r[1][1] == r[1][3]
       @assert r[1][2] < 0 && -r[1][2] == r[1][4]
       ru[i] = ([r[1][3], r[1][4]], vcat([r[1][4], r[1][3]], -1 .* reverse(r[1][5:end])))
+
     end
   end
   append!(ru, ex)
@@ -1433,7 +1456,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
   @assert side in [:right, :left]
   is_left = side == :left
 
-  if cached
+  if cached 
     a = get_attribute(ZG, :free_res)
     if isnothing(a) 
       a = Dict{Symbol, Any}()
@@ -1649,7 +1672,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
               #                   S              C
               z2 = collect(vcat(r[2], view(s[1], l+1:length(s[1]))), c)
               @assert z1 == z2
-              S = S .- c.T
+              S = c.T .- S
               if is_left
                 A = vcat(A, matrix(ZG, 1, length(S), S))
               else
@@ -1670,8 +1693,30 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
         @assert parent(x) == parent(y) == G
         c.f = symbolic_collect
         c.T = [zero(ZG) for i=1:n]
-        collect(vcat(word(preimage(mFF, x)), word(preimage(mFF, y))), c)
-        return c.T
+#        collect(vcat(word(preimage(mFF, x)), word(preimage(mFF, y))), c)
+#        return c.T
+        xx = collect(word(preimage(mFF, x)), c)
+        if isone(x)
+          @assert length(xx) == 0
+          @assert all(is_zero, c.T)
+        end
+        c.T = [zero(ZG) for i=1:n]
+        yy = collect(word(preimage(mFF, y)), c)
+        if isone(y)
+          @assert length(yy) == 0
+          @assert all(is_zero, c.T)
+        end
+        c.T = [zero(ZG) for i=1:n]
+        zz = collect(vcat(xx, yy), c)
+        if length(xx) == 0
+          @assert zz == yy
+          @assert all(is_zero, c.T)
+        end
+        if length(yy) == 0
+          @assert zz == xx
+          @assert all(is_zero, c.T)
+        end
+        return deepcopy(c.T)
       end
       function from_2chain(c) # c:: G x G -> M
         res = []
@@ -1679,7 +1724,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           pos[i] == 0 && continue
           z = c(one(G), one(G)) #should better be 0 in the unknown module
           h = one(G)
-          for j = vcat((-1).*reverse(R[i][2]), R[i][1])
+          for j = R[i][1] #for right action only(?)
             if j < 0
               _n = c(mFF(FF[-j]), inv(mFF(FF[-j])))
               z = action(z, ZG(inv(mFF(FF[-j])))) - _n + c(h, inv(mFF(FF[-j])))
@@ -1689,8 +1734,21 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
               h = h * mFF(FF[j])
             end
           end
-          @assert isone(h)
-          push!(res, z)
+          zz = c(one(G), one(G))
+          hh = one(G)
+          for j = R[i][2]
+            if j < 0
+              _n = c(mFF(FF[-j]), inv(mFF(FF[-j])))
+              zz = action(zz, ZG(inv(mFF(FF[-j])))) - _n + c(hh, inv(mFF(FF[-j])))
+              hh = hh * inv(mFF(FF[-j]))
+            else
+              zz = action(zz, ZG(mFF(FF[j]))) + c(hh, mFF(FF[j]))
+              hh = hh * mFF(FF[j])
+            end
+          end
+
+          @assert h == hh
+          push!(res, z-zz)
         end
         return res
       end
@@ -1785,7 +1843,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
   return Cpx
 end
 
-function Oscar.action(C::GModule, g::GroupAlgebraElem)
+function action(C::GModule, g::GroupAlgebraElem)
   ZG = parent(g)
   G = group(ZG)
   @assert G == group(C)
@@ -1799,7 +1857,9 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem)
   else
     for i in 1:length(g.coeffs)
       ci = g.coeffs[i]
-      Z += ci*action(C, parent(g).base_to_group[i])
+      if !iszero(ci)
+        Z += ci*action(C, parent(g).base_to_group[i])
+      end
     end
   end
 
@@ -1820,7 +1880,9 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem, v)
   else
     for i in 1:length(g.coeffs)
       ci = g.coeffs[i]
-      Z += ci*action(C, parent(g).base_to_group[i], v)
+      if !iszero(ci)
+        Z += ci*action(C, parent(g).base_to_group[i], v)
+      end
     end
   end
 
@@ -1846,15 +1908,15 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
   #       d2        d1        d0
   # h_3 <---- h_2 <---- h_1 <---- h_0 <---- M^G = h_-1
 
-  M1 = direct_product(C.M; task = :none)
+  @vtime :GaloisCohomology 1 M1 = direct_product(C.M; task = :none)
   set_attribute!(M1, :hom => (f[0], C), :show => Hecke.show_hom)
   #TODO: add hom_map!!!
   d1 = map(f, 1)
-  Mg = direct_product([C.M for i=1:rank(domain(d1))]...; task = :none)
+  @vtime :GaloisCohomology 1 Mg = direct_product([C.M for i=1:rank(domain(d1))]...; task = :none)
   set_attribute!(Mg, :hom => (domain(d1), C), :show => Hecke.show_hom)
   #TODO: add hom_map!!!
 
-  D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
+  @vtime :GaloisCohomology 1 D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
 
   Cpx = Hecke.ComplexOfMorphisms(typeof(M1), [D1]; typ = :cochain, check = false)
 
@@ -1928,9 +1990,10 @@ function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bo
   else
     k, mk = kernel(map(C, i))
   end
+  ZG, M = get_attribute(C, :hom)
+  G = group(base_ring(ZG[0]))
   if i == 0
     if tate
-      ZG, M = get_attribute(C, :hom)
       N = sum(base_ring(ZG[0])(g) for g = group(base_ring(ZG[0])))
       NN = canonical_projection(C[0], 1)*action(M, N)*canonical_injection(C[0], 1)
       q, mq = quo(k, image(NN)[1])  
@@ -1941,6 +2004,10 @@ function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bo
     q, mq = quo(k, image(map(C, i-1))[1])
   end
 
+  if isfinite(G) && isa(q, FinGenAbGroup) && !no_kernel
+    q.exponent = order(G)
+  end
+
   s, ms = snf(q)
   mp = ms*pseudo_inv(mq)*mk
   #do not turn into hom!
@@ -1949,6 +2016,10 @@ function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bo
   else
     return s, mp
   end
+end
+
+function Base.zero(a::FinGenAbGroupElem)
+  return zero(parent(a))
 end
 
 #TODO: from a -> A to index in hom-sequence?
@@ -1963,7 +2034,8 @@ function two_chain(a::FinGenAbGroupElem)
   D = Dict{NTuple{2, elem_type(G)}, elem_type(M.M)}()
   fill = function(g)
     ch = c(g[1], g[2])
-    return sum(action(M, ch[i], canonical_projection(A, i)(a)) for i=1:length(ch))
+    re = sum(action(M, ch[i], canonical_projection(A, i)(a)) for i=1:length(ch))
+    return re
   end
 
   return CoChain{2, elem_type(G), elem_type(M.M)}(M, D, fill)
@@ -2747,7 +2819,7 @@ function istwo_cocycle(c::CoChain{2})
         a = c(g, h*k) + c(h, k) - action(C, k, c(g, h))- c(g*h, k)
 #        @show a, iszero(a) || valuation(a)
 iszero(a) || (@show g, h, k, a ; return false)
-        @assert iszero(a) # only for local stuff...|| valuation(a) > 20
+#        @assert iszero(a) # only for local stuff...|| valuation(a) > 20
       end
     end
   end
