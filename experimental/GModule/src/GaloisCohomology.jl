@@ -447,7 +447,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
 
   e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
   f = divexact(absolute_degree(K), e)
-  @vprint :GaloisCohomology 1 "the local mult. group as a Z[G] module for e=$e and f = $f (cond: $conductor, extra: $extra, $(precision(K)), $(precision(k))\n"
+  @vprint :GaloisCohomology 1 "the local mult. group as a Z[G] module for e = $e and f = $f (prime: $(prime(K)), cond: $conductor, extra: $extra, $(precision(K)), $(precision(k))\n"
   @vprint :GaloisCohomology 2 " .. the automorphism group ..\n"
 
   G, mG = automorphism_group(PermGroup, K, k)
@@ -1916,7 +1916,7 @@ or Ali,
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
 of the idele class group. The primes in `s` will always be used.
 """
-function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false, do_shrink::Bool = false, extra_cond ::Int = 0)
+function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false, do_shrink::Bool = false, extra_cond ::Int = 0, extension_of::Union{Nothing, Map} = nothing)
   @vprint :GaloisCohomology 2 "Ideal class group cohomology for $k\n"
   I = get_attribute(k, :IdeleClassGmodule)
   if !redo && I !== nothing
@@ -1931,9 +1931,17 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   zk = maximal_order(k)
 
   sf = subfields(k)
+  if !isnothing(extension_of)
+    @vprint :GaloisCohomology 2 "reducing $(length(sf)) subfields by already known ones...\n"
+    sf = [x for x = sf if haspreimage(extension_of, x[2](x[1][1]))[1]]
+    @vprint :GaloisCohomology 2 "left with $(length(sf))\n"
+  end
   sf = [x[1] for x = sf if degree(x[1]) > 1]
+  @vprint :GaloisCohomology 1 "Need to check $(length(sf)) (non-trivial) subfields, now computing class groups...\n"
   zf = map(maximal_order, sf)
   cf = map(class_group, zf)
+  @vprint :GaloisCohomology 1 "class groups are $([x[1] for x = cf])\n"
+
   cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
@@ -1943,6 +1951,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
     cf[i] = (q, pseudo_inv(mq)*cf[i][2])
   end
+  @vprint :GaloisCohomology 2 "after factoring by ramified and provided primes left with $([snf(x[1])[1] for x = cf])\n"
 
   #think: does the quotient have to be trivial - or coprime to |G|?
   #coprime should be enough
@@ -1950,6 +1959,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   for p = PrimesSet(2, -1)
     p in s && continue
     all(x->order(x[1]) == 1, cf) && break
+    @vprint :GaloisCohomology 3 "trying $p\n"
     new = false
     for i=1:length(sf)
       l = factor(p*zf[i])
@@ -1960,6 +1970,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
       cf[i] = (q, pseudo_inv(mq)*cf[i][2])
     end
     if new
+      @vprint :GaloisCohomology 3 "now at $([x[1] for x = cf])\n"
       push!(s, p)
     end
   end
@@ -2006,11 +2017,6 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   @vprint :GaloisCohomology 2 " .. gathering the completions ..\n"
   Hecke.pushindent()
   L = [completion(k, x, 40*ramification_index(x)) for x = S]
-#  for x = L
-#    setprecision(x[1], 240) do
-#      @show :hallo
-#    end
-#  end
   I.C = [x[2] for x = L]
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. gathering the local modules ..\n"
@@ -3248,7 +3254,7 @@ function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   #              -> Z[G] C the idele class group
   #the image should be the restriction I think
   gg = map_entries(pro, g, parent = tt.C)
-  #gg is the non-canomical generator in Z[G_p] K_p
+  #gg is the non-canonical generator in Z[G_p] K_p
   gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, FinGenAbGroupElem}(tt.C, Dict( (g, h) => gg(mp(g), mp(h)) for g = tt.C.G for h = tt.C.G))
 
   nu = cohomology_group(tt.C, 2)
@@ -3265,12 +3271,8 @@ end
 """
     global_fundamental_class(A::IdeleParent)
 
-Tries to find the canonical generator of `H^2(C)` the  2nd
+Finds the canonical generator of `H^2(C)` the  2nd
 cohomology group of the idele class group.
-
-Currently only works if this can be inferred from the local data in
-the field, ie. if the `lcm` of the degrees of the completions is the
-full field degree.
 """    
 function global_fundamental_class(A::IdeleParent)
   C = A.data[1]
@@ -3286,9 +3288,10 @@ function global_fundamental_class(A::IdeleParent)
   z = cohomology_group(hk, 2)
 
   @assert ngens(z[1]) == 1
-  gg = z[3](z[1][1])
-  #g is the non-canonical generator
-  @assert Oscar.GrpCoh.istwo_cocycle(gg) #fails for splitting field x^4-17
+  if get_assert_level(:GaloisCohomology) > 1
+    gg = z[3](z[1][1])
+    @assert Oscar.GrpCoh.istwo_cocycle(gg) 
+  end
   n = order(z[1])
   g = z[2](z[1][1])
   @assert is_zero(map(hk, 2)(g))
@@ -3318,9 +3321,7 @@ function global_fundamental_class(A::IdeleParent)
     end
     if !p_done
       #find extension of minimal degree that has a large local galois group
-      #inflate gg to the large field and compare the restriction to the 
-      #local fund class...
-      #actually: no!
+      #and use it...:
       #find the prime with the large (local) Galois group and use Shapiro:
       #  Ind K_p <-> K_p Shaprio
       #   |
@@ -3337,14 +3338,17 @@ function global_fundamental_class(A::IdeleParent)
       for P = A.S
         @vprint :GaloisCohomology 1 "building extension at $p\n"
         R = ray_class_field(p^(mis+1)*minimum(P)*Zk; n_quo = Int(p^mis))
+        @vprint :GaloisCohomology 1 R
         @vprint :GaloisCohomology 1 "looking for normal subfields of degree $(p^mis)\n"
+        #TODO: this are sometimes many, even a lot. Try smaller fields
+        #      or an iterator - we need only ONE useful field.
         n = subfields(R; degree = Int(p^mis), is_normal)
         for i = n
           #test this for all p in A.S (where the local degree was maximal before)
           #as the local degree could only have increased by p^mis
           a = Hecke.absolute_prime_decomposition_type(i, minimum(good_P))
           if a[1][1]*a[1][2] % p^k == 0
-            @vprint :GaloisCohomology 1 "found useful field, computing data\n"
+            @vprint :GaloisCohomology 1 "found useful field $i, computing data\n"
             found = true
             K = number_field(i)
             emb_K = K(gen(number_field(Zk)))
@@ -3357,93 +3361,98 @@ function global_fundamental_class(A::IdeleParent)
         found && break
       end
       found || error("failed")
-      if new_field
-        @vprint :GaloisCohomology 1 "idele class module for larger field\n"
-        @vtime :GaloisCohomology 2 B = idele_class_gmodule(K)
-        @hassert :GaloisCohomology 2 is_zero(map(hk, 2)(g))
-        @vprint :GaloisCohomology 1 "adjusting support in small field\n"
-        new_g, _A, hk = adjust_support(A, hk, g, [(ZZ(p), k) for (p, k) = conductor(B)])
-        @vprint :GaloisCohomology 1 "embedding the idele class group\n"
-        phi = induce_hom(_A, B, emb)
+      @vprint :GaloisCohomology 1 "idele class module for larger field\n"
+      @vtime :GaloisCohomology 2 B = 
+             idele_class_gmodule(K, [Int(minimum(x)) for x = A.S]; 
+                                         extension_of = emb)
+      @hassert :GaloisCohomology 2 is_zero(map(hk, 2)(g))
+      @vprint :GaloisCohomology 1 "adjusting support in small field\n"
+      new_g, _A, _hk = adjust_support(A, hk, g, [(ZZ(p), k) for (p, k) = conductor(B)])
+      @vprint :GaloisCohomology 1 "embedding the idele class group\n"
+      phi = induce_hom(_A, B, emb)
 #        @show conductor(_A)
-        qKk = fixed_group(B.mG, _A.mG, emb)
-        if get_assert_level(:GaloisCohomology) > 1
-          check_map(_A.data[1], B.data[1], qKk[2], phi)
-        end
-        @vprint :GaloisCohomology "computing the new resolution and the inflation map\n"
-        fK = free_res(group_algebra(ZZ, group(B)); side = :right)
-        hK = hom(fK, B)
-        inf_kK = change_group(fK, fk, qKk[2])
-
-        if get_assert_level(:GaloisCohomology) > 1
-          @assert map(fK, 2)*inf_kK[1] == inf_kK[2]*map(fk, 2)
-          @assert map(fK, 3)*inf_kK[2] == inf_kK[3]*map(fk, 3)
-        end
-        @vtime :GaloisCohomology 2 new_g = magic_inf(_A.data[1], new_g, inf_kK[2], phi, hK[2])
-        @hassert :GaloisCohomology 2 is_zero(map(hK, 2)(new_g))
-      else
-        B = A
-        new_g = g
+      qKk = fixed_group(B.mG, _A.mG, emb)
+      if get_assert_level(:GaloisCohomology) > 1
+        check_map(_A.data[1], B.data[1], qKk[2], phi)
       end
-      #need:
-      # - local fund class at good_P in K
-      # - restrict g do decom group
-      # - inject local class into parent res g
-      # - compare
-      pos = findfirst(isequal(minimum(good_P)), map(minimum, B.S))
-      Kp, mKKp, mGp, mUp, proBUp, injUpB = completion(B, B.S[pos])
-      @vprint :GaloisCohomology 1 "Serre's algorith...\n"
-      @vtime :GaloisCohomology 2 s = Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
-      #a 2-cycle with values in Kp
-      mGpG = decomposition_group(K, mKKp, B.mG, mGp)
-      Gp = domain(mGp)
-      fKp = free_res(group_algebra(ZZ, Gp; cached = false); side = :right)
-      res = change_group(fKp, fK, mGpG)
-
-      Ind = B.data[5][pos][1]
-      @vprint :GaloisCohomology 1 "Cohomology of the induced module\n"
-      @vtime :GaloisCohomology 2 h2I = cohomology_group(hom(fK, Ind), 2) #the induced from the completion   
-      gi = gmodule(Gp, [hom(canonical_injection(Ind.M, 1)*action(Ind, mGpG(g))*canonical_projection(Ind.M, 1)) for g = gens(Gp)])
-      hom_i = hom(fKp, gi)
-      @vprint :GaloisCohomology 1 "Cohomology of the completion\n"
-      @vtime :GaloisCohomology 2 h2i = cohomology_group(hom_i, 2)
-      can = let s = s, mGp = mGp, mUp = mUp
-             CoChain{2, PermGroupElem, FinGenAbGroupElem}(gi, 
-               Dict{Tuple{PermGroupElem, PermGroupElem}, FinGenAbGroupElem}(), 
-               ((g, h),) -> preimage(mUp, s(mGp(g), mGp(h))))
-             end  
-      #        Dict((g, h) => preimage(mUp, s(mGp(g), mGp(h))) for (g,h) = Iterators.product(Gp, Gp)))
-#      @hassert :GaloisCohomology 2 Oscar.GrpCoh.istwo_cocycle(can)
-      #we have h2I = H^2(Ind)
-      #        h2i = H^2(K_p), both cyclic of the same size, a multiple
-      #                        of p^k
-      #        c   = H^2(C) (approximative) a multiple of the ones above
-      #              C = C_N, the large auxilary field
-      #      can, pca: the canonical class in K_p
-      #      new_g the image of the H^2(C_K)[1] in C_N (inflation)
-      # we map h2I -> h2i (res, proj)
-      #        h2I -> c   (Ind -> I_N -> C_N, inclusion and then mod S-Units)
-    
-      @vprint :GaloisCohomology 2 "map from H^2(Ind) -> H^2(K_p)\n"
-      @vtime :GaloisCohomology 2 genI = magic_inf(Ind, h2I[2](h2I[1][1]), res[2], canonical_projection(Ind.M, 1), hom_i[2])
-      pI = preimage(h2i[2], genI)
-      pca = preimage(h2i[3], can)
       @vprint :GaloisCohomology 2 "shrinking C_N\n"
       @vtime :GaloisCohomology 2 sC, msC = shrink(B.data[1])
-      hsK = hom(fK, sC)
-      @vprint :GaloisCohomology 2 "map from H^2(Ind) -> H^2(C_N)\n"
-      @vtime :GaloisCohomology 2 genIC = magic_inf(Ind, h2I[2](h2I[1][1]), identity_map(fK[2]), canonical_injection(B.data[2].M, pos+1)*B.mq*msC, hsK[2])
 
-      @vtime :GaloisCohomology 2 c = cohomology_group(hsK, 2; no_kernel = true) #H^2, H^2 -> B, H^2 -> 2-chain
-      new_g = magic_inf(B.data[1], new_g, identity_map(fK[2]), msC, hsK[2])
-      pc = preimage(c[2], genIC)
-      pg = preimage(c[2], new_g)
-      hh = hom(h2i[1], c[1], [pI], [pc])
-      push!(scale, (pca[1], preimage(hh, pg)[1], order(h2i[1])))
+      @vprint :GaloisCohomology 1 "computing the new resolution and the inflation map\n"
+      @vtime :GaloisCohomology 2 fK = free_res(group_algebra(ZZ, group(B)); side = :right)
+#        @vtime :GaloisCohomology 2 hK = hom(fK, B)
+      hsK = hom(fK, sC)
+      #TODO: check if just inflating lazy chains is faster...
+      @vtime :GaloisCohomology 2 inf_kK = change_group(fK, fk, qKk[2])
+
+      if get_assert_level(:GaloisCohomology) > 1
+        @assert map(fK, 2)*inf_kK[1] == inf_kK[2]*map(fk, 2)
+        @assert map(fK, 3)*inf_kK[2] == inf_kK[3]*map(fk, 3)
+      end
+      @vtime :GaloisCohomology 2 new_g = magic_inf(_A.data[1], new_g, inf_kK[2], phi*msC, hsK[2])
+      @hassert :GaloisCohomology 2 is_zero(map(hK, 2)(new_g))
+    else
+      B = A
+      sC, msC = (B.data[1].M, identity_map(B.data[1].M))
+      new_g = g
+      fK = fk
+      hsK = hk
+      K = number_field(A)
     end
-    #K is large enough to have a local fund class of order p^k
-    #and emb is the embedding into K (can be identity)
-    #need local fund class gamma of K at (good_)P
+    #need:
+    # - local fund class at good_P in K
+    # - restrict g do decom group
+    # - inject local class into parent res g
+    # - compare
+    pos = findfirst(isequal(minimum(good_P)), map(minimum, B.S))
+    Kp, mKKp, mGp, mUp, proBUp, injUpB = completion(B, B.S[pos])
+    @vprint :GaloisCohomology 1 "Serre's algorithm (for $(minimum(B.S[pos])))...\n"
+    @vtime :GaloisCohomology 2 s = Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
+    #a 2-cycle with values in Kp
+    mGpG = decomposition_group(K, mKKp, B.mG, mGp)
+    Gp = domain(mGp)
+    fKp = free_res(group_algebra(ZZ, Gp; cached = false); side = :right)
+    res = change_group(fKp, fK, mGpG)
+
+    Ind = B.data[5][pos][1]
+    @vprint :GaloisCohomology 1 "Cohomology of the induced module\n"
+    @vtime :GaloisCohomology 2 h2I = cohomology_group(hom(fK, Ind), 2) #the induced from the completion   
+    gi = gmodule(Gp, [hom(canonical_injection(Ind.M, 1)*action(Ind, mGpG(_g))*canonical_projection(Ind.M, 1)) for _g = gens(Gp)])
+    hom_i = hom(fKp, gi)
+    @vprint :GaloisCohomology 1 "Cohomology of the completion\n"
+    @vtime :GaloisCohomology 2 h2i = cohomology_group(hom_i, 2)
+    can = let s = s, mGp = mGp, mUp = mUp
+           CoChain{2, PermGroupElem, FinGenAbGroupElem}(gi, 
+             Dict{Tuple{PermGroupElem, PermGroupElem}, FinGenAbGroupElem}(), 
+             ((_g, _h),) -> preimage(mUp, s(mGp(_g), mGp(_h))))
+           end  
+    #we have h2I = H^2(Ind)
+    #        h2i = H^2(K_p), both cyclic of the same size, a multiple
+    #                        of p^k
+    #        c   = H^2(C) (approximative) a multiple of the ones above
+    #              C = C_N, the large auxilary field
+    #      can, pca: the canonical class in K_p
+    #      new_g the image of the H^2(C_K)[1] in C_N (inflation)
+    # we map h2I -> h2i (res, proj)
+    #        h2I -> c   (Ind -> I_N -> C_N, inclusion and then mod S-Units)
+  
+    @vprint :GaloisCohomology 2 "map from H^2(Ind) -> H^2(K_p)\n"
+    @vtime :GaloisCohomology 2 genI = magic_inf(Ind, h2I[2](h2I[1][1]), res[2], canonical_projection(Ind.M, 1), hom_i[2])
+    pI = preimage(h2i[2], genI)
+    pca = preimage(h2i[3], can)
+    @vprint :GaloisCohomology 2 "map from H^2(Ind) -> H^2(C_N)\n"
+#    @show cohomology_group(hom(fK, B.data[2]), 2)[1]
+    #TODO: as above check if lazy chains are actually better here
+    @vtime :GaloisCohomology 2 genIC = magic_inf(Ind, h2I[2](h2I[1][1]), identity_map(fK[2]), canonical_injection(B.data[2].M, pos+1)*B.mq*msC, hsK[2])
+
+    @vtime :GaloisCohomology 2 c = cohomology_group(hsK, 2; no_kernel = true) #H^2, H^2 -> B, H^2 -> 2-chain
+#      new_g = magic_inf(B.data[1], new_g, identity_map(fK[2]), msC, hsK[2])
+    pc = preimage(c[2], genIC)
+    pg = preimage(c[2], new_g)
+    @show order(pI), order(pc), order(pca)
+    hh = hom(h2i[1], c[1], [pI], [pc])
+    hpca = hh(pca)
+    push!(scale, (findall(x->x*pg == hpca, 1:degree(number_field(A))), order(h2i[1])))
   end
   return scale
 end
@@ -3545,10 +3554,6 @@ function global_fundamental_class_direct(A::IdeleParent)
   @assert gcd(p[1], n) == 1  
   #so p[1]* g is canonical!!!
   return z[2](p[1] * g)
-end
-
-function Oscar.group(A::IdeleParent)
-  return domain(A.mG)
 end
 
 function Oscar.hom(C::ComplexOfMorphisms{Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, A::IdeleParent)
