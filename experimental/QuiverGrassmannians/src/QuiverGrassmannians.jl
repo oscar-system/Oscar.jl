@@ -164,7 +164,7 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
     xdict = Dict(Ls[i] => x[i] for i in 1:length(Ls))
     #create ideal generators for each edge
     Gs = elem_type(R)[]
-    for (e, A) in zip(edges(G), As)
+    for (e, A) in zip(edges(G), Q.edge_morphisms)
         #quiver generators for node
         nsi = [ns[src(e)], ns[dst(e)]]
         dsi = [dims[src(e)], dims[dst(e)]]
