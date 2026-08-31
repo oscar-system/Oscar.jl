@@ -113,8 +113,8 @@ function grading_weights(Ls::Vector{Tuple{Int, Vector{Int}}}, e::Vector{Int})
     end for l in Ls]
 end
 
-struct QuiverGrassmannian
-    quiver_representation::QuiverRepresentation
+struct QuiverGrassmannian{C <: FieldElem}
+    quiver_representation::QuiverRepresentation{C}
     ambient_ring::MPolyRing
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int}
