@@ -120,9 +120,11 @@ struct QuiverGrassmannian#add types
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int}
 end
+
 function Base.show(io::IO, Q::QuiverGrassmannian)
     print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " defined by ", Q.defining_ideal)
 end
+
 @doc raw"""
      quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
 
