@@ -118,10 +118,11 @@ struct QuiverGrassmannian
     ambient_ring::MPolyRing
     defining_ideal::MPolyIdeal
     dimension_vector::Vector{Int}
+    base_field::Field
 end
 
 function Base.show(io::IO, Q::QuiverGrassmannian)
-    print(io, "Quiver Grassmannian over ",  Q.quiver_representation.base_field," with subspace dimensions ", Q.dimension_vector, " defined by ", Q.defining_ideal)
+    print(io, "Quiver Grassmannian over ",  Q.base_field," with subspace dimensions ", Q.dimension_vector, " defined by ", Q.defining_ideal)
 end
 
 @doc raw"""
@@ -181,5 +182,5 @@ function quiver_grassmannian(Q::QuiverRepresentation, dims::Vector{Int})
             append!(Gs, phiG)
         end
     end
-    return QuiverGrassmannian(Q, R, ideal(Gs), dims)
+    return QuiverGrassmannian(Q, R, ideal(Gs), dims, F)
 end
