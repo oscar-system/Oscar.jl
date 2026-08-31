@@ -11,7 +11,8 @@ A difference polynomial ring over the commutative ring ``R`` is an action polyno
 ## Construction
 
 ```@docs
-difference_polynomial_ring
+difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
+difference_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int; kwargs...)
 ```
 
 ## Action maps

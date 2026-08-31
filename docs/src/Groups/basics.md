@@ -4,7 +4,7 @@ CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Basics
+# [Basics](@id basics_of_groups)
 
 ## [Elements of groups](@id elements_of_groups)
 

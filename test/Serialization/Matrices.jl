@@ -14,6 +14,7 @@ cases = [
   (Fin, [d d^3; d^2 0]),
   (Frac, [1 // x x^2; 3 0]),
   (A, [(f^3 + g^2) f^2; g (a*f + 1)]),
+  (ZZ, [0 0 0; 0 0 0]), # issue #5849
 ]
 
 @testset "Matrices" begin

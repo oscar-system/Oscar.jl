@@ -16,12 +16,12 @@ import Oscar: GAPWrap
 #
 # utilities for installing methods depending on GAP filters
 #
-const _GAP_type_params = Pair{Symbol, Function}[]
+const _GAP_type_and_params = Pair{Symbol, Function}[]
 const _GAP_serializations = Pair{Symbol, Function}[]
 const _GAP_deserializations = Tuple{Symbol, Function, Bool}[]
 
-function install_GAP_type_params(filtsymbol::Symbol, meth::Function)
-  push!(_GAP_type_params, filtsymbol => meth)
+function install_GAP_type_and_params(filtsymbol::Symbol, meth::Function)
+  push!(_GAP_type_and_params, filtsymbol => meth)
   return
 end
 
@@ -41,10 +41,10 @@ end
 #
 @register_serialization_type GapObj uses_id
 
-function type_params(X::GapObj)
-  params = GAP.Globals.SerializationInOscarDependentObjects(X)::Union{Nothing, TypeParams, GapObj}
-  params isa TypeParams && return params
-  return TypeParams(GapObj, params)
+function type_and_params(X::GapObj)
+  params = GAP.Globals.SerializationInOscarDependentObjects(X)::Union{Nothing, TypeAndParams, GapObj}
+  params isa TypeAndParams && return params
+  return TypeAndParams(GapObj, params)
 end
 
 function save_object(s::SerializerState, X::GapObj)
@@ -101,7 +101,7 @@ install_GAP_serialization(:IsFamily,
 #   full free group or subgroup of it,
 #   distinguished by type parameter `:freeGroup` and presence of `:gens`
 #   in case of a subgroup
-install_GAP_type_params(:IsFreeGroup,
+install_GAP_type_and_params(:IsFreeGroup,
   function(X::GapObj)
     if GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
       return nothing
@@ -204,7 +204,7 @@ install_GAP_deserialization(
 #   distinguished by type parameter `:freeGroup` and presence of `:relators`
 #   in case of a full group, or
 #   type parameter `:wholeGroup` and presence of `:gens` in case of a subgroup
-install_GAP_type_params(:IsSubgroupFpGroup,
+install_GAP_type_and_params(:IsSubgroupFpGroup,
   function(X::GapObj)
     Xfam = GAPWrap.FamilyObj(X)
     if GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
@@ -213,7 +213,7 @@ install_GAP_type_params(:IsSubgroupFpGroup,
     else
       F = GAP.getbangproperty(Xfam, :wholeGroup)::GapObj
     end
-    return TypeParams(GapObj, F)
+    return TypeAndParams(GapObj, F)
   end)
 
 install_GAP_serialization(:IsSubgroupFpGroup,
@@ -275,7 +275,7 @@ install_GAP_deserialization(
 #   we do not support (de)serialization of the stored rws,
 #   thus we need not (de)serialize its underlying free group etc.
 
-install_GAP_type_params(:IsPcGroup,
+install_GAP_type_and_params(:IsPcGroup,
   function(X::GapObj)
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj

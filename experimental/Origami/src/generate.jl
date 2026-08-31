@@ -1,26 +1,5 @@
 # TODO: correct typing
 
-# the bijection between the cycles of the bot/top permutation
-# is given implicitly by using lists and considering the order
-# of the cycles
-struct CylinderDiagram
-  bot::Vector{Vector{Int}}
-  top::Vector{Vector{Int}}
-  cycles_count::Int
-  separatrix_count::Int
-  function CylinderDiagram(bot::Vector{Vector{Int}}, top::Vector{Vector{Int}})
-    max = 1
-    for cycle in bot
-      for i in cycle
-        if i > max
-          max = i
-        end
-      end
-    end
-    new(bot, top, length(bot), max + 1)
-  end
-end
-
 function cylinders(cylinder_diagram::CylinderDiagram)
   result = Vector{Vector{Vector{Int}}}()
   for i in 1:(cylinder_diagram.cycles_count)
@@ -35,76 +14,15 @@ function system_of_equations(cylinder_diagram::CylinderDiagram)
   M = zero_matrix(ZZ, cylinder_diagram.cycles_count, cylinder_diagram.separatrix_count)
   for (i, (bot, top)) in enumerate(cylinders(cylinder_diagram))
     for t in top
-      M[i, t + 1] = 1
+      M[i, t + 1] -= 1
     end
     for b in bot
-      M[i, b + 1] -= 1
+      M[i, b + 1] += 1
     end
   end
   return M
 end
 
-# positive integer linear combinations of the computed rays
-# give possible lengths for the separatrix of the cylinder diagram
-# i.e. the resulting surface exists
-function compute_rays(equations, separatrix_count::Int)::Vector{Vector{Int}}
-  if is_zero(equations)
-    n = separatrix_count
-    return [Int[i == j for j in 1:n] for i in 1:n]
-  end
-  neg_identity = -identity_matrix(ZZ, separatrix_count)
-  cone = cone_from_inequalities(neg_identity, equations)
-  ray_list = rays(cone)
-  return [[Int(x) for x in ray] for ray in rays(cone)]
-end
-
-# generate all possible linear combinations
-# m: number of parameters in linear combination, parameters have integer values from 1 to n
-function all_combinations(n::Int, m::Int)::Vector{Vector{Int}}
-  combinations = Vector{Vector{Int}}([[]])
-
-  for _ in 1:m
-    new_combinations = Vector{Vector{Int}}()
-    for current in combinations
-      for i in 1:n
-        push!(new_combinations, [current..., i])
-      end
-    end
-    combinations = new_combinations
-  end
-  return combinations
-end
-
-# lengths are realizable if they are solutions to the equations for the lengths
-# arising from the cylinder diagram
-function realizable_lengths(rays, n)::Vector{Vector{Int}}
-  l = length(rays)
-  combinations = partition_degree(l, n)
-
-  result = Vector{Vector{Int}}()
-  exceeded = false
-  for combination in combinations
-    linear_combination = combination[1] * rays[1]
-    for i in 2:l
-      linear_combination = linear_combination + combination[i] * rays[i]
-      if sum(linear_combination) > n
-        exceeded = true
-        break
-      end
-    end
-    if exceeded == false
-      push!(result, linear_combination)
-    end
-    exceeded = false
-  end
-  return result
-end
-
-function realizable_lengths_of_cylinder_diagram(cyl::CylinderDiagram, n::Int)
-  equations = system_of_equations(cyl)
-  r = compute_rays(equations, cyl.separatrix_count)
-  return realizable_lengths(r, n)
-end
 
 # based on Donald E. Knuth The Art of Computer Programming Algorithm H p.300
 # implementation from Sage
@@ -149,11 +67,26 @@ function product_gray_code(m::Vector{Int})
   return results
 end
 
+function horizontal_symmetry(cyl_diagram::CylinderDiagram)
+  bot = [reverse(b) for b in cyl_diagram.bot]
+  top = [reverse(t) for t in cyl_diagram.top]
+  return CylinderDiagram(top, bot)
+end
+
+function vertical_symmetry(cyl_diagram::CylinderDiagram)
+  bot = [reverse(b) for b in cyl_diagram.bot]
+  top = [reverse(t) for t in cyl_diagram.top]
+  return CylinderDiagram(bot, top)
+end
+
+function inverse(cyl_diagram::CylinderDiagram)
+  return CylinderDiagram(cyl_diagram.top, cyl_diagram.bot)
+end
+
 # get origamis from cylinder diagram and realizable lengths
 # from surface_dynamics by Vincent, Delecroix et al.
-function origami_from_cylinder_coordinates(
-  cyl_diagram::CylinderDiagram, lengths::Vector{Int}, heights::Vector{Int}
-)
+function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
+  lengths::Vector{Int}, heights::Vector{Int}, deg::Int)
   # the total width of each cylinder is the sum of the lengths of the separatrices
   widths = [sum(lengths[i + 1] for i in bot) for bot in cyl_diagram.bot]
   areas = [heights[i] * widths[i] for i in 1:(cyl_diagram.cycles_count)]
@@ -197,8 +130,8 @@ function origami_from_cylinder_coordinates(
     ly[(v[i + 1] - widths[i] + 1):(v[i + 1])] = top
   end
 
-  no_twist = normal_form(origami(lx, perm([x + 1 for x in ly])))
-  results = Set{Origami}([no_twist])
+  no_twist = origami_disconnected(lx, perm([x + 1 for x in ly]), deg)
+  results = [no_twist]
 
   ly = [x + 1 for x in ly]
 
@@ -208,102 +141,132 @@ function origami_from_cylinder_coordinates(
     else
       insert!(ly, v[i + 1], popat!(ly, v[i + 1] - widths[i] + 1))
     end
-    new_entry = normal_form(origami(lx, perm(ly)))
+    new_entry = origami_disconnected(lx, perm(ly), deg)
     push!(results, new_entry)
   end
 
   return results
 end
 
-function cylinder_diagrams_h11()::Vector{CylinderDiagram}
-  c1 = CylinderDiagram([[0, 3, 1, 2]], [[0, 3, 1, 2]])
-  c2 = CylinderDiagram([[0], [1, 2, 3]], [[1], [0, 2, 3]])
-  c3 = CylinderDiagram([[0, 3], [1, 2]], [[1, 3], [0, 2]])
-  c4 = CylinderDiagram([[0, 1], [2], [3]], [[2, 3], [1], [0]])
-  return [c1, c2, c3, c4]
-end
 
-# m: max length, n: max height
-function origamis_in_h11(m::Int, n::Int)
-  cylinder_diagrams = cylinder_diagrams_h11()
-  origamis = Set{Origami}()
-  for cyl in cylinder_diagrams
-    equations = system_of_equations(cyl)
-    rays = compute_rays(equations, cyl.separatrix_count)
-    lengths = realizable_lengths(rays, m)
-    heights = all_combinations(n, cyl.cycles_count)
-    for l in lengths
-      for h in heights
-        o = origami_from_cylinder_coordinates(cyl, l, h)
-        origamis = union!(origamis, o)
-      end
-    end
-  end
-  return origamis
-end
+"""
+Enumerate all realizable separatrix lengths and cylinder heights
+for square-tiled surfaces of total area `degree`.
 
-# max: the number that will be partitioned
-# n: the number of parts max will be divided into
-function partition_degree(n::Int, max::Int, current::Vector{Int}=Vector{Int}(),
-  combinations::Vector{Vector{Int}}=Vector{Vector{Int}}(), sumSoFar::Int=0)
-  if sumSoFar > max
-    return combinations  # Return early if the current sum exceeds the max
-  end
-
-  if length(current) == n
-    if sumSoFar <= max
-      push!(combinations, copy(current))  # Add the valid combination to the list
-    end
-    return combinations
-  end
-
-  for i in 1:(max - sumSoFar)
-    push!(current, i)  # Append the current number to the combination
-    partition_degree(n, max, current, combinations, sumSoFar + i)  # Recur with the updated combination and sum
-    pop!(current)  # Remove the last element to backtrack
-  end
-
-  return combinations  # Return the list of all valid combinations
-end
-
-# kinda brute force
+This is a translation of surface_dynamics' `CylinderDiagram.widths_and_heights_iterator`.
+https://flatsurf.github.io/surface-dynamics/, last changed on 07/08/2026.
+"""
 function possible_lengths_and_heights(cyl_diagram::CylinderDiagram, degree::Int)
-  potential_heights = partition_degree(cyl_diagram.cycles_count, degree)
-  potential_lengths = realizable_lengths_of_cylinder_diagram(cyl_diagram, degree)
-  result = Vector{Vector{Vector{Int}}}()
-  cyls = cylinders(cyl_diagram)
-  for h in potential_heights
-    for l in potential_lengths
-      square_count = 0
-      for i in 1:(cyl_diagram.cycles_count)
-        length_sum = sum(l[j + 1] for j in cyls[i][1])
-        square_count += length_sum * h[i]
+
+  m = system_of_equations(cyl_diagram)
+
+  nseps = cyl_diagram.separatrix_count
+  ncyls = cyl_diagram.cycles_count
+
+  # Compute lower bounds for individual separatrix lengths.
+  min_lengths = ones(Int, nseps)
+
+  for i in 1:ncyls
+    pos_m = Int[]
+    pos_p = Int[]
+
+    for j in 1:nseps
+      if m[i, j] == -1
+        push!(pos_m, j)
+      elseif m[i, j] == 1
+        push!(pos_p, j)
+      end
+    end
+
+    if length(pos_m) == 1
+      j = pos_m[1]
+      min_lengths[j] = max(min_lengths[j], length(pos_p))
+    end
+
+    if length(pos_p) == 1
+      j = pos_p[1]
+      min_lengths[j] = max(min_lengths[j], length(pos_m))
+    end
+  end
+
+  # Minimum possible width of each cylinder.
+  min_widths = Int[]
+
+  for (bot, top) in cylinders(cyl_diagram)
+    bot_min = sum(min_lengths[j + 1] for j in bot)
+    top_min = sum(min_lengths[j + 1] for j in top)
+    push!(min_widths, max(bot_min, top_min))
+  end
+
+  result = Vector{Tuple{Vector{Int},Vector{Int}}}()
+
+  # Distribute total area among cylinders:
+  #     a[1] + ... + a[ncyls] = degree.
+  for a in compositions(degree, ncyls)
+
+    if !all(a[i] >= min_widths[i] for i in 1:ncyls)
+      continue
+    end
+
+    # For each cylinder: area = width * height.
+    width_choices = Vector{Vector{Int}}()
+
+    for i in 1:ncyls
+      choices = [d for d in divisors(a[i]) if d >= min_widths[i]]
+      push!(width_choices, choices)
+    end
+
+    # iterate over Cartesian product
+    for widths in Iterators.product(width_choices...)
+
+      heights = [a[i] / widths[i] for i in 1:ncyls]
+
+      # For each cylinder, distribute its width among the
+      # separatrices on its bottom boundary.
+      bottom_seps = [bot for (bot, _) in cylinders(cyl_diagram)]
+
+      length_choices = Vector{Vector{Vector{Int}}}()
+
+      for i in 1:ncyls
+        # all compositions of widths[i] into a sum of
+        # length(bottom_seps[i]) many positive integers
+        push!(length_choices, collect(compositions(widths[i], length(bottom_seps[i]))))
       end
 
-      if square_count == degree
-        push!(result, [l, h])
+      # Cartesian product over the composition choices.
+      function recurse_lengths!(cyl_index::Int, lengths::Vector{Int})
+        if cyl_index > ncyls
+          # Check the cylinder-width relations.
+          l_matrix = matrix(ZZ, nseps, 1, lengths)
+          if is_zero(m * l_matrix)
+            push!(result, (copy(lengths), copy(heights)))
+          end
+          return
+        end
+
+        for local_lengths in length_choices[cyl_index]
+          new_lengths = copy(lengths)
+
+          for j in eachindex(bottom_seps[cyl_index])
+            sep = bottom_seps[cyl_index][j]
+            # Separatrix labels are 0-based in CylinderDiagram.
+            new_lengths[sep + 1] = local_lengths[j]
+          end
+
+          recurse_lengths!(cyl_index + 1, new_lengths)
+        end
       end
+
+      recurse_lengths!(1, zeros(Int, nseps))
     end
   end
 
   return result
 end
 
-function origamis_in_h11(degree::Int)::Set{Origami}
-  diagrams::Vector{CylinderDiagram} = cylinder_diagrams_h11()
-  origamis = Set{Origami}()
-  for c in diagrams
-    lengths_heights = possible_lengths_and_heights(c, degree)
-    for entry in lengths_heights
-      o = origami_from_cylinder_coordinates(c, entry[1], entry[2])
-      origamis = union!(origamis, o)
-    end
-  end
-  return origamis
-end
-
 # so far only genus 2 & 3 supported
 # other strata may still be explored manually by using the read_cylinder_diagrams function
+# genus 3 still contains errors and is thus not available right now, but will hopefully be fixed soon.
 function origamis(stratum::Vector{Int}, degree::Int)::Set{Origami}
   file_name = ""
   if stratum == [1, 1]
@@ -325,15 +288,23 @@ function origamis(stratum::Vector{Int}, degree::Int)::Set{Origami}
   file_path = joinpath(@__DIR__, "..", "cylinder_diagrams", file_name)
   diagrams::Vector{CylinderDiagram} = read_cylinder_diagrams(file_path)
 
-  origamis = Set{Origami}()
-  for c in diagrams
-    lengths_heights = possible_lengths_and_heights(c, degree)
-    for entry in lengths_heights
-      o = origami_from_cylinder_coordinates(c, entry[1], entry[2])
-      origamis = union!(origamis, o)
+
+  representatives = Dict{CanonicalOrigamiKey, Origami}()
+  for cc in diagrams
+    for c in Set([cc, horizontal_symmetry(cc), vertical_symmetry(cc), inverse(cc)])
+      lengths_heights = possible_lengths_and_heights(c, degree)
+      for entry in lengths_heights
+        oris = origami_from_cylinder_coordinates(c, entry[1], entry[2], degree)
+        for o in oris
+          key = canonical_origami_key(o)
+          if !haskey(representatives, key)
+            representatives[key] = o
+          end
+        end
+      end
     end
   end
-  return origamis
+  return Set(values(representatives))
 end
 
 function read_cylinder_diagrams(filename::String)

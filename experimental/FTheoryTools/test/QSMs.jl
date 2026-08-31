@@ -55,6 +55,13 @@ end
     @test obj1 == obj2
   end
   qsm_g4_flux = qsm_flux(qsm_model)
+
+  # Check that string-valued algorithm names are deprecated.
+  @test_deprecated Oscar._normalize_flux_family_algorithm(
+    "special", :special_flux_family
+  ) ===
+    :special
+
   h22_basis = gens_of_h22_hypersurface_indices(qsm_model; completeness_check=false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
   ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
@@ -72,7 +79,7 @@ end
   end
   flux_vector = transpose(matrix(QQ, [flux_vector]))
   fg = special_flux_family(
-    qsm_model; not_breaking=true, completeness_check=false, algorithm="special", rng=our_rng
+    qsm_model; not_breaking=true, completeness_check=false, algorithm=:special, rng=our_rng
   )
   @test ncols(matrix_integral(fg)) == 1
   @test nrows(matrix_integral(fg)) == nrows(matrix_rational(fg))
@@ -85,4 +92,19 @@ end
   @test is_integer(solution[1])
   reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end, :])
   @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
+
+  # Empty coefficient lists must retain the affine offset of a flux family.
+  shifted_offset = copy(offset(fg))
+  shifted_offset[1] = 1
+  shifted_fg = family_of_g4_fluxes(
+    qsm_model, M1, M2, shifted_offset; completeness_check=false
+  )
+  empty_coeff_flux = flux_instance(
+    shifted_fg, Int[], Rational{Int}[]; completeness_check=false, consistency_check=false
+  )
+  zero_matrix_flux = flux_instance(
+    shifted_fg, zero_matrix(ZZ, ncols(M1), 1), zero_matrix(QQ, ncols(M2), 1);
+    completeness_check=false, consistency_check=false,
+  )
+  @test cohomology_class(empty_coeff_flux) == cohomology_class(zero_matrix_flux)
 end

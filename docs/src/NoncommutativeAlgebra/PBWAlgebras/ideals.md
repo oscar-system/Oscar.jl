@@ -61,22 +61,53 @@ dx
 
 ### Simple Ideal Operations
 
-#### Powers of Ideal
+If `I` and `J` are PBW ideals, the following operations are available:
 
-```@docs
-^(I::PBWAlgIdeal{D, T, S}, k::Int) where {D, T, S}
+- `I + J` for sums (same side),
+- `I * J` for products (for compatible left/right or two-sided ideals),
+- `I^k` for powers of two-sided ideals.
+
+Examples:
+
+```jldoctest
+julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), [:x, :y]);
+
+julia> I = left_ideal(D, [x^3+y^3, x*y^2])
+left_ideal(x^3 + y^3, x*y^2)
+
+julia> J = left_ideal(D, [x, y])
+left_ideal(x, y)
+
+julia> S = I + J;
+
+julia> is_subset(I, S)
+true
+
+julia> is_subset(J, S)
+true
 ```
 
-#### Sum of Ideals
+```jldoctest
+julia> D, (x, y, dx, dy) = weyl_algebra(GF(3), [:x, :y]);
 
-```@docs
-+(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
+julia> I = left_ideal(D, [x^3+y^3, x*y^2])
+left_ideal(x^3 + y^3, x*y^2)
+
+julia> J = right_ideal(D, [dx^3, dy^5])
+right_ideal(dx^3, dy^5)
+
+julia> I*J
+two_sided_ideal(x^3*dx^3 + y^3*dx^3, x^3*dy^5 + y^3*dy^5, x*y^2*dx^3, x*y^2*dy^5)
 ```
 
-#### Product of Ideals
+```jldoctest
+julia> D, (x, dx) = weyl_algebra(GF(3), [:x]);
 
-```@docs
-*(I::PBWAlgIdeal{DI, T, S}, J::PBWAlgIdeal{DJ, T, S}) where {DI, DJ, T, S}
+julia> I = two_sided_ideal(D, [x^3])
+two_sided_ideal(x^3)
+
+julia> I^2
+two_sided_ideal(x^6)
 ```
 
 ### Intersection of Ideals
@@ -118,23 +149,58 @@ eliminate(I::PBWAlgIdeal, V::Vector{<:PBWAlgElem}; ordering = nothing)
 
 ## Tests on Ideals
 
-```@docs
-is_zero(I:: PBWAlgIdeal)
+For PBW ideals, use `is_zero` and `is_one` for basic tests, `is_subset` for
+containment, and `==` for equality.
+
+```jldoctest
+julia> D, (x, dx) = weyl_algebra(QQ, [:x]);
+
+julia> I = left_ideal(D, [dx^2])
+left_ideal(dx^2)
+
+julia> J = left_ideal(D, [x*dx^4, x^3*dx^2])
+left_ideal(x*dx^4, x^3*dx^2)
+
+julia> is_zero(I)
+false
+
+julia> is_subset(I, J)
+true
+
+julia> I == J
+true
 ```
 
-```@docs
-is_one(I:: PBWAlgIdeal)
-```
+```jldoctest
+julia> D, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y]);
 
-```@docs
-is_subset(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
-```
+julia> I = left_ideal(D, [x, dx])
+left_ideal(x, dx)
 
-```@docs
-==(I::PBWAlgIdeal{D, T, S}, J::PBWAlgIdeal{D, T, S}) where {D, T, S}
+julia> is_one(I)
+true
+
+julia> J = left_ideal(D, [y*x])
+left_ideal(x*y)
+
+julia> is_one(J)
+false
+
+julia> K = two_sided_ideal(D, [y*x])
+two_sided_ideal(x*y)
+
+julia> is_one(K)
+true
+
+julia> D3, (x, y, dx, dy) = weyl_algebra(GF(3), [:x, :y]);
+
+julia> I3 = two_sided_ideal(D3, [x^3])
+two_sided_ideal(x^3)
+
+julia> is_one(I3)
+false
 ```
 
 ```@docs
 ideal_membership(f::PBWAlgElem{T, S}, I::PBWAlgIdeal{D, T, S}) where {D, T, S}
 ```
-

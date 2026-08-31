@@ -1,14 +1,14 @@
 @doc raw"""
-    schubert_class(G::AbstractVariety, λ::Int...)
-    schubert_class(G::AbstractVariety, λ::Vector{Int})
-    schubert_class(G::AbstractVariety, λ::Partition)
+    schubert_class(G::AbstractVariety, lambda::Int...)
+    schubert_class(G::AbstractVariety, lambda::Vector{Int})
+    schubert_class(G::AbstractVariety, lambda::Partition)
 
 Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian `G`.
 
 # Examples
 
 ```jldoctest
-julia> G = abstract_grassmannian(2,4)
+julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
 
 julia> s0 = schubert_class(G, 0)
@@ -31,7 +31,7 @@ c[2]^2
 
 julia> # Pieri's formula:
 
-julia> s1*s1 == s2+s11
+julia> s1*s1 == s2 + s11
 true
 
 julia> s1*s2 == s1*s11 == s21
@@ -43,7 +43,7 @@ true
 ```
 
 ```jldoctest
-julia> G = abstract_grassmannian(2,5)
+julia> G = abstract_grassmannian(2, 5)
 AbstractVariety of dim 6
 
 julia> s3 = schubert_class(G, 5-2)
@@ -60,10 +60,10 @@ julia> chern_class(Q, 3)
 
 ```
 
-*Number of Lines in $\mathbb P^3$ Meeting Four General Lines in $\mathbb P^3$*
+*Number of lines in $\mathbb P^3$ meeting four general lines in $\mathbb P^3$*
 
 ```jldoctest
-julia> G = abstract_grassmannian(2,4)
+julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
 
 julia> s1 = schubert_class(G, 1)
@@ -77,12 +77,14 @@ julia> integral(s1^4)
 
 ```
 """
-function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
-function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, Vector(λ)) end
-function schubert_class(G::AbstractVariety, λ::Vector{Int})
+schubert_class(G::AbstractVariety, lambda::Int...) = schubert_class(G, collect(lambda))
+schubert_class(G::AbstractVariety, lambda::Partition) = schubert_class(G, Vector(lambda))
+function schubert_class(G::AbstractVariety, lambda::Vector{Int})
   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-  (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
-  giambelli(G.bundles[2], λ)
+  S, Q = tautological_bundles(G)
+  (length(lambda) > rank(S) || sort(lambda; rev=true) != lambda) &&
+    error("the Schubert input is not well-formed")
+  giambelli(Q, lambda)
 end
 
 @doc raw"""
@@ -125,15 +127,15 @@ julia> schubert_classes(G, 2)
 
 """
 function schubert_classes(G::AbstractVariety)
-   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-   S, Q = G.bundles
-   return [schubert_classes(G, i) for i = 0:rank(S)*rank(Q)]
+  @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
+  S, Q = tautological_bundles(G)
+  return [schubert_classes(G, i) for i in 0:(rank(S) * rank(Q))]
 end
 
 function schubert_classes(G::AbstractVariety, m::Int)
   @req has_attribute(G, :grassmannian) "the given abstract variety is not a Grassmannian"
-  S, Q = G.bundles
-  res = elem_type(G.ring)[]
+  S, Q = tautological_bundles(G)
+  res = elem_type(chow_ring(G))[]
   for i in 0:rank(S)
     append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
   end

@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $G$ will be a *finite* group.
 
 !!! note
-     The ssumption that $G$ is finite implies:
+     The assumption that $G$ is finite implies:
      - By a result of Emmy Noether, $K[V]$ is integral over $K[V]^G$. In particular,
 
           $\; \; \; \; \; \dim K[V]^G = \dim K[V] = n.$

@@ -53,7 +53,7 @@ end
     F = FreeMod(R, 1)
     FF = FreeMod(Q, 1)
     f = hom(F, FF, gens(FF), phi)
-    @test matrix(f) isa MatrixElem
+    @test matrix(f) isa MatElem
 end
 
 @testset "Issues in #1806 part 3" begin

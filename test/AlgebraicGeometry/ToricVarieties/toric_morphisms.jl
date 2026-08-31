@@ -7,7 +7,7 @@
   p1p1 = normal_toric_variety(cube(2))
   p2 = projective_space(NormalToricVariety, 2)
 
-  @testset "Argument errors for toric morphisms" begin
+  @testset "Should fail due to bad arguments (toric morphisms)" begin
     @test_throws ArgumentError tm1 * tm1
     @test_throws ArgumentError toric_morphism(p1p1, [1 0; 0 1], p2)
     @test_throws ArgumentError toric_morphism(p2, [[1, 0], [0, 1]], p1p1)

@@ -121,22 +121,21 @@ function parent(a::f4ncgb_polys_helper)
 end
 
 function add_cb(pa::Ptr{Nothing},
-                pnumerator::Ptr{BigInt},
-                pdenominator::Ptr{BigInt},
+                pnumerator::Ptr{ZZRingElem},
+                pdenominator::Ptr{ZZRingElem},
                 varcount::Csize_t,
-                pvars:: Ptr{UInt32})
-
+                pvars::Ptr{UInt32})
+  pnumerator == C_NULL && return nothing
   a = unsafe_pointer_to_objref(convert(Ptr{f4ncgb_polys_helper}, pa))
   P = parent(a)
   n = nvars(P)
   vars = unsafe_wrap(Array, pvars, varcount)
-  numerator = unsafe_load(pnumerator)
-  denominator = unsafe_load(pdenominator)
-  monomial = QQ(numerator,denominator)
+  num = unsafe_load(pnumerator)
+  den = unsafe_load(pdenominator)
+  monomial = QQ(num, den)
   new_vars = [n - Int(i)+1 for i in vars]
-  push_term!(a.current_poly,monomial,new_vars)
+  push_term!(a.current_poly, monomial, new_vars)
   return nothing
-
 end
 
 function end_poly_cb(pa::Ptr{Nothing})
@@ -151,10 +150,21 @@ function Base.show(io::IO, a::f4ncgb_polys_helper)
 end
 
 function f4ncgb_solve(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
-  add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{BigInt}, Ptr{BigInt}, Csize_t, Ptr{UInt32}))
+  add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{ZZRingElem}, Ptr{ZZRingElem}, Csize_t, Ptr{UInt32}))
   end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
 
   return @ccall libf4ncgb.f4ncgb_solve(
+    handle::Ptr{Cvoid},
+    pointer_from_objref(ideal)::Ptr{Cvoid},
+    add_cb_c::Ptr{Cvoid},
+    end_poly_cb_c::Ptr{Cvoid})::Cint
+end
+
+function f4ncgb_reduce(handle::Ptr{Cvoid}, ideal::f4ncgb_polys_helper)
+  add_cb_c = @cfunction(add_cb, Cvoid, (Ptr{Cvoid}, Ptr{ZZRingElem}, Ptr{ZZRingElem}, Csize_t, Ptr{UInt32}))
+  end_poly_cb_c = @cfunction(end_poly_cb, Cvoid, (Ptr{Cvoid},))
+
+  return @ccall libf4ncgb.f4ncgb_reduce(
     handle::Ptr{Cvoid},
     pointer_from_objref(ideal)::Ptr{Cvoid},
     add_cb_c::Ptr{Cvoid},

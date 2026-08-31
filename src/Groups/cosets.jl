@@ -1,38 +1,3 @@
-# T=type of the group, S=type of the element
-@doc raw"""
-    GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
-
-Type of right and left cosets of subgroups in groups.
-
-For an element $g$ in a group $G$, and a subgroup $H$ of $G$,
-the set $Hg = \{ hg; h \in H \}$ is a right coset of $H$ in $G$,
-and the set $gH = \{ gh; h \in H \}$ is a left coset of $H$ in $G$.
-
-- [`group(C::GroupCoset)`](@ref) returns $G$.
-
-- [`acting_group(C::GroupCoset)`](@ref) returns $H$.
-
-- [`representative(C::GroupCoset)`](@ref) returns an element
-  (the same element for each call) of `C`.
-
-- [`is_right(C::GroupCoset)`](@ref) and [`is_left(C::GroupCoset)`](@ref)
-  return whether `C` is a right or left coset, respectively.
-
-Two cosets are equal if and only if they are both left or right, respectively,
-and they contain the same elements.
-"""
-struct GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
-   G::TG                   # big group containing the subgroup and the element
-   H::TH                   # subgroup (may have a different type)
-   repr::S                 # element
-   side::Symbol            # says if the coset is left or right
-   X::Ref{GapObj}          # GapObj(H*repr)
-
-   function GroupCoset(G::TG, H::TH, representative::S, side::Symbol) where {TG <: GAPGroup, TH <: GAPGroup, S <:GAPGroupElem}
-     return new{TG, TH, S}(G, H, representative, side, Ref{GapObj}())
-   end
-end
-
 GAP.@install function GapObj(obj::GroupCoset)
   if !isassigned(obj.X)
     g = GapObj(representative(obj))
@@ -368,40 +333,11 @@ function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
   return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
-
-@doc raw"""
-    SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
-
-Type of left/right transversals of subgroups in groups.
-
-For a group $G$ and a subgroup $H$ of $G$, $T$ is a right
-(resp. left) transversal for $H$ in $G$ if $T$ contains
-precisely one element of each right (resp. left) cosets of $H$ in $G$.
-
-Objects of this type are created by [`right_transversal`](@ref) and
-[`left_transversal`](@ref).
-
-- [`group(T::SubgroupTransversal)`](@ref) returns $G$.
-
-- [`subgroup(T::SubgroupTransversal)`](@ref) returns $H$.
-
-# Note for developers
-
-The elements are encoded via a right transversal object in GAP.
-(Note that GAP does not support left transversals.)
-"""
-struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
-   G::T                    # big group containing the subgroup
-   H::S                    # subgroup
-   side::Symbol            # says if the transversal is left or right
-   X::GapObj               # underlying *right* transversal in GAP
-end
-
 GAP.@install GapObj(T::SubgroupTransversal) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = is_left(x) ? "Left" : "Right"
-  println(io, "$side transversal of length $(length(x)) of")
+  println(io, "$side transversal of length $(length(ZZRingElem, x)) of")
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.H, " in")
@@ -428,8 +364,11 @@ Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
 
 Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 
-function Base.getindex(T::SubgroupTransversal, i::Int)
-  res = group_element(T.G, GapObj(T)[i])
+Base.length(::Type{I}, T::SubgroupTransversal) where I <: IntegerUnion = index(I, T.G, T.H)
+
+function Base.getindex(T::SubgroupTransversal, i::IntegerUnion)
+  res = group_element(T.G, GAP.Globals.ELM_LIST(GapObj(T), GAP.Obj(i)))
+#TODO: As soon as `GapObj(T)[i]` works for large `i`, simplify the above line
   if is_left(T)
     res = inv(res)
   end
@@ -579,40 +518,49 @@ function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup w
               GAPWrap.RightTransversal(GapObj(G), GapObj(H)))
 end
 
-
-@doc raw"""
-    GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
-
-Type of double cosets of subgroups in groups.
-
-For an element $g$ in a group $G$, and two subgroups $H$, $K$ of $G$,
-the set $HgK = \{ hgk; h \in H, k \in K \}$ is a $H-K$-double coset in $G$.
-
-- [`group(C::GroupDoubleCoset)`](@ref) returns $G$.
-
-- [`left_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
-
-- [`right_acting_group(C::GroupDoubleCoset)`](@ref) returns $K$.
-
-- [`representative(C::GroupDoubleCoset)`](@ref) returns an element
-  (the same element for each call) of `C`.
-
-Two double cosets are equal if and only if they contain the same elements.
 """
-struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
-# T=type of the group, S=type of the element
-   G::T
-   H::GAPGroup
-   K::GAPGroup
-   repr::S
-   X::Ref{GapObj}
-   size::Ref{ZZRingElem}
-   right_coset_reps::Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}
+    index_of_coset(::Type{I} = ZZRingElem, T::SubgroupTransversal, g::GroupElem) where I <: IntegerUnion
 
-   function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
-     return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}(),
-                      Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}())
+Return the position `i` in `T` such that
+`g` is an element of `subgroup(T)*T[i]` if `T` is a right transversal and
+`g` is an element of `T[i]*subgroup(T)` if `T` is a left transversal.
+
+The returned value has type `I`.
+
+`parent(g)` must be equal to `group(T)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> H = symmetric_group(3);
+
+julia> Tr = right_transversal(G, H);
+
+julia> index_of_coset(Tr, G[1])
+2
+
+julia> Tl = left_transversal(G, H);
+
+julia> index_of_coset(Tl, G[1])
+4
+
+julia> G[1] in right_coset(H, Tr[2])
+true
+
+julia> G[1] in left_coset(H, Tl[4])
+true
+```
+"""
+index_of_coset(T::SubgroupTransversal, g::GroupElem) = index_of_coset(ZZRingElem, T::SubgroupTransversal, g::GroupElem)
+
+function index_of_coset(::Type{I}, T::SubgroupTransversal, g::GroupElem) where I <: IntegerUnion
+   @req parent(g) === group(T) "parent(g) differs from group(T)"
+   Gap_g = GapObj(g)
+   if is_left(T)
+     Gap_g = inv(Gap_g)
    end
+   return I(GAPWrap.PositionCanonical(GapObj(T), Gap_g)::GapInt)
 end
 
 GAP.@install function GapObj(C::GroupDoubleCoset)

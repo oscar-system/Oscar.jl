@@ -25,7 +25,6 @@ export deck_group
 export elevator_origami
 export from_GAP_origami
 export generalized_cyclic_torus_cover
-export has_spin_structure
 export homology
 export homology_to_string
 export horizontal_perm
@@ -51,12 +50,10 @@ export random_origami
 export read_cylinder_diagrams
 export realizable_lengths
 export realizable_lengths_of_cylinder_diagram
-export spin_parity
 export split_diagrams
 export staircase_origami
 export stratum
 export sum_of_lyapunov_exponents
-export symplectic_basis_of_homology
 export system_of_equations
 export systolic_ratio
 export systolic_ratio_bigger_one_over_pi_in_h11

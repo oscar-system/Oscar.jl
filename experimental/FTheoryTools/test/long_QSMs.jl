@@ -44,7 +44,7 @@ our_rng = Random.Xoshiro(1234)
       qsm_model;
       not_breaking=true,
       completeness_check=false,
-      algorithm="special",
+      algorithm=:special,
       rng=our_rng,
     )
     @test ncols(matrix_integral(fg)) == 1

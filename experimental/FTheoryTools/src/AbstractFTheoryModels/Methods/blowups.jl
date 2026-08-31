@@ -6,9 +6,10 @@
 ###########################################################################
 
 @doc raw"""
-    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
+    _martins_desired_blowup(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; kwargs...)
 
 Blow up the toric variety along a toric ideal sheaf.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 !!! warning
     This function is type unstable. The type of the domain of the output `f` is always a subtype of `AbsCoveredScheme` (meaning that `domain(f) isa AbsCoveredScheme` is always true). 
@@ -58,7 +59,7 @@ function _martins_desired_blowup(
 end
 
 @doc raw"""
-    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
+    _martins_desired_blowup(v::NormalToricVariety, I::MPolyIdeal; kwargs...)
 
 Blow up the toric variety by subdividing the cone in the list
 of *all* cones of the fan of `v` which corresponds to the
@@ -117,9 +118,10 @@ end
 ##################################################################
 
 @doc raw"""
-    blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+    blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; kwargs...)
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 # Examples
 ```jldoctest
@@ -175,9 +177,10 @@ function blow_up(
 end
 
 @doc raw"""
-    blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+    blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; kwargs...)
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 # Examples
 ```jldoctest
@@ -245,10 +248,11 @@ function _ideal_sheaf_to_minimal_supercone_coordinates(
 end
 
 @doc raw"""
-    blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
+    blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; kwargs...)
 
 Resolve an F-theory model by blowing up a locus in the ambient space.
 For this method, the blowup center is encoded by an ideal sheaf.
+Set `coordinate_name` to choose the name of the exceptional homogeneous coordinate; it defaults to `"e"`.
 
 # Examples
 ```jldoctest
@@ -396,7 +400,7 @@ function blow_up(
   if ambient_space(model) isa NormalToricVariety
     index = index_of_exceptional_ray(bd)
     @req index == ngens(coordinate_ring(ambient_space(model))) "Inconsistency encountered. Contact the authors"
-    indices = exceptional_divisor_indices(model)
+    indices = copy(exceptional_divisor_indices(model))
     push!(indices, index)
     set_attribute!(model, :exceptional_divisor_indices, indices)
 
@@ -404,6 +408,19 @@ function blow_up(
     if nr_of_current_blow_up == nr_blowups_in_sequence
       # Update exceptional classes and their indices
       divs = torusinvariant_prime_divisors(ambient_space(model))
+
+      # The ambient cohomology ring changes under a toric blowup. Recompute the
+      # zero-section class in the new ring rather than retaining the stale class
+      # copied from the pre-blowup model.
+      if has_attribute(model, :zero_section_index)
+        index = zero_section_index(model)
+        @req index <= length(divs) "Inconsistency encountered. Contact the authors"
+        set_attribute!(
+          model,
+          :zero_section_class =>
+            cohomology_class(divs[index]; completeness_check=false),
+        )
+      end
 
       indets = [
         lift(g) for
@@ -482,23 +499,8 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
-  if has_attribute(m, :arxiv_id)
-    if resolution_index == 1 && arxiv_id(m) == "1511.03209"
-      model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-      model = load(model_data_path)
-      # Modify attributes, see PR #5031 for details
-      set_attribute!(
-        model, :gens_of_h22_hypersurface, get_attribute(model, :basis_of_h22_hypersurface)
-      )
-      set_attribute!(
-        model,
-        :gens_of_h22_hypersurface_indices,
-        get_attribute(model, :basis_of_h22_hypersurface_indices),
-      )
-      delete!(model.__attrs, :basis_of_h22_hypersurface)
-      delete!(model.__attrs, :basis_of_h22_hypersurface_indices)
-      return model
-    end
+  if has_attribute(m, :arxiv_id) && arxiv_id(m) == "1511.03209" && resolution_index == 1
+    return load(artifact"FTM-1511-03209/1511-03209-resolved.mrdi")::GlobalTateModel
   end
 
   # To be extended to hypersurface models...
@@ -516,16 +518,15 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # Resolve the model
   resolved_model = m
-  blow_up_chain = []
+  blow_up_chain = typeof(m)[]
   for k in 1:nr_blowups
 
     # Replace parameters in the blow_up_center with explicit_model_sections
-    blow_up_center = centers[k]
+    blow_up_center = copy(centers[k])
+    model_sections = explicit_model_sections(resolved_model)
     for l in 1:length(blow_up_center)
-      model_sections = explicit_model_sections(resolved_model)
       if haskey(model_sections, blow_up_center[l])
-        new_locus = string(explicit_model_sections(resolved_model)[blow_up_center[l]])
-        blow_up_center[l] = new_locus
+        blow_up_center[l] = string(model_sections[blow_up_center[l]])
       end
     end
 
@@ -557,7 +558,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
       # Compute strict transform of ideal sheaves appearing in blowup center
       exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
-      positions = [findfirst(==(l), exceptionals) for l in exceptional_center]
+      positions = [findfirst(==(l), exceptionals)::Int for l in exceptional_center]
       exceptional_divisors = [
         exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for
         l in positions

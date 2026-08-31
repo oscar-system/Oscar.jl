@@ -71,11 +71,6 @@ end
 #
 ################################################################################
 
-struct FinGenAbGroupConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
-   X::T
-   repr::S
-end
-
 function Base.hash(C::FinGenAbGroupConjClass, h::UInt)
   return Base.hash(Representative(C), h)
 end
@@ -427,7 +422,7 @@ then `w` is equal to the vector computed with
 julia> elementary_divisors(ZZRingElem, [1, 0, 3, 4])
 2-element Vector{ZZRingElem}:
  12
- 0
+  0
 ```
 """
 elementary_divisors(v::Vector{S}) where S <: IntegerUnion = elementary_divisors(S, v)

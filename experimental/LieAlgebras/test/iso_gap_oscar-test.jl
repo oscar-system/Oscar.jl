@@ -81,7 +81,7 @@ end
       lie_algebras = [GAP.Globals.FreeLieAlgebra(RG, 1), GAP.Globals.FreeLieAlgebra(RG, 2)]
 
       @testset for LG in lie_algebras
-        @test_throws ErrorException Oscar.iso_gap_oscar(LG)
+        @test_throws GAP.GAPError Oscar.iso_gap_oscar(LG)
       end
     end
   end
