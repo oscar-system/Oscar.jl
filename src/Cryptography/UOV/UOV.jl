@@ -363,10 +363,14 @@ function gauss_solve(uov::UOV, l::Vector{Vector{UInt8}}, c::Vector{UInt8})
     return [m[i][w] for i in 1:h]
 end
 
-# Apply public map to z
+# Apply public map to z. The byte vector `tm` must be the full (expanded)
+# public key, i.e. the concatenation of `p1`, `p2` and `p3`.
 function pubmap(uov::UOV, z::Vector{UInt8}, tm::Vector{UInt8})
     v = uov.v
     m = uov.m
+
+    @req length(z) == uov.n_sz "signature part z must have length $(uov.n_sz), got $(length(z))"
+    @req length(tm) == uov.p1_sz + uov.p2_sz + uov.p3_sz "public key must have length $(uov.p1_sz + uov.p2_sz + uov.p3_sz), got $(length(tm))"
 
     m1 = unpack_mtri(uov, tm[1:uov.p1_sz], v)
     m2 = unpack_mrect(uov, tm[uov.p1_sz+1:uov.p1_sz+uov.p2_sz], v, m)
@@ -435,7 +439,10 @@ parameter set `uov`, returning the signature as a byte vector.
 """
 function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     if uov.skc
+        @req length(sk) == uov.seed_sk_sz "compact secret key must have length $(uov.seed_sk_sz), got $(length(sk))"
         sk = expand_sk(uov, sk)
+    else
+        @req length(sk) == uov.seed_sk_sz + uov.so_sz + uov.p1_sz + uov.p2_sz "secret key must have length $(uov.seed_sk_sz + uov.so_sz + uov.p1_sz + uov.p2_sz), got $(length(sk))"
     end
 
     seed_sk = sk[1:uov.seed_sk_sz]
@@ -509,8 +516,13 @@ Return `true` if the signature `sig` is a valid signature of the message `msg`
 under the public key `pk` of the UOV parameter set `uov`.
 """
 function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8})
+    @req length(sig) == uov.sig_sz "signature must have length $(uov.sig_sz), got $(length(sig))"
+
     if uov.pkc
+        @req length(pk) == uov.seed_pk_sz + uov.p3_sz "compact public key must have length $(uov.seed_pk_sz + uov.p3_sz), got $(length(pk))"
         pk = expand_pk(uov, pk)
+    else
+        @req length(pk) == uov.p1_sz + uov.p2_sz + uov.p3_sz "public key must have length $(uov.p1_sz + uov.p2_sz + uov.p3_sz), got $(length(pk))"
     end
 
     z = sig[1:uov.n_sz]
