@@ -922,7 +922,7 @@ function get_W(k, mG, mU, E)
     sigma_q = hom(q, q, [mq(sigma(preimage(mq, x))) for x = gens(q)])
     x, y = debeerst(q, sigma_q)
     # just to verify... Gunter Malle: the C_2 modules are visible over GF(2)...
-    if get_assert_level(:GaloisCohomology) > 0
+    if get_assertion_level(:GaloisCohomology) > 0
       _M = gmodule(GF(2), gmodule(G_inf, [sigma_q]))
       _i = indecomposition(_M)
       @hassert :GaloisCohomology 1 length(findall(x->dim(x[1]) == 2, _i)) == length(y)
@@ -1506,13 +1506,13 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
   end
   
 
-  if get_assert_level(:GaloisCohomology) > 4
+  if get_assertion_level(:GaloisCohomology) > 4
     #check if V->W_V->W_U and V->U->W_U commute and are G-linear and such
     hom(inflate(I1.data[8][1], GrpHom), I2.data[8][1], h)
   end
 
   X = canonical_projection(I1.M, 1) * h * canonical_injection(I2.M, 1)
-  if get_assert_level(:GaloisCohomology) > 4
+  if get_assertion_level(:GaloisCohomology) > 4
     @assert mUV*I2.data[8][2] == I1.data[8][2]*h
     hom(inflate(I1.data[2], GrpHom), I2.data[2], hom(X))
   end
@@ -1550,11 +1550,11 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
         end
       end
       
-      if get_assert_level(:GaloisCohomology) > 4
+      if get_assertion_level(:GaloisCohomology) > 4
         hom(inflate(IndI1[i][1], GrpHom), IndI2[j][1], h)
       end
       X += canonical_projection(I1.M, i+1) * h * canonical_injection(I2.M, j+1)
-      if get_assert_level(:GaloisCohomology) > 4
+      if get_assertion_level(:GaloisCohomology) > 4
         hom(inflate(I1.data[2], GrpHom), I2.data[2], hom(X))
       end
       break
@@ -1798,7 +1798,7 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
     mU_W = hom(hom(unit_pro*U_W2*W2_W) + hom(comp_pro*inv(hd12)*C_W))           
     acW = hom(W_W2*action(I.data[7], I.data[7].G[1])*W2_W + acW)
     Et = gmodule(I.data[7].G, [acW])
-    if get_assert_level(:GaloisCohomology) > 2
+    if get_assertion_level(:GaloisCohomology) > 2
       @assert hom(acW*acW) == id_hom(W)
       inv(acW)
       is_consistent(Et)
@@ -1808,7 +1808,7 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
   fl, mG_inf = is_subgroup(group(Et), G)
   @assert fl
   iEt = Oscar.GrpCoh.induce(Et, mG_inf, E, mU_W)
-  if get_assert_level(:GaloisCohomology) > 2
+  if get_assertion_level(:GaloisCohomology) > 2
     hom(E, iEt[1], iEt[2])
   end
 
@@ -3285,7 +3285,7 @@ function global_fundamental_class(A::IdeleParent)
   z = cohomology_group(hk, 2)
 
   @assert ngens(z[1]) == 1
-  if get_assert_level(:GaloisCohomology) > 1
+  if get_assertion_level(:GaloisCohomology) > 1
     gg = z[3](z[1][1])
     @assert Oscar.GrpCoh.istwo_cocycle(gg) 
   end
@@ -3369,7 +3369,7 @@ function global_fundamental_class(A::IdeleParent)
       phi = induce_hom(_A, B, emb)
 #        @show conductor(_A)
       qKk = fixed_group(B.mG, _A.mG, emb)
-      if get_assert_level(:GaloisCohomology) > 1
+      if get_assertion_level(:GaloisCohomology) > 1
         check_map(_A.data[1], B.data[1], qKk[2], phi)
       end
       @vprint :GaloisCohomology 2 "shrinking C_N\n"
@@ -3382,7 +3382,7 @@ function global_fundamental_class(A::IdeleParent)
       #TODO: check if just inflating lazy chains is faster...
       @vtime :GaloisCohomology 2 inf_kK = change_group(fK, fk, qKk[2])
 
-      if get_assert_level(:GaloisCohomology) > 1
+      if get_assertion_level(:GaloisCohomology) > 1
         @assert map(fK, 2)*inf_kK[1] == inf_kK[2]*map(fk, 2)
         @assert map(fK, 3)*inf_kK[2] == inf_kK[3]*map(fk, 3)
       end
