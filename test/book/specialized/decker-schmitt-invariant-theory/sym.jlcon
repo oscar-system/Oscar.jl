@@ -1,3 +1,5 @@
+# Temporary cross-repository test of the booktest warning workflow.
+
 julia> RS4 = invariant_ring(GF(2), symmetric_group(4))
 Invariant ring
   of symmetric group of degree 4
