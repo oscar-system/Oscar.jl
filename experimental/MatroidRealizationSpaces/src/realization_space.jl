@@ -33,7 +33,7 @@ end
 
 
 function Base.show(io::IO, RS::MatroidRealizationSpace)
-  if RS.ambient_ring isa MPolyRing
+  if ambient_ring(RS) isa MPolyRing
     # Backed by a genuine affine scheme (this is also how the schemes machinery
     # displays such a space when it appears as a chart, e.g. in a blow-up):
     # defer to the underlying scheme's terse show.
@@ -64,14 +64,14 @@ function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
       println(io, "The realization space is")
     end
     print(io, Indent())
-    show(io, MIME("text/plain"), RS.realization_matrix)
-    print(io, "\n", Dedent(), "in the ", Lowercase(), RS.ambient_ring)
-    I = RS.defining_ideal
+    show(io, MIME("text/plain"), realization_matrix(RS))
+    print(io, "\n", Dedent(), "in the ", Lowercase(), ambient_ring(RS))
+    I = defining_ideal(RS)
     if !iszero(I)
       print(io, "\nwithin the vanishing set of the ideal\n", I)
     end
-    if length(RS.inequations) > 0
-      print(io, "\navoiding the zero loci of the polynomials\n", RS.inequations)
+    if length(inequations(RS)) > 0
+      print(io, "\navoiding the zero loci of the polynomials\n", inequations(RS))
     end
   end
 end
@@ -98,11 +98,11 @@ function is_realizable(
 end
 
 @attr Bool function is_realizable(RS::MatroidRealizationSpace)
-  if !(RS.ambient_ring isa MPolyRing)
+  if !(ambient_ring(RS) isa MPolyRing)
     return true
   end
-  for p in minimal_primes(RS.defining_ideal)
-    component_non_trivial = all(!in(p), RS.inequations)
+  for p in minimal_primes(defining_ideal(RS))
+    component_non_trivial = all(!in(p), inequations(RS))
     if component_non_trivial
       return true
     end
@@ -452,24 +452,24 @@ function realization_space(
     RS = reduce_realization_space(RS)
   end
 
-  if q != nothing && RS.ambient_ring isa MPolyRing
-    I = RS.defining_ideal
-    R = RS.ambient_ring
+  if q != nothing && ambient_ring(RS) isa MPolyRing
+    I = defining_ideal(RS)
+    R = ambient_ring(RS)
     eqs = Vector{RingElem}()
     for x in gens(R)
       push!(eqs, x^q - x)
     end
     I = I + ideal(R, eqs)
     RS.defining_ideal = I
-    if isone(RS.defining_ideal)
+    if isone(defining_ideal(RS))
       set_attribute!(RS, :is_realizable, :false)
       return RS
     end
   end
 
-  if saturate && RS.defining_ideal isa MPolyIdeal
-    RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
-    if isone(RS.defining_ideal)
+  if saturate && defining_ideal(RS) isa MPolyIdeal
+    RS.defining_ideal = stepwise_saturation(defining_ideal(RS), inequations(RS))
+    if isone(defining_ideal(RS))
       set_attribute!(RS, :is_realizable, :false)
       return RS
     end
@@ -489,10 +489,10 @@ function realization_space(
     while true
       nvars_before = ambient_ring(RS) isa MPolyRing ? ngens(ambient_ring(RS)) : 0
       RS = reduce_realization_space(RS)
-      nvars_after = RS.ambient_ring isa MPolyRing ? ngens(RS.ambient_ring) : 0
-      (nvars_after < nvars_before && RS.defining_ideal isa MPolyIdeal) || break
-      RS.defining_ideal = stepwise_saturation(RS.defining_ideal, RS.inequations)
-      if isone(RS.defining_ideal)
+      nvars_after = ambient_ring(RS) isa MPolyRing ? ngens(ambient_ring(RS)) : 0
+      (nvars_after < nvars_before && defining_ideal(RS) isa MPolyIdeal) || break
+      RS.defining_ideal = stepwise_saturation(defining_ideal(RS), inequations(RS))
+      if isone(defining_ideal(RS))
         set_attribute!(RS, :is_realizable, :false)
         return RS
       end
@@ -501,27 +501,27 @@ function realization_space(
 
   # we filter out the inequalities that don't actually meet the realization space:
   if simplify
-    if iszero(RS.defining_ideal)
+    if iszero(defining_ideal(RS))
       # With trivial defining ideal, an inequation is redundant iff it is a unit
       # in the ambient ring (after gens_2_prime_divisors this is essentially never
       # the case, but check defensively). Avoids one Gröbner basis per inequation.
-      filter!(!is_unit, RS.inequations)
+      filter!(!is_unit, inequations(RS))
     else
       redundant_inequations = Vector{RingElem}()
-      for ineq in RS.inequations
-        if isone(RS.defining_ideal + ideal(RS.ambient_ring,[ineq]))
+      for ineq in inequations(RS)
+        if isone(defining_ideal(RS) + ideal(ambient_ring(RS),[ineq]))
           push!(redundant_inequations,ineq)
         end
       end
       for ineq in redundant_inequations
-        deleteat!(RS.inequations, findfirst(x->x==ineq,RS.inequations))
+        deleteat!(inequations(RS), findfirst(x->x==ineq,inequations(RS)))
       end
     end
   end
 
   # Expand the simple realization matrix back to the full n-column matrix
-  if RS.realization_matrix !== nothing
-    RS.realization_matrix = expand_matrix(RS.realization_matrix, RS.ambient_ring)
+  if realization_matrix(RS) !== nothing
+    RS.realization_matrix = expand_matrix(realization_matrix(RS), ambient_ring(RS))
   end
 
   return RS
@@ -722,27 +722,27 @@ function realization(RS::MatroidRealizationSpace)
   end
 
   # If the ambient ring is not a polynomial ring we can't reduce and we stop
-  R = RS.ambient_ring
+  R = ambient_ring(RS)
 
   !(R isa MPolyRing) && return RS
-  Inew = RS.defining_ideal
+  Inew = defining_ideal(RS)
   eqs = copy(gens(Inew))
 
   if dim(Inew) == 0
     for p in minimal_primes(Inew)
-      if !any(in(p), RS.inequations)
+      if !any(in(p), inequations(RS))
         Inew = p
         break
       end
     end
-    RSnew = MatroidRealizationSpace(Inew, Vector{RingElem}(), R, RS.realization_matrix, RS.char, RS.q, RS.ground_ring)
+    RSnew = MatroidRealizationSpace(Inew, Vector{RingElem}(), R, realization_matrix(RS), RS.char, RS.q, RS.ground_ring)
     RSnew = reduce_realization_space(RSnew)
     RSnew.one_realization = true
     return RSnew
   end
 
   d = min(dim(Inew), nvars(R))
-  ineqsnew = RS.inequations
+  ineqsnew = inequations(RS)
 
   counter = 0
   base = 7
@@ -760,7 +760,7 @@ function realization(RS::MatroidRealizationSpace)
     end
     Inew = ideal(groebner_basis(ideal(R, eqsnew)))
     isone(Inew) && continue
-    ineqsnew = copy(RS.inequations)
+    ineqsnew = copy(inequations(RS))
     for i in 1:length(ineqsnew)
       ineqsnew[i] = reduce(ineqsnew[i], gens(Inew))
     end
@@ -771,15 +771,15 @@ function realization(RS::MatroidRealizationSpace)
   end
   counter == upperbound && d != 0 && return RS
 
-  RSnew = MatroidRealizationSpace(Inew, ineqsnew, R, RS.realization_matrix, RS.char, RS.q, RS.ground_ring)
+  RSnew = MatroidRealizationSpace(Inew, ineqsnew, R, realization_matrix(RS), RS.char, RS.q, RS.ground_ring)
   RSnew = reduce_realization_space(RSnew)
-  ineqsnew = RSnew.inequations
+  ineqsnew = inequations(RSnew)
   if length(ineqsnew) > 0
-    Inew = RSnew.defining_ideal
-    Rnew = RSnew.ambient_ring
+    Inew = defining_ideal(RSnew)
+    Rnew = ambient_ring(RSnew)
     ineqsnew = filter(p -> !isone(ideal(groebner_basis(Inew + ideal(Rnew, p)))), ineqsnew)
     RSnew = MatroidRealizationSpace(
-      Inew, ineqsnew, Rnew, RSnew.realization_matrix, RSnew.char, RSnew.q, RSnew.ground_ring
+      Inew, ineqsnew, Rnew, realization_matrix(RSnew), RSnew.char, RSnew.q, RSnew.ground_ring
     )
   end
 
@@ -911,12 +911,12 @@ end
 function reduce_ideal_one_step(
   MRS::MatroidRealizationSpace, elim::Vector{<:RingElem}, fullyReduced::Bool
 )
-  Igens = gens(MRS.defining_ideal)
-  Sgens = MRS.inequations
-  R = MRS.ambient_ring
+  Igens = gens(defining_ideal(MRS))
+  Sgens = inequations(MRS)
+  R = ambient_ring(MRS)
   FR = fraction_field(R)
   xs = gens(R)
-  X = MRS.realization_matrix
+  X = realization_matrix(MRS)
   nr, nc = size(X)
 
   Ivars = ideal_vars(Igens)
@@ -968,7 +968,7 @@ function reduce_realization_space(
 )
 
   #If there are no variables left, we don't reduce anything
-  if !(MRS.ambient_ring isa MPolyRing)
+  if !(ambient_ring(MRS) isa MPolyRing)
     return MRS
   end
 
@@ -976,13 +976,13 @@ function reduce_realization_space(
 
   !fullyReduced && return reduce_realization_space(MRS, elim, fullyReduced)
 
-  R = MRS.ambient_ring
+  R = ambient_ring(MRS)
   xs = gens(R)
   cR = coefficient_ring(R)
-  X = MRS.realization_matrix
+  X = realization_matrix(MRS)
   nr, nc = size(X)
-  Igens = gens(MRS.defining_ideal)
-  Sgens = MRS.inequations
+  Igens = gens(defining_ideal(MRS))
+  Sgens = inequations(MRS)
 
   # 0 is in the inequations, thus it is not realizable
   if R(0) in Sgens
