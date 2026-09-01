@@ -6,7 +6,7 @@ julia> L = fundamental_invariants(RS4)
 4-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1] + x[2] + x[3] + x[4]
  x[1]*x[2] + x[1]*x[3] + x[2]*x[3] + x[1]*x[4] + x[2]*x[4] + x[3]*x[4]
- x[1]^3 + x[2]^3 + x[3]^3 + x[4]^3
+ x[1]*x[2]*x[3] + x[1]*x[2]*x[4] + x[1]*x[3]*x[4] + x[2]*x[3]*x[4]
  x[1]*x[2]*x[3]*x[4]
 
 julia> is_algebraically_independent(L)
