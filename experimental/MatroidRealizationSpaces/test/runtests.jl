@@ -258,3 +258,43 @@ end
     m = det(matrix(A, [X[i, j] for i in 1:3, j in [2, 4, 6]]))
     @test m in I
 end
+
+@testset "matroid realization space serialization" begin
+    # Regression: a fully reduced (rigid) chart has ambient ring ZZ, and the
+    # loader used to request the inequations as Vector{MPolyRingElem} over
+    # that ZZRing — a method that does not exist, so such charts could not be
+    # loaded in a fresh session. (In the session that saved them, the uses_id
+    # cache returned the object without running the loader, masking the bug.)
+    # The non-Fano matroid produces exactly such a chart: ambient ring ZZ,
+    # zero ideal, inequations [2].
+    RS = realization_space(non_fano_matroid(); saturate=true)
+    @test ambient_ring(RS) isa ZZRing        # precondition: chart is rigid
+    @test !isempty(inequations(RS))
+
+    io = IOBuffer()
+    save(io, RS)
+    Oscar.reset_global_serializer_state()    # simulate a fresh session
+    seekstart(io)
+    loaded = load(io)
+    @test loaded isa Oscar.MatroidRealizationSpace
+    @test ambient_ring(loaded) isa ZZRing
+    @test gens(defining_ideal(loaded)) == gens(defining_ideal(RS))
+    @test inequations(loaded) == inequations(RS)
+    @test realization_matrix(loaded) == realization_matrix(RS)
+
+    # ordinary polynomial-ambient chart: unaffected path stays intact.
+    # After the state reset the loaded ring is a distinct parent, so compare
+    # string representations rather than elements across parents.
+    RS2 = realization_space(pappus_matroid(); saturate=true)
+    @test !(ambient_ring(RS2) isa ZZRing)
+    io2 = IOBuffer()
+    save(io2, RS2)
+    Oscar.reset_global_serializer_state()
+    seekstart(io2)
+    loaded2 = load(io2)
+    @test loaded2 isa Oscar.MatroidRealizationSpace
+    @test symbols(ambient_ring(loaded2)) == symbols(ambient_ring(RS2))
+    @test string.(gens(defining_ideal(loaded2))) == string.(gens(defining_ideal(RS2)))
+    @test string.(inequations(loaded2)) == string.(inequations(RS2))
+    @test string(realization_matrix(loaded2)) == string(realization_matrix(RS2))
+end

@@ -329,6 +329,10 @@ We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
 function canonical_form(L::ZZLat)
   gram = matrix(ZZ, gram_matrix(L))
   char_vectors_set = characteristic_vectors(L)
+  # `characteristic_vectors` returns the characteristic vectors only up to
+  # sign; reducing to the fundamental chamber does not commute with the choice
+  # of the signs, so we have to take all of them
+  char_vectors_set = unique!(append!(char_vectors_set, ZZMatrix[-v for v in char_vectors_set]))
   char_vectors_set = _reduce_characteristic_vectors(char_vectors_set, L)
   graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
   can_order = _canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs

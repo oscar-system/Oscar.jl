@@ -465,7 +465,7 @@ slightly differs in its functionality, as it cannot create new jet variables.
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gen(dpr, 1, [3,1,0,0])
 a[3,1,0,0]
 
@@ -500,7 +500,7 @@ Among the currently tracked jet variables of `A`, return the `i`-th largest one.
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr = difference_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gen(dpr, 2)
 b[0,0,0,0]
 
@@ -518,7 +518,7 @@ a vector and track all new jet variables.
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gens(dpr, [(1, [3,1,0,0]), (1, [3,2,0,0])])
 2-element Vector{DifferentialPolyRingElem{ZZRingElem}}:
  a[3,1,0,0]
@@ -543,7 +543,7 @@ sorted with respect to the ranking of `A`, leading with the largest jet variable
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr = difference_polynomial_ring(ZZ, [:a, :b, :c], 4)[1]; gens(dpr)
 3-element Vector{DifferencePolyRingElem{ZZRingElem}}:
  a[0,0,0,0]
@@ -708,7 +708,7 @@ Apply the `i`-th endomorphism to the polynomial `p`.
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 2); f = -2*a*b + 3*a*b^2;
 
 julia> diff_action(3*a, 1)
@@ -739,7 +739,7 @@ Apply the `i`-th derivation to the polynomial `p`.
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr, (a,b,c) = differential_polynomial_ring(ZZ, [:a, :b, :c], 2); f = -2*a*b + 3*a*b^2;
 
 julia> diff_action(3*a, 1)
@@ -1095,7 +1095,7 @@ Return an iterator for the coefficients of `p` with respect to the ranking of th
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> cf = coefficients(f)
@@ -1117,7 +1117,7 @@ Return an iterator for the exponents of `p` with respect to the ranking of the p
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> ef = exponents(f)
@@ -1139,7 +1139,7 @@ Return an iterator for the monomials of `p` with respect to the ranking of the p
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> mf = monomials(f)
@@ -1161,7 +1161,7 @@ Return an iterator for the terms of `p` with respect to the ranking of the paren
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr, (a,b,c) = difference_polynomial_ring(ZZ, [:a, :b, :c], 4; partition = [[0,1,1],[1,0,0]]); f = -2*a*b + a*c + 3*b^2;
 
 julia> tf = terms(f)
@@ -1382,7 +1382,7 @@ This method configures the ranking of the action polynomial ring `A`, using an o
 
 # Examples
 
-```jldoctests
+```jldoctest
 julia> dpr = differential_polynomial_ring(ZZ, [:a, :b, :c], 4; partition_name=:pot, index_ordering_name = :degrevlex)[1]; ranking(dpr)
 Ranking of differential polynomial ring in 3 elementary symbols over ZZ
 with elementary symbols partitioned by

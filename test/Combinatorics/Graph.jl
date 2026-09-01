@@ -441,6 +441,20 @@
       G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
       @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
+
+      let	
+        # the canonical hash must not depend on the order in which the labels are stored internally
+        g = graph_from_labeled_edges(
+                                     Dict((1, 10) => 1),
+                                     Dict(i => i for i in 1:22);
+                                     n_vertices=22,
+                                    )
+
+        p = collect(1:22)
+        p[11], p[19] = p[19], p[11]
+        h = on_graph(g, perm(p))
+        @test Oscar._canonical_hash(g; label=:label) == Oscar._canonical_hash(h; label=:label)
+      end
     end
 
     @testset "on_graph" begin

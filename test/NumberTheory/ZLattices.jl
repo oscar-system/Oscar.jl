@@ -44,4 +44,8 @@ end
   can_form3 =  canonical_form(L3)
   @test can_form1 != can_form2
   @test can_form1 == can_form3
+
+  G = matrix(QQ, 4, 4, [2,0,0,0, 0,3,1,1, 0,1,3,-1, 0,1,-1,5])
+  U = matrix(QQ, 4, 4, [0,1,1,0, 0,0,0,-1, 0,0,-1,1, 1,-1,-1,1])
+  @test canonical_form(integer_lattice(gram = G)) == canonical_form(integer_lattice(gram = U*G*transpose(U)))
 end
