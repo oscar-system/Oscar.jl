@@ -10,10 +10,9 @@ on:
       - '.github/workflows/changelog.yml'
       - 'dev/releases/release_notes.py'
   pull_request:
-    paths-ignore:
-      - '*.md'
-      - '.github/workflows/changelog.yml'
-      - 'dev/releases/release_notes.py'
+    # Temporarily disabled for the same-repository #6201 permission test.
+    paths:
+      - '.github/enable-full-ci'
   workflow_dispatch:
 
 # needed to allow julia-actions/cache to delete old caches that it has created

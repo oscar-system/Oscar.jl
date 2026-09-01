@@ -5,6 +5,9 @@ permissions:
 on:
   pull_request:
     types: [labeled, unlabeled, opened, reopened, edited, synchronize]
+    # Temporarily disabled for the same-repository #6201 permission test.
+    paths:
+      - '.github/enable-full-ci'
 jobs:
   enforce-labels:
     name: Check for blocking labels
