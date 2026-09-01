@@ -442,7 +442,8 @@
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
       @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
 
-      let
+      let	
+        # the canonical hash must not depend on the order in which the labels are stored internally
         g = graph_from_labeled_edges(
                                      Dict((1, 10) => 1),
                                      Dict(i => i for i in 1:22);
