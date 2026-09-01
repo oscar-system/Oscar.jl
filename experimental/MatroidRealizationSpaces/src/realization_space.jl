@@ -487,7 +487,7 @@ function realization_space(
     # terminates. The final returned ideal is always saturated, as promised by
     # `saturate=true`.
     while true
-      nvars_before = RS.ambient_ring isa MPolyRing ? ngens(RS.ambient_ring) : 0
+      nvars_before = ambient_ring(RS) isa MPolyRing ? ngens(ambient_ring(RS)) : 0
       RS = reduce_realization_space(RS)
       nvars_after = RS.ambient_ring isa MPolyRing ? ngens(RS.ambient_ring) : 0
       (nvars_after < nvars_before && RS.defining_ideal isa MPolyIdeal) || break
