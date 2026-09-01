@@ -30,7 +30,7 @@ this means. See also the dedicated `README.md` for details.
 
 Please direct questions about this part of OSCAR to the following people:
 
-- [Sebastian Engelhardt](mailto:seen00001@stud.uni-saarland.de)
+- [Sebastian Engelhardt](mailto:sebastian.engelhardt@tugraz.at)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
