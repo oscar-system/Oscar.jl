@@ -448,8 +448,8 @@ end
 # chamber loses no information. Note that all the vectors we produce have norm
 # bigger than 2: they are non-zero and none of them is a root, since a root
 # lies in `R` and has trivial class in `R^vee/R`.
-function _reduced_characteristic_vectors_with_roots(L::ZZLat)
-  (is_positive_definite(L) && is_integral(L) && minimum(L) == 2) || return nothing
+function _reduced_characteristic_vectors_with_roots(L::ZZLat; check=true)
+  #check && ((is_positive_definite(L) && is_integral(L) && minimum(L) == 2) || return nothing)
   n = rank(L)
   gram = change_base_ring(ZZ, gram_matrix(L))
   # the fundamental roots of `L`, in the coordinates of `L` and grouped into
@@ -524,6 +524,9 @@ end
 # Return the fundamental roots of `L` together with the characteristic vectors
 # of norm different from 1 and 2 lying in the closed fundamental Weyl chamber.
 function _reduced_characteristic_vectors(L::ZZLat)
+  if gram_matrix(L)[1,1] < 0
+    L = rescale(L, -1)
+  end
   res = _reduced_characteristic_vectors_with_roots(L)
   res === nothing || return res
   cv = characteristic_vectors(L)
@@ -581,7 +584,7 @@ We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
 function canonical_form(L::ZZLat)
   # the computations below are much faster with a reduced basis, and the
   # result does not depend on the chosen basis
-  L = lll(L)
+  L = lll(L; _is_definite=true)
   gram = matrix(ZZ, gram_matrix(L))
   char_vectors_set = _reduced_characteristic_vectors(L)
   graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
