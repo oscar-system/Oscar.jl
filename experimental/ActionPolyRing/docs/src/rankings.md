@@ -1,32 +1,4 @@
-# [Rankings](@id actionpolyranking)
-
-Let ``A`` be an action polynomial ring with ``m`` elementary symbols and ``n`` commuting action maps.  
-Define ``\underline{m} := \{1, \ldots, m\}``, with ``m \in \mathbb{N}``.  
-
-Many algorithms require the jet variables of ``A`` to be totally ordered. This is achieved using *rankings*.  
-Analogous to how monomial orderings in a multivariate polynomial ring in ``n`` variables correspond to total
-orderings of ``\mathbb{N}_0^n``, rankings of jet variables correspond to total orderings of ``X := \underline{m} \times \mathbb{N}_0^n``.  
-
-Specifically, we identify a jet variable ``(u_i)_J \in A`` with the pair ``(i, J) \in X``.
-
-## [Riquier rankings](@id actionpolyriquierranking)
-
-The rankings we use are called *Riquier rankings*. By definition, these are rankings of ``X`` that extend to a ranking of
-``\{1\} \times \mathbb{N}^{m+n}``.  
-
-Equivalently, there exists a positive integer ``s`` and an ``s \times (m+n)`` real matrix ``M`` such that the total ordering
-of the jet variables defined by ``X`` coincides with the ordering obtained from the [matrix ordering](@ref "Matrix Orderings")
-on ``\mathbb{N}_0^{m+n}`` defined by ``M``.
-
-For this construction, we identify a jet variable ``(u_i)_J \in A`` with ``(e_i, J) \in \mathbb{N}_0^{m+n}``,
-where ``e_i`` is the ``i``-th unit row and restrict ourselves to integer matrices ``M``. In this context, we call ``M``
-a *Riquier matrix*.
-
-!!! note
-    Not all Riquier rankings are obtained from integral Riquier matrices. However, this is the case if we only require a total
-    ordering of a finite subset of ``X``. Thus, only considering integer matrices is sufficient for practical use.
-
-### Constructing Riquier rankings
+# [Riquier rankings in OSCAR](@id riquier_rankings_in_OSCAR)
 
 In OSCAR, we define rankings, i.e., total orderings of ``X``, by combining the natural *less-than* relation on ``\underline{m}``
 with a customizable total ordering on ``\mathbb{N}_0^n``. The latter is constructed as a matrix ordering; see

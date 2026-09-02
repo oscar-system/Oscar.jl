@@ -1083,6 +1083,18 @@ function _graph_maps(G::Graph)
   return Dict(l => getproperty(G, l) for l in labels)
 end
 
+# group the vertices resp. edges of `G` by their label and return the groups as
+# a vector of pairs sorted by label. Sorting is essential: the position of a
+# group determines the color it gets in `_edge_label_to_vertex_label`, so it has
+# to depend on the labeling only and not on the order in which a `Dict` happens
+# to store its keys.
+function _group_by_label(res::Dict{K, Vector{V}}, itr, G_map::GraphMap) where {K, V}
+  for x in itr
+    push!(get!(Vector{V}, res, G_map[x]), x)
+  end
+  return sort!(collect(res); by=first)
+end
+
 # this currently will ignore all other labels
 # it will create a new graph with new vertices and the labelings solely on the vertices
 # allow us to run isomorphism type functions from nauty on this new graph
@@ -1093,12 +1105,10 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
   G_map = getproperty(G, label)
   label_type = typeof(G_map[first(edges(G))])
-  vertices_by_label = !isnothing(G_map.vertex_map) ? reduce((a, b) -> mergewith(vcat, a, b),
-                             (Dict(G_map[v] => [v]) for v in 1:n_vertices(G));
-                             init=Dict{label_type, Vector{Int}}()) : Dict(:vertices => collect(1:n_vertices(G)))
-  edges_by_label = reduce((a, b) -> mergewith(vcat, a, b),
-                          (Dict(G_map[e] => [e]) for e in edges(G));
-                          init=Dict{label_type, Vector{Edge}}())
+  vertices_by_label = !isnothing(G_map.vertex_map) ?
+                      _group_by_label(Dict{label_type, Vector{Int}}(), 1:n_vertices(G), G_map) :
+                      [:vertices => collect(1:n_vertices(G))]
+  edges_by_label = _group_by_label(Dict{label_type, Vector{Edge}}(), edges(G), G_map)
   new_vertex_labels = Dict{Int, Int}()
   if edge_distinguishable
     # an edge of a given coloring appears in the nth layer if there is a one in
