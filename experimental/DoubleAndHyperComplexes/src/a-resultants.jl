@@ -1,3 +1,28 @@
+mutable struct ResultantCtx
+  A::Vector{<:Union{Matrix, MatrixElem}}
+  f::Vector{<:MPolyRingElem}
+  R::Ring
+  X::NormalToricVariety
+  F::Vector{<:MPolyRingElem}
+  inner_ctx::NewToricCtx
+  outer_ctx::ToricCtxWithParams
+  complexes::Dict{FinGenAbGroupElem, <:AbsHyperComplex}
+
+  function ResultantCtx(A::Vector{<:Union{Matrix, MatrixElem}})
+    @assert !is_empty(A) "resultants of empty support sets are not allowed"
+    @assert length(A) == ncols(first(A)) + 1 "wrong number of support sets"
+    @assert all(ncols(a) == ncols(first(A)) for a in A) "support sets need to have the same length"
+    return new(A)
+  end
+
+  function ResultantCtx(f::Vector{T}) where {T<:MPolyRingElem}
+    @assert !is_empty(f) "resultants of empty collections are not allowed"
+    @assert all(parent(ff) === parent(first(f)) for ff in f) "all polynomials need to have the same parent"
+    A = _support_sets(f)
+    return new(A, f)
+  end
+end
+
 @doc raw"""
     a_resultant_complex(support_sets::Vector{T};
         toric_variety::NormalToricVariety=_get_toric_variety(support_sets),
