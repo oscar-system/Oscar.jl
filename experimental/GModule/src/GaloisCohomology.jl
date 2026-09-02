@@ -1385,6 +1385,7 @@ Covers 3 cases
   - mp = id: I1_k -> I2_k will be a projection
     either more primes
     or more precision in I1_k (at some place)
+    But not both!
   - mp is en embedding k -> K (and places are the "same")  
 """
 function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFieldHom} = nothing)
@@ -1406,10 +1407,6 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
     _, GrpHom = fixed_group(I2.mG, I1.mG, mp)
   end
 
-  #need to align the infinite place...
-  #
-  local twist = nothing
-
   k = domain(mp)
   K = codomain(mp)
   if istotally_real(k)
@@ -1424,8 +1421,6 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
   end
   A = mp(gen(k))
   a = gen(k)
-
-  #
 
   change_field = domain(GrpHom) != codomain(GrpHom)
   local h
@@ -1519,13 +1514,19 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
 
   missing = Int[]
   for i = 1:length(I1.S)
-    local h, twist
+    local h
     local found = false
     for j = 1:length(I2.S)
       minimum(I2.S[j]) == minimum(I1.S[i]) || continue
+
       found = true
       if isnothing(mp) && I1.S[i] == I2.S[j] #easy case, just new precision
+                                             #or more places (elsewhere)
+        if I2.L[j] === I1.L[i]
+          h = identity_map(domain(I1.L[i]))
+          else
         h = hom(domain(I1.L[i]), domain(I2.L[j]), [preimage(I2.L[j], I1.L[i](x)) for x = gens(domain(I1.L[i]))])
+        end
         #easy Induced map? all the same projections?
       else
         #need s in Gal(I2) s.th. val(s(I2.S[j]), mp(I1.S[i])) > 0
@@ -1563,46 +1564,13 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
       push!(missing, i)
     end
   end
-  for i = missing
-    #U_T -> I_T               -> Ind I_p
-    mp = I1.data[3].module_map * canonical_projection(I1.M, i+1)
-    # T-units -> I_T -> K_P^*
-    pe = [preimage(mp, g) for g = gens(codomain(mp))]
-    # K_P* (well the product of the completions of the conjugate primes)
-    # mod the lattice is just Z - only the valuation is left
-    #so the preimage gives a T-unit with valuation 1 at P, zero at the
-    # conjugate and s.th. in S
-    #TODO use the same unit (and pass them down) as in split_units
-    # we want
-    #      U_T -> U_S
-    #       |      |
-    #      I_T -> I_S
-    # to commute, for proper S-units, this is trivial.
-    # for the T\S units we have to work on the bottom arrow.
-    # I_T = W_T + J_T = W_T + J_S + J_(T\S) where J_T is the product
-    # of the completions, factored by the lattices, in particular 
-    # J_(T\S) = Z^(T\S) only (unramified)
-    # 
-#    hom(I1.data[6], I2.data[6], unit_pro)
 
-    h = hom(codomain(mp), I2.M, [I2.data[3].module_map(unit_pro(x))-X(I1.data[3].module_map(x)) for x = pe])
-    X += canonical_projection(I1.M, i+1)*h
-  end
-
-#=  @show domain(X)
-  @show codomain(X)
-  @show domain(mUV)
-  @show codomain(mUV)
-  @show domain(I2.data[3].module_map)
-  @show codomain(I1.data[3].module_map)
-  @show matrix(mUV*I2.data[3].module_map)
-  @show matrix(I1.data[3].module_map*X)
-  =#
-  @assert is_injective(mUV)
-  @assert is_injective(I2.data[3].module_map)
-  @assert is_injective(I1.data[3].module_map)
+  @assert length(missing) == 0
+  @hassert :GaloisCohomology 2 is_injective(mUV)
+  @hassert :GaloisCohomology 2 is_injective(I2.data[3].module_map)
+  @hassert :GaloisCohomology 2 is_injective(I1.data[3].module_map)
 #  @show matrix(mUV*I2.data[3].module_map) - matrix( I1.data[3].module_map*X)
-  @assert mUV*I2.data[3].module_map == I1.data[3].module_map*X
+  @hassert :GaloisCohomology 3 mUV*I2.data[3].module_map == I1.data[3].module_map*X
 
   return hom(pseudo_inv(I1.mq)*X*I2.mq)
 end
@@ -2111,13 +2079,31 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
     lp = prime_decomposition(zk, minimum(p))
     for P = lp
       Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
+      e = absolute_ramification_index(Kp)
       x = mUp(pro(a))
-      vx = Int(valuation(x) * absolute_ramification_index(parent(x)))
+      vx = Int(valuation(x) * e)
       if coprime === nothing
-        id *= FacElem(Dict(o_zk*P[1]=>Int(vx)))
+        id *= FacElem(Dict(o_zk*P[1]=>vx))
       else
         if vx != 0
-          u = x*uniformizer(parent(x), -vx)
+          #need to "shift" x to have val. 0. The valuatin can be huge as it 
+          #comes from some linear algebra - particulary if the moduse has large
+          #exp.
+          #Idea: mult. by pi^-val as the map to ideals sees the valuation
+          #      and Acciaro/Klueners get the unit
+          #      In gen. dividing by pi is "unstable" as it is the prim/ element
+          #      of the Eisenstein extension. dividing by p is trivial, so
+          #      split pi^e =eps p, divide by a large power of p
+          #      and fix by a small power of pi.
+          eps = uniformizer(Kp)^e//Kp(prime(Kp))
+          @assert valuation(eps) == 0
+          exp = div(-vx, e)
+          u = x*Kp(prime(Kp))^exp
+          _vx = Int(valuation(u) * e)
+          if _vx != 0
+            u = u*uniformizer(parent(x), -_vx)
+          end
+          u *= eps^exp
         else
           u = x
         end
@@ -2128,7 +2114,9 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
         end
         iu = o_zk*iv
         if vx != 0
-          iv = _local_norm(coprime, zk(preimage(nKp, uniformizer(parent(u)))), P[1])
+          #TODO: preimage return things way too large/ precise.
+          #      all we need is valuation(coprime, P) or so.
+          iv = _local_norm(coprime, zk(preimage(nKp, uniformizer(Kp))), P[1])
           if !isnothing(sign) && length(sign) > 0
             iv = approximate(iv, coprime, sign)
           end
@@ -2294,6 +2282,36 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   if idele_parent === nothing
     idele_parent = idele_class_gmodule(base_field(A))
   end
+  c = conductor(idele_parent)
+  d = Dict{Int, Int}()
+  for (P, k) = factor(defining_modulus(A)[1])
+    p = Int(minimum(P))
+    if haskey(d, p)
+      d[p] = max(k, d[p])
+    else
+      d[p] = k
+    end
+  end
+  chng = Tuple{Int, Int}[]
+  mis = Int[]
+  for (p,k) = d
+    if haskey(c, p)
+      if c[p] < k
+        push!(chng, (p, k))
+      end
+    else
+      push!(mis, p)
+      push!(chng, (p, k))
+    end
+  end
+  if length(mis) > 0
+    @show mis
+    idele_parent = add_primes(idele_parent, mis)
+  end
+  if length(chng) > 0
+    @show chng
+    idele_parent = change_precision(idele_parent, chng)
+  end
 
   n = degree(Hecke.nf(zk))
 
@@ -2310,7 +2328,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
 
   gamma = image(m3[2], preimage(q[2], s[2](s[1][1])))
 
-  gamma, idele_parent, _ = adjust_support(idele_parent, hI, gamma, collect(factor(minimum(m0))))
+  gamma, idele_parent, _ = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
 
   function idl(x)
     px = parent(x)
@@ -2330,6 +2348,16 @@ end
 
 function Oscar.components(A::FinGenAbGroup)
   return get_attribute(A, :direct_product)
+end
+
+function Oscar.ray_class_field(C::IdeleParent; n_quo::Int = -1)
+  zk = maximal_order(number_field(C))
+  if n_quo > 1
+    C = change_precision(C, [(Int(minimum(P)), n_quo -1 + n_quo  * valuation(n_quo, P)) for P = C.S])
+  end
+  c = conductor(C)
+  A = ray_class_field(prod(k^v for (k,v) = c; init = ZZ(1))*zk; n_quo)
+  return A, induce_hom(C, A.rayclassgroupmap)*A.quotientmap
 end
 
 function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
