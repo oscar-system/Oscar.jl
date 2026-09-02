@@ -738,6 +738,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     A = domain(i)
     C = codomain(i)
     S = O
+    iS = id_hom(O)
     pA = [i(p*x) for x in gens(A)]
     for k in 0:v
       # (A + p^k*C) / (p^(k+1)C + pA)
@@ -750,7 +751,10 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
       B,j = sub(K, [iK(iD\(i(x))) for x in gens(A)])
       S,_ = stabilizer(SK,j)
       S,_ = preimage(toSK, S)
-      S,iS = preimage(iSD, S)
+      # `iS1` only maps into the stabilizer of the previous step, so we have to
+      # compose to keep an embedding into `O`
+      S,iS1 = preimage(iSD, S)
+      iS = iS1*iS
     end
     st = S,iS
     #@assert order(st[1])==order(st2[1])

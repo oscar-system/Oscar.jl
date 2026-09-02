@@ -100,7 +100,10 @@ true
 @doc raw"""
     degree(l::ToricLineBundle)
 
-Return the degree of the toric line bundle `l`.
+Return the degree of the toric line bundle `l` when the Picard group of the
+underlying toric variety is free of rank one. The degree is the coefficient of
+the Picard class with respect to the chosen generator of the Picard group. An
+error is raised otherwise.
 
 # Examples
 ```jldoctest
@@ -114,7 +117,13 @@ julia> degree(l)
 2
 ```
 """
-@attr ZZRingElem degree(l::ToricLineBundle) = sum(coefficients(toric_divisor(l)))
+@attr ZZRingElem function degree(l::ToricLineBundle)
+  class = picard_class(l)
+  picard_group = parent(class)
+  has_degree = is_free(picard_group) && torsion_free_rank(picard_group) == 1
+  @req has_degree "The degree is only defined for toric line bundles whose Picard group is free of rank one"
+  return _coeff(class)[1]
+end
 
 #############################
 # 2. Basis of global sections
