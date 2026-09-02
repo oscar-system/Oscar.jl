@@ -404,9 +404,15 @@ end
 @doc raw"""
     keygen(uov::UOV) -> (pk, sk)
 
-Generate a public/private key pair for the UOV parameter set `uov`. The
-returned `pk` and `sk` are byte vectors whose layout depends on the `pkc` and
-`skc` flags of `uov`.
+Generate a public/private key pair for the UOV parameter set `uov`, returning
+the public key `pk` first and the secret key `sk` second. Both are byte vectors
+whose layout depends on the `pkc` and `skc` flags of `uov`.
+
+# Examples
+```jldoctest uov-keygen
+julia> uov = uov_1p; pk, sk = keygen(uov); (length(pk), length(sk))
+(278432, 237896)
+```
 """
 function keygen(uov::UOV)
     seed_sk = uov.rbg(uov.seed_sk_sz)
@@ -436,6 +442,14 @@ end
 
 Sign the message `msg` (a byte vector) with the secret key `sk` of the UOV
 parameter set `uov`, returning the signature as a byte vector.
+
+# Examples
+```jldoctest uov-sign
+julia> uov = uov_1p; pk, sk = keygen(uov); msg = zeros(UInt8, 32); sig = sign(uov, msg, sk);
+
+julia> verify(uov, sig, msg, pk)
+true
+```
 """
 function sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     if uov.skc
@@ -514,6 +528,14 @@ end
 
 Return `true` if the signature `sig` is a valid signature of the message `msg`
 under the public key `pk` of the UOV parameter set `uov`.
+
+# Examples
+```jldoctest uov-verify
+julia> uov = uov_1p; pk, sk = keygen(uov); msg = zeros(UInt8, 32); sig = sign(uov, msg, sk); sig_bad = copy(sig); sig_bad[1] ⊻= 0xff;
+
+julia> verify(uov, sig, msg, pk), verify(uov, sig_bad, msg, pk)
+(true, false)
+```
 """
 function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8})
     @req length(sig) == uov.sig_sz "signature must have length $(uov.sig_sz), got $(length(sig))"
@@ -539,6 +561,17 @@ end
 Recover the message from a signed message `sm` (message concatenated with its
 signature), verifying it against the public key `pk`. Returns `nothing` if the
 signature is invalid.
+
+# Examples
+```jldoctest uov-open
+julia> uov = uov_1p; pk, sk = keygen(uov); msg = UInt8[1, 2, 3]; sm = vcat(msg, sign(uov, msg, sk));
+
+julia> Oscar.open(uov, sm, pk)
+3-element Vector{UInt8}:
+ 0x01
+ 0x02
+ 0x03
+```
 """
 function open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
     msg_sz = length(sm) - uov.sig_sz
@@ -557,8 +590,40 @@ function default_rbg(n::Int=32)
     return rand(UInt8, n)
 end
 
-# Instantiate UOV parameter sets
+@doc raw"""
+    instantiate_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool,
+                    name::String) -> UOV
+
+Create a UOV parameter set over $\mathrm{GF}(gf)$ with $n$ variables and $m$
+equations. The parameters must satisfy the following restrictions:
+- `gf` is `16` or `256`;
+- `m > 0` and `n >= 2m`, so that the number of univariate variables
+  `v = n - m` is at least `m`;
+- if `gf == 16`, then `n` and `m` are even.
+
+The Boolean flags `pkc` and `skc` switch on public-key and secret-key
+compression, respectively, and `name` labels the parameter set. The predefined
+sets `uov_1p`, `uov_1s`, `uov_3`, `uov_5` (and their `_pkc` and `_pkc_skc`
+variants) are created this way.
+
+# Examples
+Create a parameter set and read back its parameters; an invalid `gf` is
+rejected with a clear error.
+```jldoctest uov-instantiate
+julia> u = instantiate_uov(256, 112, 44, false, false, "my-uov"); (u.n, u.m, u.v)
+(112, 44, 68)
+
+julia> instantiate_uov(4, 10, 3, false, false, "bad")
+ERROR: ArgumentError: gf must be 16 or 256, got 4
+[...]
+```
+"""
 function instantiate_uov(gf::Int, n::Int, m::Int, pkc::Bool, skc::Bool, name::String)
+    @req gf == 16 || gf == 256 "gf must be 16 or 256, got $gf"
+    @req m > 0 "m must be positive, got $m"
+    @req n >= 2*m "n must be at least 2*m (so that v = n - m >= m), got n=$n, m=$m"
+    @req gf != 16 || (iseven(n) && iseven(m)) "for gf == 16, n and m must be even, got n=$n, m=$m"
+
     v = n - m
     gf_bits = (gf == 256) ? 8 : 4
     mul_tab, inv_tab = _field_tables(gf)
