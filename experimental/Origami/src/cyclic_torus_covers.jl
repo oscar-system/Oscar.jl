@@ -1,7 +1,7 @@
 @doc raw"""
       generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector, hslits::Vector)
 
-Given integers ``d, n \ge 1``, this function returns an origami of degree ``n^{2d}`` in the following way: First,
+Given integers ``d, n \ge 1``, this function returns an origami of degree ``n^2 d`` in the following way: First,
 for each ``i = 1, \dots, d`` we take ``n^2`` cornerless squares (``s_{i,1}, \dots, s_{i,n^2}``) and arrange them in
 an ``n \times n``-grid indexed from left to right and then from the bottom to the top. The gluing is then described
 by the two tuples `vslits` and `hslits` in ``(\mathbb{Z} / d \mathbb{Z})^{n^2}``: The right edge of a square
