@@ -1,4 +1,3 @@
-
 @attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
@@ -98,12 +97,16 @@ function is_realizable(
 end
 
 @attr Bool function is_realizable(RS::MatroidRealizationSpace)
+  I = RS.defining_ideal
+  ineqs = RS.inequations
   if !(RS.ambient_ring isa MPolyRing)
-    return true
+    isone(I) && return false
+    iszero(I) && return all(!iszero, ineqs)
+    n = gcd(gens(I))
+    return any(p -> all(f -> !iszero(GF(p)(f)), ineqs), first.(factor(n)))
   end
-  for p in minimal_primes(RS.defining_ideal)
-    component_non_trivial = all(!in(p), RS.inequations)
-    if component_non_trivial
+  for p in minimal_primes(I)
+    if all(!in(p), ineqs)
       return true
     end
   end
@@ -280,7 +283,8 @@ end
       simplify::Bool=true,
       char::Union{Int,Nothing}=nothing,
       q::Union{Int,Nothing}=nothing,
-      ground_ring::Ring=ZZ
+      ground_ring::Ring=ZZ,
+      compute_matrix::Bool=true
     )::MatroidRealizationSpace
 
 This function returns the data for the coordinate ring of the matroid realization space of the matroid `M`
@@ -304,6 +308,11 @@ as a `MatroidRealizationSpace`. This function has several optional parameters.
 * `ground_ring` is a ring and specifies the ground_ring over which one wants to consider the realization space,
   e.g. `QQ` or `GF(p)`. The groud_ring `ZZ` means that we compute the space of realizations over all fields.
   The default is `ZZ`.
+
+* `compute_matrix` determines whether the realization matrix is computed and
+  stored in the returned `MatroidRealizationSpace`. The default is `true`. If
+  you only want to know whether the matroid is realizable, you can set this to
+  `false` to save time.
 
 # Examples
 ```jldoctest
@@ -353,7 +362,8 @@ function realization_space(
   simplify::Bool=true,
   char::Union{Int,Nothing}=nothing,
   q::Union{Int,Nothing}=nothing,
-  ground_ring::Ring=ZZ
+  ground_ring::Ring=ZZ,
+  compute_matrix::Bool=true
 )::MatroidRealizationSpace
   if char != nothing && !is_prime(char) && char != 0
     error("The characteristic has to be 0 or a prime number.")
@@ -437,16 +447,21 @@ function realization_space(
   end
 
   def_ideal = ideal(polyR, eqs)
-  def_ideal = ideal(groebner_basis(def_ideal))
-  if isone(def_ideal)
-    RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, nothing, char, q, ground_ring)
-    set_attribute!(RS, :is_realizable, :false)
-    return RS
+
+  if simplify
+    def_ideal = ideal(groebner_basis(def_ideal))
+    if isone(def_ideal)
+      RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, nothing, char, q, ground_ring)
+      set_attribute!(RS, :is_realizable, :false)
+      return RS
+    end
+    ineqs = gens_2_prime_divisors(ineqs)
   end
 
-  ineqs = gens_2_prime_divisors(ineqs)
-
-  RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, mat, char, q, ground_ring)
+  RS = MatroidRealizationSpace(
+    def_ideal, ineqs, polyR, compute_matrix ? mat : nothing,
+    char, q, ground_ring
+  )
 
   if simplify
     RS = reduce_realization_space(RS)
@@ -768,6 +783,203 @@ function realization(RS::MatroidRealizationSpace)
   return RSnew
 end
 
+@doc raw"""
+    concrete_realization(RS::MatroidRealizationSpace, q::Union{Int})
+
+This function searches for a concrete realization in the matroid realization
+space `RS`, over a specific field size `q`. The output is a
+`MatroidRealizationSpace`, or `nothing` if there exists no such realization.
+"""
+function concrete_realization(RS::MatroidRealizationSpace, q::Int)
+  is_pp, p, _ = is_prime_power_with_data(q)
+  @req is_pp "q = $q must be a prime power"
+  if RS.char !== nothing && RS.char != 0 && RS.char != p
+    error("q=$q has characteristic $p, but the realization space requires characteristic $(RS.char)")
+  end
+
+  F = GF(q)
+  zero_F = F(0)
+
+  # Convert the ambient ring to F, handling every shape change_base_ring can hand back:
+  #  - a bare ring                     -> use as-is
+  #  - (new_ring, map)                 -> keep both, use map to push elements over
+  R, ring_map = if RS.ambient_ring isa ZZRing
+    F, nothing
+  elseif RS.ambient_ring isa MPolyRing && base_ring(RS.ambient_ring) == F
+    RS.ambient_ring, nothing
+  else
+    result = change_base_ring(F, RS.ambient_ring)
+    result isa Tuple ? result : (result, nothing)
+  end
+
+  # push an element `x` (possibly living in RS.ambient_ring, or its underlying
+  # polynomial ring, or in ZZ) into R
+  to_R(x) = ring_map === nothing ? R(x) : ring_map(x)
+
+  rels = Tuple{elem_type(R), Function}[]
+  for g in gens(RS.defining_ideal)
+    push!(rels, (to_R(g), ==))
+  end
+  for g in RS.inequations
+    push!(rels, (to_R(g), !=))
+  end
+
+  function return_rs(subs::Dict)
+    A = RS.realization_matrix
+    if A !== nothing
+      A = map_entries(A) do x
+        xr = parent(x) === R ? x : to_R(x)
+        if xr isa MPolyRingElem
+          full_vals = [subs[v] for v in gens(parent(xr))]
+          evaluate(xr, full_vals)
+        else
+          F(xr)
+        end
+      end
+    end
+    RS_q = MatroidRealizationSpace(ideal(F, [zero_F]), elem_type(R)[], F, A, p, q, F)
+    RS_q.one_realization = true
+    return RS_q
+  end
+
+  if !(R isa MPolyRing)
+    if !all(op(f, 0) for (f, op) in rels)
+      return nothing
+    end
+    return return_rs(Dict())
+  end
+
+  rels_with_supp = Tuple{elem_type(R), Function, Vector{elem_type(R)}}[]
+  appearance = Dict{elem_type(R), Int}()
+  for (f, op) in rels
+    vs = vars(f)
+    push!(rels_with_supp, (f, op, vs))
+    for v in vs
+      appearance[v] = get(appearance, v, 0) + 1
+    end
+  end
+
+  variables = sort(gens(R), by = v -> (-get(appearance, v, 0), string(v)))
+  n = length(variables)
+  var_index = Dict(v => i for (i, v) in enumerate(variables))
+  domains = [collect(F) for _ in 1:n]
+
+  function prune(f, op, supp)
+    if isempty(supp)
+      return op(f, 0) ? Tuple{elem_type(R), Function, Set{Int}}[] : nothing
+    end
+    if length(supp) == 1
+      i = first(supp)
+      v = variables[i]
+      domains[i] = [c for c in domains[i] if op(evaluate(f, [v], [c]), 0)]
+      return Tuple{elem_type(R), Function, Set{Int}}[]
+    end
+    return [(f, op, supp)]
+  end
+
+  reduced_rels = Tuple{elem_type(R), Function, Set{Int}}[]
+  for (f, op, vs) in rels_with_supp
+    supp = Set(var_index[v] for v in vs)
+    res = prune(f, op, supp)
+    if res === nothing
+      return nothing
+    end
+    append!(reduced_rels, res)
+  end
+
+  if any(isempty, domains)
+    return nothing
+  end
+
+  # Encode and manipulate raw polynomials to avoid using the slow
+  # `evaluate` in the inner loop of backtrack
+  Rgens = gens(R)
+  function compile_terms(f)
+    terms = Tuple{Dict{elem_type(R), Int}, elem_type(F)}[]
+    for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+      d = Dict{elem_type(R), Int}()
+      for (j, ej) in enumerate(e)
+        ej != 0 && (d[Rgens[j]] = ej)
+      end
+      push!(terms, (d, c))
+    end
+    return terms
+  end
+
+  function group_by_pivot(terms, v)
+    groups = Dict{Int, Vector{Tuple{Vector{Tuple{elem_type(R), Int}}, elem_type(F)}}}()
+    for (e, coeff) in terms
+      pv = get(e, v, 0)
+      rest = [(var, pw) for (var, pw) in e if var != v]
+      push!(get!(groups, pv, Tuple{Vector{Tuple{elem_type(R), Int}}, elem_type(F)}[]), (rest, coeff))
+    end
+    return groups
+  end
+
+  rels_by_level = Dict{Int, Vector{Tuple{Dict, Int, Function}}}()
+  for (f, op, supp) in reduced_rels
+    k = maximum(supp)
+    terms = compile_terms(f)
+    groups = group_by_pivot(terms, variables[k])
+    push!(get!(rels_by_level, k, Tuple{Dict, Int, Function}[]), (groups, maximum(keys(groups)), op))
+  end
+
+  for k in keys(rels_by_level)
+    sort!(rels_by_level[k], by = r -> r[2])  # ascending max_p
+  end
+
+  function eval_rest(rest, coeff, subs)
+    term = coeff
+    for (var, pw) in rest
+      term *= subs[var]^pw
+    end
+    return term
+  end
+
+  function coeffs_in_pivot(groups, max_p, subs)
+    coeffs = fill(zero_F, max_p + 1)
+    for (pw, terms) in groups
+      s = zero_F
+      for (rest, coeff) in terms
+        s += eval_rest(rest, coeff, subs)
+      end
+      coeffs[max_p - pw + 1] = s
+    end
+    return coeffs  # coeffs[i] = coeff of pivot^(d-(i-1)), fully evaluated
+  end
+
+  function horner(coeffs, val)
+    result = coeffs[1]
+    for c in coeffs[2:end]
+      result = result * val + c
+    end
+    return result
+  end
+
+  function backtrack(k, subs)
+    if k > n
+      return subs
+    end
+    v = variables[k]
+    candidates = copy(domains[k])
+    for (groups, max_p, op) in get(rels_by_level, k, Tuple{Dict, Int, Function}[])
+      isempty(candidates) && break
+      coeffs = coeffs_in_pivot(groups, max_p, subs)
+      candidates = [val for val in candidates if op(horner(coeffs, val), 0)]
+    end
+    for val in candidates
+      subs[v] = val
+      res = backtrack(k + 1, subs)
+      res !== nothing && return res
+      delete!(subs, v)
+    end
+    return nothing
+  end
+
+  subs = backtrack(1, Dict{elem_type(R), elem_type(F)}())
+  return subs !== nothing ? return_rs(subs) : nothing
+end
+
 #####################
 # full reduction    #
 #####################
@@ -897,7 +1109,6 @@ function reduce_ideal_one_step(
   FR = fraction_field(R)
   xs = gens(R)
   X = MRS.realization_matrix
-  nr, nc = size(X)
 
   Ivars = ideal_vars(Igens)
 
@@ -918,17 +1129,22 @@ function reduce_ideal_one_step(
 
     Igens_new = n_new_Igens(x, t, Igens, Sgens_new, R, xs)
 
-    phiX = matrix(FR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
-    nX_FR = matrix_clear_den(phiX)
-    nX = matrix(R, [numerator(nX_FR[i, j]) for i in 1:nr, j in 1:nc])
+    nX = nothing
+    if X !== nothing
+      nr, nc = size(X)
+      phiX = matrix(FR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
+      nX_FR = matrix_clear_den(phiX)
+      nX = matrix(R, [numerator(nX_FR[i, j]) for i in 1:nr, j in 1:nc])
 
-    # Only eliminate x if the substitution does not blow up the realization
-    # matrix: denser, higher-degree entries make every downstream Groebner
-    # computation (e.g. saturations) drastically more expensive than the
-    # variable elimination gains.
-    if _matrix_complexity_blows_up(X, nX)
-      continue
+      # Only eliminate x if the substitution does not blow up the realization
+      # matrix: denser, higher-degree entries make every downstream Groebner
+      # computation (e.g. saturations) drastically more expensive than the
+      # variable elimination gains.
+      if _matrix_complexity_blows_up(X, nX)
+        continue
+      end
     end
+
     push!(elim, x)
 
     GBnew = collect(groebner_basis(ideal(R, Igens_new)))
@@ -960,7 +1176,6 @@ function reduce_realization_space(
   xs = gens(R)
   cR = coefficient_ring(R)
   X = MRS.realization_matrix
-  nr, nc = size(X)
   Igens = gens(MRS.defining_ideal)
   Sgens = MRS.inequations
 
@@ -1035,32 +1250,37 @@ function reduce_realization_space(
     return MRS_new
   end
 
-  Xnew = matrix(ambR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
+  Xnew = nothing
+  if X !== nothing
+    nr, nc = size(X)
+    Xnew = matrix(ambR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
 
-  #Try to reduce the matrix one last time using the ideal and the inequations
-  m, n = size(Xnew)
-  A = base_ring(R)
-  if length(gens(Inew)) > 0 && gens(Inew)[1] != 0
-    for i in 1:m, j in 1:n
-      if A == ZZ
-        Xnew[i, j] = mod(Xnew[i, j], gens(Inew)[1])
-      else
-        Xnew[i, j] = reduce(Xnew[i, j], gens(Inew))
+    #Try to reduce the matrix one last time using the ideal and the inequations
+    m, n = size(Xnew)
+    A = base_ring(R)
+    if length(gens(Inew)) > 0 && gens(Inew)[1] != 0
+      for i in 1:m, j in 1:n
+        if A == ZZ
+          Xnew[i, j] = mod(Xnew[i, j], gens(Inew)[1])
+        else
+          Xnew[i, j] = reduce(Xnew[i, j], gens(Inew))
+        end
       end
     end
-  end
 
-  for j in 1:n
-    g = gcd(Xnew[:, j]...)
-    prime_divisors = poly_2_prime_divisors(g)
-    for f in prime_divisors
-      if f in normal_Sgens
-        for i in 1:m
-          Xnew[i, j] = Xnew[i, j] / f
+    for j in 1:n
+      g = gcd(Xnew[:, j]...)
+      prime_divisors = poly_2_prime_divisors(g)
+      for f in prime_divisors
+        if f in normal_Sgens
+          for i in 1:m
+            Xnew[i, j] = Xnew[i, j] / f
+          end
         end
       end
     end
   end
+
   MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, Xnew, MRS.char, MRS.q, MRS.ground_ring)
   return MRS_new
 end
