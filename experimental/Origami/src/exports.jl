@@ -10,7 +10,7 @@ export action_t_inv
 export all_normal_origamis_by_degree
 export all_normal_origamis_from_group
 export are_equivalent
-export as_permutation_pepresentation
+export as_permutation_representation
 export automorphisms
 export base_change_l_to_s
 export comb_origami

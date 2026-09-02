@@ -279,7 +279,7 @@ end
 @doc raw"""
     is_hyperelliptic(o::Origami)
 
-Tests whether an origami is hyperelliptic. 
+Tests whether an origami is hyperelliptic.
 # Examples
 ```jldoctest
 julia> o = origami(cperm([1,2,3,4]), cperm([1,2],[3,4]))

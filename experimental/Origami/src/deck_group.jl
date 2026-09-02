@@ -11,8 +11,11 @@ Checks whether or not the permutation sigma defines a deck transformation of the
 julia> o = origami(cperm([1, 2, 3, 4, 5]), cperm())
 Origami ((1,2,3,4,5),(), 5)
 
-julia> deck_group(o)
-Permutation group of degree 5
+julia> in_deck_group(o, cperm(perm_group(o), [1, 2, 3, 4, 5]))
+true
+
+julia> in_deck_group(o, cperm(perm_group(o), [1, 2]))
+false
 ```
 """
 function in_deck_group(o::Origami, sigma::PermGroupElem)
@@ -73,7 +76,8 @@ function deck_group(o::Origami)
 end
 
 function is_normal(o::Origami)
-  return !(order(deck_group(o)) < degree(o))
+  # the deck group acts freely on each fibre, so its order is at most the degree
+  return order(deck_group(o)) == degree(o)
 end
 
 # TODO implement AsNormalStoredOrigami

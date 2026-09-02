@@ -50,9 +50,9 @@ action_sl2(A::ZZMatrix,o::Origami)
 ## Cyclic torus covers
 
 ```@docs
-generalized_cyclic_torus_cover(n::Int64, d::Int64, vslits::Vector, hslits::Vector)
-comb_origami(n::Int64, x::Int64, y::Int64)
-cyclic_torus_cover_origamiS(n::Int64, d::Int64, v::Vector)
-cyclic_torus_cover_origamiL(n::Int64, d::Int64, v::Vector)
-base_change_l_to_s(n::Int64)
+generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector, hslits::Vector)
+comb_origami(n::Int, x::Int, y::Int)
+cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector)
+cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector)
+base_change_l_to_s(n::Int)
 ```
