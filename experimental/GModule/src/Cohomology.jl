@@ -707,12 +707,16 @@ end
 function Oscar.restrict(C::GModule, U::Oscar.GAPGroup)
   fl, m = is_subgroup(U, C.G)
   @assert fl
-  return gmodule(U, [action(C, m(g)) for g = gens(U)])
+  return Oscar.restrict(C, m)
 end
 
 function Oscar.restrict(C::GModule, m::Map)
   U = domain(m)
-  return gmodule(U, [action(C, m(g)) for g = gens(U)])
+  if ngens(U) == 0
+    return gmodule(C.M, U, typeof(C.ac)())
+  else
+    return gmodule(U, [action(C, m(g)) for g = gens(U)])
+  end
 end
 
 function Oscar.inflate(C::GModule, h)
