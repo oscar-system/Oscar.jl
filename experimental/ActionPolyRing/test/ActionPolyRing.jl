@@ -171,9 +171,9 @@ using Test
         @testset "Check public fields at construction" begin
           @test coefficient_ring(dpr) == ZZ
           @test all(var -> coefficient_ring(var) == ZZ, vars)
-          @test elementary_symbols(dpr) == [:u1, :u2, :u3]
+          @test action_indeterminates(dpr) == [:u1, :u2, :u3]
           @test n_action_maps(dpr) == 3
-          @test n_elementary_symbols(dpr) == 3
+          @test n_action_indeterminates(dpr) == 3
           @test all(var -> parent(var) === dpr, vars)
 
           ran = ranking(dpr)
@@ -274,9 +274,9 @@ using Test
           @testset "Check public fields after adding variables" begin
             @test coefficient_ring(dpr) == ZZ
             @test all(var -> coefficient_ring(var) == ZZ, vars)
-            @test elementary_symbols(dpr) == [:u1, :u2, :u3]
+            @test action_indeterminates(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
-            @test n_elementary_symbols(dpr) == 3
+            @test n_action_indeterminates(dpr) == 3
 
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
@@ -532,9 +532,9 @@ using Test
           @testset "Check public fields after changing ranking" begin
             @test coefficient_ring(dpr) == ZZ
             @test all(var -> coefficient_ring(var) == ZZ, vars)
-            @test elementary_symbols(dpr) == [:u1, :u2, :u3]
+            @test action_indeterminates(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
-            @test n_elementary_symbols(dpr) == 3
+            @test n_action_indeterminates(dpr) == 3
           
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
@@ -577,7 +577,7 @@ using Test
             @test total_degree(dpr()) == -1
             @test degree(dpr(), 3, [5,5,5]) == -1
             @test_throws ArgumentError leader(dpr())
-            @test initial(dpr()) == ZZ()
+            @test_throws ArgumentError initial(dpr())
 
             @test dpr(1) == one(dpr)
             @test dpr(1) == ZZ(1)
@@ -603,7 +603,7 @@ using Test
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
             @test total_degree(dpr(1)) == 0 
             @test degree(dpr(1), 3, [5,5,5]) == 0
-            @test_throws ArgumentError leader(dpr(1))
+            @test leader(dpr(1)) == dpr(1)
             @test initial(dpr(1)) == ZZ(1)
 
             @test dpr(-2) == ZZ(-2)
@@ -627,7 +627,7 @@ using Test
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
             @test total_degree(dpr(-2)) == 0 
-            @test_throws ArgumentError leader(dpr(-2))
+            @test leader(dpr(-2)) == dpr(1)
             @test initial(dpr(-2)) == ZZ(-2)
 
             @test dpr(-5) == -dpr(5)
@@ -802,8 +802,8 @@ using Test
           @test discriminant(zero(dpr)) == 0
           
           # degree 0
-          @test discriminant(one(dpr)) == 0
-          @test discriminant(dpr(-17)) == 0
+          @test discriminant(one(dpr)) == 1
+          @test discriminant(dpr(-17)) == 1
           
           # degree 1
           @test discriminant(f) == 1
@@ -863,72 +863,72 @@ using Test
 
         @testset "diff action" begin
           if dpr isa DifferencePolyRing
-            @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
-            @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
-            @test diff_action(dpr(-2), 1) == dpr(-2)
-            @test diff_action(dpr(-2), [0,0,0]) == dpr(-2)
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,-1,1]) 
+            @test is_zero(apply_action(dpr(), 1))
+            @test is_zero(apply_action(dpr(), n_action_maps(dpr)))
+            @test_throws ArgumentError apply_action(dpr(), 0)
+            @test_throws ArgumentError apply_action(dpr(), n_action_maps(dpr) + 1)
+            @test apply_action(dpr(-2), 1) == dpr(-2)
+            @test apply_action(dpr(-2), [0,0,0]) == dpr(-2)
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1,1,1]) 
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1]) 
+            @test_throws ArgumentError apply_action(dpr(-2), [1,-1,1]) 
             
             @test ngens(dpr) == 3
-            @test diff_action(f, 1) == dpr[1, [1,0,0]] * dpr[2, [1,0,0]]
+            @test apply_action(f, 1) == dpr[1, [1,0,0]] * dpr[2, [1,0,0]]
             @test ngens(dpr) == 5
-            @test diff_action(f, 2) == dpr[1, [0,1,0]] * dpr[2, [0,1,0]]
+            @test apply_action(f, 2) == dpr[1, [0,1,0]] * dpr[2, [0,1,0]]
             @test ngens(dpr) == 7
-            @test diff_action(f, 3) == dpr[1, [0,0,1]] * dpr[2, [0,0,1]]
+            @test apply_action(f, 3) == dpr[1, [0,0,1]] * dpr[2, [0,0,1]]
             @test ngens(dpr) == 9
 
-            @test diff_action(g, 1) == -3*dpr[1, [1,0,0]]^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
+            @test apply_action(g, 1) == -3*dpr[1, [1,0,0]]^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
             @test ngens(dpr) == 10
-            @test diff_action(g, 2) == -3*dpr[1, [0,1,0]]^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
+            @test apply_action(g, 2) == -3*dpr[1, [0,1,0]]^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
             @test ngens(dpr) == 11
-            @test diff_action(g, 3) == -3*dpr[1, [0,0,1]]^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
+            @test apply_action(g, 3) == -3*dpr[1, [0,0,1]]^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
             @test ngens(dpr) == 12
 
-            @test diff_action(f, [4,5,6]) == dpr[1, [4,5,6]] * dpr[2, [4,5,6]]
+            @test apply_action(f, [4,5,6]) == dpr[1, [4,5,6]] * dpr[2, [4,5,6]]
             @test ngens(dpr) == 14
-            @test diff_action(g, [4,5,6]) == -3*dpr[1, [4,5,6]]^2 * dpr[3, [4,5,6]] + 4*dpr[2, [4,5,6]]
+            @test apply_action(g, [4,5,6]) == -3*dpr[1, [4,5,6]]^2 * dpr[3, [4,5,6]] + 4*dpr[2, [4,5,6]]
             @test ngens(dpr) == 15
           end
           if dpr isa DifferentialPolyRing
-            @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
-            @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
-            @test is_zero(diff_action(dpr(-2), 1))
-            @test diff_action(dpr(-2), [0,0,0]) == -2
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,-1,1]) 
+            @test is_zero(apply_action(dpr(), 1))
+            @test is_zero(apply_action(dpr(), n_action_maps(dpr)))
+            @test_throws ArgumentError apply_action(dpr(), 0)
+            @test_throws ArgumentError apply_action(dpr(), n_action_maps(dpr) + 1)
+            @test is_zero(apply_action(dpr(-2), 1))
+            @test apply_action(dpr(-2), [0,0,0]) == -2
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1,1,1]) 
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1]) 
+            @test_throws ArgumentError apply_action(dpr(-2), [1,-1,1]) 
             
             @test ngens(dpr) == 3
-            @test diff_action(f, 1) == dpr[1, [1,0,0]] * u2 + u1 * dpr[2, [1,0,0]]
+            @test apply_action(f, 1) == dpr[1, [1,0,0]] * u2 + u1 * dpr[2, [1,0,0]]
             @test ngens(dpr) == 5
-            @test diff_action(f, 2) == dpr[1, [0,1,0]] * u2 + u1 * dpr[2, [0,1,0]]
+            @test apply_action(f, 2) == dpr[1, [0,1,0]] * u2 + u1 * dpr[2, [0,1,0]]
             @test ngens(dpr) == 7
-            @test diff_action(f, 3) == dpr[1, [0,0,1]] * u2 + u1 * dpr[2, [0,0,1]]
+            @test apply_action(f, 3) == dpr[1, [0,0,1]] * u2 + u1 * dpr[2, [0,0,1]]
             @test ngens(dpr) == 9
 
-            @test diff_action(g, 1) == -6*dpr[1, [1,0,0]] * u1 * u3 - 3*u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
+            @test apply_action(g, 1) == -6*dpr[1, [1,0,0]] * u1 * u3 - 3*u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
             @test ngens(dpr) == 10
-            @test diff_action(g, 2) == -6*dpr[1, [0,1,0]] * u1 * u3 - 3*u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
+            @test apply_action(g, 2) == -6*dpr[1, [0,1,0]] * u1 * u3 - 3*u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
             @test ngens(dpr) == 11
-            @test diff_action(g, 3) == -6*dpr[1, [0,0,1]] * u1 * u3 - 3*u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
+            @test apply_action(g, 3) == -6*dpr[1, [0,0,1]] * u1 * u3 - 3*u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
             @test ngens(dpr) == 12
 
-            @test diff_action(f, [2,0,0]) == dpr[1, [2,0,0]] * u2 + 2*dpr[1, [1,0,0]] * dpr[2, [1,0,0]] + u1 * dpr[2, [2,0,0]]
+            @test apply_action(f, [2,0,0]) == dpr[1, [2,0,0]] * u2 + 2*dpr[1, [1,0,0]] * dpr[2, [1,0,0]] + u1 * dpr[2, [2,0,0]]
             @test ngens(dpr) == 14
-            @test diff_action(f, [0,2,0]) == dpr[1, [0,2,0]] * u2 + 2*dpr[1, [0,1,0]] * dpr[2, [0,1,0]] + u1 * dpr[2, [0,2,0]]
+            @test apply_action(f, [0,2,0]) == dpr[1, [0,2,0]] * u2 + 2*dpr[1, [0,1,0]] * dpr[2, [0,1,0]] + u1 * dpr[2, [0,2,0]]
             @test ngens(dpr) == 16
-            @test diff_action(f, [0,0,2]) == dpr[1, [0,0,2]] * u2 + 2*dpr[1, [0,0,1]] * dpr[2, [0,0,1]] + u1 * dpr[2, [0,0,2]]
+            @test apply_action(f, [0,0,2]) == dpr[1, [0,0,2]] * u2 + 2*dpr[1, [0,0,1]] * dpr[2, [0,0,1]] + u1 * dpr[2, [0,0,2]]
             @test ngens(dpr) == 18
 
-            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [0,0,1]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]], [1,1,0])
-            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [0,1,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]], [1,0,1])
-            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [1,0,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]], [0,1,1])
+            @test apply_action(g, [1,1,1]) == apply_action(-6*dpr[1, [0,0,1]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]], [1,1,0])
+            @test apply_action(g, [1,1,1]) == apply_action(-6*dpr[1, [0,1,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]], [1,0,1])
+            @test apply_action(g, [1,1,1]) == apply_action(-6*dpr[1, [1,0,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]], [0,1,1])
             @test ngens(dpr) == 29  
           end
         end
@@ -937,11 +937,11 @@ using Test
   end #Construction and basic field access
 
   @testset "Fixed bugs" begin
-    @testset "diff_action for difference wiping data" begin
+    @testset "apply_action for difference wiping data" begin
       R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
-      p = y_1^2 * diff_action(y_1, [0, 1]) - 1
-      @test diff_action(p, 2) == diff_action(p, [0, 1])
-      @test diff_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
+      p = y_1^2 * apply_action(y_1, [0, 1]) - 1
+      @test apply_action(p, 2) == apply_action(p, [0, 1])
+      @test apply_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
     end
   end
 
