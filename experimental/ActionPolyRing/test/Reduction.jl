@@ -1,4 +1,4 @@
-@testset "all tests - ThomasDec" verbose = true begin
+@testset "all tests - Reduction.jl" verbose = true begin
   @testset "Differential Reduction Methods" begin
     @testset "Single differential indeterminate" begin
       dpr, u = differential_polynomial_ring(QQ, :u, 2)
@@ -41,8 +41,8 @@
         @test r3 == rem2
       end
     
-      @testset "_leader_shift_for_partial_reduction" begin
-        foo = Oscar._leader_shift_for_partial_reduction
+      @testset "__leader_shift_for_partial_reduction" begin
+        foo = Oscar.__leader_shift_for_partial_reduction
         q = u_x - u^2
       
         p1 = u_xxy + u

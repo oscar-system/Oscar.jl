@@ -1,6 +1,6 @@
 include("exports.jl")
 include("Types.jl")
 include("Content.jl")
-include("ThomasDec.jl")
+include("Reduction.jl")
 include("IO.jl")
 include("Operators.jl")
