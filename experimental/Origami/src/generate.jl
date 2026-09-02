@@ -90,6 +90,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
   # the total width of each cylinder is the sum of the lengths of the separatrices
   widths = [sum(lengths[i + 1] for i in bot) for bot in cyl_diagram.bot]
   areas = [heights[i] * widths[i] for i in 1:(cyl_diagram.cycles_count)]
+  S = symmetric_group(deg)
 
   v = [0]
   for a in areas
@@ -113,7 +114,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
       lx[j + widths[i]] = j
     end
   end
-  lx = perm([x + 1 for x in lx])
+  lx = perm(S, [x + 1 for x in lx])
 
   ly = Int[]
   for i in 1:(cyl_diagram.cycles_count)
@@ -130,7 +131,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
     ly[(v[i + 1] - widths[i] + 1):(v[i + 1])] = top
   end
 
-  no_twist = origami_disconnected(lx, perm([x + 1 for x in ly]), deg)
+  no_twist = origami_disconnected(lx, perm(S, [x + 1 for x in ly]), deg)
   results = [no_twist]
 
   ly = [x + 1 for x in ly]
@@ -141,7 +142,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
     else
       insert!(ly, v[i + 1], popat!(ly, v[i + 1] - widths[i] + 1))
     end
-    new_entry = origami_disconnected(lx, perm(ly), deg)
+    new_entry = origami_disconnected(lx, perm(S, ly), deg)
     push!(results, new_entry)
   end
 
