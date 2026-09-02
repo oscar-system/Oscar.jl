@@ -16,3 +16,13 @@ t_right_perm(G::ModularGroup)
 r_right_perm(G::ModularGroup)
 j_right_perm(G::ModularGroup)
 ```
+
+## Generators and membership
+
+```@docs
+word_gens(G::ModularGroup)
+s_t_decomposition(M::ZZMatrix)
+is_word_elm_of(w::FPGroupElem, G::ModularGroup)
+coset_right_action_of(A::ZZMatrix, G::ModularGroup)
+coset_left_action_of(A::ZZMatrix, G::ModularGroup)
+```
