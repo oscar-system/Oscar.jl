@@ -27,7 +27,7 @@ end
 Computes the group of deck transformations of the origami o as a covering of the once punctured torus. Note that the deck transformations can be seen as permutations of the squares of the origami.
 
 # Examples
-```jldoctestO
+```jldoctest
 julia> o = origami(cperm([1, 2, 3, 4, 5]), cperm())
 Origami ((1,2,3,4,5),(), 5)
 
