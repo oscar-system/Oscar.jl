@@ -9,6 +9,26 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
+## [1.8.2](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.8.2) - 2026-09-02
+
+### Combinatorics
+
+#### Fixed bugs that returned incorrect results
+
+- [#6202](https://github.com/oscar-system/Oscar.jl/pull/6202) Fix `is_isomorphic` function for matroids
+
+### Commutative Algebra
+
+#### Only changes experimental parts of OSCAR
+
+- [#6074](https://github.com/oscar-system/Oscar.jl/pull/6074) Speed up arithmetic in simplicial cohomology rings
+
+### Toric Geometry
+
+#### Fixed bugs that returned incorrect results
+
+- [#6156](https://github.com/oscar-system/Oscar.jl/pull/6156) Fix degree of rank-one toric line bundles
+
 ## [1.8.1](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.8.1) - 2026-08-10
 
 ### Lie Theory
