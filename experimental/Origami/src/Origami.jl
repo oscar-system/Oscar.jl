@@ -461,7 +461,6 @@ function point_reflections(o::Origami)
   return unique!(result)
 end
 
-function automorphisms(o::Origami)
-  # TODO is this structure useful?
-  return (translations(o), 1), (point_reflections(o), -1)
+function automorphism_list(o::Origami)
+  return vcat(translations(o), point_reflections(o))
 end
