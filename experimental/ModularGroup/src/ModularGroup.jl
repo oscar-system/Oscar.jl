@@ -150,7 +150,7 @@ end
   return _index(s_right_perm(G), t_right_perm(G))
 end
 
-const _SL2Z_FP_CACHE = Ref{Tuple{FPGroup, FPGroupElem, FPGroupElem}}()
+const _SL2Z_FP_CACHE = Ref{FPGroup}()
 const _MATRIX_HOM_CACHE = Ref{GAPGroupHomomorphism{FPGroup, MatGroup{ZZRingElem, ZZMatrix}}}()
 
 # cache the SL2Z presentation so that it can be reused consistently
@@ -166,10 +166,10 @@ function _SL2Z_fp()
 
     S, T = gens(SL2Z)
 
-    _SL2Z_FP_CACHE[] = (SL2Z, S, T)
+    _SL2Z_FP_CACHE[] = SL2Z
   end
 
-  return _SL2Z_FP_CACHE[]::Tuple{FPGroup, FPGroupElem, FPGroupElem}
+  return _SL2Z_FP_CACHE[]::FPGroup
 end
 
 _matrix_S() = matrix(ZZ, [0 -1; 1 0])
@@ -181,7 +181,7 @@ function _matrix_hom()
     M = matrix_group([_matrix_S(), _matrix_T()])
     MS, MT = gens(M)
 
-    SL2Z, _, _ = _SL2Z_fp()
+    SL2Z = _SL2Z_fp()
     _MATRIX_HOM_CACHE[] = hom(SL2Z, M, [MS, MT])
   end
 
@@ -195,7 +195,7 @@ end
 
 # cache the homomorphism from SL2Z to P
 @attr GAPGroupHomomorphism{FPGroup, PermGroup} function _coset_action_hom(G::ModularGroup)
-  SL2Z, _, _ = _SL2Z_fp()
+  SL2Z = _SL2Z_fp()
   P = _perm_group(G)
   return hom(SL2Z, P, [s_right_perm(G), t_right_perm(G)])
 end
@@ -266,7 +266,8 @@ function s_t_decomposition(M::ZZMatrix)
 
   MatS = _matrix_S()
   MatT = _matrix_T()
-  SL2Z, S, T = _SL2Z_fp()
+  SL2Z = _SL2Z_fp()
+  S, T = gens(SL2Z)
 
   decomp = one(SL2Z)
 

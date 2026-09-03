@@ -14,7 +14,8 @@
   @test (@inferred r_right_perm(G)) == cperm([1,7,9,10,6], [2,3], [4,5,8])
   @test (@inferred j_right_perm(G)) == cperm([1,8,3], [2,4,6], [5,7,10])
 
-  SL2Z, S, T = Oscar._SL2Z_fp()
+  SL2Z = Oscar._SL2Z_fp()
+  S, T = gens(SL2Z)
   actual_gens = @inferred word_gens(G)
   expected_gens = [
     S^-2,
