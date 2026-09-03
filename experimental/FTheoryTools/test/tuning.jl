@@ -182,6 +182,29 @@ h = hypersurface_model(
   B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness_check=false
 )
 
+# Hypersurface tuning must preserve exceptional divisor metadata.
+@testset "Exceptional divisor attributes after hypersurface tuning" begin
+  B2 = projective_space(NormalToricVariety, 2)
+  b = torusinvariant_prime_divisors(B2)[1]
+  tunable_hypersurface = literature_model(;
+    arxiv_id="1208.2695",
+    equation="B.5",
+    base_space=B2,
+    defining_classes=Dict("b" => b),
+    completeness_check=false,
+    rng=our_rng,
+  )
+  x1, x2, x3 = gens(coordinate_ring(B2))
+  tuned_hypersurface = tune(
+    tunable_hypersurface,
+    Dict("b" => x2, "c0" => zero(parent(x1)));
+    completeness_check=false,
+  )
+  @test exceptional_classes(tuned_hypersurface) == exceptional_classes(tunable_hypersurface)
+  @test exceptional_divisor_indices(tuned_hypersurface) ==
+    exceptional_divisor_indices(tunable_hypersurface)
+end
+
 # The tests below did not actually test the tune functionality of hypersurface models,
 # but instead the tune functionality of abstract F-theory models, inherited by hypersurface models
 # This functionality has been removed for the time being, because it did not correspond to a proper tuning

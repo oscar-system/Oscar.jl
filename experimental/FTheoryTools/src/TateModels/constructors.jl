@@ -120,6 +120,7 @@ function global_tate_model(base::NormalToricVariety,
     explicit_model_sections, model_section_parametrization, pt, base, ambient_space
   )
   set_attribute!(model, :partially_resolved, false)
+  _initialize_exceptional_divisor_attributes!(model)
   return model
 end
 

@@ -557,12 +557,34 @@ function deepmap(f, x)
 end
 
 ###########################################################################
-# 8: Macro for function generation
+# 8: Exceptional divisor attributes
 ###########################################################################
 
-macro define_model_attribute_getter(
-  arg_expr, doc_example="", doc_link="", attr_name=nothing
+function _initialize_exceptional_divisor_attributes!(model::AbstractFTheoryModel)
+  set_attribute!(
+    model,
+    :exceptional_classes => CohomologyClass[],
+    :exceptional_divisor_indices => Int[],
+  )
+  return model
+end
+
+function _copy_exceptional_divisor_attributes!(
+  target::AbstractFTheoryModel, source::AbstractFTheoryModel
 )
+  set_attribute!(
+    target,
+    :exceptional_classes => copy(exceptional_classes(source)),
+    :exceptional_divisor_indices => copy(exceptional_divisor_indices(source)),
+  )
+  return target
+end
+
+###########################################################################
+# 9: Macro for function generation
+###########################################################################
+
+macro define_model_attribute_getter(arg_expr, doc_example="", doc_link="")
   if !(arg_expr isa Expr && arg_expr.head == :tuple && length(arg_expr.args) == 2)
     error("Expected input like: (function_name, ReturnType)")
   end
@@ -571,13 +593,7 @@ macro define_model_attribute_getter(
   rettype_expr = arg_expr.args[2]
   fname = fname_expr isa Symbol ? fname_expr : error("function_name is not a symbol")
 
-  # Determine attribute name symbol: use attr_name if provided, else function name
-  attr_sym = if attr_name === nothing
-    fname
-  else
-    (attr_name isa Symbol ? attr_name : error("attr_name must be a Symbol if provided"))
-  end
-  sym = QuoteNode(attr_sym)
+  sym = QuoteNode(fname)
 
   msg = "No $(replace(string(fname), '_' => ' ')) known for this model"
 

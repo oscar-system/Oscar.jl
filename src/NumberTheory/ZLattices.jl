@@ -211,3 +211,130 @@ function characteristic_vectors(L::ZZLat)
   @hassert :Lattice 1 isone(hnf(reduce(vcat, cvL))[1:rank(L),:])
   return cvL
 end
+
+_get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{Matrix{Int}}, canonical_ordering::Vector{Int}) = _get_canonical_form(A, [matrix(ZZ, v) for v in char_vectors_set], canonical_ordering)
+
+function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, canonical_ordering::Vector{Int})
+  p = length(char_vectors_set)
+  filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
+  can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
+  _, U = hnf_with_transform(can_char_vectors_set) 
+  U_inv = inv(U)
+  return transpose(U_inv)*A*U_inv
+end
+
+_reduce_characteristic_vectors(cv_set::Vector{ZZMatrix}, L::ZZLat) = _reduce_characteristic_vectors(_convert_cv_set_to_int(cv_set, matrix(ZZ, gram_matrix(L))), L)
+function _reduce_characteristic_vectors(cv_set::Vector{Matrix{Int}}, L::ZZLat)
+  R, _, _ = root_lattice_recognition_fundamental(L)
+  A = basis_matrix(R)
+  gram = matrix(ZZ, gram_matrix(L))
+  B_lat = basis_matrix(L)
+  A_lat = change_base_ring(ZZ, solve(B_lat, A))
+  v_i = Matrix{Int}(undef, 1, number_of_columns(gram))
+  t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
+  w_i = Matrix{Int}(undef, 1, 1)
+  tmp = ZZ(0)
+  gram_int = Hecke._int_matrix_with_overflow(gram, tmp)
+  A_lat_int = Hecke._int_matrix_with_overflow(A_lat, tmp)
+  fundamental_roots = [reshape(A_lat_int[i, :], :, 1) for i in 1:number_of_rows(A_lat_int)]
+  res::Vector{Matrix{Int}} = []
+  for v in cv_set
+    AbstractAlgebra.LinearAlgebra.mul!(v_i, v, gram_int)
+    AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, v))
+    if w_i[1] == 1 || w_i[1] == 2
+      continue
+    end
+    in_chamber = true
+    for f_root in fundamental_roots
+      AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, f_root)
+      if w_i[1] < 0
+        in_chamber = false
+        break
+      end
+    end
+    if in_chamber
+      push!(res, v)
+    end
+  end
+  for f_root in fundamental_roots
+    push!(res, f_root')
+  end
+  return res
+end
+
+function _convert_cv_set_to_int(cv_set::Vector{ZZMatrix}, gram::ZZMatrix)
+  tmp = ZZ(0)
+  n = ZZ(0)
+  tmp1 = zero_matrix(ZZ, 1, number_of_columns(gram))
+  tmp2 = zero_matrix(ZZ, number_of_rows(gram), 1)
+  tmp3 = zero_matrix(ZZ, 1, 1)
+  for v in cv_set
+    tmp1 = mul!(tmp1, v, gram)
+    tmp3 = mul!(tmp3, tmp1, transpose!(tmp2, v))
+    n = max(n, tmp3[1])
+  end
+  if n-2 < ZZ(typemax(Int)) # we use Cauchy-Schwarz to check if char vector inner products are small enough to be converted to Int. As we need at least w_max+1 and w_max+2 weights further, we need to lower bound by -2.
+    cv_set_int = [Hecke._int_matrix_with_overflow(v, tmp) for v in cv_set]
+  else 
+    throw(OverflowError("The characteristic vectors have to large inner products to be converted to Int."))
+  end
+  return cv_set_int
+end
+
+_get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _get_edge_labeled_graph(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
+
+function _get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
+  p = length(cv_set)
+  res_graph = graph(Undirected, p+2)
+  max_w = 0
+  label!(res_graph, Dict{Tuple{Int, Int}, Int,}(), nothing; name=:edge)
+  v_i = Matrix{Int}(undef, 1, number_of_columns(gram))
+  t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
+  w_i = Matrix{Int}(undef, 1, 1)
+  for i = 1:p 
+    v_i = AbstractAlgebra.LinearAlgebra.mul!(v_i, cv_set[i], gram)
+    for j = i+1:p
+      w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[j]))
+      w = w_i[1]
+      max_w = max(w, max_w)
+      add_edge!(res_graph, i, j)
+      res_graph.edge[i, j] = w
+    end
+    add_edge!(res_graph, i, p+1)
+    w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[i]))
+    w = w_i[1]
+    res_graph.edge[i, p+1] = w
+  end
+  a = 1+max_w 
+  b = a + 1
+  for i = 1:p 
+    add_edge!(res_graph, i, p+2)
+    res_graph.edge[i, p+2] = a
+  end
+  add_edge!(res_graph, p+1, p+2)
+  res_graph.edge[p+1, p+2] = b
+  return res_graph
+end
+
+"""
+    canonical_form(L::ZZLat) -> ZZMatrix
+Return the canonical form of ``L``. The form is canonical in the sense, that two isomorphic latticies would have the same canonical form.
+
+We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
+
+!!! note
+    We do not give any guarantees that the canonical form stays the same 
+    between different versions of Oscar.
+"""
+function canonical_form(L::ZZLat)
+  gram = matrix(ZZ, gram_matrix(L))
+  char_vectors_set = characteristic_vectors(L)
+  # `characteristic_vectors` returns the characteristic vectors only up to
+  # sign; reducing to the fundamental chamber does not commute with the choice
+  # of the signs, so we have to take all of them
+  char_vectors_set = unique!(append!(char_vectors_set, ZZMatrix[-v for v in char_vectors_set]))
+  char_vectors_set = _reduce_characteristic_vectors(char_vectors_set, L)
+  graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
+  can_order = _canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
+  return _get_canonical_form(gram, char_vectors_set, can_order)
+end
