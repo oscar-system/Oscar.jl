@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Subquotients
 
 A subquotient  is a submodule of a quotient of a free module. In this section, the expression

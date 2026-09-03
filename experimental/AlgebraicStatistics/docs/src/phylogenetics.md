@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Phylogenetics
 
 The Phylogenetics module in OSCAR provides a comprehensive toolkit for the algebraic and geometric study of phylogenetic models, specifically nucleotide substitution Markov processes on phylogenetic trees. It allows for the construction of various evolutionary models on phylogenetic trees, the creation of their associated polynomial rings and parametrizations, and the computation of their algebraic properties, such as phylogenetic invariants (polynomials in the venishing ideal of the model).

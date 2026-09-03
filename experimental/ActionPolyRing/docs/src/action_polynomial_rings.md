@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Action polynomial rings](@id actionpolyring)
 
 In Oscar we provide the action polynomial interface via the abstract types `ActionPolyRing{T} <: Ring`

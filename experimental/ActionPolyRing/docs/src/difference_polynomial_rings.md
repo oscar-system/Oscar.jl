@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Difference polynomial rings](@id differencepolyring)
 
 A difference polynomial ring over the commutative ring ``R`` is an action polynomial ring ``A`` whose action maps are (injective) endomorphisms of ``A``, i.e. ``R``-linear maps that are also multiplicative.

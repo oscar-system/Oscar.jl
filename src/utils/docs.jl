@@ -19,6 +19,16 @@ function doctestsetup()
   return :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
 end
 
+# The settings every documentation page needs. Passed to Documenter as the
+# default for its `@meta` blocks, so that no page has to repeat them.
+function docmeta()
+  return Dict(
+    :CurrentModule => Oscar,
+    :CollapsedDocStrings => true,
+    :DocTestSetup => doctestsetup(),
+  )
+end
+
 function doctestfilters()
   # this returns a list of doctest filters that should be passed to all doctest invocations
   return [
@@ -94,11 +104,11 @@ function get_document(set_meta::Bool; doctest=:fix)
     error("you need to do `using Documenter` or `Oscar.@doc_init` first")
   end
   Documenter = Main.Documenter
-  if pkgversion(Documenter) < v"1-"
-    error("you need to use Documenter.jl version 1.0.0 or later")
+  if pkgversion(Documenter) < v"1.19-"
+    error("you need to use Documenter.jl version 1.19.0 or later")
   end
 
-  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = doctest, doctestfilters=Oscar.doctestfilters())
+  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = doctest, doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())
 
   if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
     Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
