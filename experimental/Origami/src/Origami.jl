@@ -27,7 +27,7 @@ julia> v = @perm (2,3)
 
 julia> o = origami(h,v)
 Origami ((1,2),(2,3), 3)
-```ori
+```
 """
 function origami(h::PermGroupElem, v::PermGroupElem)
   d = max(degree(h), degree(v))
@@ -69,7 +69,8 @@ end
 
 function Base.:(==)(a::Origami, b::Origami)
   # TODO rewrite this? for now use Gap equality
-  return (a.h == b.h) && (a.v == b.v)
+  # the degree must be compared as well, so that `==` stays consistent with `hash`
+  return (a.h == b.h) && (a.v == b.v) && (a.d == b.d)
 end
 
 function Base.hash(o::Origami, h::UInt)
@@ -202,7 +203,8 @@ julia> genus(o)
 ```
 """
 function genus(o::Origami)
-  return ZZ((sum(stratum(o)) + 2) / 2)
+  # the stratum degrees sum to 2g-2, so the division is exact
+  return ZZ(div(sum(stratum(o)) + 2, 2))
 end
 
 function veech_group(O::Origami)
@@ -277,7 +279,7 @@ end
 @doc raw"""
     is_hyperelliptic(o::Origami)
 
-Tests whether an origami is hyperelliptic. 
+Tests whether an origami is hyperelliptic.
 # Examples
 ```jldoctest
 julia> o = origami(cperm([1,2,3,4]), cperm([1,2],[3,4]))
@@ -445,9 +447,7 @@ julia> point_reflections(o)
 """
 function point_reflections(o::Origami)
   # TODO do we really want an exception here, or maybe just return an empty list?
-  if !veech_group_is_even(o)
-    throw("VeechGroup must contain -1")
-  end
+  @req veech_group_is_even(o) "Veech group must contain -1"
 
   h = horizontal_perm(o)
   v = vertical_perm(o)

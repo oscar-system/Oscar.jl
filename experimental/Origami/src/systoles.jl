@@ -1,18 +1,18 @@
 function systolic_ratio(ori::Origami)
-  return Float64(GAP.Globals.SystolicRatio(ori.o).systolic_ratio)
+  return Float64(GAP.Globals.SystolicRatio(GapObj(ori)).systolic_ratio)
 end
 
 function systolic_ratio_bigger_one_over_pi_in_h11(deg::Int)
   oris = Origami[]
   for d in 1:deg
-    orisDeg = origamis([1, 1], d)
-    append!(oris, orisDeg)
+    oris_deg = origamis([1, 1], d)
+    append!(oris, oris_deg)
   end
-  systolicRatios = map(systolic_ratio, oris)
+  systolic_ratios = map(systolic_ratio, oris)
   threshold = 1 / pi
-  amountBigger = count(x -> x > threshold, systolicRatios)
+  amount_bigger = count(x -> x > threshold, systolic_ratios)
   total = length(oris)
-  percentage = (amountBigger / total) * 100
+  percentage = (amount_bigger / total) * 100
   rounded_percentage = round(percentage; digits=2)
-  return (total, amountBigger, "$rounded_percentage%")
+  return (total, amount_bigger, "$rounded_percentage%")
 end

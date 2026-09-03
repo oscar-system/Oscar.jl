@@ -220,7 +220,8 @@ function possible_lengths_and_heights(cyl_diagram::CylinderDiagram, degree::Int)
     # iterate over Cartesian product
     for widths in Iterators.product(width_choices...)
 
-      heights = [a[i] / widths[i] for i in 1:ncyls]
+      # widths[i] runs over the divisors of a[i], so the division is exact
+      heights = [div(a[i], widths[i]) for i in 1:ncyls]
 
       # For each cylinder, distribute its width among the
       # separatrices on its bottom boundary.

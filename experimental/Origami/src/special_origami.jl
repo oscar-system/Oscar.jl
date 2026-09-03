@@ -50,29 +50,26 @@ function x_origami(half_degree::Integer)
 end
 
 function elevator_origami(length::Integer, height::Integer, steps::Integer)
-  sigma_h = cperm()
-  sigma_h_step = Vector{PermGroupElem}(undef, steps)
+  # all cycles must live in the same symmetric group, otherwise multiplying
+  # them fails with "the groups have different degrees"
+  G = symmetric_group(steps * (length + height))
 
+  sigma_h = one(G)
   for step in 1:steps
-    sigma_h_step[step] = cperm(
-      ((step - 1) * (length + height) + 1):((step - 1) * (length + height) + length)
-    )
-    sigma_h = sigma_h * sigma_h_step[step]
+    h_start = (step - 1) * (length + height) + 1
+    sigma_h = sigma_h * cperm(G, h_start:(h_start + length - 1))
   end
 
-  sigma_v = cperm()
-  sigma_v_step = Vector{PermGroupElem}(undef, steps-1)
+  sigma_v = one(G)
   for step in 1:(steps - 1)
-    sigma_v_step[step] = cperm(
-      (step * length + (step - 1) * height):(step * (length + height) + 1)
-    )
-    sigma_v = sigma_v * sigma_v_step[step]
+    v_start = step * length + (step - 1) * height
+    sigma_v = sigma_v * cperm(G, v_start:(step * (length + height) + 1))
   end
   last_connection = collect(
     (steps * length + (steps - 1) * height):(steps * (length + height))
   )
   push!(last_connection, 1)
-  sigma_v = sigma_v * cperm(last_connection)
+  sigma_v = sigma_v * cperm(G, last_connection)
 
   return normal_form(origami(sigma_h, sigma_v))
 end

@@ -33,6 +33,14 @@ struct CylinderDiagram
   end
 end
 
+# `cycles_count` and `separatrix_count` are derived from `bot`, so comparing
+# `bot` and `top` is enough. Without this, containers fall back to `objectid`.
+Base.:(==)(a::CylinderDiagram, b::CylinderDiagram) = a.bot == b.bot && a.top == b.top
+
+function Base.hash(cd::CylinderDiagram, ha::UInt)
+  return hash(cd.top, hash(cd.bot, ha))
+end
+
 struct CanonicalOrigamiKey
   h::Vector{Int}
   v::Vector{Int}
