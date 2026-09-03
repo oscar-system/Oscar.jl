@@ -65,11 +65,13 @@ function elevator_origami(length::Integer, height::Integer, steps::Integer)
     v_start = step * length + (step - 1) * height
     sigma_v = sigma_v * cperm(G, v_start:(step * (length + height) + 1))
   end
-  last_connection = collect(
-    (steps * length + (steps - 1) * height):(steps * (length + height))
-  )
-  push!(last_connection, 1)
-  sigma_v = sigma_v * cperm(G, last_connection)
+  if length > 1
+    last_connection = collect(
+      (steps * length + (steps - 1) * height):(steps * (length + height))
+    )
+    push!(last_connection, 1)
+    sigma_v = sigma_v * cperm(G, last_connection)
+  end
 
   return normal_form(origami(sigma_h, sigma_v))
 end
