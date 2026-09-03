@@ -11,11 +11,11 @@ by `vslits` and `hslits` in ``(\mathbb{Z} / d \mathbb{Z})^{n^2}``: The right edg
 # Examples
 ```jldoctest
 julia> generalized_cyclic_torus_cover(2, 2, [1,0,0,0], [0,0,0,0])
-GAP: Origami((1,6,5,2)(3,4)(7,8), (1,3)(2,4)(5,7)(6,8), 8)
+Origami((1,6,5,2)(3,4)(7,8),(1,3)(2,4)(5,7)(6,8), 8)
 ```
 """
 function generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector{Int64}, hslits::Vector{Int64})
-  return GAP.Globals.GeneralizedCyclicTorusCover(n, d, GapObj(vslits), GapObj(hslits))
+  return from_GAP_origami(GAP.Globals.GeneralizedCyclicTorusCover(n, d, GapObj(vslits), GapObj(hslits)))
 end
 
 @doc raw"""
@@ -30,11 +30,11 @@ given in the range ``0, \dots, (n - 1)^2``, where the point ``(0,0)`` is located
 # Examples
 ```jldoctest
 julia> comb_origami(3,0,1)
-GAP: Origami((1,2,3)(4,5,6,13,14,15)(7,8,9)(10,11,12)(16,17,18), (1,4,7)(2,5,8,11,14,17)(3,6,9)(10,13,16)(12,15,18), 18)
+Origami((1,2,3)(4,5,6,13,14,15)(7,8,9)(10,11,12)(16,17,18),(1,4,7)(2,5,8,11,14,17)(3,6,9)(10,13,16)(12,15,18), 18)
 ```
 """
 function comb_origami(n::Int, x::Int, y::Int)
-  return GAP.Globals.CombOrigami(n, x, y)
+  return from_GAP_origami(GAP.Globals.CombOrigami(n, x, y))
 end
 
 @doc raw"""
@@ -45,11 +45,11 @@ Returns: a cyclic torus cover origami whose monodromy vector with respect to the
 # Examples
 ```jldoctest
 julia> cyclic_torus_cover_origamiS(2,2,[1,0,1,0,0])
-GAP: Origami((1,2,5,6)(3,4)(7,8), (1,3,5,7)(2,4)(6,8), 8)
+Origami((1,2,5,6)(3,4)(7,8),(1,3,5,7)(2,4)(6,8), 8)
 ```
 """
 function cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector{Int64})
-  return GAP.Globals.CyclicTorusCoverOrigamiS(n, d, GapObj(v))
+  return from_GAP_origami(GAP.Globals.CyclicTorusCoverOrigamiS(n, d, GapObj(v)))
 end
 
 @doc raw"""
@@ -60,11 +60,11 @@ Returns: a cyclic torus cover origami whose monodromy vector with respect to the
 # Examples
 ```jldoctest
 julia> cyclic_torus_cover_origamiL(2,2,[1,0,1,0,0])
-GAP: Origami((1,2,5,6)(3,4)(7,8), (1,7)(2,4,6,8)(3,5), 8)
+Origami((1,2,5,6)(3,4)(7,8),(1,7)(2,4,6,8)(3,5), 8)
 ```
 """
 function cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector{Int64})
-  return GAP.Globals.CyclicTorusCoverOrigamiL(n, d, GapObj(v))
+  return from_GAP_origami(GAP.Globals.CyclicTorusCoverOrigamiL(n, d, GapObj(v)))
 end
 
 @doc raw"""
@@ -81,21 +81,23 @@ GAP: [ [ 0, 1, 1, -1, 0 ], [ 0, 0, -1, 1, 0 ], [ 1, 0, -1, 0, 1 ], [ 0, 0, 1, 0,
 ```
 """
 function base_change_l_to_s(n::Int)
-  return GAP.Globals.BaseChangeLToS(n)
+  return matrix(ZZ, GAP.Globals.BaseChangeLToS(n))
 end
 
 function translation_group_on_homology_of_tn(n::Int)
-  return GAP.Globals.TranslationGroupOnHomologyOfTn(n)
+  gens_gap = GAP.Globals.GeneratorsOfGroup(GAP.Globals.TranslationGroupOnHomologyOfTn(n))
+  gens_oscar = [matrix(ZZ, g) for g in gens_gap]
+  return matrix_group(gens_oscar)
 end
 
 function action_of_t_on_homology_of_tn(n::Int)
-  return GAP.Globals.ActionOfTOnHomologyOfTn(n)
+  return matrix(ZZ, GAP.Globals.ActionOfTOnHomologyOfTn(n))
 end
 
 function action_of_s_on_homology_of_tn(n::Int)
-  return GAP.Globals.ActionOfSOnHomologyOfTn(n)
+  return matrix(ZZ, GAP.Globals.ActionOfSOnHomologyOfTn(n))
 end
 
 function action_of_matrix_on_homology_of_tn(n::Int, A::Matrix)
-  return GAP.Globals.ActionOfMatrixOnHomologyOfTn(n, GapObj(A))
+  return matrix(ZZ, GAP.Globals.ActionOfMatrixOnHomologyOfTn(n, GapObj(A)))
 end
