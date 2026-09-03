@@ -1,5 +1,5 @@
 @doc raw"""
-      generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector, hslits::Vector)
+      generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector{Int64}, hslits::Vector{Int64})
 
 Given integers ``d, n \ge 1``, this function returns an origami of degree ``n^2 d`` in the following way: First,
 for each ``i = 1, \dots, d`` we take ``n^2`` cornerless squares (``s_{i,1}, \dots, s_{i,n^2}``) and arrange them in
@@ -14,7 +14,7 @@ julia> generalized_cyclic_torus_cover(2, 2, [1,0,0,0], [0,0,0,0])
 GAP: Origami((1,6,5,2)(3,4)(7,8), (1,3)(2,4)(5,7)(6,8), 8)
 ```
 """
-function generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector, hslits::Vector)
+function generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector{Int64}, hslits::Vector{Int64})
   return GAP.Globals.GeneralizedCyclicTorusCover(n, d, GapObj(vslits), GapObj(hslits))
 end
 
@@ -38,7 +38,7 @@ function comb_origami(n::Int, x::Int, y::Int)
 end
 
 @doc raw"""
-      cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector)
+      cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector{Int64})
 
 Returns: a cyclic torus cover origami whose monodromy vector with respect to the basis ``S`` is `v`.
 
@@ -48,12 +48,12 @@ julia> cyclic_torus_cover_origamiS(2,2,[1,0,1,0,0])
 GAP: Origami((1,2,5,6)(3,4)(7,8), (1,3,5,7)(2,4)(6,8), 8)
 ```
 """
-function cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector)
+function cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector{Int64})
   return GAP.Globals.CyclicTorusCoverOrigamiS(n, d, GapObj(v))
 end
 
 @doc raw"""
-      cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector)
+      cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector{Int64})
 
 Returns: a cyclic torus cover origami whose monodromy vector with respect to the basis ``L`` is `v`.
 
@@ -63,7 +63,7 @@ julia> cyclic_torus_cover_origamiL(2,2,[1,0,1,0,0])
 GAP: Origami((1,2,5,6)(3,4)(7,8), (1,7)(2,4,6,8)(3,5), 8)
 ```
 """
-function cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector)
+function cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector{Int64})
   return GAP.Globals.CyclicTorusCoverOrigamiL(n, d, GapObj(v))
 end
 
