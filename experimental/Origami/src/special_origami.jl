@@ -7,7 +7,7 @@ function random_origami(d::Integer)
     v = rand(symm_group)
     perm_group = permutation_group(d, [h, v])
   end
-  return origami_disconnected(h, v, d)
+  return origami(h, v; check=false)
 end
 
 function staircase_origami(length::Integer, height::Integer, steps::Integer)

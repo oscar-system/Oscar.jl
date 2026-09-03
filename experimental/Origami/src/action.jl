@@ -18,7 +18,7 @@ Origami ((1,6,2,8,3,5,4),(1,6,4,7,5,3)(2,8), 8)
 function action_s(o::Origami)
   h = horizontal_perm(o)
   v = vertical_perm(o)
-  return origami_disconnected(v^-1, h, degree(o))
+  return origami(v^-1, h; check=false)
 end
 
 @doc raw"""
@@ -38,7 +38,8 @@ Origami ((1,6,4,7,5,3)(2,8),(1,8,6,4)(5,7), 8)
 """
 function action_t(o::Origami)
   h = horizontal_perm(o)
-  return origami_disconnected(h, h^-1 * vertical_perm(o), degree(o))
+  v = vertical_perm(o)
+  return origami(h, h^-1 * v; check=false)
 end
 
 @doc raw"""
@@ -59,7 +60,7 @@ Origami ((1,6,4,7,5,3)(2,8),(3,4,7)(5,8,6), 8)
 function action_t_inv(o::Origami)
   h = horizontal_perm(o)
   v = vertical_perm(o)
-  return origami_disconnected(h, h * v, degree(o))
+  return origami(h, h * v; check=false)
 end
 
 @doc raw"""
@@ -80,7 +81,7 @@ Origami ((1,4,5,3,8,2,6),(1,3,5,7,4,6)(2,8), 8)
 function action_s_inv(o::Origami)
   h = horizontal_perm(o)
   v = vertical_perm(o)
-  return origami_disconnected(v, h^-1, degree(o))
+  return origami(v, h^-1; check=false)
 end
 
 @doc raw"""
@@ -107,5 +108,5 @@ function action_sl2(A::ZZMatrix, o::Origami)
   G = symmetric_group(d)
   h = PermGroupElem(G, GAP.Globals.HorizontalPerm(gap_origami))
   v = PermGroupElem(G, GAP.Globals.VerticalPerm(gap_origami))
-  return origami_disconnected(h, v, degree(o))
+  return origami(h, v; check=false)
 end

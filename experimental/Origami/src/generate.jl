@@ -131,7 +131,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
     ly[(v[i + 1] - widths[i] + 1):(v[i + 1])] = top
   end
 
-  no_twist = origami_disconnected(lx, perm(S, [x + 1 for x in ly]), deg)
+  no_twist = origami(lx, perm(S, [x + 1 for x in ly]); check=false)
   results = [no_twist]
 
   ly = [x + 1 for x in ly]
@@ -142,7 +142,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram,
     else
       insert!(ly, v[i + 1], popat!(ly, v[i + 1] - widths[i] + 1))
     end
-    new_entry = origami_disconnected(lx, perm(S, ly), deg)
+    new_entry = origami(lx, perm(S, ly); check=false)
     push!(results, new_entry)
   end
 

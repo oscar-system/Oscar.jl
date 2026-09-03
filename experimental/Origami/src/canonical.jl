@@ -97,5 +97,5 @@ function normal_form(o::Origami)
   k = canonical_origami_key(o)
   h = perm(k.h)
   v = perm(k.v)
-  return origami_disconnected(h, v, degree(o))
+  return origami(h, v; check=false)
 end

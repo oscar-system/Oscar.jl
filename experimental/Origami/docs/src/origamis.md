@@ -9,8 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 ## Basic construction of origamis
 
 ```@docs
-origami(h::PermGroupElem, v::PermGroupElem)
-origami_disconnected(h::PermGroupElem, v::PermGroupElem, d::Integer)
+origami(h::PermGroupElem, v::PermGroupElem; check=true)
 horizontal_perm(o::Origami)
 vertical_perm(o::Origami)
 degree(o::Origami)

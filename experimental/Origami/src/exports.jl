@@ -34,7 +34,6 @@ export non_taut_part_of_homology
 export normal_stored_origami
 export normalform_conjugators
 export origami
-export origami_disconnected
 export origami_from_cylinder_coordinates
 export origamis
 export parse_cycle
