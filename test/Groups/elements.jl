@@ -126,6 +126,36 @@ julia> allow_unicode(old; temporary=true);
   @test_throws ArgumentError perm(7, [2,3,4,5,6,7])  # invalid: nothing mapped to 1
   @test_throws ArgumentError perm(4, [2,3,4,5,1,1])  # invalid: duplicate entries / nothing mapped to 6
 
+  # points beyond the degree are fixed, non-positive points are rejected
+  @test 7^x == 7
+  @test_throws ArgumentError 0^x
+  @test_throws ArgumentError (-1)^x
+  for T in [Int8, Int32, Int, BigInt, ZZRingElem]
+    @test T(7)^x == T(7)
+    @test typeof(T(7)^x) == T
+  end
+  @test (ZZRingElem(2)^100)^x == ZZRingElem(2)^100
+  @test_throws ArgumentError (-ZZRingElem(2)^100)^x
+
+  # degrees above 2^16 use GAP's wide internal representation of permutations
+  let n = 2^16 + 1, L = vcat(n, 1:n-1)
+    y = perm(L)
+    @test Vector(y) == L
+    @test 1^y == n
+    @test (n+1)^y == n+1
+    @test order(y) == n
+    @test_throws ArgumentError perm(vcat(1, 1:n-1))  # invalid: duplicate entry 1
+  end
+
+  # guard against changes to the layout of GAP's bag header, which
+  # `Oscar._gap_perm_image` decodes by hand
+  for y in [perm([2,1]), perm(vcat(2^16+1, 1:2^16))]
+    g = GapObj(y)
+    header = unsafe_load(GAP.ADDR_OBJ(g), 0)
+    @test header & Oscar._GAP_BAG_TNUM_MASK == GAP.TNUM_OBJ(g)
+    @test header >> Oscar._GAP_BAG_SIZE_SHIFT == GAP.SIZE_OBJ(g)
+  end
+
   G=alternating_group(6)
   @test_throws ArgumentError cperm(G, [1,2])
   @test cperm(G, [1,2],[3,4]) == perm(G,[2,1,4,3,5,6])
