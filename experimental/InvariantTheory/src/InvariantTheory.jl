@@ -400,7 +400,7 @@ invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) = Re
 @attr MPolyIdeal function null_cone_ideal(R::RedGroupInvarRing)
     Z = R.representation
     I, _ = proj_of_image_ideal(group(Z), Z.rep_mat)
-    return ideal(generators(Z.group, I, Z.rep_mat))
+    return ideal(_gens_of_null_cone(Z.group, I, Z.rep_mat))
 end
 
 polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
@@ -431,7 +431,7 @@ function fundamental_invariants(z::RedGroupInvarRing) #unable to use abstract ty
     if !isdefined(z, :fundamental)
         R = z.representation
         I, M = proj_of_image_ideal(R.group, R.rep_mat)
-        null_cone_ideal(z) = ideal(generators(R.group, I, R.rep_mat))
+        null_cone_ideal(z) = ideal(_gens_of_null_cone(R.group, I, R.rep_mat))
         if isdefined(group(z), :group)
             z.fundamental = inv_generators(null_cone_ideal(z), R.group, z.poly_ring, M, z.reynolds_operator)
         else 
@@ -486,7 +486,7 @@ end
 #this function gets the generators of the null cone. they may or may not be invariant.
 #to do this we evaluate what is returned from proj_of_image_ideal at y = 0 
 #ie at gens(basering)[n+1:2*n] = [0 for i in 1:n]
-function generators(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
+function _gens_of_null_cone(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     n = ncols(rep_mat)
     gbasis = gens(X) 
     length(gbasis) == 0 && return gbasis

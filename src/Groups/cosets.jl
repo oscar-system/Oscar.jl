@@ -1,38 +1,3 @@
-# T=type of the group, S=type of the element
-@doc raw"""
-    GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
-
-Type of right and left cosets of subgroups in groups.
-
-For an element $g$ in a group $G$, and a subgroup $H$ of $G$,
-the set $Hg = \{ hg; h \in H \}$ is a right coset of $H$ in $G$,
-and the set $gH = \{ gh; h \in H \}$ is a left coset of $H$ in $G$.
-
-- [`group(C::GroupCoset)`](@ref) returns $G$.
-
-- [`acting_group(C::GroupCoset)`](@ref) returns $H$.
-
-- [`representative(C::GroupCoset)`](@ref) returns an element
-  (the same element for each call) of `C`.
-
-- [`is_right(C::GroupCoset)`](@ref) and [`is_left(C::GroupCoset)`](@ref)
-  return whether `C` is a right or left coset, respectively.
-
-Two cosets are equal if and only if they are both left or right, respectively,
-and they contain the same elements.
-"""
-struct GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
-   G::TG                   # big group containing the subgroup and the element
-   H::TH                   # subgroup (may have a different type)
-   repr::S                 # element
-   side::Symbol            # says if the coset is left or right
-   X::Ref{GapObj}          # GapObj(H*repr)
-
-   function GroupCoset(G::TG, H::TH, representative::S, side::Symbol) where {TG <: GAPGroup, TH <: GAPGroup, S <:GAPGroupElem}
-     return new{TG, TH, S}(G, H, representative, side, Ref{GapObj}())
-   end
-end
-
 GAP.@install function GapObj(obj::GroupCoset)
   if !isassigned(obj.X)
     g = GapObj(representative(obj))
@@ -368,35 +333,6 @@ function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
   return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
-
-@doc raw"""
-    SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
-
-Type of left/right transversals of subgroups in groups.
-
-For a group $G$ and a subgroup $H$ of $G$, $T$ is a right
-(resp. left) transversal for $H$ in $G$ if $T$ contains
-precisely one element of each right (resp. left) cosets of $H$ in $G$.
-
-Objects of this type are created by [`right_transversal`](@ref) and
-[`left_transversal`](@ref).
-
-- [`group(T::SubgroupTransversal)`](@ref) returns $G$.
-
-- [`subgroup(T::SubgroupTransversal)`](@ref) returns $H$.
-
-# Note for developers
-
-The elements are encoded via a right transversal object in GAP.
-(Note that GAP does not support left transversals.)
-"""
-struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
-   G::T                    # big group containing the subgroup
-   H::S                    # subgroup
-   side::Symbol            # says if the transversal is left or right
-   X::GapObj               # underlying *right* transversal in GAP
-end
-
 GAP.@install GapObj(T::SubgroupTransversal) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
@@ -625,41 +561,6 @@ function index_of_coset(::Type{I}, T::SubgroupTransversal, g::GroupElem) where I
      Gap_g = inv(Gap_g)
    end
    return I(GAPWrap.PositionCanonical(GapObj(T), Gap_g)::GapInt)
-end
-
-@doc raw"""
-    GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
-
-Type of double cosets of subgroups in groups.
-
-For an element $g$ in a group $G$, and two subgroups $H$, $K$ of $G$,
-the set $HgK = \{ hgk; h \in H, k \in K \}$ is a $H-K$-double coset in $G$.
-
-- [`group(C::GroupDoubleCoset)`](@ref) returns $G$.
-
-- [`left_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
-
-- [`right_acting_group(C::GroupDoubleCoset)`](@ref) returns $K$.
-
-- [`representative(C::GroupDoubleCoset)`](@ref) returns an element
-  (the same element for each call) of `C`.
-
-Two double cosets are equal if and only if they contain the same elements.
-"""
-struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
-# T=type of the group, S=type of the element
-   G::T
-   H::GAPGroup
-   K::GAPGroup
-   repr::S
-   X::Ref{GapObj}
-   size::Ref{ZZRingElem}
-   right_coset_reps::Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}
-
-   function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
-     return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}(),
-                      Ref{Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}}())
-   end
 end
 
 GAP.@install function GapObj(C::GroupDoubleCoset)

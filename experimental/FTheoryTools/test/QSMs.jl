@@ -31,6 +31,11 @@ fg_not_breaking = special_flux_family(
 g4_exp = flux_instance(fg_not_breaking, [3], [])
 
 @testset "Test properties of the QSM" begin
+  # Legacy QSM database attributes are canonicalized when the model is loaded.
+  @test has_attribute(qsm_model, :kbar3)
+  @test !has_attribute(qsm_model, :Kbar3)
+  @test has_attribute(qsm_model, :has_quick_triangulation)
+  @test !has_attribute(qsm_model, :triang_quick)
   @test H == U + E1 + E2 + E4 == V + E2 + E3
   @test chern_classes(qsm_model)[2] ==
     c2_B - 7 * E4^2 - E1 * Kbar - E2 * Kbar - E3 * Kbar - E4 * Kbar + 3 * H * Kbar
@@ -55,6 +60,13 @@ end
     @test obj1 == obj2
   end
   qsm_g4_flux = qsm_flux(qsm_model)
+
+  # Check that string-valued algorithm names are deprecated.
+  @test_deprecated Oscar._normalize_flux_family_algorithm(
+    "special", :special_flux_family
+  ) ===
+    :special
+
   h22_basis = gens_of_h22_hypersurface_indices(qsm_model; completeness_check=false)
   flux_poly_str = string(polynomial(cohomology_class(qsm_g4_flux)))
   ring = base_ring(parent(polynomial(cohomology_class(qsm_g4_flux))))
@@ -85,4 +97,19 @@ end
   @test is_integer(solution[1])
   reconstructed_flux = flux_instance(fg, matrix(ZZ, [[solution[1]]]), solution[2:end, :])
   @test cohomology_class(qsm_g4_flux) == cohomology_class(reconstructed_flux)
+
+  # Empty coefficient lists must retain the affine offset of a flux family.
+  shifted_offset = copy(offset(fg))
+  shifted_offset[1] = 1
+  shifted_fg = family_of_g4_fluxes(
+    qsm_model, M1, M2, shifted_offset; completeness_check=false
+  )
+  empty_coeff_flux = flux_instance(
+    shifted_fg, Int[], Rational{Int}[]; completeness_check=false, consistency_check=false
+  )
+  zero_matrix_flux = flux_instance(
+    shifted_fg, zero_matrix(ZZ, ncols(M1), 1), zero_matrix(QQ, ncols(M2), 1);
+    completeness_check=false, consistency_check=false,
+  )
+  @test cohomology_class(empty_coeff_flux) == cohomology_class(zero_matrix_flux)
 end

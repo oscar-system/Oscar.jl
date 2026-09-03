@@ -23,6 +23,15 @@ struct LPSerializer <: MultiFileSerializer
   basepath::String
 end
 
+struct MultiFileRefSerializer <: MultiFileSerializer
+  basepath::String
+  compression::Symbol
+  ref_files::Vector{String}
+end
+MultiFileRefSerializer() = MultiFileRefSerializer("", :none, String[])
+MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none, String[])
+MultiFileRefSerializer(basepath::String, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
+
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
 ################################################################################
@@ -156,23 +165,71 @@ function save_as_ref(s::SerializerState, obj::T) where T
 end
 
 function handle_refs(s::SerializerState)
-  should_handle_refs(s.serializer) || return nothing
-  if !isempty(s.refs) 
-    save_data_dict(s, :_refs) do
-      for id in s.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
-        s.key = Symbol(id)
-        save_data_dict(s) do
-          save_typed_object(s, ref_obj)
-        end
+  isempty(s.refs) && return nothing
+  save_data_dict(s, :_refs) do
+    for id in s.refs
+      ref_obj = global_serializer_state.id_to_obj[id]
+      s.key = Symbol(id)
+      save_data_dict(s) do
+        save_typed_object(s, ref_obj)
       end
     end
   end
 end
 
-should_handle_refs(::OscarSerializer) = true
-should_handle_refs(s::JSONSerializer) = s.serialize_refs
-should_handle_refs(::IPCSerializer) = false
+function handle_refs(s::SerializerState{JSONSerializer})
+  s.serializer.serialize_refs && invoke(handle_refs, Tuple{SerializerState}, s)
+end
+
+handle_refs(::SerializerState{IPCSerializer}) = nothing
+
+function handle_refs(s::SerializerState{MultiFileRefSerializer})
+  isempty(s.refs) && return nothing
+  prefix = basepath(s.serializer)
+  compression = s.serializer.compression
+  ref_files = s.serializer.ref_files
+  prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+  while !isempty(s.refs)
+    id = pop!(s.refs)
+    ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    fname = basename(prefix) * "_" * string(id) * ext
+    push!(ref_files, fname)
+    ref_obj = global_serializer_state.id_to_obj[id]
+    ref_path = joinpath(prefix_dir, fname)
+    temp_file = tempname(prefix_dir)
+    write_ref_file = function(file)
+      # Share s.refs so transitive refs accumulate in the outer while loop
+      inner_s = SerializerState(
+        JSONSerializer(; serialize_refs=false),
+        true, s.refs, file, nothing, s.with_attrs, false
+      )
+      save_data_dict(inner_s) do
+        save_header(inner_s, get_oscar_serialization_version(), :_ns)
+        save_typed_object(inner_s, ref_obj)
+        if serialize_with_id(typeof(ref_obj))
+          ref_id = get(global_serializer_state.obj_to_id, ref_obj, nothing)
+          if isnothing(ref_id)
+            ref_id = global_serializer_state.obj_to_id[ref_obj] = uuid4()
+            global_serializer_state.id_to_obj[ref_id] = ref_obj
+          end
+          save_object(inner_s, string(ref_id), :id)
+        end
+      end
+    end
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        write_ref_file(file)
+      end
+    else
+      open(temp_file, "w") do file
+        write_ref_file(file)
+      end
+    end
+    Base.Filesystem.rename(temp_file, ref_path)
+  end
+  # reverse: DFS pop! gives root-first order; reverse gives leaves-first for loading
+  save_object(s, reverse(ref_files), :_ref_files)
+end
 
 function serializer_close(s::SerializerState)
   finish_writing(s)
@@ -260,6 +317,28 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   refs = get(obj, :_refs, nothing)
   
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
+end
+
+function deserializer_open(io::IO, serializer::MultiFileRefSerializer, with_attrs::Bool)
+  obj = JSON.parse(io; dicttype=Dict{Symbol, Any})
+  ref_files = get(obj, :_ref_files, nothing)
+  if !isnothing(ref_files)
+    prefix = basepath(serializer)
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+    for fname in ref_files
+      filepath = joinpath(prefix_dir, string(fname))
+      if endswith(filepath, ".gz")
+        open(CodecZlib.GzipDecompressorStream, filepath) do file
+          load(file)
+        end
+      else
+        open(filepath) do file
+          load(file)
+        end
+      end
+    end
+  end
+  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 

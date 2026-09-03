@@ -41,8 +41,8 @@
         @test length(x3) == 9
 
         @test mat_M1 ==  matrix(R1, [1 0 1 0 1 0 1; 0 1 1 0 0 1 x1[2]; 0 0 0 1 1 x1[1] x1[3]])
-        @test mat_M2 ==  matrix(R2, [1 1 0 0 1 1 1 0 1; 1 0 1 1 x2[1] x2[3] x2[5] 0 x2[7]; 0 0 0 1 x2[2] x2[4] x2[6] 1 x2[8]])
-        @test mat_M3 ==  matrix(R3, [1 1 1 0 0 1 0 1; 1 0 x3[1] 1 0 x3[4] 0 x3[7]; 1 0 x3[2] 0 1 x3[5] 0 x3[8]; 1 0 x3[3] 0 0 x3[6] 1 x3[9]])
+        @test mat_M2 ==  matrix(R2, [1 1 0 0 1 1 1 0 1; 1 0 1 1 x2[1] x2[2] x2[3] 0 x2[7]; 0 0 0 1 x2[4] x2[5] x2[6] 1 x2[8]])
+        @test mat_M3 ==  matrix(R3, [1 1 1 0 0 1 0 1; 1 0 x3[1] 1 0 x3[3] 0 x3[7]; 1 0 x3[2] 0 1 x3[4] 0 x3[8]; 1 0 x3[5] 0 0 x3[6] 1 x3[9]])
     end
     
     B1 = Oscar.find_good_basis_heuristically(M1)
@@ -146,7 +146,29 @@ end
     s = "0******0******0**********0********0*******0*********************0*****************0*************0***********0***************************0*******************0*****************************0************0**0************0****"
     MD = matroid_from_revlex_basis_encoding(s,3,12)
     RS = realization_space(MD, char = 0, saturate = true)
-    @test is_reduced(RS) == false
+    I = defining_ideal(RS)
+    @test radical(I) != I
+
+    NF = non_fano_matroid()
+    RS0 = realization_space(NF, char=0, saturate=true)
+    @test iszero(defining_ideal(RS0)) == true
+
+    RSZ = realization_space(NF, saturate=true)
+    @test iszero(defining_ideal(RSZ)) == true
+end
+
+@testset "non simple matroid" begin
+    M_nonsimple = matroid_from_bases([[3,5],[3,4],[2,5],[2,4]],5)
+    RS = realization_space(M_nonsimple, char=0)
+    @test RS.realization_matrix == matrix(QQ,[0 1 1 0 0; 0 0 0 1 1])
+    @test is_realizable(M_nonsimple, char = 0) == true
+end
+
+@testset "alheydis' example of a matroid of larger rank" begin
+    MA = matroid_from_bases([[2,3,6,9,10],[4,5,6,7,9],[4,5,6,7,8],[3,6,7,9,10],[2,4,7,8,10],[2,3,7,8,10],[1,2,4,6,10],[1,2,4,6,9],[1,2,4,6,8],[6,7,8,9,10],[2,3,6,8,9],[2,3,6,8,10],[1,6,7,8,10],[1,4,6,9,10],[1,6,7,8,9],[4,7,8,9,10],[2,4,5,7,10],[2,4,5,7,9],[2,4,5,7,8],[1,7,8,9,10],[1,2,4,5,9],[2,3,5,8,10],[1,2,4,5,8],[2,3,5,8,9],[1,2,4,5,10],[4,5,7,8,9],[2,3,5,7,9],[4,5,7,8,10],[2,3,5,7,8],[2,3,5,7,10],[2,3,4,6,9],[1,2,4,5,6],[1,3,5,6,7],[2,3,4,6,10],[1,5,8,9,10],[1,3,5,6,9],[1,3,5,6,8],[1,4,6,7,10],[1,4,6,7,9],[1,4,6,7,8],[3,4,5,6,7],[1,4,6,8,9],[2,3,4,6,7],[1,4,6,8,10],[4,6,7,9,10],[2,6,8,9,10],[2,3,4,7,10],[2,4,6,7,9],[1,2,3,9,10],[1,3,5,9,10],[2,4,6,7,8],[1,3,5,7,10],[1,2,3,8,10],[1,3,5,7,9],[2,4,6,7,10],[1,4,5,9,10],[1,3,5,7,8],[1,4,5,6,9],[1,4,7,8,10],[1,4,5,6,8],[3,5,7,8,10],[3,5,7,8,9],[1,4,5,6,7],[2,3,4,9,10],[1,5,6,8,9],[3,4,6,7,9],[1,2,4,9,10],[3,4,6,7,10],[1,2,6,8,10],[2,4,7,9,10],[1,2,6,8,9],[3,7,8,9,10],[3,5,7,9,10],[2,4,5,8,9],[2,4,5,8,10],[2,5,8,9,10],[2,4,8,9,10],[1,5,6,7,8],[1,5,7,8,9],[1,5,7,8,10],[1,4,7,9,10],[4,5,7,9,10],[3,6,7,8,9],[1,2,3,5,10],[1,2,3,6,9],[1,2,3,5,9],[1,2,3,6,8],[1,3,7,9,10],[3,6,7,8,10],[2,4,5,6,9],[1,2,3,5,8],[2,4,5,6,8],[1,2,3,6,10],[1,2,5,6,8],[1,2,8,9,10],[2,4,5,6,7],[1,2,3,5,6],[1,4,5,7,9],[1,4,5,7,8],[1,4,5,7,10],[1,3,6,9,10],[2,3,5,9,10],[3,4,7,9,10],[1,3,4,7,10],[2,4,6,8,10],[2,4,6,8,9],[1,2,5,8,9],[1,2,5,8,10],[1,3,4,5,9],[2,4,5,9,10],[1,3,6,8,10],[1,3,4,5,10],[1,3,6,8,9],[1,3,4,5,7],[5,7,8,9,10],[1,3,4,5,6],[2,3,4,5,7],[2,3,4,5,6],[2,6,7,8,9],[2,6,7,8,10],[2,3,4,5,10],[2,3,4,5,9],[2,5,6,7,8],[2,4,6,9,10],[3,4,5,7,10],[3,4,5,7,9],[1,3,7,8,10],[1,3,6,7,9],[1,3,6,7,8],[1,3,6,7,10],[2,5,7,8,10],[2,5,7,8,9],[1,3,4,9,10],[2,3,7,9,10],[1,3,8,9,10],[1,6,8,9,10],[2,3,5,6,7],[2,3,5,6,9],[2,3,5,6,8],[1,2,4,8,10],[1,4,5,8,10],[1,4,5,8,9],[2,3,8,9,10],[1,3,4,6,7],[5,6,7,8,9],[1,2,3,4,6],[1,2,3,4,5],[1,4,8,9,10],[2,3,6,7,10],[2,3,6,7,9],[1,3,4,6,10],[2,3,6,7,8],[1,3,4,6,9],[3,5,6,7,9],[1,3,5,8,9],[3,5,6,7,8],[1,2,3,4,10],[1,3,5,8,10],[4,6,7,8,10],[4,6,7,8,9],[2,5,6,8,9],[2,7,8,9,10]],10)
+    RS1 = realization_space(MA,char=0,B=[2,3,6,9,10])
+    RS2 = realization_space(MA,char=0,B=[4,5,6,7,9])
+    @test dim(RS1) == dim(RS2)
 end
 
 @testset "selfprojecting realization spaces" begin
@@ -190,7 +212,7 @@ end
 
         @test isnothing(mat_M1)
         @test mat_M2 ==  matrix(R2, [1 0 0 1 1 1;0 1 0 1 x2[1] x2[3];0 0 1 1 x2[2] x2[4]])
-        @test mat_M3 ==  matrix(R3,  [1 1 1 1 0 0 0 0; 1 x3[1] x3[3] 0 1 0 0 0; 1 x3[2] x3[4] 0 0 1 0 1; 1 x3[2] x3[4] 0 0 0 1 x3[5]])
+        @test mat_M3 ==  matrix(R3,  [1 1 1 1 0 0 0 0; 1 x3[1] x3[2] 0 1 0 0 0; 1 x3[3] x3[4] 0 0 1 0 1; 1 x3[3] x3[4] 0 0 0 1 x3[5]])
         @test mat_M5 ==  matrix(R5, [1 1 1 1 0 0 1 1; 0 1 x5[1] x5[2] 1 0 0 0; 0 0 0 0 0 1 1 x5[3]])
         @test isnothing(mat_M6)
     end
@@ -214,4 +236,44 @@ end
         @test dimension(selfprojecting_realization_space(M5)) == 3
         @test dimension(selfprojecting_realization_space(M6)) == -inf
     end
+end
+
+@testset "matroid realization space serialization" begin
+    # Regression: a fully reduced (rigid) chart has ambient ring ZZ, and the
+    # loader used to request the inequations as Vector{MPolyRingElem} over
+    # that ZZRing — a method that does not exist, so such charts could not be
+    # loaded in a fresh session. (In the session that saved them, the uses_id
+    # cache returned the object without running the loader, masking the bug.)
+    # The non-Fano matroid produces exactly such a chart: ambient ring ZZ,
+    # zero ideal, inequations [2].
+    RS = realization_space(non_fano_matroid(); saturate=true)
+    @test ambient_ring(RS) isa ZZRing        # precondition: chart is rigid
+    @test !isempty(inequations(RS))
+
+    io = IOBuffer()
+    save(io, RS)
+    Oscar.reset_global_serializer_state()    # simulate a fresh session
+    seekstart(io)
+    loaded = load(io)
+    @test loaded isa Oscar.MatroidRealizationSpace
+    @test ambient_ring(loaded) isa ZZRing
+    @test gens(defining_ideal(loaded)) == gens(defining_ideal(RS))
+    @test inequations(loaded) == inequations(RS)
+    @test realization_matrix(loaded) == realization_matrix(RS)
+
+    # ordinary polynomial-ambient chart: unaffected path stays intact.
+    # After the state reset the loaded ring is a distinct parent, so compare
+    # string representations rather than elements across parents.
+    RS2 = realization_space(pappus_matroid(); saturate=true)
+    @test !(ambient_ring(RS2) isa ZZRing)
+    io2 = IOBuffer()
+    save(io2, RS2)
+    Oscar.reset_global_serializer_state()
+    seekstart(io2)
+    loaded2 = load(io2)
+    @test loaded2 isa Oscar.MatroidRealizationSpace
+    @test symbols(ambient_ring(loaded2)) == symbols(ambient_ring(RS2))
+    @test string.(gens(defining_ideal(loaded2))) == string.(gens(defining_ideal(RS2)))
+    @test string.(inequations(loaded2)) == string.(inequations(RS2))
+    @test string(realization_matrix(loaded2)) == string(realization_matrix(RS2))
 end

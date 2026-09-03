@@ -354,11 +354,15 @@ true
 ```
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
+  @req x in domain(f) "the element is not in the domain of f"
   return group_element(codomain(f), GAPWrap.ImagesRepresentative(GapObj(f), GapObj(x)))
 end
 
 # images under a `GAPGroupEmbedding` are computed by unwrapping and wrapping
-image(f::GAPGroupEmbedding, x::GAPGroupElem) = group_element(codomain(f), GapObj(x))
+function image(f::GAPGroupEmbedding, x::GAPGroupElem)
+  @req x in domain(f) "the element is not in the domain of f"
+  return group_element(codomain(f), GapObj(x))
+end
 
 (f::Union{GAPGroupHomomorphism, GAPGroupEmbedding})(x::GAPGroupElem) = image(f, x)
 Base.:^(x::GAPGroupElem,f::Union{GAPGroupHomomorphism, GAPGroupEmbedding}) = image(f,x)
@@ -1195,10 +1199,6 @@ function isomorphism(::Type{FPGroup}, A::FinGenAbGroup; on_gens::Bool=false)
 end
 
 ####
-mutable struct GroupIsomorphismFromFunc{R, T} <: Map{R, T, Hecke.HeckeMap, MapFromFunc}
-    map::MapFromFunc{R, T}
-end
-
 function GroupIsomorphismFromFunc{R, T}(D::R, C::T, f, g) where {R, T}
   return GroupIsomorphismFromFunc{R, T}(MapFromFunc(D, C, f, g))
 end

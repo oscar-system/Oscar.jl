@@ -597,7 +597,7 @@ Base.length(x::GAPGroup)::Int = order(Int, x)
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
 """
-Base.in(g::GAPGroupElem, G::GAPGroup) = GapObj(g) in GapObj(G)
+Base.in(g::GAPGroupElem, G::GAPGroup) = parent(g) === G || GapObj(g) in GapObj(G)
 
 """
     gens(G::Group)
@@ -752,16 +752,6 @@ end
 #   Conjugacy Classes
 #
 ################################################################################
-
-@attributes mutable struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
-   X::T
-   repr::S
-   CC::GapObj
-
-   function GAPGroupConjClass(G::T, obj::S, C::GapObj) where T<:GAPGroup where S<:Union{GAPGroupElem, GAPGroup}
-     return new{T, S}(G, obj, C, Dict{Symbol,Any}())
-   end
-end
 
 GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
@@ -1118,8 +1108,8 @@ julia> G = symmetric_group(5);
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of Sym(5) in G
- Conjugacy class of permutation group in G
  Conjugacy class of Alt(5) in G
+ Conjugacy class of permutation group in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)
