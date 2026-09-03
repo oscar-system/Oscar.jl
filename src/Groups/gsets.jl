@@ -253,18 +253,26 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
 end
 
-## action of permutations on vectors of positive integers
-## action of matrices on vectors via right multiplication
+## action of matrices on vectors via right multiplication,
+## where the entries of the matrices and the entries of the vectors
+## have the same type
+## (if the types do *not* match then we do not define a default action,
+## pointwise action on the entries of the vector might be a natural action)
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{Vector{E}}; closed::Bool = false) where E where M
+  return GSetByElements(G, *, Omega; closed = closed, check = false)
+end
+
+## action of matrices on elements of free modules via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
 end
 
-## action of matrices on sets of vectors via right multiplication
+## action of matrices on sets of free module elements via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Set{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_sets, Omega; closed = closed, check = false)
 end
 
-## action of matrices on vectors of vectors via right multiplication
+## action of matrices on vectors of free module elements via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end

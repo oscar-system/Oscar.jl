@@ -345,6 +345,33 @@ end
 
 end
 
+@testset "G-sets of other matrix groups" begin
+  Z4, _ = residue_ring(ZZ, 4)
+  G = matrix_group(Z4[0 1; 1 0], Z4[0 1; -1 -1])
+
+  # action via (Julia vector) * (matrix group element)
+  v = [Z4(0), Z4(1)]
+  w = [Z4(1), Z4(1)]
+  Omega = orbit(G, v)
+  @test isa(Omega, GSet)
+  @test length(Omega) == 3
+  @test !(w in Omega)
+  C = collect(Omega)
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_conjugate(Omega, v, w)
+  conj, M = is_conjugate_with_data(Omega, v, -w)
+  @test conj
+  @test v * M == -w
+  g = gen(G, 1)
+  pi = permutation(Omega, g)
+  @test order(pi) == order(g)
+  @test degree(parent(pi)) == length(Omega)
+  acthom = action_homomorphism(Omega)
+  @test pi == g^acthom
+end
+
 @testset "subspaces iterator" begin
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
