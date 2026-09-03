@@ -30,7 +30,7 @@ Origami ((1,2),(2,3), 3)
 ```
 """
 function origami(h::PermGroupElem, v::PermGroupElem)
-  d = max(degree(h), degree(v))
+  d = max(largest_moved_point(h), largest_moved_point(v))
   G = symmetric_group(d)
   obj = GAP.Globals.Origami(GapObj(h), GapObj(v))
   return Origami(obj, G(h), G(v), d)
