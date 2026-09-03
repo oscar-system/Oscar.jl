@@ -1,14 +1,25 @@
 include("exports.jl")
 include("types.jl")
 
+# Degree of the coset action, i.e. the index of the subgroup in SL(2,Z).
+# The trivial action (index 1) moves no points.
+function _index(s::PermGroupElem, t::PermGroupElem)
+  return max(1, largest_moved_point(s), largest_moved_point(t))
+end
+
 function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
+  # Coerce both permutations into the same symmetric group, so that
+  # the caller may pass permutations of different degrees.
+  Sym = symmetric_group(_index(s, t))
+  s = Sym(s)
+  t = Sym(t)
   return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1)
 end
 
 @doc raw"""
     modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem)
 
-This function constructs a `ModularGroup` object corresponding to the finite-index subgroup
+Construct a `ModularGroup` object corresponding to the finite-index subgroup
 of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``. This constructor tests if
 the given permutations actually describe the (right) coset action of the matrices
 ```math
@@ -16,6 +27,7 @@ S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad T= \begin{pmatrix} 1 &
 ```
 by checking that they act transitively and satisfy the relations
 ``s^4 = (s^3 t)^3 = s^2 t s^{-2} t^{-1} = 1``.
+The point ``1`` corresponds to the coset of the identity matrix.
 
 # Examples
 ```jldoctest
@@ -36,8 +48,10 @@ end
 @doc raw"""
     modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem)
 
-Same as `modular_subgroup_via_right_action`, but now the permutations describe the action on
-the left cosets.
+Same as `modular_subgroup_via_right_action`, but now the permutations describe the action
+by left multiplication on the left cosets. Under the bijection ``gH \mapsto Hg^{-1}``
+this is the right action of the inverse matrices, hence the subgroup is stored via
+the inverse permutations.
 
 # Examples
 ```jldoctest
@@ -71,7 +85,7 @@ function Base.show(io::IO, G::ModularGroup)
 end
 
 elem_type(::Type{ModularGroup}) = ModularGroupElem
-elem_type(::ModularGroup) = ModularGroupElem
+parent_type(::Type{ModularGroupElem}) = ModularGroup
 
 parent(x::ModularGroupElem) = x.parent
 matrix(x::ModularGroupElem) = x.mat
@@ -88,7 +102,7 @@ end
 @doc raw"""
     s_right_perm(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix ``S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}``
+Return the permutation describing the action of the matrix ``S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}``
 on the right cosets of `G`.
 """
 function s_right_perm(G::ModularGroup)
@@ -98,7 +112,7 @@ end
 @doc raw"""
     t_right_perm(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix ``T= \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}``
+Return the permutation describing the action of the matrix ``T= \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}``
 on the right cosets of `G`.
 """
 function t_right_perm(G::ModularGroup)
@@ -108,7 +122,7 @@ end
 @doc raw"""
     r_right_perm(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix ``R= \begin{pmatrix} 1 & 0 \\ 1 & 1 \end{pmatrix}``
+Return the permutation describing the action of the matrix ``R= \begin{pmatrix} 1 & 0 \\ 1 & 1 \end{pmatrix}``
 on the right cosets of `G`.
 """
 function r_right_perm(G::ModularGroup)
@@ -118,7 +132,7 @@ end
 @doc raw"""
     j_right_perm(G::ModularGroup)
 
-Returns the permutation describing the action of the matrix ``J= \begin{pmatrix} 0 & 1 \\ -1 & 1 \end{pmatrix}``
+Return the permutation describing the action of the matrix ``J= \begin{pmatrix} 0 & 1 \\ -1 & 1 \end{pmatrix}``
 on the right cosets of `G`.
 """
 function j_right_perm(G::ModularGroup)
@@ -129,12 +143,11 @@ function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
   isone(s^4) || return false
   isone((s^3*t)^3) || return false
   isone(s^2*t*s^-2*t^-1) || return false
-  idx = maximum([maximum(moved_points(s); init=1), maximum(moved_points(t); init=1)])
-  return is_transitive(permutation_group(idx, [s, t]))
+  return is_transitive(permutation_group(_index(s, t), [s, t]))
 end
 
 @attr Int function index(G::ModularGroup)
-  return maximum([maximum(moved_points(s_right_perm(G)); init=1), maximum(moved_points(t_right_perm(G)); init=1)])::Int
+  return _index(s_right_perm(G), t_right_perm(G))
 end
 
 const _SL2Z_FP_CACHE = Ref{Tuple{FPGroup, FPGroupElem, FPGroupElem}}()
@@ -144,7 +157,9 @@ const _MATRIX_HOM_CACHE = Ref{GAPGroupHomomorphism{FPGroup, MatGroup{ZZRingElem,
 # (especially in testing)
 function _SL2Z_fp()
   if !isassigned(_SL2Z_FP_CACHE)
-    F = free_group(["S", "T"])
+    # Words like T^k with huge k arise from matrices with large entries;
+    # the syllable representation stores them in constant space.
+    F = free_group(["S", "T"]; eltype = :syllable)
     S, T = gens(F)
 
     SL2Z, _ = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
@@ -157,13 +172,13 @@ function _SL2Z_fp()
   return _SL2Z_FP_CACHE[]::Tuple{FPGroup, FPGroupElem, FPGroupElem}
 end
 
+_matrix_S() = matrix(ZZ, [0 -1; 1 0])
+_matrix_T() = matrix(ZZ, [1 1; 0 1])
+
 # cache the homomorphism from the fp presentation of SL2Z to the matrix group
 function _matrix_hom()
   if !isassigned(_MATRIX_HOM_CACHE)
-    MatS = matrix(ZZ, [0 -1; 1 0])
-    MatT = matrix(ZZ, [1  1; 0 1])
-
-    M = matrix_group([MatS, MatT])
+    M = matrix_group([_matrix_S(), _matrix_T()])
     MS, MT = gens(M)
 
     SL2Z, _, _ = _SL2Z_fp()
@@ -175,7 +190,7 @@ end
 
 # cache the permutation group generated by s and t
 @attr PermGroup function _perm_group(G::ModularGroup)
-  return sub(symmetric_group(index(G)), [s_right_perm(G), t_right_perm(G)])[1]
+  return permutation_group(index(G), [s_right_perm(G), t_right_perm(G)])
 end
 
 # cache the homomorphism from SL2Z to P
@@ -195,8 +210,15 @@ inv(x::ModularGroupElem) = ModularGroupElem(parent(x), inv(matrix(x)))
 ==(x::ModularGroupElem, y::ModularGroupElem) =
   parent(x) === parent(y) && matrix(x) == matrix(y)
 
-function word_gens(G::ModularGroup)
+Base.hash(x::ModularGroupElem, h::UInt) = hash(matrix(x), h)
 
+@doc raw"""
+    word_gens(G::ModularGroup)
+
+Return generators of `G` as words in the generators `S` and `T` of the
+finitely presented group returned by `Oscar._SL2Z_fp()`.
+"""
+function word_gens(G::ModularGroup)
   P = _perm_group(G)
   phi = _coset_action_hom(G)
 
@@ -208,7 +230,7 @@ function word_gens(G::ModularGroup)
   return [inc(h) for h in gens(H)]
 end
 
-@attr function gens(G::ModularGroup)
+@attr Vector{ModularGroupElem} function gens(G::ModularGroup)
   w_gens = word_gens(G)
   phi = _matrix_hom()
   return [ModularGroupElem(G, matrix(phi(w))) for w in w_gens]
@@ -216,39 +238,48 @@ end
 
 function gen(G::ModularGroup, i::Int)
   gs = gens(G)
-  @req abs(i) <= length(gs) "Given integer is larger than the number of generators"
-  if i > 0
-    return gens(G)[i]
-  elseif i < 0
-    return inv(gens(G)[-i])
-  else
-    return one(G)
-  end
+  @req abs(i) <= length(gs) "i must be in the range -$(length(gs)):$(length(gs))"
+  i > 0 && return gs[i]
+  i < 0 && return inv(gs[-i])
+  return one(G)
 end
 
 function number_of_generators(G::ModularGroup)
   return length(gens(G))
 end
 
-function s_t_decomposition(M::ZZMatrix)
-  if det(M) != 1
-    throw(ArgumentError("Matrix needs to be in SL(2, Z)"))
-  end
+@doc raw"""
+    s_t_decomposition(M::ZZMatrix)
 
-  phi = _matrix_hom()
-  MatS, MatT = gens(codomain(phi))
+Return the matrix `M` in ``{\rm SL}_2(\mathbb{Z})`` as a word in the generators `S` and `T`
+of the finitely presented group returned by `Oscar._SL2Z_fp()`.
+
+# Examples
+```jldoctest
+julia> s_t_decomposition(matrix(ZZ, [1 0; -4 1]))
+S*T^4*S^-1
+```
+"""
+function s_t_decomposition(M::ZZMatrix)
+  @req size(M) == (2, 2) "Matrix needs to be in SL(2, Z)"
+  @req isone(det(M)) "Matrix needs to be in SL(2, Z)"
+
+  MatS = _matrix_S()
+  MatT = _matrix_T()
   SL2Z, S, T = _SL2Z_fp()
-  
+
   decomp = one(SL2Z)
 
-  while M[2, 1] != 0
+  # Euclidean algorithm on the second row: M * T^-k * S has second row
+  # (d - k*c, -c), so the lower left entry decreases in absolute value.
+  while !iszero(M[2, 1])
     k = div(M[2, 2], M[2, 1])
     decomp = S^-1 * T^k * decomp
     M = M * MatT^-k * MatS
   end
 
-  # now M[2, 1] = 0 and since det(M) == 1, we have M == +-T^r where r = M[1, 2]
-  if M[1, 1] == 1
+  # now M[2, 1] = 0 and since det(M) == 1, we have M == +-T^r where r = +-M[1, 2]
+  if isone(M[1, 1])
     decomp = T^M[1, 2] * decomp
   else
     decomp = S^2 * T^-M[1, 2] * decomp
@@ -258,49 +289,59 @@ function s_t_decomposition(M::ZZMatrix)
 end
 
 function coset_action_of(A::ZZMatrix, G::ModularGroup)
-  @req isone(det(A)) "Matrix needs to be in SL(2, Z)"
   w = s_t_decomposition(A)
   phi = _coset_action_hom(G)
   return phi(w)
 end
 
+@doc raw"""
+    coset_right_action_of(A::ZZMatrix, G::ModularGroup)
+
+Return the permutation describing the action of the matrix `A` in ``{\rm SL}_2(\mathbb{Z})``
+on the right cosets of `G` by right multiplication.
+"""
 function coset_right_action_of(A::ZZMatrix, G::ModularGroup)
   return coset_action_of(A, G)
 end
 
+@doc raw"""
+    coset_left_action_of(A::ZZMatrix, G::ModularGroup)
+
+Return the permutation describing the action of the matrix `A` in ``{\rm SL}_2(\mathbb{Z})``
+on the left cosets of `G` by left multiplication, see [`modular_subgroup_via_left_action`](@ref).
+"""
 function coset_left_action_of(A::ZZMatrix, G::ModularGroup)
   return coset_action_of(A, G)^-1
 end
 
 function _image_of_pt(w::FPGroupElem, G::ModularGroup, pt::Integer)
-
   @req 1 <= pt <= index(G) "Non-valid point"
 
-  s = s_right_perm(G)
-  t = t_right_perm(G)
-  gens = (s, t)
+  imgs = (s_right_perm(G), t_right_perm(G))
 
   for (i, e) in syllables(w) # i = 1 or 2, e = exponent
-    p = gens[i]
-    if e < 0
-      p = inv(p)
-      e = -e
-    end
-    for _ in 1:e
-      pt = pt^p
-    end
+    pt = pt^(imgs[i]^e)
   end
   return pt
 end
 
 function Base.in(A::ZZMatrix, G::ModularGroup)
-    det(A) == 1 || return false
-    w = s_t_decomposition(A)
-    return _image_of_pt(w, G, 1) == 1
+  (size(A) == (2, 2) && isone(det(A))) || return false
+  w = s_t_decomposition(A)
+  return _image_of_pt(w, G, 1) == 1
 end
 
+function Base.in(x::ModularGroupElem, G::ModularGroup)
+  return parent(x) === G || matrix(x) in G
+end
+
+@doc raw"""
+    is_word_elm_of(w::FPGroupElem, G::ModularGroup)
+
+Return whether the word `w` in the generators `S` and `T` of the finitely
+presented group returned by `Oscar._SL2Z_fp()` represents an element of `G`.
+"""
 function is_word_elm_of(w::FPGroupElem, G::ModularGroup)
-  phi = _coset_action_hom(G)
   return _image_of_pt(w, G, 1) == 1
 end
 
