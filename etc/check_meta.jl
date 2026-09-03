@@ -11,7 +11,7 @@ function (@main)(_)
     for file in files
       endswith(file, ".md") || continue
       path = joinpath(dir, file)
-      if success(`grep "@meta" $(path)`)
+      if success(`grep "\`\`\`@meta" $(path)`)
         push!(issues, path)
       end
     end
