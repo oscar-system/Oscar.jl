@@ -2,6 +2,10 @@ include("Types.jl")
 include("CoveredScheme.jl")
 include("ProjectiveModules.jl")
 include("SpaceGerms.jl")
+include("SpaceGerms/Objects/Constructors.jl")
+include("SpaceGerms/Objects/Attributes.jl")
+include("SpaceGerms/Objects/Methods.jl")
+include("SpaceGerms/DeterminantalUnfoldings.jl")
 include("Tjurina.jl")
 
 include("Auxiliary.jl")
@@ -31,6 +35,8 @@ export CompleteIntersectionGerm
 export HypersurfaceGerm
 export MorphismFromRationalFunctions
 export SpaceGerm
+
+export DeterminantalGerm
 
 export ambient_germ
 export basis_representation
@@ -66,6 +72,19 @@ export determinacy_bound
 export sharper_determinacy_bound
 export is_contact_equivalent
 export tjurina_module
+
+export defining_matrix
+export determinantal_ideal
+export determinantal_type
+export T1_GL_module
+export tjurina_GL_number
+export is_determinantally_GL_rigid
+export is_EIDS
+export basis_GL_versal_determinantal_unfolding
+export T1_SL_module
+export tjurina_SL_number
+export is_determinantally_SL_rigid
+export basis_SL_versal_determinantal_unfolding
 
 
 # Deprecated after 0.15
