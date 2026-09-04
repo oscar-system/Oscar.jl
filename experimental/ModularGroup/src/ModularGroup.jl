@@ -7,21 +7,21 @@ function _index(s::PermGroupElem, t::PermGroupElem)
   return max(1, largest_moved_point(s), largest_moved_point(t))
 end
 
-function modular_subgroup(s::PermGroupElem, t::PermGroupElem)
+function modular_subgroup(s::PermGroupElem, t::PermGroupElem, check::Bool)
   # Coerce both permutations into the same symmetric group, so that
   # the caller may pass permutations of different degrees.
   Sym = symmetric_group(_index(s, t))
   s = Sym(s)
   t = Sym(t)
-  return ModularGroup(s, t, s^-1*t^-1*s, s^-1*t^-1)
+  return ModularGroup(s, t, check)
 end
 
 @doc raw"""
-    modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem)
+    modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check=true)
 
 Construct a `ModularGroup` object corresponding to the finite-index subgroup
-of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``. This constructor tests if
-the given permutations actually describe the (right) coset action of the matrices
+of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``. For `check = true`, this
+constructor tests if the given permutations actually describe the (right) coset action of the matrices
 ```math
 S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad T= \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix},
 ```
@@ -41,14 +41,14 @@ julia> G = modular_subgroup_via_right_action(s, t)
 Modular subgroup of index 10
 ```
 """
-function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem)
-  return modular_subgroup(s, t)
+function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check=true)
+  return modular_subgroup(s, t, check)
 end
 
 @doc raw"""
-    modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem)
+    modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check=true)
 
-Same as `modular_subgroup_via_right_action`, but now the permutations describe the action
+Same as [`modular_subgroup_via_right_action`](@ref), but now the permutations describe the action
 by left multiplication on the left cosets. Under the bijection ``gH \mapsto Hg^{-1}``
 this is the right action of the inverse matrices, hence the subgroup is stored via
 the inverse permutations.
@@ -65,23 +65,32 @@ julia> G = modular_subgroup_via_left_action(s, t)
 Modular subgroup of index 10
 ```
 """
-function modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem)
-  return modular_subgroup(s^-1, t^-1)
+function modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check=true)
+  return modular_subgroup(s^-1, t^-1, check)
 end
 
 function Base.:(==)(G::ModularGroup, H::ModularGroup)
   return index(G) == index(H) && issubset(G, H)
 end
 
+@attr NTuple{3, CycleType} function _cycle_structures(G::ModularGroup)
+  return (cycle_structure(G.s), cycle_structure(G.t), cycle_structure(G.s * G.t))
+end
+
 function Base.hash(G::ModularGroup, h::UInt)
-  s = s_right_perm(G)
-  t = t_right_perm(G)
-  return hash((index(G), cycle_structure(s), cycle_structure(t), cycle_structure(s * t)), h)
+  s_struc, t_struc, s_t_struc = _cycle_structures(G)
+  return hash((index(G), s_struc, t_struc, s_t_struc), h)
 end
 
 function Base.show(io::IO, G::ModularGroup)
   idx = index(G)
   print(io, "Modular subgroup of index $(idx)")
+end
+
+function Base.show(io::IO, x::ModularGroupElem)
+  A = matrix(x)
+  idx = index(parent(x))
+  print(io, "$(A) in moodular group of index $(idx)")
 end
 
 elem_type(::Type{ModularGroup}) = ModularGroupElem
@@ -92,6 +101,29 @@ matrix(x::ModularGroupElem) = x.mat
 
 one(G::ModularGroup) = ModularGroupElem(G, identity_matrix(ZZ, 2))
 one(x::ModularGroupElem) = one(parent(x))
+
+function order(::Type{T} = ZZRingElem, x::ModularGroupElem) where {T<:IntegerUnion}
+  A = matrix(x)
+  t = A[1, 1] + A[2, 2]
+
+  if t == 2
+    isone(A) || throw(InfiniteOrderError(x))
+    return T(1)
+  elseif t == -2
+    A == -identity_matrix(ZZ, 2) || throw(InfiniteOrderError(x))
+    return T(2)
+  elseif t == -1
+    return T(3)
+  elseif t == 0
+    return T(4)
+  elseif t == 1
+    return T(6)
+  else
+    throw(InfiniteOrderError(x))
+  end
+end
+
+order(x::ModularGroupElem) = order(ZZRingElem, x)
 
 function is_finite_order(x::ModularGroupElem)
   A = matrix(x)
@@ -125,8 +157,8 @@ end
 Return the permutation describing the action of the matrix ``R= \begin{pmatrix} 1 & 0 \\ 1 & 1 \end{pmatrix}``
 on the right cosets of `G`.
 """
-function r_right_perm(G::ModularGroup)
-  return G.r
+@attr PermGroupElem function r_right_perm(G::ModularGroup)
+  return G.s^-1*G.t^-1*G.s
 end
 
 @doc raw"""
@@ -135,8 +167,8 @@ end
 Return the permutation describing the action of the matrix ``J= \begin{pmatrix} 0 & 1 \\ -1 & 1 \end{pmatrix}``
 on the right cosets of `G`.
 """
-function j_right_perm(G::ModularGroup)
-  return G.j
+@attr PermGroupElem function j_right_perm(G::ModularGroup)
+  return G.s^-1*G.t^-1
 end
 
 function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
@@ -326,6 +358,8 @@ function _image_of_pt(w::FPGroupElem, G::ModularGroup, pt::Integer)
   return pt
 end
 
+#TODO: could be optimized by tracing the image of the point 1 directly in the Euclidean loop,
+# instead of decomposing A and take the resulting word apart again.
 function Base.in(A::ZZMatrix, G::ModularGroup)
   (size(A) == (2, 2) && isone(det(A))) || return false
   w = s_t_decomposition(A)
@@ -337,22 +371,65 @@ function Base.in(x::ModularGroupElem, G::ModularGroup)
 end
 
 @doc raw"""
-    is_word_elm_of(w::FPGroupElem, G::ModularGroup)
+    is_word_element_of(w::FPGroupElem, G::ModularGroup)
 
 Return whether the word `w` in the generators `S` and `T` of the finitely
 presented group returned by `Oscar._SL2Z_fp()` represents an element of `G`.
 """
-function is_word_elm_of(w::FPGroupElem, G::ModularGroup)
+function is_word_element_of(w::FPGroupElem, G::ModularGroup)
   return _image_of_pt(w, G, 1) == 1
 end
 
 function Base.issubset(H::ModularGroup, G::ModularGroup)
-  return all(A -> A in G, gens(H))
+  nH = index(H)
+  nG = index(G)
+
+  # Necessary numerical conditions: [SL2Z : H] = [SL2Z : G] * [G : H]
+  nH >= nG || return false
+  iszero(mod(nH, nG)) || return false
+
+  sH = s_right_perm(H)
+  tH = t_right_perm(H)
+  sG = s_right_perm(G)
+  tG = t_right_perm(G)
+
+  f = zeros(Int, nH) # f[x] = image of H-coset x in the G-cosets
+  f[1] = 1 # identity coset |-> identity coset
+
+  queue = Vector{Int}(undef, nH)
+  queue[1] = 1
+  head = 1
+  tail = 1
+
+  @inbounds while head <= tail
+    x  = queue[head]
+    head += 1
+    fx = f[x]
+
+    for (pH, pG) in ((sH, sG), (tH, tG))
+      y  = x^pH  # neighbour in the H-coset graph
+      fy = fx^pG # forced image under equivariance
+
+      if fy < 1 || fy > nG
+        return false
+      elseif f[y] == 0
+        f[y] = fy
+        tail += 1
+        queue[tail] = y
+      elseif f[y] != fy
+        return false # conflicting assignment
+      end
+    end
+  end
+
+  # Transitivity of the H-action (already guaranteed by the constructor,
+  # but cheap to assert that the map was defined everywhere).
+  return tail == nH
 end
 
 is_abelian(::ModularGroup) = false
 is_finite(::ModularGroup) = false
 is_cyclic(::ModularGroup) = false
-has_gens(::ModularGroup) = true
 is_trivial(::ModularGroup) = false
 is_finitely_generated(::ModularGroup) = true
+#TODO random elements?
