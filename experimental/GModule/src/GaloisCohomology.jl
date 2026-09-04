@@ -819,7 +819,7 @@ A container structure for computations around idele class cohomology.
 Describes a gmodule that is cohomologically equivalent to the 
 idele class group, following Chinberg/Debeerst/Aslam.
 """
-mutable struct IdeleParent
+@attributes mutable struct IdeleParent
   k::AbsSimpleNumField
   mG::Map # AutGrp -> Automorphisms
   S::Vector{AbsNumFieldOrderIdeal} # for each prime number ONE ideal above
@@ -1789,10 +1789,10 @@ function add_prime(I::IdeleParent, lp::Vector{Int})
     #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(J.L));
    hom(E, F[1], h)
-  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @vtime :GaloisCohomology 3 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
-  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
-  @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
+  @vtime :GaloisCohomology 3 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 3 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
   J.mq = mq
   #TODO: think how much of the data should be returned - in what format?
@@ -1838,10 +1838,10 @@ function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
 
     #h: U -> F
   h = iEt[2]*F[3][1]+sum(D[i][2]*F[3][i+1] for i=1:length(D))
-  @vtime :GaloisCohomology 2 q, mq = quo(F[1], h)
+  @vtime :GaloisCohomology 3 q, mq = quo(F[1], h)
   @hassert :GaloisCohomology 1 is_consistent(q)
-  @vtime :GaloisCohomology 2 q, _mq = simplify(q)
-  @vtime :GaloisCohomology 2 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
+  @vtime :GaloisCohomology 3 q, _mq = simplify(q)
+  @vtime :GaloisCohomology 3 mq = FinGenAbGroupHom(mq * pseudo_inv(_mq))
   @hassert :GaloisCohomology 1 is_consistent(q)
   J.mq = mq
   #TODO: think how much of the data should be returned - in what format?
@@ -1854,7 +1854,7 @@ end
 A dictionary containing information about the finite places, i.e.
 how much has been factored out.
 """
-function Oscar.conductor(I::IdeleParent)
+@attr Dict{Int, Int} function Oscar.conductor(I::IdeleParent)
   c = Dict{Int, Int}()
   for P = I.S
     kp, mkp, mGp, D = completion(I, P)
@@ -2173,7 +2173,7 @@ end
 
 function adjust_support(idele_parent::IdeleParent, hI::ComplexOfMorphisms, gamma, fa::Vector{Tuple{ZZRingElem, Int}})
 
-  c = conductor(idele_parent)
+  @vtime :GaloisCohomology 1 c = conductor(idele_parent)
   mis = Int[]
   val = Tuple{Int, Int}[]
   for (p, k) = fa
@@ -2193,13 +2193,13 @@ function adjust_support(idele_parent::IdeleParent, hI::ComplexOfMorphisms, gamma
 
   if length(mis) > 0
     @vprintln :GaloisCohomology 2 "need to add $mis primes..."
-    @vtime :GaloisCohomology 2 ip = add_prime(idele_parent, mis)
+    @vtime :GaloisCohomology 3 ip = add_prime(idele_parent, mis)
     @vprintln :GaloisCohomology 2 "lifting cycle..."
-    phi = induce_hom(idele_parent, ip)
-    hII = hom(F, ip.data[1])
-    phi = change_module(hI, hII, phi)
+    @vtime :GaloisCohomology 3 phi = induce_hom(idele_parent, ip)
+    @vtime :GaloisCohomology 3 hII = hom(F, ip.data[1])
+    @vtime :GaloisCohomology 3 phi = change_module(hI, hII, phi)
     hI = hII
-    gamma = phi[2](gamma)
+    @vtime :GaloisCohomology 3 gamma = phi[2](gamma)
     idele_parent = ip
     @vprintln :GaloisCohomology 2 "done"
   end
@@ -2208,22 +2208,22 @@ function adjust_support(idele_parent::IdeleParent, hI::ComplexOfMorphisms, gamma
     @vprintln :GaloisCohomology 2 "fixing precision at $val..."
     @vtime :GaloisCohomology 2 ip = change_precision(idele_parent, val)
     @vprintln :GaloisCohomology 2 "lifting cycle..."
-    phi = induce_hom(ip, idele_parent)
-    hII = hom(F, ip.data[1])
-    mII = change_module(hII, hI, phi)
-    gamma = preimage(mII[2], gamma)
+    @vtime :GaloisCohomology 3 phi = induce_hom(ip, idele_parent)
+    @vtime :GaloisCohomology 3 hII = hom(F, ip.data[1])
+    @vtime :GaloisCohomology 3 mII = change_module(hII, hI, phi)
+    @vtime :GaloisCohomology 3 gamma = preimage(mII[2], gamma)
     #this is not a chain...yet
     #  0 -> k -> II -> I -> 0 is exact
     # so we take preimages from I to II, then use the
     # differential, then map to k, ...
-    co = map(hII, 2)(gamma)
+    @vtime :GaloisCohomology 3 co = map(hII, 2)(gamma)
     if !iszero(co) #mostly false
-      k = kernel(hom(ip.data[1], idele_parent.data[1], phi))
-      hk = hom(F, k[1])
-      mkI = change_module(hk, hII, k[2].module_map)
-      co = preimage(mkI[3], co)
-      co = preimage(map(hk, 2), co)
-      co = mkI[2](co)
+      @vtime :GaloisCohomology 3 k = kernel(hom(ip.data[1], idele_parent.data[1], phi))
+      @vtime :GaloisCohomology 3 hk = hom(F, k[1])
+      @vtime :GaloisCohomology 3 mkI = change_module(hk, hII, k[2].module_map)
+      @vtime :GaloisCohomology 3 co = preimage(mkI[3], co)
+      @vtime :GaloisCohomology 3 co = preimage(map(hk, 2), co)
+      @vtime :GaloisCohomology 3 co = mkI[2](co)
       gamma -= co
     end
     idele_parent = ip
@@ -2283,35 +2283,6 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
     idele_parent = idele_class_gmodule(base_field(A))
   end
   c = conductor(idele_parent)
-  d = Dict{Int, Int}()
-  for (P, k) = factor(defining_modulus(A)[1])
-    p = Int(minimum(P))
-    if haskey(d, p)
-      d[p] = max(k, d[p])
-    else
-      d[p] = k
-    end
-  end
-  chng = Tuple{Int, Int}[]
-  mis = Int[]
-  for (p,k) = d
-    if haskey(c, p)
-      if c[p] < k
-        push!(chng, (p, k))
-      end
-    else
-      push!(mis, p)
-      push!(chng, (p, k))
-    end
-  end
-  if length(mis) > 0
-    @show mis
-    idele_parent = add_primes(idele_parent, mis)
-  end
-  if length(chng) > 0
-    @show chng
-    idele_parent = change_precision(idele_parent, chng)
-  end
 
   n = degree(Hecke.nf(zk))
 
@@ -2319,16 +2290,13 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   G = group(gA)
   F = free_res(group_algebra(ZZ, G); side = :right)
   hA = hom(F, gA)
-  hI = hom(F, idele_parent) #cache the gen? the hom?
+  hI = hom(F, idele_parent) 
  
-  m3 = kernel(map(hI, 2))
-  m2 = image(map(hI, 1))
-  q = quo(m3[1], m2[1])
-  s = snf(q[1])
+  s = cohomology_group(hI, 2)
 
-  gamma = image(m3[2], preimage(q[2], s[2](s[1][1])))
+  gamma = s[2](s[1][1])
 
-  gamma, idele_parent, _ = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
+  gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
 
   function idl(x)
     px = parent(x)
@@ -3361,7 +3329,7 @@ function global_fundamental_class(A::IdeleParent)
       found = false
       mis = k - valuation(d, p) 
       for P = A.S
-        @vprint :GaloisCohomology 1 "building extension at $p\n"
+        @vprint :GaloisCohomology 1 "building extension at $P - looking for lokal degree $(p^k)\n"
         R = ray_class_field(p^(mis+1)*minimum(P)*Zk; n_quo = Int(p^mis))
         @vprint :GaloisCohomology 1 R
         @vprint :GaloisCohomology 1 "looking for normal subfields of degree $(p^mis)\n"
@@ -3374,6 +3342,7 @@ function global_fundamental_class(A::IdeleParent)
           a = Hecke.absolute_prime_decomposition_type(i, minimum(good_P))
           if a[1][1]*a[1][2] % p^k == 0
             @vprint :GaloisCohomology 1 "found useful field $i, computing data\n"
+            @vprint :GaloisCohomology 2 "of conductor $(conductor(i))\n"
             found = true
             K = number_field(i)
             emb_K = K(gen(number_field(Zk)))
@@ -3392,7 +3361,7 @@ function global_fundamental_class(A::IdeleParent)
                                          extension_of = emb)
       @hassert :GaloisCohomology 2 is_zero(map(hk, 2)(g))
       @vprint :GaloisCohomology 1 "adjusting support in small field\n"
-      new_g, _A, _hk = adjust_support(A, hk, g, [(ZZ(p), k) for (p, k) = conductor(B)])
+      @time new_g, _A, _hk = adjust_support(A, hk, g, [(ZZ(p), k) for (p, k) = conductor(B)])
       @vprint :GaloisCohomology 1 "embedding the idele class group\n"
       phi = induce_hom(_A, B, emb)
 #        @show conductor(_A)
@@ -3402,6 +3371,7 @@ function global_fundamental_class(A::IdeleParent)
       end
       @vprint :GaloisCohomology 2 "shrinking C_N\n"
       @vtime :GaloisCohomology 2 sC, msC = shrink(B.data[1])
+      @vprint :GaloisCohomology 2 "had $(ngens(B.data[1].M)), now $(ngens(sC.M))\n"
 
       @vprint :GaloisCohomology 1 "computing the new resolution and the inflation map\n"
       @vtime :GaloisCohomology 2 fK = free_res(group_algebra(ZZ, group(B)); side = :right)
@@ -3589,8 +3559,21 @@ function global_fundamental_class_direct(A::IdeleParent)
   return z[2](p[1] * g)
 end
 
-function Oscar.hom(C::ComplexOfMorphisms{Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, A::IdeleParent)
-  return hom(C, A.data[1])
+function Oscar.hom(C::ComplexOfMorphisms{Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PermGroup, PermGroupElem}}}}, A::IdeleParent; cached::Bool = true)
+  c = get_attribute(A, :hom)
+  if !isnothing(c)
+    if haskey(c, C)
+      return c[C]
+    end
+  end
+  h = hom(C, A.data[1])
+  if isnothing(c)
+    c = Dict(C => h)
+    set_attribute!(A, :hom => c)
+  else
+    c[C] = h
+  end
+  return h
 end
 
 function Oscar.cohomology_group(A::IdeleParent, i::Int)
