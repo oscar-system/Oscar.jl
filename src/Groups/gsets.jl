@@ -253,18 +253,26 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
 end
 
-## action of permutations on vectors of positive integers
-## action of matrices on vectors via right multiplication
+## action of matrices on vectors via right multiplication,
+## where the entries of the matrices and the entries of the vectors
+## have the same type
+## (if the types do *not* match then we do not define a default action,
+## pointwise action on the entries of the vector might be a natural action)
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{Vector{E}}; closed::Bool = false) where E where M
+  return GSetByElements(G, *, Omega; closed = closed, check = false)
+end
+
+## action of matrices on elements of free modules via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
 end
 
-## action of matrices on sets of vectors via right multiplication
+## action of matrices on sets of free module elements via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Set{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_sets, Omega; closed = closed, check = false)
 end
 
-## action of matrices on vectors of vectors via right multiplication
+## action of matrices on vectors of free module elements via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
@@ -1620,32 +1628,60 @@ ZZRingElem[12, 12, 16]
 """
 function orbit_representatives_and_stabilizers(G::MatGroup{E}, k::Int; algorithm=:default) where E <: FinFieldElem
   if algorithm==:default
-    if 128 < order(base_ring(G))^degree(G) < ZZ(2)^32
+    if order(base_ring(G))==2
+        algorithm=:orbmod2
+    elseif 128 < order(base_ring(G))^degree(G) < ZZ(2)^32
       # permutation degrees must be small integers in gap
       # no need to do anything fancy if the order is small
       algorithm=:perm
-    else 
+    else
       algorithm=:gset
     end
   end
-  if algorithm==:gset
+  if algorithm == :gset
     return _orbit_representatives_and_stabilizers_gset_gap(G, k)
+  elseif algorithm == :orbmod2
+    @req order(base_ring(G))==2 "algorithm not applicable"
+    return _orbit_representatives_and_stabilizers_ordmod2(G,k)
   elseif algorithm==:perm
     n = degree(G)
     V = vector_space(base_ring(G), n)
     k == 0 && return [(sub(V, [])[1], G)]
     _repstab = _orbit_representatives_and_stabilizers_perm(G, k)
     return [(sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1],S) for (M,S) in _repstab]
-  else 
+  else
     error("unknown algorithm")
   end
+end
+
+# Compute orbit representatives and their stabilizers over `GF(2)` using Hecke's
+# native Schreier-Sims (`orbit_representatives_and_stabilizers_mod_2`), which
+# returns a strong generating set of each stabilizer directly, avoiding a GAP
+# stabilizer computation.
+function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) where E<: FinFieldElem
+  @assert order(base_ring(G))==2
+  F = base_ring(G)
+  n = degree(G)
+  V = vector_space(F, n)
+  k == 0 && return [(sub(V, [])[1], G)]
+  if order(G)>1
+    gens_mat = matrix.(small_generating_set(G))
+  else 
+    gens_mat = [identity_matrix(F,n)]
+  end
+  res = Hecke.orbit_representatives_and_stabilizers_mod_2(gens_mat, k; group_order=order(G))
+  orbreps = first.(res)
+  orbreps2 = [sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1] for M in orbreps]
+  # The stabilizer generators are 0/1 matrices that are genuine elements of `G`
+  # (products of the given generators), so membership need not be re-checked.
+  stabs = [sub(G, elem_type(G)[G(map_entries(F, s); check = false) for s in r[3]])[1] for r in res]
+  return [(orbreps2[i], stabs[i]) for i in 1:length(res)]
 end
 
 function _orbit_representatives_and_stabilizers_gset_gap(G::MatGroup{E}, k::Int) where E <: FinFieldElem
   n = degree(G)
   V = vector_space(base_ring(G), n)
   k == 0 && return [(sub(V, [])[1], G)]
-
   Omega = gset(G, on_echelon_form_mats, Oscar.bases_of_subspaces(V, k))
   orbs = orbits(Omega)
   orbreps = [orb[1] for orb in orbs]

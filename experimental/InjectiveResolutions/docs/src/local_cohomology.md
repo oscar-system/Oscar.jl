@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Local Cohomology
 Let $M$ be a finitely generated $\mathbb{Z}^d$-graded module over a monoid algebra $k[Q]$. 
 Further, let $J\subseteq k[Q]$ be an ideal. 
@@ -56,7 +50,7 @@ $H^i_J(M)_\alpha \cong k^{\dim(H_S)} \text{ for } \alpha \in S.$
 
 For more details on sector partitions see, e.g., Chapter 13 of [MS05](@cite).
 
-The function [local_cohomology](@ref) computes a sector partition 
+The function [`local_cohomology`](@ref) computes a sector partition 
 of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dots,H^i_I(M)$ 
 should be computed at once using the function `local_cohomology_all`.
 

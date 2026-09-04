@@ -1,7 +1,3 @@
-import JSON
-
-const VeraLopezTables = Vector[]
-
 """
     has_number_of_groups_with_class_number(n::IntegerUnion)
 
@@ -13,7 +9,7 @@ available for use via [`number_of_groups_with_class_number`](@ref).
 julia> has_number_of_groups_with_class_number(14)
 true
 
-julia> has_number_of_groups_with_class_number(15)
+julia> has_number_of_groups_with_class_number(50)
 false
 ```
 """
@@ -32,18 +28,13 @@ This function should be used to test for the scope of the library available.
 julia> has_groups_with_class_number(14)
 true
 
-julia> has_groups_with_class_number(15)
+julia> has_groups_with_class_number(50)
 false
 ```
 """
 function has_groups_with_class_number(n::IntegerUnion)
   @req n >= 1 "class number must be positive, not $n"
-  if length(VeraLopezTables) == 0
-    # load the data file
-    data = JSON.parsefile(joinpath(@__DIR__, "VeraLopez.json"))
-    append!(VeraLopezTables, data[2])
-  end
-  return n <= length(VeraLopezTables)
+  return GAP.Globals.SmallClassNrGroupsAvailable(GapObj(n))
 end
 
 """
@@ -64,7 +55,26 @@ ERROR: ArgumentError: the number of groups with 50 classes is not available
 """
 function number_of_groups_with_class_number(n::IntegerUnion)
   @req has_number_of_groups_with_class_number(n) "the number of groups with $n classes is not available"
-  return length(VeraLopezTables[n])
+  return GAP.Globals.NrSmallClassNrGroups(GapObj(n))
+end
+
+"""
+    has_groups_with_class_number_identification(n::IntegerUnion)
+
+Return `true` if identification for groups with `n` conjugacy classes
+is available via `group_with_class_number_identification`, otherwise `false`.
+
+# Examples
+```jldoctest
+julia> has_groups_with_class_number_identification(14)
+true
+
+julia> has_groups_with_class_number_identification(50)
+false
+```
+"""
+function has_groups_with_class_number_identification(n::IntegerUnion)
+  return has_groups_with_class_number(n)
 end
 
 """
@@ -88,7 +98,7 @@ julia> describe(group_with_class_number(5, 8))
 "A5"
 
 julia> group_with_class_number(5, 12)
-ERROR: ArgumentError: there are only 8 groups with 5 classes, not 12
+ERROR: ArgumentError: there are only 8 groups with 5 classes, up to isomorphism, not 12
 [...]
 ```
 """
@@ -98,28 +108,61 @@ end
 
 function group_with_class_number(n::IntegerUnion, i::IntegerUnion)
   @req has_groups_with_class_number(n) "groups with $n classes are not available"
-  desc = VeraLopezTables[n]
-  @req i <= length(desc) "there are only $(length(desc)) groups with $n classes, not $i"
-  return _group_with_class_number(desc[i])
-end
-
-function _group_with_class_number(entry::Vector)
-  if length(entry) == 2
-    return small_group(entry...)
-  elseif length(entry) == 3 && entry[1] == "prim"
-    return primitive_group(entry[2], entry[3])
-  else
-    error("not supported format $entry")
-  end
+  @req i >= 1 "index must be positive, not $i"
+  N = number_of_groups_with_class_number(n)
+  @req i <= N "there are only $N groups with $n classes, up to isomorphism, not $i"
+  return _oscar_group(GAP.Globals.SmallClassNrGroup(GapObj(n), GapObj(i)))
 end
 
 """
-    all_groups_with_class_number(n::IntegerUnion)
+    group_with_class_number_identification(G::GapGroup)
 
-Return a vector of all groups (up to isomorphism)
-with exactly `n` conjugacy classes.
+Return a pair of integer `(n, m)`, where `G` is isomorphic with
+`group_with_class_number(n, m)`.
 
 # Examples
+```jldoctest
+julia> group_with_class_number_identification(alternating_group(4))
+(4, 4)
+
+julia> group_with_class_number_identification(symmetric_group(20))
+ERROR: ArgumentError: identification is not available for groups with 627 conjugacy classes
+[...]
+```
+"""
+function group_with_class_number_identification(G::GAPGroup)
+   @req is_finite(G) "group is not finite"
+   k = number_of_conjugacy_classes(G)
+   @req has_groups_with_class_number_identification(k) "identification is not available for groups with $k conjugacy classes"
+   res = GAP.Globals.IdClassNr(GapObj(G))
+   return Tuple{ZZRingElem,ZZRingElem}(res)
+end
+
+"""
+    all_groups_with_class_number(L...)
+
+Return the vector of all groups (up to isomorphism) satisfying the conditions
+described by the arguments.  These conditions and the format are the same
+as for [`all_small_groups`](@ref),
+except that the special case where the first argument is an integer or a
+list of integers has the following meaning.
+
+- `intval` selects groups with exactly `intval` conjugacy classes;
+  this is equivalent to `number_of_conjugacy_classes => intval`
+
+- `intlist` selects groups whose number of conjugacy classes is in `intlist`;
+  this is equivalent to `number_of_conjugacy_classes => intlist`
+
+Note that at least one of the conditions must impose a limit on the
+number of conjugacy classes, otherwise an exception is thrown.
+
+The type of the returned groups is `PcGroup` if the group is solvable,
+`PermGroup` otherwise.
+
+# Examples
+
+List all groups with exactly 4 conjugacy classes:
+
 ```jldoctest
 julia> map(describe, all_groups_with_class_number(4))
 4-element Vector{String}:
@@ -128,8 +171,24 @@ julia> map(describe, all_groups_with_class_number(4))
  "D10"
  "A4"
 ```
+
+List all groups with up to 4 conjugacy classes that are not abelian:
+
+```jldoctest
+julia> map(describe, all_groups_with_class_number(1:4, !is_abelian))
+3-element Vector{String}:
+ "S3"
+ "D10"
+ "A4"
+```
 """
-function all_groups_with_class_number(n::IntegerUnion)
-  @req has_groups_with_class_number(n) "groups with $n classes are not available"
-  return [_group_with_class_number(entry) for entry in VeraLopezTables[n]]
+function all_groups_with_class_number(L...)
+   @req !isempty(L) "must specify at least one filter"
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
+      L = (number_of_conjugacy_classes => L[1], L[2:end]...)
+   end
+   gapargs = translate_group_library_args(L)
+   K = GAP.Globals.AllSmallClassNrGroups(gapargs...)
+
+   return [_oscar_group(x) for x in K]
 end

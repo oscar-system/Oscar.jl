@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Group libraries
 
 ## Transitive permutation groups of small degree
@@ -130,17 +124,20 @@ small_group_identification
 
 ## Groups with a small number of conjugacy classes
 
-The functions in this section give access to the groups with
-up to 14 conjugacy classes.
-These groups have been classified in [V-LV-L85](@cite), [V-LV-L86](@cite),
-[VS07](@cite).
+The functions in this section are wrappers for the GAP library of
+groups with up to 20 conjugacy classes,
+via the GAP package `SmallClassNr` [Ter26](@cite).
+See the documentation of this package for more information about
+the source of the data.
 
 ```@docs
 all_groups_with_class_number
 has_number_of_groups_with_class_number
+has_groups_with_class_number_identification
 has_groups_with_class_number
 number_of_groups_with_class_number
 group_with_class_number
+group_with_class_number_identification
 ```
 
 ## Atlas of Group Representations

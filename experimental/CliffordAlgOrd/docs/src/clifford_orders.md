@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Clifford orders over rings of integers](@id cliffordorders)
 
 Throughout this page we make the additional assumption that the Dedekind domain ``R`` is the

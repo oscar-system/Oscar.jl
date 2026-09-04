@@ -51,6 +51,27 @@ end
   @test is_smooth(ambient_space(tate_P3)) == false
   @test toric_variety(calabi_yau_hypersurface(tate_P3)) == ambient_space(tate_P3)
   @test is_partially_resolved(tate_P3) == false
+  @test isempty(exceptional_classes(tate_P3))
+  @test isempty(exceptional_divisor_indices(tate_P3))
+end
+
+# Missing exceptional divisor attributes must expose inconsistent internal state.
+@testset "Missing exceptional divisor attributes" begin
+  message = "Required exceptional divisor data is missing; please inform the FTheoryTools authors"
+  for (getter, attribute) in (
+    (exceptional_classes, :exceptional_classes),
+    (exceptional_divisor_indices, :exceptional_divisor_indices),
+  )
+    broken_model = deepcopy(tate_P3)
+    delete!(broken_model.__attrs, attribute)
+    caught_error = try
+      getter(broken_model)
+      nothing
+    catch err
+      err
+    end
+    @test caught_error isa ArgumentError && caught_error.msg == message
+  end
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin

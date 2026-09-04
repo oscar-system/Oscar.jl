@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Clifford Algebras over fields](@id cliffordalgebras) 
 
 For Clifford algebras over fields, we introduce the following new types:

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Documenting Code
 
 The general philosophy of the OSCAR documentation is to put as much of the
@@ -74,6 +68,12 @@ some_other_function
 blocks that simply pull in the docstring from the corresponding source file. If
 you add a new page in `docs/src`, you will have to modify `docs/doc.main` to
 include your new page in the appropriate place.
+
+Pages must not start with a `@meta` block, and `etc/check_meta.jl` enforces
+that. `CurrentModule`, `CollapsedDocStrings` and `DocTestSetup` are set once
+for the whole documentation in `Oscar.docmeta()`. To document a name that does
+not live in `Oscar` itself, qualify it (`OscarDB.get_db`) rather than switching
+`CurrentModule`.
 
 
 ## Building the OSCAR documentation with `Oscar.build_doc`

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Abstract varieties
 
 An *abstract variety* $X$ of dimension $n$ is determined by its (numerical) Chow ring
@@ -36,7 +30,7 @@ and projective bundles.
     the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
     In fact, not all applications require that we specify all relations. Thus, even in some truly meaningful
     geometric cases, the symmetry condition on the Betti numbers may not be fulfilled for the implemented
-    ring. See section [Some Particular Constructions](@ref) for an example where the top-dimensional part
+    ring. See section [Some particular constructions](@ref) for an example where the top-dimensional part
     of the constructed ring is more than 1-dimensional.
 
 ## Types
@@ -225,7 +219,7 @@ product(X::AbstractVariety, Y::AbstractVariety)
 ```
 
 !!! note
-    [Blow-Ups](@ref) are described in their own section.
+    [Blow-Ups](@ref "Blow-ups") are described in their own section.
 
 ## Integrating Chow ring elements
 

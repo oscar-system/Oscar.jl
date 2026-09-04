@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Conditional independence statements
 
 Conditional independence (CI) statements over a ground set ``N`` are

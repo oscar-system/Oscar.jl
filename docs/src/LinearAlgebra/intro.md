@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Introduction](@id linear_algebra)
 
 The linear algebra part of OSCAR provides functionality for handling matrices,
@@ -59,12 +53,12 @@ The main topics covered in this section are:
   - [Solving Linear Systems](@ref solving_linear_systems)
   - [Matrix Normal Forms](@ref matrix_normal_forms)
   - [Eigenvalues And Eigenspaces](@ref "Eigenvalues and -spaces")
-- [Matrix Spaces](@ref "Matrix Spaces")
-- [Matrix Algebras](@ref "Generic matrix algebras")
+- [Matrix Spaces](@ref "Matrix spaces")
+- [Matrix Algebras](@ref "Matrix algebras")
 - [Modules](@ref "Finitely presented modules")
 - Specialized Matrix Types
   - [Nemo Matrices](@ref "Nemo matrices")
-  - [Sparse Linear Algebra](@ref)
+  - [Sparse Linear Algebra](@ref "Sparse linear algebra")
 
 ## For developers
 

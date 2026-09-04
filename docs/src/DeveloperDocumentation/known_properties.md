@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
 # Known properties
 
 Many high-level objects in OSCAR such as ideals in polynomial rings, algebraic
