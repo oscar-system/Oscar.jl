@@ -109,6 +109,7 @@ function __init__()
      "forms",    # bilinear/sesquilinear/quadratic forms
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
+     "perfgrp",  # perfect groups library
      "primgrp",  # primitive groups library
      "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
