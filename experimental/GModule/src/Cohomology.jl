@@ -1988,6 +1988,12 @@ function Oscar.hom(m::Map{FinGenAbGroup, FinGenAbGroup})
 end
 
 function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bool = false, no_kernel::Bool = false)
+  c = get_attribute(C, :cohomology_group)
+  can_cache = !no_kernel && (!tate || i != 0) 
+  if !isnothing(c) && can_cache && haskey(c, i)
+    return c[i]
+  end
+
   if no_kernel
     k = C[i]
     mk = identity_map(k)
@@ -2016,10 +2022,18 @@ function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bo
   mp = ms*pseudo_inv(mq)*mk
   #do not turn into hom!
   if i == 2
-    return s, mp, map_from_func(s, AllCoChains{2, PermGroupElem, FinGenAbGroupElem}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y)))
+    res  = (s, mp, map_from_func(s, AllCoChains{2, PermGroupElem, FinGenAbGroupElem}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
   else
-    return s, mp
+    res = (s, mp)
   end
+  if can_cache
+    if isnothing(c)
+      c = Dict{Int, Tuple}()
+      set_attribute!(C, :cohomology_group=>c)
+    end
+    c[i] = res
+  end
+  return res
 end
 
 function Base.zero(a::FinGenAbGroupElem)
