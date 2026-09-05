@@ -798,23 +798,27 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   end
 
   F = GF(q)
-  zero_F = F(0)
+  zero_F = zero(F)
 
-  # Convert the ambient ring to F, handling every shape change_base_ring can hand back:
-  #  - a bare ring                     -> use as-is
-  #  - (new_ring, map)                 -> keep both, use map to push elements over
+  function fast_reduce_mod_p(g::ZZMPolyRingElem, R::MPolyRing, F)
+    ctx = MPolyBuildCtx(R)
+    for (c, e) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.exponent_vectors(g))
+      push_term!(ctx, F(c), e)
+    end
+    return finish(ctx)
+  end
+
   R, ring_map = if RS.ambient_ring isa ZZRing
     F, nothing
   elseif RS.ambient_ring isa MPolyRing && base_ring(RS.ambient_ring) == F
     RS.ambient_ring, nothing
   else
-    result = change_base_ring(F, RS.ambient_ring)
-    result isa Tuple ? result : (result, nothing)
+    Rf, _ = polynomial_ring(F, [string(v) for v in symbols(RS.ambient_ring)]; internal_ordering=internal_ordering(RS.ambient_ring))
+    Rf, :fast
   end
 
-  # push an element `x` (possibly living in RS.ambient_ring, or its underlying
-  # polynomial ring, or in ZZ) into R
-  to_R(x) = ring_map === nothing ? R(x) : ring_map(x)
+  to_R(x) = ring_map === :fast ? fast_reduce_mod_p(x, R, F) :
+            ring_map === nothing ? R(x) : ring_map(x)
 
   rels = Tuple{elem_type(R), Function}[]
   for g in gens(RS.defining_ideal)
@@ -843,7 +847,7 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   end
 
   if !(R isa MPolyRing)
-    if !all(op(f, 0) for (f, op) in rels)
+    if !all(op(f, zero_F) for (f, op) in rels)
       return nothing
     end
     return return_rs(Dict())
@@ -866,12 +870,12 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
 
   function prune(f, op, supp)
     if isempty(supp)
-      return op(f, 0) ? Tuple{elem_type(R), Function, Set{Int}}[] : nothing
+      return op(f, zero_F) ? Tuple{elem_type(R), Function, Set{Int}}[] : nothing
     end
     if length(supp) == 1
       i = first(supp)
       v = variables[i]
-      domains[i] = [c for c in domains[i] if op(evaluate(f, [v], [c]), 0)]
+      domains[i] = [c for c in domains[i] if op(evaluate(f, [v], [c]), zero_F)]
       return Tuple{elem_type(R), Function, Set{Int}}[]
     end
     return [(f, op, supp)]
@@ -895,89 +899,104 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   # `evaluate` in the inner loop of backtrack
   Rgens = gens(R)
   function compile_terms(f)
-    terms = Tuple{Dict{elem_type(R), Int}, elem_type(F)}[]
+    terms = Tuple{Dict{Int,Int}, elem_type(F)}[]
     for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-      d = Dict{elem_type(R), Int}()
-      for (j, ej) in enumerate(e)
-        ej != 0 && (d[Rgens[j]] = ej)
-      end
-      push!(terms, (d, c))
+        d = Dict{Int,Int}()
+        for (j, ej) in enumerate(e)
+            ej != 0 && (d[var_index[Rgens[j]]] = ej)
+        end
+        push!(terms, (d, c))
     end
     return terms
   end
 
-  function group_by_pivot(terms, v)
-    groups = Dict{Int, Vector{Tuple{Vector{Tuple{elem_type(R), Int}}, elem_type(F)}}}()
+  function group_by_pivot(terms, k::Int)
+    groups = Dict{Int, Vector{Tuple{Vector{Tuple{Int,Int}}, elem_type(F)}}}()
     for (e, coeff) in terms
-      pv = get(e, v, 0)
-      rest = [(var, pw) for (var, pw) in e if var != v]
-      push!(get!(groups, pv, Tuple{Vector{Tuple{elem_type(R), Int}}, elem_type(F)}[]), (rest, coeff))
+        pv = get(e, k, 0)
+        rest = [(idx, pw) for (idx, pw) in e if idx != k]
+        push!(get!(groups, pv, Tuple{Vector{Tuple{Int,Int}}, elem_type(F)}[]), (rest, coeff))
     end
     return groups
   end
 
-  rels_by_level = Dict{Int, Vector{Tuple{Dict, Int, Function}}}()
+  rels_by_level = Dict{Int, Vector{Tuple{Dict, Int, Function, Vector{elem_type(F)}}}}()
   for (f, op, supp) in reduced_rels
     k = maximum(supp)
     terms = compile_terms(f)
-    groups = group_by_pivot(terms, variables[k])
-    push!(get!(rels_by_level, k, Tuple{Dict, Int, Function}[]), (groups, maximum(keys(groups)), op))
+    groups = group_by_pivot(terms, k)
+    max_p = maximum(keys(groups))
+    buf = [zero(F) for _ in 1:max_p+1]
+    push!(get!(rels_by_level, k, Tuple{Dict, Int, Function, Vector{elem_type(F)}}[]),
+          (groups, max_p, op, buf))
   end
 
   for k in keys(rels_by_level)
-    sort!(rels_by_level[k], by = r -> r[2])  # ascending max_p
+    sort!(rels_by_level[k], by = r -> r[2])
   end
 
-  function eval_rest(rest, coeff, subs)
-    term = coeff
-    for (var, pw) in rest
-      term *= subs[var]^pw
+  set_elem!(dest, src) = (zero!(dest); add!(dest, dest, src))
+
+  function eval_rest!(acc, rest, coeff, subs)
+    set_elem!(acc, coeff)
+    for (idx, pw) in rest
+        base = subs[idx]
+        for _ in 1:pw
+            mul!(acc, acc, base)
+        end
     end
-    return term
+    return acc
   end
 
-  function coeffs_in_pivot(groups, max_p, subs)
-    coeffs = fill(zero_F, max_p + 1)
+  function coeffs_in_pivot!(coeffs, groups, max_p, subs, acc, s)
+    for c in coeffs
+      zero!(c)
+    end
     for (pw, terms) in groups
-      s = zero_F
+      zero!(s)
       for (rest, coeff) in terms
-        s += eval_rest(rest, coeff, subs)
+        eval_rest!(acc, rest, coeff, subs)
+        add!(s, s, acc)
       end
-      coeffs[max_p - pw + 1] = s
+      set_elem!(coeffs[max_p - pw + 1], s)
     end
-    return coeffs  # coeffs[i] = coeff of pivot^(d-(i-1)), fully evaluated
+    return coeffs
   end
 
-  function horner(coeffs, val)
-    result = coeffs[1]
-    for c in coeffs[2:end]
-      result = result * val + c
+  function horner!(result, coeffs, val)
+    set_elem!(result, coeffs[1])
+    for i in 2:length(coeffs)
+      mul!(result, result, val)
+      add!(result, result, coeffs[i])
     end
     return result
   end
 
+  acc_scratch = zero(F)
+  sum_scratch = zero(F)
+  horner_scratch = zero(F)
+
   function backtrack(k, subs)
     if k > n
-      return subs
+        return subs
     end
-    v = variables[k]
     candidates = copy(domains[k])
-    for (groups, max_p, op) in get(rels_by_level, k, Tuple{Dict, Int, Function}[])
-      isempty(candidates) && break
-      coeffs = coeffs_in_pivot(groups, max_p, subs)
-      candidates = [val for val in candidates if op(horner(coeffs, val), 0)]
+    for (groups, max_p, op, buf) in get(rels_by_level, k, Tuple{Dict, Int, Function, Vector{elem_type(F)}}[])
+        isempty(candidates) && break
+        coeffs = coeffs_in_pivot!(buf, groups, max_p, subs, acc_scratch, sum_scratch)
+        candidates = [val for val in candidates if op(horner!(horner_scratch, coeffs, val), zero_F)]
     end
     for val in candidates
-      subs[v] = val
-      res = backtrack(k + 1, subs)
-      res !== nothing && return res
-      delete!(subs, v)
+        subs[k] = val
+        res = backtrack(k + 1, subs)
+        res !== nothing && return res
     end
     return nothing
   end
 
-  subs = backtrack(1, Dict{elem_type(R), elem_type(F)}())
-  return subs !== nothing ? return_rs(subs) : nothing
+  subs = backtrack(1, [zero(F) for _ in 1:n])
+  result = subs === nothing ? nothing : return_rs(Dict(variables[k] => subs[k] for k in 1:n))
+  return result
 end
 
 #####################
