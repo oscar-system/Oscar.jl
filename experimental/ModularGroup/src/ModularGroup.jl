@@ -110,7 +110,7 @@ function order(::Type{T}, x::ModularGroupElem) where {T<:IntegerUnion}
     isone(A) || throw(InfiniteOrderError(x))
     return T(1)
   elseif t == -2
-    A == -identity_matrix(ZZ, 2) || throw(InfiniteOrderError(x))
+    isone(-A) || throw(InfiniteOrderError(x))
     return T(2)
   elseif t == -1
     return T(3)
