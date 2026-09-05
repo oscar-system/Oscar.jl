@@ -4,7 +4,7 @@
 
 The functions in this section are wrappers for the GAP library of
 transitive permutation groups up to degree 48,
-via the GAP package `TransGrp` [Hul23](@cite).
+via the GAP package `TransGrp` [TransGrp](@cite).
 
 (The groups of degrees 32 and 48 are currently not automatically
 available in OSCAR,
@@ -34,7 +34,7 @@ transitive_group_identification
 
 The functions in this section are wrappers for the GAP library of
 primitive permutation groups up to degree 8191,
-via the GAP package `PrimGrp` [HRR23](@cite).
+via the GAP package `PrimGrp` [PrimGrp](@cite).
 See the documentation of this package for more information about
 the source of the data.
 
@@ -51,7 +51,7 @@ primitive_group_identification
 ## Perfect groups of small order
 
 The functions in this section are wrappers for the GAP library of finite perfect
-groups via the GAP package `PerfGrp` [HHPF26](@cite)
+groups via the GAP package `PerfGrp` [PerfGrp](@cite)
 which provides, up to isomorphism, a list of all perfect groups whose
 sizes are less than $2\cdot 10^6$. The groups of most orders up to $10^6$ have been
 enumerated by Derek Holt and Wilhelm Plesken, see [HP89](@cite). For orders
@@ -92,7 +92,7 @@ perfect_group_identification
 The functions in this section are wrappers for the GAP library of
 the following groups.
 
-The GAP package `SmallGrp` [BEO23](@cite) provides
+The GAP package `SmallGrp` [SmallGrp](@cite) provides
 
 - those of order at most 2000 (except those of order 1024),
 - those of cubefree order at most 50000,
@@ -103,12 +103,12 @@ The GAP package `SmallGrp` [BEO23](@cite) provides
 - those of squarefree order,
 - those whose order factorises into at most 3 primes.
 
-The GAP package `SOTGrps` [Pan23](@cite) provides
+The GAP package `SOTGrps` [SOTGrps](@cite) provides
 
 - those whose order factorises into at most 4 primes,
 - those of order $p^4 q$ where $p$ and $q$ are distinct primes.
 
-The GAP package `SglPPow` [VE22](@cite)  provides
+The GAP package `SglPPow` [SglPPow](@cite)  provides
 
 - those of order $p^7$ for primes $p > 11$,
 - those of order $3^8$.
@@ -127,7 +127,7 @@ small_group_identification
 
 The functions in this section are wrappers for the GAP library of
 groups with up to 20 conjugacy classes,
-via the GAP package `SmallClassNr` [Ter26](@cite).
+via the GAP package `SmallClassNr` [SmallClassNr](@cite).
 See the documentation of this package for more information about
 the source of the data.
 
