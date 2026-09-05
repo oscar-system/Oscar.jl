@@ -196,8 +196,6 @@ function _SL2Z_fp()
 
     SL2Z, _ = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
 
-    S, T = gens(SL2Z)
-
     _SL2Z_FP_CACHE[] = SL2Z
   end
 
