@@ -19,6 +19,11 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
     #see 2.
     if check && isa(M1.G, Group) #only works if mp is a morphism so that "*" and "==" are doing
       #s.th. useful
+      @v_do :GaloisCohomology 2 for g = gens(M1.G)
+        if action(M1, g)*mp != mp*action(M2, g)
+          @show matrix(action(M1, g)*mp) - matrix(mp*action(M2, g))
+        end
+      end
       @assert all(g->action(M1, g)*mp == mp*action(M2, g), gens(M1.G))
     end
 
@@ -43,6 +48,7 @@ struct GModuleElem{T}
   data::T
 end
 
+Oscar.elem_type(::Type{GModule{PermGroup, T}}) where T = GModuleElem{elem_type(T)} 
 parent(a::GModuleElem) = a.parent
 
 function (C::GModule)(a::Union{ModuleElem, FinGenAbGroupElem})
@@ -90,3 +96,19 @@ end
 function image(A::GModuleHom)
   return sub(codomain(A), image(A.module_map)[2])
 end
+
+function from_chain(M::FinGenAbGroup, c::CoChain{2})
+  (zg, A) = get_attribute(M, :hom)
+  fc = get_attribute(zg, :from_chain)
+  d = fc((g,h) -> Oscar.GModuleElem(c.C, c(g,h)))
+  return sum(canonical_injection(M, i)(d[i].data) for i=1:length(d))
+end
+
+function *(a::Oscar.GModuleElem, g::GroupAlgebraElem)
+  return GModuleElem(parent(a), action(parent(a), g, a.data))
+end
+
+function Oscar.action(a::Oscar.GModuleElem, g::GroupAlgebraElem)
+  return Oscar.GModuleElem(parent(a), action(parent(a), g, a.data))
+end
+
