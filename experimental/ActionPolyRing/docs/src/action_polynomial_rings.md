@@ -4,9 +4,14 @@ In Oscar we provide the action polynomial interface via the abstract types `Acti
 and `ActionPolyRingElem{T} <: RingElem`. The type parameter `T` is the element type of the coefficient
 ring. All concrete subtypes use the functionality of [universal polynomials](@ref "Universal polynomial ring")
 from the AbstractAlgebra package for polynomial arithmetic, as well as maintaining variables and adding
-new ones on demand. Any action polynomial ring maintains a sorted list of currently tracked jet variables,
-that can be accessed and extended by a number of methods, see, e.g., [Element Constructors](@ref element_constructors_apr). The jet
-variables are sorted with respect to a user-defined [ranking](@ref actionpolyranking).
+new ones on demand. Currently, there are two concrete subtypes available, namely `DifferencePolyRing{T}` and
+`DifferentialPolyRing{T}` with element types `DifferencePolyRingElem{T}` and `DifferentialPolyRingElem{T}`.
+See [difference polynomial rings](@ref differencepolyring)
+and [differential polynomial rings](@ref differentialpolyring) for their unique functionality.
+
+Each action polynomial ring maintains a sorted list of currently tracked jet variables,
+that can be accessed and extended by a number of methods, see, e.g. the section [Element Constructors](@ref element_constructors_apr).
+The jet variables are sorted with respect to a user-defined [ranking](@ref actionpolyranking).
 
 !!! note "Tracked jet variables"
     The set of valid jet variables of an action polynomial ring depend only on the integers ``m`` and
@@ -15,10 +20,19 @@ variables are sorted with respect to a user-defined [ranking](@ref actionpolyran
     currently tracked jet variables is obtained using
     [`gens`](@ref gens(apr::ActionPolyRing)).
 
-Currently, there are two concrete subtypes available, namely `DifferencePolyRing{T}` and
-`DifferentialPolyRing{T}` with element types `DifferencePolyRingElem{T}` and `DifferentialPolyRingElem{T}`.
-See [difference polynomial rings](@ref differencepolyring)
-and [differential polynomial rings](@ref differentialpolyring) for their unique functionality.
+Additionally, each action polynomial ring maintains a vector of pairwise commuting action maps associated with it. 
+These action maps are implemented via the new abstract type `ActionMap{D} <: Map{D,D,Any,Any}`, with type parameter
+`D <: Ring`.
+
+Depending on the type of the action polynomial ring, `ActionMap` branches into two core abstract subtypes:
+- `ActionShift`: Represents shift operators used in difference polynomial rings.
+- `ActionDerivation`: Represents derivations used in differential polynomial rings.
+
+---
+
+For detailed information on constructing specific action polynomial rings, see:
+- [Difference polynomial rings](@ref differencepolyring_construction)
+- [Differential polynomial rings](@ref differentialpolyring_construction)
 
 ## [Specifying jet variables](@id specifying_jet_variables)
 
@@ -81,6 +95,8 @@ zero(A::ActionPolyRing)
 one(A::ActionPolyRing)
 n_action_indeterminates(A::ActionPolyRing)
 action_indeterminates(A::DifferencePolyRing)
+action_maps(A::DifferencePolyRing)
+action_map(A::DifferencePolyRing, i::Int)
 n_action_maps(A::DifferencePolyRing)
 ```
 
@@ -217,4 +233,28 @@ are not just restricted to pseudo-division by the leader of the second input. Ho
 ```@docs
 pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
 pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
+```
+
+---
+
+We provide the following methods for reducing the action polynomial ``p`` with respect to the action polynomial ``q`` and to verify reducedness:
+
+```@docs
+is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+
+partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+```
+
+We also provide similar methods for the set-related notions of reducedness:
+
+```@docs
+is_partially_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+is_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+
+partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
 ```
