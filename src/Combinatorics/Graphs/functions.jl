@@ -2164,6 +2164,131 @@ function graph_from_edges(p::Polyhedron; modulo_lineality=false)
 end
 
 @doc raw"""
+    graph_from_group_action([::Type{T},] G, L, act, adj) where {T <: Union{Directed, Undirected}}
+    graph_from_group_action([::Type{T},] Omega::GSet, adj) where {T <: Union{Directed, Undirected}}
+
+Return the graph on the vertices `1:length(L)` with a directed edge `(i, j)`
+if and only if `adj(L[i], L[j])` returns `true`.
+
+The group `G` must act on the list `L` via the action function `act`, i.e.
+`act(x, g)` is the image of `x in L` under `g in G`, and `L` must be invariant
+under this action. As for all group actions in Oscar and GAP, `act` must
+define a *right* action: `act(act(x, g1), g2) == act(x, g1*g2)` for all
+`x in L` and `g1, g2 in G`. (Left actions such as `(x, g) -> g*x` must be
+rewritten in the right-action form `(x, g) -> inv(g)*x`, as in the G-sets
+returned by `left_cosets`.) The elements of `L` must be pairwise distinct,
+and `adj` must be invariant under the action of `G`, i.e.
+`adj(x, y) == adj(act(x, g), act(y, g))` for all `x, y in L` and `g in G`.
+
+If a G-set `Omega` is passed instead of `G`, `L`, `act`, the group, the
+vertices and the action function are taken from `Omega`; the call is
+equivalent to `graph_from_group_action(T, acting_group(Omega),
+collect(Omega), action_function(Omega), adj)`, with the vertices in the
+order of `collect(Omega)`.
+
+If the first argument is omitted, or is `Directed`, then the returned graph is
+directed; if it is `Undirected`, then the returned graph is undirected and its
+edges are obtained by symmetrizing the directed ones.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5);
+
+julia> L = [[i, j] for i in 1:5 for j in i+1:5];
+
+julia> g = graph_from_group_action(G, L, on_sets,
+           (x, y) -> isempty(intersect(x, y)));
+
+julia> n_vertices(g), n_edges(g)
+(10, 30)
+
+julia> gu = graph_from_group_action(Undirected, G, L, on_sets,
+           (x, y) -> isempty(intersect(x, y)));
+
+julia> n_vertices(gu), n_edges(gu)
+(10, 15)
+
+julia> Omega = gset(symmetric_group(5), on_sets, [[1, 2]]);
+
+julia> g = graph_from_group_action(Omega, (x, y) -> isempty(intersect(x, y)));
+
+julia> n_vertices(g), n_edges(g)
+(10, 30)
+```
+"""
+function graph_from_group_action(G::Union{Group, FinGenAbGroup}, L, act::Function,
+                                 adj::Function)
+  return graph_from_group_action(Directed, G, L, act, adj)
+end
+
+function graph_from_group_action(::Type{T}, G::Union{Group, FinGenAbGroup}, L,
+                                 act::Function,
+                                 adj::Function) where {T <: Union{Directed, Undirected}}
+  @req is_finite(G) "G must be finite"
+
+  verts = collect(L)
+  n = length(verts)
+  n == 0 && return graph(T, 0)
+  @req length(unique(verts)) == n "the elements of L must be pairwise distinct"
+
+  # L must be closed under the action of G; the closure of the seeds is
+  # larger than L exactly when L is not closed.
+  @req length(collect(gset(G, act, verts))) == n "L is not invariant under the action of G"
+
+  # Permutation image of the action of G on the vertices.
+  acthom = action_homomorphism(gset(G, act, verts; closed = true))
+  H = image(acthom)[1]          # PermGroup acting on 1:n
+  dom = 1:n
+
+  # Orbits of H on the vertices and their representatives.
+  orbs = orbits(gset(H, dom))
+  reps = representative.(orbs)
+
+  # Neighbours of each orbit representative: `adj` is constant on the
+  # orbits of the stabilizer of the representative (on all vertices,
+  # including the other orbits of G), so one call to `adj` per such
+  # orbit suffices.
+  rep_neighbors = Vector{Vector{Int}}(undef, length(reps))
+  for (i, r) in enumerate(reps)
+    st = stabilizer(H, r)[1]
+    if order(st) == 1
+      rep_neighbors[i] = [j for j in dom if adj(verts[r], verts[j])]
+    else
+      nb = Int[]
+      for o in orbits(gset(st, dom))
+        oo = collect(o)
+        adj(verts[r], verts[oo[1]]) && append!(nb, oo)
+      end
+      rep_neighbors[i] = sort!(nb)
+    end
+  end
+
+  # Translate the neighbour lists along the orbits: for each vertex v,
+  # apply the element of H that maps the representative of its orbit to v.
+  g = graph(T, n)
+  for (i, o) in enumerate(orbs)
+    r = reps[i]
+    for v in collect(o)
+      h = group_element(H, GAPWrap.RepresentativeAction(GapObj(H), r, v))
+      for w in sort!([h(x) for x in rep_neighbors[i]])
+        add_edge!(g, v, w)
+      end
+    end
+  end
+  return g
+end
+
+function graph_from_group_action(Omega::GSet, adj::Function)
+  return graph_from_group_action(Directed, Omega, adj)
+end
+
+function graph_from_group_action(::Type{T}, Omega::GSet,
+                                 adj::Function) where {T <: Union{Directed, Undirected}}
+  return graph_from_group_action(T, acting_group(Omega), collect(Omega),
+                                 action_function(Omega), adj)
+end
+
+@doc raw"""
     label!(G::Graph{T}, edge_labels::Union{Dict{Tuple{Int, Int}, Union{String, Int}}, Nothing}, vertex_labels::Union{Dict{Int, Union{String, Int}}, Nothing}=nothing; name::Symbol=:label) where {T <: Union{Directed, Undirected}}
 Given a graph `G`, add labels to the edges and optionally to the vertices with the given `name`.
 
