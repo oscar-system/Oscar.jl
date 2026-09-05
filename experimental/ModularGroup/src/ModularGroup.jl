@@ -102,7 +102,7 @@ matrix(x::ModularGroupElem) = x.mat
 one(G::ModularGroup) = ModularGroupElem(G, identity_matrix(ZZ, 2))
 one(x::ModularGroupElem) = one(parent(x))
 
-function order(::Type{T} = ZZRingElem, x::ModularGroupElem) where {T<:IntegerUnion}
+function order(::Type{T}, x::ModularGroupElem) where {T<:IntegerUnion}
   A = matrix(x)
   t = A[1, 1] + A[2, 2]
 
