@@ -51,7 +51,8 @@ primitive_group_identification
 ## Perfect groups of small order
 
 The functions in this section are wrappers for the GAP library of finite perfect
-groups which provides, up to isomorphism, a list of all perfect groups whose
+groups via the GAP package `PerfGrp` [HHPF26](@cite)
+which provides, up to isomorphism, a list of all perfect groups whose
 sizes are less than $2\cdot 10^6$. The groups of most orders up to $10^6$ have been
 enumerated by Derek Holt and Wilhelm Plesken, see [HP89](@cite). For orders
 86016, 368640, or 737280 this work only counted the groups (but did not
