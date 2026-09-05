@@ -234,9 +234,9 @@ function _orthogonal_group(
   gens_aut = GapObj([ambient(g; check).X for g in gensOT])  # performs the checks
   if check
     # expensive for large groups
-    subgrp_gap = GAP.Globals.Subgroup(ambient.X, gens_aut)
+    subgrp_gap = GAPWrap.Subgroup(ambient.X, gens_aut)
   else
-    subgrp_gap = GAP.Globals.SubgroupNC(ambient.X, gens_aut)
+    subgrp_gap = GAPWrap.SubgroupNC(ambient.X, gens_aut)
   end
   aut = AutomorphismGroup(subgrp_gap, T)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
@@ -257,7 +257,7 @@ function Base.show(io::IO, OT::AutomorphismGroup{TorQuadModule})
     io = pretty(io)
     print(io, "Group of isometries of ", Lowercase(), OT.G)
   end
-end 
+end
 
 @doc raw"""
     matrix(f::AutomorphismGroupElem{TorQuadModule}) -> ZZMatrix
@@ -543,7 +543,7 @@ end
 function induce_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bool = true)
   @req !check || is_surjective(i) "i must be a surjection"
   @req domain(f) === codomain(f) === domain(i) "f must be an endomorphism of the domain of i"
-  if check 
+  if check
     K, j = kernel(i)
     @req all(has_preimage_with_preimage(j,f(j(k)))[1] for k in gens(K)) "f must preserve the kernel of i"
   end
@@ -551,7 +551,7 @@ function induce_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bo
   U = codomain(i)
   for a in gens(U)
     ok, c = has_preimage_with_preimage(i, a)
-    @assert ok 
+    @assert ok
     push!(imgs, i(f(c)))
   end
   return hom(U, U, imgs)
@@ -559,7 +559,7 @@ end
 
 function induce_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
   return induce_endomorphism(hom(f), i; check)
-end 
+end
 
 function induce_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
   @req domain(G) === domain(i) "G must consists of automorphisms of the domain of i"
@@ -674,7 +674,7 @@ function is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
   Kgap, _ = sub(Agap, elem_type(Agap)[to_gap(j(a)) for a in gens(domain(j))])
   return is_conjugate_with_data(G, Hgap, Kgap)
 end
-  
+
 function __cokernel(f::TorQuadModuleMap)
   # assumes same ambient space and therefore the underscore
   A = domain(f)
@@ -713,12 +713,12 @@ julia> order(S)
 ```
 """
 function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
-  @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion." 
+  @req domain(O)===codomain(i) "Domain of automorphism group must agree with codomain of inclusion."
   A = domain(i)
   C = codomain(i)
   a = elementary_divisors(domain(i))
   if length(a)==0
-    return O, id_hom(O) 
+    return O, id_hom(O)
   end
   if order(O)<500 || (!is_prime(a[end]) && order(O)<5000)
     # don't do fancy stuff if the group is small
@@ -737,7 +737,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     j = i*inv(toD)
     stab,inc = stabilizer(Os,j)
     return preimage(toOs,stab)
-  end 
+  end
   if exponent(C) > exponent(A)
     expA = exponent(A)
     Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
@@ -746,7 +746,7 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     Sk, isk = stabilizer(Ok, ak)
     st = preimage(iOk, Sk)
     #@assert order(st[1])==order(st2[1])
-    return st 
+    return st
   end
   n = elementary_divisors(C)[end]
   # base case of the recursion n = p prime
@@ -758,13 +758,13 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
     #@assert order(st[1])==order(st2[1])
     return st
   end
-  # for prime power order work with the F_p vector space 
+  # for prime power order work with the F_p vector space
   # (A + p^k*C) / (p^(k+1)C + pA)
   # where k = 0 ... v
   #
   # Suppose (by induction) that f ( A ) ⊆ A + p^k C and that moreover f stabilizes the image of
   # A in ( A + p^k C ) / ( p A + p^{k + 1} C ) , which is ( A + p^{k + 1} C ) / ( p A + p^{k + 1} C ) .
-  # Then f ( a + p A + p^{k + 1} C ) = f ( a ) + p A + p^{k + 1} C ∈ ( A + p^{k + 1} C ) / ( p A + p^{k + 1} C ) , 
+  # Then f ( a + p A + p^{k + 1} C ) = f ( a ) + p A + p^{k + 1} C ∈ ( A + p^{k + 1} C ) / ( p A + p^{k + 1} C ) ,
   # i.e. f ( a ) ∈ A + p^{k + 1} C .
   #
   # By the preceeding: if k is such that p^{k + 1}C = 0 , then f ( A ) ⊆ A.
@@ -809,12 +809,12 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   end
   st = S,iS
   #@assert order(st[1])==order(st2[1])
-  return st 
+  return st
 end
 
 # We adapt the strategy in stabilizer to compute a transporter.
 function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQuadModuleMap, i2::TorQuadModuleMap)
-  @req domain(O)===codomain(i1) "Domain of automorphism group must agree with codomain of inclusion." 
+  @req domain(O)===codomain(i1) "Domain of automorphism group must agree with codomain of inclusion."
   @req domain(O)===codomain(i2) "Domain of automorphism group must agree with codomain of inclusion."
   #i1: A1 -> C
   #i2: A2 -> C
@@ -825,7 +825,7 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
   eldiv_1 == elementary_divisors(A2) || return false, one(O)
   length(eldiv_1) == 0 && return true, one(O)
   expA = exponent(A1)
-  
+
   # don't do fancy stuff if the group is small
   if order(O)<80 || (eldiv_1[1]!=eldiv_1[end] && order(O)<130)
     @vprint :Isometry 4 "transporter via GAP group order $(order(O))"
@@ -838,7 +838,7 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     @vprintln :Isometry 4 " done"
     return fl, g
   end
-  
+
   if exponent(C) > expA
     # We can always reduce to an action on Ck < C (see next line)
     Ck, ck = kernel(hom(C,C, [expA*x for x in gens(C)]))
@@ -850,7 +850,7 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     transporter = iOk\_transporter
     return flag, transporter
   end
-  
+
   BL1 = matrix(i1)
   BL2 = matrix(i2)
   # The vector space case is the base case of the recursion.
@@ -870,20 +870,20 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     rref!(BL2mod)
     if nrows(BL1mod) > r
       BL1mod = BL1mod[1:r,:]
-    end 
+    end
     if nrows(BL2mod) > r
       BL2mod = BL2mod[1:r,:]
-    end 
+    end
 
     G = O
     Gnice = GAP.Globals.NiceObject(GapObj(G))
     # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-    BL1mod_gap = GapObj(lift(BL1mod)) * GAP.Globals.Z(GapObj(p))^0
-    BL2mod_gap = GapObj(lift(BL2mod)) * GAP.Globals.Z(GapObj(p))^0
+    BL1mod_gap = GapObj(lift(BL1mod)) * GAPWrap.Z(GapObj(p))^0
+    BL2mod_gap = GapObj(lift(BL2mod)) * GAPWrap.Z(GapObj(p))^0
     GAP.Globals.ConvertToMatrixRep(BL1mod_gap)
     GAP.Globals.ConvertToMatrixRep(BL2mod_gap)
     mats_gap = GapObj([GapObj(x) for x in mats])
-    img = GAP.Globals.RepresentativeAction(Gnice, BL1mod_gap, BL2mod_gap, GAP.Globals.GeneratorsOfGroup(Gnice), mats_gap, GAP.Globals.OnSubspacesByCanonicalBasis)
+    img = GAPWrap.RepresentativeAction(Gnice, BL1mod_gap, BL2mod_gap, GAPWrap.GeneratorsOfGroup(Gnice), mats_gap, GAP.Globals.OnSubspacesByCanonicalBasis)
     img == GAP.Globals.fail && return false, one(G)
     mono = GAP.Globals.NiceMonomorphism(GapObj(G))
     _g = G(GAP.Globals.PreImage(mono, img))
@@ -929,12 +929,12 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     transporter = one(O)
     pA1 = [i1(p*x) for x in gens(A1)]
     _i2 = i2
-    # We move A1 to A2 step by step going through the quotients 
+    # We move A1 to A2 step by step going through the quotients
     # (A1 + p^k C) / (p^(k+1)C + pA1)
     # and compute their stabilizers
     # Note that at each step _A2 := _i2(A2)
     # is contained in A1 + p^k C
-    # The basic idea is the same as in 
+    # The basic idea is the same as in
     # stabilizer(::AutomorphismGroup,::TorQuadModMor) above
     for k in 0:v
       piC = [p^k*x for x in gens(C)]
@@ -963,7 +963,7 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
       end
     end
     _g = transporter
-  else 
+  else
     @vprintln :Isometry 4 "transporter via composite"
     # for composite order map A1 to A2 prime by prime
     # compute stabilizers to preserve the progress
@@ -979,14 +979,14 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
       @assert is_snf(Cp)
       A1pinCp, A1p_to_Cp = sub(Cp, [jp\i1(i1p(x)) for x in gens(A1p)])
       A2pinCp, A2p_to_Cp = sub(Cp, [jp\_i2(i2p(x)) for x in gens(A2p)])
-      
+
       Op, iOp = restrict_automorphism_group(_O, jp; check=false)
       @vtime :Isometry 4 flag, transporter = _is_conjugate_with_data(Op, A1p_to_Cp, A2p_to_Cp)
       !flag && return false, one(O)
       @vtime :Isometry 4 _transporter = _phi(preimage(iOp, transporter))
       _g = _transporter*_g
       stab_p, istab_p = stabilizer(Op, A1p_to_Cp)
-      # permutation group seems to be a bit faster 
+      # permutation group seems to be a bit faster
       # ... but still slowish!
       to_Operm = isomorphism(PermGroup, _O)
       to_Op_perm = isomorphism(PermGroup, Op)
@@ -1005,7 +1005,7 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     H1gap, _ = sub(Agap, elem_type(Agap)[to_gap(i1(a)) for a in gens(domain(i1))])
     H2gap, _ = sub(Agap, elem_type(Agap)[to_gap(i2(a)) for a in gens(domain(i2))])
     if flag
-      @assert on_subgroups(H1gap,_g)==H2gap    
+      @assert on_subgroups(H1gap,_g)==H2gap
     end
   end
   return flag, _g

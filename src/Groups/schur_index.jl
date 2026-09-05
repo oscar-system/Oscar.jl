@@ -213,9 +213,9 @@ function _Q_p_chi(vals::GapObj, p::ZZRingElem)
   if length(vals) == 0
     F = GAP.Globals.Rationals
   else
-    F = GAP.Globals.Field(GAP.Globals.Rationals, vals)
+    F = GAPWrap.Field(GAP.Globals.Rationals, vals)
   end
-  N = GAP.Globals.Conductor(F)
+  N = GAPWrap.Conductor(F)
   if N == 1
     stab = [1]
   else
@@ -235,7 +235,7 @@ function _Q_p_chi(vals::GapObj, p::ZZRingElem)
     for u in res
       for i in 0:(r-1)
         sigma = mod(sigma_p^i * (1 + (u-1)*m*b), N)
-        if GAP.Globals.GaloisCyc(vals, GapObj(sigma)) == vals
+        if GAPWrap.GaloisCyc(vals, GapObj(sigma)) == vals
           push!(stab, sigma)
         end
       end
@@ -253,7 +253,7 @@ end
 # (We have $[\Q_p(N):F] = index$, but this is nnot used here.)
 function _membership_test(elm::GAP.Obj, info::Tuple{Int, Vector{Int}, Int})
   return mod(info[1], GAPWrap.Conductor(elm)) == 0 &&
-         all(k -> GAP.Globals.GaloisCyc(elm, k) == elm, info[2])
+         all(k -> GAPWrap.GaloisCyc(elm, k) == elm, info[2])
 end
 
 

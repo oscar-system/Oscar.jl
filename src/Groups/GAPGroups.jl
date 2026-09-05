@@ -196,7 +196,7 @@ Return a random element of `G`, using the random number generator `rng`.
 Base.rand(G::GAPGroup) = Base.rand(Random.GLOBAL_RNG, G)
 
 function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
-   s = GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(G))::GapObj
+   s = GAPWrap.Random(GAP.wrap_rng(rng), GapObj(G))
    return group_element(G, s)
 end
 
@@ -808,7 +808,7 @@ end
 
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(C::GAPGroupConjClass{T}) where T
   G = acting_group(C)
-  acthom = GAP.Globals.ActionHomomorphism(GapObj(G), C.CC, GAP.Globals.OnPoints)::GapObj
+  acthom = GAPWrap.ActionHomomorphism(GapObj(G), C.CC, GAP.Globals.OnPoints)
 
   # See the comment about `SetJuliaData` in the `action_homomorphism` method
   # for `GSetByElements`.
@@ -884,7 +884,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroupElem
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GAPGroupConjClass{S,T}) where S where T<:GAPGroupElem
-   return group_element(acting_group(C), GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj)
+   return group_element(acting_group(C), GAPWrap.Random(GAP.wrap_rng(rng), C.CC))
 end
 
 Base.in(g::GAPGroupElem, C::GAPGroupConjClass) = GapObj(g) in C.CC
@@ -978,7 +978,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(C)), acting_group(C); check = false)
+   return _oscar_subgroup(GAPWrap.Random(GAP.wrap_rng(rng), GapObj(C)), acting_group(C); check = false)
 end
 
 """
@@ -2705,7 +2705,7 @@ function describe(G::Union{FPGroup, SubFPGroup})
       r == 0 && return "1"
    end
 
-   if !GAP.Globals.IsFpGroup(GapObj(G))
+   if !GAPWrap.IsFpGroup(GapObj(G))
      # `G` is a subgroup of an f.p. group
      G = FPGroup(GAPWrap.Range(GAPWrap.IsomorphismFpGroup(GapObj(G))))
    end

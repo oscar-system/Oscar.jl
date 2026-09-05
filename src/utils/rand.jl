@@ -76,7 +76,7 @@ julia> Oscar.randseed!(1234)
 julia> rand(1:1000)
 219
 
-julia> GAP.Globals.Random(1,1000)
+julia> GAPWrap.Random(1,1000)
 163
 ```
 """

@@ -357,7 +357,7 @@ GAP.@install function GapObj(G::MatGroup)
       assign_from_description(G)
     elseif isdefined(G, :gens)
       V = GapObj(gens(G); recursive = true)
-      G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
+      G.X = isempty(V) ? GAPWrap.Group(V, GapObj(one(G))) : GAPWrap.Group(V)
     else
       error("Cannot determine underlying GAP object")
     end
@@ -740,7 +740,7 @@ degree(G::MatGroup) = G.deg
 Base.one(G::MatGroup) = MatGroupElem(G, identity_matrix(base_ring(G), degree(G)))
 
 function Base.rand(rng::Random.AbstractRNG, G::MatGroup)
-   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(G))::GapObj
+   x_gap = GAPWrap.Random(GAP.wrap_rng(rng), GapObj(G))
    return MatGroupElem(G, x_gap)
 end
 
