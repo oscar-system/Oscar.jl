@@ -1,6 +1,4 @@
-using Test
-
-@testset "ActionPolyRing - all tests" verbose = true begin
+@testset "all tests - Content.jl" verbose = true begin
    
   __jtv = Oscar.__jtv
   __jtu_idx = Oscar.__jtu_idx
@@ -12,17 +10,24 @@ using Test
   __is_valid_partition = Oscar.__is_valid_partition
   
   @testset "Conformance tests - Ring interface" begin
+    tRi = ConformanceTests.test_Ring_interface
     
     @testset "DifferencePolyRing - conformance tests" begin
-      ConformanceTests.test_Ring_interface(difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
-      ConformanceTests.test_Ring_interface(difference_polynomial_ring(ZZ, 5, 8)[1])
-      ConformanceTests.test_Ring_interface(difference_polynomial_ring(ZZ, :x, 2)[1])
+      tRi(difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
+      tRi(difference_polynomial_ring(ZZ, 5, 8)[1])
+      tRi(difference_polynomial_ring(ZZ, :x, 2)[1])
+
+      S, x = polynomial_ring(QQ, :x)
+      tRi(difference_polynomial_ring(S, 2, action_shift.([hom(S, S, x + 1), hom(S, S, x + 2)]))[1]) 
     end
     
     @testset "DifferentialPolyRing - conformance tests" begin
-      ConformanceTests.test_Ring_interface(differential_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
-      ConformanceTests.test_Ring_interface(differential_polynomial_ring(ZZ, 5, 8)[1])
-      ConformanceTests.test_Ring_interface(differential_polynomial_ring(ZZ, :x, 2)[1])
+      tRi(differential_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
+      tRi(differential_polynomial_ring(ZZ, 5, 8)[1])
+      tRi(differential_polynomial_ring(ZZ, :x, 2)[1])
+      
+      S, (x, y) = polynomial_ring(QQ, [:x, :y])
+      tRi(differential_polynomial_ring(S, 2, action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))]))[1]) 
     end
 
   end
@@ -56,6 +61,14 @@ using Test
       end
       @test_throws ArgumentError difference_polynomial_ring(ZZ, Symbol[], 1)
       @test_throws ArgumentError differential_polynomial_ring(ZZ, Symbol[], 1)
+
+      S, x = polynomial_ring(QQ, :x)
+      non_comm_shifts = action_shift.([hom(S, S, -x), hom(S, S, x + 1)]) # ax + b and cx + d commute, iff d(a - 1) = b(c - 1)
+      non_comm_derivations = action_derivation.([map_from_func(S, S, p -> derivative(p)), map_from_func(S, S, p -> x * derivative(p))])
+      @test_throws ArgumentError difference_polynomial_ring(S, 1, non_comm_shifts)
+      @test_throws ArgumentError differential_polynomial_ring(S, 1, non_comm_derivations)
+      @test_throws MethodError difference_polynomial_ring(S, 1, non_comm_derivations)
+      @test_throws MethodError differential_polynomial_ring(S, 1, non_comm_shifts)
     end
 
     @testset "Constructions with keywords" begin
@@ -132,7 +145,7 @@ using Test
           @test __perm_for_sort(dpr) == [1,2,3]
         end
         
-        @testset "Check other" begin
+        @testset "Check other ring functionality" begin
           @test !is_univariate(dpr)
           @test all(var -> is_univariate(var), vars)
           @test_throws ErrorException to_univariate(u1*u2)
@@ -386,10 +399,18 @@ using Test
           @testset "Non-constant polynomials" begin
             #Recall that u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3:
             @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
+            @test ritt_is_less(u3, u3_111)
+            @test ritt_is_less(u1, u1_100)
+            @test ritt_is_less(u2, u1_010)
+            @test ritt_is_less(dpr(1), u1)
+            @test !ritt_is_less(dpr(1), dpr(5))
+            @test ritt_is_less(dpr(0), dpr(1))
+            @test !ritt_is_less(dpr(0), dpr(0))
             @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [1,3,6]
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             
+            @test ritt_is_less(f, g)
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
             @test length(f) == 6
             @test __perm_for_sort_poly(f) == [3,4,1,2,5,6]
@@ -739,7 +760,7 @@ using Test
       
     end #Construction with keywords
 
-    @testset "Further construction" begin
+    @testset "Further constructions" begin
       dpr0, vars0 = difference_polynomial_ring(QQ, 3, 3)
       dpr1, vars1 = difference_polynomial_ring(QQ, [:u1, :u2, :u3], 3)
       dpr2, vars2 = differential_polynomial_ring(QQ, 3, 3)
@@ -932,10 +953,86 @@ using Test
             @test ngens(dpr) == 29  
           end
         end
-      end #End for loop
-    end #End further constructions
-  end #Construction and basic field access
+      end # End for loop
+    end # End further constructions
+  end # Construction and basic field access
+  
+  @testset "Nontrivial action maps" begin
+    S, (x, y) = polynomial_ring(QQ, [:x, :y])
+    s1, s2 = action_shift.([hom(S, S, [x + y, y + 1]), hom(S, S, [x + 2*y, y + 2])])
+    ddx, ddy = action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))])
+    
+    dxr, (a, b) = difference_polynomial_ring(S, [:a, :b], [s1, s2])
+    dpr, (c, d) = differential_polynomial_ring(S, [:c, :d], [ddx, ddy])
 
+    @testset "Difference apply_action" begin
+      @testset "coefficient ring" begin
+        @test apply_action(dxr(x), 1) == x + y
+        @test apply_action(dxr(y), 1) == y + 1
+        @test apply_action(dxr(x), 2) == x + 2*y
+        @test apply_action(dxr(y), 2) == y + 2
+
+        @test apply_action(dxr(y^2), 1) == y^2 + 2*y + 1
+        @test apply_action(dxr(x + y), 2) == x + 3*y + 2
+        @test apply_action(dxr(x), [1, 1]) == x + 3*y + 2
+      end
+      @testset "jet variables" begin
+        @test apply_action(a, 1) == a[1, 0]
+        @test apply_action(a, 2) == a[0, 1]
+        @test apply_action(b[2, 3], 1) == b[3, 3]
+        @test apply_action(b[2, 3], 2) == b[2, 4]
+      
+        @test apply_action(a[4, 2], [1, 5]) == a[5, 7]
+        @test apply_action(b[3, 1], [2, 0]) == b[5, 1]
+        
+        @test apply_action(a + 2*b, [3, 4]) == a[3, 4] + 2*b[3, 4]
+        @test apply_action(a + 2*b, [3, 4]) == a[3, 4] + 2*b[3, 4]
+        @test apply_action(a * 2*b, [3, 4]) == 2*a[3, 4] * b[3, 4]
+        @test apply_action(a * 2*b, [3, 4]) == 2*a[3, 4] * b[3, 4]
+      end
+      @testset "arbitrary polynomials" begin
+        f = x * a + y^2 * b[1, 2]
+      
+        @test apply_action(f, 1) == (x + y) * a[1, 0] + (y^2 + 2*y + 1) * b[2, 2]
+        @test apply_action(f, 2) == (x + 2*y) * a[0, 1] + (y^2 + 4*y + 4) * b[1, 3]
+        @test apply_action(f, [1, 1]) == (x + 3*y + 2) * a[1, 1] + (y^2 + 6*y + 9) * b[2, 3]
+      end
+    end
+    @testset "Differential apply_action" begin
+      @testset "coefficient ring" begin
+        @test apply_action(dpr(x), 1) == 1
+        @test apply_action(dpr(y), 1) == 0
+        @test apply_action(dpr(x), 2) == 0
+        @test apply_action(dpr(y), 2) == 1
+
+        @test apply_action(dpr(y^2), 1) == 0
+        @test apply_action(dpr(x + y^2), 2) == 2*y
+        @test apply_action(dpr(x^2 * y^2), [1, 1]) == 4*x*y
+      end
+      @testset "jet variables" begin
+        @test apply_action(c, 1) == c[1, 0]
+        @test apply_action(c, 2) == c[0, 1]
+        @test apply_action(d[2, 3], 1) == d[3, 3]
+        @test apply_action(d[2, 3], 2) == d[2, 4]
+        
+        @test apply_action(c[4, 2], [1, 5]) == c[5, 7]
+        @test apply_action(d[3, 1], [2, 0]) == d[5, 1]
+
+        @test apply_action(c + 2*d, [3, 4]) == c[3, 4] + 2*d[3, 4]
+        
+        @test apply_action(c * 2*d, 1) == c[1, 0] * 2*d + c * 2*d[1, 0]
+        @test apply_action(c^2, 2) == 2 * c * c[0, 1]
+      end
+      @testset "arbitrary polynomials" begin
+        f = x * c + y^2 * d[1, 2]
+        
+        @test apply_action(f, 1) == c + x * c[1, 0] + y^2 * d[2, 2]
+        @test apply_action(f, 2) == x * c[0, 1] + 2*y * d[1, 2] + y^2 * d[1, 3]
+        @test apply_action(f, [1, 1]) == c[0, 1] + x * c[1, 1] + 2*y * d[2, 2] + y^2 * d[2, 3]
+      end
+    end
+  end
+  
   @testset "Fixed bugs" begin
     @testset "apply_action for difference wiping data" begin
       R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
@@ -943,6 +1040,16 @@ using Test
       @test apply_action(p, 2) == apply_action(p, [0, 1])
       @test apply_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
     end
+    @testset "wrong length for exponent vector" begin
+      R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
+      f_1 = y_2[0,1]^3 + y_2
+      f_2 = y_1^2 * y_2[1,0] + y_1[0,1] - 1
+      f_3 = y_1[1,0]^4 + y_1[0,1]*y_2^2
+      f_4 = y_1[0,2] * y_2[1,1] + y_1[0,1] + 1
+      F = [f_1, f_2, f_3, f_4]
+      @test initial(F[2]) == y_1^2 # This was zero at some point
+    end
   end
 
 end #All tests
+
