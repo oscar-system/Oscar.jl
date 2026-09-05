@@ -60,6 +60,8 @@ function groebner_basis_f4(
         info_level::Int=0
         )
 
+    info_level = min(2, get_verbosity_level(:AlgebraicSolving))
+
     AI   = AlgebraicSolving.Ideal(oscar_generators(I))
     if eliminate == 0
       AR = base_ring(I)
