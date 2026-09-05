@@ -50,6 +50,10 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
   d = 1
   gb_is_full = true # whether we have a full or truncated Gröbner basis
   while d <= dmax
+    @vprintln :FundamentalInvariants "--------------------------------------------------------------"
+    @vprintln :FundamentalInvariants "Current maximal degree: $dmax"
+    @vprintln :FundamentalInvariants "Working in degree: $d"
+    @vprintln :FundamentalInvariants "Number of invariants found: $(length(S))"
     if length(S) >= ngens(R) && total_degree(S[end]) == d - 2
       # We haven't added any invariants in the last round, so there is a chance
       # that we are done.
@@ -57,10 +61,13 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
       # can save many truncated Gröbner bases if we don't add any new invariants
       # in the following rounds.
       I = ideal(R, GO)
+      @vprint :FundamentalInvariants "Computing full Gröbner basis..."
       GO = gens(groebner_basis(I; ordering=ordR))
+      @vprintln :FundamentalInvariants " done."
       if is_zero(dim(I))
         mons = gens(ideal(R, Singular.kbase(I.gb[ordR].gensBiPolyArray.S)))
         dmax = maximum(total_degree(f) for f in mons)
+        @vprintln :FundamentalInvariants "Ideal is 0-dimensional! New maximal degree: $dmax"
         d > dmax ? break : nothing
       end
       G = I.gb[ordR]
@@ -74,11 +81,15 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
 
     if !gb_is_full
       # We don't have a full Gröbner basis, so we compute a degree truncated one.
+      @vprint :FundamentalInvariants "Computing truncated Gröbner basis up to degree $d..."
       G = _groebner_basis(ideal(R, GO), d; ordering=ordR)
+      @vprintln :FundamentalInvariants " done."
       GO = collect(G)
     end
 
-    # There are two possible strategies to find new candidates in degree d
+    # If G is of type PermGroup, we generate invariants via orbit sums.
+    # Otherwise, there are two possible strategies to find new candidates in
+    # degree d:
     # 1) apply the Reynolds operator to monomials of R of degree d which are
     #    not divisible by any leading monomial in G.S (this is what [Kin13]
     #    proposes)
@@ -101,8 +112,18 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
     time_lin_alg = ngens(group(RG)) * length(monomials_of_degree(R, d))^2
     X = 1 / 2 * order(Int, group(RG)) # magical extra factor (see above)
 
-    if X * time_rey < time_lin_alg
+    if group(RG) isa PermGroup
+      # Orbit sums
+      @vprintln :FundamentalInvariants "Generating invariants via orbit sums"
+      exps = [AbstractAlgebra.exponent_vector(m, 1) for m in mons]
+      mon_orbits = orbits(gset(group(RG), permuted, exps))
+      invs = (
+        Rgraded([one(coefficient_ring(RG)) for _ in 1:length(orb)], elements(orb)) for
+        orb in mon_orbits
+      )
+    elseif X * time_rey < time_lin_alg
       # Reynolds approach
+      @vprintln :FundamentalInvariants "Generating invariants via Reynolds operator"
       invs = (
         _cast_in_internal_poly_ring(
           RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))
@@ -110,6 +131,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
       )
     else
       # Linear algebra approach
+      @vprintln :FundamentalInvariants "Generating invariants via linear algebra"
       invs = (
         _cast_in_internal_poly_ring(RG, f) for f in iterate_basis(RG, d, :linear_algebra)
       )
@@ -125,6 +147,8 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
       if is_zero(g)
         continue
       end
+
+      @vprintln :FundamentalInvariants "Adding an invariant of degree $d"
 
       push!(S, f)
       push!(GO, g)
