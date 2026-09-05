@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Cartan matrices
 
 Cartan matrices can be constructed from a Cartan type, and are represented as a square `ZZMatrix`.

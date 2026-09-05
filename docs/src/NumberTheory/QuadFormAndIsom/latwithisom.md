@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lattices with isometry
 
 We call *lattice with isometry* any pair $(L, f)$ consisting of an integer

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 This project was developed as part of [Koe25](@cite) and provides functionality for
 constructing and calculating in Drinfeld--Hecke algebras
