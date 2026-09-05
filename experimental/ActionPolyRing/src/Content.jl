@@ -669,7 +669,8 @@ end
 @doc raw"""
     trailing_coefficient(p::ActionPolyRingElem{T}) -> T
 
-Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
+Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking
+of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
 """
 function trailing_coefficient(apre::ActionPolyRingElem{T}) where {T}
   len = length(apre)
@@ -1368,46 +1369,63 @@ function __perm_for_sort_poly(dpre::Union{DifferencePolyRingElem, DifferentialPo
 end
 
 # =========================================
-# Setters for internal state
+# Setters for internal state (begin)
 # =========================================
 
 function __set_are_perms_up_to_date!(dpr::Union{DifferencePolyRing, DifferentialPolyRing}, update::Bool)
-    dpr.are_perms_up_to_date = update
+  dpr.are_perms_up_to_date = update
+  return dpr
 end
 
 function __set_is_perm_up_to_date!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}, update::Bool)
-    dpre.is_perm_up_to_date = update
+  dpre.is_perm_up_to_date = update
+  return dpre
 end
 
 function __set_perm_for_sort!(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
-    dpr.permutation = sortperm(dpr.(gens(base_ring(dpr))); rev = true)
-    __set_are_perms_up_to_date!(dpr, true)
+  dpr.permutation = sortperm(dpr.(gens(base_ring(dpr))); rev = true)
+  __set_are_perms_up_to_date!(dpr, true)
+  return dpr
 end
 
 # Assumes are_perms_up_to_date == true
 function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   exps = collect(exponents(data(dpre)))
   n = length(exps)
-  if n <= 1
-    dpre.permutation = collect(1:n)
-    return __set_is_perm_up_to_date!(dpre, true)
+
+  if n <= 1 
+    dpre.permutation = n == 1 ? [1] : Int[]
+    __set_is_perm_up_to_date!(dpre, true)
+    return dpre
+  end  
+
+  full_perm = __perm_for_sort(parent(dpre))
+  if !isdefined(dpre, :permutation) || length(dpre.permutation) != n
+    dpre.permutation = Vector{Int}(undef, n)
   end
 
-  perm = (parent(dpre).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
+  sortperm!(dpre.permutation, exps, rev=true, lt=(a, b) -> __is_less_wrt_perm(a, b, full_perm))
 
-  dpre.permutation = sortperm(exps; lt=__my_lt_for_vec(perm), rev=true)
   __set_is_perm_up_to_date!(dpre, true)
+  return dpre
 end
 
-function __my_lt_for_vec(perm::Vector{Int})
-  return function ___my_lt_for_vec(ei::Vector{Int}, ej::Vector{Int})
-    @inbounds for k in perm
-      vi, vj = ei[k], ej[k]
-      vi != vj && return vi < vj 
-    end
-    return false
+function __is_less_wrt_perm(a::AbstractVector{Int}, b::AbstractVector{Int}, perm::AbstractVector{Int})
+  len_a = length(a)
+  len_b = length(b)
+  
+  @inbounds for i in perm
+    va = i <= len_a ? a[i] : 0
+    vb = i <= len_b ? b[i] : 0
+      
+    va != vb && return va < vb
   end
+  return false
 end
+
+# =========================================
+# Setters for internal state (end)
+# =========================================
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
 __is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_action_indeterminates(apr) && length(jet) == n_action_maps(apr) && all(>=(0), jet)

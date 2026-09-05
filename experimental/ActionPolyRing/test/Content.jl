@@ -1,6 +1,4 @@
-using Test
-
-@testset "ActionPolyRing - all tests" verbose = true begin
+@testset "all tests - Content.jl" verbose = true begin
    
   __jtv = Oscar.__jtv
   __jtu_idx = Oscar.__jtu_idx
@@ -386,10 +384,18 @@ using Test
           @testset "Non-constant polynomials" begin
             #Recall that u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3:
             @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
+            @test ritt_is_less(u3, u3_111)
+            @test ritt_is_less(u1, u1_100)
+            @test ritt_is_less(u2, u1_010)
+            @test ritt_is_less(dpr(1), u1)
+            @test !ritt_is_less(dpr(1), dpr(5))
+            @test ritt_is_less(dpr(0), dpr(1))
+            @test !ritt_is_less(dpr(0), dpr(0))
             @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [1,3,6]
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
             
+            @test ritt_is_less(f, g)
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
             @test length(f) == 6
             @test __perm_for_sort_poly(f) == [3,4,1,2,5,6]
@@ -943,6 +949,16 @@ using Test
       @test apply_action(p, 2) == apply_action(p, [0, 1])
       @test apply_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
     end
+    @testset "wrong length for exponent vector" begin
+      R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
+      f_1 = y_2[0,1]^3 + y_2
+      f_2 = y_1^2 * y_2[1,0] + y_1[0,1] - 1
+      f_3 = y_1[1,0]^4 + y_1[0,1]*y_2^2
+      f_4 = y_1[0,2] * y_2[1,1] + y_1[0,1] + 1
+      F = [f_1, f_2, f_3, f_4]
+      @test initial(F[2]) == y_1^2 # This was zero at some point
+    end
   end
 
 end #All tests
+
