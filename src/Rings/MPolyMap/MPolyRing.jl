@@ -10,7 +10,7 @@
 
 ################################################################################
 #
-#  Constructos
+#  Constructors
 #
 ################################################################################
 
@@ -25,25 +25,82 @@ end
 # no check for commutative codomains
 _check_imgs(S::Ring, imgs) = nothing 
 
+
 @doc raw"""
-    hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+    hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing)
 
-    hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
-    
-Given a homomorphism `coeff_map` from `C` to `S`, where `C` is the 
-coefficient ring of `R`, and given a vector `images` of `nvars(R)` 
-elements of `S`, return the homomorphism `R` $\to$ `S` whose restriction 
-to `C` is `coeff_map`, and which sends the `i`-th variable of `R` to the 
-`i`-th entry of `images`.
- 
-If no coefficient map is entered, invoke a canonical homomorphism of `C`
-to `S`, if such a homomorphism exists, and throw an error, otherwise.
+    hom(R::MPolyRing, S::NCRing, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing)
 
-!!! note
-    In case `check = true` (default), the function checks the conditions below:
-    - If `S` is graded, the assigned images must be homogeneous with respect to the given grading.
-    - If `S` is noncommutative, the assigned images must pairwise commute. 
-    
+    hom(::Type{K}, R::MPolyRing, S::NCRing, coeff_map, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing) where {K}
+
+    hom(::Type{K}, R::MPolyRing, S::NCRing, images::Vector;
+        check::Bool = true,
+        grading_group_hom = nothing,
+        degree_shift = nothing) where {K}
+
+Create the ring homomorphism `f : R -> S` sending the `i`-th generator of `R`
+to `images[i]`. If `coeff_map` is supplied, coefficients are mapped using
+`coeff_map`; otherwise Oscar uses `nothing`.
+
+# Map kinds and grading
+
+Oscar attaches a "kind" tag to every map, one of
+
+- `HomUngraded`
+- `HomGraded`
+- `HomGradedToUngraded`
+- `HomUngradedToGraded`
+
+Untyped constructors `hom(R,S,...)` choose the kind from the types of `R` and `S`.
+Typed constructors `hom(HomUngraded, R,S,...)`, `hom(HomGraded, R,S,...)`, etc.,
+let the user force the kind.
+
+## Graded maps (HomGraded)
+
+If the chosen kind is `HomGraded`, both `R` and `S` must be graded rings.
+Let `GR = grading_group(R)` and `GS = grading_group(S)`. A graded map is
+determined by
+
+- a group homomorphism `phi : GR -> GS` (in `grading_group_hom`)
+- a shift element `deg_shift` in `GS` (in `degree_shift`)
+
+such that for every generator `x_i = gen(R,i)`:
+
+    degree(images[i]) == phi(degree(x_i)) + deg_shift
+
+and each `images[i]` is homogeneous in `S`.
+
+Defaults:
+
+- If `grading_group_hom === nothing` and `GR == GS`, Oscar uses the canonical
+  identity-on-generators map `hom(GR, GS, gens(GS))`.
+- If `GR != GS` and `grading_group_hom === nothing`, an error is thrown.
+- If `degree_shift === nothing`, `deg_shift` is inferred from the image of
+  the first generator.
+
+The keywords `grading_group_hom` and `degree_shift` are only meaningful for
+kind `HomGraded`. Passing them for other kinds is an error.
+
+## Checks
+
+If `check=true` (default):
+
+- If `S` is noncommutative, the images must pairwise commute.
+- If the kind is `HomGraded`, homogeneity and the degree condition above are
+  verified.
+
+If `check=false`, validation is skipped. In the `HomGraded` case the map still
+stores the computed `grading_group_hom` and `degree_shift` attributes so that
+composition of graded maps remains well-defined.
 
 # Examples
 ```jldoctest; filter = r"\#\d+" => "#"
@@ -100,30 +157,93 @@ julia> H(f)
 x^2 + 1
 ```
 """
-function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
+function hom(::Type{K}, R::MPolyRing, S::NCRing, coeff_map, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing) where {K <: MPolyHomKind}
+
   n = ngens(R)
   @req n == length(images) "Number of images must be $n"
-  # Now coerce into S or throw an error if not possible
+
   imgs = _coerce(S, images)
+
+  K0 = _kind_for(R, S)
+  if K === HomGraded
+    @req K0 == HomGraded "HomGraded requested but domain/codomain are not both graded."
+  elseif K === HomGradedToUngraded
+    @req K0 == HomGradedToUngraded "HomGradedToUngraded requested but rings are not according to graded->ungraded."
+  elseif K === HomUngradedToGraded
+    @req K0 == HomUngradedToGraded "HomUngradedToGraded requested but rings are not according to ungraded->graded."
+  elseif K === HomUngraded
+    @req (K0 == HomUngraded || K0 == HomGraded) "HomUngraded requested but rings are mixed graded/ungraded."
+  else
+    error("Unknown map kind $K")
+  end
+
+  if K !== HomGraded
+    @req grading_group_hom === nothing "grading_group_hom is only allowed for HomGraded"
+    @req degree_shift === nothing "degree_shift is only allowed for HomGraded"
+  end
+
+  phi = nothing
+  deg_shift = nothing
+  if K === HomGraded
+    phi, deg_shift = _graded_data(R, S, imgs;
+                                  grading_group_hom = grading_group_hom,
+                                  degree_shift = degree_shift)
+  end
+
   @check begin
     _check_imgs(S, imgs)
-    _check_homo(S, imgs) # defined in MPolyAnyMap.jl
+    if K === HomGraded
+      _check_homo(S, imgs)
+      for i in 1:n
+        @req degree(imgs[i]) == phi(degree(gen(R, i))) + deg_shift "Degree mismatch for image of generator $i"
+      end
+    end
   end
-  return MPolyAnyMap(R, S, coeff_map, copy(imgs)) # copy because of #655
+
+  f = MPolyAnyMap(K, R, S, coeff_map, copy(imgs)) # copy because of #655
+
+  if K === HomGraded
+    set_attribute!(f, :grading_group_hom => phi)
+    set_attribute!(f, :degree_shift => deg_shift)
+  end
+
+  return f
 end
 
-function hom(R::MPolyRing, S::NCRing, images::Vector; check::Bool = true)
-  n = ngens(R)
-  @req n == length(images) "Number of images must be $n"
-  # Now coerce into S or throw an error if not possible
-  imgs = _coerce(S, images)
-  @check begin
-    _check_imgs(S, imgs)
-    _check_homo(S, imgs) # defined in MPolyAnyMap.jl
-  end
-  return MPolyAnyMap(R, S, nothing, copy(imgs)) # copy because of #655
+function hom(::Type{K}, R::MPolyRing, S::NCRing, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing) where {K <: MPolyHomKind}
+  return hom(K, R, S, nothing, images;
+             check = check,
+             grading_group_hom = grading_group_hom,
+             degree_shift = degree_shift)
 end
 
+# Untyped constructors for backwards compatibility.
+function hom(R::MPolyRing, S::NCRing, coeff_map, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing)
+  K = _kind_for(R, S)
+  return hom(K, R, S, coeff_map, images;
+             check = check,
+             grading_group_hom = grading_group_hom,
+             degree_shift = degree_shift)
+end
+
+function hom(R::MPolyRing, S::NCRing, images::Vector;
+             check::Bool = true,
+             grading_group_hom = nothing,
+             degree_shift = nothing)
+  return hom(R, S, nothing, images;
+             check = check,
+             grading_group_hom = grading_group_hom,
+             degree_shift = degree_shift)
+end
 
 
 ################################################################################

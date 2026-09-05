@@ -169,8 +169,9 @@ end
 # The following is used when the domain is graded
 
 # if the codomain is graded, the images must be homogeneous?!
+# Grading helpers for polynomial ring maps
 _isgraded(::NCRing) = false
-_isgraded(R::MPolyDecRing) = is_graded(R) # filtered not considered graded
+_isgraded(R::MPolyDecRing) = is_graded(R)
 _isgraded(R::MPolyQuoRing) = _isgraded(base_ring(R))
 
 function _check_homo(S::NCRing, images)
@@ -180,6 +181,78 @@ function _check_homo(S::NCRing, images)
     end
   end
 end
+
+# Kind of a map, determined by types
+
+_kind_for(::NCRing, ::NCRing) = HomUngraded
+
+_kind_for(::MPolyDecRing, ::NCRing) = HomGradedToUngraded
+_kind_for(::NCRing, ::MPolyDecRing) = HomUngradedToGraded
+_kind_for(::MPolyDecRing, ::MPolyDecRing) = HomGraded
+
+_kind_for(R::MPolyQuoRing, S::NCRing) = _kind_for(base_ring(R), S)
+_kind_for(R::NCRing, S::MPolyQuoRing) = _kind_for(R, base_ring(S))
+_kind_for(R::MPolyQuoRing, S::MPolyQuoRing) = _kind_for(base_ring(R), base_ring(S))
+
+_ungraded_kind_for(::NCRing, ::NCRing) = HomUngraded
+_ungraded_kind_for(::MPolyDecRing, ::NCRing) = HomGradedToUngraded
+_ungraded_kind_for(::NCRing, ::MPolyDecRing) = HomUngradedToGraded
+_ungraded_kind_for(::MPolyDecRing, ::MPolyDecRing) = HomUngraded
+
+_ungraded_kind_for(R::MPolyQuoRing, S::NCRing) = _ungraded_kind_for(base_ring(R), S)
+_ungraded_kind_for(R::NCRing, S::MPolyQuoRing) = _ungraded_kind_for(R, base_ring(S))
+_ungraded_kind_for(R::MPolyQuoRing, S::MPolyQuoRing) = _ungraded_kind_for(base_ring(R), base_ring(S))
+
+hom_kind(f::MPolyAnyMap{D, C, U, V, K}) where {D, C, U, V, K} = K
+
+# Compute degree shift for graded maps.
+#
+# Condition:
+#   degree(img_i) == phi(degree(gen(R,i))) + deg_shift  for all i.
+#
+# If grading groups differ, phi must be supplied
+# except if both groups are the infinite cyclic group
+# If groups are equal and phi is omitted, we use hom(GR, GS, gens(GS))
+
+function _is_Z(G)
+  return (G isa FinGenAbGroup) && !isfinite(G) &&number_of_generators(G) == 1
+end
+
+function _graded_data(R::NCRing, S::NCRing, imgs;
+                      grading_group_hom = nothing,
+                      degree_shift = nothing)
+  GR = grading_group(R)
+  GS = grading_group(S)
+
+  phi = grading_group_hom
+  if phi === nothing
+    if GR == GS
+      phi = hom(GR, GS, gens(GS))
+    elseif _is_Z(GR) && _is_Z(GS)
+      phi = hom(GR, GS, gens(GS))
+    else
+      error("Source and target have different grading groups; please supply grading_group_hom.")
+    end
+  else
+    @req grading_group_hom isa Map "grading_group_hom must be a Map"
+    @req domain(grading_group_hom) === GR "grading_group_hom has wrong domain"
+    @req codomain(grading_group_hom) === GS "grading_group_hom has wrong codomain"
+    phi = grading_group_hom
+  end
+  deg_shift = degree_shift
+  if deg_shift === nothing
+    n = ngens(R)
+    if n == 0
+      deg_shift = zero(GS)
+    else
+      deg_shift = degree(imgs[1]) - phi(degree(gen(R, 1)))
+    end
+  end
+
+  return phi, deg_shift
+end
+
+
 
 # When evaluating the map F at a polynomial f, we first construct the polynomial
 # map_coefficients(coefficient_map(F), f), which is a polynomial over
@@ -300,10 +373,47 @@ function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, S}) where {
 end
 
 # No coefficient maps in both maps
-function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E}
+#function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E}
+#  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+#  return hom(domain(F), codomain(G), G.(_images(F)), check=false)
+#end
+
+# No coefficient maps in both maps; now respect grading kinds.
+function compose(F::MPolyAnyMap{D, C, Nothing, V1, K1},
+                 G::MPolyAnyMap{C, E, Nothing, V2, K2}) where {D, C, E, V1, V2,
+                                                              K1 <: MPolyHomKind,
+                                                              K2 <: MPolyHomKind}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
-  return hom(domain(F), codomain(G), G.(_images(F)), check=false)
+
+  R = domain(F)
+  T = codomain(G)
+
+  imgs = G.(_images(F))
+
+  if K1 === HomGraded && K2 === HomGraded
+    h = MPolyAnyMap(HomGraded, R, T, nothing, imgs)
+
+    phi_F = get_attribute(F, :grading_group_hom, nothing)
+    dsh_F = get_attribute(F, :degree_shift, nothing)
+    phi_G = get_attribute(G, :grading_group_hom, nothing)
+    dsh_G = get_attribute(G, :degree_shift, nothing)
+
+    @req phi_F !== nothing && dsh_F !== nothing &&
+         phi_G !== nothing && dsh_G !== nothing "Missing grading data on graded maps."
+
+    phi_H = compose(phi_G, phi_F)
+    dsh_H = phi_G(dsh_F) + dsh_G
+
+    set_attribute!(h, :grading_group_hom => phi_H)
+    set_attribute!(h, :degree_shift => dsh_H)
+
+    return h
+  end
+
+  Kout = _ungraded_kind_for(R, T)
+  return MPolyAnyMap(Kout, R, T, nothing, imgs)
 end
+
 
 # Julia functions in both maps
 function compose(F::MPolyAnyMap{D, C, <: Function}, G::MPolyAnyMap{C, E, <: Function}) where {D, C, E}
@@ -352,16 +462,18 @@ end
 ################################################################################
 
 function morphism_type(::Type{D}, ::Type{C}) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing}
-  return MPolyAnyMap{D, C, Nothing, elem_type(C)}
+  return MPolyAnyMap{D, C, Nothing, elem_type(C), HomUngraded}
 end
 
-morphism_type(::D, ::C) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing} = morphism_type(D, C)
+morphism_type(::D, ::C) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing} =
+  morphism_type(D, C)
 
 function morphism_type(::Type{D}, ::Type{C}, f::Type{F}) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F}
-  return MPolyAnyMap{D, C, F, elem_type(C)}
+  return MPolyAnyMap{D, C, F, elem_type(C), HomUngraded}
 end
 
-morphism_type(::D, ::C, ::F) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F} = morphism_type(D, C, F)
+morphism_type(::D, ::C, ::F) where {D <: Union{MPolyRing, MPolyQuoRing}, C <: NCRing, F} =
+  morphism_type(D, C, F)
 
 function (f::MPolyAnyMap{<:MPolyRing, <:AbstractAlgebra.NCRing})(I::MPolyIdeal)
   return ideal(codomain(f), [f(g) for g in gens(I)])
