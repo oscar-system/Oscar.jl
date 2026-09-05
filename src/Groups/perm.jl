@@ -21,6 +21,99 @@ Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
 
+################################################################################
+#
+#  Direct access to GAP's internal representation of permutations
+#
+#  A GAP permutation of degree `deg` is a bag that stores a pointer to its
+#  cached inverse, followed by the images of `1:deg` as zero-based entries of
+#  type `UInt16` (bag type `T_PERM2`) resp. `UInt32` (bag type `T_PERM4`):
+#
+#      +---------+----------+----------+-----+------------+
+#      | inverse | 1^x - 1  | 2^x - 1  | ... | deg^x - 1  |
+#      +---------+----------+----------+-----+------------+
+#
+#  Bypassing the GAP library here avoids converting Julia vectors to GAP lists
+#  and back, which dominates the runtime of the operations below.
+#
+#  TODO: move this into GAP.jl once the interface has settled.
+#
+################################################################################
+
+# Size of the leading pointer to the cached inverse.
+const _GAP_PERM_INVERSE_SIZE = sizeof(Ptr{Cvoid})
+
+# Largest degree GAP still stores as `T_PERM2` instead of `T_PERM4`.
+const _GAP_PERM2_MAX_DEGREE = 2^16
+
+# Largest degree representable at all, as `T_PERM4` uses `UInt32` entries.
+const _GAP_PERM_MAX_DEGREE = 2^32
+
+# Bit layout of the header word preceding the data of a GAP bag. Decoding it
+# here rather than calling `GAP.TNUM_OBJ` and `GAP.SIZE_OBJ` keeps `ADDR_OBJ`
+# to a single call: from the second one on, the repeated accesses are no
+# longer merged once the caller is inlined into `collect_to!`, which costs a
+# factor of three in comprehensions such as `[i^x for i in 1:degree(x)]`.
+const _GAP_BAG_TNUM_MASK = 0xff
+const _GAP_BAG_SIZE_SHIFT = 16
+
+# Pointer to the image entries of the GAP permutation `x`; only valid as long
+# as `x` is protected from garbage collection.
+_gap_perm_images(::Type{T}, x::GapObj) where T = Ptr{T}(GAP.ADDR_OBJ(x) + _GAP_PERM_INVERSE_SIZE)
+
+# Image of the point `n` under the GAP permutation `x`; points beyond the
+# stored degree are fixed.
+@inline function _gap_perm_image(x::GapObj, n::Int)
+  GC.@preserve x begin
+    ptr = GAP.ADDR_OBJ(x)
+    header = unsafe_load(ptr, 0)
+    images = ptr + _GAP_PERM_INVERSE_SIZE
+    nbytes = Int(header >> _GAP_BAG_SIZE_SHIFT) - _GAP_PERM_INVERSE_SIZE
+    if header & _GAP_BAG_TNUM_MASK == GAP.T_PERM4
+      n > nbytes ÷ sizeof(UInt32) && return n
+      return Int(unsafe_load(Ptr{UInt32}(images), n)) + 1
+    end
+    n > nbytes ÷ sizeof(UInt16) && return n
+    return Int(unsafe_load(Ptr{UInt16}(images), n)) + 1
+  end
+end
+
+# Return the GAP permutation mapping `i` to `L[i]` for all `i` in `1:length(L)`.
+# Throw an `ArgumentError` if `L` is not a permutation of `1:length(L)`.
+function _make_gap_perm(L::AbstractVector{<:IntegerUnion})
+  deg = length(L)
+  @req deg <= _GAP_PERM_MAX_DEGREE "degree is $deg, must be at most $_GAP_PERM_MAX_DEGREE"
+  deg <= _GAP_PERM2_MAX_DEGREE && return _make_gap_perm(UInt16, L)
+  return _make_gap_perm(UInt32, L)
+end
+
+function _make_gap_perm(::Type{T}, L::AbstractVector{<:IntegerUnion}) where T <: Union{UInt16, UInt32}
+  deg = length(L)
+  x = if T === UInt16
+    @ccall GAP.libgap.NEW_PERM2(deg::UInt)::GapObj
+  else
+    @ccall GAP.libgap.NEW_PERM4(deg::UInt)::GapObj
+  end
+
+  # Reject non-bijective input, just as GAP's `PermList` does; without this the
+  # resulting bag would violate GAP's invariants and crash the GAP kernel.
+  # A `Vector{Bool}` beats a `BitVector` here by a factor of three.
+  seen = fill(false, deg)
+
+  GC.@preserve x begin
+    images = _gap_perm_images(T, x)
+    for (i, v) in enumerate(L)
+      @req 1 <= v <= deg "the list does not describe a permutation"
+      k = Int(v)
+      @req !(@inbounds seen[k]) "the list does not describe a permutation"
+      @inbounds seen[k] = true
+      unsafe_store!(images, T(k - 1), i)
+    end
+  end
+
+  return x
+end
+
 @doc raw"""
     degree(G::PermGroup) -> Int
 
@@ -277,10 +370,7 @@ end
 
 function perm(n::Int, L::AbstractVector{<:IntegerUnion})
   @req length(L) <= n "input vector exceeds given degree $n"
-  @req all(<=(length(L)), L) "input vector contains entry exceeding its length"
-  x = GAPWrap.PermList(GapObj(L;recursive=true))
-  @req x !== GAP.Globals.fail "the list does not describe a permutation"
-  return PermGroupElem(_symmetric_group_cached(n), x)
+  return PermGroupElem(_symmetric_group_cached(n), _make_gap_perm(L))
 end
 
 """
@@ -340,9 +430,9 @@ true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
-   @req x !== GAP.Globals.fail "the list does not describe a permutation"
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
+   @req length(L) <= degree(g) "the element does not embed in the group"
+   x = _make_gap_perm(L)
+   @req x in GapObj(g) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
@@ -510,9 +600,16 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
 
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^GapObj(x))
+function ^(n::T, x::PermGroupElem) where T <: IntegerUnion
+  fits(Int, n) && return T(Int(n)^x)
+  @req n > 0 "permutations only act on positive integers"
+  return n  # points beyond the degree are fixed
+end
 
-^(n::Int, x::PermGroupElem) = (n^GapObj(x))::Int
+function ^(n::Int, x::PermGroupElem)
+  @req n > 0 "permutations only act on positive integers"
+  return _gap_perm_image(GapObj(x), n)
+end
 
 
 @doc raw"""
