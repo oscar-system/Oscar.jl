@@ -183,6 +183,7 @@ GAP.@wrap InducedClassFunction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InducedClassFunctionsByFusionMap(x::GapObj, y::GapObj, z::GapObj, t::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap InfoLevel(x::GapObj)::Int
 GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Intersection(x::GapObj)::GapObj
 GAP.@wrap IntFFE(x::Any)::GapInt
@@ -402,6 +403,7 @@ GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SchurIndexByCharacter(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap Set(x::GapObj)::GapObj
 GAP.@wrap SetConjugacyClasses(x::Any, y::Any)::Nothing
+GAP.@wrap SetInfoLevel(x::GapObj, y::Int)::Nothing
 GAP.@wrap SetIsIrreducibleCharacter(x::Any, y::Bool)::Nothing
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
