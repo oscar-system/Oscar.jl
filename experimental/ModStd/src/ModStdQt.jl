@@ -178,8 +178,8 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
 
   set_status!(M, :univariate_failed)
 
-  if !isdefined(Val, :nd) || length(Val.nd) < length(Val.v)
-    nd = []
+  nd = if !isdefined(Val, :nd) || length(Val.nd) < length(Val.v)
+    nd_new = []
     val = Val.v
     i = 1
     for x = val
@@ -195,11 +195,11 @@ function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
         return false, zero(M.R) # more z
       end
       t = inv(trailing_coefficient(mu[3]))
-      push!(nd, (mu[2]*t, mu[3]*t))
+      push!(nd_new, (mu[2]*t, mu[3]*t))
     end
-    Val.nd = nd
+    Val.nd = nd_new
   else
-    nd = Val.nd
+    Val.nd
   end
   Qx = parent(nd[1][1])
   @assert parent(nd[1][2]) == Qx
@@ -943,7 +943,10 @@ function cleanup(Lambda::PolyRingElem{T}, E::Int, c::Vector{T}, k::Int) where {T
   e = 0
   n = length(c)
   while i <= n-1
-    d = sum(coeff(Lambda, j)*c[i+j-t+1] for j=0:t-1)
+    # `i` changes in the loop, so the generator captures a fresh local rather
+    # than boxing it; see docs/src/DeveloperDocumentation/closure_boxes.md
+    ii = i
+    d = sum(coeff(Lambda, j)*c[ii+j-t+1] for j=0:t-1)
     if d != -c[i+1] 
       c[i+1] = -d
       e += 1
@@ -952,7 +955,8 @@ function cleanup(Lambda::PolyRingElem{T}, E::Int, c::Vector{T}, k::Int) where {T
   end
   i = k-1
   while i>= 0 && e <= E
-    d = sum(coeff(Lambda, j)*c[i+j+1] for j=1:t)
+    ii = i
+    d = sum(coeff(Lambda, j)*c[ii+j+1] for j=1:t)
     if d+coeff(Lambda, 0)*c[i+1] != 0
       c[i+1] = -d//coeff(Lambda, 0)
       e += 1
