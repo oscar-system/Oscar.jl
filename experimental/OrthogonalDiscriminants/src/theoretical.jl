@@ -231,15 +231,13 @@ function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
 
   # If `chi` is a Brauer character and `pi` is an ordinary character
   # then restrict `pi` to the `l`-regular classes.
-  if characteristic(pi) == 0 && characteristic(chi) != 0
-    pi = restrict(pi, tbl)
-  end
-  if scalar_product(chi, pi) != 0
+  pi_l = characteristic(pi) == 0 && characteristic(chi) != 0 ? restrict(pi, tbl) : pi
+  if scalar_product(chi, pi_l) != 0
     # The restriction of `chi` to P is not orthogonally stable.
     return false, ""
   end
 
-  fus = filter(i -> pi[i] != 0, 1:number_of_conjugacy_classes(tbl))
+  fus = filter(i -> pi_l[i] != 0, 1:number_of_conjugacy_classes(tbl))
   res = Oscar.GAPWrap.ELMS_LIST(GapObj(chi), GapObj(fus))
 
   if l != 0
