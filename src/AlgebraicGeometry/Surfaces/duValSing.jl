@@ -122,8 +122,8 @@ function is_du_val_singularity(X::AbsAffineScheme{<:Field,<:Any},I::Ideal)
     set_attribute!(I2,:is_absolutely_prime,true)
     ## pass to algebraic extension
     r_changed = base_ring(I2)
-    kk = coefficient_ring(r_changed)
-    J_changed = ideal(r_changed,  [change_coefficient_ring(kk,a, parent = r_changed) for a=gens(J)])
+    kk_ext = coefficient_ring(r_changed)
+    J_changed = ideal(r_changed,  [change_coefficient_ring(kk_ext,a, parent = r_changed) for a=gens(J)])
     is_du_val_singularity(spec(quo(r_changed,J_changed)[1]),I2) || return false
   end
 
@@ -203,8 +203,8 @@ function decide_du_val_singularity(X::AbsAffineScheme{<:Field,<:Any},I::MPolyIde
     set_attribute!(I2,:is_absolutely_prime,true)
     ## pass to algebraic extension
     r_changed = base_ring(I2)
-    kk = coefficient_ring(r_changed)
-    J_changed = ideal(r_changed,  [change_coefficient_ring(kk,a, parent = r_changed) for a=gens(J)])
+    kk_ext = coefficient_ring(r_changed)
+    J_changed = ideal(r_changed,  [change_coefficient_ring(kk_ext,a, parent = r_changed) for a=gens(J)])
     tempvec = decide_du_val_singularity(spec(quo(r_changed,J_changed)[1]),I2)
     for x in tempvec
       x[1] || return [x]

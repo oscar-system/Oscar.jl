@@ -265,17 +265,17 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   c = t^0
   for (pt, rt, fiber, comp, gram) in reducible_fibers(X)
     Fib0 = comp[1]
-    f0 = zeros(QQFieldElem, length(basisNS))
+    mult = zeros(QQFieldElem, length(basisNS))
     for i in 1:length(basisNS)
       if !isone(components(Fib0)[1]+components(basisNS[i])[1])
         if length(comp)==2 && 2<i<=rk_triv
-          f0[i] = 2
+          mult[i] = 2
         else
-          f0[i] = 1
+          mult[i] = 1
         end
       end
     end
-    f0 = ZZ.(f0 * inv(gram_matrix(ambient_space(NS))))
+    f0 = ZZ.(mult * inv(gram_matrix(ambient_space(NS))))
     @assert inner_product(ambient_space(NS), f0,f0) == -2
     nonzero = [i for i in 3:rk_triv if f0[i]!=0]
     if pt[2]==0 # at infinity
@@ -283,7 +283,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
     else
       t0 = t//(t*pt[2]-pt[1])
     end
-    while any(F3[i]<0 for i in nonzero)
+    while any(F3[nonzero] .< 0)
       F3 = F3 - f0
       D = D + Fib0
       D1 = D1 + fiber
@@ -326,15 +326,15 @@ function _vertical_part(X::EllipticSurface, v::QQMatrix)
   # and that one must be simple, it can be the one meeting O or not
   # assert this by adding fiber components under the additional condition that p stays in the algebraic lattice
   simples = []
-  E = identity_matrix(QQ,rank(NS))
+  id_NS = identity_matrix(QQ,rank(NS))
   z = zero_matrix(QQ,1, rank(NS))
   r = 2
   for fiber in _trivial_lattice(X)[3]
     fiber_type = fiber[2]
     fiber_rk = fiber_type[2]
     h = highest_root(fiber_type...)
-    simple_indices = [r+i for i in 1:ncols(h) if isone(h[1,i])]
-    simple_or_zero = [E[i:i,:] for i in simple_indices]
+    simple_indices = r .+ [i for i in 1:ncols(h) if isone(h[1,i])]
+    simple_or_zero = [id_NS[i:i,:] for i in simple_indices]
     push!(simple_or_zero, z)
     push!(simples,simple_or_zero)
     r += fiber_rk
@@ -443,13 +443,9 @@ function _normalize_hyperelliptic_curve(g::MPolyRingElem; parent::Union{MPolyRin
   (x, y) = gens(R)
 
   # Prepare the output ring
-  if parent===nothing
-    R1, (x1, y1) = R, gens(R)
-  else
-    R1 = parent
-    @assert coefficient_ring(R1) == coefficient_ring(R) "coefficient ring of output is incompatible with input"
-    (x1, y1) = gens(R1)
-  end
+  R1 = something(parent, R)
+  @assert coefficient_ring(R1) == coefficient_ring(R) "coefficient ring of output is incompatible with input"
+  (x1, y1) = gens(R1)
 
   # Get the coefficients of g as a univariate polynomial in y
   ktx, X = polynomial_ring(kt, :X, cached=false)
@@ -520,15 +516,19 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   if x == R[2] && y == R[1]
     switch = hom(R, R, reverse(gens(R)))
     g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
-    new_trans = MapFromFunc(F, F, f->begin
-                                switch_num = switch(numerator(f))
-                                switch_den = switch(denominator(f))
-                                interm_res = trans(F(switch_num))//trans(F(switch_den))
-                                num = numerator(interm_res)
-                                den = denominator(interm_res)
-                                switch(num)//switch(den)
-                            end
-                           )
+    # `let`: `trans` is assigned in several branches of this function; see
+    # docs/src/DeveloperDocumentation/closure_boxes.md
+    new_trans = let trans = trans
+      MapFromFunc(F, F, f->begin
+                      switch_num = switch(numerator(f))
+                      switch_den = switch(denominator(f))
+                      interm_res = trans(F(switch_num))//trans(F(switch_den))
+                      num = numerator(interm_res)
+                      den = denominator(interm_res)
+                      switch(num)//switch(den)
+                  end
+                 )
+    end
     return switch(g_trans), new_trans
   end
 
@@ -571,7 +571,11 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     # y^2 = B*x^3+C*x^2+C*x+D
     x1 = F(inv(B)*x)
     y1 = F(inv(B)*y)
-    trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+    # `let`: `x1` and `y1` are assigned in several branches; see
+    # docs/src/DeveloperDocumentation/closure_boxes.md
+    trans = let x1 = x1, y1 = y1
+      MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+    end
     f_trans = B^2*trans(F(g))
     result = numerator(B^2*f_trans)
     return result, trans
@@ -608,8 +612,11 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     #@assert y == evaluate(y1, [x2, y2])
   end
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
-  # TODO: eventually add the inverse.
-  trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  # TODO: eventually add the inverse. `let`: `x1` and `y1` are assigned in
+  # several branches; see docs/src/DeveloperDocumentation/closure_boxes.md
+  trans = let x1 = x1, y1 = y1
+    MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+  end
   f_trans = trans(F(g))
   fac = [a[1] for a in factor(numerator(f_trans)) if isone(a[2]) && _is_in_weierstrass_form(a[1])]
   isone(length(fac)) || error("transform to weierstrass form did not succeed")

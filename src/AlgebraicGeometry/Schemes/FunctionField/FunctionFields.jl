@@ -270,22 +270,22 @@ function move_representative(
   return h_generic
 
   # It turned out that the following is too expensive in general
-  if domain(f) isa PrincipalOpenSubset
-    fac = factor(lifted_numerator(complement_equation(domain(f))))
-    p = OO(U)(numerator(h_generic))
-    q = OO(U)(denominator(h_generic))
-    for (a, e) in fac
-      aa = OO(U)(a)
-      k_num, _ = _minimal_power_such_that(aa, x->divides(p, x)[1]) # This division takes ages for big polynomials.
-      k_den, _ = _minimal_power_such_that(aa, x->divides(q, x)[1])
-      k = minimum([k_num, k_den])
-      aa = aa^k
-      _, p = divides(p, aa)
-      _, q = divides(q, aa)
-    end
-    h_generic = fraction(p)//fraction(q)
-  end
-  return h_generic
+  #if domain(f) isa PrincipalOpenSubset
+  #  fac = factor(lifted_numerator(complement_equation(domain(f))))
+  #  p = OO(U)(numerator(h_generic))
+  #  q = OO(U)(denominator(h_generic))
+  #  for (a, e) in fac
+  #    aa = OO(U)(a)
+  #    k_num, _ = _minimal_power_such_that(aa, x->divides(p, x)[1]) # This division takes ages for big polynomials.
+  #    k_den, _ = _minimal_power_such_that(aa, x->divides(q, x)[1])
+  #    k = minimum([k_num, k_den])
+  #    aa = aa^k
+  #    _, p = divides(p, aa)
+  #    _, q = divides(q, aa)
+  #  end
+  #  h_generic = fraction(p)//fraction(q)
+  #end
+  #return h_generic
 end
 
 function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.FracFieldElem; check::Bool=true)

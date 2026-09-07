@@ -78,11 +78,11 @@ function produce_restriction_map(F::StructureSheafOfRings,
     g_res = restrict(g, U, V_direct, check=false)
     return pullback(compose(g_res, inverse(incV)))
     ### deprecated code below; see comment above
-    function rho_func2(a::RingElem)
-      parent(a) === OV || error("element does not belong to the correct ring")
-      return restrict(pullback(g)(OO(W1)(a)), U)
-    end
-    return hom(OV, OU, rho_func2.(gens(OV)), check=false)
+    #function rho_func2(a::RingElem)
+    #  parent(a) === OV || error("element does not belong to the correct ring")
+    #  return restrict(pullback(g)(OO(W1)(a)), U)
+    #end
+    #return hom(OV, OU, rho_func2.(gens(OV)), check=false)
   end
 end
 function produce_restriction_map(F::StructureSheafOfRings, 
@@ -186,8 +186,8 @@ function produce_restriction_map(F::StructureSheafOfRings, V::AffineSchemeOpenSu
     inc0 = inclusion_morphism(VG, V, check=false)
     preV = preimage(g, VG, check=false)
     gres = restrict(g, preV, VG, check=false)
-    inc = inclusion_morphism(W, preV, check=false)
-    return MapFromFunc(OV, OW, x->(pullback(inc)(pullback(gres)(pullback(inc0)(x)))))
+    incW = inclusion_morphism(W, preV, check=false)
+    return MapFromFunc(OV, OW, x->(pullback(incW)(pullback(gres)(pullback(inc0)(x)))))
   end
 end
 
