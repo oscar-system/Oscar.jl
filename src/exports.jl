@@ -1889,6 +1889,7 @@ export uov_5
 export uov_5_pkc
 export uov_5_pkc_skc
 export uov_all
+export uov_open
 export update_gluing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
