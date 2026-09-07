@@ -1402,7 +1402,6 @@ export on_subgroups
 export on_tuples
 export on_tuples_sets
 export one!
-export open
 export open_subset_type
 export opposite_algebra
 export opposite_ordering
