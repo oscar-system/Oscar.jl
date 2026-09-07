@@ -85,12 +85,12 @@ Base.hash(a::MultGrpElem, h::UInt) = hash(a.data, h)
   M::mT
   ac::Vector{Map} # automorphisms of M, one for each generator of G
 
-  function GModule(M, G::T, ac::Vector{<:Map}) where {T}
+  function GModule(M, G::T, ac::Vector{S}) where {T} where {S <: Map}
     r = new{T,typeof(M)}()
     r.G = G
     r.ac = ac
     r.M = M
-    r.action_cache = Dict{elem_type(G), typeof(M[1])}()
+    r.action_cache = Dict{elem_type(G), S}()
     r.action_count = Dict{elem_type(G), Int}()
     @assert all(x -> domain(x) === codomain(x) === r.M, ac)
     if isa(G, Group)
@@ -3584,8 +3584,8 @@ function fp_group(c::CoChain{2})
   return extension(c)[1]
 end
 
-function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
-  return extension(PcGroup, c)[1]
+function pc_group(c::CoChain{2})
+  return pc_group(extension(c))
 end
 
 function Oscar.permutation_group(c::CoChain{2})
