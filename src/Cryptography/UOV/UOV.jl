@@ -409,9 +409,12 @@ the public key `pk` first and the secret key `sk` second. Both are byte vectors
 whose layout depends on the `pkc` and `skc` flags of `uov`.
 
 # Examples
-```jldoctest uov-keygen
-julia> uov = uov_1p; pk, sk = keygen(uov); (length(pk), length(sk))
-(278432, 237896)
+```jldoctest
+julia> uov = uov_1p; pk, sk = keygen(uov);
+julia> length(pk)
+278432
+julia> length(sk)
+237896
 ```
 """
 function keygen(uov::UOV)
@@ -444,7 +447,7 @@ Sign the message `msg` (a byte vector) with the secret key `sk` of the UOV
 parameter set `uov`, returning the signature as a byte vector.
 
 # Examples
-```jldoctest uov-sign
+```jldoctest
 julia> uov = uov_1p; pk, sk = keygen(uov); msg = zeros(UInt8, 32); sig = sign(uov, msg, sk);
 
 julia> verify(uov, sig, msg, pk)
@@ -530,11 +533,16 @@ Return `true` if the signature `sig` is a valid signature of the message `msg`
 under the public key `pk` of the UOV parameter set `uov`.
 
 # Examples
-```jldoctest uov-verify
+```jldoctest
 julia> uov = uov_1p; pk, sk = keygen(uov); msg = zeros(UInt8, 32); sig = sign(uov, msg, sk); sig_bad = copy(sig); sig_bad[1] ⊻= 0xff;
 
-julia> verify(uov, sig, msg, pk), verify(uov, sig_bad, msg, pk)
-(true, false)
+julia> verify(uov, sig, msg, pk)
+true
+
+julia> sig_bad = copy(sig); sig_bad[1] ⊻= 0xff;
+
+julia> verify(uov, sig_bad, msg, pk)
+false
 ```
 """
 function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8})
@@ -563,7 +571,7 @@ signature), verifying it against the public key `pk`. Returns `nothing` if the
 signature is invalid.
 
 # Examples
-```jldoctest uov-open
+```jldoctest
 julia> uov = uov_1p; pk, sk = keygen(uov); msg = UInt8[1, 2, 3]; sm = vcat(msg, sign(uov, msg, sk));
 
 julia> Oscar.open(uov, sm, pk)
@@ -609,8 +617,7 @@ variants) are created this way.
 # Examples
 Create a parameter set and read back its parameters; an invalid `gf` is
 rejected with a clear error.
-```jldoctest uov-instantiate
-julia> u = instantiate_uov(256, 112, 44, false, false, "my-uov"); (u.n, u.m, u.v)
+```jldoctestjulia> u = instantiate_uov(256, 112, 44, false, false, "my-uov"); (u.n, u.m, u.v)
 (112, 44, 68)
 
 julia> instantiate_uov(4, 10, 3, false, false, "bad")
