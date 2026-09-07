@@ -1499,7 +1499,7 @@ ERROR: ArgumentError: the group does not act
 """
 function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
   gL = GapObj(L)
-  res = GAP.Globals.Transitivity(GapObj(G), gL)
+  res = GAPWrap.Transitivity(GapObj(G), gL)
   @req res !== GAP.Globals.fail "the group does not act"
   # If the result is `0` then it may be that `G` does not act on `L`,
   # and in this case we want to throw an exception.

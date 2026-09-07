@@ -107,8 +107,8 @@ GAP.@wrap EigenvaluesChar(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ElementOfFpGroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Elements(x::GapObj)::GapObj
 GAP.@wrap ElementsFamily(x::GapObj)::GapObj
-GAP.@wrap ELM_LIST(x::Any, i::Int)::Any
 GAP.@wrap ELMS_LIST(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap ELM_LIST(x::Any, i::GAP.Obj)::Any
 GAP.@wrap Embedding(x::GapObj, y::Int)::GapObj
 GAP.@wrap EpimorphismSchurCover(x::GapObj)::GapObj
 GAP.@wrap Exponents(x::GapObj)::GapObj
@@ -187,6 +187,7 @@ GAP.@wrap InducedCyclic(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InfoLevel(x::GapObj)::Int
 GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Intersection(x::GapObj)::GapObj
+GAP.@wrap Intersection(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IntFFE(x::Any)::GapInt
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap Inverse(x::GapObj)::GapObj
@@ -202,6 +203,7 @@ GAP.@wrap IsAtlasCharacterTable(x::GapObj)::Bool
 GAP.@wrap IsBiCoset(x::Any)::Bool
 GAP.@wrap IsBijective(x::Any)::Bool
 GAP.@wrap IsBool(x::Any)::Bool
+GAP.@wrap ISB_LIST(x::GapObj, y::Int)::Bool
 GAP.@wrap IsCanonicalBasisAlgebraicExtension(x::GapObj)::Bool
 GAP.@wrap IsChar(x::Any)::Bool
 GAP.@wrap IsCharacteristicSubgroup(x::Any, y::Any)::Bool
@@ -383,6 +385,7 @@ GAP.@wrap Projection(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj, i::Int)::GapObj
 GAP.@wrap PRump(x::GapObj, y::Int)::GapObj
 GAP.@wrap QUO(x::GAP.Obj, y::GAP.Obj)::GAP.Obj
+GAP.@wrap Random(x::GapObj)::GAP.Obj
 GAP.@wrap Random(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap RecognizeGroup(x::GapObj)::GapObj
@@ -393,7 +396,8 @@ GAP.@wrap RelativeOrderOfPcElement(x::GapObj, y::GapObj)::GapInt
 GAP.@wrap RelativeOrders(x::GapObj)::GapObj
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj
-GAP.@wrap RepresentativeAction(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap RepresentativeAction(u::GapObj, v::Any, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap RepresentativeAction(x::GapObj, y::Any, z::Any)::GapObj
 GAP.@wrap RepresentativesMinimalBlocks(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap RepresentativeTom(x::GapObj, y::Int)::GapObj
 GAP.@wrap RestrictedMapping(x::GapObj, y::GapObj)::GapObj
@@ -409,6 +413,7 @@ GAP.@wrap SetIsIrreducibleCharacter(x::Any, y::Bool)::Nothing
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap SetUnderlyingGroup(x::Any, y::Any)::Nothing
+GAP.@wrap ShallowCopy(x::GapObj)::GapObj
 GAP.@wrap ShrinkRowVector(x::GapObj)::Nothing
 GAP.@wrap SignPerm(x::GapObj)::Int
 GAP.@wrap SignPermGroup(x::GapObj)::Int

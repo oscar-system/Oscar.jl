@@ -37,7 +37,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatElem{T}}; che
    matrices_and_invs = copy(matrices)
    append!(matrices_and_invs, [ inv(M) for M in matrices ])
    for i = 1:length(rels)
-      M = GAPWrap.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
+      M = GAP.Globals.MappedWord(rels[i], GapObj(gens_and_invsF), GapObj(matrices_and_invs))
       if !isone(M)
         return false, nothing
       end
@@ -94,7 +94,7 @@ function _isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) 
   gen = gens(G)
 
   preimg_bare = function(y)
-    return GAPWrap.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, y)),
+    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, y)),
                                   GAPWrap.FreeGeneratorsOfFpGroup(F),
                                   GapObj(gen))
   end
