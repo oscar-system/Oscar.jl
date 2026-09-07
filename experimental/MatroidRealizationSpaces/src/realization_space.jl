@@ -820,12 +820,12 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   to_R(x) = ring_map === :fast ? fast_reduce_mod_p(x, R, F) :
             ring_map === nothing ? R(x) : ring_map(x)
 
-  rels = Tuple{elem_type(R), Function}[]
+  rels = Tuple{elem_type(R), Bool}[]
   for g in gens(RS.defining_ideal)
-    push!(rels, (to_R(g), ==))
+    push!(rels, (to_R(g), true))
   end
   for g in RS.inequations
-    push!(rels, (to_R(g), !=))
+    push!(rels, (to_R(g), false))
   end
 
   function return_rs(subs::Dict)
@@ -847,17 +847,17 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   end
 
   if !(R isa MPolyRing)
-    if !all(op(f, zero_F) for (f, op) in rels)
+    if !all(xor(is_eq, !iszero(f)) for (f, is_eq) in rels)
       return nothing
     end
     return return_rs(Dict())
   end
 
-  rels_with_supp = Tuple{elem_type(R), Function, Vector{elem_type(R)}}[]
+  rels_with_supp = Tuple{elem_type(R), Bool, Vector{elem_type(R)}}[]
   appearance = Dict{elem_type(R), Int}()
-  for (f, op) in rels
+  for (f, is_eq) in rels
     vs = vars(f)
-    push!(rels_with_supp, (f, op, vs))
+    push!(rels_with_supp, (f, is_eq, vs))
     for v in vs
       appearance[v] = get(appearance, v, 0) + 1
     end
@@ -868,23 +868,23 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   var_index = Dict(v => i for (i, v) in enumerate(variables))
   domains = [collect(F) for _ in 1:n]
 
-  function prune(f, op, supp)
+  function prune(f, is_eq, supp)
     if isempty(supp)
-      return op(f, zero_F) ? Tuple{elem_type(R), Function, Set{Int}}[] : nothing
+      return xor(is_eq, !is_zero(f)) ? Tuple{elem_type(R), Bool, Set{Int}}[] : nothing
     end
     if length(supp) == 1
       i = first(supp)
       v = variables[i]
-      domains[i] = [c for c in domains[i] if op(evaluate(f, [v], [c]), zero_F)]
-      return Tuple{elem_type(R), Function, Set{Int}}[]
+      domains[i] = [c for c in domains[i] if xor(is_eq, !is_zero(evaluate(f, [v], [c])))]
+      return Tuple{elem_type(R), Bool, Set{Int}}[]
     end
-    return [(f, op, supp)]
+    return [(f, is_eq, supp)]
   end
 
-  reduced_rels = Tuple{elem_type(R), Function, Set{Int}}[]
-  for (f, op, vs) in rels_with_supp
+  reduced_rels = Tuple{elem_type(R), Bool, Set{Int}}[]
+  for (f, is_eq, vs) in rels_with_supp
     supp = Set(var_index[v] for v in vs)
-    res = prune(f, op, supp)
+    res = prune(f, is_eq, supp)
     if res === nothing
       return nothing
     end
@@ -920,15 +920,16 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
     return groups
   end
 
-  rels_by_level = Dict{Int, Vector{Tuple{Dict, Int, Function, Vector{elem_type(F)}}}}()
-  for (f, op, supp) in reduced_rels
+  GroupsT = Dict{Int, Vector{Tuple{Vector{Tuple{Int,Int}}, elem_type(F)}}}
+  rels_by_level = Dict{Int, Vector{Tuple{GroupsT, Int, Bool, Vector{elem_type(F)}}}}()
+  for (f, is_eq, supp) in reduced_rels
     k = maximum(supp)
     terms = compile_terms(f)
     groups = group_by_pivot(terms, k)
     max_p = maximum(keys(groups))
     buf = [zero(F) for _ in 1:max_p+1]
-    push!(get!(rels_by_level, k, Tuple{Dict, Int, Function, Vector{elem_type(F)}}[]),
-          (groups, max_p, op, buf))
+    push!(get!(rels_by_level, k, Tuple{Dict, Int, Bool, Vector{elem_type(F)}}[]),
+          (groups, max_p, is_eq, buf))
   end
 
   for k in keys(rels_by_level)
@@ -976,22 +977,43 @@ function concrete_realization(RS::MatroidRealizationSpace, q::Int)
   sum_scratch = zero(F)
   horner_scratch = zero(F)
 
+  # Preallocate one buffer per depth, sized to the max possible candidates at that depth
+  cand_buf = [Vector{elem_type(F)}(undef, length(domains[k])) for k in 1:n]
+  cand_len = zeros(Int, n)
+
   function backtrack(k, subs)
-    if k > n
-        return subs
-    end
-    candidates = copy(domains[k])
-    for (groups, max_p, op, buf) in get(rels_by_level, k, Tuple{Dict, Int, Function, Vector{elem_type(F)}}[])
-        isempty(candidates) && break
-        coeffs = coeffs_in_pivot!(buf, groups, max_p, subs, acc_scratch, sum_scratch)
-        candidates = [val for val in candidates if op(horner!(horner_scratch, coeffs, val), zero_F)]
-    end
-    for val in candidates
-        subs[k] = val
-        res = backtrack(k + 1, subs)
-        res !== nothing && return res
-    end
-    return nothing
+      if k > n
+          return subs
+      end
+
+      buf = cand_buf[k]
+      len = length(domains[k])
+      copyto!(buf, domains[k])   # seed candidates for this level, no allocation
+
+      levels = get(rels_by_level, k, nothing)
+      if levels !== nothing
+          for (groups, max_p, is_eq, rbuf) in levels
+              len == 0 && break
+              coeffs = coeffs_in_pivot!(rbuf, groups, max_p, subs, acc_scratch, sum_scratch)
+              # compact buf[1:len] in place, keeping only values that satisfy the relation
+              w = 0
+              for r in 1:len
+                  val = buf[r]
+                  if xor(is_eq, !iszero(horner!(horner_scratch, coeffs, val)))
+                      w += 1
+                      buf[w] = val
+                  end
+              end
+              len = w
+          end
+      end
+
+      for idx in 1:len
+          subs[k] = buf[idx]
+          res = backtrack(k + 1, subs)
+          res !== nothing && return res
+      end
+      return nothing
   end
 
   subs = backtrack(1, [zero(F) for _ in 1:n])
