@@ -82,7 +82,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
   end
 
   if ld_ind == 0 # a is an element of the base ring
-    return Expr(:call, :+, expressify(coeff(a, 1), context = context))  
+    return Expr(:call, :+, expressify(coeff(a, 1), context = context))
   end
 
   sum = Expr(:call, :+)
@@ -123,12 +123,12 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
   end
   push!(sum.args, coeff_ld_exp_prod)
 
-  return sum 
+  return sum
 end
 
 ###############################################################################
 #
-#  Iterators 
+#  Iterators
 #
 ###############################################################################
 
@@ -178,7 +178,7 @@ end
 
 ###############################################################################
 #
-#  Rankings 
+#  Rankings
 #
 ###############################################################################
 

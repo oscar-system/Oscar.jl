@@ -122,7 +122,7 @@ function pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT
   deg_q = degree(q, i, jet)
   deg_q < 0 && throw(DivideError()) # By convention, (only) the zero polynomial has degree -1 in each jet variable
   @req deg_q > 0 "Cannot pseudo-divide by a polynomial with degree 0 in the specified division variable"
-  
+
   # positive degree ensures existence of the key
   return pseudodivrem(p, q, __jtv(parent(q))[(i, jet)])
 end
@@ -132,7 +132,7 @@ pseudodivrem(p::PolyT, q::PolyT, i::Int) where {PolyT <: ActionPolyRingElem} = p
 
 function pseudodivrem(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   is_zero(q) && throw(DivideError())
-  
+
   if is_constant(q)
     flag, quo = divides(p, q)
     if flag
@@ -141,7 +141,7 @@ function pseudodivrem(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
       return (p, zero(p))
     end
   end
-  
+
   return pseudodivrem(p, q, leader(q))
 end
 
@@ -162,7 +162,7 @@ function ritt_is_less(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
     is_constant(q) && return false
     return true
   end
-  
+
   is_constant(q) && return false
 
   ld_p = leader(p)
@@ -194,8 +194,8 @@ partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem} = __cor
     partially_reduce(p::ActionPolyRingElem, S::Vector{ActionPolyRingElem})
 
 Partially reduce the action polynomial `p` with respect to the vector `S`. This is done by pre-sorting `S`
-with respect to Ritt ordering, filtering out zero polynomials and then performing top-down partial
-reductions of `p` by the remaining elements of `S` until no further reductions are possible.
+with respect to Ritt ordering and then performing top-down partial reductions of `p` by the remaining elements
+of `S` until no further reductions are possible.
 """
 partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem} = __core_partially_reduce(p, S, false)[1]
 
@@ -228,45 +228,45 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   # S will serve as the working list throughout this algorithm
   S = filter(!is_zero, S)
   sort!(S, lt=ritt_is_less)
-  
-  A = PolyT[] # The "successively" built up autoreduced set 
+
+  A = PolyT[] # The "successively" built up autoreduced set
   while !isempty(S)
     if !isempty(A) && is_constant(A[1])
       return [A[1]]
     elseif !isempty(S) && is_constant(S[1])
       return [S[1]]
     end
-    
+
     p = popfirst!(S)
     original_p = p
-    
+
     rank_dropped = false
     for q in Iterators.reverse(A)
       p = reduce(p, q) 
-      
+
       if is_zero(p)
         break
       end
-      
-      # Reduce by coefficients in the base ring 
+
+      # Reduce by coefficients in the base ring
       c_gcd = foldl(gcd, coefficients(p))
       if !isone(c_gcd)
         p = divexact(p, c_gcd)
       end
-      
+
       # Detect rank drops of p
       if ritt_is_less(p, original_p)
         rank_dropped = true
         break 
       end
     end
-    
+
     # Nothing to do here
     if is_zero(p)
       continue 
     end
-    
-    # Reinsert both p and all element of A greater than p back into the working list S. 
+
+    # Reinsert both p and all element of A greater than p back into the working list S.
     if rank_dropped
       # inserting elts of A
       while !isempty(A) && ritt_is_less(p, A[end])
@@ -274,18 +274,18 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
         idx = searchsortedfirst(S, q_popped, lt=ritt_is_less)
         insert!(S, idx, q_popped)
       end
-      
+
       # inserting p
       idx = searchsortedfirst(S, p, lt=ritt_is_less)
       insert!(S, idx, p)
-      
+
       continue
     end
-    
+
     # No rank drop ever occurred, so appending p to A will give an autoreduced set
     push!(A, p)
   end
-  
+
   return A
 end
 
@@ -300,7 +300,7 @@ end
     leader_shift_for_partial_reduction(p::ActionPolyRingElem, q::ActionPolyRingElem)
 
 Return the jet difference vector `k` such that `apply_action(q, k)` has the same leader
-as the highest-ranking unreduced jet variable in `p`. If `p` is already partially reduced 
+as the highest-ranking unreduced jet variable in `p`. If `p` is already partially reduced
 with respect to `q`, return `nothing`. Note that the notion of an 'unreduced' jet variable
 depends on the type of `p` (and `q`):
 
@@ -313,14 +313,14 @@ function __leader_shift_for_partial_reduction(p::PolyT, q::PolyT) where {PolyT <
   # parent checks are always performed before this method is called from an exported method
   @req !is_constant(q) "Cannot compute leader shift with respect to a constant polynomial"
   is_constant(p) && return nothing
-  
+
   apr = parent(q)
   ld_q = leader(q)
   ld_i, ld_idx = __vtj(apr)[ld_q]
-  
+
   for var in vars(p)
     var_i, var_idx = __vtj(apr)[var]
-    
+
     if var_i == ld_i
       is_derivative = true
       for k in 1:length(ld_idx)
@@ -328,16 +328,16 @@ function __leader_shift_for_partial_reduction(p::PolyT, q::PolyT) where {PolyT <
           is_derivative = false
           break
         end
-      end 
-    
+      end
+
       if is_derivative && var_idx != ld_idx
         if __is_proper_shift_reducible(p, q, var)
           return var_idx .- ld_idx 
         end
-      end 
-    end 
-  end 
-  
+      end
+    end
+  end
+
   return nothing
 end
 
@@ -366,17 +366,17 @@ is_partially_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingE
     is_reduced(p::ActionPolyRingElem, q::ActionPolyRingElem)
 
 Return `true` if the polynomial `p` is fully reduced with respect to the non-constant
-polynomial `q`. This means `p` is partially reduced with respect to `q`, and the degree 
+polynomial `q`. This means `p` is partially reduced with respect to `q`, and the degree
 of `p` in the leader of `q` is strictly less than the degree of `q` in its leader.
 """
 function is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
   @req !is_zero(q) "Cannot reduce with respect to the zero polynomial"
   is_constant(q) && return is_zero(p)
-  
+
   is_constant(p) && return true
   is_partially_reduced(p, q) || return false
-  
+
   ld_q = leader(q)
   return degree(p, ld_q) < degree(q, ld_q)
 end
@@ -391,21 +391,21 @@ is_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem} = all
 @doc raw"""
     is_autoreduced(S::Vector{<:ActionPolyRingElem})
 
-Return `true` if `S` is an autoreduced set. A set is autoreduced if every polynomial 
-in the set is fully reduced with respect to all other polynomials in the set, and 
+Return `true` if `S` is an autoreduced set. A set is autoreduced if every polynomial
+in the set is fully reduced with respect to all other polynomials in the set, and
 the set is sorted by Ritt ordering.
 """
 function is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   any(is_constant, S) && return (length(S) == 1 && !is_zero(S[1]) && is_constant(S[1]))
   !issorted(S, lt=ritt_is_less) && return false
-  
+
   for i in 1:length(S)
     for j in 1:length(S)
       i == j && continue
       !is_reduced(S[i], S[j]) && return false
     end
   end
-  
+
   return true
 end
 
@@ -439,7 +439,7 @@ function __core_pseudorem(p::P, q::P, v::P, track_factors::Bool) where {P <: Uni
   deg_q = degree(q, v)
   deg_q < 0 && throw(DivideError())
   @req deg_q > 0 "Cannot pseudo-divide by a polynomial with degree 0 in the specified division variable"
-  
+
   factors = P[]
   degree(p, v) < deg_q && return (p, factors)
 
@@ -448,9 +448,9 @@ function __core_pseudorem(p::P, q::P, v::P, track_factors::Bool) where {P <: Uni
 
   while !is_zero(rem) && (deg_rem = degree(rem, v)) >= deg_q
     lc_rem = __univariate_leading_coefficient(rem, v)
-    
+
     flag, c = divides(lc_rem, lc_q)
-    
+
     if flag
       sub!(rem, rem, c * (v^(deg_rem - deg_q)) * q)
     else
@@ -469,7 +469,7 @@ function __core_pseudodivrem(p::P, q::P, v::P, track_factors::Bool) where {P <: 
   deg_q = degree(q, v)
   deg_q < 0 && throw(DivideError())
   @req deg_q > 0 "Cannot pseudo-divide by a polynomial with degree 0 in the specified division variable"
-    
+
   factors = P[]
   quo = zero(parent(p))
   degree(p, v) < deg_q && return (quo, p, factors)
@@ -479,7 +479,7 @@ function __core_pseudodivrem(p::P, q::P, v::P, track_factors::Bool) where {P <: 
 
   while !is_zero(rem) && (deg_rem = degree(rem, v)) >= deg_q
     lc_rem = __univariate_leading_coefficient(rem, v)
-        
+
     flag, c = divides(lc_rem, lc_q)
 
     if flag
@@ -497,7 +497,7 @@ function __core_pseudodivrem(p::P, q::P, v::P, track_factors::Bool) where {P <: 
       end
     end
   end
-    
+
   return (quo, rem, factors)
 end
 
@@ -508,23 +508,23 @@ __core_partially_reduce(p::P, S::Vector{P}, track_factors::Bool) where {P <: MPo
 function __core_partially_reduce(p::P, q::P, track_factors::Bool) where {P <: ActionPolyRingElem}
   @req !is_zero(q) "Cannot partially reduce with respect to the zero polynomial"
   factors = P[]
-  is_constant(q) && return (zero(p), factors)  
+  is_constant(q) && return (zero(p), factors)
 
   p_red = deepcopy(p)
   shift = __leader_shift_for_partial_reduction(p_red, q)
-    
+
   while shift !== nothing
     q_shifted = apply_action(q, shift)
     ld_q_shifted = leader(q_shifted)
     p_red, step_factors = __core_pseudorem(p_red, q_shifted, ld_q_shifted, track_factors)
-    
+
     if track_factors
       append!(factors, step_factors)
     end
-    
+
     shift = __leader_shift_for_partial_reduction(p_red, q)
   end
-    
+
   return (p_red, factors)
 end
 
@@ -536,7 +536,7 @@ function __core_partially_reduce(p::P, S::Vector{P}, track_factors::Bool) where 
       has_const = true
     end
   end
-  
+
   factors = P[]
   has_const && return (zero(p), factors)
 
@@ -549,7 +549,7 @@ function __core_partially_reduce(p::P, S::Vector{P}, track_factors::Bool) where 
     for q in Iterators.reverse(sorted_S)
       original_res = deepcopy(res)
       res, step_factors = __core_partially_reduce(res, q, track_factors)
-      
+
       if track_factors
         append!(factors, step_factors)
       end
@@ -566,17 +566,17 @@ function __core_reduce(p::P, q::P, track_factors::Bool) where {P <: Union{MPolyR
   @req !is_zero(q) "Cannot reduce with respect to the zero polynomial"
   factors = P[]
   is_constant(q) && return (zero(p), factors)
-  
+
   p_red, p_factors = __core_partially_reduce(p, q, track_factors)
   if track_factors
     append!(factors, p_factors)
   end
-  
+
   res, b_factors = __core_pseudorem(p_red, q, __leader(q), track_factors)
   if track_factors
     append!(factors, b_factors)
   end
-  
+
   return (res, factors)
 end
 
@@ -588,35 +588,35 @@ function __core_reduce(p::P, S::Vector{P}, track_factors::Bool) where {P <: Unio
       has_const = true
     end
   end
-  
+
   factors = P[]
   has_const && return (zero(p), factors)
-  
+
   sorted_S = sort(S, lt=__ritt_is_less)
 
   res = deepcopy(p)
   changed = true
-  
+
   while changed && !is_zero(res)
     changed = false
     for q in Iterators.reverse(sorted_S)
       original_res = deepcopy(res)
-      
+
       # 1. Partial Reduction
       res, p_factors = __core_partially_reduce(res, q, track_factors)
       if track_factors
         append!(factors, p_factors)
       end
-      
+
       # 2. Algebraic Reduction
       ld_q = __leader(q)
-      if degree(res, ld_q) >= degree(q, ld_q) 
+      if degree(res, ld_q) >= degree(q, ld_q)
         res, b_step = __core_pseudorem(res, q, ld_q, track_factors)
         if track_factors
           append!(factors, b_step)
         end
       end
-      
+
       if res != original_res
         changed = true
         is_zero(res) && break
@@ -637,12 +637,12 @@ end
 # Since these are not intended to be exported, for each method we also provide a wrapper for
 # the associated action polynomial method.
 
-# Return the highest-ranked variable present in `p`. 
+# Return the highest-ranked variable present in `p`.
 # Variables are assumed to be sorted `x_1 > x_2 > ... > x_n` matching `gens(parent(p))`.
 function __leader(p::MPolyRingElem)
   @req !is_zero(p) "The zero polynomial has no leader"
   is_constant(p) && return one(parent(p))
-    
+
   R = parent(p)
   for i in 1:nvars(R)
     v = gen(R, i)
@@ -658,10 +658,10 @@ function __univariate_leading_coefficient(p::P, v::P) where {P <: MPolyRingElem}
   d = degree(p, v)
   @req d > -1 "The zero polynomial has no leading coefficient"
   d == 0 && return p
-    
+
   res = zero(p)
   v_idx = var_index(v)
-    
+
   for (t, e) in zip(terms(p), exponents(p))
     if @inbounds e[v_idx] == d
       res += remove(t, v)[2]
@@ -682,10 +682,10 @@ __initial(p::ActionPolyRingElem) = initial(p)
 # Return the discriminant of `p`.
 function __discriminant(p::MPolyRingElem)
   is_constant(p) && return is_zero(p) ? p : one(p)
-  
+
   ld_p = __leader(p)
   i = var_index(ld_p)
-  
+
   if degree(p, ld_p) % 4 in (0, 1)
     return divexact(resultant(p, derivative(p, i), i), __initial(p))
   else
@@ -703,7 +703,7 @@ function __ritt_is_less(p::P, q::P) where {P <: MPolyRingElem}
     is_constant(q) && return false
     return true
   end
-  
+
   is_constant(q) && return false
 
   ld_p = __leader(p)

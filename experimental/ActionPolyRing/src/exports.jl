@@ -11,6 +11,7 @@ export autoreduce
 export difference_polynomial_ring
 export differential_polynomial_ring
 export index_ordering_matrix
+export is_autoreduced
 export is_partially_reduced
 export is_reduced
 export leader

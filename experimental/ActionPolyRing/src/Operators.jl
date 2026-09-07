@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#  Unary Operators 
+#  Unary Operators
 #
 ###############################################################################
 
@@ -8,7 +8,7 @@ Base.:-(apre::ActionPolyRingElem) = parent(apre)(-data(apre))
 
 ###############################################################################
 #
-#  Binary Operators 
+#  Binary Operators
 #
 ###############################################################################
 
@@ -60,7 +60,7 @@ end
 
 ###############################################################################
 #
-#  gcd and lcm 
+#  gcd and lcm
 #
 ###############################################################################
 
@@ -76,7 +76,7 @@ end
 
 ###############################################################################
 #
-#  Remove and valuation 
+#  Remove and valuation
 #
 ###############################################################################
 
@@ -90,7 +90,7 @@ valuation(z::PolyT, p::PolyT) where {PolyT <: ActionPolyRingElem} = remove(z, p)
 
 ###############################################################################
 #
-#  Comparison 
+#  Comparison
 #
 ###############################################################################
 
@@ -107,17 +107,17 @@ function Base.isless(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
   apr = parent(p)
   vtj = __vtj(apr)
-  
+
   @req haskey(vtj, p) && haskey(vtj, q) "Not jet variables in comparison"
-  
+
   ind1 = vtj[p]
   ind2 = vtj[q]
   i1, J1 = ind1[1], ind1[2]
   i2, J2 = ind2[1], ind2[2]
-  
+
   M = riquier_matrix(ranking(apr))
   m = n_action_indeterminates(apr)
-  
+
   for k in 1:size(M, 1)
     val1 = M[k, i1]
     for l in 1:length(J1)
@@ -129,7 +129,7 @@ function Base.isless(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
     end
     val1 != val2 && return val1 < val2
   end
-  
+
   return false
 end
 
@@ -150,7 +150,7 @@ end
 
 ###############################################################################
 #
-#  Unsafe functions 
+#  Unsafe functions
 #
 ###############################################################################
 
