@@ -362,11 +362,11 @@ function _effective_presentation_of_slnq_2(GM)
 
   dislog = m -> begin
     es = _write_as_product_of_elementary_matrices(m)
-    o = one(G)
+    res = one(G)
     for e in es
-      o = o * FtoG(_elementary_matrix_to_gen(e, F, D))
+      res = res * FtoG(_elementary_matrix_to_gen(e, F, D))
     end
-    return o
+    return res
   end
 
   expo = w -> begin

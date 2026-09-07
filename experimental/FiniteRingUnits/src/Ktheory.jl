@@ -1,15 +1,12 @@
 function direct_product(R, projs::Vector, maps::Vector{<:RingMultMap}; simplify = true)
   _D, _fromD, _intoD = Oscar.biproduct(domain.(maps)...)
-  if simplify
-    D, StoD = snf(_D)
-    Oscar.set_attribute!(D, :direct_product => nothing, :show => nothing)
+  D, fromD, intoD = if simplify
+    Ds, StoD = snf(_D)
+    Oscar.set_attribute!(Ds, :direct_product => nothing, :show => nothing)
     DtoS = inv(StoD)
-    fromD = [StoD * d for d in _fromD]
-    intoD = [d * DtoS for d in _intoD]
+    (Ds, [StoD * d for d in _fromD], [d * DtoS for d in _intoD])
   else
-    D = _D
-    fromD = _fromD
-    intoD = _intoD
+    (_D, _fromD, _intoD)
   end
   # assemble the map :(
   return D, RingMultMap(R, D,

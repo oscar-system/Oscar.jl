@@ -111,11 +111,7 @@ function extension(A::EffectivePresentation, C::EffectivePresentation, B, f, fpr
     end
   end
   @vprint :FiniteRings "Constructing new fp group "
-  if ngens(F) == 0
-    G, FtoG = F, id_hom(F)
-  else
-    G, FtoG =  quo(F, new_relators)
-  end
+  G, FtoG = ngens(F) == 0 ? (F, id_hom(F)) : quo(F, new_relators)
   if Oscar.has_order(N) && Oscar.has_order(H)
     Oscar.set_order(G, order(N) * order(H))
   end
@@ -138,13 +134,14 @@ function extension(A::EffectivePresentation, C::EffectivePresentation, B, f, fpr
     uuuu = map_word(g, all_gens, genimgs_inv = all_gens_inv; init = one(B))
     return uuuu
   end
-  if true ngens((G)) >= 40
+  GG, GtoGG = if true ngens((G)) >= 40
     @vprintln :FiniteRings "Not simplifying"
-    GG, GtoGG = G, id_hom(G)
+    (G, id_hom(G))
   else
     @vprint :FiniteRings "Simplifying ... "
-    GG, GtoGG = simplified_fp_group(G)
-    @vprintln :FiniteRings "to: $(_show_fp(GG))"
+    GGs, GtoGGs = simplified_fp_group(G)
+    @vprintln :FiniteRings "to: $(_show_fp(GGs))"
+    (GGs, GtoGGs)
   end
   return EffectivePresentation(B, GG, x -> 
                               begin
