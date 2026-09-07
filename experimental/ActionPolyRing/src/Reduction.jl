@@ -154,6 +154,7 @@ Return `true` if `p` is smaller than `q` with respect to the Ritt ordering (asso
 ranking) on the action polynomial ring containing `p` and `q`), otherwise return `false`.
 """
 function ritt_is_less(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+  check_parent(p, q)
   if is_constant(p)
     if is_zero(p)
       is_zero(q) && return false
@@ -188,7 +189,10 @@ of `p` by proper derivatives (or shifts) of `q`. This means that the returned po
 variable that is a proper derivative (or shift) of the leader of `q`. If `q` is a non-zero constant then the zero polynomial is
 returned.
 """
-partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem} = __core_partially_reduce(p, q, false)[1]
+function partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+  check_parent(p, q)
+  return __core_partially_reduce(p, q, false)[1]
+end
 
 @doc raw"""
     partially_reduce(p::ActionPolyRingElem, S::Vector{ActionPolyRingElem})
@@ -197,7 +201,12 @@ Partially reduce the action polynomial `p` with respect to the vector `S`. This 
 with respect to Ritt ordering and then performing top-down partial reductions of `p` by the remaining elements
 of `S` until no further reductions are possible.
 """
-partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem} = __core_partially_reduce(p, S, false)[1]
+function partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+  for q in S
+    check_parent(p, q)
+  end
+  return __core_partially_reduce(p, S, false)[1]
+end
 
 @doc raw"""
     reduce(p::ActionPolyRingElem, q::ActionPolyRingElem)
@@ -207,7 +216,10 @@ reduced with respect to `q` in the sense that the degree of `p` in each derivati
 leader of `q` is strictly smaller than the degree of the respective derivative (or shift) of `q` in that
 same jet variable. If `q` is a nonzero constant then the zero polynomial is returned.
 """
-reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem} = __core_reduce(p, q, false)[1]
+function reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+  check_parent(p, q)
+  return __core_reduce(p, q, false)[1]
+end
 
 @doc raw"""
     reduce(p::ActionPolyRingElem, S::Vector{ActionPolyRingElem})
@@ -216,7 +228,12 @@ Reduce the action polynomial `p` with respect to the vector `S`. This is done by
 with respect to Ritt ordering and then performing top-down reductions of `p` by the elements of
 `S` until no further reductions are possible.
 """
-reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem} = __core_reduce(p, S, false)[1]
+function reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+  for q in S
+    check_parent(p, q)
+  end
+  return __core_reduce(p, S, false)[1]
+end
 
 @doc raw"""
     autoreduce(S::Vector{ActionPolyRingElem})
@@ -225,11 +242,18 @@ Compute an autoreduced set from the vector of action polynomials `S`. If at any 
 process a nonzero constant is discovered, the vector containing just this constant is returned.
 """
 function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+  if length(S) > 1
+    p = S[end]
+    for i in 1:(length(S) - 1)
+      check_parent(p, S[i])
+    end
+  end
+
   # S will serve as the working list throughout this algorithm
   S = filter(!is_zero, S)
   sort!(S, lt=ritt_is_less)
-
   A = PolyT[] # The "successively" built up autoreduced set
+
   while !isempty(S)
     if !isempty(A) && is_constant(A[1])
       return [A[1]]
@@ -350,6 +374,7 @@ __is_proper_shift_reducible(p::PolyT, q::PolyT, var::PolyT) where {PolyT <: Diff
 Return `true` if the action polynomial `p` is partially reduced with respect to the nonzero action polynomial `q`.
 """
 function is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+  check_parent(p, q)
   @req !is_zero(q) "Cannot partially reduce with respect to the zero polynomial"
   is_constant(q) && return is_zero(p)
   return isnothing(__leader_shift_for_partial_reduction(p, q))
