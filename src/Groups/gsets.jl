@@ -604,11 +604,14 @@ julia> map(collect, orbs)
 """
 @attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{Group, FinGenAbGroup},S}
   orbs = GSetByElements{T,S}[]
+  # One shared set of seen points keeps this linear in the number of points.
+  seen = IndexedSet{S}()
   for p_ in Omega.seeds
     p = p_::S
-    if all(o -> !(p in o), orbs)
-      push!(orbs, orbit(Omega, p))
-    end
+    p in seen && continue
+    orb = orbit(Omega, p)
+    append!(seen, elements(orb))
+    push!(orbs, orb)
   end
   return orbs
 end
