@@ -2,7 +2,7 @@
   @testset "Differential Reduction Methods" begin
     @testset "Single differential indeterminate" begin
       dpr, u = differential_polynomial_ring(QQ, :u, 2)
-     
+
       u_x = u[1, 0]
       u_y = u[0, 1]
       u_xy = u[1, 1]
@@ -11,7 +11,7 @@
       @testset "separant" begin
         q1 = u_x - u^2
         @test separant(q1) == dpr(1)
-      
+
         q2 = u_xy^2 + u_x
         @test separant(q2) == 2*u_xy
         @test separant(dpr(5)) == dpr(5)
@@ -40,49 +40,49 @@
         @test q3 == quot2
         @test r3 == rem2
       end
-    
+
       @testset "__leader_shift_for_partial_reduction" begin
         foo = Oscar.__leader_shift_for_partial_reduction
         q = u_x - u^2
-      
+
         p1 = u_xxy + u
         @test foo(p1, q) == [1, 1]
-      
+
         p2 = u_xy + u
         @test foo(p2, q) == [0, 1]
-      
+
         p3 = u_y + u
         @test foo(p3, q) === nothing
         @test foo(dpr(5), q) === nothing
       end
-    
+
       @testset "partially_reduce" begin
         p = u_xxy + u
         q = u_x - u^2
-      
+
         # Iteration 1: Q1 = apply_action(q, [1,1]) = u_xxy - 2*u_x*u_y - 2*u*u_xy
         # p1 = p - Q1 = 2*u*u_xy + 2*u_x*u_y + u
         # Iteration 2: Q2 = apply_action(q, [0,1]) = u_xy - 2*u*u_y
         # p2 = p1 - 2u*Q2 = 4*u^2*u_y + 2*u_x*u_y + u
         @test partially_reduce(p, q) == 4*u^2*u_y + 2*u_x*u_y + u
         @test partially_reduce(u_y + u, q) == u_y + u 
-        
+
         @test partially_reduce(p, dpr(5)) == zero(p)
         @test_throws ArgumentError partially_reduce(p, dpr(0))
       end
-    
+
       @testset "reduce" begin
         p = u_xxy + u_x^2 + u
         q = u_x - u^2
-      
+
         # 1. Partial reduction eliminates u_xxy, leaving:
         # p_pred = 4*u^2*u_y + 2*u_x*u_y + u_x^2 + u
         # 2. Algebraic reduction pseudo-divides out u_x^2 and u_x using (u_x - u^2):
         # p_fullred = 6*u^2*u_y + u^4 + u
-      
+
         @test reduce(p, q) == 6*u^2*u_y + u^4 + u
         @test reduce(u_y + u, q) == u_y + u 
-        
+
         @test reduce(p, dpr(5)) == zero(p)
         @test_throws ArgumentError reduce(p, dpr(0))
       end
@@ -101,13 +101,13 @@
       v_y = dpr[2, [0, 1]]
       v_xx = dpr[2, [2, 0]]
       v_xy = dpr[2, [1, 1]]
-      
+
       @testset "separant" begin
         q1 = u_xx + u_x^2
         q2 = u_x^3 + v_x*u_x
-        q3 = -2*v_y*v_xx^5 - v_xy^2*v_xx^2 + 2*v_xx 
+        q3 = -2*v_y*v_xx^5 - v_xy^2*v_xx^2 + 2*v_xx
         q4 = dpr(1)
-        @test separant(q1) == 1 
+        @test separant(q1) == 1
         @test separant(q2) == 3*u_x^2 + v_x
         @test separant(q3) == -10*v_y*v_xx^4 - 2*v_xy^2*v_xx + 2
         @test separant(q4) == dpr(1)
@@ -115,31 +115,31 @@
       @testset "pseudorem and pseudodivrem" begin
         p1 = u_x^2 + v_x
         q1 = u_x - v_y
-        
+
         @test pseudorem(p1, q1) == v_y^2 + v_x
-        
+
         quot1, rem1 = pseudodivrem(p1, q1)
         @test quot1 == u_x + v_y
         @test rem1 == v_y^2 + v_x
 
         p2 = v_xx^2 + u_x
         q2 = u_y * v_xx - v_x
-        
+
         @test pseudorem(p2, q2) == v_x^2 + u_y^2 * u_x
-        
+
         quot2, rem2 = pseudodivrem(p2, q2)
         @test quot2 == u_y * v_xx + v_x
         @test rem2 == v_x^2 + u_y^2 * u_x
 
         @test pseudorem(p2, q2, v_xx) == v_x^2 + u_y^2 * u_x
-        
+
         quot2_, rem2_ = pseudodivrem(p2, q2, v_xx)
         @test quot2_ == quot2
         @test rem2_ == rem2
-        
+
         p3 = u_x * v_x + u_x
         q3 = v_x + 1
-        
+
         @test pseudorem(p3, q3) == dpr(0)
         quot3, rem3 = pseudodivrem(p3, q3)
         @test quot3 == u_x
@@ -148,7 +148,7 @@
         # Trivial Case 1: Degree of p is strictly less than degree of q
         p_triv1 = v_x
         q_triv1 = v_x^2 + u
-        
+
         @test pseudorem(p_triv1, q_triv1) == v_x
         qt1, rt1 = pseudodivrem(p_triv1, q_triv1)
         @test qt1 == dpr(0)
@@ -157,13 +157,13 @@
         # Trivial Case 2: Dividend is exactly zero
         p_triv2 = dpr(0)
         q_triv2 = u_x + v
-        
+
         @test pseudorem(p_triv2, q_triv2) == dpr(0)
         qt2, rt2 = pseudodivrem(p_triv2, q_triv2)
         @test qt2 == dpr(0)
         @test rt2 == dpr(0)
 
-        # Trivial Case 3: Divisor is the zero polynomial 
+        # Trivial Case 3: Divisor is the zero polynomial
         @test_throws DivideError pseudorem(u_x + v, dpr(0))
         @test_throws DivideError pseudodivrem(u_x + v, dpr(0))
         @test_throws DivideError pseudorem(u_x + v, dpr(0), u_x)
@@ -188,7 +188,7 @@
         @test partially_reduce(p1, [q1, q1]) == 2*v_x*v_y + 2*v*v_xy+v_x
         @test partially_reduce(p1, [q1, dpr(1)]) == zero(p1)
         @test_throws ArgumentError partially_reduce(p1, [q1, dpr(1), dpr(0)])
-        
+
         p5 = u_x^3 + v_x
         q5 = u_x^2 + v
         @test partially_reduce(p5, q5) == p5
@@ -214,12 +214,12 @@
     end # two diff indets
     @testset "reduce wrt a set" begin
       dpr, (u, v) = differential_polynomial_ring(QQ, [:u, :v], 1, index_ordering_name=:deglex)
-      
+
       q1 = v[1] - u[0]
       q2 = u[1] - v[0]
-      
+
       p = v[2]
-      
+
       @test reduce(p, [q1, q2]) == v[0]
       @test partially_reduce(p, [q1, q2]) == u[1]
 
@@ -329,7 +329,6 @@
       @test autoreduce([dxr(0), dxr(0)]) == DifferencePolyRingElem[]
       @test autoreduce([dxr(0), dxr(-1), dxr(2)]) == [dxr(-1)]
 
-
       dpr, u = differential_polynomial_ring(QQ, :u, 1)
       q1 = u[1]^2 - u[0]
       q2 = u[2] - u[1]
@@ -344,24 +343,24 @@
       dpr, (u, v) = differential_polynomial_ring(QQ, [:u, :v], 2; index_ordering_name=:degrevlex)
 
       p1 = u[1, 1] - u[0, 0]
-      p2 = u[1, 0] - v[1, 0] 
+      p2 = u[1, 0] - v[1, 0]
       p3 = v[1, 1] - u[0, 0]
 
-      @test autoreduce([p1, p2, p3]) == [p2, p3] 
-      @test autoreduce([p3, p2, p1]) == [p2, p3] 
-      @test autoreduce([p2, p3, p1]) == [p2, p3] 
-      @test autoreduce([p1, p2]) == [p2, p3] 
+      @test autoreduce([p1, p2, p3]) == [p2, p3]
+      @test autoreduce([p3, p2, p1]) == [p2, p3]
+      @test autoreduce([p2, p3, p1]) == [p2, p3]
+      @test autoreduce([p1, p2]) == [p2, p3]
 
       p4 = u[1, 1] - u[0, 1]
       p5 = p2
       p6 = v[1, 1] + v[0, 0]
       
-      res = [-(u[0, 1] + v[0, 0]), u[1, 0] - v[1, 0], v[1, 1] + v[0, 0]] 
+      res = [-(u[0, 1] + v[0, 0]), u[1, 0] - v[1, 0], v[1, 1] + v[0, 0]]
       
-      @test autoreduce([p4, p5, p6]) == res 
-      @test autoreduce([p6, p5, p4]) == res 
-      @test autoreduce([p5, p6, p4]) == res 
+      @test autoreduce([p4, p5, p6]) == res
+      @test autoreduce([p6, p5, p4]) == res
+      @test autoreduce([p5, p6, p4]) == res
     end
   end
 
-end # all tests 
+end # all tests

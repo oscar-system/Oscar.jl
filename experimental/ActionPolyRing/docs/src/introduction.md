@@ -14,7 +14,7 @@ S = R[\, (u_i)_J \mid i \in \underline{m}, \, J \in \mathbb{Z}_{\geq 0}^n ]
 in the countably infinitely many *jet variables* ``(u_i)_J``, equipped with ``n`` commuting
 ``R``-linear *action maps* ``\sigma_1, \ldots, \sigma_n``, where ``m`` and ``n`` are positive
 integers. The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, the multiindices
-``J \in \mathbb{Z}_{\geq 0}^n`` are called *jets*. Note that depending on the specific setting, the 
+``J \in \mathbb{Z}_{\geq 0}^n`` are called *jets*. Note that depending on the specific setting, the
 action maps and action indeterminates get a more specific name, e.g. if ``S`` is a difference polynomial ring then
 the ``\sigma_j`` are called *shift operators* and the ``u_i`` are called *difference indeterminates*. If instead,
 ``S`` is a differential polynomial ring, then the ``\sigma_j`` are called *derivatives* and the ``u_i``
@@ -24,7 +24,7 @@ We put ``\Delta \coloneqq \{ \sigma_1, \ldots, \sigma_n\}`` and denote the set o
 ```math
 \operatorname{Mon}(\Delta) = \{\sigma_1^{a_1} \ldots \sigma_n^{a_n} \mid a_j \in \mathbb{N}_0, \, j \in \underline{n}\}.
 ```
-The ``j``-th action map ``\sigma_j`` has the property that, when applied to a jet variable, it increments the 
+The ``j``-th action map ``\sigma_j`` has the property that, when applied to a jet variable, it increments the
 ``j``-th entry of its jet by one. Depending on the specific setting it also has further properties,
 e.g. it is multiplicative for difference polynomial rings and it is a derivation for differential
 polynomial rings.\
@@ -33,7 +33,7 @@ Given an action polynomial ``p \in S`` we call an expression of the form ``\Thet
 ``\Theta \neq 1``. Note that an action transform of a jet variable is itself a jet variable. Specifically,
 if ``\Theta = \sigma_1^{a_1} \ldots \sigma_n^{a_n}``, with ``a = (a_1, \ldots, a_n) \in \mathbb{N}_0^n``, then
 ```math
-\Theta\left( (u_i)_J \right) = (u_i)_{J + a}. 
+\Theta\left( (u_i)_J \right) = (u_i)_{J + a}.
 ```
 
 ### [Rankings](@id actionpolyranking)

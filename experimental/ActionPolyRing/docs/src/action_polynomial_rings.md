@@ -35,7 +35,7 @@ which can be found below. The first two do not require the jet variable in quest
 - By passing the index of the jet variable in the list of the currently tracked jet variables.
 - By immediately passing the jet variable as an element of an action polynomial ring.
 
-!!! note 
+!!! note
     For many methods, e.g. [`degree`](@ref degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int})) or
     [`derivative`](@ref derivative(p::ActionPolyRingElem, i::Int, jet::Vector{Int})) we provide all the above
     versions, but only record one in this documentation for readability. Usually, we choose the second version
