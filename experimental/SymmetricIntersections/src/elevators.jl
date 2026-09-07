@@ -198,6 +198,8 @@ function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 
   @req all(>=(0), lbs) "Bounds conditions must consist of non negative integers"
 
   no_ubs = any(<(0), ubs)
+  # without given upper bounds, `d` itself bounds every entry
+  eff_ubs = no_ubs ? Int[Int(div(d, fL[i])) for i in 1:length(L)] : ubs
 
   _fL = unique(fL)
   _lbs = Int[sum([lbs[i] for i in 1:length(lbs) if fL[i] == _fL[j]]) for j in 1:length(_fL)]
@@ -213,12 +215,10 @@ function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 
     C = vcat(C, -identity_matrix(ZZ, length(_fL)))
     ub = matrix(ZZ, length(_fL), 1, _ubs)
     D = vcat(D, -ub)
-  else
-    ubs =  [Int(div(d, fL[i])) for i in 1:length(L)]
   end
 
   it = solve_mixed(SubObjectIterator{PointVector{ZZRingElem}}, A, B, C, D)
-  el = ElevCtx(L, d, it, f, (lbs, ubs))
+  el = ElevCtx(L, d, it, f, (lbs, eff_ubs))
   return el
 end
 
@@ -349,8 +349,8 @@ function _next(EC::ElevCtx, elev::Vector{Int})
 
   if elev == _last(EC, sumtype)
     sumsum = _possible_sums(EC)
-    j = findlast(j -> sumsum[j] == sumtype, 1:length(sumsum))
-    return _first(EC, sumsum[j+1])
+    pos = findlast(j -> sumsum[j] == sumtype, 1:length(sumsum))
+    return _first(EC, sumsum[pos+1])
   end
 
   ms = multiset(sumtype)
