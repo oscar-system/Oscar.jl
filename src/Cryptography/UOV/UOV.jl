@@ -1,4 +1,8 @@
-
+# ---------------------------------------------------------------------------
+# This file implements the official 2nd round specification of the
+# unbalanced oil and vingear post quantum signature scheme, see [UOV25](@cite)
+# for further information.
+# ---------------------------------------------------------------------------
 using Random: rand
 using Keccak: shake_256
 
@@ -564,7 +568,7 @@ function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UIn
 end
 
 @doc raw"""
-    open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
+    uov_open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
 
 Recover the message from a signed message `sm` (message concatenated with its
 signature), verifying it against the public key `pk`. Returns `nothing` if the
@@ -574,14 +578,14 @@ signature is invalid.
 ```jldoctest
 julia> uov = uov_1p; pk, sk = keygen(uov); msg = UInt8[1, 2, 3]; sm = vcat(msg, sign(uov, msg, sk));
 
-julia> Oscar.open(uov, sm, pk)
+julia> uov_open(uov, sm, pk)
 3-element Vector{UInt8}:
  0x01
  0x02
  0x03
 ```
 """
-function open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
+function uov_open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
     msg_sz = length(sm) - uov.sig_sz
     msg = sm[1:msg_sz]
     sig = sm[msg_sz+1:end]
