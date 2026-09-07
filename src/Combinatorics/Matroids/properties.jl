@@ -1130,10 +1130,10 @@ function matroid_hex(M::Matroid)
   v = zeros(Int, 4*ceil(Int, length(rvlx)/4))
   v[length(v)-length(rvlx)+1:end] = _revlex_basis_to_vector(rvlx)
 
-  v = reshape(v,4,:)
-  v = [string(parse(Int, join(v[:, j]), base=2), base=16) for j in 1:size(v)[2]]
+  vm = reshape(v,4,:)
+  hexdigits = [string(parse(Int, join(vm[:, j]), base=2), base=16) for j in 1:size(vm)[2]]
 
-  return "r$(r)n$(n)_" * join(v)
+  return "r$(r)n$(n)_" * join(hexdigits)
 end
 
 @doc raw"""
