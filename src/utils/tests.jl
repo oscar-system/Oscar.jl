@@ -33,7 +33,7 @@ function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION >
   end
 end
 
-function _gather_tests(path::AbstractString; ignore=[])
+function _gather_tests(path0::AbstractString; ignore=[])
   # default ignore patterns
   ignorepatterns = Regex[
                      # this can only run on the main process and not on distributed workers
@@ -57,14 +57,12 @@ function _gather_tests(path::AbstractString; ignore=[])
     end
   end
 
-  if any(p->contains(path, p), ignorepatterns)
-    @info "ignore: $(relpath(path, Oscar.oscardir))"
+  if any(p->contains(path0, p), ignorepatterns)
+    @info "ignore: $(relpath(path0, Oscar.oscardir))"
     return String[]
   end
 
-  if !isabspath(path)
-    path = joinpath(Oscar.oscardir, path)
-  end
+  path = isabspath(path0) ? path0 : joinpath(Oscar.oscardir, path0)
 
   isfile(path) && return [path]
   isfile("$path.jl") && return ["$path.jl"]
@@ -192,17 +190,15 @@ This only works for `new=false`.
 
 For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
-function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[])
+function test_module(path0::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[])
+  path = if isabspath(path0)
+    path0
+  else
+    joinpath(oscardir, normpath(startswith(path0, "test") ? path0 : joinpath("test", path0)))
+  end
   with_unicode(false) do
     julia_exe = Base.julia_cmd()
     project_path = Base.active_project()
-    if !isabspath(path)
-      if !startswith(path, "test")
-        path = joinpath("test", path)
-      end
-      rel_test_path = normpath(path)
-      path = joinpath(oscardir, rel_test_path)
-    end
     if new
       @req isempty(ignore) && !timed "The `timed` and `ignore` options only work for `new=false`."
       cmd = """
