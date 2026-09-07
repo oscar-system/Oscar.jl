@@ -255,18 +255,14 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   A = PolyT[] # The "successively" built up autoreduced set
 
   while !isempty(S)
-    if !isempty(A) && is_constant(A[1])
-      return [A[1]]
-    elseif !isempty(S) && is_constant(S[1])
-      return [S[1]]
-    end
+    is_constant(S[1]) && return S[1]
 
     p = popfirst!(S)
     original_p = p
 
     rank_dropped = false
     for q in Iterators.reverse(A)
-      p = reduce(p, q) 
+      p = reduce(p, q)
 
       if is_zero(p)
         break
@@ -281,13 +277,13 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
       # Detect rank drops of p
       if ritt_is_less(p, original_p)
         rank_dropped = true
-        break 
+        break
       end
     end
 
     # Nothing to do here
     if is_zero(p)
-      continue 
+      continue
     end
 
     # Reinsert both p and all element of A greater than p back into the working list S.
@@ -421,7 +417,14 @@ in the set is fully reduced with respect to all other polynomials in the set, an
 the set is sorted by Ritt ordering.
 """
 function is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
-  any(is_constant, S) && return (length(S) == 1 && !is_zero(S[1]) && is_constant(S[1]))
+  if length(S) > 1
+    p = S[end]
+    for i in 1:(length(S) - 1)
+      check_parent(p, S[i])
+    end
+  end
+  
+  any(is_constant, S) && return (length(S) == 1 && !is_zero(only(S)))
   !issorted(S, lt=ritt_is_less) && return false
 
   for i in 1:length(S)
@@ -465,11 +468,11 @@ function __core_pseudorem(p::P, q::P, v::P, track_factors::Bool) where {P <: Uni
   deg_q < 0 && throw(DivideError())
   @req deg_q > 0 "Cannot pseudo-divide by a polynomial with degree 0 in the specified division variable"
 
+  rem = deepcopy(p)
   factors = P[]
-  degree(p, v) < deg_q && return (p, factors)
+  degree(p, v) < deg_q && return (rem, factors)
 
   lc_q = __univariate_leading_coefficient(q, v)
-  rem = deepcopy(p)
 
   while !is_zero(rem) && (deg_rem = degree(rem, v)) >= deg_q
     lc_rem = __univariate_leading_coefficient(rem, v)
@@ -477,10 +480,10 @@ function __core_pseudorem(p::P, q::P, v::P, track_factors::Bool) where {P <: Uni
     flag, c = divides(lc_rem, lc_q)
 
     if flag
-      sub!(rem, rem, c * (v^(deg_rem - deg_q)) * q)
+      rem = sub!(rem, c * (v^(deg_rem - deg_q)) * q)
     else
-      mul!(rem, lc_q, rem)
-      sub!(rem, rem, lc_rem * (v^(deg_rem - deg_q)) * q)
+      rem = mul!(rem, lc_q)
+      rem = sub!(rem, lc_rem * (v^(deg_rem - deg_q)) * q)
       if track_factors
         push!(factors, lc_q)
       end
@@ -495,12 +498,12 @@ function __core_pseudodivrem(p::P, q::P, v::P, track_factors::Bool) where {P <: 
   deg_q < 0 && throw(DivideError())
   @req deg_q > 0 "Cannot pseudo-divide by a polynomial with degree 0 in the specified division variable"
 
-  factors = P[]
   quo = zero(parent(p))
-  degree(p, v) < deg_q && return (quo, p, factors)
+  rem = deepcopy(p)
+  factors = P[]
+  degree(p, v) < deg_q && return (quo, rem, factors)
 
   lc_q = __univariate_leading_coefficient(q, v)
-  rem = deepcopy(p)
 
   while !is_zero(rem) && (deg_rem = degree(rem, v)) >= deg_q
     lc_rem = __univariate_leading_coefficient(rem, v)
@@ -509,14 +512,14 @@ function __core_pseudodivrem(p::P, q::P, v::P, track_factors::Bool) where {P <: 
 
     if flag
       quo_term = c * (v^(deg_rem - deg_q))
-      add!(quo, quo, quo_term)
-      sub!(rem, rem, quo_term * q)
+      quo = add!(quo, quo_term)
+      rem = sub!(rem, quo_term * q)
     else
-      mul!(rem, lc_q, rem)
-      mul!(quo, lc_q, quo)
+      rem = mul!(rem, lc_q)
+      quo = mul!(quo, lc_q)
       quo_term = lc_rem * (v^(deg_rem - deg_q))
-      add!(quo, quo, quo_term)
-      sub!(rem, rem, quo_term * q)
+      quo = add!(quo, quo_term)
+      rem = sub!(rem, quo_term * q)
       if track_factors
         push!(factors, lc_q)
       end
