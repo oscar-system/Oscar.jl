@@ -75,13 +75,13 @@ julia> L[4]
 ## keep only non-empty exceptional curves
   ex_divs, dont_meet, caution_multi_charts = _cleanup_ex_div(phi)
 ## first determine intersection matrix: over given field
-  inter_mat_k = zero_matrix(ZZ,length(ex_divs),length(ex_divs))
+  upper_inter_mat = zero_matrix(ZZ,length(ex_divs),length(ex_divs))
 
   # fill in the pairwise intersections
   # notice: by construction of the underlying resolution, it suffices to look at one chart
   #         in which a non-empty intersection of exceptional k-components manifests itself
-  for i in 1:nrows(inter_mat_k)
-    for j in i+1:nrows(inter_mat_k)
+  for i in 1:nrows(upper_inter_mat)
+    for j in i+1:nrows(upper_inter_mat)
       inter_id = one(OO(patches_scheme[1]))
       !((i,j) in dont_meet) ||  continue                # cannot meet, entry stays 0
       if !((i,j) in caution_multi_charts)
@@ -89,7 +89,7 @@ julia> L[4]
         found_index !== nothing || continue
         U = patches_scheme[found_index]
         inter_id = ex_divs[i](U) + ex_divs[j](U)
-        inter_mat_k[i,j] = vector_space_dim(quo(base_ring(inter_id),inter_id)[1])
+        upper_inter_mat[i,j] = vector_space_dim(quo(base_ring(inter_id),inter_id)[1])
       else
         temp_inter = ex_divs[i] + ex_divs[j]
         !is_one(temp_inter) || continue
@@ -98,13 +98,13 @@ julia> L[4]
           inter_id = temp_inter(U) + decomposition_info(U)
           tempint += vector_space_dim(quo(base_ring(inter_id),inter_id)[1])
         end
-        inter_mat_k[i,j] = tempint
+        upper_inter_mat[i,j] = tempint
       end
     end
   end
 
   # and fill in the lower triangular part as the property 'intersects' is symmetric
-  inter_mat_k = inter_mat_k + transpose(inter_mat_k)
+  inter_mat_k = upper_inter_mat + transpose(upper_inter_mat)
 
 ## get ready to compute self intersection numbers:
 ## choose curve passing through component of singular locus and decompose its full preimage
@@ -331,11 +331,12 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
   # correct dont_meet and caution_multi_charts
   if skip_count > 0
     for i in 0:skip_count-1
-      dont_meet_raw = [(a >= skip_list[skip_count-i] ? a-1 : a,
-                        b >= skip_list[skip_count-i] ? b-1 : b) for (a,b) in dont_meet_raw]
+      skipped = skip_list[skip_count-i]
+      dont_meet_raw = [(a >= skipped ? a-1 : a,
+                        b >= skipped ? b-1 : b) for (a,b) in dont_meet_raw]
       dont_meet = [a for a in dont_meet_raw if a[1] > 0]
-      caution_multi_charts_raw = [(a >= skip_list[skip_count-i] ? a-1 : a,
-                        b >= skip_list[skip_count-i] ? b-1 : b)
+      caution_multi_charts_raw = [(a >= skipped ? a-1 : a,
+                        b >= skipped ? b-1 : b)
                         for (a,b) in caution_multi_charts_raw]
       caution_multi_charts = [a for a in caution_multi_charts_raw if a[1] > 0]
     end
