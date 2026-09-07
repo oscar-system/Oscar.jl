@@ -33,13 +33,16 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
     lines = AtlasLine[]
     echo = String[]
 
-    ngens::Int = 0
+    # a `Ref` rather than a plain local: `getidx!` below updates it, and a
+    # captured variable that is assigned is boxed; see
+    # docs/src/DeveloperDocumentation/closure_boxes.md
+    ngens = Ref(0)
 
     function getidx!(label, create=false)
         # no "inp" line, set defaults
         isempty(labels) && push!(labels, "1", "2")
-        if ngens == 0
-            ngens = length(labels)
+        if ngens[] == 0
+            ngens[] = length(labels)
         end
 
         i = findfirst(==(label), labels)
@@ -68,7 +71,7 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
         cmd = Symbol(codeline[1])
 
         if cmd == :inp
-            @req ngens == 0 "\"inp\" line not at the beginning"
+            @req ngens[] == 0 "\"inp\" line not at the beginning"
             n = tryparse(Int, codeline[2])
             n === nothing && error_invalid_line(codeline)
             if length(codeline) == 2
@@ -133,9 +136,9 @@ function (::Type{SLP})(code::String) where SLP <: AbstractAtlasSL
         if isempty(outputs)
             push!(outputs, getidx!("1"), getidx!("2"))
         end
-        AtlasSLProgram(code, echo, ngens, outputs, lines)
+        AtlasSLProgram(code, echo, ngens[], outputs, lines)
     else
-        AtlasSLDecision(code, echo, ngens, lines)
+        AtlasSLDecision(code, echo, ngens[], lines)
     end
 end
 
