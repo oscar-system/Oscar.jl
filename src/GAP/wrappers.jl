@@ -29,6 +29,7 @@ GAP.@wrap Basis(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BrauerCharacterValue(x::GapObj)::GAP.Obj
 GAP.@wrap CanonicalBasis(x::GapObj)::GapObj
+GAP.@wrap CanonicalRightCosetElement(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CentralCharacter(x::GapObj)::GapObj
 GAP.@wrap Centralizer(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
@@ -382,6 +383,7 @@ GAP.@wrap RelativeOrders(x::GapObj)::GapObj
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap RepresentativeAction(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap RepresentativeAction(x::GapObj, y::Int, z::Int)::GapObj
 GAP.@wrap RepresentativeTom(x::GapObj, y::Int)::GapObj
 GAP.@wrap RestrictedMapping(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap RightCoset(x::GapObj, y::GapObj)::GapObj
