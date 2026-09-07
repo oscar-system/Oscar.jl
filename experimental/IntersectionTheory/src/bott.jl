@@ -593,19 +593,23 @@ function tn_flag_variety(dims::Int...; weights=:int)
   return tn_flag_variety(collect(dims); weights=weights)
 end
 
+# All ways of splitting `rest` into successive blocks of sizes `ranks[i]`, ...
+# A top-level function rather than a closure: a self-recursive closure is
+# boxed; see docs/src/DeveloperDocumentation/closure_boxes.md.
+function _flag_splittings(i::Int, rest::Vector{Int}, ranks::Vector{Int}, l::Int)
+  i == l && return [[rest]]
+  return [
+    pushfirst!(y, x) for x in combinations(rest, ranks[i]) for
+    y in _flag_splittings(i + 1, setdiff(rest, x), ranks, l)
+  ]
+end
+
 function tn_flag_variety(dims::Vector{Int}; weights=:int)
   n, l = dims[end], length(dims)
   ranks = pushfirst!([dims[i + 1] - dims[i] for i in 1:(l - 1)], dims[1])
   @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end] - dims[i]) for i in 1:(l - 1))
-  function enum(i::Int, rest::Vector{Int})
-    i == l && return [[rest]]
-    [
-      pushfirst!(y, x) for x in combinations(rest, ranks[i]) for
-      y in enum(i + 1, setdiff(rest, x))
-    ]
-  end
-  points = [p => 1 for p in enum(1, collect(1:n))]
+  points = [p => 1 for p in _flag_splittings(1, collect(1:n), ranks, l)]
   Fl = TnVariety(d, points)
   w = _parse_weight(n, weights)
   Fl.bundles = [
