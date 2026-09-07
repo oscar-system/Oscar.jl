@@ -604,7 +604,8 @@ struct RootData
        Z = rand(k)
        iszero(Z) && continue
        Zn = Z^divexact(p-1, n)
-       if all(x->!isone(Zn^divexact(n, x)), lf)
+       zn = Zn
+       if all(x->!isone(zn^divexact(n, x)), lf)
          break
        end
      end
@@ -990,8 +991,8 @@ end
 function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
   QQAb = base_ring(f)
   c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(f)), init = Int(1))
-  k, z = cyclotomic_field(QQAb, c)
-  f = map_coefficients(x->k(x.data), f)
+  k0, z = cyclotomic_field(QQAb, c)
+  f = map_coefficients(x->k0(x.data), f)
   lf = factor(f)
   #we need to find the correct cyclotomic field...
   #can't use ray_class_group in k as this is expensive (needs class group)
@@ -1027,7 +1028,8 @@ function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
       lp = Hecke.modular_proj(g, me)
       for pg = lp
         l = factor(pg)
-        q, mqq = quo(q, [degree(x)*mq(P) for (x, _) in l], false)
+        mq_c = mq
+        q, mqq = quo(q, [degree(x)*mq_c(P) for (x, _) in l], false)
         mq = mq*mqq
         if order(q) <= degree(g)*degree(k)
           break
@@ -1082,7 +1084,8 @@ function Oscar.roots(a::QQAbFieldElem{T}, n::Int) where {T}
       push!(A, el)
     end
   end
-  return [x*corr for x = A]::Vector{QQAbFieldElem{T}}
+  corr_f = corr
+  return [x*corr_f for x = A]::Vector{QQAbFieldElem{T}}
 end
 
 function is_root_of_unity(a::QQAbFieldElem)
@@ -1175,21 +1178,21 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
     end
   else
     # `F` is expected to be a proper subfield of a cyclotomic field.
-    n = x.c
+    nn = x.c
     x = data(x)
-    Kn, = AbelianClosure.cyclotomic_field(K, n)
+    Kn, = AbelianClosure.cyclotomic_field(K, nn)
     powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
               for i in 0:degree(F)-1]
     c = transpose(matrix(QQ, powers))
     R = parent(F.pol)
 
     f = function(z::AbsSimpleNumFieldElem)
-      return QQAbFieldElem(evaluate(R(z), x), n)
+      return QQAbFieldElem(evaluate(R(z), x), nn)
     end
 
     finv = function(x::QQAbFieldElem; throw_error::Bool = true)
       # Write `x` w.r.t. the n-th cyclotomic field ...
-      g = gcd(x.c, n)
+      g = gcd(x.c, nn)
       Kg, = AbelianClosure.cyclotomic_field(K, g)
       x = Hecke.force_coerce_cyclo(Kg, data(x), Val(false))
       if x === nothing
@@ -1199,13 +1202,13 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
-      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
-      if !fl
+      ok, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
+      if !ok
         throw_error && error("element has no preimage")
         return
       end
-      b = transpose(sol)
-      b = [b[i] for i in 1:length(b)]
+      bt = transpose(sol)
+      b = [bt[i] for i in 1:length(bt)]
       return F(b)
     end
   end

@@ -61,13 +61,12 @@ function groebner_basis_f4(
         )
 
     AI   = AlgebraicSolving.Ideal(oscar_generators(I))
-    if eliminate == 0
-      AR = base_ring(I)
-      embedding = identity
+    AR, embedding = if eliminate == 0
+      (base_ring(I), identity)
     else
       vars = symbols(base_ring(I))[eliminate+1:end]
-      AR,  = polynomial_ring(coefficient_ring(I), vars; cached=false)
-      embedding = hom(base_ring(I), AR, [[zero(AR) for _ in 1:eliminate]; gens(AR)])
+      R,  = polynomial_ring(coefficient_ring(I), vars; cached=false)
+      (R, hom(base_ring(I), R, [[zero(R) for _ in 1:eliminate]; gens(R)]))
     end
     ord  = degrevlex(AR)
     if length(AI.gens) == 0
