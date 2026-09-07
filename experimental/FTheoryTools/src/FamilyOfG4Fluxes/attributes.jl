@@ -213,7 +213,17 @@ julia> d3_tadpole_constraint(fgs, rng = Random.Xoshiro(1234));
   end::Dict{String,ZZRingElem}
 
   # Compute data, that is used by the default/sophisticated intersection product
-  if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+  sophisticated = arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+  cy = if sophisticated
+    nothing
+  else
+    polynomial(
+      cohomology_class(
+        toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
+      ),
+    )
+  end
+  if sophisticated
     S = coordinate_ring(ambient_space(m))
     gS = gens(coordinate_ring(ambient_space(m)))
     linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
@@ -226,12 +236,6 @@ julia> d3_tadpole_constraint(fgs, rng = Random.Xoshiro(1234));
       linear_relations=linear_relations,
       scalings=scalings,
       sr_ideal_pos=sr_ideal_pos,
-    )
-  else
-    cy = polynomial(
-      cohomology_class(
-        toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-      ),
     )
   end
 
@@ -277,7 +281,7 @@ julia> d3_tadpole_constraint(fgs, rng = Random.Xoshiro(1234));
 
           my_tuple = _sorted_tuple(basis_indices[l1]..., basis_indices[l2]...)
 
-          if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+          if sophisticated
             change = sophisticated_intersection_product(
               ambient_space(m),
               my_tuple,

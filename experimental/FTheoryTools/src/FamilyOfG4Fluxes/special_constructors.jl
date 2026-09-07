@@ -310,14 +310,14 @@ function special_flux_family_with_special_algorithm(
   # (1) Compute data, that is frequently used by the sophisticated intersection product below
   ambient = ambient_space(m)
   hypersurface = hypersurface_equation(m)
-  S = coordinate_ring(ambient)
-  gS = gens(S)
+  S_amb = coordinate_ring(ambient)
+  gS = gens(S_amb)
   linear_relations = matrix(ZZ, rays(ambient))
-  scalings = [c.coeff for c in S.d]
+  scalings = [c.coeff for c in S_amb.d]
   mnf = Oscar._minimal_nonfaces(ambient)
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
   data = (
-    S=S,
+    S=S_amb,
     gS=gS,
     linear_relations=linear_relations,
     scalings=scalings,
