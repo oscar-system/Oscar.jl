@@ -351,6 +351,7 @@
     "Testing, Debugging, and Performance" => [
       "DeveloperDocumentation/extra_long.md",
       "DeveloperDocumentation/debugging.md",
+      "DeveloperDocumentation/closure_boxes.md",
       "DeveloperDocumentation/timing-tool.md",
     ],
     "Data" => [
