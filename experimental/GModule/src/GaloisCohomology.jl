@@ -2060,11 +2060,15 @@ end
 #for the idele `a` in `I` find an "equivalent" ideal.
 function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; 
    coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing} = nothing,
-   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
+   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing,
+   reduce::ZZRingElem = -1)
   if parent(_a) == codomain(I.mq)
     a = preimage(I.mq, _a)
   else
     a = _a
+  end
+  if reduce != -1
+    a = parent(a)(Hecke.mod_sym(a.coeff, reduce))
   end
 
   zk = maximal_order(I.k)
@@ -2146,20 +2150,24 @@ application of the function has to work, if `false` images
 of all generators of `I` will be computed, so the function call is expensive,
 but the application is cheap.
 """
-function induce_hom(I::IdeleParent, mR::MapRayClassGrp; do_map::Bool = true, check::Bool = true)
-  m0, inf = defining_modulus(mR)
-  if check
-    c = conductor(I)
-    for (p, v) = factor(minimum(m0))
-      @assert haskey(c, Int(p)) && c[Int(p)] >= v
+function induce_hom(I::IdeleParent, mR::Union{MapRayClassGrp,Hecke.MapClassGrp}; do_map::Bool = true, check::Bool = true)
+  if isa(mR, MapRayClassGrp)
+    m0, inf = defining_modulus(mR)
+    if check
+      c = conductor(I)
+      for (p, v) = factor(minimum(m0))
+        @assert haskey(c, Int(p)) && c[Int(p)] >= v
+      end
     end
+  else
+    m0 = 1*maximal_order(number_field(I))
+    inf = InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}[]
   end
 
   A = domain(mR)
   function idl(x)
     px = parent(x)
-    x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
-    J = ideal(I, x; coprime = m0, sign = inf)
+    J = ideal(I, x; coprime = m0, sign = inf, reduce = ZZ(exponent(A)))
     return (preimage(mR, J))
   end
 
@@ -2297,13 +2305,6 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   gamma = s[2](s[1][1])
 
   gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
-
-  function idl(x)
-    px = parent(x)
-    x = px(Hecke.mod_sym(x.coeff, ZZ(exponent(A))))
-    J = ideal(idele_parent, x; coprime = m0, sign = m_inf)
-    return mQ(preimage(mR, J))
-  end
 
   @vprint :GaloisCohomology 2 "projecting to ray class group..."
   @vtime :GaloisCohomology 4 phi = induce_hom(idele_parent, mR; do_map = true, check = false)

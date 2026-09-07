@@ -106,7 +106,8 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
     end
   end
   Q, mQ = quo(N, s)
-  GAP.Globals.SetSize(Q.X, GapObj(order(E))) #supposed to help Gap....
+
+  set_order(Q, order(E)) #supposed to help Gap....
 
   @assert ngens(Q) == ngens(N)
   function EtoQ(x::GrpExtElem)
@@ -429,6 +430,11 @@ function Oscar.permutation_group(G::GrpExt)
     return permutation_group(codomain(isomorphism(FPGroup, G)))
   end
 end
+
+function Oscar.pc_group(G::GrpExt)
+  return codomain(isomorphism(PcGroup, G))
+end
+
 
 end #module
 
