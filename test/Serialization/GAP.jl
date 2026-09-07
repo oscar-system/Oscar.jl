@@ -1,3 +1,4 @@
+using Oscar: GAPWrap
 @testset "GAP objects" begin
   mktempdir() do path
     @testset "IsObject" begin
