@@ -55,7 +55,7 @@ function tau_om(lbb::Multipartition, wperm::PermGroupElem, coroot::Vector{Int})
      append!(new_w, w[i][lq+1:lw])
    end
    sort!(new_w,rev=true)
-   new_w=[new_w[i]+(i-1) for i in 1:length(new_w)]
+   new_w .+= 0:(length(new_w) - 1)
    filter!(x-> x!=0,new_w)
    return partition(new_w)
 end
@@ -91,10 +91,10 @@ end
 # computes C_Delta defined in PhD relation (1.45)
 function C_Delta(r::Int, n::Int, Q::FracField{T}, var::T, mps::Vector{Multipartition{Int}}) where {T <: MPolyRingElem}
   charTable=character_table_complex_reflection_group(r,1,n)
-  charTirr=[charTable[i,j] for i in 1:nrows(charTable), j in 1:ncols(charTable)]
+  charT=[charTable[i,j] for i in 1:nrows(charTable), j in 1:ncols(charTable)]
   Modules=[multipartition([lbb...]) for lbb in class_parameters(charTable)]
   l=length(Modules)
-  charTirr=reorder(charTirr,Modules,mps)
+  charTirr=reorder(charT,Modules,mps)
   charTirrT=solve_init(matrix(Q,transpose(charTirr)))
   rows=zero_matrix(Q,l,0)
   for i in 1:l
@@ -186,11 +186,11 @@ function wreath_macdonald_polynomials(n::Int,
   end
   c_L_qt = matrix(Q,l,l,rows)
 
-  triv=[partition([n])]
+  triv_parts=[partition([n])]
   for i in 2:r
-    push!(triv,partition([]))
+    push!(triv_parts,partition([]))
   end
-  triv=multipartition(triv)
+  triv=multipartition(triv_parts)
   index_triv=findfirst(x-> x==triv,mps)
   d=[1//c_L_qt[i,index_triv] for i in 1:l]
   diag=diagonal_matrix(Q,d)
@@ -244,11 +244,11 @@ function wreath_macdonald_polynomial(lbb::Multipartition,
   row=B[1,1:length(smaller_indices)]*sub_smaller_tinv
   c_L_qt = matrix(Q,1,l,row)
 
-  triv=[partition([n])]
+  triv_parts=[partition([n])]
   for i in 2:r
-    push!(triv,partition([]))
+    push!(triv_parts,partition([]))
   end
-  triv=multipartition(triv)
+  triv=multipartition(triv_parts)
   index_triv=findfirst(x-> x==triv,mps)
   c_L_qt_H=1//c_L_qt[index_triv]*c_L_qt
   return c_L_qt_H
