@@ -14,12 +14,12 @@
     @test s_QQ isa Oscar.TrivialActionShift
     @test d_ZZ isa Oscar.TrivialActionDerivation
     @test d_QQ isa Oscar.TrivialActionDerivation
-    
+
     for am in [s_ZZ, d_ZZ]
       @test domain(am) === ZZ
       @test codomain(am) === ZZ
     end
-    
+
     @test s_ZZ(-7) == -7
     @test s_ZZ(ZZ(5)) == ZZ(5)
     @test d_ZZ(17) == 0
@@ -35,7 +35,7 @@
 
   @testset "Univariate polynomial rings" begin
     R, x = polynomial_ring(QQ, :x)
-    
+
     zero_R = action_derivation(map_from_func(R, R, p -> zero(R)))
     @test zero_R isa Oscar.TrivialActionDerivation
 
@@ -54,22 +54,22 @@
     @test x_to_zero isa Oscar.NontrivialActionShift
     @test domain(x_to_zero) === R
     @test codomain(x_to_zero) === R
-    @test x_to_zero(x^2 + 1) == 1 
+    @test x_to_zero(x^2 + 1) == 1
   end
 
   @testset "Multivariate polynomial rings" begin
     R, (x, y) = polynomial_ring(ZZ, [:x, :y])
-    
+
     swap_hom = hom(R, R, [y, x])
     swap = action_shift(swap_hom)
-    
+
     @test swap isa Oscar.NontrivialActionShift
     @test swap(x^2 * y) == x * y^2
     @test swap(x^2 + y) == x + y^2
-    
+
     mmf_ddx = map_from_func(R, R, p -> derivative(p, x))
     ddx = action_derivation(mmf_ddx)
-    
+
     @test ddx isa Oscar.NontrivialActionDerivation
     @test ddx(x^3 * y^2) == 3*x^2*y^2
     @test ddx(y^2 + 2*y + 1) == 0
@@ -80,34 +80,34 @@
   @testset "Rational function fields" begin
     R, x = polynomial_ring(QQ, :x)
     F = fraction_field(R)
-    
+
     ddx_F = action_derivation(map_from_func(F, F, derivative))
-    
+
     @test ddx_F isa Oscar.NontrivialActionDerivation
     @test domain(ddx_F) === F
     @test codomain(ddx_F) === F
-    
+
     @test ddx_F(F(1) // F(x)) == F(-1) // F(x^2) # Quotient rule
 
-    g = F(1) // F(x)^2 
-    
+    g = F(1) // F(x)^2
+
     shift_func = r -> F(evaluate(numerator(r), g)) // F(evaluate(denominator(r), g)) # p -> p(x^(-2))
     inv_sq_shift = action_shift(map_from_func(F, F, shift_func))
 
     @test inv_sq_shift isa Oscar.NontrivialActionShift
     @test domain(inv_sq_shift) === F
     @test codomain(inv_sq_shift) === F
-    
+
     @test inv_sq_shift(F(x)) == g
     @test inv_sq_shift((F(x^2 + 1)) // F(x)) == (F(1 + x^4) // F(x^2))
   end
   @testset "Quadratic number fields" begin
     for d in [-5, -3, -1, 2, 3, 5]
       K, a = quadratic_field(d)
-    
+
       trivial_galois = action_shift(hom(K, K, a))
       nontrivial_galois = action_shift(hom(K, K, -a))
-    
+
       @test trivial_galois isa Oscar.TrivialActionShift
       @test nontrivial_galois isa Oscar.NontrivialActionShift
       @test trivial_galois(a) == a
