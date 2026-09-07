@@ -60,7 +60,8 @@ function groebner_basis_f4(
         info_level::Int=0
         )
 
-    info_level = min(2, get_verbosity_level(:AlgebraicSolving))
+    info_level = max(info_level, get_verbosity_level(:AlgebraicSolving))
+    info_level = min(2, info_level)
 
     AI   = AlgebraicSolving.Ideal(oscar_generators(I))
     if eliminate == 0
