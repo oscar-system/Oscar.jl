@@ -143,7 +143,7 @@ function produce_restriction_map(F::SheafOfModules, V::AbsAffineScheme, U::Princ
     # If the restriction was more complicated than what follows, then
     # it would have been cached earlier and this call would not have happened
     # This is the end of the recursion induced in the next elseif below.
-    res = hom(F(V), F(U), gens(F(U)), OO(X)(W, U))
+    res = hom(F(V), F(U), gens(F(U)), OO(X)(V, U))
     return res
   elseif has_ancestor(W->(W === V), U)
     W = ambient_scheme(U)
