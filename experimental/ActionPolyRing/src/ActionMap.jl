@@ -13,7 +13,7 @@ Wrap the map `m` into an `ActionDerivation`. If `check` is true, a heuristic val
 """
 function action_derivation(m::Map{D, D}; check::Bool=true) where {D <: Ring}
   check && @req __is_probably_valid_derivation(m) "The provided map fails the Leibniz rule or additivity on generators; it is not a valid derivation"
-  
+
   __is_trivial_derivation(m) && return TrivialActionDerivation{D}(domain(m))
   return NontrivialActionDerivation{D}(m)
 end
@@ -32,7 +32,7 @@ Wrap the map `m` into an `ActionShift`. If `check` is true, a heuristic validati
 """
 function action_shift(m::Map{D, D}; check::Bool=true) where {D <: Ring}
   check && @req __is_probably_valid_shift(m) "The provided map fails multiplicativity or additivity on generators; it is not a valid shift"
-  
+
   __is_trivial_shift(m) && return TrivialActionShift{D}(domain(m))
   return NontrivialActionShift{D}(m)
 end
@@ -49,7 +49,7 @@ codomain(m::Union{NontrivialActionDerivation, NontrivialActionShift}) = codomain
 
 function (m::TrivialActionDerivation)(x)
   R = domain(m)
-  _ = R(x) # Check coercivity 
+  _ = R(x) # Check coercivity
   return zero(R)
 end
 (m::TrivialActionShift)(x) = domain(m)(x)
@@ -58,16 +58,16 @@ end
 ### Triviality Helpers
 function __is_trivial_shift(m::Map{D, D}) where {D <: Ring}
   m isa AbstractAlgebra.Generic.IdentityMap && return true
-  
+
   R = domain(m)
   !applicable(gens, R) && return false 
-  
+
   return all(g -> m(g) == g, gens(R))
 end
 
 function __is_trivial_derivation(m::Map{D, D}) where {D <: Ring}
   R = domain(m)
-  !applicable(gens, R) && return false 
+  !applicable(gens, R) && return false
   return all(g -> iszero(m(g)), gens(R))
 end
 
@@ -75,9 +75,9 @@ end
 function __is_probably_valid_shift(m::Map{D, D}) where {D <: Ring}
   m isa AbstractAlgebra.Generic.IdentityMap && return true
   R = domain(m)
-    
+
   (!is_one(m(one(R))) || !is_zero(m(zero(R)))) && return false
-  
+
   !applicable(gens, R) && return true # Impossible to check so trust the user
   G = gens(R)
   mG = [m(g) for g in G]
@@ -93,9 +93,9 @@ end
 
 function __is_probably_valid_derivation(m::Map{D, D}) where {D <: Ring}
   R = domain(m)
-    
+
   !is_zero(m(one(R))) && return false
-  
+
   !applicable(gens, R) && return true # Impossible to check so trust the user
   G = gens(R)
   mG = [m(g) for g in G]
@@ -106,13 +106,13 @@ function __is_probably_valid_derivation(m::Map{D, D}) where {D <: Ring}
       (m(G[i] * G[j]) != mG[i] * G[j] + G[i] * mG[j]) && return false
     end
   end
-  
+
   return true
 end
 
 function __are_probably_commuting(m1::ActionMap{D}, m2::ActionMap{D}) where {D <: Ring}
   @req domain(m1) === domain(m2) "The domains of the action maps do not coincide"
-  
+
   if m1 isa Union{TrivialActionShift, TrivialActionDerivation} || 
      m2 isa Union{TrivialActionShift, TrivialActionDerivation}
     return true
