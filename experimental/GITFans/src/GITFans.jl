@@ -82,8 +82,9 @@ function is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
     Rgens_permuted = Rgens[perm]
     si = Singular.Ideal(R, poly_list)
 
+    zeroed = vars_to_zero
     for i in 1:nr_variables
-        if !(nr_variables in vars_to_zero)
+        if !(nr_variables in zeroed)
             si = Singular.satstd( si, Singular.MaximalIdeal(R, 1))
             if Singular.ngens(si) == 1 && si[1] == R(1)
                 return false
@@ -91,7 +92,7 @@ function is_monomial_free(I::MPolyIdeal, vars_to_zero::Vector{Int} = Int[])
                 return false
             end
         end
-        vars_to_zero = perm[vars_to_zero]
+        zeroed = perm[zeroed]
         permuted_gens = [evaluate(j, Rgens_permuted) for j in gens(si)]
         si = Singular.Ideal(R, permuted_gens)
     end
