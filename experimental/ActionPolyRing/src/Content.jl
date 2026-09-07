@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#  Construction 
+#  Construction
 #
 ###############################################################################
 
@@ -10,15 +10,15 @@
 @doc raw"""
     difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
-Construct the difference polynomial ring over the base ring `R` with the given action indeterminates and 
-`n_action_maps` commuting endomorphisms. 
+Construct the difference polynomial ring over the base ring `R` with the given action indeterminates and
+`n_action_maps` commuting endomorphisms.
 
-- If `action_indeterminates` is a vector of symbols, those names are used.  
-- If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
+- If `action_indeterminates` is a vector of symbols, those names are used.
+- If it is an integer `m`, the symbols `u1, …, um` are generated automatically.
 
 In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each action indeterminate.
 
-This method returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the 
+This method returns a tuple `(dpr, gens)` where `dpr` is the resulting difference polynomial ring and `gens` is the
 vector of initial jet variables.
 
 This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
@@ -103,16 +103,16 @@ end
 @doc raw"""
     differential_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
-Construct the differential polynomial ring over the base ring `R` with the given action indeterminates and 
-`n_action_maps` commuting derivations. 
+Construct the differential polynomial ring over the base ring `R` with the given action indeterminates and
+`n_action_maps` commuting derivations.
 
-- If `action_indeterminates` is a vector of symbols, those names are used.  
-- If it is an integer `m`, the symbols `u1, …, um` are generated automatically.  
+- If `action_indeterminates` is a vector of symbols, those names are used.
+- If it is an integer `m`, the symbols `u1, …, um` are generated automatically.
 
 In both cases, the jet variables that are initially available are those with jet `[0,…,0]`, one for each action indeterminate.
 
-This method returns a tuple `(dpr, gens)` where `dpr` is the resulting differential polynomial ring and `gens` is the 
-vector of initial jet variables.  
+This method returns a tuple `(dpr, gens)` where `dpr` is the resulting differential polynomial ring and `gens` is the
+vector of initial jet variables.
 
 This constructor also accepts all keyword arguments of [`set_ranking!`](@ref) to control the ranking.
 
@@ -214,15 +214,15 @@ end
 
 ###############################################################################
 #
-#  Basic ring functionality 
+#  Basic ring functionality
 #
 ###############################################################################
 
 ### Union ###
 function Base.deepcopy_internal(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}, dict::IdDict)
-    # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries 
-    pp = deepcopy_internal(data(dpre), dict)
-    return typeof(dpre)(parent(dpre), pp)
+  # Avoid deepcopying the parent as it may refer back to it in one of its dictionaries
+  pp = deepcopy_internal(data(dpre), dict)
+  return typeof(dpre)(parent(dpre), pp)
 end
 
 ### Difference ###
@@ -272,12 +272,12 @@ characteristic(apr::ActionPolyRing) = characteristic(base_ring(apr))
 ###############################################################################
 
 function __wrap_factorization_apr(f::Fac{<:UniversalPolyRingElem}, apr::ActionPolyRing)
-   res = Fac{elem_type(apr)}()
-   res.unit = apr(f.unit)
-   for (fact, expo) in f
-      AbstractAlgebra.mulpow!(res, apr(fact), expo)
-   end
-   return res
+  res = Fac{elem_type(apr)}()
+  res.unit = apr(f.unit)
+  for (fact, expo) in f
+    AbstractAlgebra.mulpow!(res, apr(fact), expo)
+  end
+  return res
 end
 
 factor_squarefree(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor_squarefree(data(apr)), parent(apr))
@@ -321,7 +321,7 @@ parent(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.par
 
 ###############################################################################
 #
-#  Basic polynomial functionality 
+#  Basic polynomial functionality
 #
 ###############################################################################
 
@@ -438,7 +438,7 @@ degrees(apre::ActionPolyRingElem) = [degree(apre, i) for i in 1:ngens(parent(apr
 @doc raw"""
     is_constant(p::ActionPolyRingElem)
 
-Return `true` if `p` is a degree zero polynomial or the zero polynomial, i.e. a constant polynomial. 
+Return `true` if `p` is a degree zero polynomial or the zero polynomial, i.e. a constant polynomial.
 """
 is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 
@@ -622,7 +622,7 @@ end
 @doc raw"""
     var_index(p::ActionPolyRingElem)
 
-Return the integer `i` such that `p` is the `i`-th largest currently tracked jet variable. If `p` is not a jet variable an exception is raised. 
+Return the integer `i` such that `p` is the `i`-th largest currently tracked jet variable. If `p` is not a jet variable an exception is raised.
 """
 function var_index(x::ActionPolyRingElem)
   @req is_gen(x) "Not a jet variable in var_index"
@@ -669,12 +669,13 @@ end
 @doc raw"""
     trailing_coefficient(p::ActionPolyRingElem{T}) -> T
 
-Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
+Return the trailing coefficient of the polynomial `p`, i.e. the coefficient of the last (with respect to the ranking
+of the action polynomial ring containing it) nonzero term, or zero if the polynomial is zero.
 """
 function trailing_coefficient(apre::ActionPolyRingElem{T}) where {T}
   len = length(apre)
   @req len > 0 "The zero polynomial has no trailing coefficient"
-  return coeff(apre, len) 
+  return coeff(apre, len)
 end
 
 @doc raw"""
@@ -745,7 +746,7 @@ end
 
 ###############################################################################
 #
-#  Action polynomial functionality 
+#  Action polynomial functionality
 #
 ###############################################################################
 
@@ -813,7 +814,7 @@ function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   if is_zero(dpre)
     return dpre
   end
- 
+
   d = fill(0, n_action_maps(dpr))
   d[i] = 1
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
@@ -856,7 +857,7 @@ end
 @doc raw"""
     apply_action(p::DifferencePolyRingElem, d::Vector{Int})
 
-Successively apply the `i`-th shift operator `d[i]`-times to the difference polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
+Successively apply the `i`-th shift operator `d[i]`-times to the difference polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$.
 """
 function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
@@ -877,7 +878,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
     new_idx = jtu[(i, idx + d)]
     old_to_new_pos[jtu[(i, idx)]] = new_idx
   end 
-  
+
   upr = base_ring(dpr)
   upre = data(dpre)
   C = MPolyBuildCtx(upr)
@@ -903,7 +904,7 @@ end
 @doc raw"""
     apply_action(p::DifferentialPolyRingElem, d::Vector{Int})
 
-Successively apply the `i`-th derivation `d[i]`-times to the differential polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$. 
+Successively apply the `i`-th derivation `d[i]`-times to the differential polynomial `p`, where $i = 1, \ldots, \mathrm{length}(d)$.
 """
 function apply_action(dpre::DifferentialPolyRingElem{T}, d::Vector{Int}) where {T}
   len = length(d)
@@ -1000,7 +1001,7 @@ end
 
 ###############################################################################
 #
-#  Univariate functionality 
+#  Univariate functionality
 #
 ###############################################################################
 
@@ -1056,7 +1057,7 @@ function univariate_coefficients(r::ActionPolyRingElem, var::ActionPolyRingElem)
 end
   
 @doc raw"""
-    univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) 
+    univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 
 Return the coefficient vector of `p` regarded as a univariate polynomial in the jet variable specified by `i` and
 `jet`, leading with the constant coefficient.
@@ -1065,13 +1066,17 @@ This method allows all versions described in [Specifying jet variables](@ref spe
 """
 function univariate_coefficients(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
-  d == 0 && return [r]
+  d == 0 && return [deepcopy(r)]
+
   res = [zero(r) for _ in 1:d+1]
   var = __jtv(parent(r))[(i, jet)]
   v_idx = var_index(var)
-  for (t, e) in zip(terms(r), exponents(r)) 
-    @inbounds res[e[v_idx] + 1] += remove(t, var)[2]
+
+  for (t, e) in zip(terms(r), exponents(r))
+    idx = e[v_idx] + 1
+    @inbounds res[idx] = add!(res[idx], remove(t, var)[2])
   end
+
   return res
 end
 
@@ -1087,7 +1092,7 @@ function univariate_leading_coefficient(r::ActionPolyRingElem, var::ActionPolyRi
 end
 
 @doc raw"""
-    univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int}) 
+    univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 
 Return the leading coefficient of `p` regarded as a univariate polynomial in the jet variable specified by `i` and
 `jet`. Note that in case where the jet variable coincides with the leader of `p`, this result is just the initial of `p`;
@@ -1098,18 +1103,18 @@ This method allows all versions described in [Specifying jet variables](@ref spe
 function univariate_leading_coefficient(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
   @req d > -1 "The zero polynomial has no leading coefficient"
-  d == 0 && return r  
+  d == 0 && return deepcopy(r)
 
   res = zero(r)
   var = __jtv(parent(r))[(i, jet)]
   v_idx = var_index(var)
-  
-  for (t, e) in zip(terms(r), exponents(r)) 
+
+  for (t, e) in zip(terms(r), exponents(r))
     if @inbounds e[v_idx] == d
-      res += remove(t, var)[2]
+      res = add!(res, remove(t, var)[2])
     end
   end
-  
+
   return res
 end
 
@@ -1327,7 +1332,7 @@ canonical_unit(apre::ActionPolyRingElem) = canonical_unit(data(apre))
 
 ###############################################################################
 #
-#  Aux action polynomial rings 
+#  Aux action polynomial rings
 #
 ###############################################################################
 
@@ -1368,46 +1373,63 @@ function __perm_for_sort_poly(dpre::Union{DifferencePolyRingElem, DifferentialPo
 end
 
 # =========================================
-# Setters for internal state
+# Setters for internal state (begin)
 # =========================================
 
 function __set_are_perms_up_to_date!(dpr::Union{DifferencePolyRing, DifferentialPolyRing}, update::Bool)
-    dpr.are_perms_up_to_date = update
+  dpr.are_perms_up_to_date = update
+  return dpr
 end
 
 function __set_is_perm_up_to_date!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}, update::Bool)
-    dpre.is_perm_up_to_date = update
+  dpre.is_perm_up_to_date = update
+  return dpre
 end
 
 function __set_perm_for_sort!(dpr::Union{DifferencePolyRing, DifferentialPolyRing})
-    dpr.permutation = sortperm(dpr.(gens(base_ring(dpr))); rev = true)
-    __set_are_perms_up_to_date!(dpr, true)
+  dpr.permutation = sortperm(dpr.(gens(base_ring(dpr))); rev = true)
+  __set_are_perms_up_to_date!(dpr, true)
+  return dpr
 end
 
 # Assumes are_perms_up_to_date == true
 function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem})
   exps = collect(exponents(data(dpre)))
   n = length(exps)
-  if n <= 1
-    dpre.permutation = collect(1:n)
-    return __set_is_perm_up_to_date!(dpre, true)
+
+  if n <= 1 
+    dpre.permutation = n == 1 ? [1] : Int[]
+    __set_is_perm_up_to_date!(dpre, true)
+    return dpre
+  end  
+
+  full_perm = __perm_for_sort(parent(dpre))
+  if !isdefined(dpre, :permutation) || length(dpre.permutation) != n
+    dpre.permutation = Vector{Int}(undef, n)
   end
 
-  perm = (parent(dpre).permutation)[1:min(end, length(exps[1]))] #trim unused indices (avoids padding with zeros)
+  sortperm!(dpre.permutation, exps, rev=true, lt=(a, b) -> __is_less_wrt_perm(a, b, full_perm))
 
-  dpre.permutation = sortperm(exps; lt=__my_lt_for_vec(perm), rev=true)
   __set_is_perm_up_to_date!(dpre, true)
+  return dpre
 end
 
-function __my_lt_for_vec(perm::Vector{Int})
-  return function ___my_lt_for_vec(ei::Vector{Int}, ej::Vector{Int})
-    @inbounds for k in perm
-      vi, vj = ei[k], ej[k]
-      vi != vj && return vi < vj 
-    end
-    return false
+function __is_less_wrt_perm(a::AbstractVector{Int}, b::AbstractVector{Int}, perm::AbstractVector{Int})
+  len_a = length(a)
+  len_b = length(b)
+
+  @inbounds for i in perm
+    va = i <= len_a ? a[i] : 0
+    vb = i <= len_b ? b[i] : 0
+      
+    va != vb && return va < vb
   end
+  return false
 end
+
+# =========================================
+# Setters for internal state (end)
+# =========================================
 
 #Check if the jet_to_var dictionary of apr could contain the key (i,jet).
 __is_valid_jet(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = i in 1:n_action_indeterminates(apr) && length(jet) == n_action_maps(apr) && all(>=(0), jet)
@@ -1432,7 +1454,7 @@ __add_new_jetvar!(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = __add_new_jet
 
 ###############################################################################
 #
-#  Construction / Getter 
+#  Construction / Getter
 #
 ###############################################################################
 
@@ -1511,7 +1533,7 @@ function set_ranking!(dpr::PolyT;
     partition::Vector{Vector{Int}} = Vector{Int}[],
     index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)
   ) where {PolyT <: ActionPolyRing}
-  
+
   __set_are_perms_up_to_date!(dpr, false)
   m, n = n_action_indeterminates(dpr), n_action_maps(dpr)
   dpr.ranking = ActionPolyRingRanking{PolyT}(dpr, __compute_ranking_params(m, n, partition_name, index_ordering_name, partition, index_ordering_matrix)...)
@@ -1524,7 +1546,7 @@ function __compute_ranking_params(m::Int, n::Int,
     partition,
     index_ordering_matrix
   )
-  
+
   @req partition_name in [:top, :pot, :default] "Invalid name of partition"
   if partition_name == :default
     if is_empty(partition)
@@ -1556,7 +1578,7 @@ function __compute_ranking_params(m::Int, n::Int,
       index_ordering_matrix = canonical_matrix(lex(R)) #Use :lex by default
     else
       # Otherwise the input is used. Check its validity:
-      @req ncols(index_ordering_matrix) == n "The number of columns of the matrix provided must equal $n" 
+      @req ncols(index_ordering_matrix) == n "The number of columns of the matrix provided must equal $n"
     end
   else
     @req is_empty(index_ordering_matrix) "Providing both a name and a matrix is not supported. Please just choose one."
@@ -1614,7 +1636,7 @@ end
 
 ###############################################################################
 #
-#  Aux rankings 
+#  Aux rankings
 #
 ###############################################################################
 

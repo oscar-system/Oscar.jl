@@ -4,9 +4,14 @@ In Oscar we provide the action polynomial interface via the abstract types `Acti
 and `ActionPolyRingElem{T} <: RingElem`. The type parameter `T` is the element type of the coefficient
 ring. All concrete subtypes use the functionality of [universal polynomials](@ref "Universal polynomial ring")
 from the AbstractAlgebra package for polynomial arithmetic, as well as maintaining variables and adding
-new ones on demand. Any action polynomial ring maintains a sorted list of currently tracked jet variables,
-that can be accessed and extended by a number of methods, see, e.g., [Element Constructors](@ref element_constructors_apr). The jet
-variables are sorted with respect to a user-defined [ranking](@ref actionpolyranking).
+new ones on demand. Currently, there are two concrete subtypes available, namely `DifferencePolyRing{T}` and
+`DifferentialPolyRing{T}` with element types `DifferencePolyRingElem{T}` and `DifferentialPolyRingElem{T}`.
+See [difference polynomial rings](@ref differencepolyring)
+and [differential polynomial rings](@ref differentialpolyring) for their unique functionality.
+
+Each action polynomial ring maintains a sorted list of currently tracked jet variables,
+that can be accessed and extended by a number of methods, see, e.g. the section [Element Constructors](@ref element_constructors_apr).
+The jet variables are sorted with respect to a user-defined [ranking](@ref actionpolyranking).
 
 !!! note "Tracked jet variables"
     The set of valid jet variables of an action polynomial ring depend only on the integers ``m`` and
@@ -30,7 +35,7 @@ which can be found below. The first two do not require the jet variable in quest
 - By passing the index of the jet variable in the list of the currently tracked jet variables.
 - By immediately passing the jet variable as an element of an action polynomial ring.
 
-!!! note 
+!!! note
     For many methods, e.g. [`degree`](@ref degree(p::ActionPolyRingElem, i::Int, jet::Vector{Int})) or
     [`derivative`](@ref derivative(p::ActionPolyRingElem, i::Int, jet::Vector{Int})) we provide all the above
     versions, but only record one in this documentation for readability. Usually, we choose the second version
@@ -217,4 +222,28 @@ are not just restricted to pseudo-division by the leader of the second input. Ho
 ```@docs
 pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
 pseudodivrem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <: ActionPolyRingElem}
+```
+
+---
+
+We provide the following methods for reducing the action polynomial ``p`` with respect to the action polynomial ``q`` and to verify reducedness:
+
+```@docs
+is_partially_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+is_reduced(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+
+partially_reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+reduce(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+```
+
+We also provide similar methods for the set-related notions of reducedness:
+
+```@docs
+is_partially_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+is_reduced(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+
+partially_reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+reduce(p::PolyT, S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
+autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
 ```
