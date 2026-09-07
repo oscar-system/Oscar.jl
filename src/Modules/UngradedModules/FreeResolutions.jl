@@ -549,21 +549,20 @@ function free_resolution(M::SubquoModule{T};
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
 
   #= This is the single computational hard part of this function =#
-  if algorithm == :fres && T <: MPolyRingElem
+  res = if algorithm == :fres && T <: MPolyRingElem
     gbpres = Singular.std(singular_kernel_entry)
-    res = Singular.fres(gbpres, length, "complete")
+    Singular.fres(gbpres, length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
-    gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
   elseif algorithm == :mres
     gbpres = singular_kernel_entry
-    res = Singular.mres(gbpres, length)
+    Singular.mres(gbpres, length)
   elseif algorithm == :nres
     gbpres = singular_kernel_entry
-    res = Singular.nres(gbpres, length)
+    Singular.nres(gbpres, length)
   elseif algorithm == :sres && T <: MPolyQuoRingElem
     gbpres = Singular.std(singular_kernel_entry)
-    res = Singular.sres(gbpres, length)
+    Singular.sres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end

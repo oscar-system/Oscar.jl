@@ -32,16 +32,17 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     result_
   end
 
-  # Create the multiplication map
-  function my_mult(u::Tuple{Vararg{FreeModElem}})
+  # Create the multiplication map `my_mult` must not call itself: a
+  # self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _mult_tuple(u::Tuple{Vararg{FreeModElem}})
     isempty(u) && return result[1] # only the case p=0
     @req all(x -> parent(x) === F, u) "elements must live in the same module"
     @req length(u) == p "need a $p-tuple of elements"
     return wedge(collect(u); parent=result)
   end
-  function my_mult(u::FreeModElem...)
-    return my_mult(u)
-  end
+  my_mult(u::Tuple{Vararg{FreeModElem}}) = _mult_tuple(u)
+  my_mult(u::FreeModElem...) = _mult_tuple(u)
 
   function my_decomp(u::FreeModElem)
     @req parent(u) === result "element does not belong to the correct module"

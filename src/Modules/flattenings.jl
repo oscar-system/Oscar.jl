@@ -156,9 +156,9 @@ function (flat_map::RingFlattening)(
   return get!(flat_counterparts(flat_map), I) do
     F = ambient_free_module(I)
     R = base_ring(I)
-    flat_map = flatten(R)
-    Fb, iso_F = flat_map(F)
-    return _change_base_ring_and_preserve_gradings(flat_map, I; ambient_base_change=iso_F)
+    fm = flatten(R)
+    Fb, iso_F = fm(F)
+    return _change_base_ring_and_preserve_gradings(fm, I; ambient_base_change=iso_F)
   end::SubModuleOfFreeModule
 end
 
