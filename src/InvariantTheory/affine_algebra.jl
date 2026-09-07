@@ -317,9 +317,9 @@ function module_syzygies(RG::FinGroupInvarRing)
     gens_d, exps_d = generators_for_given_degree!(C, r_gens, d)
 
     monomial_to_column = enumerate_monomials(gens_d)
-    M = polys_to_smat(gens_d, monomial_to_column)
+    Md = polys_to_smat(gens_d, monomial_to_column)
     N = polys_to_smat(s_invars_d, monomial_to_column)
-    sol = solve(M, N; side=:left)
+    sol = solve(Md, N; side=:left)
 
     for i in 1:length(s_invars_d)
       a = F()
