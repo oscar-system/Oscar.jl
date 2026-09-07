@@ -1369,4 +1369,3 @@ Test if `f` is bijective.
 function is_bijective(f::OFPModuleHom)
   return is_injective(f) && is_surjective(f)
 end
-
