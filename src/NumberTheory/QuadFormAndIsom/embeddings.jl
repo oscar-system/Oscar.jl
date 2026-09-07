@@ -604,6 +604,9 @@ function _primitive_extensions_generic(
   even && (!is_even(M) || !is_even(N)) && return false, results
   parity = even ? 2 : 1
 
+  aM, _, bM = signature_tuple(M)
+  aN, _, bN = signature_tuple(N)
+
   # We check the initial conditions for having a primitive
   # extension with the potential given requirements
   if !isempty(glue_order)
@@ -614,9 +617,8 @@ function _primitive_extensions_generic(
     if !isempty(form_over)
       _form_over = deepcopy(form_over)
       @req all(q -> modulus_bilinear_form(q) == 1, _form_over) "Elements of form_over do not define the discriminant forms of an integral lattice"
-      filter!(q -> any(o -> o^2*order(q) == abs(det(M)*det(N)), _glue_order), _form_over)
-      aM, _, bM = signature_tuple(M)
-      aN, _, bN = signature_tuple(N)
+      go = _glue_order
+      filter!(q -> any(o -> o^2*order(q) == abs(det(M)*det(N)), go), _form_over)
       filter!(q -> is_genus(q, (aM+aN, bM+bN); parity), _form_over)
       isempty(_form_over) && return false, results
       Gs = ZZGenus[genus(q, (aM+aN, bM+bN); parity) for q in _form_over]
@@ -627,15 +629,13 @@ function _primitive_extensions_generic(
       Gs = ZZGenus[]
     end
   elseif !isempty(form_over)
-    _form_over = deepcopy(form_over)
-    @req all(q -> modulus_bilinear_form(q) == 1, _form_over) "q does not define the discriminant form of an integral lattice"
-    aM, _, bM = signature_tuple(M)
-    aN, _, bN = signature_tuple(N)
-    filter!(q -> is_genus(q, (aM+aN, bM+bN); parity), _form_over)
-    isempty(_form_over) && return false, results
+    _fo2 = deepcopy(form_over)
+    @req all(q -> modulus_bilinear_form(q) == 1, _fo2) "q does not define the discriminant form of an integral lattice"
+    filter!(q -> is_genus(q, (aM+aN, bM+bN); parity), _fo2)
+    isempty(_fo2) && return false, results
     _glue_order = ZZRingElem[]
     Gs = ZZGenus[]
-    for q in _form_over
+    for q in _fo2
       ok, x = divides(numerator(det(M)*det(N)), order(q))
       !ok && continue
       ok, o = is_square_with_sqrt(abs(x))
@@ -3254,8 +3254,8 @@ function _classes_isomorphic_subgroups(
       _, Vinq = _get_V(f, mu, p)
       sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, p, f)
     else
-      T, Tinq = kernel(evaluate(mu, f))
-      _, VinT = primary_part(T, p)
+      Tker, Tinq = kernel(evaluate(mu, f))
+      _, VinT = primary_part(Tker, p)
       Vinq = compose(VinT, Tinq)
       sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
     end
@@ -3292,12 +3292,10 @@ function _classes_isomorphic_subgroups(
     qpinq = blocks[i]
     qp = domain(qpinq)
     ordHp = p^valuation(ordH, p)
-    if !isnothing(H)
-      T, _ = primary_part(H, p)
-    end
+    Tp = isnothing(H) ? nothing : primary_part(H, p)[1]
     Oqp, _ = restrict_automorphism_group(O, qpinq; check=false)
     fqp = restrict_endomorphism(f, qpinq; check=false)
-    if (ordHp == p) || (is_elementary(qp, p)) || (!isnothing(H) && is_elementary(T, p))
+    if (ordHp == p) || (is_elementary(qp, p)) || (!isnothing(H) && is_elementary(Tp, p))
       _, j = _get_V(fqp, mu, p)
       sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, p, fqp)
     else
@@ -3305,7 +3303,7 @@ function _classes_isomorphic_subgroups(
       sors = _subgroups_orbit_representatives_and_stabilizers(Tpinqp, Oqp, ordHp, fqp)
     end
     if !isnothing(H)
-      filter!(d -> is_isometric_with_isometry(domain(d[1]), T)[1], sors)
+      filter!(d -> is_isometric_with_isometry(domain(d[1]), Tp)[1], sors)
     end
     is_empty(sors) && return res
     push!(list_can, sors)
@@ -3317,8 +3315,8 @@ function _classes_isomorphic_subgroups(
   # parts (as we do for computations of orthogonal groups in the non split
   # degenerate case)
   for lis in Hecke.cartesian_product_iterator(list_can)
-    embs = TorQuadModuleMap[l[1] for l in lis]
-    embs = TorQuadModuleMap[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
+    embs0 = TorQuadModuleMap[l[1] for l in lis]
+    embs = TorQuadModuleMap[hom(domain(embs0[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs0[i](a)))) for a in gens(domain(embs0[i]))]) for i in 1:length(lis)]
     H2, _, _proj = Hecke._biproduct(domain.(embs))
     _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
     stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]

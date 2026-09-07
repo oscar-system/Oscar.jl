@@ -123,8 +123,9 @@ function _subfields(FF::Generic.FunctionField, f::ZZMPolyRingElem; tStart::Int =
   local g::ZZPolyRingElem
   while true
     t += 1
-    g = evaluate(f, [gen(Zx), Zx(t)])
-    if Hecke.lower_bound(minimum([abs(x-t) for x = rt]), ZZRingElem) >= 2 && is_irreducible(g)
+    t_c = t
+    g = evaluate(f, [gen(Zx), Zx(t_c)])
+    if Hecke.lower_bound(minimum([abs(x-t_c) for x = rt]), ZZRingElem) >= 2 && is_irreducible(g)
       break
     end
     if t > 10
@@ -168,7 +169,8 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
 
     f = C.C.f
     tStart = Int(C.data[2]) # fragile...
-    @vprint :GaloisGroup 1 "specialising at t = $tStart, computing over Q\n"
+    t_spec = tStart
+    @vprint :GaloisGroup 1 "specialising at t = $t_spec, computing over Q\n"
     Gal, S = galois_group(K, prime = p)
 
     @vprint :GaloisGroup 1 "after specialisation, group is: $(transitive_group_identification(Gal))\n"
@@ -182,7 +184,7 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
 
     F, mF = residue_field(parent(rC[1]))
     G, mG = residue_field(F)
-    Qt_to_G = x->G(numerator(x)(tStart))//G(denominator(x)(tStart))
+    Qt_to_G = x->G(numerator(x)(t_spec))//G(denominator(x)(t_spec))
 
     H, mH = residue_field(parent(rS[1]))
 
@@ -401,15 +403,12 @@ end
 function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{Int}}; ts::ZZPolyRingElem = gen(Hecke.Globals.Zx))    
 
   SL = SLPolyRing(ZZ, length(bs)*length(bs[1]))
-  sx = gens(SL)
+  sx0 = gens(SL)
 
   @vprint :Subfields 2 "trying sum as primitive element...\n"
-  r = roots(C, (2,1))
-  F = parent(r[1]) # should be Qq<<t>>
-  if ts != gen(parent(ts))
-    r = map(ts, r)
-    sx = map(ts, sx)
-  end
+  r0 = roots(C, (2,1))
+  F = parent(r0[1]) # should be Qq<<t>>
+  r, sx = ts != gen(parent(ts)) ? (map(ts, r0), map(ts, sx0)) : (r0, sx0)
   
   #TODO: test over finite field first and make sure p is large enough
   con = [sum(r[b]) for b = bs]
@@ -439,16 +438,17 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
   B_poly = B
   @vprint :Subfields 2 "gives a precision of $prec_poly\n"
 
+  conI_f = conI
   function get_poly(prec::Tuple{Int, Int})
     R = roots(C, prec)
-    con = [evaluate(c, R) for c = conI]
-    if length(Set(con)) < length(bs)
+    cons = [evaluate(c, R) for c = conI_f]
+    if length(Set(cons)) < length(bs)
       return nothing
     end
 
 
     @vprint :Subfields 2 "building power sums (traces)\n"
-    pow = copy(con)
+    pow = copy(cons)
     @assert length(Set(pow)) == length(bs)
     fl, tt = isinteger(C, B_poly, sum(pow))
     if !fl
@@ -456,7 +456,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
     end
     tr = [tt]
     while length(tr) < length(bs)
-      pow .*= con
+      pow .*= cons
       fl, tt = isinteger(C, B_poly, sum(pow))
       if !fl
         return nothing
@@ -563,11 +563,11 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
 
   function get_emb(prec::Tuple{Int, Int})
     R = roots(C, prec)
-    con = [evaluate(c, R) for c = conI]
+    cons = [evaluate(c, R) for c = conI_f]
 
     local ff
     try
-      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F; cached=false)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
+      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F; cached=false)[1], R, [cons[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
     catch e
       @show e
       return nothing
@@ -585,8 +585,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
     if any(!first, em)
       return nothing
     end
-    emb = parent(defining_polynomial(FF))([x[2](gen(base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
-    return emb
+    return parent(defining_polynomial(FF))([x[2](gen(base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
   end
 
   pr = (1,1)
