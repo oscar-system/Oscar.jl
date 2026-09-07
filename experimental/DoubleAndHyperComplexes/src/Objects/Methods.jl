@@ -29,12 +29,12 @@ function _total_chain_complex(dc::AbsDoubleComplexOfMorphisms{ChainType, Morphis
   index_pairs = [I for I in Iterators.product(r1, r2) if sum(I) == first(r_tot)]
   summands = [dc[I] for I in index_pairs]
   #new_chain, inc, pr = direct_sum(summands...; task=:both)
-  new_chain, inc, pr = _direct_sum(summands)
+  first_chain, inc, pr = _direct_sum(summands)
   last_inc = inc
   last_pr = pr
-  last_chain = new_chain
+  last_chain = first_chain
   last_index_pairs = index_pairs
-  push!(new_chains, new_chain)
+  push!(new_chains, first_chain)
   for k in r_tot
     k == first(r_tot) && continue
     index_pairs = [I for I in Iterators.product(r1, r2) if sum(I) == k]

@@ -28,9 +28,9 @@ function _derived_pushforward(M::FreeMod)
   variables = [[x for x in gens(S) if degree(x) == G[i]] for i in 1:r]
   dims = [length(x)-1 for x in variables]
 
-  d = _regularity_bound(M) # the degrees of the generators
-  d = d - sum(n*G[i] for (i, n) in enumerate(dims); init=zero(G))
-  d = sum((d[i] < 0 ? 0 : d[i])*G[i] for i in 1:r; init=zero(G))
+  # the degrees of the generators
+  reg = _regularity_bound(M) - sum(n*G[i] for (i, n) in enumerate(dims); init=zero(G))
+  d = sum((reg[i] < 0 ? 0 : reg[i])*G[i] for i in 1:r; init=zero(G))
 
   g = vcat([[x^(Int(d[i])) for x in v] for (i, v) in enumerate(variables)]...)
   kosz = [shift(Oscar.HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[1:length(v)], 1) for (i, v) in enumerate(variables)]
@@ -189,10 +189,10 @@ function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:OFPModule}
     S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
     m = nrows(A)
     n = ncols(A)
-    I = [i for (i, _) in ind]
-    I = [i for i in 1:m if !(i in I)]
-    J = [j for (_, j) in ind]
-    J = [j for j in 1:n if !(j in J)]
+    pivot_rows = [i for (i, _) in ind]
+    I = [i for i in 1:m if !(i in pivot_rows)]
+    pivot_cols = [j for (_, j) in ind]
+    J = [j for j in 1:n if !(j in pivot_cols)]
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
     img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
@@ -227,11 +227,11 @@ function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:OFPModule}
     cod_map_inv = hom(N, new_cod, img_gens_cod)
     dom_map_inv = hom(M, new_dom, img_gens_dom)
 
-    v = gens(new_cod)
+    new_cod_gens = gens(new_cod)
     img_gens = elem_type(new_cod)[]
     for k in 1:length(I)
       w = A[I[k]]
-      push!(img_gens, sum(w[J[l]]*v[l] for l in 1:length(J); init=zero(new_cod)))
+      push!(img_gens, sum(w[J[l]]*new_cod_gens[l] for l in 1:length(J); init=zero(new_cod)))
     end
     g = hom(new_dom, new_cod, img_gens)
     if !isempty(new_maps)

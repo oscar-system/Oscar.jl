@@ -496,17 +496,17 @@ function vertical_map(
       S = graded_ring(css)
       G = grading_group(S)
       cplx = graded_complex(css)
-      ctx = pushforward_ctx(css)
+      dom_ctx = pushforward_ctx(css)
       dom_degs = degrees_of_generators(cplx[i])
-      direct_sum([ctx[exps, -d][j] for d in dom_degs])[1]
+      direct_sum([dom_ctx[exps, -d][j] for d in dom_degs])[1]
     end,
     codomain::FreeMod=begin
       S = graded_ring(css)
       G = grading_group(S)
       cplx = graded_complex(css)
-      ctx = pushforward_ctx(css)
+      cod_ctx = pushforward_ctx(css)
       cod_degs = degrees_of_generators(cplx[i])
-      direct_sum([ctx[exps, -d][j-1] for d in cod_degs])[1]
+      direct_sum([cod_ctx[exps, -d][j-1] for d in cod_degs])[1]
     end
   )
   S = graded_ring(css)
@@ -535,17 +535,17 @@ function horizontal_map(
       S = graded_ring(css)
       G = grading_group(S)
       cplx = graded_complex(css)
-      ctx = pushforward_ctx(css)
+      dom_ctx = pushforward_ctx(css)
       dom_degs = degrees_of_generators(cplx[i])
-      direct_sum([ctx[exps, -d][j] for d in dom_degs])[1]
+      direct_sum([dom_ctx[exps, -d][j] for d in dom_degs])[1]
     end,
     codomain::FreeMod=begin
       S = graded_ring(css)
       G = grading_group(S)
       cplx = graded_complex(css)
-      ctx = pushforward_ctx(css)
+      cod_ctx = pushforward_ctx(css)
       cod_degs = degrees_of_generators(cplx[i-1])
-      direct_sum([ctx[exps, -d][j] for d in cod_degs])[1]
+      direct_sum([cod_ctx[exps, -d][j] for d in cod_degs])[1]
     end
   )
   S = graded_ring(css)
@@ -621,19 +621,19 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
     for (e, buckets) in lifted_kernel_generators(cssp, i, j)
       if i > 0
         # sanity check of the input
-        hor_map = get!(hor_maps, e) do
+        in_hor_map = get!(hor_maps, e) do
           horizontal_map(css, e, i, j)
         end
-        v0 = sum(canonical_injection(domain(hor_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(domain(hor_map)))
-        res = is_zero(hor_map(v0))
+        v0 = sum(canonical_injection(domain(in_hor_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(domain(in_hor_map)))
+        res = is_zero(in_hor_map(v0))
         !res && (error_on_false ? error("horizontal map does not annihilate lifted kernel generator") : return false)
       end
       if j > -ngens(S) + rank(grading_group(S))
-        vert_map = get!(vert_maps, e) do
+        in_vert_map = get!(vert_maps, e) do
           vertical_map(css, e, i, j)
         end
-        v0 = sum(canonical_injection(domain(vert_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(domain(vert_map)))
-        res = is_zero(vert_map(v0))
+        v0 = sum(canonical_injection(domain(in_vert_map), l)(v) for (l, v) in buckets if !is_zero(v); init=zero(domain(in_vert_map)))
+        res = is_zero(in_vert_map(v0))
         !res && (error_on_false ? error("vertical map does not annihilate lifted kernel generator") : return false)
       end
     end
@@ -653,8 +653,9 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
       v0 = inc(rep_g)
       res = hor_map(v0)
       # `res` needs to be in the image of the vertical map
+      hor_cod = codomain(hor_map)
       vert_map = get!(secondary_hor_maps, e) do
-        vertical_map(css, e, i-1, j+1; codomain=codomain(hor_map))
+        vertical_map(css, e, i-1, j+1; codomain=hor_cod)
       end
       res in image(vert_map)[1] || (error_on_false ? error("horizontal map does not take the generator to the image of the incoming vertical map") : return false)
     end
@@ -666,11 +667,12 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
       v0 = inc(rep_g)
       res = vert_map(v0)
       if can_compute_index(cplx, (i+1,))
+        vert_cod = codomain(vert_map)
         hor_map = get!(secondary_hor_maps, e) do
-          horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
+          horizontal_map(css, e, i+1, j-1; codomain=vert_cod)
         end
-        if codomain(vert_map) !== codomain(hor_map)
-          hor_map = horizontal_map(css, e, i+1, j-1; codomain=codomain(vert_map))
+        if vert_cod !== codomain(hor_map)
+          hor_map = horizontal_map(css, e, i+1, j-1; codomain=vert_cod)
         end
         res in image(hor_map)[1] || (error_on_false ? error("vertical map does not take the generator to the image of the horizontal map") : return false)
       else
