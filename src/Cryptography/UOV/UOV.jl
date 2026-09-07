@@ -414,7 +414,8 @@ whose layout depends on the `pkc` and `skc` flags of `uov`.
 
 # Examples
 ```jldoctest
-julia> uov = uov_1p; pk, sk = keygen(uov);
+julia> uov = uov_1p;
+julia> pk, sk = keygen(uov);
 julia> length(pk)
 278432
 julia> length(sk)
@@ -452,7 +453,10 @@ parameter set `uov`, returning the signature as a byte vector.
 
 # Examples
 ```jldoctest
-julia> uov = uov_1p; pk, sk = keygen(uov); msg = zeros(UInt8, 32); sig = sign(uov, msg, sk);
+julia> uov = uov_1p;
+julia> pk, sk = keygen(uov);
+julia> msg = zeros(UInt8, 32);
+julia> sig = sign(uov, msg, sk);
 
 julia> verify(uov, sig, msg, pk)
 true
@@ -538,12 +542,16 @@ under the public key `pk` of the UOV parameter set `uov`.
 
 # Examples
 ```jldoctest
-julia> uov = uov_1p; pk, sk = keygen(uov); msg = zeros(UInt8, 32); sig = sign(uov, msg, sk); sig_bad = copy(sig); sig_bad[1] ⊻= 0xff;
+julia> uov = uov_1p;
+julia> pk, sk = keygen(uov);
+julia> msg = zeros(UInt8, 32);
+julia> sig = sign(uov, msg, sk);
 
 julia> verify(uov, sig, msg, pk)
 true
 
-julia> sig_bad = copy(sig); sig_bad[1] ⊻= 0xff;
+julia> sig_bad = copy(sig);
+julia> sig_bad[1] ⊻= 0xff;
 
 julia> verify(uov, sig_bad, msg, pk)
 false
@@ -576,7 +584,10 @@ signature is invalid.
 
 # Examples
 ```jldoctest
-julia> uov = uov_1p; pk, sk = keygen(uov); msg = UInt8[1, 2, 3]; sm = vcat(msg, sign(uov, msg, sk));
+julia> uov = uov_1p;
+julia> pk, sk = keygen(uov);
+julia> msg = UInt8[1, 2, 3];
+julia> sm = vcat(msg, sign(uov, msg, sk));
 
 julia> uov_open(uov, sm, pk)
 3-element Vector{UInt8}:
