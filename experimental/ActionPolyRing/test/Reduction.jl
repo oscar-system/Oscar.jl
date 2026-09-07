@@ -1,5 +1,5 @@
 @testset "all tests - Reduction.jl" verbose = true begin
-  @testset "Differential Reduction Methods" begin
+  @testset "Differential reduction methods" begin
     @testset "Single differential indeterminate" begin
       dpr, u = differential_polynomial_ring(QQ, :u, 2)
 
@@ -220,8 +220,13 @@
 
       p = v[2]
 
+      @test !is_partially_reduced(p, [q1, q2])
+      @test !is_reduced(p, [q1, q2])
       @test reduce(p, [q1, q2]) == v[0]
       @test partially_reduce(p, [q1, q2]) == u[1]
+      @test is_partially_reduced(v[0], [q1, q2])
+      @test is_partially_reduced(u[1], [q1, q2])
+      @test is_reduced(v[0], [q1, q2])
 
       dpr, (u, v) = difference_polynomial_ring(QQ, [:u, :v], 1, index_ordering_name=:deglex)
 
@@ -230,8 +235,13 @@
 
       p = v[2]
 
+      @test !is_partially_reduced(p, [q1, q2])
+      @test !is_reduced(p, [q1, q2])
       @test reduce(p, [q1, q2]) == v[0]
       @test partially_reduce(p, [q1, q2]) == u[1]
+      @test is_partially_reduced(v[0], [q1, q2])
+      @test is_partially_reduced(u[1], [q1, q2])
+      @test is_reduced(v[0], [q1, q2])
     end
   end # Differential reduction methods
   @testset "Difference reduction methods" begin
@@ -247,29 +257,42 @@
       @testset "partially reduce" begin
         q = u_x^2 - u_0
 
-        p1 = u_xx + u_0 
+        p1 = u_xx + u_0
+        @test is_partially_reduced(p1, q)
         @test partially_reduce(p1, q) == p1
 
-        p2 = u_xx^2 + u_xy 
+        p2 = u_xx^2 + u_xy
+        @test !is_partially_reduced(p2, q)
         @test partially_reduce(p2, q) == u_xy + u_x
+        @test is_partially_reduced(u_xy + u_x, q)
 
         p3 = u_xx^3 + u_0 
+        @test !is_partially_reduced(p3, q)
         @test partially_reduce(p3, q) == u_xx * u_x + u_0
+        @test is_partially_reduced(u_xx * u_x + u_0, q)
       end
       @testset "reduce" begin
         q = u_x^2 - u_0
         
         p1 = u_x^3 + u_x
+        @test !is_reduced(p1, q)
         @test reduce(p1, q) == u_x * u_0 + u_x
+        @test is_reduced(u_x * u_0 + u_x, q)
 
         p2 = u_xx^2 + u_x^2
+        @test !is_reduced(p2, q)
         @test reduce(p2, q) == u_x + u_0
+        @test is_reduced(u_x + u_0, q)
 
         q3 = u_y * u_x^2 - dpr(1)
         p3 = u_x^2 + u_0
+        @test !is_reduced(p3, q3)
         @test reduce(p3, q3) == u_y * u_0 + dpr(1)
+        @test is_reduced(u_y *u_0 + dpr(1), q3)
 
         p4 = u_xx + u_x + u_0
+        @test is_partially_reduced(p4, q)
+        @test is_reduced(p4, q)
         @test reduce(p4, q) == p4
       end
     end # single shift operator
@@ -290,27 +313,38 @@
       @testset "partially reduce" begin
         q1 = u_x^2 - v_y
         p1 = u_xx^2 - u_0
+        @test !is_partially_reduced(p1, q1)
         @test partially_reduce(p1, q1) == v_xy - u_0
+        @test is_partially_reduced(v_xy - u_0, q1)
 
         q2 = v_0 * u_x^2 - 1
         p2 = u_xx^2
+        @test !is_partially_reduced(p2, q2)
         @test partially_reduce(p2, q2) == dpr(1)
+        @test is_partially_reduced(dpr(1), q2)
       end
       @testset "reduce" begin
         q1 = u_x^2 - v_y
         p1 = v_x * u_x^3 + v_0
+        @test !is_reduced(p1, q1)
         @test reduce(p1, q1) == v_x * u_x * v_y + v_0
+        @test is_reduced(v_x * u_x *v_y + v_0, q1)
 
         q2 = u_x^2 - v_0
         p2 = u_xx^2 + u_x^2
+        @test !is_reduced(p2, q2)
         @test reduce(p2, q2) == v_x + v_0
+        @test is_reduced(v_x + v_0, q2)
 
         q3 = v_0 * u_x^2 - u_0
         p3 = u_x^3 + v_x
+        @test !is_reduced(p3, q3)
         @test reduce(p3, q3) == u_0 * u_x + v_0 * v_x
+        @test is_reduced(u_0 * u_x + v_0 * v_x, q3)
 
         q4 = u_x^2 - v_y
         p4 = u_xx + v_x * u_x + u_0
+        @test is_reduced(p4, q4)
         @test reduce(p4, q4) == p4
       end
     end # two diff indets
@@ -322,20 +356,34 @@
 
       p1 = x[1] - x[0]^2
       p2 = x[2]^2 - x[0]
+      @test !is_autoreduced([p1, p2])
+      @test !is_autoreduced([p2, p1])
       @test autoreduce([p1, p2]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
       @test autoreduce([p2, p1]) == [x[0]^8 - x[0],  x[1] - x[0]^2]
+      @test is_autoreduced([x[0]^8 - x[0],  x[1] - x[0]^2])
       @test autoreduce([p1, p1]) == [p1]
+      @test is_autoreduced([p1])
+      @test is_autoreduced([p2])
       @test autoreduce(DifferencePolyRingElem[]) == DifferencePolyRingElem[]
+      @test autoreduce(DifferencePolyRingElem[zero(dxr)]) == DifferencePolyRingElem[]
+      @test is_autoreduced(DifferencePolyRingElem[])
+      @test !is_autoreduced([zero(dxr)])
       @test autoreduce([dxr(0), dxr(0)]) == DifferencePolyRingElem[]
       @test autoreduce([dxr(0), dxr(-1), dxr(2)]) == [dxr(-1)]
 
       dpr, u = differential_polynomial_ring(QQ, :u, 1)
       q1 = u[1]^2 - u[0]
       q2 = u[2] - u[1]
+      @test !is_autoreduced([q1, q2])
+      @test !is_autoreduced([q2, q1])
       @test autoreduce([q1, q2]) == [u[0]]
       @test autoreduce([q2, q1]) == [u[0]]
       @test autoreduce([q1, q1]) == [q1]
+      @test is_autoreduced([q1])
       @test autoreduce(DifferentialPolyRingElem[]) == DifferentialPolyRingElem[]
+      @test autoreduce(DifferencePolyRingElem[zero(dxr)]) == DifferencePolyRingElem[]
+      @test is_autoreduced(DifferentialPolyRingElem[])
+      @test !is_autoreduced([zero(dxr)])
       @test autoreduce([dpr(0), dpr(0)]) == DifferentialPolyRingElem[]
       @test autoreduce([dpr(0), dpr(-1), dpr(2)]) == [dpr(-1)]
     end
@@ -346,20 +394,24 @@
       p2 = u[1, 0] - v[1, 0]
       p3 = v[1, 1] - u[0, 0]
 
+      @test !is_autoreduced([p1, p2, p3])
       @test autoreduce([p1, p2, p3]) == [p2, p3]
       @test autoreduce([p3, p2, p1]) == [p2, p3]
       @test autoreduce([p2, p3, p1]) == [p2, p3]
       @test autoreduce([p1, p2]) == [p2, p3]
+      @test is_autoreduced([p2, p3])
 
       p4 = u[1, 1] - u[0, 1]
       p5 = p2
       p6 = v[1, 1] + v[0, 0]
-      
+
       res = [-(u[0, 1] + v[0, 0]), u[1, 0] - v[1, 0], v[1, 1] + v[0, 0]]
-      
+
+      @test !is_autoreduced([p4, p5, p6])
       @test autoreduce([p4, p5, p6]) == res
       @test autoreduce([p6, p5, p4]) == res
       @test autoreduce([p5, p6, p4]) == res
+      @test is_autoreduced(res)
     end
   end
 
