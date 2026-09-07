@@ -12,29 +12,26 @@ function _patchworks2polynomial(
 )
   pws = Polymake._lookup_multi(hs, "PATCHWORK")
 
-  if hs.MONOMIALS !== nothing
+  pts = if hs.MONOMIALS !== nothing
     @req ncols(hs.MONOMIALS) == 3 "Wrong ambient dimension of hypersurface"
-    pts = matrix(ZZ, hs.MONOMIALS)
-    pts = pts[:, 2:end]
+    matrix(ZZ, hs.MONOMIALS)[:, 2:end]
   else
     @req points !== nothing "Unable to determine points"
-    if points isa AbstractMatrix
-      pts = matrix(ZZ, points)
-    elseif points isa String
-      pts = matrix(ZZ, Polymake.load(points))
-      pts = pts[:, 2:end]
-    end
-    @req ncols(pts) == 2 "Wrong embedding dimension for points"
+    p = points isa AbstractMatrix ? matrix(ZZ, points) :
+        matrix(ZZ, Polymake.load(points))[:, 2:end]
+    @req ncols(p) == 2 "Wrong embedding dimension for points"
+    p
   end
 
   delta = convert(Int, maximum([sum(pts[i, :]) for i in 1:nrows(pts)]))
 
   ds = subdivision_of_points(Polymake.tropical.dual_subdivision(hs))
-  mc = maximal_cells(IncidenceMatrix, ds)
+  mc_unsorted = maximal_cells(IncidenceMatrix, ds)
   # Sometimes our input is faulty, meaning that the rows of the incidence
   # matrix are not sorted, i.e. we will get a set {0,10,9} instead of {0,9,10}.
   # The following workaround fixes that.
-  mc = incidence_matrix(nrows(mc), ncols(mc), [collect(row(mc, i)) for i in 1:nrows(mc)])
+  mc = incidence_matrix(nrows(mc_unsorted), ncols(mc_unsorted),
+                        [collect(row(mc_unsorted, i)) for i in 1:nrows(mc_unsorted)])
   sop = subdivision_of_points(pts, mc)
   # @req is_regular(sop) "Subdivision is not regular"
   w = min_weights(sop)
