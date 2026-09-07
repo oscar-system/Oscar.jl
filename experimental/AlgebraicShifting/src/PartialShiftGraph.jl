@@ -58,8 +58,7 @@ julia> facets.(shifts)
 function partial_shift_graph_vertices(F::Field,
                                       K::SimplicialComplex,
                                       W::Union{WeylGroup, Vector{WeylGroupElem}})
-  current = K
-  visited = [current]
+  visited = [K]
   phi = isomorphism(PermGroup, parent(first(W)))
   # by properties of algebraic shifting
   # we know that K will be the last in this sorted list

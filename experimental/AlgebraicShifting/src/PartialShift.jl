@@ -472,7 +472,11 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   extension = Int(log(characteristic(L), order(L)))
   char = characteristic(F)
   while true
-    random_matrices = [random_rothe_matrix(L, p) for _ in 1:n_samples]
+    # `L` is assigned each round, so the comprehension captures a
+    # single-assigned alias instead of boxing it; see
+    # docs/src/DeveloperDocumentation/closure_boxes.md
+    L_cur = L
+    random_matrices = [random_rothe_matrix(L_cur, p) for _ in 1:n_samples]
     (shift, i) = efindmin((exterior_shift(K, r) for (i, r) in enumerate(random_matrices)); lt=isless_lex) 
     # Check if `shift` is the generic exterior shift of K
     prime_field = iszero(char) ? QQ : fpField(UInt(char))
