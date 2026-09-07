@@ -397,16 +397,14 @@ function components_of_kernel(d::Int,
     remain_degs = [result[2] for result in filter_results if !result[1]]
     # now we compute all of the remaining cases which we cannot filter with the Jacobian of phi
     # this could also be improved to do some load-balancing
-    if !isempty(remain_degs)
-      if isnothing(wp) || length(remain_degs) < batch_size
-        results = @showprogress enabled=show_progress desc="handling remaining cases" pmap(compute_kernel_component,
-                       [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
-      else
-        results = @showprogress enabled=show_progress desc="handling remaining cases" pmap(compute_kernel_component, wp,
-                       [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], batch_size=batch_size)
-      end
+    results = if isempty(remain_degs)
+      []
+    elseif isnothing(wp) || length(remain_degs) < batch_size
+      @showprogress enabled=show_progress desc="handling remaining cases" pmap(compute_kernel_component,
+                     [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], distributed=false)
     else
-      results = []
+      @showprogress enabled=show_progress desc="handling remaining cases" pmap(compute_kernel_component, wp,
+                     [mon_bases[deg] for deg in remain_degs], [phi for _ in remain_degs], batch_size=batch_size)
     end
 
     merge!(gens_dict, Dict(deg => results[i] for (i, deg) in enumerate(remain_degs) if !isempty(results[i])))
