@@ -1066,13 +1066,17 @@ This method allows all versions described in [Specifying jet variables](@ref spe
 """
 function univariate_coefficients(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
-  d == 0 && return [r]
+  d == 0 && return [deepcopy(r)]
+
   res = [zero(r) for _ in 1:d+1]
   var = __jtv(parent(r))[(i, jet)]
   v_idx = var_index(var)
-  for (t, e) in zip(terms(r), exponents(r)) 
-    @inbounds res[e[v_idx] + 1] += remove(t, var)[2]
+
+  for (t, e) in zip(terms(r), exponents(r))
+    idx = e[v_idx] + 1
+    @inbounds res[idx] = add!(res[idx], remove(t, var)[2])
   end
+
   return res
 end
 
@@ -1099,18 +1103,18 @@ This method allows all versions described in [Specifying jet variables](@ref spe
 function univariate_leading_coefficient(r::ActionPolyRingElem, i::Int, jet::Vector{Int})
   d = degree(r, i, jet)
   @req d > -1 "The zero polynomial has no leading coefficient"
-  d == 0 && return r  
+  d == 0 && return deepcopy(r)
 
   res = zero(r)
   var = __jtv(parent(r))[(i, jet)]
   v_idx = var_index(var)
-  
+
   for (t, e) in zip(terms(r), exponents(r))
     if @inbounds e[v_idx] == d
-      res += remove(t, var)[2]
+      res = add!(res, remove(t, var)[2])
     end
   end
-  
+
   return res
 end
 

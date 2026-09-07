@@ -254,7 +254,7 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   A = PolyT[] # The "successively" built up autoreduced set
 
   while !isempty(S)
-    is_constant(S[1]) && return S[1]
+    is_constant(S[1]) && return [S[1]]
 
     p = popfirst!(S)
     original_p = p
@@ -462,6 +462,8 @@ __reduce_with_factors(p::P, S::Vector{P}) where {P <: Union{MPolyRingElem, Actio
 # subroutines that work for both polynomial types. These methods get the prefix '__core_'. Of course, a
 # lot of these methods are of interest in their own.
 
+# Note, that all of the following methods do not mutate their inputs as the subroutine __core_pseudorem deepcopies
+# its first argument and __univariate_leading_coefficient deepcopies the second argument.
 function __core_pseudorem(p::P, q::P, v::P, track_factors::Bool) where {P <: Union{MPolyRingElem, ActionPolyRingElem}}
   deg_q = degree(q, v)
   deg_q < 0 && throw(DivideError())
@@ -537,7 +539,7 @@ function __core_partially_reduce(p::P, q::P, track_factors::Bool) where {P <: Ac
   factors = P[]
   is_constant(q) && return (zero(p), factors)
 
-  p_red = deepcopy(p)
+  p_red = p
   shift = __leader_shift_for_partial_reduction(p_red, q)
 
   while shift !== nothing
@@ -569,12 +571,12 @@ function __core_partially_reduce(p::P, S::Vector{P}, track_factors::Bool) where 
 
   sorted_S = sort(S, lt=is_ritt_less)
 
-  res = deepcopy(p)
+  res = p
   changed = true
   while changed && !is_zero(res)
     changed = false
     for q in Iterators.reverse(sorted_S)
-      original_res = deepcopy(res)
+      original_res = res
       res, step_factors = __core_partially_reduce(res, q, track_factors)
 
       if track_factors
@@ -621,13 +623,13 @@ function __core_reduce(p::P, S::Vector{P}, track_factors::Bool) where {P <: Unio
 
   sorted_S = sort(S, lt=__is_ritt_less)
 
-  res = deepcopy(p)
+  res = p
   changed = true
 
   while changed && !is_zero(res)
     changed = false
     for q in Iterators.reverse(sorted_S)
-      original_res = deepcopy(res)
+      original_res = res
 
       # 1. Partial Reduction
       res, p_factors = __core_partially_reduce(res, q, track_factors)
@@ -669,13 +671,7 @@ end
 function __leader(p::MPolyRingElem)
   @req !is_zero(p) "The zero polynomial has no leader"
   is_constant(p) && return one(parent(p))
-
-  R = parent(p)
-  for i in 1:nvars(R)
-    v = gen(R, i)
-    degree(p, v) > 0 && return v
-  end
-  return one(R)
+  return minimum(var_index, vars(p))
 end
 __leader(p::ActionPolyRingElem) = leader(p)
 
@@ -684,31 +680,23 @@ function __univariate_leading_coefficient(p::P, v::P) where {P <: MPolyRingElem}
   @req is_gen(v) "Not a variable"
   d = degree(p, v)
   @req d > -1 "The zero polynomial has no leading coefficient"
-  d == 0 && return p
+  d == 0 && return deepcopy(p)
 
-  res = zero(p)
-  v_idx = var_index(v)
-
-  for (t, e) in zip(terms(p), exponents(p))
-    if @inbounds e[v_idx] == d
-      res += remove(t, v)[2]
-    end
-  end
-  return res
+  return coeff(p, [var_index(v)], [d])
 end
 __univariate_leading_coefficient(p::P, v::P) where {P <: ActionPolyRingElem} = univariate_leading_coefficient(p, v)
 
 # Return the initial of the polynomial `p`.
 function __initial(p::MPolyRingElem)
   @req !is_zero(p) "The zero polynomial has no initial"
-  is_constant(p) && return p
+  is_constant(p) && return deepcopy(p)
   return __univariate_leading_coefficient(p, __leader(p))
 end
 __initial(p::ActionPolyRingElem) = initial(p)
 
 # Return the discriminant of `p`.
 function __discriminant(p::MPolyRingElem)
-  is_constant(p) && return is_zero(p) ? p : one(p)
+  is_constant(p) && return is_zero(p) ? zero(p) : one(p)
 
   ld_p = __leader(p)
   i = var_index(ld_p)
