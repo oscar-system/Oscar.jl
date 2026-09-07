@@ -147,9 +147,9 @@ function decode_type(s::DeserializerState)
 
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
-      obj = decode_type(s)
-      obj isa AbstractDict && return obj["default"]
-      return obj
+      t = decode_type(s)
+      t isa AbstractDict && return t["default"]
+      return t
     end
   end
 
@@ -161,9 +161,9 @@ function decode_type(s::DeserializerState)
       end
     else
       return load_node(s, :name) do _
-        obj = decode_type(s)
-        obj isa AbstractDict && return obj["default"]
-        return obj
+        t = decode_type(s)
+        t isa AbstractDict && return t["default"]
+        return t
       end
     end
   end
@@ -405,11 +405,11 @@ function load_type_and_params(s::DeserializerState, T::Type)
               return load_type_array_params(s)
             end
             
-            U = decode_type(s)
+            V = decode_type(s)
             if obj isa String && isnothing(tryparse(UUID, obj))
-              return U
+              return V
             end
-            return load_type_and_params(s, U)[2]
+            return load_type_and_params(s, V)[2]
           end
         end
       else
@@ -444,8 +444,9 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, params = load_type_and_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
+  Tf, pf = T, params
   obj = load_node(s, :data) do _
-    return load_object(s, T, params)
+    return load_object(s, Tf, pf)
   end
   load_attrs(s, obj)
   return obj
@@ -898,81 +899,77 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   # VERSION_NUMBER: for DEV builds the file's version string carries a commit hash
   # (e.g. "1.8.0-DEV-<hash>"), and comparing that against VERSION_NUMBER orders the two
   # by hash characters rather than by upgrade state, which can wrongly skip upgrades.
-  if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
+  s_up = if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
     # we need a mutable dictionary
-    jsondict = copy(s.obj)
-    jsondict = upgrade(file_version, jsondict)
-    jsondict_str = JSON.json(jsondict)
-    s = deserializer_open(IOBuffer(jsondict_str),
-                          serializer,
-                          with_attrs)
+    jsondict = upgrade(file_version, copy(s.obj))
+    deserializer_open(IOBuffer(JSON.json(jsondict)), serializer, with_attrs)
+  else
+    s
   end
-  
-  try
-    if params isa TypeAndParams
-      params = _convert_override_params(params)
-    end
-    if type !== nothing
-      # Decode the stored type, and compare it to the type `T` supplied by the caller.
-      # If they are identical, just proceed. If not, then we assume that either
-      # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-      # concrete, and `U <: T` should hold.
-      #
-      # This check should maybe change to a check on the whole type tree?
-      U = load_node(s, type_key) do _
-        decode_type(s)
-      end
-      
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
 
-      Base.issingletontype(type) && return type()
-      if isnothing(params)
-        _, params = load_node(s, type_key) do _
-          load_type_and_params(s, U)
+  # `params` and `loaded` get their value from more than one place: rebind them
+  # so the closures below do not box them; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  return let s = s_up, par = params isa TypeAndParams ? _convert_override_params(params) : params
+    try
+      if type !== nothing
+        # Decode the stored type, and compare it to the type `T` supplied by the caller.
+        # If they are identical, just proceed. If not, then we assume that either
+        # `T` is concrete, in which case `T <: U` should hold; or else `U` is
+        # concrete, and `U <: T` should hold.
+        #
+        # This check should maybe change to a check on the whole type tree?
+        U = load_node(s, type_key) do _
+          decode_type(s)
+        end
+      
+        U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+
+        Base.issingletontype(type) && return type()
+        par2 = isnothing(par) ? load_node(s, type_key) do _
+                                  load_type_and_params(s, U)
+                                end[2] : par
+        loaded = load_node(s, :data) do _
+          load_object(s, type, par2)
+        end
+      else
+        loaded = load_typed_object(s; override_params=par)
+      end
+
+      obj = loaded
+      if :id in keys(s.obj)
+        load_node(s, :id) do id
+          global_serializer_state.obj_to_id[obj] = UUID(id)
+          global_serializer_state.id_to_obj[UUID(id)] = obj
         end
       end
-      load_node(s, :data) do _
-        loaded = load_object(s, type, params)
+      return obj
+    catch e
+      if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
+        @warn """
+        Attempted loading file stored with Oscar version $file_version
+        using Oscar version $VERSION_NUMBER
+        """
       end
-    else
-      loaded = load_typed_object(s; override_params=params)
-    end
 
-    if :id in keys(s.obj)
-      load_node(s, :id) do id
-        global_serializer_state.obj_to_id[loaded] = UUID(id)
-        global_serializer_state.id_to_obj[UUID(id)] = loaded
+      if contains(string(file_version), "DEV")
+        commit = split(string(file_version), "-")[end]
+        @warn "Attempted loading file stored using a DEV version with commit $commit"
       end
+      rethrow(e)
     end
-    return loaded
-  catch e
-    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
-      @warn """
-      Attempted loading file stored with Oscar version $file_version
-      using Oscar version $VERSION_NUMBER
-      """
-    end
-
-    if contains(string(file_version), "DEV")
-      commit = split(string(file_version), "-")[end]
-      @warn "Attempted loading file stored using a DEV version with commit $commit"
-    end
-    rethrow(e)
   end
 end
 
 function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
   if serializer isa MultiFileRefSerializer
-    if endswith(filename, ".mrdi.gz")
-      main_file = filename
-      prefix = chopsuffix(filename, ".mrdi.gz")
+    main_file, prefix = if endswith(filename, ".mrdi.gz")
+      (filename, chopsuffix(filename, ".mrdi.gz"))
     elseif endswith(filename, ".mrdi")
-      main_file = filename
-      prefix = chopsuffix(filename, ".mrdi")
+      (filename, chopsuffix(filename, ".mrdi"))
     else
-      prefix = filename
-      main_gz = prefix * ".mrdi.gz"
-      main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+      main_gz = filename * ".mrdi.gz"
+      (isfile(main_gz) ? main_gz : filename * ".mrdi", filename)
     end
     compression = endswith(main_file, ".gz") ? :gzip : :none
     if compression == :gzip
