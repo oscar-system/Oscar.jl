@@ -338,7 +338,7 @@ function (V::LieAlgebraModule{C})(
     return V(coefficients(a))
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
-    @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
+    @req all(parent(ai) === Vi for (ai, Vi) in zip(a, Vs)) "Incompatible modules."
     return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
   elseif _is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
@@ -921,7 +921,9 @@ function tensor_product(
     L, dim_tensor_product_V, transformation_matrices, s; check=false
   )
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  # `my_mult` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == length(Vs) "Length of vector does not match."
     @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
     mat = zero_matrix(R, 1, dim_tensor_product_V)
@@ -930,9 +932,8 @@ function tensor_product(
     end
     return tensor_product_V(mat)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _mult_tuple(as)::LieAlgebraModuleElem{C}
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === tensor_product_V "Incompatible modules."
@@ -1047,7 +1048,9 @@ function exterior_power(
   E_to_T = hom(E, T, E_to_T_mat; check=false)
   T_to_E = hom(T, E, T_to_E_mat; check=false)
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  # `my_mult` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     mat = zero_matrix(R, 1, dim_E)
@@ -1057,9 +1060,8 @@ function exterior_power(
     end
     return E(mat)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _mult_tuple(as)::LieAlgebraModuleElem{C}
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === E "Incompatible modules."
@@ -1200,7 +1202,9 @@ function symmetric_power(
   S_to_T = hom(S, T, S_to_T_mat; check=false)
   T_to_S = hom(T, S, T_to_S_mat; check=false)
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  # `my_mult` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     mat = zero_matrix(R, 1, dim_S)
@@ -1211,9 +1215,8 @@ function symmetric_power(
     end
     return S(mat)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _mult_tuple(as)::LieAlgebraModuleElem{C}
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === S "Incompatible modules."
@@ -1334,7 +1337,9 @@ function tensor_power(
 
   T = LieAlgebraModule{C}(L, dim_T, transformation_matrices, s; check=false)
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  # `my_mult` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     mat = zero_matrix(R, 1, dim_T)
@@ -1345,9 +1350,8 @@ function tensor_power(
     end
     return T(mat)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _mult_tuple(as)::LieAlgebraModuleElem{C}
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === T "Incompatible modules."

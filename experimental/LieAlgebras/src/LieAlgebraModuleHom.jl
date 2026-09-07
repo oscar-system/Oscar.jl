@@ -426,7 +426,7 @@ function hom_direct_sum(
   fl, Ws = Oscar._is_direct_sum(W)
   @req fl "Second module must be a direct sum"
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
-  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+  @req all(domain(h) === Vi && codomain(h) === Wi for (h, Vi, Wi) in zip(hs, Vs, Ws)) "Domain/codomain mismatch"
 
   return hom(V, W, diagonal_matrix(matrix.(hs)); check=false)
 end
@@ -447,20 +447,20 @@ function hom_tensor(
   if ((fl, Vs) = _is_tensor_product(V); fl)
     # nothing to do
   elseif ((fl, Vb, k) = _is_tensor_power(V); fl)
-    Vs = [Vb for _ in 1:k]
+    Vs = fill(Vb, k)
   else
     throw(ArgumentError("First module must be a tensor product or power"))
   end
   if ((fl, Ws) = _is_tensor_product(W); fl)
     # nothing to do
   elseif ((fl, Wb, k) = _is_tensor_power(W); fl)
-    Ws = [Wb for _ in 1:k]
+    Ws = fill(Wb, k)
   else
     throw(ArgumentError("Second module must be a tensor product or power"))
   end
 
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
-  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+  @req all(domain(h) === Vi && codomain(h) === Wi for (h, Vi, Wi) in zip(hs, Vs, Ws)) "Domain/codomain mismatch"
 
   mat = reduce(
     kronecker_product,
