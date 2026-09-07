@@ -447,8 +447,9 @@ function saturations(L::PartialCharacter{QQAbFieldElem{T}}) where {T}
         break
       end
     end
+    c_k = c
     mu = evaluate(
-      FacElem(Dict{QQAbFieldElem{T},ZZRingElem}((L.b[j], div(i[j, k], c)) for j in 1:ncols(H)))
+      FacElem(Dict{QQAbFieldElem{T},ZZRingElem}((L.b[j], div(i[j, k], c_k)) for j in 1:ncols(H)))
     )
     mu1 = roots(mu, Int(div(d, c)))
     push!(B, mu1)
@@ -987,9 +988,9 @@ function cellular_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem}, RQQAb::M
   #output: binomial primary ideals which form a minimal primary decomposition of I 
   #        and the corresponding associated primes in a second array
   if iszero(I)
-     QQAb, = abelian_closure(QQ)
-     RQQAb = polynomial_ring(QQAb, symbols(base_ring(I)); cached = false)[1]
-     return [(ideal(RQQAb, [zero(RQQAb)]), ideal(RQQAb, [zero(RQQAb)]))]
+     QQAb0, = abelian_closure(QQ)
+     R0 = polynomial_ring(QQAb0, symbols(base_ring(I)); cached = false)[1]
+     return [(ideal(R0, [zero(R0)]), ideal(R0, [zero(R0)]))]
   end
   #compute associated primes
   if !is_unital(I)
@@ -1061,9 +1062,9 @@ function binomial_primary_decomposition(I::MPolyIdeal{QQMPolyRingElem})
   #         minimal primary decomposition of I, together with its corresponding associated primes 
   #         in the same order as the primary components
   if iszero(I)
-     QQAb, = abelian_closure(QQ)
-     RQQAb = polynomial_ring(QQAb, symbols(base_ring(I)); cached = false)[1]
-     return [(ideal(RQQAb, [zero(RQQAb)]), ideal(RQQAb, [zero(RQQAb)]))]
+     QQAb0, = abelian_closure(QQ)
+     R0 = polynomial_ring(QQAb0, symbols(base_ring(I)); cached = false)[1]
+     return [(ideal(R0, [zero(R0)]), ideal(R0, [zero(R0)]))]
   end
   @assert !isone(I)
   @assert is_binomial(I)

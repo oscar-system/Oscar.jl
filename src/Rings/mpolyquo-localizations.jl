@@ -1215,7 +1215,8 @@ function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
     kappa = help_kappa
     set_attribute!(f, :kappa, help_kappa)
     c_inv = theta[1]
-    helper_images = [kappa(numerator(y))*c_inv*kappa(divexact(p, denominator(y))) for y in images(f)]
+    p_all = p
+    helper_images = [kappa(numerator(y))*c_inv*kappa(divexact(p_all, denominator(y))) for y in images(f)]
     set_attribute!(f, :helper_images, helper_images)
     eta = hom(R, help_ring, helper_images, check=false)
     set_attribute!(f, :eta, eta)
@@ -1323,9 +1324,9 @@ end
 
   # Build up a helper ring for the graph of f using Rabinowitschs trick.
   inverse_name=:_0
-  r = length(denoms)
+  r0 = length(denoms)
   kk = coefficient_ring(R)
-  A, t = polynomial_ring(kk, vcat([Symbol(inverse_name,k) for k in 1:r],
+  A, t = polynomial_ring(kk, vcat([Symbol(inverse_name,k) for k in 1:r0],
                                   symbols(P), symbols(R)); cached=false)
   r = length(denoms)
   theta = t[1:r]
@@ -1437,7 +1438,7 @@ function is_isomorphism(
   imagesB = [ inc2(numerator(images(phi)[i]))*denoms[i] for i in (1:length(denoms))]
 
   # expand the localization variable s in A as a polynomial in B
-  denoms = Vector{elem_type(B)}()
+  s_denoms = Vector{elem_type(B)}()
   for h in denominators(inverted_set(K))
     phi_h = phi(h)
     p = lifted_numerator(phi_h)
@@ -1445,9 +1446,9 @@ function is_isomorphism(
     J_ext = ideal(B, push!(gens(J), inc2(p)))
     G, M = standard_basis_with_transformation_matrix(J_ext)
     gen(G, 1)==one(B) || error("the denominator is not a unit in the target ring")
-    push!(denoms, inc2(q)*last(collect(M)))
+    push!(s_denoms, inc2(q)*last(collect(M)))
   end
-  pushfirst!(imagesB, prod(denoms; init=one(B)))
+  pushfirst!(imagesB, prod(s_denoms; init=one(B)))
 
   # perform a sanity check
   phiAB = hom(A, B, imagesB, check=false)
@@ -2086,9 +2087,9 @@ function quo(
   )
   base_ring(I) === L || error("ideal does not belong to the correct ring")
   R = base_ring(L)
-  J = modulus(underlying_quotient(L))
-  J = ideal(R, vcat([g for g in gens(J) if !iszero(g)], 
-                    [g for g in lifted_numerator.(gens(pre_image_ideal(I))) if !(g in J)]))
+  J0 = modulus(underlying_quotient(L))
+  J = ideal(R, vcat([g for g in gens(J0) if !iszero(g)], 
+                    [g for g in lifted_numerator.(gens(pre_image_ideal(I))) if !(g in J0)]))
   W, _ = quo(localized_ring(L), localized_ring(L)(J))
   return W, hom(L, W, gens(W), check=false)
 end
@@ -2343,9 +2344,9 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocaliz
     S = domain(f)
     W = codomain(f)
     L = localized_ring(W)
-    g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens), check=false)
-    set_attribute!(f, :lifted_map, g)
-    g
+    h = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens), check=false)
+    set_attribute!(f, :lifted_map, h)
+    h
   end::Map{typeof(domain(f)), typeof(localized_ring(codomain(f)))}
 
   b = g(a)::MPolyLocRingElem
@@ -2395,7 +2396,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
       done = true
       break
     end
-    V_gens = vcat(V_gens, [m for m in monomials_of_degree(R, d) if !(m in lead_I)])
+    append!(V_gens, inc)
     d = d + 1
   end
 
@@ -2467,8 +2468,7 @@ end
   )
   inverse_name=:_0
   R = base_ring(L)
-  f = denominators(inverted_set(L))
-  f = sort(f; by=total_degree, rev=true)
+  f = sort(denominators(inverted_set(L)); by=total_degree, rev=true)
   r = length(f)
   A, phi, t = _add_variables_first(R, [Symbol(inverse_name,k) for k in 1:r])
   theta = t[1:r]
@@ -2500,8 +2500,7 @@ end
   )
   inverse_name=:_0
   R = base_ring(L)
-  f = denominators(inverted_set(L))
-  f = sort(f; by=total_degree, rev=true)
+  f = sort(denominators(inverted_set(L)); by=total_degree, rev=true)
   r = length(f)
   A, phi, t = _add_variables_first(R, [Symbol(inverse_name,k) for k in 1:r])
   theta = t[1:r]

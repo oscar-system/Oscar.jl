@@ -275,7 +275,8 @@ function connected_components(L::Vector{PP})
         DoAnotherIteration = true
       end
     end #while
-    vars = filter((k -> lcm[k] > 0), 1:nvars)
+    lcm_fin = lcm
+    vars = filter((k -> lcm_fin[k] > 0), 1:nvars)
     # remove conn compt just found from L???
     #seems to be slower with this line ?!?        L = filter((t -> is_coprime(t,lcm)), L)
     push!(ConnCompt, vars)
@@ -681,31 +682,23 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   # ----------------------
   # Pivot case: first do the ideal sum, then do ideal quotient
   # (the ideas are relatively simple, the code is long, tedious, and a bit fiddly)
-  if PivotStrategy == :simple_power_median  || PivotStrategy == :auto
-    PivotPP = HSNum_choose_pivot_simple_power_median(MostFreq, NonSimplePPs)
+  PivotPP = if PivotStrategy == :simple_power_median  || PivotStrategy == :auto
+    HSNum_choose_pivot_simple_power_median(MostFreq, NonSimplePPs)
+  elseif PivotStrategy == :simple_power_max
+    HSNum_choose_pivot_simple_power_max(MostFreq, NonSimplePPs)
+  elseif PivotStrategy == :gcd2simple
+    HSNum_choose_pivot_gcd2simple(MostFreq, NonSimplePPs)
+  elseif PivotStrategy == :gcd2max
+    HSNum_choose_pivot_gcd2max(MostFreq, NonSimplePPs)
+  # elseif PivotStrategy == :gcd3
+  #   HSNum_choose_pivot_gcd3(MostFreq, NonSimplePPs)
+  elseif PivotStrategy == :gcd3simple
+    HSNum_choose_pivot_gcd3simple(MostFreq, NonSimplePPs)
+  elseif PivotStrategy == :gcd3max
+    HSNum_choose_pivot_gcd3max(MostFreq, NonSimplePPs)
+  # elseif PivotStrategy == :gcd4
+  #   HSNum_choose_pivot_gcd4(MostFreq, NonSimplePPs)
   end
-  if PivotStrategy == :simple_power_max
-    PivotPP = HSNum_choose_pivot_simple_power_max(MostFreq, NonSimplePPs)
-  end
-  if PivotStrategy == :gcd2simple
-    PivotPP = HSNum_choose_pivot_gcd2simple(MostFreq, NonSimplePPs)
-  end
-  if PivotStrategy == :gcd2max
-    PivotPP = HSNum_choose_pivot_gcd2max(MostFreq, NonSimplePPs)
-  end
-  # if PivotStrategy == :gcd3
-  #   PivotPP = HSNum_choose_pivot_gcd3(MostFreq, NonSimplePPs)
-  # end
-  if PivotStrategy == :gcd3simple
-    PivotPP = HSNum_choose_pivot_gcd3simple(MostFreq, NonSimplePPs)
-  end
-  if PivotStrategy == :gcd3max
-    PivotPP = HSNum_choose_pivot_gcd3max(MostFreq, NonSimplePPs)
-  end
-  # if PivotStrategy == :gcd4
-  #   PivotPP = HSNum_choose_pivot_gcd4(MostFreq, NonSimplePPs)
-  # end
-  #     end
   @vprintln :hilbert  1 "HSNum_loop:  pivot = $(PivotPP)"
   PivotIsSimple = is_simple_power_pp(PivotPP)
   PivotIndex = findfirst(>(0), PivotPP.expv) # used only if PivotIsSimple == true
@@ -776,9 +769,9 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
       #    NotBM_coprime,
       #    NotBM_mixed
       # In all cases the PPs have been colon-ed by PivotPP
-      NotBM_mixed = interreduce(NotBM_mixed) # cannot easily be "clever" here
-      filter!((t -> not_mult_of_any(NotBM_mixed,t)), NotBM_coprime)
-      RecurseQuot = vcat(NotBM_coprime, NotBM_mixed) # already interreduced
+      NotBM_mixed_r = interreduce(NotBM_mixed) # cannot easily be "clever" here
+      filter!((t -> not_mult_of_any(NotBM_mixed_r,t)), NotBM_coprime)
+      RecurseQuot = vcat(NotBM_coprime, NotBM_mixed_r) # already interreduced
       RQ_SimplePPs, RQ_NonSimplePPs = SeparateSimplePPs(RecurseQuot)
       RecurseQuot_SimplePPs = RQ_SimplePPs
       RecurseQuot_NonSimplePPs = vcat(BM, RQ_NonSimplePPs)
@@ -803,8 +796,9 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
       end
       NonSimple2 = NonSimpleTbl[DegPivot+1]
       for i in DegPivot:-1:1
-        NewPPs = filter((t -> not_mult_of_any(NonSimple2,t)), NonSimpleTbl[i])
-        NonSimple2 = vcat(NonSimple2, NewPPs)
+        ns = NonSimple2
+        NewPPs = filter((t -> not_mult_of_any(ns,t)), NonSimpleTbl[i])
+        NonSimple2 = vcat(ns, NewPPs)
       end
       NewSimplePPs = filter(is_simple_power_pp, NonSimple2) ## Use instead
       NonSimple2 = filter(!is_simple_power_pp, NonSimple2)  ## SeparateSimplePPs???

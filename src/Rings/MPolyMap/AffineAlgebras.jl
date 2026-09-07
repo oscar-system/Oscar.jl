@@ -303,12 +303,12 @@ function _groebner_data(F::AffAlgHom)
   m = ngens(R)
   n = ngens(S)
   J = get_attribute!(F, :groebner_data) do
-    T, _ = polynomial_ring(K, m + n; cached = false)
+    Tnew, _ = polynomial_ring(K, m + n; cached = false)
 
-    S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
+    S2toTnew = hom(S2, Tnew, [ gen(Tnew, i) for i in 1:n ])
 
     fs = map(lift, _images(F))
-    return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
+    return S2toTnew(modulus(S)) + ideal(Tnew, [ gen(Tnew, n + i) - S2toTnew(fs[i]) for i in 1:m ])
   end::MPolyIdeal{mpoly_type(K)}
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])

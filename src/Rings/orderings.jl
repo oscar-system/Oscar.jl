@@ -117,7 +117,8 @@ function _canonical_matrix(w)
         divexact!(nw, nw, c)
       end
       ww[(k + 1):(k + 1), :] = nw
-      push!(piv, findfirst(x -> !is_zero_entry(nw, 1, x), 1:ncols(w)))
+      nwf = nw
+      push!(piv, findfirst(x -> !is_zero_entry(nwf, 1, x), 1:ncols(w)))
       k += 1
     end
   end
@@ -2154,8 +2155,8 @@ function _opposite_ordering(nvars::Int, o::WSymbOrdering{T}) where T
 end
 
 function _opposite_ordering(nvars::Int, o::MatrixOrdering)
-  M = o.matrix
-  M = reduce(hcat, [M[:,i:i] for i in ncols(M):-1:1])
+  M0 = o.matrix
+  M = reduce(hcat, [M0[:,i:i] for i in ncols(M0):-1:1])
   return MatrixOrdering(reverse(nvars+1 .- o.vars), M, false)
 end
 

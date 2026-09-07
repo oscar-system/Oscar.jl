@@ -1611,13 +1611,12 @@ julia> VtoPoly.(basis(V))
 ```
 """
 function vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
-  local R
-  if length(polys) == 0
-    R = target
-    @assert R !== nothing
+  R = if length(polys) == 0
+    @assert target !== nothing
+    target
   else
-    R = parent(polys[1])
-    @assert target === nothing || target === R
+    @assert target === nothing || target === parent(polys[1])
+    parent(polys[1])
   end
   @assert base_ring(R) == K
   expvec = Dict{Vector{Int}, Int}()
@@ -1731,8 +1730,7 @@ mutable struct HilbertData
     R = base_ring(I)
     @req is_z_graded(R) "The base ring must be ZZ-graded"
 
-    W = R.d
-    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    W = [Int(R.d[i][1]) for i = 1:ngens(R)]
 
     @req minimum(W) > 0 "The weights must be positive"
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -2515,8 +2513,7 @@ function  truncate(I::MPolyIdeal, d::Int)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req is_z_graded(R) "The base ring must be ZZ-graded"
-  W = R.d
-  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  W = [Int(R.d[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   if is_zero(I)
      return I
