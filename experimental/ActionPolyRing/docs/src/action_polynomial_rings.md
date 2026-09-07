@@ -20,7 +20,7 @@ The jet variables are sorted with respect to a user-defined [ranking](@ref actio
     currently tracked jet variables is obtained using
     [`gens`](@ref gens(apr::ActionPolyRing)).
 
-Additionally, each action polynomial ring maintains a vector of pairwise commuting action maps associated with it. 
+Additionally, each action polynomial ring maintains a vector of pairwise commuting action maps associated with it.
 These action maps are implemented via the new abstract type `ActionMap{D} <: Map{D,D,Any,Any}`, with type parameter
 `D <: Ring`.
 
