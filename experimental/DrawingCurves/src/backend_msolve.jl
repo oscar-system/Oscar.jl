@@ -115,10 +115,9 @@ function isotopy_graph_from_msolve(
   K = base_ring(Rxy)
   Ry, t = polynomial_ring(K, [:y]; cached=false)
   projy = hom(Rxy, Ry, [0, t[1]])
-  critpt = []
-  try
-    critpt = msolve_wrapper(ideal([f, derivative(f, y)]); precision=solver_precision)
-  catch Exception
+  critpt = try
+    msolve_wrapper(ideal([f, derivative(f, y)]); precision=solver_precision)
+  catch
     @vprintln :DrawingCurves 2 "Found no critical points."
     return false
   end
