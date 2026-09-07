@@ -67,15 +67,15 @@ function _isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) 
 
   if is_empty(gens(G))
     F2 = GF(2)
-    Gp = matrix_group([ identity_matrix(F2, degree(G)) ])
+    Gtriv = matrix_group([ identity_matrix(F2, degree(G)) ])
     img = function(x)
-      return one(Gp)
+      return one(Gtriv)
     end
 
     preimg = function(y)
       return one(G)
     end
-    return Gp, MapFromFunc(G, Gp, img, preimg)
+    return Gtriv, MapFromFunc(G, Gtriv, img, preimg)
   end
 
   matrices = map(matrix, gens(G))

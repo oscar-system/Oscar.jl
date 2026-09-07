@@ -751,7 +751,6 @@ function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   n = elementary_divisors(C)[end]
   # base case of the recursion n = p prime
   if is_prime(n)
-    p = n
     B = matrix(i.map_ab)
     mats = GapObj([GapObj(matrix(x)) for x in gens(O)])
     st = _stab_via_fin_field(O, mats, B, n)
@@ -855,15 +854,15 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
   BL2 = matrix(i2)
   # The vector space case is the base case of the recursion.
   if is_prime(expA)
-    p = expA
-    @vprint :Isometry 4 "transporter elementary $p "
+    q = expA
+    @vprint :Isometry 4 "transporter elementary $q "
     # prime
     mats = matrix.(gens(O))
     if length(mats)==0
       # catch a corner case which may make gap choke
       return A1==A2, one(O)
     end
-    R = fpField(UInt(p))
+    R = fpField(UInt(q))
     BL1mod = change_base_ring(R, BL1)
     BL2mod = change_base_ring(R, BL2)
     r = rref!(BL1mod)
@@ -878,8 +877,8 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
     G = O
     Gnice = GAP.Globals.NiceObject(GapObj(G))
     # FIXME: direct conversion from fpMatrix to GAP matrix seems to be missing?
-    BL1mod_gap = GapObj(lift(BL1mod)) * GAP.Globals.Z(GapObj(p))^0
-    BL2mod_gap = GapObj(lift(BL2mod)) * GAP.Globals.Z(GapObj(p))^0
+    BL1mod_gap = GapObj(lift(BL1mod)) * GAP.Globals.Z(GapObj(q))^0
+    BL2mod_gap = GapObj(lift(BL2mod)) * GAP.Globals.Z(GapObj(q))^0
     GAP.Globals.ConvertToMatrixRep(BL1mod_gap)
     GAP.Globals.ConvertToMatrixRep(BL2mod_gap)
     mats_gap = GapObj([GapObj(x) for x in mats])
@@ -944,7 +943,8 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
       K, iK = __cokernel(iE)
       SK, toSK = induce_automorphism_group(SD, iK; check=false)
       B1,j1 = sub(K, [iK(iD\(i1(x))) for x in gens(A1)])
-      B2,j2 = sub(K, [iK(iD\(_i2(x))) for x in gens(A2)])
+      i2_c = _i2
+      B2,j2 = sub(K, [iK(iD\(i2_c(x))) for x in gens(A2)])
       flag, _transporter = _is_conjugate_with_data(SK, j1, j2)
       !flag && return false, one(O)
       _transporter = iS(iSD\(toSK\_transporter))
@@ -978,7 +978,8 @@ function _is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule}, i1::TorQua
       Cp, jp = primary_part(C, p)
       @assert is_snf(Cp)
       A1pinCp, A1p_to_Cp = sub(Cp, [jp\i1(i1p(x)) for x in gens(A1p)])
-      A2pinCp, A2p_to_Cp = sub(Cp, [jp\_i2(i2p(x)) for x in gens(A2p)])
+      i2_p = _i2
+      A2pinCp, A2p_to_Cp = sub(Cp, [jp\i2_p(i2p(x)) for x in gens(A2p)])
       
       Op, iOp = restrict_automorphism_group(_O, jp; check=false)
       @vtime :Isometry 4 flag, transporter = _is_conjugate_with_data(Op, A1p_to_Cp, A2p_to_Cp)

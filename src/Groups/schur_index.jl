@@ -216,11 +216,7 @@ function _Q_p_chi(vals::GapObj, p::ZZRingElem)
     F = GAP.Globals.Field(GAP.Globals.Rationals, vals)
   end
   N = GAP.Globals.Conductor(F)
-  if N == 1
-    stab = [1]
-  else
-    stab = Vector{Int}(GAP.Globals.GaloisStabilizer(F))
-  end
+  stab = N == 1 ? [1] : Vector{Int}(GAP.Globals.GaloisStabilizer(F))
 
   return get!(_Q_p_chi_cache, (N, stab, p)) do
     N == 1 && return (N, stab, 1)
@@ -229,19 +225,19 @@ function _Q_p_chi(vals::GapObj, p::ZZRingElem)
     _, a, b = gcdx(ppart, m)
     r = m == 1 ? 1 : modord(p, m)
 #T `modord(N, 1)` could return 1 (smallest pos. int. i s.t. 1 divides (N^i-1))
-    stab = Int[]
+    stab_p = Int[]
     sigma_p = mod(1 + a*(p-1)*ppart, N)
     res = ppart == 1 ? [1] : coprime_residues(ppart)
     for u in res
       for i in 0:(r-1)
         sigma = mod(sigma_p^i * (1 + (u-1)*m*b), N)
         if GAP.Globals.GaloisCyc(vals, GapObj(sigma)) == vals
-          push!(stab, sigma)
+          push!(stab_p, sigma)
         end
       end
     end
 
-    return (N, stab, r*euler_phi(ppart))
+    return (N, stab_p, r*euler_phi(ppart))
   end
 end
 
@@ -419,7 +415,8 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
       test = true
       while test
         test = false
-        if all(p -> mod(p-1, q) != 0 || !(p*q in orders), primes)
+        q_c = q
+        if all(p -> mod(p-1, q_c) != 0 || !(p*q_c in orders), primes)
           q = div(q, l)
           u = div(u, l)
           if q > 2
@@ -444,7 +441,8 @@ function local_schur_indices(chi::GAPGroupClassFunction; cyclic_defect::Vector{I
   # (We store for each p the pair (u_p, exact) where u_p is a known multiple
   # of m_p(chi), and exact is `true` or `false`,
   # where `true` means that u_p = m_p(chi).)
-  u_p = Dict([p => p == 2 ? (2, false) : (gcd(u, p-1), false) for p in primes])
+  u_c = u
+  u_p = Dict([p => p == 2 ? (2, false) : (gcd(u_c, p-1), false) for p in primes])
   # Theorem 4.4
   if primes[1] == 2
     if mod(Gorder, 4) != 0 ||

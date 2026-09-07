@@ -189,7 +189,7 @@ Compute the group of isometries of the definite lattice `L` using an orthogonal
 decomposition.
 """
 function _isometry_group_via_decomposition(
-  L::ZZLat;
+  L_in::ZZLat;
   depth::Int=-1,
   bacher_depth::Int=0,
   _howell::Bool=true,
@@ -198,18 +198,16 @@ function _isometry_group_via_decomposition(
   # TODO: adapt the decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
   # but in some examples it is also slower ... up to a factor of 15
-  
-  L = lattice(rational_span(L))
-  if gram_matrix(L)[1,1] < 0
-    L = rescale(L, -1; cached=false) # needed?
-  end
 
-  if !_howell
+  L0 = lattice(rational_span(L_in))
+  L1 = gram_matrix(L0)[1,1] < 0 ? rescale(L0, -1; cached=false) : L0 # needed?
+
+  L = if !_howell
     # need an integral lattice to work with discriminant groups
-    d = denominator(scale(L))
-    if d > 1
-      L = rescale(L, d; cached=false)
-    end
+    d = denominator(scale(L1))
+    d > 1 ? rescale(L1, d; cached=false) : L1
+  else
+    L1
   end
   
   if _direct_is_faster(L)
@@ -262,9 +260,9 @@ function _isometry_group_via_decomposition(
   end
 
   if rank(M1) == rank(L)
-    B = basisM1prim 
-    Binv = inv(B) 
-    O1 = matrix_group([Binv*matrix(i)*B for i in gens(O1)])
+    Bm = basisM1prim
+    Binv = inv(Bm)
+    O1 = matrix_group([Binv*matrix(i)*Bm for i in gens(O1)])
     if _set_nice_mono
       _set_nice_monomorphism!(O1, sv1)
     end
@@ -697,12 +695,12 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
     dM1s = discriminant_representation(M1s, OM1s; check=false, full=false, ambient_representation=false)
     OM1sq = image(dM1s)[1]
     to_gapM1s = get_attribute(OM1sq,:to_gap)
-    B1 = basis_matrix(M1)
-    B2 = basis_matrix(M2)
+    BM1 = basis_matrix(M1)
+    BM2 = basis_matrix(M2)
     fMsinvB = inv(fMs)*basis_matrix(M1s)
     @vprint :Isometry 2 "computing orbit of an overlattice of index=$(factor(index(M1,M1s))) in $(domain(OM1sq))"
-    J1, j1 = sub(DM1s, [DM1s(B1[i,:]) for i in 1:nrows(B1)])
-    J2, j2 = sub(DM1s, [DM1s(coordinates(B2[i,:],M2s)*fMsinvB) for i in 1:nrows(B2)])
+    J1, j1 = sub(DM1s, [DM1s(BM1[i,:]) for i in 1:nrows(BM1)])
+    J2, j2 = sub(DM1s, [DM1s(coordinates(BM2[i,:],M2s)*fMsinvB) for i in 1:nrows(BM2)])
     @vtime :Isometry 4 b, tmp = _is_conjugate_with_data(OM1sq, j1, j2)   
     b || return false, zero_matrix(QQ, 0, 0)
     @vprintln :Isometry 2 "done"
@@ -829,10 +827,10 @@ function _is_isometric_with_isometry_definite_via_decomposition(L1::ZZLat,
   @hassert :Isometry 3 fN*gram_matrix(N2)*transpose(fN) == gram_matrix(N1)
   # double check that the diagram commutes 
   if get_assertion_level(:Isometry) > 2
-    fMB = fM*basis_matrix(M2)
-    fHM1_HM2 = hom(HM1, HM2, [HM2(coordinates(lift(i), M1)*fMB) for i in gens(HM1)])
-    fNB = fN*basis_matrix(N2)
-    fHN1_HN2 = hom(HN1, HN2, [HN2(coordinates(lift(i), N1)*fNB) for i in gens(HN1)])
+    fMB2 = fM*basis_matrix(M2)
+    fHM1_HM2 = hom(HM1, HM2, [HM2(coordinates(lift(i), M1)*fMB2) for i in gens(HM1)])
+    fNB2 = fN*basis_matrix(N2)
+    fHN1_HN2 = hom(HN1, HN2, [HN2(coordinates(lift(i), N1)*fNB2) for i in gens(HN1)])
     _g = fHM1_HM2*phi2*inv(fHN1_HN2)*inv(phi1)
     g = G(_g)
     @hassert :Isometry 1 isone(g)

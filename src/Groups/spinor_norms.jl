@@ -345,11 +345,12 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
 
     \Gamma_S^+ = ker(\Gamma_\QQ \to \{\pm 1\}, (d,s) \mapsto \sign(ds))
   =#
+  dh = det_hom
   GammaS = [diagonal(QQ(s)) for s in S]
   if signed
-    push!(GammaS, diagonal(QQ(-1))+sum([det_hom[p](ZZ(-1)) for p in S]))
+    push!(GammaS, diagonal(QQ(-1))+sum([dh[p](ZZ(-1)) for p in S]))
   else
-    push!(GammaS, sum([det_hom[p](ZZ(-1)) for p in S]))
+    push!(GammaS, sum([dh[p](ZZ(-1)) for p in S]))
     push!(GammaS, diagonal(QQ(-1)))
   end
   gens_ker = append!(sigma_sharp_gens, GammaS)
@@ -406,7 +407,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
     # compute the spin of lifts of the generators
     for f in gens(Oq)
       # take only the action on the p-part
-      fp = hom(Tpn,Tpn,[preimage(iT,f(iT(g))) for g in gens(Tpn)])
+      fp = hom(Tpn,Tpn,preimage.(Ref(iT), f.(iT.(gens(Tpn)))))
       fp = matrix(Op(fp))
       prec0 = 1
       prec = 25 # initial precision
@@ -429,7 +430,8 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
     end
   end
   Agap, i1,_ = _isomorphic_gap_group(D)
-  return hom(Oq,Agap,gens(Oq),[i1(proj(result[f])) for f in gens(Oq)],check=false)
+  res_f, proj_f = result, proj
+  return hom(Oq,Agap,gens(Oq),[i1(proj_f(res_f[f])) for f in gens(Oq)],check=false)
 end
 
 
@@ -479,9 +481,9 @@ julia> order(Oq)
       K, _ = kernel(f)
       qL = domain(K)
       q = discriminant_group(L)
-      Oq = orthogonal_group(q)
-      gq = elem_type(Oq)[Oq(hom(q, q, elem_type(q)[q(lift(g(qL(lift(a))))) for a in gens(q)]); check = false) for g in gens(K)]
-      return sub(Oq, gq)
+      Oqe = orthogonal_group(q)
+      gq = elem_type(Oqe)[Oqe(hom(q, q, elem_type(q)[q(lift(g(qL(lift(a))))) for a in gens(q)]); check = false) for g in gens(K)]
+      return sub(Oqe, gq)
     end
   end
   # we can compute the orthogonal group of L

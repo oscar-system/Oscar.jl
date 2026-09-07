@@ -702,8 +702,9 @@ function _gens(G::Union{ZZModMatrix, zzModMatrix}, b, p)
     k = 1
     gens = typeof(G)[]
     while k <= b
-        gen = _mod_p_to_a_kernel(G, k, p)
-        gen = [hensel_qf(G, f, k+1, b+1, p) for f in gen]
+        k_cur = k
+        gen0 = _mod_p_to_a_kernel(G, k_cur, p)
+        gen = [hensel_qf(G, f, k_cur+1, b+1, p) for f in gen0]
         k *= 2
         append!(gens,gen)
     end
@@ -1156,9 +1157,9 @@ function _stabilizer_isotropic_elementary(
 
   # choose a section
   NtoT = hom(N, T, TorQuadModuleElem[preimage(TtoN, i) for i in gens(N)])
-  K, iK = radical_quadratic(T)
-  K, i = snf(K)
-  iK = compose(i, iK)
+  K0, iK0 = radical_quadratic(T)
+  K, i = snf(K0)
+  iK = compose(i, iK0)
 
   k = length(elementary_divisors(K))
   r = length(elementary_divisors(N))
@@ -1177,10 +1178,10 @@ function _stabilizer_isotropic_elementary(
       HN = domain(iHN)
       SN = domain(iSN)
 
-      b, iCN = has_complement(iHN)
+      b, iCN0 = has_complement(iHN)
       @assert b
-      CN, i = snf(domain(iCN))
-      iCN = compose(i, iCN)
+      CN, i = snf(domain(iCN0))
+      iCN = compose(i, iCN0)
 
       gensH = vcat(TorQuadModuleElem[iK(K[i]) for i in 1:kH], TorQuadModuleElem[NtoT(iHN(i)) for i in gens(HN)])
       _, iH = sub(T, gensH)
@@ -1646,9 +1647,9 @@ function _stabilizers_elementary_odd(
 
   # choose a section
   NtoT = hom(N, T, TorQuadModuleElem[preimage(TtoN, i) for i in gens(N)])
-  K, iK = radical_quadratic(T)
-  K, i = snf(K)
-  iK = compose(i, iK)
+  K0, iK0 = radical_quadratic(T)
+  K, i = snf(K0)
+  iK = compose(i, iK0)
 
   k = length(elementary_divisors(K))
   r = length(elementary_divisors(N))
@@ -1672,10 +1673,10 @@ function _stabilizers_elementary_odd(
     HN = domain(iHN)
     SN = domain(iSN)
 
-    b, iCN = has_complement(iHN)
+    b, iCN0 = has_complement(iHN)
     @assert b
-    CN, i = snf(domain(iCN))
-    iCN = compose(i, iCN)
+    CN, i = snf(domain(iCN0))
+    iCN = compose(i, iCN0)
 
     gensH = vcat(TorQuadModuleElem[iK(K[i]) for i in 1:kH], TorQuadModuleElem[NtoT(iHN(i)) for i in gens(HN)])
     _, iH = sub(T, gensH)

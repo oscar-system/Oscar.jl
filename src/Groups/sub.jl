@@ -1274,9 +1274,9 @@ end
 
 function intersect(V::AbstractVector{<:GAPGroup})
    L = GapObj(V; recursive = true)
-   K = GAP.Globals.Intersection(L)::GapObj
-   Embds = [_as_subgroup(G, K)[2] for G in V]
-   K = _as_subgroup(V[1], K)[1]
+   Kgap = GAP.Globals.Intersection(L)::GapObj
+   Embds = [_as_subgroup(G, Kgap)[2] for G in V]
+   K = _as_subgroup(V[1], Kgap)[1]
    Arr = Tuple(vcat([K],Embds))
    return Arr
 end
