@@ -415,9 +415,12 @@ whose layout depends on the `pkc` and `skc` flags of `uov`.
 # Examples
 ```jldoctest
 julia> uov = uov_1p;
+
 julia> pk, sk = keygen(uov);
+
 julia> length(pk)
 278432
+
 julia> length(sk)
 237896
 ```
@@ -454,8 +457,11 @@ parameter set `uov`, returning the signature as a byte vector.
 # Examples
 ```jldoctest
 julia> uov = uov_1p;
+
 julia> pk, sk = keygen(uov);
+
 julia> msg = zeros(UInt8, 32);
+
 julia> sig = sign(uov, msg, sk);
 
 julia> verify(uov, sig, msg, pk)
@@ -543,14 +549,18 @@ under the public key `pk` of the UOV parameter set `uov`.
 # Examples
 ```jldoctest
 julia> uov = uov_1p;
+
 julia> pk, sk = keygen(uov);
+
 julia> msg = zeros(UInt8, 32);
+
 julia> sig = sign(uov, msg, sk);
 
 julia> verify(uov, sig, msg, pk)
 true
 
 julia> sig_bad = copy(sig);
+
 julia> sig_bad[1] ⊻= 0xff;
 
 julia> verify(uov, sig_bad, msg, pk)
@@ -585,8 +595,11 @@ signature is invalid.
 # Examples
 ```jldoctest
 julia> uov = uov_1p;
+
 julia> pk, sk = keygen(uov);
+
 julia> msg = UInt8[1, 2, 3];
+
 julia> sm = vcat(msg, sign(uov, msg, sk));
 
 julia> uov_open(uov, sm, pk)
@@ -630,9 +643,8 @@ sets `uov_1p`, `uov_1s`, `uov_3`, `uov_5` (and their `_pkc` and `_pkc_skc`
 variants) are created this way.
 
 # Examples
-Create a parameter set and read back its parameters; an invalid `gf` is
-rejected with a clear error.
-```jldoctestjulia> u = instantiate_uov(256, 112, 44, false, false, "my-uov"); (u.n, u.m, u.v)
+```jldoctest
+julia> u = instantiate_uov(256, 112, 44, false, false, "my-uov"); (u.n, u.m, u.v)
 (112, 44, 68)
 
 julia> instantiate_uov(4, 10, 3, false, false, "bad")
