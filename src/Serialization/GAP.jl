@@ -254,15 +254,15 @@ install_GAP_deserialization(
         elfreefam = GAPWrap.ElementsFamily(freefam)
         # Deserialize the generators.
         generators = load_object(s, Vector{Vector{Int}}, :gens)
-        gens = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in generators]
-        Ggens = [GAPWrap.ElementOfFpGroup(elfam, x) for x in gens]
+        gens = GAPWrap.ObjByExtRep.(Ref(elfreefam), GapObj.(generators, true))
+        Ggens = GAPWrap.ElementOfFpGroup.(Ref(elfam), gens)
         # Create the subgroup.
         G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))::GapObj
       else
         # Create a new full f.p. group.
         relators = load_object(s, Vector{Vector{Int}}, :relators)
-        elfreefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-        rels = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in relators]
+        relfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+        rels = [GAPWrap.ObjByExtRep(relfam, GapObj(x, true)) for x in relators]
         G = F/GapObj(rels)::GapObj
       end
       return G
