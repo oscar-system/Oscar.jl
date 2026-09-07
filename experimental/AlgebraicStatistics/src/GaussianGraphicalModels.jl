@@ -624,9 +624,9 @@ function ci_structure(R::GaussianRing; strategy::Symbol)
     A = parametrization(R)
     return [stmt for stmt in ci_statements(R) if ci_polynomial(A, stmt) == 0]
   elseif strategy == :ideal || hasmethod(vanishing_ideal, Tuple{typeof(R)})
-    A = covariance_matrix(R)
+    S = covariance_matrix(R)
     I = vanishing_ideal(R)
-    return [stmt for stmt in ci_statements(R) if ci_polynomial(A, stmt) in I]
+    return [stmt for stmt in ci_statements(R) if ci_polynomial(S, stmt) in I]
   end
   error("no method available to compute the CI structure")
 end
