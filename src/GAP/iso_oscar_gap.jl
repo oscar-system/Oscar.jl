@@ -115,10 +115,27 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
    coeffsFG = [ZZRingElem(GAPWrap.IntFFE(x)) for x in
                GAPWrap.CoefficientsOfUnivariatePolynomial(polFG)]
 
-   if coeffsFO == coeffsFG
-     # The two fields are compatible.
-     F = FO
+   # If the two fields are not compatible, create an Oscar field `FO2` that is
+   # compatible with `FG` and has the same type as `FO`, together with an
+   # isomorphism between the two Oscar fields.
+   F, emb = if coeffsFO == coeffsFG
+     (FO, nothing)
+   else
+     R = parent(modulus(FO))
+     FO2 = typeof(FO)(R(coeffsFG), :z, true; check = true)
+     (FO2, embed(FO2, FO))
+   end
 
+   # Compute the canonical basis of `FO` or `FO2`. (Computed before the closures
+   # below capture it: a variable assigned after its capture point is boxed; see
+   # docs/src/DeveloperDocumentation/closure_boxes.md.)
+   basis_F = Vector{elem_type(F)}(undef, d)
+   basis_F[1] = F(1)
+   for i = 2:d
+     basis_F[i] = basis_F[i - 1]*gen(F)
+   end
+
+   if isnothing(emb)
      if FO isa FqField
        f = function(x)
          v = [GAP.Obj(Nemo._coeff(x, i)) for i in 0:(d - 1)]
@@ -137,15 +154,6 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
        return sum([v_int[i]*basis_F[i] for i = 1:d])
      end
    else
-     # Create an Oscar field `FO2` that is compatible with `FG`
-     # and has the same type as `FO` ...
-     R = parent(modulus(FO))
-     FO2 = typeof(FO)(R(coeffsFG), :z, true; check = true)
-
-     # ... and an isomorphism between the two Oscar fields.
-     emb = embed(FO2, FO)
-     F = FO2
-
      if FO isa FqField
        f = function(x)
          y = preimage(emb, x)
@@ -165,13 +173,6 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
        v_int = [ZZRingElem(GAPWrap.IntFFE(v[i])) for i = 1:d]
        return emb(sum([v_int[i]*basis_F[i] for i = 1:d]))
      end
-   end
-
-   # Compute the canonical basis of `FO` or `FO2`.
-   basis_F = Vector{elem_type(F)}(undef, d)
-   basis_F[1] = F(1)
-   for i = 2:d
-     basis_F[i] = basis_F[i - 1]*gen(F)
    end
 
    return (f, finv)
@@ -308,9 +309,9 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
    else
      polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
-     fam = GAP.Globals.CyclotomicsFamily::GapObj
+     famQ = GAP.Globals.CyclotomicsFamily::GapObj
      cfs = GapObj(coeffs_polFO; recursive = true)::GapObj
-     polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, 1)
+     polFG = GAPWrap.UnivariatePolynomialByCoefficients(famQ, cfs, 1)
      FG = GAPWrap.AlgebraicExtension(GAP.Globals.Rationals::GapObj, polFG)
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
@@ -336,9 +337,9 @@ function _iso_oscar_gap(FO::SimpleNumField{T}) where T <: FieldElem
 
    polFO = defining_polynomial(FO)
    coeffs_polFO = collect(coefficients(polFO))
-   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(BG))
+   famB = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(BG))
    cfs = GapObj([isoB(x) for x in coeffs_polFO])::GapObj
-   polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, 1)
+   polFG = GAPWrap.UnivariatePolynomialByCoefficients(famB, cfs, 1)
    FG = GAPWrap.AlgebraicExtension(BG, polFG)
    fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
@@ -358,11 +359,7 @@ end
 # Deal with non-simple extensions of Q or of extensions of Q.
 function _iso_oscar_gap(FO::NumField)
    @assert ! is_simple(FO)
-   if is_absolute(FO)
-     F, emb = absolute_simple_field(FO)
-   else
-     F, emb = simple_extension(FO)
-   end
+   F, emb = is_absolute(FO) ? absolute_simple_field(FO) : simple_extension(FO)
    iso = iso_oscar_gap(F)
    FG = codomain(iso)
    fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
