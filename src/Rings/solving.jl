@@ -67,7 +67,8 @@ function real_solutions(::Type{Vector{Vector{QQFieldElem}}},
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
-    info_level = min(2, get_verbosity_level(:AlgebraicSolving))
+    info_level = max(info_level, get_verbosity_level(:AlgebraicSolving))
+    info_level = min(2, info_level)
     AlgebraicSolving.real_solutions(AI,
              initial_hts = initial_hts,
              nr_thrds = nr_thrds,
