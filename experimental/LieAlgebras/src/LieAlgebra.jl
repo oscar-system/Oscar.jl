@@ -792,11 +792,10 @@ function _root_system_and_chevalley_basis(
 
   # In general, `coeffs` may not be squares in the coefficient field.
   # Construct a field extension `F` where they are.
-  if all(is_square, coeffs)
-    F = R
-    coeffs_F_sqrt = sqrt.(coeffs)
+  F, coeffs_F_sqrt = if all(is_square, coeffs)
+    (R, sqrt.(coeffs))
   else
-    F, coeffs_F_sqrt = _field_ext_with_sqrts(R, coeffs)
+    _field_ext_with_sqrts(R, coeffs)
   end
 
   # Construct a Lie algebra `L_F` over `F` with the same structure constants as `L`,
@@ -868,28 +867,30 @@ end
 
 function _field_ext_with_sqrts(F::NumField, elems::Vector{<:NumFieldElem})
   @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
+  Fext = F
   elems_F = elems
   i = findfirst(!is_square, elems_F)
   while !isnothing(i)
-    Fx, x = polynomial_ring(F; cached=false)
-    F, _ = number_field(x^2 - elems_F[i]; cached=false)
-    elems_F = [F(c) for c in elems_F]
+    Fx, x = polynomial_ring(Fext; cached=false)
+    Fext, _ = number_field(x^2 - elems_F[i]; cached=false)
+    elems_F = Fext.(elems_F)
     i = findfirst(!is_square, elems_F)
   end
-  return F, sqrt.(elems_F)
+  return Fext, sqrt.(elems_F)
 end
 
 function _field_ext_with_sqrts(F::FqField, elems::Vector{<:FqFieldElem})
   @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
+  Fext = F
   elems_F = elems
   i = findfirst(!is_square, elems_F)
   while !isnothing(i)
-    Fx, x = polynomial_ring(F; cached=false)
-    F, _ = finite_field(x^2 - elems_F[i]; cached=false)
-    elems_F = [F(c) for c in elems_F]
+    Fx, x = polynomial_ring(Fext; cached=false)
+    Fext, _ = finite_field(x^2 - elems_F[i]; cached=false)
+    elems_F = Fext.(elems_F)
     i = findfirst(!is_square, elems_F)
   end
-  return F, sqrt.(elems_F)
+  return Fext, sqrt.(elems_F)
 end
 
 function assure_root_system(L::LieAlgebra{C}) where {C<:FieldElem}
