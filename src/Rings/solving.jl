@@ -103,6 +103,8 @@ is greater than zero an empty array is returned.
 - `nr_thrds::Int=1`: number of threads for parallel linear algebra.
 - `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
+- `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
+  Deprecated, use `set_verbosity_level(:AlgebraicSolving, info_level)` instead.
 - `precision::Int=32`: bit precision for the computed solutions.
 
 # Examples
