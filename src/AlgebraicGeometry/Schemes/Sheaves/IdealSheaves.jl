@@ -484,9 +484,13 @@ function extend!(
   # Nodes to which we might need to extend
   leftover = AbsAffineScheme[U for U in patches(C) if !(U in keys(D))]
   # Nodes to which we can extend in one step
-  neighbors = AbsAffineScheme[U for U in leftover if any(V->haskey(gluings(C), (U, V)), fat)]
+  nb = AbsAffineScheme[U for U in leftover if any(V->haskey(gluings(C), (U, V)), fat)]
   # All other nodes
-  leftover = AbsAffineScheme[U for U in leftover if !any(W->W===U, neighbors)]
+  leftover = AbsAffineScheme[U for U in leftover if !any(W->W===U, nb)]
+  # `neighbors` and `V` are reassigned throughout the loop below, so every
+  # comprehension over them captures a single-assigned alias; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  neighbors = nb
   while length(neighbors) > 0
     good_pairs = Vector{Tuple{AbsAffineScheme, AbsAffineScheme}}()
     for V in neighbors
@@ -507,7 +511,8 @@ function extend!(
     else
       # If there is no good neighboring pair, compute a new gluing
       V = first(neighbors)
-      k = findfirst(U->haskey(gluings(C), (U, V)), fat)
+      Vfirst = V
+      k = findfirst(U->haskey(gluings(C), (U, Vfirst)), fat)
       U = fat[k]
     end
     f, _ = gluing_morphisms(C[V, U])
@@ -520,12 +525,12 @@ function extend!(
         # Register this patch as a leaf
         push!(flat, V)
         # Update the neighbors
-        neighbors = [W for W in neighbors if !(W===V)]
+        Vdone = V
+        neighbors = [W for W in neighbors if !(W===Vdone)]
         continue
       end
 
       # if not, extend D to this patch
-      f, _ = gluing_morphisms(C[V, U])
       pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
       J = ideal(OO(V), lifted_numerator.(pbI_gens))
       #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
@@ -539,7 +544,8 @@ function extend!(
     end
 
     # Update the neighbors
-    neighbors = [W for W in neighbors if !(W===V)]
+    Vnew = V
+    neighbors = [W for W in neighbors if !(W===Vnew)]
     # Put that new node in the correct list
     if isone(D[V])
       push!(flat, V)
@@ -550,7 +556,8 @@ function extend!(
           push!(neighbors, W)
         end
       end
-      leftover = [W for W in leftover if !any(x->x===W, neighbors)]
+      nbs = neighbors
+      leftover = [W for W in leftover if !any(x->x===W, nbs)]
     end
   end
   for U in basic_patches(C)
@@ -996,12 +1003,12 @@ function maximal_associated_points(
   )
   X = scheme(I)
   comps = AbsIdealSheaf[]
+  use_dec = use_decomposition_info && has_decomposition_info(covering)
   for U in patches(covering)
-    loc_dec = elem_type(OO(U))[] # Initialize the variable
-    if use_decomposition_info && has_decomposition_info(covering)
-      # A list of equations which indicate the locus in this chart 
-      # which is *not* visible in "previous" charts. 
-      loc_dec = elem_type(OO(U))[OO(U)(a) for a in decomposition_info(covering)[U]]
+    # A list of equations which indicate the locus in this chart 
+    # which is *not* visible in "previous" charts. 
+    loc_dec = use_dec ? elem_type(OO(U))[OO(U)(a) for a in decomposition_info(covering)[U]] : elem_type(OO(U))[]
+    if use_dec
       # If the following holds, everything is visible in other charts already.
       is_one(I(U) + ideal(OO(U), loc_dec)) && continue
     else
@@ -1012,7 +1019,7 @@ function maximal_associated_points(
     loc_primes = minimal_primes(I(U); algorithm)
 
     # Take only those not visible in other charts 
-    use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(in(p), loc_dec), loc_primes) 
+    use_dec && filter!(p->all(in(p), loc_dec), loc_primes) 
     for p in loc_primes
       P = PrimeIdealSheafFromChart(X, U, p)
       P in comps && continue
@@ -1171,8 +1178,11 @@ function match_on_intersections(
         # This first case is probably never triggered, because the type is hardly used anymore
         I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
         IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
-        if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
-          match_found = !all(is_one, I_res)                               ## count only non-trivial matches
+        # aliases for the closures below; see
+        # docs/src/DeveloperDocumentation/closure_boxes.md
+        Ir, IVr = I_res, IV_res
+        if all(i->(Ir[i] == IVr[i]), 1:ngens(UV))
+          match_found = !all(is_one, Ir)                               ## count only non-trivial matches
           check || break
         else
           match_contradicted = true
@@ -1681,6 +1691,23 @@ function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
 end
 
 ### PrimeIdealSheafFromChart
+function _gluing_complexity(glue::SimpleGluing)
+  f, g = gluing_morphisms(glue)
+  img_gens = pullback(f).(gens(OO(codomain(f))))
+  init = sum(total_degree.(lifted_numerator(i)) for i in img_gens)
+  init += sum(total_degree.(lifted_denominator(i)) for i in img_gens)
+  return init
+end
+
+function _gluing_complexity(glue::LazyGluing)
+  is_computed(glue) && return _gluing_complexity(underlying_gluing(glue))
+  return 5000
+end
+
+function _gluing_complexity(glue::AbsGluing)
+  return 10000
+end
+
 @doc raw"""
 produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme; 
                algorithm::Symbol=:pullback)
@@ -1746,23 +1773,6 @@ function produce_object(
     return init
   end
       
-  function _gluing_complexity(glue::SimpleGluing)
-    f, g = gluing_morphisms(glue)
-    img_gens = pullback(f).(gens(OO(codomain(f))))
-    init = sum(total_degree.(lifted_numerator(i)) for i in img_gens)
-    init += sum(total_degree.(lifted_denominator(i)) for i in img_gens)
-    return init
-  end
-      
-  function _gluing_complexity(glue::LazyGluing)
-    is_computed(glue) && return _gluing_complexity(underlying_gluing(glue))
-    return 5000
-  end
-  
-  function _gluing_complexity(glue::AbsGluing)
-    return 10000
-  end 
-    
   sort!(fat, by=complexity)
   @vprintln :Divisors 2 "complexities in production function of $(F) on $(U2) $(complexity.(fat))"
   for W in fat
@@ -1889,8 +1899,11 @@ function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
         end
         cut = true
       end
-      any(x->x===V, sub_surface) && continue
-      push!(sub_surface, V)
+      # `V` walks up the tree above, so the closure captures an alias; see
+      # docs/src/DeveloperDocumentation/closure_boxes.md
+      Vroot = V
+      any(x->x===Vroot, sub_surface) && continue
+      push!(sub_surface, Vroot)
     end
 
     if any(x->(x isa SimplifiedAffineScheme), sub_surface)
@@ -2071,8 +2084,11 @@ function cheap_sub_ideal(I::PullbackIdealSheaf, U::AbsAffineScheme)
         end
         cut = true
       end
-      any(x->x===V, sub_surface) && continue
-      push!(sub_surface, V)
+      # `V` walks up the tree above, so the closure captures an alias; see
+      # docs/src/DeveloperDocumentation/closure_boxes.md
+      Vroot = V
+      any(x->x===Vroot, sub_surface) && continue
+      push!(sub_surface, Vroot)
     end
 
     if any(x->(x isa SimplifiedAffineScheme), sub_surface)

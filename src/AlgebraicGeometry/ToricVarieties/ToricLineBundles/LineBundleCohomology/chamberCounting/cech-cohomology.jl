@@ -1,7 +1,7 @@
 #The following function is called, when algorithm="chambers" is specified for `sheaf_cohomology`
 function _all_cohomologies_via_cech(tl::ToricLineBundle)
-  our_points, our_maps = _toric_cech_complex(tl)
-  our_maps = transpose.(our_maps)
+  our_points, cech_maps = _toric_cech_complex(tl)
+  our_maps = transpose.(cech_maps)
   X = toric_variety(tl)
 
   #If dim(X)<=2, then the intersection of dim(X)+1 maximal cones will be trivial and simplifications can be applied 
@@ -110,7 +110,8 @@ function _toric_cech_complex(tl::ToricLineBundle)
     for i in 1:length(combs)
       this_comb = combs[i]
       pts = polyhedron_dict[this_comb]
-      inner_dict = Dict(pt => j + offset for (j, pt) in enumerate(pts))
+      off = offset
+      inner_dict = Dict(pt => j + off for (j, pt) in enumerate(pts))
       comb_dict[this_comb] = inner_dict
       offset += length(pts)
     end

@@ -221,12 +221,11 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   BMWL = pr_mwl.matrix[r+1:end, :]
   GB = gram_matrix(V,BMWL)
   @assert rank(GB) == rk-r
-  _, u = hnf_with_transform(ZZ.(denominator(GB) * GB))
-  B = u[1:rk-r,:] * BMWL
+  _, T = hnf_with_transform(ZZ.(denominator(GB) * GB))
+  B = T[1:rk-r,:] * BMWL
 
   MWL = lll(lattice(V, B, isbasis=false))
-  u = solve(BMWL, basis_matrix(MWL); side=:left)
-  u = ZZ.(u)
+  u = ZZ.(solve(BMWL, basis_matrix(MWL); side=:left))
   mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
   return MWL, mwl_basis
 end

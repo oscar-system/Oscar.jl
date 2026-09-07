@@ -240,29 +240,27 @@ function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:
   F = ambient_embedding(X)
   if length(A_norm) == 1 && is_one(A_norm[1][3][1])
     # Workaround, normalization for rings buggy if already normal
-    Xnorm_k = X
-    X_k = X
-    F_k = identity_map(X)
-    K_k = total_ring_of_fractions(X_k)
-    A_k = OO(Xnorm_k)
-    A_k_to_K_k = hom(A_k, K_k, K_k.(gens(A_k)); check=false)
-    push!(output, (Xnorm_k, F_k, A_k_to_K_k))
+    Xnorm_0 = X
+    F_0 = identity_map(X)
+    K_0 = total_ring_of_fractions(X)
+    A_0 = OO(Xnorm_0)
+    A_0_to_K_0 = hom(A_0, K_0, K_0.(gens(A_0)); check=false)
+    push!(output, (Xnorm_0, F_0, A_0_to_K_0))
     return output
   end
   for (A_k, f_k, a_k) in A_norm
-    d_k = a_k[1] # An element so that 1/(d_k) J_k = A_k; J_k = d_k[2]
     Xnorm_k = spec(A_k)
     F_k = morphism(Xnorm_k, X, f_k; check=false)
-    if length(A_norm) == 1
+    X_k, inc_k = if length(A_norm) == 1
       # X = X_k is integral
-      X_k = X
-      inc_k = identity_map(X)
+      X, identity_map(X)
     else
       I = kernel(pullback(F_k))
-      X_k, inc_k = sub(X, I) # the component of X lying over Xnorm_k
+      sub(X, I) # the component of X lying over Xnorm_k
     end
     K_k = total_ring_of_fractions(X_k)
-    d_k = pullback(inc_k)(d_k)
+    # an element so that 1/(d_k) J_k = A_k; J_k = a_k[2]
+    d_k = pullback(inc_k)(a_k[1])
     gens_to_K_k_coordinates = vcat(
       [ K_k(pullback(inc_k)(g_k), d_k, false) for g_k in gens(a_k[2])[1:end-1] ],
       gens(OO(X_k))
@@ -376,13 +374,11 @@ function connected_components(X::AbsAffineScheme)
       # The idea is to write 1 = f + g with f ∈ I(C1) and g ∈ I(C2).
       # Then 1 - f = g vanishes identically on C2, but is a unit in OO(C1)
       # and vice versa.
-      c = coordinates(one(OO(X)), J)
+      co = coordinates(one(OO(X)), J)
 
       # Conversion to assure compatibility.
       # This can be removed, once the ideal interface is streamlined.
-      if c isa MatElem
-        c = [c[1, i] for i in 1:ncols(c)]::Vector
-      end
+      c = co isa MatElem ? [co[1, i] for i in 1:ncols(co)]::Vector : co
 
       a = c[1:length(v)]
       b = c[length(v)+1:length(v)+length(w)]

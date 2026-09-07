@@ -111,15 +111,15 @@ function maximal_extension(
 
   a = numerator(f)
   b = denominator(f)
-  g = gcd(a, b)
-  if !isone(g)
-    a = divexact(a, g)
-    b = divexact(b, g)
-    f = parent(f)(a,b)
+  c = gcd(a, b)
+  if !isone(c)
+    a = divexact(a, c)
+    b = divexact(b, c)
   end
+  fred = parent(f)(a, b)
   W = OO(X)
   U = AffineSchemeOpenSubscheme(X, [b])
-  g = [OO(V)(f) for V in affine_patches(U)]
+  g = [OO(V)(fred) for V in affine_patches(U)]
   R = AffineSchemeOpenSubschemeRing(X, U)
   return R(g)
 end
