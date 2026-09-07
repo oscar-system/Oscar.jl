@@ -14,6 +14,7 @@ export index_ordering_matrix
 export is_autoreduced
 export is_partially_reduced
 export is_reduced
+export is_ritt_less
 export leader
 export n_action_indeterminates
 export n_action_maps
@@ -21,7 +22,6 @@ export partially_reduce
 export partition
 export ranking
 export riquier_matrix
-export ritt_is_less
 export separant
 export set_ranking!
 export trailing_monomial

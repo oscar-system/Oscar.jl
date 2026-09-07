@@ -146,14 +146,13 @@ function pseudodivrem(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
 end
 
 ### Ritt ordering ###
-
 @doc raw"""
-    ritt_is_less(p::ActionPolyRingElem, q::ActionPolyRingElem) -> Bool
+    is_ritt_less(p::ActionPolyRingElem, q::ActionPolyRingElem) -> Bool
 
 Return `true` if `p` is smaller than `q` with respect to the Ritt ordering (associated to the
-ranking) on the action polynomial ring containing `p` and `q`), otherwise return `false`.
+ranking) on the action polynomial ring containing `p` and `q`, otherwise return `false`.
 """
-function ritt_is_less(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
+function is_ritt_less(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
   if is_constant(p)
     if is_zero(p)
@@ -251,7 +250,7 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
 
   # S will serve as the working list throughout this algorithm
   S = filter(!is_zero, S)
-  sort!(S, lt=ritt_is_less)
+  sort!(S, lt=is_ritt_less)
   A = PolyT[] # The "successively" built up autoreduced set
 
   while !isempty(S)
@@ -275,7 +274,7 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
       end
 
       # Detect rank drops of p
-      if ritt_is_less(p, original_p)
+      if is_ritt_less(p, original_p)
         rank_dropped = true
         break
       end
@@ -286,17 +285,17 @@ function autoreduce(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
       continue
     end
 
-    # Reinsert both p and all element of A greater than p back into the working list S.
+    # Reinsert both p and all elements of A greater than p back into the working list S.
     if rank_dropped
       # inserting elts of A
-      while !isempty(A) && ritt_is_less(p, A[end])
+      while !isempty(A) && is_ritt_less(p, A[end])
         q_popped = pop!(A)
-        idx = searchsortedfirst(S, q_popped, lt=ritt_is_less)
+        idx = searchsortedfirst(S, q_popped, lt=is_ritt_less)
         insert!(S, idx, q_popped)
       end
 
       # inserting p
-      idx = searchsortedfirst(S, p, lt=ritt_is_less)
+      idx = searchsortedfirst(S, p, lt=is_ritt_less)
       insert!(S, idx, p)
 
       continue
@@ -425,7 +424,7 @@ function is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
   end
   
   any(is_constant, S) && return (length(S) == 1 && !is_zero(only(S)))
-  !issorted(S, lt=ritt_is_less) && return false
+  !issorted(S, lt=is_ritt_less) && return false
 
   for i in 1:length(S)
     for j in 1:length(S)
@@ -568,7 +567,7 @@ function __core_partially_reduce(p::P, S::Vector{P}, track_factors::Bool) where 
   factors = P[]
   has_const && return (zero(p), factors)
 
-  sorted_S = sort(S, lt=ritt_is_less)
+  sorted_S = sort(S, lt=is_ritt_less)
 
   res = deepcopy(p)
   changed = true
@@ -620,7 +619,7 @@ function __core_reduce(p::P, S::Vector{P}, track_factors::Bool) where {P <: Unio
   factors = P[]
   has_const && return (zero(p), factors)
 
-  sorted_S = sort(S, lt=__ritt_is_less)
+  sorted_S = sort(S, lt=__is_ritt_less)
 
   res = deepcopy(p)
   changed = true
@@ -722,7 +721,7 @@ function __discriminant(p::MPolyRingElem)
 end
 __discriminant(p::ActionPolyRingElem) = discriminant(p)
 
-function __ritt_is_less(p::P, q::P) where {P <: MPolyRingElem}
+function __is_ritt_less(p::P, q::P) where {P <: MPolyRingElem}
   if is_constant(p)
     if is_zero(p)
       is_zero(q) && return false
@@ -744,5 +743,5 @@ function __ritt_is_less(p::P, q::P) where {P <: MPolyRingElem}
 
   return degree(p, ld_p) < degree(q, ld_q)
 end
-__ritt_is_less(p::P, q::P) where {P <: ActionPolyRingElem} = ritt_is_less(p, q)
+__is_ritt_less(p::P, q::P) where {P <: ActionPolyRingElem} = is_ritt_less(p, q)
 

@@ -101,7 +101,7 @@ Base.:(==)(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem} = parent(p) =
 
 Return `true`, if `var1` is less than `var2` with respect to the Riquier ranking on
 the action polynomial ring that contains the jet variables `var1` and `var2`. For comparing
-of action polynomials with respect to Ritt ordering, use [`ritt_is_less`](@ref ritt_is_less).
+of action polynomials with respect to Ritt ordering, use [`is_ritt_less`](@ref is_ritt_less).
 """
 function Base.isless(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
   check_parent(p, q)
