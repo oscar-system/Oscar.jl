@@ -111,15 +111,15 @@ julia> visualize(P)
 function visualize(
   P::Vector; backend::Symbol=:default, filename::Union{Nothing,String}=nothing, kwargs...
 )
-  P = map(
+  Pv = map(
     p -> begin
-      @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
+      @req p isa visual_supported_types "Can not visualize objects of type $(typeof(p))"
       _prepare_visualization(p)
     end, P)
   vis = [
     Polymake.visual(
-      Polymake.Visual, P[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
-    ) for i in 1:length(P)
+      Polymake.Visual, Pv[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
+    ) for i in 1:length(Pv)
   ]
   vc = Polymake.call_function(:common, :compose, vis...)
   if isdefined(Main, :IJulia) && Main.IJulia.inited && backend === :default &&

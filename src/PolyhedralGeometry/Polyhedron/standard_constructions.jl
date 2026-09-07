@@ -1190,6 +1190,23 @@ function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
   return s
 end
 
+# The i-th inversion set (when i=1 this is just inversions) as in [PS09]
+function _gt_inversions(sigma, i=1)
+  n = sigma.parent.deg
+  filter(x -> sigma(i) > sigma(x), i:n)
+end
+
+# The code of a permutation as in [PS09]
+_gt_code(sigma) = [length(_gt_inversions(sigma, i)) for i in 1:(sigma.parent.deg)]
+
+# The flag of a permutation as in [PS09]
+function _gt_flag(sigma)
+  n = sigma.parent.deg
+  w0 = perm(vcat([n], collect(1:(n - 1))))
+  c = _gt_code(w0 * sigma)
+  return ([n - c[i] for i in 1:n])
+end
+
 @doc raw"""
 
     gelfand_tsetlin_polytope(lambda::AbstractVector, sigma::PermGroupElem)
@@ -1204,26 +1221,9 @@ Polyhedron in ambient dimension 6
 """
 function gelfand_tsetlin_polytope(lambda::AbstractVector, sigma::PermGroupElem)
   GT = gelfand_tsetlin_polytope(lambda)
-  # The i-th inversion set (when i=1 this is just inversions) as in [PS09]
-  function inversions(sigma; i=1)
-    n = sigma.parent.deg
-    filter(x -> sigma(i) > sigma(x), i:n)
-  end
-  # The code of a permutation as in [PS09]
-  function code(sigma)
-    [length(inversions(sigma; i=i)) for i in 1:(sigma.parent.deg)]
-  end
-  # The flag of a permutation as in [PS09]
-  function flag(sigma)
-    n = sigma.parent.deg
-    w0 = perm(vcat([n], collect(1:(n - 1))))
-    c = code(w0 * sigma)
-    return ([n - c[i] for i in 1:n])
-  end
-
   n = length(lambda)
   N = binomial(n + 1, 2)
-  b = flag(sigma)
+  b = _gt_flag(sigma)
   P = zeros(Int, n, n) # bijection between p[i,j] (as in [PS09]) and the i-th coordinate of GT's ambient space
   varctr = N # starting at the last coordinate
   matctr = [1, 1]
