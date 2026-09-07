@@ -2823,8 +2823,7 @@ function truncate(I::OFPModule, d::Int, task::Symbol=:with_morphism; check::Bool
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req is_z_graded(R) "The base ring must be ZZ-graded"
-  W = R.d
-  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  W = [Int(R.d[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   if is_zero(I)
      return _return_wrt_task((I, id_hom(I)), task)
