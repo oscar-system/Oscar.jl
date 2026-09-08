@@ -15,8 +15,9 @@ and list GAP functions together with their OSCAR counterparts.
 
 Every global GAP variable is available as `GAP.Globals.<name>`,
 and GAP functions can be called like Julia functions.
-Julia integers and booleans can be passed as arguments directly,
-all other arguments must be converted with `GapObj` first, see below.
+Julia values of type `Int64` and `Bool` can be passed as arguments
+directly; integers of other types, and all other arguments, must be
+converted with `GapObj` first, see below.
 Small integers, booleans, and elements of small finite fields that GAP
 returns are converted to Julia automatically.
 Most other results are `GapObj`s and get printed with the prefix `GAP:`
@@ -67,8 +68,8 @@ julia> matrix(ZZ, GAP.Globals.IdentityMat(2))
 [1   0]
 [0   1]
 ```
-For example, here is how to use GAP's `Derangements`,
-for which OSCAR provides no counterpart.
+
+For example, this is how to call GAP's `Derangements`.
 ```jldoctest
 julia> x = GAP.Globals.Derangements(GapObj(1:4))
 GAP: [ [ 2, 1, 4, 3 ], [ 2, 3, 4, 1 ], [ 2, 4, 1, 3 ], [ 3, 1, 4, 2 ], [ 3, 4, 1, 2 ], [ 3, 4, 2, 1 ], [ 4, 1, 2, 3 ], [ 4, 3, 1, 2 ], [ 4, 3, 2, 1 ] ]
@@ -85,6 +86,7 @@ julia> Vector{Vector{Int}}(x)
  [4, 3, 1, 2]
  [4, 3, 2, 1]
 ```
+
 GAP groups are turned into OSCAR groups by the constructors `PermGroup`,
 `PcGroup`, `FPGroup`, and `matrix_group`.
 ```jldoctest
@@ -94,6 +96,7 @@ Permutation group of degree 11 and order 7920
 julia> H = PcGroup(GAP.Globals.SmallGroup(8, 3))
 Pc group of order 8
 ```
+
 Elements of GAP's finite fields and cyclotomic fields are converted by
 calling the OSCAR field on them, and the same works for matrices.
 ```jldoctest
@@ -111,6 +114,7 @@ julia> matrix(K, GAP.evalstr("[[E(5), 1], [0, E(5)^2]]"))
 [z_5       1]
 [  0   z_5^2]
 ```
+
 For more complex situations, `Oscar.iso_gap_oscar` and
 `Oscar.iso_oscar_gap` construct an isomorphism between a GAP ring or
 field and its OSCAR counterpart,
@@ -121,8 +125,10 @@ More conversions are described in the
 ### Passing OSCAR objects to GAP
 
 The function `GapObj` converts Julia and OSCAR objects into GAP objects.
-For an OSCAR group `G`, `GapObj(G)` returns the GAP group that it wraps,
-and similarly for group elements, character tables,
+Not every OSCAR group is based on a GAP group, but permutation groups,
+pc groups, finitely presented groups, and matrix groups are;
+for those, `GapObj(G)` returns the underlying GAP group.
+The same holds for group elements, character tables,
 and other objects that are backed by GAP.
 ```jldoctest
 julia> G = symmetric_group(4);
@@ -145,6 +151,7 @@ GAP: [ [ 1, 2 ], [ 3, 4 ] ]
 julia> GapObj(matrix(QQ, [1 2; 3 4]))
 GAP: [ [ 1, 2 ], [ 3, 4 ] ]
 ```
+
 Julia functions can be passed to GAP functions that expect a function
 argument.
 ```jldoctest
@@ -156,6 +163,8 @@ GAP: [ 2, 3, 5, 7 ]
 
 `GAP.evalstr` evaluates a string containing GAP code and returns the
 result.
+The string has to be a self-contained piece of GAP code;
+GAP code that is stored in a file can be read with `GAP.Globals.Read`.
 ```jldoctest
 julia> GAP.evalstr("List([1..5], x -> x^2)")
 GAP: [ 1, 4, 9, 16, 25 ]
@@ -165,6 +174,7 @@ julia> r = GAP.evalstr("rec(a := 1, b := [1, 2])");
 julia> r.a
 1
 ```
+
 `GAP.prompt()` opens a GAP prompt inside the Julia session.
 In it, the variables of the Julia session are available via `Julia.<name>`,
 and the OSCAR functions via `Oscar_jl.<name>`.
@@ -335,12 +345,12 @@ this is intended for OSCAR's own code, not for interactive use.
   OSCAR follows the Julia convention that the arguments of `issubset`,
   `is_subset`, `is_subgroup`, and `is_normal_subgroup` appear in the
   same order as in the mathematical notation ``H \subseteq G``,
-  that is, `is_subgroup(H, G)`.
+  that is, `is_subset(H, G)` and `is_subgroup(H, G)`.
 
 - **`Size` has several counterparts.**
   Depending on the object, GAP's `Size` corresponds to `order(G)` for a
   group, `length(l)` for a list or another collection,
-  and `number_of_rows(M)`, `number_of_columns(M)` for a matrix.
+  and `number_of_rows(M)` for a matrix.
   Julia's `size(M)` returns the tuple of dimensions of a matrix.
 
 - **Global variables are not protected.**
@@ -373,8 +383,9 @@ Variable names in GAP and Julia are recommended to be written in
 camel case and snake case, respectively, see [Naming conventions](@ref).
 For example, the GAP function `SylowSubgroup` corresponds to
 OSCAR's `sylow_subgroup`.
-Guessing the OSCAR name this way works surprisingly often;
-the tables below list cases where it does not.
+Guessing the OSCAR name this way works surprisingly often.
+The tables below list common GAP functions with their OSCAR
+counterparts, among them those that cannot be guessed.
 
 The GAP rule that the names of user variables should start with a
 lowercase letter, in order to avoid clashes with system variables,
@@ -395,7 +406,6 @@ does not make sense in Julia.
 | `Number(l, f)` | `count(f, l)` |
 | `Position(l, x)`, `PositionProperty(l, f)` | `findfirst(==(x), l)`, `findfirst(f, l)` |
 | `Sum(l)`, `Product(l)` | `sum(l)`, `prod(l)` |
-| `Maximum(l)`, `Minimum(l)` | `maximum(l)`, `minimum(l)` |
 | `Add(l, x)`, `Append(l, m)` | `push!(l, x)`, `append!(l, m)` |
 | `Concatenation(l, m)` | `vcat(l, m)` |
 | `Reversed(l)` | `reverse(l)` |
@@ -503,7 +513,7 @@ does not make sense in Julia.
 | `CF(n)` | `cyclotomic_field(n)` |
 | `E(n)` | `K, z = abelian_closure(QQ); z(n)` |
 | `PolynomialRing(Rationals, ["x", "y"])` | `polynomial_ring(QQ, [:x, :y])` |
-| `Indeterminate(Rationals, "x")` | `polynomial_ring(QQ, :x)` |
+| `Indeterminate(Rationals, "x")` | `R, x = polynomial_ring(QQ, :x); x` |
 | `Value(f, x)` | `evaluate(f, x)` or `f(x)` |
 | `Degree(f)`, `Derivative(f)` | `degree(f)`, `derivative(f)` |
 | `Factors(f)`, `IsIrreducible(f)` | `factor(f)`, `is_irreducible(f)` |
