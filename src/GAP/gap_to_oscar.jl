@@ -7,7 +7,7 @@
 ### GAP finite field elements to Oscar (generically)
 ###
 
-# test code for producing an FFE:  `GAP.Globals.Z(5)`
+# test code for producing an FFE:  `GAPWrap.Z(5)`
 function (F::FinField)(x::GAP.FFE)
     characteristic(x) == characteristic(F) || error("characteristic does not match")
 
@@ -25,7 +25,7 @@ function (F::FinField)(x::GAP.FFE)
     return preimage(iso, x)::elem_type(F)
 end
 
-# test code for producing a gap finite field element not stored as FFE:  `GAP.Globals.Z(65537)`
+# test code for producing a gap finite field element not stored as FFE:  `GAPWrap.Z(65537)`
 function (F::FinField)(x::GapObj)
     GAP.GAP_IS_INT(x) && return F(ZZRingElem(x))
     GAPWrap.IsFFE(x) || error("<x> must be a GAP large integer or a GAP finite field element")
@@ -58,7 +58,7 @@ function QQAbFieldElem(a::GapInt)
   c = GAPWrap.Conductor(a)
   E = abelian_closure(QQ)[2](c)
   z = parent(E)(0)
-  co = GAP.Globals.CoeffsCyc(a, c)
+  co = GAPWrap.CoeffsCyc(a, c)
   for i=1:c
     if !iszero(co[i])
       z += QQFieldElem(co[i])*E^(i-1)

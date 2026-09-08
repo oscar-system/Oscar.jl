@@ -1,14 +1,14 @@
 ##  This is a first attempt to implement group characters in Oscar.
-##  
+##
 ##  The idea is that the available GAP objects (groups, character tables,
 ##  class functions) are used in a first step, and that access to character
 ##  values yields `QQAbFieldElem` objects.
-##  
+##
 ##  Once we agree on the functionality and the integration into Oscar,
 ##  this setup can in a second step be replaced by one that uses
 ##  native Julia objects for representing class functions,
 ##  but character tables and groups still have some counterpart in GAP.
-##  
+##
 ##  In a third step, we replace the character table objects by native Julia
 ##  objects.
 
@@ -758,10 +758,10 @@ julia> Oscar.with_unicode() do
 C3
 
  3  1       1       1
-                     
+
    1a      3a      3b
 3P 1a      1a      1a
-                     
+
 χ₁  1       1       1
 χ₂  1      ζ₃ -ζ₃ - 1
 χ₃  1 -ζ₃ - 1      ζ₃
@@ -772,10 +772,10 @@ julia> Oscar.with_unicode() do
 C3
 
  3  1  1  1
-           
+
    1a 3a 3b
 3P 1a 1a 1a
-           
+
 χ₁  1  1  1
 χ₂  1  A  A̅
 χ₃  1  A̅  A
@@ -789,10 +789,10 @@ julia> Oscar.with_unicode() do
 C3
 
     3  1       1       1
-                        
+
       1a      3a      3b
    3P 1a      1a      1a
-    2                   
+    2
 χ₁  +  1       1       1
 χ₂  o  1      ζ₃ -ζ₃ - 1
 χ₃  o  1 -ζ₃ - 1      ζ₃
@@ -803,11 +803,11 @@ julia> Oscar.with_unicode() do
 C3
 
     3  1       1       1
-                        
+
       1a      3a      3b
    2P 1a      3b      3a
    3P 1a      1a      1a
-    d                   
+    d
 χ₁  1  1       1       1
 χ₂  2  1      ζ₃ -ζ₃ - 1
 χ₃  2  1 -ζ₃ - 1      ζ₃
@@ -3843,10 +3843,10 @@ julia> t = character_table_wreath_symmetric(character_table(:Cyclic, 2), 2)
 C2wrS2
 
   2  3  2  3  2  2
-                  
+
     1a 2a 2b 2c 4a
  2P 1a 1a 1a 1a 2b
-                  
+
 X_1  1  1  1 -1 -1
 X_2  2  . -2  .  .
 X_3  1 -1  1 -1  1
@@ -3935,11 +3935,11 @@ Rational character table of alternating group of degree 4
 
   2  2  2  .  .
   3  1  .  1  1
-               
+
     1a 2a 3a 3b
  2P 1a 1a 3b 3a
  3P 1a 2a 1a 1a
-               
+
 X_1  1  1  1  1
 X_2  3 -1  .  .
 X_3  2  2 -1 -1
@@ -3958,7 +3958,7 @@ function _irr(rattbl::GAPGroupCharacterTableRational)
   isdefined(rattbl, :irr) && return rattbl.irr
 
   tbl = character_table(rattbl)
-  info = GAP.Globals.GaloisMat(GAP.Globals.Irr(GapObj(tbl))).galoisfams
+  info = GAP.Globals.GaloisMat(GAPWrap.Irr(GapObj(tbl))).galoisfams
   res = GAPGroupClassFunction[]
   norms = Int[]
   for i in 1:length(info)

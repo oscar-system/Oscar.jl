@@ -83,7 +83,7 @@ end
 
 Return the invariant ring of the finite matrix group or permutation group `G`.
 
-In the latter case, use the specified field `K` as the coefficient field. 
+In the latter case, use the specified field `K` as the coefficient field.
 The default value for `K` is `QQ`.
 
 The polynomial ring `R` on which `G` acts can be supplied as a first argument,
@@ -596,13 +596,13 @@ function _molien_series_nonmodular_via_gap(
   @assert !is_modular(I)
   G = group(I)
   @assert G isa MatGroup || G isa PermGroup
-  t = GAP.Globals.CharacterTable(GapObj(G))
+  t = GAPWrap.CharacterTable(GapObj(G))
   if G isa MatGroup
     if is_zero(characteristic(coefficient_ring(I)))
       psi = GapObj(natural_character(G))
     else
       psi = [
-        GAP.Globals.BrauerCharacterValue(GAPWrap.Representative(c)) for
+        GAPWrap.BrauerCharacterValue(GAPWrap.Representative(c)) for
         c in GAPWrap.ConjugacyClasses(t)
       ]
     end
@@ -622,12 +622,12 @@ function _molien_series_nonmodular_via_gap(
   end
   num = S(
     Vector{ZZRingElem}(
-      GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer)
+      GAPWrap.CoefficientsOfUnivariatePolynomial(info.numer)
     )::Vector{ZZRingElem},
   )
   den = S(
     Vector{ZZRingElem}(
-      GAP.Globals.CoefficientsOfUnivariatePolynomial(info.denom)
+      GAPWrap.CoefficientsOfUnivariatePolynomial(info.denom)
     )::Vector{ZZRingElem},
   )
   return num//den
