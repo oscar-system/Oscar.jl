@@ -92,8 +92,8 @@ function complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra
       end
    end
    for j in vector_space_dim(W)+1:vector_space_dim(V)  H[j,j]=1  end
-   H = A_left*H*A_right
-   _gens = [V([H[i,j] for j in 1:vector_space_dim(V)]) for i in vector_space_dim(W)+1:vector_space_dim(V) ]
+   Hc = A_left*H*A_right
+   _gens = [V([Hc[i,j] for j in 1:vector_space_dim(V)]) for i in vector_space_dim(W)+1:vector_space_dim(V) ]
 
    return sub(V,_gens)
 end

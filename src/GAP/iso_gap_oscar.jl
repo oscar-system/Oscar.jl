@@ -122,7 +122,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
      R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
-     FO, _ = number_field(polFO, "z")
+     FOcyc, _ = number_field(polFO, "z")
      powers = GapObj([z^i for i in 0:(N-1)])::GapObj
      B = GAPWrap.Basis(FG, powers)
 
@@ -133,15 +133,16 @@ function _iso_gap_oscar_number_field(FG::GapObj)
 
      f = function(x::GAP.Obj)
         coeffs = Vector{QQFieldElem}(GAPWrap.Coefficients(B, x))
-        return FO(coeffs)
+        return FOcyc(coeffs)
      end
+     return MapFromFunc(FG, FOcyc, f, finv)
    elseif GAPWrap.IsAlgebraicExtension(FG)
      # This is the analogon of `_iso_oscar_gap(FO::AbsSimpleNumField)`.
      pol = GAPWrap.DefiningPolynomial(FG)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
      R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
-     FO, _ = number_field(polFO, "z")
+     FOalg, _ = number_field(polFO, "z")
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
@@ -151,8 +152,9 @@ function _iso_gap_oscar_number_field(FG::GapObj)
 
      f = function(x::GAP.Obj)
         coeffs = Vector{QQFieldElem}(GAPWrap.ExtRepOfObj(x))
-        return FO(coeffs)
+        return FOalg(coeffs)
      end
+     return MapFromFunc(FG, FOalg, f, finv)
    elseif GAPWrap.IsNumberFieldByMatrices(FG)
      # `pol` is the minimal polynomial of `M` because the GAP code
      # caches the objects.
@@ -163,7 +165,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
      R = Hecke.Globals.Qx
      polFO = R(Vector{QQFieldElem}(cfs))
-     FO, _ = number_field(polFO, "z", cached = false)
+     FOmat, _ = number_field(polFO, "z", cached = false)
 
      # The canonical basis of `FG` does in general not consist of the
      # powers of `M`.
@@ -174,30 +176,29 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      # in `FO`.
      pow = GAPWrap.One(M)
      Mpowers = [pow]
-     for i in 2:degree(FO)
+     for i in 2:degree(FOmat)
        pow = pow * M
        push!(Mpowers, pow)
      end
 
      C = GAPWrap.CanonicalBasis(FG)
      A = inv(GapObj([GAPWrap.Coefficients(C, m) for m in Mpowers]))
-     Mpowers = GapObj(Mpowers)
+     Mpowers_gap = GapObj(Mpowers)
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
         coeffs = GapObj(coefficients(x); recursive = true)::GapObj
-        return GAPWrap.LinearCombination(coeffs, Mpowers)
+        return GAPWrap.LinearCombination(coeffs, Mpowers_gap)
      end
 
      f = function(x::GAP.Obj)
         coeffs = GAPWrap.Coefficients(C, x)
         coeffs = Vector{QQFieldElem}(coeffs * A)
-        return FO(coeffs)
+        return FOmat(coeffs)
      end
-   else
-     error("do not know how to handle FG")
+     return MapFromFunc(FG, FOmat, f, finv)
    end
 
-   return MapFromFunc(FG, FO, f, finv)
+   error("do not know how to handle FG")
 end
 
 function _iso_gap_oscar_abelian_closure(FG::GapObj)

@@ -39,6 +39,9 @@ end
 
 #= TODO: Currently we had to "disable" modular GB stuff due to introducing dictionaries of GBs for ideals.
  =     Next step is to re-enable modular Singular.std and modular f4 again. =#
+# Does any coefficient of `f` survive the reduction into `R`?
+_has_new_information(f, R) = any(x -> !iszero(R(x)), coefficients(f))
+
 function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ordering::MonomialOrdering; use_hilbert::Bool = false, Proof::Bool = true)
   if haskey(I.gb, ordering)
     return I.gb[ordering]
@@ -89,7 +92,10 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ordering::MonomialO
       end
     else
       @assert length(Jp) == length(gc)
-      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coefficients(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
+      new_idx = Bool[]
+      for i = 1:length(gc)
+        push!(new_idx, _has_new_information(map_coefficients(QQ, Jp[i], parent = Qt) - gd[i], R))
+      end
       @vprint :ModStdQ 1 "new information in $new_idx\n"
       fl = !any(new_idx)
       if !fl
@@ -173,7 +179,10 @@ function groebner_basis_with_transform_inner(I::MPolyIdeal{QQMPolyRingElem}, ord
       end
     else
       @assert length(Jp) == length(gc)
-      new_idx = [any(x -> !iszero(R(x)), coefficients(map_coefficients(QQ, Jp[i], parent = Qt) - gd[i])) for i=1:length(gc)]
+      new_idx = Bool[]
+      for i = 1:length(gc)
+        push!(new_idx, _has_new_information(map_coefficients(QQ, Jp[i], parent = Qt) - gd[i], R))
+      end
       @vprint :ModStdQ 1 "new information in $new_idx\n"
       fl = !any(new_idx)
       if !fl

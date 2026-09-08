@@ -224,15 +224,15 @@ Min tropical linear space
 function tropical_linear_space(A::MatElem, nu::TropicalSemiringMap=tropical_semiring_map(base_ring(A)); weighted_polyhedral_complex_only::Bool=false)
     # compute reduced row echelon form of A
     # and remove all zero rows so that matrix is of full rank
-    _,A = rref(A)
-    nonzeroRowIndices = findall(!iszero,[A[i,:] for i in 1:nrows(A)])
-    A = A[nonzeroRowIndices,:]
+    _,Arref = rref(A)
+    nonzeroRowIndices = findall(!iszero,[Arref[i,:] for i in 1:nrows(Arref)])
+    Ared = Arref[nonzeroRowIndices,:]
 
-    plueckerIndices,plueckerVector = compute_pluecker_indices_and_vector(A)
+    plueckerIndices,plueckerVector = compute_pluecker_indices_and_vector(Ared)
     TropL = tropical_linear_space(plueckerIndices, plueckerVector, nu,
                                   weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     if !weighted_polyhedral_complex_only
-        set_attribute!(TropL,:algebraic_matrix,A)
+        set_attribute!(TropL,:algebraic_matrix,Ared)
         set_attribute!(TropL,:tropical_semiring_map,nu)
     end
     return TropL
@@ -245,19 +245,19 @@ end
 function tropical_linear_space(A::QQMatrix, nu::TropicalSemiringMap{QQField, Nothing, minOrMax}=tropical_semiring_map(QQ); weighted_polyhedral_complex_only::Bool=false) where {minOrMax<:Union{typeof(min),typeof(max)}}
     # compute reduced row echelon form of A
     # and remove all zero rows so that matrix is of full rank
-    _,A = rref(A)
-    nonzeroRowIndices = findall(!iszero,[A[i,:] for i in 1:nrows(A)])
-    A = A[nonzeroRowIndices,:]
+    _,Arref = rref(A)
+    nonzeroRowIndices = findall(!iszero,[Arref[i,:] for i in 1:nrows(Arref)])
+    Ared = Arref[nonzeroRowIndices,:]
 
     # Compute Bergman fan in polymake and convert to polyhedral complex
-    Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.matroid_fan{convention(nu)}(A))
+    Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.matroid_fan{convention(nu)}(Ared))
 
     # Add the missing all ones vector to the lineality
     Sigma = add_missing_lineality_from_polymake(Sigma)
     multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     TropL = tropical_linear_space(Sigma,multiplicities,convention(nu))
     if !weighted_polyhedral_complex_only
-        set_attribute!(TropL,:algebraic_matrix,A)
+        set_attribute!(TropL,:algebraic_matrix,Ared)
         set_attribute!(TropL,:tropical_semiring_map,nu)
     end
     return TropL

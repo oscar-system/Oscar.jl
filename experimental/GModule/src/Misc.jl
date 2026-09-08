@@ -15,7 +15,8 @@ function primitive_element(a::Vector{QQBarFieldElem})
     k, _ = number_field(f, check = false, cached = false)
     lf = collect(keys(factor(k, g).fac))
     for j = 1:length(lf)
-      h = map_coefficients(x->Qx(x)(pe), lf[j])
+      cur = pe
+      h = map_coefficients(x->Qx(x)(cur), lf[j])
       if is_zero(h(a[i]))
         d = degree(f) * degree(h)
         mu = 0
@@ -44,8 +45,8 @@ function Hecke.number_field(::QQField, a::QQBarFieldElem; cached::Bool = false)
     if x == a
       return b
     end
-    f = minpoly(x)
-    r = roots(k, f)
+    fx = minpoly(x)
+    r = roots(k, fx)
     pr = 10
     while true
       C = AcbField(pr)
@@ -80,12 +81,12 @@ function cyclo_fixed_group_gens(a::AbsSimpleNumFieldElem)
     return [(1,1)]
   end
   p = first(PrimesSet(1000, -1, f, 1))
-  k = GF(p)
-  o = k(1)
+  Fp = GF(p)
+  o = Fp(1)
   lf = factor(f)
   test = [div(f, x) for x = keys(lf.fac)]
-  while any(i->isone(o^i), test)
-    o = rand(k)^divexact(p-1, f)
+  while any(isone, o .^ test)
+    o = rand(Fp)^divexact(p-1, f)
   end
   poly_a = numerator(parent(C.pol)(a))
   #the conjugates will be o^j for all j coprime to f
@@ -155,7 +156,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
     zf = quo(ZZ, s[1][2])[1]
     S, mS = unit_group(zf)
     u, mu = sub(S, [preimage(mS, zf(x[1])) for x = s])
-    h = hom(R, S, [preimage(mS, mR(R[i])) for i=1:ngens(R)])
+    h = hom(R, S, preimage.(Ref(mS), mR.(gens(R))))
     Q = intersect(Q, preimage(h, u)[1])
   end
   s, ms = snf(Q)
@@ -167,7 +168,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
       G = div(F, p)
       zg = quo(ZZ, G)[1]
       S, mS = unit_group(zg)
-      hRS = hom(R, S, [preimage(mS, zg(mR(R[i]))) for i = 1:ngens(R)])
+      hRS = hom(R, S, preimage.(Ref(mS), zg.(mR.(gens(R)))))
       if length(quo(R, Qgen)[1]) == length(quo(S, map(hRS, Qgen))[1])
         R, mR = S, mS
         Qgen = map(hRS, Qgen)
@@ -177,7 +178,8 @@ function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
       end
     end
   end
-  return [(mR(sR(ms(x))), F) for x = gens(s)]
+  mR_fin, F_fin = mR, F
+  return [(mR_fin(sR(ms(x))), F_fin) for x = gens(s)]
 end
 
 
@@ -264,14 +266,14 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
   rep_mat = function(x::FieldElem)
     @assert parent(x) == K
     c = map_coefficients(k, Qt(x), parent = kt) % h
-    m = collect(Hecke.coefficients(c))
-    m = vcat(m, Hecke.zeros_array(k, degree(h) - length(m)))
-    r = m
+    v = collect(Hecke.coefficients(c))
+    v = vcat(v, Hecke.zeros_array(k, degree(h) - length(v)))
+    r = v
     for i in 2:degree(h)
       c = shift_left(c, 1) % h
-      m = collect(Hecke.coefficients(c))
-      m = vcat(m, Hecke.zeros_array(k, degree(h) - length(m)))
-      r = hcat(r, m)
+      v = collect(Hecke.coefficients(c))
+      v = vcat(v, Hecke.zeros_array(k, degree(h) - length(v)))
+      r = hcat(r, v)
     end
     return transpose(matrix(r))
   end

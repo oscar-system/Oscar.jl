@@ -624,11 +624,7 @@ oscar_generators(IG::IdealGens) = oscar_generators(IG.gensBiPolyArray)
 
 function oscar_generators(B::BiPolyArray)
   if !isdefined(B, :O)
-    if B.Ox isa MPolyQuoRing
-      R = oscar_origin_ring(B.Ox)
-    else
-      R = B.Ox
-    end
+    R = B.Ox isa MPolyQuoRing ? oscar_origin_ring(B.Ox) : B.Ox
     B.O = [R(x) for x in gens(B.S)]
   end
   return B.O
@@ -766,13 +762,8 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
 
   function MPolyHom_vars{T1, T2}(R::T1, S::T2, i::Vector{Int}) where {T1 <: MPolyRing, T2 <: MPolyRing}
     p = sortperm(i)
-    j = Int[]
-    for h = 1:length(p)
-      if i[p[h]] != 0
-        j = p[h:length(p)]
-        break
-      end
-    end
+    h0 = findfirst(h -> i[p[h]] != 0, 1:length(p))
+    j = h0 === nothing ? Int[] : p[h0:length(p)]
     header = MapHeader{T1, T2}(R, S, x -> im_func(x, S, i), y-> im_func(y, R, j))
     return new(header, i)
   end

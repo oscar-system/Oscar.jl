@@ -227,11 +227,7 @@ Map defined by a julia-function with inverse
 function quo(Q::PBWAlgRing, I::PBWAlgIdeal; special_impl::Union{Nothing, Singular.PluralRing} = nothing)
   @assert Q == base_ring(I)
   # we assume that special_impl is correct, if given
-  if isnothing(special_impl)
-    q = PBWAlgQuo(I)
-  else
-    q = PBWAlgQuo(I, special_impl)
-  end
+  q = isnothing(special_impl) ? PBWAlgQuo(I) : PBWAlgQuo(I, special_impl)
   function im(a::PBWAlgElem)
     @assert parent(a) == Q
     return PBWAlgQuoElem(q, a)

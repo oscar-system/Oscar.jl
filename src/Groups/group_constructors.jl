@@ -987,7 +987,8 @@ function _is_dicyclic_group(G::GAPGroup)
     t = rand(G)
   end
 
-  !(order(t) == 4 && all(s -> s^t*s == s^0, gens(Zn))) && return false
+  tt = t
+  !(order(tt) == 4 && all(s -> s^tt*s == s^0, gens(Zn))) && return false
 
   # Different from GAP code, here we skip finding other generator.
   return true

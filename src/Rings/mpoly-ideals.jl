@@ -661,10 +661,8 @@ end
 end
 
 function map_coefficients(mp, I::MPolyIdeal; parent = nothing)
-  if parent === nothing
-    parent = Oscar.parent(map_coefficients(mp, zero(base_ring(I))))
-  end
-  return ideal(parent, [map_coefficients(mp, g, parent = parent) for g = gens(I)])
+  P = parent === nothing ? Oscar.parent(map_coefficients(mp, zero(base_ring(I)))) : parent
+  return ideal(P, [map_coefficients(mp, g, parent = P) for g = gens(I)])
 end
 
 @doc raw"""

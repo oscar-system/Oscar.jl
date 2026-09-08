@@ -731,9 +731,11 @@ function _pullback(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromCha
   V = affine_charts(Y)
   U = affine_charts(X)
 
-  cod_patches = AbsAffineScheme[V0]
-  cod_patches = vcat(cod_patches, [U for U in keys(object_cache(I)) if any(x->x===U, affine_charts(Y))])
-  cod_patches = vcat(cod_patches, [U for U in affine_charts(Y) if !any(x->x===U, cod_patches)])
+  # charts on which `I` is already known come first; built in one assignment so
+  # that the second comprehension does not box it; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  known = vcat(AbsAffineScheme[V0], [U for U in keys(object_cache(I)) if any(x->x===U, affine_charts(Y))])
+  cod_patches = vcat(known, [U for U in affine_charts(Y) if !any(x->x===U, known)])
   for U0 in U
     I_undef = ideal(OO(U0), elem_type(OO(U0))[])
     random_realizations = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()

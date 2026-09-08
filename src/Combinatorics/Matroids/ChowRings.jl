@@ -240,12 +240,13 @@ julia> f(R[1]^2)
 function volume_map(M::Matroid, A::MPolyQuoRing)
     mflats = flats(M)
     flat = mflats[1]
-    prod = one(A)
+    vol = one(A)
     for i in 2:length(mflats)-1
         if is_subset(flat, mflats[i])
             flat = mflats[i]
-            prod*= A[i-1]
+            vol *= A[i-1]
         end
     end
-    return f -> is_zero(f) ? 0//coeff(lift(prod),1) : coeff(lift(f),1)//coeff(lift(prod),1)
+    c = coeff(lift(vol),1)
+    return f -> is_zero(f) ? 0//c : coeff(lift(f),1)//c
 end

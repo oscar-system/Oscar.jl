@@ -366,11 +366,10 @@ defined by
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
   ###@assert is_graded(F) == is_graded(G)
-  if is_graded(F)
-    d = [y - x for x in degrees(F) for y in degrees(G)]
-    GH = graded_free_module(F.R, d)
+  GH = if is_graded(F)
+    graded_free_module(F.R, [y - x for x in degrees(F) for y in degrees(G)])
   else
-    GH = FreeMod(F.R, rank(F) * rank(G))
+    FreeMod(F.R, rank(F) * rank(G))
   end
   GH.S = function _get_hom_symbols() 
     return [Symbol("($i -> $j)") for i = symbols(F) for j = symbols(G)]

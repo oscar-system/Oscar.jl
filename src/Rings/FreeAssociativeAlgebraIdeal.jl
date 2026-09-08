@@ -362,12 +362,10 @@ function groebner_basis(g::Vector{<:FreeAssociativeAlgebraElem},
   lp_I_gens = lpring.(g)
 
   I = Singular.Ideal(lpring, lp_I_gens)
-  gb = nothing 
-
-  Singular.with_prot(protocol) do; 
-    gb = gens(Singular.std(I))
+  sgb = Singular.with_prot(protocol) do
+    gens(Singular.std(I))
   end
-  gb = R.(gb)
+  gb = R.(sgb)
   interreduce && return interreduce!(gb)
   return gb
 end

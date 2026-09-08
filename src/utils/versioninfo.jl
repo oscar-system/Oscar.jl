@@ -76,9 +76,8 @@ end
 
 function _print_dependency_versions(io::IO, deps::AbstractArray{<:AbstractString}; padding="    ", suffix="", branch=false, commit=false)
   width = maximum(length.(deps))+length(suffix)+2
-  deps = filter(d->d.name in deps, collect(values(Pkg.dependencies())))
-  deps = sort!(deps; by=x->x.name)
-  for dep in deps
+  pkgs = sort!(filter(d->d.name in deps, collect(values(Pkg.dependencies()))); by=x->x.name)
+  for dep in pkgs
     print(io, "$(padding)$(rpad(dep.name*suffix, width, ' ')) v$(dep.version)")
     if branch || commit
       print(io, _format_git_info(_get_git_info(dep); branch=branch, commit=commit))

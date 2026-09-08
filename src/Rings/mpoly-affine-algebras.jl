@@ -274,8 +274,7 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
   R = base_ring(A.I)
   @req is_z_graded(R) "ring must be graded by the integers"
   parent, t = (parent === nothing) ? polynomial_ring(ZZ, :t; cached = false) : (parent, first(gens(parent)));
-  W = R.d
-  W = [Int(W[i][1]) for i = 1:ngens(R)]
+  W = [Int(R.d[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   # if iszero(A.I)
   #   den = prod([1-t^Int(w[1]) for w in R.d])
@@ -353,8 +352,7 @@ function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
   if iszero(modulus(A))
     R = base_ring(A)
     @req is_z_graded(R) "The base ring must be ZZ-graded"
-    W = R.d
-    W = [Int(W[i][1]) for i = 1:ngens(R)]
+    W = [Int(R.d[i][1]) for i = 1:ngens(R)]
     @req minimum(W) > 0 "The weights must be positive"
     num, denom = hilbert_series(A)
     T, t = power_series_ring(QQ, d+1, "t")

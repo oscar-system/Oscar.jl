@@ -1614,9 +1614,8 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   rem_vertex!(dg, ngon_is[1])
   degs = [length(neighbors(dg, i)) for i in 1:n_vertices(dg)]
   degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
-  dg = dual_graph(P)
   if m == 3
-    bigdg = Polymake.graph.Graph(; ADJACENCY=dg.pm_graph)
+    bigdg = Polymake.graph.Graph(; ADJACENCY=dual_graph(P).pm_graph)
     return bigdg.BIPARTITE
   else
     return true

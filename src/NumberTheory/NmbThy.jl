@@ -16,11 +16,12 @@ function norm_equation_fac_elem_non_max(R::AbsNumFieldOrder, k::ZZRingElem; abs:
   # finally, adjust for signs...
   #
   S = maximal_order(R)
-  U, mU = unit_group_fac_elem(S)
+  U, mU_S = unit_group_fac_elem(S)
+  mU = mU_S
   q, mqS, mSq = Hecke.OO_mod_F_mod_O_mod_F(R)
   s = norm_equation_fac_elem(S, k; abs)
   f = conductor(R, S)
-  mu = hom(U, q, [preimage(mqS, mSq(mU(x))) for x = gens(U)])
+  mu = hom(U, q, [preimage(mqS, mSq(mU_S(x))) for x = gens(U)])
 
   p, phi = quo(U, kernel(mu)[1])
   t = typeof(s)()
@@ -140,9 +141,9 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   S, mS = Hecke.sunit_mod_units_group_fac_elem(collect(keys(lp)))
   s, ms = Hecke.sunit_mod_units_group_fac_elem(collect(keys(la)))
   No = hom(S, s, elem_type(s)[preimage(ms, norm(mkK, mS(g))) for g = gens(S)])
-  q, mq = quo(S, kernel(No)[1])
-  q, mms = snf(q)
-  mq = mq*inv(mms)
+  q0, mq0 = quo(S, kernel(No)[1])
+  q, mms = snf(q0)
+  mq = mq0*inv(mms)
 
   C = reduce(vcat, (matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)))
   
@@ -288,7 +289,8 @@ function factorizations(a::AbsSimpleNumFieldOrderElem)
   #hence in polymake
   i = 1
   while i<= ncols(A)
-    if any(j->A[j, i] > b[j], 1:nrows(A))
+    A_c, i_c = A, i
+    if any(j->A_c[j, i_c] > b[j], 1:nrows(A_c))
       deleteat!(irr, i)
       if i==1
         A = A[:, 2:ncols(A)]

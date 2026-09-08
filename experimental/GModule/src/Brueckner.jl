@@ -25,9 +25,9 @@ Implements: Brueckner, Chap 1.2.3
 function reps(K, G::Oscar.PcGroup)
   @req is_finite(G) "the group is not finite"
   if order(G) == 1
-    F = free_module(K, 1)
-    h = hom(F, F, [F[1]])
-    return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
+    F1 = free_module(K, 1)
+    h1 = hom(F1, F1, [F1[1]])
+    return [gmodule(F1, G, typeof(h1)[h1 for i = gens(G)])]
   end
 
   pcgs = GAP.Globals.Pcgs(GapObj(G))
@@ -40,12 +40,17 @@ function reps(K, G::Oscar.PcGroup)
   @assert is_prime(o)
   z = roots(K(1), o)
   @assert characteristic(K) == o || length(z) == o
-  F = free_module(K, 1)
-  R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
+  # `s` and the module are replaced in the loop below, so the comprehension
+  # captures single-assigned aliases rather than boxing them; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  F0 = free_module(K, 1)
+  s0 = s
+  R = [gmodule(F0, s0, [hom(F0, F0, [r*F0[1]])]) for r = z]
   @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
 
   for i=length(gG)-1:-1:1
     h = gG[i]
+    ms_cur = ms # `ms` is replaced at the end of each round
     ns, mns = sub(G, gG[i:end])
     @assert mns(ns[1]) == h
     p = Int(divexact(order(ns), order(s)))
@@ -58,7 +63,7 @@ function reps(K, G::Oscar.PcGroup)
         r = R[pos]
         F = r.M
         @assert group(r) == s
-        rh = gmodule(group(r), [action(r, preimage(ms, ms(x)^h)) for x = gens(s)])
+        rh = gmodule(group(r), [action(r, preimage(ms_cur, ms_cur(x)^h)) for x = gens(s)])
         @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(rh)
         l = Oscar.GModuleFromGap.hom_base(r, rh)
         @assert length(l) <= 1
@@ -337,8 +342,8 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     @assert isa(GG, PcGroup)
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
+    gns0 = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [map_word(mp(g), gns0, init = one(GG)) for g = gens(G)]
     rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
     @assert all(x->isone(GGpro(x)), rel)
     rhs = [preimage(GGinj, x) for x = rel]

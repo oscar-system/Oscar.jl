@@ -255,8 +255,10 @@ function invariant_hermitian_forms(G::MatGroup{S,T}) where {S,T}
    e = embed(F0,F)
    em = preimage_map(F0,F)
 
+   # w in F \ F0 with w+w^q = 0 for odd q, resp. w+w^q = 1 for even q
+   w = isodd(q) ? gen(F) - (F(2)^-1)*(gen(F)+gen(F)^q) : gen(F) * (gen(F)+gen(F)^q)^-1
+
    if isodd(q)
-      w = gen(F) - (F(2)^-1)*(gen(F)+gen(F)^q)        # w in F \ F0 s.t. w+w^q = 0
       Nw = em(w*w^q)
 
       # returns a,b in F0 such that x = a+bw
@@ -342,7 +344,6 @@ function invariant_hermitian_forms(G::MatGroup{S,T}) where {S,T}
 
    else
 
-      w = gen(F) * (gen(F)+gen(F)^q)^-1           # w in F \ F0 s.t. w+w^q=1
       Nw = em(w*w^q)
 
       # returns a,b in F0 such that x = a+bw

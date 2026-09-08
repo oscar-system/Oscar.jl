@@ -146,8 +146,8 @@ function produce_restriction_map(F::SheafOfModules, V::AbsAffineScheme, U::Princ
     res = hom(F(V), F(U), gens(F(U)), OO(X)(V, U))
     return res
   elseif has_ancestor(W->(W === V), U)
-    W = ambient_scheme(U)
-    return compose(F(V, W), F(W, U))
+    Wa = ambient_scheme(U)
+    return compose(F(V, Wa), F(Wa, U))
   end
 
   # Now we know we have a transition across charts
@@ -179,12 +179,12 @@ function produce_restriction_map(F::SheafOfModules, V::AbsAffineScheme, U::Simpl
     # If the restriction was more complicated than what follows, then
     # it would have been cached earlier and this call would not have happened
     # This is the end of the recursion induced in the next elseif below.
-    W = original(U)
-    res = hom(F(W), F(U), gens(MU), OO(X)(W, U))
+    Wo = original(U)
+    res = hom(F(Wo), F(U), gens(MU), OO(X)(Wo, U))
     return res
   elseif has_ancestor(W->(W === V), U)
-    W = original(U)
-    return compose(F(V, W), F(W, U))
+    Wo = original(U)
+    return compose(F(V, Wo), F(Wo, U))
   end
 
   # Now we know we have a transition across charts
@@ -255,15 +255,15 @@ function produce_restriction_map(F::SheafOfModules, V::PrincipalOpenSubset, U::P
   success, _ = _have_common_ancestor(U, V)
   if success
     W = __find_chart(U, default_covering(X))
-    gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-    gens_V = F(W, V).(gens(F(W)))
-    sub_V, inc = sub(F(V), gens_V)
+    gU = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
+    gV = F(W, V).(gens(F(W)))
+    sub_V, inc = sub(F(V), gV)
     img_gens = elem_type(F(U))[]
     for v in gens(F(V))
       w = preimage(inc, v) # We know that inc is actually an isomorphism
       c = coordinates(w)
-      w = sum(OO(X)(V, U)(c[i])*gens_U[i]
-              for i in 1:length(gens_U)
+      w = sum(OO(X)(V, U)(c[i])*gU[i]
+              for i in 1:length(gU)
              )
       push!(img_gens, w)
     end
@@ -316,15 +316,15 @@ function produce_restriction_map(F::SheafOfModules, V::PrincipalOpenSubset, U::S
   success, _ = _have_common_ancestor(U, V)
   if success
     W = __find_chart(U, default_covering(X))
-    gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-    gens_V = F(W, V).(gens(F(W)))
-    sub_V, inc = sub(F(V), gens_V)
+    gU = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
+    gV = F(W, V).(gens(F(W)))
+    sub_V, inc = sub(F(V), gV)
     img_gens = elem_type(F(U))[]
     for v in gens(F(V))
       w = preimage(inc, v) # We know that inc is actually an isomorphism
       c = coordinates(w)
-      w = sum(OO(X)(V, U)(c[i])*gens_U[i]
-              for i in 1:length(gens_U)
+      w = sum(OO(X)(V, U)(c[i])*gU[i]
+              for i in 1:length(gU)
              )
       push!(img_gens, w)
     end
@@ -377,15 +377,15 @@ function produce_restriction_map(F::SheafOfModules, V::SimplifiedAffineScheme, U
   success, _ = _have_common_ancestor(U, V)
   if success
     W = __find_chart(U, default_covering(X))
-    gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-    gens_V = F(W, V).(gens(F(W)))
-    sub_V, inc = sub(F(V), gens_V)
+    gU = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
+    gV = F(W, V).(gens(F(W)))
+    sub_V, inc = sub(F(V), gV)
     img_gens = elem_type(F(U))[]
     for v in gens(F(V))
       w = preimage(inc, v) # We know that inc is actually an isomorphism
       c = coordinates(w)
-      w = sum(OO(X)(V, U)(c[i])*gens_U[i]
-              for i in 1:length(gens_U)
+      w = sum(OO(X)(V, U)(c[i])*gU[i]
+              for i in 1:length(gU)
              )
       push!(img_gens, w)
     end
@@ -440,15 +440,15 @@ function produce_restriction_map(F::SheafOfModules, V::SimplifiedAffineScheme, U
   success, _ = _have_common_ancestor(U, V)
   if success
     W = __find_chart(U, default_covering(X))
-    gens_U = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
-    gens_V = F(W, V).(gens(F(W)))
-    sub_V, inc = sub(F(V), gens_V)
+    gU = F(W, U).(gens(F(W))) # This will be caught by the preceding clauses
+    gV = F(W, V).(gens(F(W)))
+    sub_V, inc = sub(F(V), gV)
     img_gens = elem_type(F(U))[]
     for v in gens(F(V))
       w = preimage(inc, v) # We know that inc is actually an isomorphism
       c = coordinates(w)
-      w = sum(OO(X)(V, U)(c[i])*gens_U[i]
-              for i in 1:length(gens_U)
+      w = sum(OO(X)(V, U)(c[i])*gU[i]
+              for i in 1:length(gU)
              )
       push!(img_gens, w)
     end

@@ -89,10 +89,10 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
   # transform L to have the standard basis
   # we assume that the basis of L is obtained by completing a basis of R
   # hence we can throw away the R coordinates of a Weyl vector when projecting to S
-  R = lll(Hecke.orthogonal_submodule(L, S))
+  R0 = lll(Hecke.orthogonal_submodule(L, S))
 
   # the following completes the basis of R to a basis of L
-  basisRL = solve(basis_matrix(L),basis_matrix(R); side = :left)
+  basisRL = solve(basis_matrix(L),basis_matrix(R0); side = :left)
   basisRL = change_base_ring(ZZ, basisRL)
 
   A, j = snf(abelian_group(basisRL))
@@ -103,7 +103,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
   L1 = lattice(ambient_space(L), basisL1)
   weyl = change_base_ring(ZZ, solve(basisL1, weyl*basis_matrix(L); side = :left))
   basisSL1 = solve(basis_matrix(L1), basis_matrix(S); side = :left)
-  basisRL1 = solve(basis_matrix(L1), basis_matrix(R); side = :left)
+  basisRL1 = solve(basis_matrix(L1), basis_matrix(R0); side = :left)
 
   # Assure that L has the standard basis.
   L = integer_lattice(gram=gram_matrix(L1))
@@ -143,8 +143,8 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true,
       membership_test = (g->true)
     else
       phiSS_S = hom(DSS,DS,[DS(lift(x)*basis_matrix(S)) for x in gens(DSS)])
-      phi,i,j = glue_map(L,S,R)
-      phi = phiSS_S*inv(i)*phi*j
+      phi0,i0,j0 = glue_map(L,S,R)
+      phi = phiSS_S*inv(i0)*phi0*j0
       img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
       ds = degree(SS)
       membership_test = (g->ODSS(hom(DSS,DSS,[DSS(_vec(matrix(QQ, 1, ds, lift(x))*g)) for x in gens(DSS)])) in img)
@@ -573,12 +573,12 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   
 
   S = QQMatrix[]
-  h = change_base_ring(QQ, h)
+  hQ = change_base_ring(QQ, h)
   rho = abs(d)*ch^-1
   t,sqrtho = is_square_with_sqrt(rho)
   if t
-    r = sqrtho*h
-    if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
+    r = sqrtho*hQ
+    if denominator(r)==1 && (r*gram*transpose(hQ))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
       push!(S,r)
     end
   end
@@ -589,12 +589,12 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
     if !t
       continue
     end
-    r = rho*h + rp
-    if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
+    r = rho*hQ + rp
+    if denominator(r)==1 && (r*gram*transpose(hQ))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
       push!(S,r)
     end
-    r = rho*h - rp
-    if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
+    r = rho*hQ - rp
+    if denominator(r)==1 && (r*gram*transpose(hQ))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
       push!(S,r)
     end
   end
@@ -861,6 +861,11 @@ function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, w::MatElem)
   return _alg58(L, S, R, prRdelta, w)
 end
 
+# do all entries of the row vector `r` have denominator one?  A top-level
+# function rather than a closure: `r` is reassigned at each call site; see
+# docs/src/DeveloperDocumentation/closure_boxes.md
+_has_integral_entries(r) = @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))
+
 # the actual somewhat optimized implementation relying on short vector enumeration
 function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   L = data.L
@@ -910,12 +915,12 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
       end
       rr = alpha*wn + si*rR
       r = rr + rN1
-      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
+      if _has_integral_entries(r)
         push!(result, r*data.prS)
         break
       end
       r = rr - rN1
-      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
+      if _has_integral_entries(r)
         push!(result, r*data.prS)
         break
       end
@@ -934,11 +939,11 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
       end
       rr = alpha*wn + si*rR
       r = rr + rN1
-      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
+      if _has_integral_entries(r)
         push!(result, r*data.prS)
       end
       r = rr - rN1    
-      if @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
+      if _has_integral_entries(r)
         push!(result, r*data.prS)
       end
     end
@@ -1449,8 +1454,11 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool=false, max_nch
       wallsDmodAutD = [representative(w).v for w in orbits(W) if !(vv in w)]
       @vprint :K3Auto 3 "done\n"
     else
-      # the minus shouldn't be necessary ... but who knows?
-      wallsDmodAutD = (v for v in walls(D) if !(v==D.parent_wall || -v==D.parent_wall))
+      # the minus shouldn't be necessary ... but who knows? `D` is reassigned
+      # each round, so the generator captures an alias; see
+      # docs/src/DeveloperDocumentation/closure_boxes.md
+      pw = D.parent_wall
+      wallsDmodAutD = (v for v in walls(D) if !(v==pw || -v==pw))
     end
     # compute the adjacent chambers to be explored
     for v in wallsDmodAutD
@@ -1490,25 +1498,30 @@ function chain_reflect(V::Hecke.QuadSpace, h1, h2, w, separating_walls::Vector{Q
   @hassert :K3Auto 1 inner_product(V,h1,h2)[1,1]>0
   @hassert :K3Auto 1 all(inner_product(V,h1,r)[1,1]>=0 for r in separating_walls)
   @hassert :K3Auto 1 all(inner_product(V,h2,r)[1,1]<=0 for r in separating_walls)
-  di(r) = _dist(V, r, h1, h2)
-  #sort!(separating_walls, by=di)
+  di(r, h) = _dist(V, r, h1, h)
   separating_walls0 = deepcopy(separating_walls)
+  # `h2` is refined step by step; each closure below captures a name that is
+  # assigned exactly once, so none of them is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  hcur = h2
   while length(separating_walls0)>0
-    _,i = findmax([di(r) for r in separating_walls0])
+    _,i = findmax(di.(separating_walls0, Ref(hcur)))
     r = separating_walls0[i]
     deleteat!(separating_walls0,i)
-    if inner_product(V,h2,r)[1,1]>0
+    if inner_product(V,hcur,r)[1,1]>0
       continue
     end
-    h2 = h2 + inner_product(V, h2, r)*r
+    hnew = hcur + inner_product(V, hcur, r)*r
     w = w + inner_product(V, w, r)*r
-    separating_walls0 = [r for r in separating_walls0 if inner_product(V,h2,r)[1,1]<0]
+    separating_walls0 = [s for s in separating_walls0 if inner_product(V,hnew,s)[1,1]<0]
+    hcur = hnew
     # should be decreasing
-    # @vprint :K3Auto 1 length([s for s in separating_walls0 if 0>sign(inner_product(V,h2,s)[1,1])])
+    # @vprint :K3Auto 1 length([s for s in separating_walls0 if 0>sign(inner_product(V,hcur,s)[1,1])])
   end
   # confirm output .... since I did not yet prove this algorithm .. it looks a bit fishy
-  @assert all(inner_product(V,h2,r)[1,1]>=0 for r in separating_walls)
-  return h2, w
+  hout = hcur
+  @assert all(inner_product(V,hout,r)[1,1]>=0 for r in separating_walls)
+  return hout, w
 end
 
 @doc raw"""
@@ -1540,6 +1553,18 @@ function span_in_S(L, S, weyl)
   return gensN
 end
 
+# Return a random perturbation of `ample` in the directions of `T` which is
+# orthogonal to none of `roots`.  A top-level function rather than a retry loop
+# in the caller, where the redrawn vector would be boxed; see
+# docs/src/DeveloperDocumentation/closure_boxes.md.
+function _perturb_ample(V::Hecke.QuadSpace, ample::QQMatrix, T::ZZLat,
+                        roots::Vector{QQMatrix}, factor)
+  while true
+    h = factor*ample + matrix(QQ,1,rank(T),rand(-10:10,rank(T)))*basis_matrix(T)
+    any(inner_product(V,h,r)==0 for r in roots) || return h
+  end
+end
+
 @doc raw"""
     weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMatrix, ample0::QQMatrix, perturbation_factor=1000)
 
@@ -1554,22 +1579,20 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   V = ambient_space(L)
   @assert ambient_space(L)==ambient_space(S)
   ample = ample0
-  u = u0
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
-  @vprint :K3Auto 3 "for $(u) and $(ample)\n"
-  separating_walls = separating_hyperplanes(L, u, ample, -2)
+  @vprint :K3Auto 3 "for $(u0) and $(ample)\n"
+  separating_walls = separating_hyperplanes(L, u0, ample, -2)
   @vprintln :K3Auto 3 "found $(length(separating_walls)) separating hyperplanes"
   @vprint :K3Auto 2 "moving Weyl vector $(solve(basis_matrix(L),weyl; side = :left)) towards the ample class\n"
-  u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
+  u, weyl = chain_reflect(V, ample, u0, weyl, separating_walls)
   @vprint :K3Auto "new weyl: $(solve(basis_matrix(L),weyl; side = :left)) \n"
   if is_S_nondegenerate(L,S,weyl)
     return weyl, u, ample
   end
   @vprint :K3Auto 2 "calculating QQDcapS\n"
   QQDcapS = lattice(V, span_in_S(L, S, weyl)*basis_matrix(S))
-  N = Hecke.orthogonal_submodule(L, QQDcapS)
-  N = lll(N)
+  N = lll(Hecke.orthogonal_submodule(L, QQDcapS))
   @vprint :K3Auto 2 "computing the relevant roots\n"
   @vprint :K3Auto 3 "$(gram_matrix(N))\n"
 
@@ -1582,12 +1605,8 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   end
   @vprint :K3Auto 1 "degeneracy dimension of the chamber $(rank(T))\n"
   relevant_roots = [r for r in relevant_roots if inner_product(V,basis_matrix(S),r)!=0]
-  @label choose_h
-  h = perturbation_factor*ample + matrix(QQ,1,rank(T),rand(-10:10,rank(T)))*basis_matrix(T)
-  # roots orthogonal to S do not help. Therefore discard them.
-  if any(inner_product(V,h,r)==0 for r in relevant_roots)
-    @goto choose_h
-  end
+  # roots orthogonal to S do not help, so redraw until none of them is
+  h = _perturb_ample(V, ample, T, relevant_roots, perturbation_factor)
   separating = QQMatrix[r for r in relevant_roots if sign(inner_product(V, h, r)[1,1])*sign(inner_product(V, u, r)[1,1])<0]
   # fix signs
   for i in 1:length(separating)
@@ -1600,11 +1619,11 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   @hassert :K3Auto 1 all(inner_product(V,h,r)[1,1] > 0 for r in separating)
   @hassert :K3Auto 1 all(inner_product(V,u,r)[1,1] < 0 for r in separating)
 
-  u, weyl = chain_reflect(V, h, u, weyl, separating)
-  @hassert :K3Auto 1 all(inner_product(V,u,r)[1,1] > 0 for r in separating)
+  unew, weyl = chain_reflect(V, h, u, weyl, separating)
+  @hassert :K3Auto 1 all(inner_product(V,unew,r)[1,1] > 0 for r in separating)
 
   @assert is_S_nondegenerate(L, S, weyl)
-  return weyl, u, h
+  return weyl, unew, h
 end
 
 

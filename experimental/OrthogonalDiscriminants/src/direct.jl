@@ -161,10 +161,10 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
     F = base_ring(G)
     K, embK = character_field(chi)
     if degree(F) != degree(K)
+      V = free_module(F, degree(G))
       if p == 2 || p == 0
         # For even `p`, we need representations over the character field.
         # Thus try to write the matrices over the character field.
-        V = free_module(F, degree(G))
         M = gmodule(G, [hom(V, V, x) for x in [matrix(x) for x in gens(G)]])
         Mmin = Oscar.GModuleFromGap.gmodule_minimal_field(M)
 #TODO: For p == 0, we need also the (!) embedding of `base_ring(Mmin)`
@@ -176,7 +176,6 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
       elseif is_even(degree(F) // degree(K))
         # For odd p, it is sufficient that `F` is an odd degree extension
         # of the character field.
-        V = free_module(F, degree(G))
         M = gmodule(G, [hom(V, V, x) for x in [matrix(x) for x in gens(G)]])
         Mmin = Oscar.GModuleFromGap.gmodule_minimal_field(M)
         F = base_ring(Mmin)

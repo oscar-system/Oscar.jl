@@ -40,14 +40,14 @@ function GaloisCtx(f::PolyRingElem{AbsSimpleNumFieldElem}, P::AbsSimpleNumFieldO
   C.prime = P
   C.f = f
   C.C = V
-  if Hecke.is_maximal_order_known(k)
-    den = k(1)
+  den0 = if Hecke.is_maximal_order_known(k)
+    k(1)
   elseif is_defining_polynomial_nice(k)
-    den = k(derivative(defining_polynomial(k))(gen(k)))
+    k(derivative(defining_polynomial(k))(gen(k)))
   else
-    den = k(discriminant(zk))
+    k(discriminant(zk))
   end
-  den *= reduce(lcm, [denominator(coeff(f, i), zk) for i=0:degree(f)])
+  den = den0 * reduce(lcm, [denominator(coeff(f, i), zk) for i=0:degree(f)])
   #should ensure that all (scaled) roots are in zk...
 
   C.data = [mC, 1, mCD, Hecke.norm_change_const(zk), den, Dict{Int, recoCtx}()]
@@ -186,8 +186,8 @@ function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = f
   end
   if pr < 0.8*C.data[2]
     if !isone(C.data[5]) && !raw
-      d = setprecision(coeff(C.data[1](C.data[5]), 0), pr)
-      return [d*setprecision(x, pr) for x = roots(C.C)]
+      dpr = setprecision(coeff(C.data[1](C.data[5]), 0), pr)
+      return [dpr*setprecision(x, pr) for x = roots(C.C)]
     else
       return [setprecision(x, pr) for x = roots(C.C)]
     end

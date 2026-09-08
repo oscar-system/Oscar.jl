@@ -256,25 +256,24 @@ Matroid of rank 3 on 7 elements
 matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractSet{T}}, nelements::IntegerUnion) where T<:GroundsetType = matroid_from_hyperplanes(hyperplanes,Vector(1:nelements))
 
 function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractSet{T}},groundset::GroundsetType; check::Bool=true) where T<:GroundsetType
-    groundset = collect(groundset)
-    hyperplanes = collect(hyperplanes)
+    gs = collect(groundset)
+    hps = collect(hyperplanes)
 
-    if check && length(groundset)!=length(Set(groundset))
+    if check && length(gs)!=length(Set(gs))
         error("Input is not a valid groundset of a matroid")
     end
-    if check && !all([e in groundset for S in hyperplanes for e in S])
+    if check && !all([e in gs for S in hps for e in S])
         error("The bases contain elements that are not in the groundset")
     end
-    if length(hyperplanes) == 0
+    if length(hps) == 0
         error("The collection of hyperplanes should not be empty!")
     end
 
-    groundset = collect(groundset)
-    gs2num = create_gs2num(groundset)
-    pm_hyperplanes = _gs_to_pmindices.(hyperplanes, Ref(gs2num))
-    M = Polymake.matroid.Matroid(MATROID_HYPERPLANES=pm_hyperplanes,N_ELEMENTS=length(groundset))
+    gs2num = create_gs2num(gs)
+    pm_hyperplanes = _gs_to_pmindices.(hps, Ref(gs2num))
+    M = Polymake.matroid.Matroid(MATROID_HYPERPLANES=pm_hyperplanes,N_ELEMENTS=length(gs))
     #TODO implement a check if these are actually the hyperplanes of a matroid
-    return Matroid(M,groundset,gs2num)
+    return Matroid(M,gs,gs2num)
 end
 
 @doc raw"""

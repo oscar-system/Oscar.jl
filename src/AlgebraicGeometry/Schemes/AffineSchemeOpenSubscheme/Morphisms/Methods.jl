@@ -112,10 +112,7 @@ function preimage(f::AffineSchemeOpenSubschemeMor, Z::AbsAffineScheme; check::Bo
   @check is_closed_embedding(Z, ambient_scheme(codomain(f))) "second argument must be closed in the codomain"
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
-  Y = X
-  for K in pbZ
-    Y = subscheme(Y, gens(modulus(underlying_quotient(OO(K)))))
-  end
+  Y = foldl((W, K) -> subscheme(W, gens(modulus(underlying_quotient(OO(K))))), pbZ; init=X)
   return AffineSchemeOpenSubscheme(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
 function preimage(f::AffineSchemeOpenSubschemeMor, W::PrincipalOpenSubset; check::Bool=true)

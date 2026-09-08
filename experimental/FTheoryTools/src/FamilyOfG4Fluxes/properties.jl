@@ -62,9 +62,9 @@ true
   nmb = length(mb)
 
   # Verify that each integral generator is well-quantized
-  my_mat = matrix_integral(fgs)
-  for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
+  int_mat = matrix_integral(fgs)
+  for k in 1:ncols(int_mat)
+    gen_k = sum(int_mat[l, k] * mb[l] for l in 1:nmb)
     if !is_well_quantized(gen_k)
       return false
     end
@@ -79,9 +79,9 @@ true
   c_ds = [
     polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))
   ]
-  my_mat = matrix_rational(fgs)
-  for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
+  rat_mat = matrix_rational(fgs)
+  for k in 1:ncols(rat_mat)
+    gen_k = sum(rat_mat[l, k] * mb[l] for l in 1:nmb)
     twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; completeness_check))
     for i in 1:length(c_ds)
       for j in i:length(c_ds)
@@ -158,16 +158,16 @@ true
   nmb = length(mb)
 
   # Verify that each generator of the flux family is vertical
-  my_mat = matrix_integral(fgs)
-  for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
+  int_mat = matrix_integral(fgs)
+  for k in 1:ncols(int_mat)
+    gen_k = sum(int_mat[l, k] * mb[l] for l in 1:nmb)
     if !passes_transversality_checks(gen_k)
       return false
     end
   end
-  my_mat = matrix_rational(fgs)
-  for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
+  rat_mat = matrix_rational(fgs)
+  for k in 1:ncols(rat_mat)
+    gen_k = sum(rat_mat[l, k] * mb[l] for l in 1:nmb)
     if !passes_transversality_checks(gen_k)
       return false
     end
@@ -242,16 +242,16 @@ false
   nmb = length(mb)
 
   # Verify that each generator of the flux family does not break the non-abelian gauge group
-  my_mat = matrix_integral(fgs)
-  for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
+  int_mat = matrix_integral(fgs)
+  for k in 1:ncols(int_mat)
+    gen_k = sum(int_mat[l, k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
       return true
     end
   end
-  my_mat = matrix_rational(fgs)
-  for k in 1:ncols(my_mat)
-    gen_k = sum(my_mat[l, k] * mb[l] for l in 1:nmb)
+  rat_mat = matrix_rational(fgs)
+  for k in 1:ncols(rat_mat)
+    gen_k = sum(rat_mat[l, k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
       return true
     end

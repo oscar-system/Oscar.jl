@@ -275,15 +275,13 @@ julia> length(collect(keys(cdh22)))
         row_that_defines_relation = findfirst(k -> k == 1, new_mat[:, value])
         applicable_relation = copy(new_mat[row_that_defines_relation, :])
         applicable_relation[value] = 0
-        relation_to_be_applied = (-1) * applicable_relation
-        relation_to_be_applied = [
-          (relation_to_be_applied[ivalue], ikey) for
+        neg_relation = (-1) * applicable_relation
+        nonzero_terms = [
+          (neg_relation[ivalue], ikey) for
           (ikey, ivalue) in dict_of_filtered_quadratic_elements if
-          relation_to_be_applied[ivalue] != 0
+          neg_relation[ivalue] != 0
         ]
-        if length(relation_to_be_applied) == 0
-          relation_to_be_applied = 0
-        end
+        relation_to_be_applied = isempty(nonzero_terms) ? 0 : nonzero_terms
 
         # Apply this relation throughout converter_dict, so that this tuple is never used in the values
         for (ikey, ivalue) in converter_dict

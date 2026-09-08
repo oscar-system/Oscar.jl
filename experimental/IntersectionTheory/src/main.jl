@@ -2626,17 +2626,16 @@ function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
   n = get_attribute(R, :abstract_variety_dim)
   R, (t,) = graded_polynomial_ring(QQ, [:t])
   set_attribute!(R, :abstract_variety_dim, n)
-  lg = _logg(R(sum(taylor[i + 1] * t^i for i in 0:n)))
-  comps = lg[1:n]
-  lg = [
-    if iszero(comps[i].f)
-      zero(coefficient_ring(comps[i].f))
+  lg_comps = _logg(R(sum(taylor[i + 1] * t^i for i in 0:n)))[1:n]
+  coeffs = [
+    if iszero(lg_comps[i].f)
+      zero(coefficient_ring(lg_comps[i].f))
     else
-      leading_coefficient(comps[i].f)
+      leading_coefficient(lg_comps[i].f)
     end for i in 1:n
   ]
   comps = x[1:n]
-  _expp(sum(factorial(ZZ(i)) * lg[i] * comps[i] for i in 1:n))
+  _expp(sum(factorial(ZZ(i)) * coeffs[i] * comps[i] for i in 1:n))
 end
 
 function _todd_class(x::MPolyDecRingOrQuoElem)
@@ -3459,7 +3458,7 @@ function projective_bundle(F::AbstractBundle; symbol::String="z")
   # construct the ring
 
   w = vcat([1], gradings(R))
-  R1, (z,), imgs_in_R1 = graded_polynomial_ring(base(X), [symbol], symbols(R); weights=w)
+  R1, (z0,), imgs_in_R1 = graded_polynomial_ring(base(X), [symbol], symbols(R); weights=w)
   if R isa MPolyQuoRing
     PR = base_ring(R)
   else
@@ -3470,12 +3469,12 @@ function projective_bundle(F::AbstractBundle; symbol::String="z")
 
   # construct the relations
 
-  rels = [sum(pback(chern_class(F, i).f) * z^(r-i) for i in 0:r)]
+  rels = [sum(pback(chern_class(F, i).f) * z0^(r-i) for i in 0:r)]
   if R isa MPolyQuoRing
     rels = vcat(pback.(gens(R.I)), rels)
   end
   APF = quo(R1, ideal(rels))[1]
-  z = APF(z)
+  z = APF(z0)
 
   # construct the abstract variety
 
@@ -4181,13 +4180,11 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
 
   # compute the ranks of successive subquotients and the relative dimension
 
-  if dims[end] < n # the last dim can be omitted
-    dims = vcat(dims, [n])
-  end
-  l = length(dims)
-  ranks = pushfirst!([dims[i + 1]-dims[i] for i in 1:(l - 1)], dims[1])
-  @assert all(>(0), ranks) && dims[end] <= n
-  d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:(l - 1))
+  alldims = dims[end] < n ? vcat(dims, [n]) : dims # the last dim can be omitted
+  l = length(alldims)
+  ranks = pushfirst!([alldims[i + 1]-alldims[i] for i in 1:(l - 1)], alldims[1])
+  @assert all(>(0), ranks) && alldims[end] <= n
+  d = sum(ranks[i] * sum(alldims[end]-alldims[i]) for i in 1:(l - 1))
 
   # construct the (numerical) Chow-ring (Grothendieck, Seminaire Chevalley, tome 3 (1985))
 
@@ -4209,8 +4206,8 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
 
   # 2. implement the relations
 
-  c = [1+sum(gens_for_rels_R1[(dims[i] + 1):dims[i + 1]]) for i in 1:(l - 1)]
-  pushfirst!(c, 1+sum(gens_for_rels_R1[1:dims[1]]))
+  c = [1+sum(gens_for_rels_R1[(alldims[i] + 1):alldims[i + 1]]) for i in 1:(l - 1)]
+  pushfirst!(c, 1+sum(gens_for_rels_R1[1:alldims[1]]))
   Rx, x = R1[:x]
   fi = PRtoR1(total_chern_class(F).f)[0:n]
   f = sum(fi[i + 1].f * x^(n-i) for i in 0:n)
@@ -4241,8 +4238,8 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   wcs = reduce(vcat, [1:r for r in ranks])
   Rcs, _ = graded_polynomial_ring(base(X), syms; weights=wcs)
   RcstoR1 = Oscar.hom(Rcs, R1, gens_for_rels_R1)
-  gs = [monomial(Rcs, [Int(ME[i, j]) for j in 1:n]) for i in nl:-1:1]
-  gs = [RcstoR1(gs[i]) for i in 1:length(gs)]
+  gs_cs = [monomial(Rcs, [Int(ME[i, j]) for j in 1:n]) for i in nl:-1:1]
+  gs = RcstoR1.(gs_cs)
   ds = [degree(Int, gs[i]) for i in 1:1:nl]
   dm = argmax(ds)
   fm = hom(R, AFl, p_star)
@@ -4277,7 +4274,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   end
 
   set_attribute!(
-    Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F"
+    Fl, :description => "Relative flag abstract_variety Flag$(tuple(alldims...)) for $F"
   )
   set_attribute!(Fl, :section => AFl(gs[dm]))
   get_attribute(X, :alg) == true && set_attribute!(Fl, :alg => true)
@@ -4377,11 +4374,7 @@ function _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finit
   A, B = F.domain, F.codomain
   a, b = ngens(A), ngens(B)
 
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
+  AR = A isa MPolyQuoRing ? base_ring(A) : A
   if B isa MPolyQuoRing
     BR = base_ring(B)
     M = [F(gens(A)[i]).f for i in 1:a]

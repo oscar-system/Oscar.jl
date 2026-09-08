@@ -213,6 +213,13 @@ function literature_model(
   )
 end
 
+# Map a function of strings over arbitrarily nested Vectors of strings.
+# A top-level function rather than a closure: a self-recursive closure is
+# boxed; see docs/src/DeveloperDocumentation/closure_boxes.md.
+_nested_string_map(f, s::String) = f(s)
+_nested_string_map(f, v::Vector) = map(x -> _nested_string_map(f, x), v)
+_nested_string_map(f, a::Any) = a
+
 function _literature_model(
   model_dict::StringKeyedMapType;
   model_parameters::StringKeyedMapType=Dict{String,Any}(),
@@ -233,22 +240,17 @@ function _literature_model(
       @req (param in keys(model_parameters)) "Some model parameters not provided; the given model requires these parameters:\n  $(join(needed_model_parameters, "\n  "))"
     end
 
-    # Function to map a function of strings over arbitrarily nested Vectors of strings
-    nested_string_map(f, s::String) = f(s)
-    nested_string_map(f, v::Vector) = map(x -> nested_string_map(f, x), v)
-    nested_string_map(f, a::Any) = a
-
     for (key, val) in model_parameters
       map!(
-        x -> nested_string_map(s -> replace(s, key => string(val)), x),
+        x -> _nested_string_map(s -> replace(s, key => string(val)), x),
         values(model_dict["model_data"]),
       )
       map!(
-        x -> nested_string_map(s -> replace(s, string("#", key) => string(val)), x),
+        x -> _nested_string_map(s -> replace(s, string("#", key) => string(val)), x),
         values(model_dict["model_descriptors"]),
       )
       map!(
-        x -> nested_string_map(
+        x -> _nested_string_map(
           s -> replace(
             s,
             r"\(([^(),]+)\)" =>
@@ -427,7 +429,7 @@ function _construct_literature_model_over_concrete_base(
   # Find divisor classes of all tunable sections.
   @req haskey(model_dict["model_data"], "tunable_sections") "Database does not specify model sections for given model"
   tune_sec_names = string.(model_dict["model_data"]["tunable_sections"])
-  cfs = matrix(
+  cfs_mat = matrix(
     ZZ,
     transpose(
       hcat(
@@ -438,7 +440,7 @@ function _construct_literature_model_over_concrete_base(
       ),
     ),
   )
-  cfs = vcat([[Int(k) for k in cfs[i:i, :]] for i in 1:nrows(cfs)]...)
+  cfs = vcat([[Int(k) for k in cfs_mat[i:i, :]] for i in 1:nrows(cfs_mat)]...)
   model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] =
     cfs
   cl_of_secs = Dict(
@@ -620,7 +622,7 @@ function _construct_literature_model_over_arbitrary_base(
     model_dict["model_data"],
     "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes",
   ) "Database does not specify classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model construction, so cannot proceed"
-  auxiliary_base_grading = matrix(
+  base_grading_mat = matrix(
     ZZ,
     transpose(
       hcat(
@@ -633,8 +635,8 @@ function _construct_literature_model_over_arbitrary_base(
   )
   auxiliary_base_grading = vcat(
     [
-      [Int(k) for k in auxiliary_base_grading[i:i, :]] for
-      i in 1:nrows(auxiliary_base_grading)
+      [Int(k) for k in base_grading_mat[i:i, :]] for
+      i in 1:nrows(base_grading_mat)
     ]...,
   )
   model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] =
@@ -785,8 +787,8 @@ function _set_all_attributes(
 
   if haskey(model_dict, "birational_models")
     for m in model_dict["birational_models"]
-      model_data = JSON.parsefile(joinpath(@__DIR__, "Models", m))
-      if model_data["model_descriptors"]["type"] == "weierstrass"
+      birational_data = JSON.parsefile(joinpath(@__DIR__, "Models", m))
+      if birational_data["model_descriptors"]["type"] == "weierstrass"
         set_attribute!(model, :weierstrass_model => m)
       end
     end
@@ -948,10 +950,10 @@ function _set_all_attributes(
     if typeof(M) != Matrix{Int}
       vars = string.(model_dict["model_data"]["tunable_sections"])
       auxiliary_base_ring, _ = polynomial_ring(QQ, vars; cached=false)
-      M = matrix(
+      M_mat = matrix(
         ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in M]...))
       )
-      M = vcat([[Int(k) for k in M[i:i, :]] for i in 1:nrows(M)]...)
+      M = vcat([[Int(k) for k in M_mat[i:i, :]] for i in 1:nrows(M_mat)]...)
       model_dict["model_data"]["classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes"] =
         M
     end

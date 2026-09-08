@@ -307,93 +307,101 @@ function _compute_gluing(gd::InheritGluingData)
 
   success, Z = _have_common_ancestor(X, Y)
   if success
-    # This is the easy case: Gluing within one chart. 
-    # Keep in mind, however, that we might have gone through some simplify(...) calls, 
-    # so we can not assume everything to be happening in the same ambient_ring.
-    iso_X = _flatten_open_subscheme(X, Z)
-    iso_Y = _flatten_open_subscheme(Y, Z)
-    h_X = complement_equation(codomain(iso_X))
-    h_Y = complement_equation(codomain(iso_Y))
-    XY = PrincipalOpenSubset(X, pullback(iso_X)(OO(codomain(iso_X))(h_Y)))
-    YX = PrincipalOpenSubset(Y, pullback(iso_Y)(OO(codomain(iso_Y))(h_X)))
-    if iszero(h_X*h_Y)
-      # Gluing along the empty set. This is trivial.
-      g = morphism(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
-      f = morphism(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
-      
+    # This is the easy case: Gluing within one chart. Keep in mind, however,
+    # that we might have gone through some simplify(...) calls, so we can not
+    # assume everything to be happening in the same ambient_ring. `let`: the
+    # cross-chart case below reuses these names, and a variable captured while
+    # being assigned in both places would be boxed; see
+    # docs/src/DeveloperDocumentation/closure_boxes.md
+    let
+      iso_X = _flatten_open_subscheme(X, Z)
+      iso_Y = _flatten_open_subscheme(Y, Z)
+      h_X = complement_equation(codomain(iso_X))
+      h_Y = complement_equation(codomain(iso_Y))
+      XY = PrincipalOpenSubset(X, pullback(iso_X)(OO(codomain(iso_X))(h_Y)))
+      YX = PrincipalOpenSubset(Y, pullback(iso_Y)(OO(codomain(iso_Y))(h_X)))
+      if iszero(h_X*h_Y)
+        # Gluing along the empty set. This is trivial.
+        g = morphism(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
+        f = morphism(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
+    
+        return SimpleGluing(X, Y, f, g, check=false)
+      end
+
+      XYZ = PrincipalOpenSubset(Z, h_X*h_Y)
+
+      x_img = gens(OO(X))
+      x_img = pullback(inverse(iso_X)).(x_img)
+      x_img = OO(XYZ).(x_img)
+      phi = restrict(iso_Y, YX, XYZ, check=false)
+      x_img = pullback(phi).(x_img)
+      g = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
+  
+      y_img = gens(OO(Y))
+      y_img = pullback(inverse(iso_Y)).(y_img)
+      y_img = OO(XYZ).(y_img)
+      psi = restrict(iso_X, XY, XYZ, check=false)
+      y_img = pullback(psi).(y_img)
+      f = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
       return SimpleGluing(X, Y, f, g, check=false)
     end
-
-    XYZ = PrincipalOpenSubset(Z, h_X*h_Y)
-
-    x_img = gens(OO(X))
-    x_img = pullback(inverse(iso_X)).(x_img)
-    x_img = OO(XYZ).(x_img)
-    phi = restrict(iso_Y, YX, XYZ, check=false)
-    x_img = pullback(phi).(x_img)
-    g = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
-    
-    y_img = gens(OO(Y))
-    y_img = pullback(inverse(iso_Y)).(y_img)
-    y_img = OO(XYZ).(y_img)
-    psi = restrict(iso_X, XY, XYZ, check=false)
-    y_img = pullback(psi).(y_img)
-    f = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
-    return SimpleGluing(X, Y, f, g, check=false)
   end
 
   # As the easy case would have been caught before, we are now facing an inherited 
   # gluing across charts: X ↪ A ⊃ U ≅ V ⊂ B ↩ Y. 
   # We need to compute the intersection of X with Y along the identifications of U and V
   # and cook up the SimpleGluing from that.
-  iso_X = _flatten_open_subscheme(X, C)
-  iso_Y = _flatten_open_subscheme(Y, C)
-  A = ambient_scheme(codomain(iso_X))
-  B = ambient_scheme(codomain(iso_Y))
-  G = C[A, B] # The original gluing needed
-  U, V = gluing_domains(G)
-  f, g = gluing_morphisms(G)
-  U isa PrincipalOpenSubset && ambient_scheme(U) === A || error("incorrect intermediate result")
-  V isa PrincipalOpenSubset && ambient_scheme(V) === B || error("incorrect intermediate result")
+  # `let`: see the common-ancestor case above
+  let
+    iso_X = _flatten_open_subscheme(X, C)
+    iso_Y = _flatten_open_subscheme(Y, C)
+    A = ambient_scheme(codomain(iso_X))
+    B = ambient_scheme(codomain(iso_Y))
+    G = C[A, B] # The original gluing needed
+    U, V = gluing_domains(G)
+    f, g = gluing_morphisms(G)
+    U isa PrincipalOpenSubset && ambient_scheme(U) === A || error("incorrect intermediate result")
+    V isa PrincipalOpenSubset && ambient_scheme(V) === B || error("incorrect intermediate result")
 
-  UX = intersect(U, codomain(iso_X))
-  UX isa PrincipalOpenSubset && ambient_scheme(UX) === A || error("incorrect intermediate result")
-  h_Y = pullback(f)(complement_equation(codomain(iso_Y)), check=false)
-  UXY = PrincipalOpenSubset(codomain(iso_X), 
-                            OO(codomain(iso_X))(lifted_numerator(h_Y)*complement_equation(U), check=false))
-  UXY isa PrincipalOpenSubset && ambient_scheme(UXY) === codomain(iso_X) || error("incorrect intermediate output")
-  UY = PrincipalOpenSubset(U, h_Y)
-  XY = PrincipalOpenSubset(X, pullback(iso_X)(complement_equation(UXY)))
+    UX = intersect(U, codomain(iso_X))
+    UX isa PrincipalOpenSubset && ambient_scheme(UX) === A || error("incorrect intermediate result")
+    h_Y = pullback(f)(complement_equation(codomain(iso_Y)), check=false)
+    UXY = PrincipalOpenSubset(codomain(iso_X), 
+                              OO(codomain(iso_X))(lifted_numerator(h_Y)*complement_equation(U), check=false))
+    UXY isa PrincipalOpenSubset && ambient_scheme(UXY) === codomain(iso_X) || error("incorrect intermediate output")
+    UY = PrincipalOpenSubset(U, h_Y)
+    XY = PrincipalOpenSubset(X, pullback(iso_X)(complement_equation(UXY)))
 
-  VY = intersect(V, codomain(iso_Y))
-  VY isa PrincipalOpenSubset && ambient_scheme(VY) === B || error("incorrect intermediate result")
-  h_X = pullback(g)(complement_equation(codomain(iso_X)), check=false)
-  VX = PrincipalOpenSubset(V, h_X)
-  VYX = PrincipalOpenSubset(codomain(iso_Y), 
-                            OO(codomain(iso_Y))(lifted_numerator(h_X)*complement_equation(V), check=false))
-  VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
-  YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
+    VY = intersect(V, codomain(iso_Y))
+    VY isa PrincipalOpenSubset && ambient_scheme(VY) === B || error("incorrect intermediate result")
+    h_X = pullback(g)(complement_equation(codomain(iso_X)), check=false)
+    VX = PrincipalOpenSubset(V, h_X)
+    VYX = PrincipalOpenSubset(codomain(iso_Y), 
+                              OO(codomain(iso_Y))(lifted_numerator(h_X)*complement_equation(V), check=false))
+    VYX isa PrincipalOpenSubset && ambient_scheme(VYX) === codomain(iso_Y) || error("incorrect intermediate output")
+    YX = PrincipalOpenSubset(Y, pullback(iso_Y)(complement_equation(VYX)))
 
-  fres = restrict(f, UXY, VYX, check=false)
-  gres = restrict(g, VYX, UXY, check=false)
+    fres = restrict(f, UXY, VYX, check=false)
+    gres = restrict(g, VYX, UXY, check=false)
 
-  x_img = gens(OO(X))
-  x_img = pullback(inverse(iso_X)).(x_img)
-  x_img = [OO(UXY)(x, check=false) for x in x_img]
-  x_img = pullback(gres).(x_img)
-  phi = restrict(iso_Y, YX, VYX, check=false)
-  x_img = pullback(phi).(x_img)
-  gg = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
+    x_img = gens(OO(X))
+    x_img = pullback(inverse(iso_X)).(x_img)
+    x_img = [OO(UXY)(x, check=false) for x in x_img]
+    x_img = pullback(gres).(x_img)
+    phi = restrict(iso_Y, YX, VYX, check=false)
+    x_img = pullback(phi).(x_img)
+    gg = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
 
-  y_img = gens(OO(Y))
-  y_img = pullback(inverse(iso_Y)).(y_img)
-  y_img = [OO(VYX)(y, check=false) for y in y_img]
-  y_img = pullback(fres).(y_img)
-  psi = restrict(iso_X, XY, UXY, check=false)
-  y_img = pullback(psi).(y_img)
-  ff = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
+    y_img = gens(OO(Y))
+    y_img = pullback(inverse(iso_Y)).(y_img)
+    y_img = [OO(VYX)(y, check=false) for y in y_img]
+    y_img = pullback(fres).(y_img)
+    psi = restrict(iso_X, XY, UXY, check=false)
+    y_img = pullback(psi).(y_img)
+    ff = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
 
-  return SimpleGluing(X, Y, ff, gg, check=false)
+    return SimpleGluing(X, Y, ff, gg, check=false)
+  end
 end
 
 number_of_generators(Q::MPolyQuoLocRing) = number_of_generators(base_ring(Q))

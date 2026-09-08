@@ -581,11 +581,10 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
     end
 
     #get kernel of coefficient matrix -> K
-    if !is_empty(C_bF)
-      _K = matrix(k, hcat(C_bF...))
-      K = kernel(_K)
+    K = if is_empty(C_bF)
+      identity_matrix(k, ngens(N))
     else
-      K = identity_matrix(k, ngens(N))
+      kernel(matrix(k, hcat(C_bF...)))
     end
 
     #get kernel of coefficient vector of b -> B

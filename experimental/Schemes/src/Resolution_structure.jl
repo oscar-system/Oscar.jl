@@ -289,12 +289,11 @@ end
 function _blow_up_at_all_points_embedded(f::BlowUpSequence, V::Vector{<:AbsIdealSheaf})
    !is_empty(V) || return(f)
    I = small_generating_set(pop!(V))
-   f = _do_blow_up_embedded!(f,I)
-   if length(V) > 0
-     tempV = [strict_transform(last_map(f),J) for J in V]
-     f = _blow_up_at_all_points_embedded(f,tempV)
-   end
-   return f
+   f_new = _do_blow_up_embedded!(f,I)
+   length(V) > 0 || return f_new
+   m = last_map(f_new)
+   tempV = [strict_transform(m,J) for J in V]
+   return _blow_up_at_all_points_embedded(f_new,tempV)
 end
 
 function _blow_up_at_all_points(f::Union{BlowUpSequence,MixedBlowUpSequence}, I_all::AbsIdealSheaf)
@@ -305,7 +304,8 @@ function _blow_up_at_all_points(f::Union{BlowUpSequence,MixedBlowUpSequence}, I_
     I = small_generating_set(pop!(decomp))
     f = _do_blow_up!(f,I)
     if length(decomp)>0
-      decomp = [strict_transform(last_map(f),J) for J in decomp]
+      m = last_map(f)
+      decomp = [strict_transform(m,J) for J in decomp]
     end
   end
   return f
@@ -314,12 +314,11 @@ end
 function _blow_up_at_all_points(f::Union{BlowUpSequence,MixedBlowUpSequence}, V::Vector{<:AbsIdealSheaf})
    !is_empty(V) || return(f)
    I = small_generating_set(pop!(V))
-   f = _do_blow_up!(f,I)
-   if length(V) > 0
-     tempV = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in V]
-     f = _blow_up_at_all_points(f,tempV)
-   end
-   return f
+   f_new = _do_blow_up!(f,I)
+   length(V) > 0 || return f_new
+   m = last_map(f_new)
+   tempV = StrictTransformIdealSheaf[strict_transform(m,J) for J in V]
+   return _blow_up_at_all_points(f_new,tempV)
 end
 
 
@@ -727,7 +726,8 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
       I = small_generating_set(pop!(decomp))
       phi = _do_blow_up_embedded!(phi,I)
       if !is_empty(decomp)
-        decomp = [strict_transform(last_map(phi),J) for J in decomp]
+        m = last_map(phi)
+        decomp = [strict_transform(m,J) for J in decomp]
       end
     end
     last_emb = embeddings(phi)[end]
@@ -763,7 +763,7 @@ function _ensure_ncr!(f::AbsDesingMor)
     next_locus = ideal_sheaf_of_singular_locus(domain(inc_temp))
     new_divs = length(f.ex_div) + 1
     f = _blow_up_at_all_points_embedded(f,pushforward(inc_temp, next_locus))
-    append!(current_divs,[f.ex_div[i] for i in new_divs:length(f.ex_div)])
+    append!(current_divs, f.ex_div[new_divs:end])
     I_X = image_ideal(f.embeddings[end])
   end
 
@@ -1003,15 +1003,11 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
     mod_gens = lifted_numerator.(gens(modulus(OO(U))))
     R = ambient_coordinate_ring(U)
     JM = jacobian_matrix(R, mod_gens)
-    if length(amb_col) < length(mod_gens)
-      JM_essential = JM[:, amb_col]
-    else
-      JM_essential = JM
-    end
+    JM_cols = length(amb_col) < length(mod_gens) ? JM[:, amb_col] : JM
     submat_for_minor = JM[amb_row, amb_col]
     Ainv, h2 = pseudo_inv(submat_for_minor)
     h == h2 || error("inconsistent input data")
-    JM_essential = JM_essential * Ainv
+    JM_essential = JM_cols * Ainv
     I_gens = lifted_numerator.(gens(I))
     JI = jacobian_matrix(I_gens)
     result_mat = h*JI

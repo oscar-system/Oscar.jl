@@ -96,8 +96,8 @@ function _is_projective_without_denominators(A::MatElem;
       push!(expon, k)
     end
 
-    c = coordinates(one(R), ideal(R, [complement_equation(U[k])^(expon[k]+1) for k in 1:length(expon)]))
-    result = sum([c[k]*projectors[k] for k in 1:length(projectors)])
+    c_comp = coordinates(one(R), ideal(R, [complement_equation(U[k])^(expon[k]+1) for k in 1:length(expon)]))
+    result = sum([c_comp[k]*projectors[k] for k in 1:length(projectors)])
 
     # Copied from below
     d = reduce(lcm, _lifted_denominator.(result))
@@ -105,26 +105,26 @@ function _is_projective_without_denominators(A::MatElem;
       return true, result, 0
     end
 
-    inner, outer = ppio(d, _lifted_numerator(unit))
+    inner_comp, outer_comp = ppio(d, _lifted_numerator(unit))
     (mpow, upow) = Oscar._minimal_power_such_that(_lifted_numerator(unit),
-                                                  x->(divides(x, inner)[1]))
+                                                  x->(divides(x, inner_comp)[1]))
 
     # pull u^mpow from each entry of the matrix:
     L = zero_matrix(R, n, n)
     for i in 1:n
       for j in 1:n
         L[i, j] = R(_lifted_numerator(result[i, j])*
-                    divides(upow, inner)[2]*
+                    divides(upow, inner_comp)[2]*
                     divides(d, _lifted_denominator(result[i, j]))[2]
-                   )*inv(R(outer*(_lifted_denominator(unit)^mpow)))
+                   )*inv(R(outer_comp*(_lifted_denominator(unit)^mpow)))
       end
     end
     return true, L, mpow
   end
 
 
-  lambda1 = coordinates(one(R), I) # coefficients for the first powers
-  involved_entries = [k for k in 1:length(lambda1) if !iszero(lambda1[k])]
+  lambda0 = coordinates(one(R), I) # coefficients for the first powers
+  involved_entries = [k for k in 1:length(lambda0) if !iszero(lambda0[k])]
 
   # For every 'involved entry' u = aᵢⱼ, localize at u and form
   # the submatrix B = Bᵢⱼ. For B we obtain the projectors Pᵢⱼ
@@ -134,7 +134,7 @@ function _is_projective_without_denominators(A::MatElem;
 
   # Get rid of the zero entries.
   entry_list = entry_list[involved_entries]
-  lambda1 = lambda1[1, involved_entries]
+  lambda1 = lambda0[1, involved_entries]
   sub_results = Tuple{Bool, <:MatElem, Int}[]
   sub_localizations = Tuple{<:Ring, <:Map}[]
   for (u, i, j) in entry_list

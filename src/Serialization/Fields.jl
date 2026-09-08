@@ -225,11 +225,10 @@ function load_object(s::DeserializerState,
   # forces parent of MPolyRingElem
   poly_ring, _ = polynomial_ring(base_field(K), n; cached=false)
   poly_elem_type = elem_type
-  load_node(s) do _
-    polynomial = load_object(s, MPolyRingElem, poly_ring)
+  polynomial = load_node(s) do _
+    load_object(s, MPolyRingElem, poly_ring)
   end
-  polynomial = evaluate(polynomial, gens(K))
-  return K(polynomial)
+  return K(evaluate(polynomial, gens(K)))
 end
 
 ################################################################################
@@ -422,9 +421,9 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
   base_K = base_field(K)
   if is_simple(K)
-    a = gen(K)
-    gen_emb_approx = E(a)
-    if any(overlaps(gen_emb_approx, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
+    g = gen(K)
+    gen_emb_approx = E(g)
+    if any(overlaps(gen_emb_approx, e(g)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
       error("Internal error in internal serialization.")
     end
     save_object(s, gen_emb_approx)
@@ -503,7 +502,8 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
   while(!is_unique)
     CC = AcbField(precision; cached = false)
     approximation = CC(q)
-    n_overlaps = length(filter(x -> overlaps(approximation, CC(x)), roots_min_q))
+    appr = approximation
+    n_overlaps = length(filter(x -> overlaps(appr, CC(x)), roots_min_q))
     if n_overlaps == 1
       is_unique = true
     else
@@ -511,10 +511,11 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
     end
   end
 
+  appr_final, prec_final = approximation, precision
   save_data_dict(s) do
     save_object(s, min_poly_q, :minpoly)
-    save_object(s, approximation, :acb)
-    save_object(s, precision, :precision)
+    save_object(s, appr_final, :acb)
+    save_object(s, prec_final, :precision)
   end
 end
 
