@@ -413,6 +413,9 @@ function iterate_basis_orbit_sums(R::FinGroupInvarRing{T,<:PermGroup}, d::Int) w
   # Generate all exponent vectors of monomials of degree d
   exps = data.(collect(weak_compositions(d, ngens(S); inplace=false)))
 
+  # Make the output "more" deterministic by sorting; helps the book tests
+  sort!(exps; by=maximum)
+
   mon_orbits = orbits(gset(group(R), permuted, exps))
 
   k = length(mon_orbits)
