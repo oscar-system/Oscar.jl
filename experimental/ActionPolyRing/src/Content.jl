@@ -875,7 +875,7 @@ Return the separant of `p` which is the formal derivative of `p` with respect to
 If `p` is a constant, then `p` itself is returned.
 """
 function separant(dpre::DifferentialPolyRingElem)
-  is_constant(dpre) && return dpre
+  is_constant(dpre) && return parent(dpre)(dpre)
   return derivative(dpre, leader(dpre))
 end
 
@@ -912,7 +912,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
   
-  is_zero(dpre) && return dpre
+  is_zero(dpre) && return dpr(dpre)
 
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = Tuple{Int, Vector{Int}}[]
@@ -993,7 +993,7 @@ function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
 
-  is_zero(dpre) && return dpre
+  is_zero(dpre) && return zero(dpr)
 
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = Tuple{Int, Vector{Int}}[]
@@ -1064,7 +1064,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
   @req length(d) == n_action_maps(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
 
-  is_zero(d) && return dpre
+  is_zero(d) && return dpr(dpre)
 
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = Tuple{Int, Vector{Int}}[]
@@ -1143,7 +1143,7 @@ If `p` is a nonzero constant, `p` itself is returned. If `p` is the zero polynom
 """
 function initial(apre::ActionPolyRingElem)
   @req !is_zero(apre) "The zero polynomial has no initial"
-  is_constant(apre) && return apre
+  is_constant(apre) && return parent(apre)(apre)
   return univariate_leading_coefficient(apre, leader(apre))
 end
 
@@ -1203,7 +1203,7 @@ Return the discriminant of `p`.
 """
 function discriminant(p::ActionPolyRingElem)
   if is_constant(p)
-    is_zero(p) && return p
+    is_zero(p) && return zero(p)
     return one(p)
   end
 
