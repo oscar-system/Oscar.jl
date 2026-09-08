@@ -100,17 +100,13 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
     # However, experience shows that we have to add a generous 1/2*|G| to the
     # Reynolds operator runtime to get closer to reality.
 
-    # Compute the monomials which would be input for the Reynolds operator
+    # Compute the monomials which would be input for the Reynolds operator or
+    # orbit sums
     # TODO: Properly wrap kbase (or reimplement it; an iterator would be lovely)
     mons = gens(ideal(R, Singular.kbase(singular_generators(G), d)))
     if isempty(mons) || (length(mons) == 1 && is_zero(mons[1]))
       break
     end
-
-    # Runtime estimates, see [KS99, Section17.2]
-    time_rey = length(mons) * d * order(group(RG))
-    time_lin_alg = ngens(group(RG)) * length(monomials_of_degree(R, d))^2
-    X = 1 / 2 * order(Int, group(RG)) # magical extra factor (see above)
 
     if group(RG) isa PermGroup
       # Orbit sums
@@ -121,20 +117,30 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
         Rgraded([one(coefficient_ring(RG)) for _ in 1:length(orb)], elements(orb)) for
         orb in mon_orbits
       )
-    elseif X * time_rey < time_lin_alg
-      # Reynolds approach
-      @vprintln :FundamentalInvariants "Generating invariants via Reynolds operator"
-      invs = (
-        _cast_in_internal_poly_ring(
-          RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))
-        ) for m in mons
-      )
     else
-      # Linear algebra approach
-      @vprintln :FundamentalInvariants "Generating invariants via linear algebra"
-      invs = (
-        _cast_in_internal_poly_ring(RG, f) for f in iterate_basis(RG, d, :linear_algebra)
-      )
+      # We don't have a PermGroup, so we need to use either the Reynolds
+      # operator or linear algebra
+
+      # Runtime estimates, see [KS99, Section17.2]
+      time_rey = length(mons) * d * order(group(RG))
+      time_lin_alg = ngens(group(RG)) * length(monomials_of_degree(R, d))^2
+      X = 1 / 2 * order(Int, group(RG)) # magical extra factor (see above)
+
+      if X * time_rey < time_lin_alg
+        # Reynolds approach
+        @vprintln :FundamentalInvariants "Generating invariants via Reynolds operator"
+        invs = (
+                _cast_in_internal_poly_ring(
+                                            RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))
+                                           ) for m in mons
+               )
+      else
+        # Linear algebra approach
+        @vprintln :FundamentalInvariants "Generating invariants via linear algebra"
+        invs = (
+                _cast_in_internal_poly_ring(RG, f) for f in iterate_basis(RG, d, :linear_algebra)
+               )
+      end
     end
 
     for m in invs
