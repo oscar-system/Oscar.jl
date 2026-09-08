@@ -638,8 +638,8 @@ end
     molien_series([S::PolyRing], I::FinGroupInvarRing, [chi::GAPGroupClassFunction])
 
 Return the Molien series of `I` as a rational function.
-This function is implemented in the non-modular case or if `group(I)` is of type
-`PermGroup`.
+This function is implemented in the non-modular case or, if no `chi` is given,
+if `group(I)` is of type `PermGroup`.
 
 If a univariate polynomial ring with rational coefficients is specified by the
 optional argument `S::PolyRing`, then return the Molien series as an element
