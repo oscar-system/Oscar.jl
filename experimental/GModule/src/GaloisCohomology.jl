@@ -2306,13 +2306,15 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
 
   gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
 
-  @vprint :GaloisCohomology 2 "projecting to ray class group..."
+  @vprintln :GaloisCohomology 2 "projecting to ray class group..."
   @vtime :GaloisCohomology 4 phi = induce_hom(idele_parent, mR; do_map = true, check = false)
   @vtime :GaloisCohomology 4 phi = change_module(hI, hA, phi*mQ)
   @vtime :GaloisCohomology 4 aa = phi[2](gamma)
 
   @hassert :GaloisCohomology 2 is_zero(map(hA, 2)(aa))
-  return permutation_group(GrpCoh.two_chain(aa)), (aa, gA)
+  @vprintln :GaloisCohomology 2 "computing permutation group from cocycle ..."
+  @vtime :GaloisCohomology 2 P = permutation_group(GrpCoh.two_chain(aa))
+  return P, (aa, gA)
 end
 
 function Oscar.components(A::FinGenAbGroup)
@@ -3475,7 +3477,7 @@ end
 
 function local_galois_groups(k::AbsSimpleNumField; all::Bool = false)
   zk = maximal_order(k)
-  all_G = PermGroup[]
+  all_G = Tuple{PermGroup, Int}[]
   cyclic = Int[]
   G, mG = automorphism_group(PermGroup, k)
   for p = ramified_primes(zk)
@@ -3484,7 +3486,7 @@ function local_galois_groups(k::AbsSimpleNumField; all::Bool = false)
       if Gp in all_G
         continue
       else
-        push!(all_G, Gp)
+        push!(all_G, (Gp, p))
         if is_cyclic(Gp)
           push!(cyclic, order(Gp))
         end
@@ -3492,13 +3494,31 @@ function local_galois_groups(k::AbsSimpleNumField; all::Bool = false)
       all || break #others are conjugated
     end
   end
+  poss_orders = Set(unique!([order(g) for g in G]))
+  psandfs = Dict{Int, ZZRingElem}()
+  for p in primes_set(-1, -1)
+    if isempty(poss_orders)
+      break
+    end
+    if is_ramified(zk, p)
+      continue
+    end
+    f = prime_decomposition_type(zk, p)[1][1]
+    !(f in poss_orders) && continue
+    psandfs[f] = p
+    delete!(poss_orders, f)
+    if p > 2^10
+      error("something off")
+    end
+  end
+
   for g = G
     if !all 
       if order(g) in cyclic
         continue
       else
         push!(cyclic, order(g))
-        push!(all_G, sub(G, [g])[1])
+        push!(all_G, (sub(G, [g])[1], psandfs[order(g)]))
       end
     else
       Gp = sub(G, [g])[1]
@@ -3718,43 +3738,94 @@ function _gcd_of_indice_for_N(N, S)
   return g
 end
 
-function _find_auxilliary_extension(k::AbsSimpleNumField, S)
+function _find_auxilliary_extension(k::AbsSimpleNumField)
   # first compute best possible target degree
-  ok = maximal_order(k)
-  g = zero(ZZ)
-  for P in S
-    p = minimum(P)
-    for (e, f) in prime_decomposition_type(ok, p)
-      indd = divexact(degree(k), e * f) # order of decomposition group is e * f
-      g = gcd(g, indd)
-    end
+  d, S = _find_best_d_and_S(k)
+
+  if d == 1
+    return d, Int[]
   end
 
-  if is_totally_complex(k) # decomposition group of order 2
-    indd = divexact(absolute_degree(k), 2)
-    g = gcd(g, indd)
-  end
-  
-  if g == 1
-    return g, Int[]
-  end
-
-  @info "Target degree is $g"
+  @info "Target degree is $d"
   # do something stupid
-  bnd = g * ZZ(discriminant(maximal_order(k)))
+  bnd = d * ZZ(discriminant(maximal_order(k)))
   while true
-    for _A in abelian_groups(Int(g))
+    for _A in abelian_groups(Int(d))
       el = Int.(elementary_divisors(_A))
       for N in abelian_normal_extensions(k, el, bnd)
         gg = _gcd_of_indice_for_N(N, S)
-        @assert gg % g == 0
-        if gg == g
-          return gg, el
+        @assert gg % d == 0
+        if gg == d
+          return d, el
         end
       end
     end
     bnd = 2 * bnd
   end
+end
+
+function _find_best_d_and_S(k::AbsSimpleNumField)
+  d, ps = _find_best_d_and_ps(k)
+  @info d
+  ok = maximal_order(k)
+  s = unique(vcat(ps, support(discriminant(ok))))
+
+  # (S3)
+  sf = subfields(k)
+  sf = [x[1] for x = sf if degree(x[1]) > 1]
+  @vprint :GaloisCohomology 1 "Need to check $(length(sf)) (non-trivial) subfields, now computing class groups...\n"
+  zf = map(maximal_order, sf)
+  cf = map(class_group, zf)
+  @vprint :GaloisCohomology 1 "class groups are $([x[1] for x = cf])\n"
+
+  cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
+
+  @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
+  for i=1:length(sf)
+    l = support(prod(s) * zf[i])
+    q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P in l])
+    cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+  end
+  @vprint :GaloisCohomology 2 "after factoring by provided primes left with $([snf(x[1])[1] for x = cf])\n"
+
+  #think: does the quotient have to be trivial - or coprime to |G|?
+  #coprime should be enough
+
+  for p = primes_set(2, -1)
+    p in s && continue
+    all(x->order(x[1]) == 1, cf) && break
+    @vprint :GaloisCohomology 3 "trying $p\n"
+    new = false
+    for i=1:length(sf)
+      l = factor(p*zf[i])
+      q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
+      if order(q) != order(cf[i][1])
+        new = true
+      end
+      cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+    end
+    if new
+      @vprint :GaloisCohomology 3 "now at $([x[1] for x = cf])\n"
+      push!(s, p)
+    end
+  end
+
+  S = collect(keys(factor(prod(s)*ok)))
+
+  return d, S
+end
+
+function _find_best_d_and_ps(k::AbsSimpleNumField)
+  locgal = local_galois_groups(k)
+  n = degree(k)
+  inds = [divexact(n, order(H)) for (H, _) in locgal]
+  if any(is_one, inds)
+    i = findfirst(is_one, inds)
+    return 1, locgal[i][2]
+  end
+  bestd, coeffs = gcdx(inds)
+  bestps = [locgal[i][2] for i in findall(!is_zero, coeffs)]
+  return bestd, bestps
 end
 
 end # module GrpCoh
