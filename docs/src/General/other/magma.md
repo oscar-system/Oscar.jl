@@ -56,10 +56,10 @@ often are the `snake_case` versions of the Magma names.
 - Magma's `?` help syntax is available in Julia as `?name`.
 
 - Many Magma constructors use angle brackets:
-  `sub<G | a, b>`, `quo<G | N>`, `hom<G -> H | ...>`, `ideal<R | f, g>`,
+  `sub<G | a, b>`, `quo<G | N>`, `hom<G -> H | a, b, ... >`, `ideal<R | f, g>`,
   `R<x, y> := PolynomialRing(K, 2)`.
   The OSCAR counterparts are ordinary functions:
-  `sub(G, [a, b])`, `quo(G, N)`, `hom(G, H, ...)`, `ideal(R, [f, g])`,
+  `sub(G, [a, b])`, `quo(G, N)`, `hom(G, H, [a, b, ...])`, `ideal(R, [f, g])`,
   and `R, (x, y) = polynomial_ring(K, [:x, :y])`.
 
 ## Differences in semantics
@@ -67,8 +67,9 @@ often are the `snake_case` versions of the Magma names.
 - **Integer literals are machine integers.**
   In Magma, `2^100` is computed exactly and `3/4` is a rational number.
   In Julia, `2^100` evaluates to `0` and `3/4` to `0.75`.
-  Write `ZZ(2)^100` and `QQ(3, 4)` instead,
-  see [Integers and rational numbers](@ref other_integers).
+  Write `ZZ(2)^100` instead, and `3//4` or `QQ(3, 4)` for the rational
+  number; the former is a Julia `Rational`, the latter an OSCAR rational
+  number, see [Integers and rational numbers](@ref other_integers).
 
 - **Multiple return values are tuples.**
   Both Magma and Julia allow functions to return several values,
@@ -96,9 +97,9 @@ often are the `snake_case` versions of the Magma names.
 - **The default monomial ordering differs.**
   `PolynomialRing(K, n)` in Magma uses the lexicographical ordering,
   and Gröbner bases are computed w.r.t. it.
-  OSCAR's multivariate polynomial rings use the degree reverse
-  lexicographical ordering by default, and `groebner_basis` takes the
-  ordering as a keyword argument.
+  In OSCAR, `groebner_basis` computes with respect to the degree reverse
+  lexicographical ordering by default, the one returned by
+  `default_ordering(R)`, and takes the ordering as a keyword argument.
   ```jldoctest
   julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
@@ -111,6 +112,12 @@ often are the `snake_case` versions of the Magma names.
   with respect to the ordering
     lex([x, y])
   ```
+
+- **`div` rounds differently.**
+  Magma's `a div b` rounds towards ``-\infty``, like Julia's `fld`.
+  Julia's `div` rounds towards zero, so it agrees with Magma's `div`
+  only when both operands have the same sign.
+  Magma's `a mod b` and Julia's `mod(a, b)` do agree.
 
 - **Argument order of `ChangeRing`.**
   Magma's `ChangeRing(M, R)` is `change_base_ring(R, M)` in OSCAR;
@@ -140,21 +147,21 @@ often are the `snake_case` versions of the Magma names.
 | `Include(~S, x)`, `Exclude(~S, x)` | `push!(S, x)`, `delete!(S, x)` |
 | `x in S`, `x notin S` | `x in S`, `!(x in S)` |
 | `Universe(L)` | `eltype(L)` |
-| `ChangeUniverse(L, R)` | `R.(L)` |
+| `ChangeUniverse(L, R)` | `R.(L)` or `map(R, L)` |
 
 ### Integers and rational numbers
 
 | Magma | OSCAR |
 |:------|:------|
 | `Integers()`, `Rationals()` | `ZZ`, `QQ` |
-| `a div b`, `a mod b` | `div(a, b)`, `mod(a, b)` |
+| `a div b`, `a mod b` | `fld(a, b)`, `mod(a, b)` |
 | `Factorization(n)` | `factor(n)` |
 | `IsPrime(n)`, `NextPrime(n)` | `is_prime(n)`, `next_prime(n)` |
 | `Divisors(n)`, `EulerPhi(n)` | `divisors(n)`, `euler_phi(n)` |
 | `GCD(a, b)`, `LCM(a, b)` | `gcd(a, b)`, `lcm(a, b)` |
 | `Binomial(n, k)`, `Factorial(n)` | `binomial(n, k)`, `factorial(ZZ(n))` |
 | `Numerator(q)`, `Denominator(q)` | `numerator(q)`, `denominator(q)` |
-| `Floor(q)`, `Ceiling(q)`, `Round(q)` | `floor(q)`, `ceil(q)`, `round(q)` |
+| `Floor(q)`, `Ceiling(q)`, `Round(q)` | `floor(ZZRingElem, q)`, `ceil(ZZRingElem, q)`, `round(ZZRingElem, q)` |
 | `Isqrt(n)`, `IsSquare(n)` | `isqrt(n)`, `is_square(n)`, `is_square_with_sqrt(n)` |
 | `Integers(n)` | `residue_ring(ZZ, n)` |
 
@@ -174,7 +181,7 @@ often are the `snake_case` versions of the Magma names.
 | `f(x)`, `x @ f` | `f(x)` |
 | `Kernel(f)`, `Image(f)` | `kernel(f)`, `image(f)` |
 | `#G`, `Order(G)`, `Order(g)` | `order(G)`, `order(g)` |
-| `Generators(G)`, `G.1` | `gens(G)`, `G[1]` |
+| `Generators(G)`, `G.1` | `gens(G)`, `G[1]` or `gen(G, 1)` |
 | `Random(G)` | `rand(G)` |
 | `Centre(G)`, `DerivedSubgroup(G)` | `center(G)`, `derived_subgroup(G)` |
 | `Centralizer(G, x)`, `Normalizer(G, H)` | `centralizer(G, x)`, `normalizer(G, H)` |
@@ -236,10 +243,13 @@ often are the `snake_case` versions of the Magma names.
 | `Nrows(M)`, `Ncols(M)` | `nrows(M)`, `ncols(M)` |
 | `M[i, j]`, `M[i]` | `M[i, j]`, `M[i, :]` |
 | `Determinant(M)`, `Rank(M)` | `det(M)`, `rank(M)` |
-| `Transpose(M)`, `M^-1` | `transpose(M)`, `M^-1` |
+| `Transpose(M)`, `M^-1` | `transpose(M)`, `inv(M)` or `M^-1` |
 | `ChangeRing(M, R)` | `change_base_ring(R, M)` |
 | `CharacteristicPolynomial(M)`, `MinimalPolynomial(M)` | `charpoly(M)`, `minpoly(M)` |
 | `Eigenvalues(M)` | `eigenvalues(M)` |
 | `Kernel(M)`, `NullspaceMatrix(M)` | `kernel(M)` |
+| `Solution(M, v)` | `solve(M, v; side = :left)` |
+| `IsConsistent(M, v)` | `can_solve(M, v; side = :left)`, `can_solve_with_solution(M, v; side = :left)` |
+| `EchelonForm(M)` | `rref(M)` |
 | `HermiteForm(M)`, `SmithForm(M)` | `hnf(M)`, `snf(M)` |
-| `Vector(K, [1, 2])` | `K.([1, 2])` or `matrix(K, [1 2])` |
+| `Vector(K, [1, 2])` | `K.([1, 2])` |
