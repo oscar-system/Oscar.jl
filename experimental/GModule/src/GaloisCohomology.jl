@@ -3649,6 +3649,114 @@ function Base.show(io::IO, I::IdeleParent)
   print(io, Dedent())
 end
 
+################################################################################
+#
+#  Find S
+#
+################################################################################
+
+function find_minimal_S_for_fundamental_class(k)
+  zk = maximal_order(k)
+
+  sf = subfields(k)
+  sf = [x[1] for x = sf if degree(x[1]) > 1]
+  @vprint :GaloisCohomology 1 "Need to check $(length(sf)) (non-trivial) subfields, now computing class groups...\n"
+  zf = map(maximal_order, sf)
+  cf = map(class_group, zf)
+  @vprint :GaloisCohomology 1 "class groups are $([x[1] for x = cf])\n"
+
+  cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
+
+  @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
+  s = Set{ZZRingElem}(prime_divisors(discriminant(zk)))
+  for i=1:length(sf)
+    l = factor(prod(s)*zf[i])
+    q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
+    cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+  end
+  @vprint :GaloisCohomology 2 "after factoring by ramified and provided primes left with $([snf(x[1])[1] for x = cf])\n"
+
+  #think: does the quotient have to be trivial - or coprime to |G|?
+  #coprime should be enough
+
+  for p = PrimesSet(2, -1)
+    p in s && continue
+    all(x->order(x[1]) == 1, cf) && break
+    @vprint :GaloisCohomology 3 "trying $p\n"
+    new = false
+    for i=1:length(sf)
+      l = factor(p*zf[i])
+      q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
+      if order(q) != order(cf[i][1])
+        new = true
+      end
+      cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+    end
+    if new
+      @vprint :GaloisCohomology 3 "now at $([x[1] for x = cf])\n"
+      push!(s, p)
+    end
+  end
+
+  S = collect(keys(factor(prod(s)*zk)))
+  return S
+end
+
+function _gcd_of_indice_for_N(N, S)
+  g = zero(ZZ)
+  for P in S
+    p = minimum(P)
+    for (e, f, _) in absolute_prime_decomposition_type(N, p)
+      indd = divexact(absolute_degree(N), e * f)
+      g = gcd(g, indd) # e * f is order of the absolute decomposition group
+    end
+  end
+  if is_totally_complex(N) # decomposition group of order 2
+    indd = divexact(absolute_degree(N), 2)
+    g = gcd(g, indd)
+  end
+  return g
+end
+
+function _find_auxilliary_extension(k::AbsSimpleNumField, S)
+  # first compute best possible target degree
+  ok = maximal_order(k)
+  g = zero(ZZ)
+  for P in S
+    p = minimum(P)
+    for (e, f) in prime_decomposition_type(ok, p)
+      indd = divexact(degree(k), e * f) # order of decomposition group is e * f
+      g = gcd(g, indd)
+    end
+  end
+
+  if is_totally_complex(k) # decomposition group of order 2
+    indd = divexact(absolute_degree(k), 2)
+    g = gcd(g, indd)
+  end
+  
+  if g == 1
+    return g, Int[]
+  end
+
+  @info "Target degree is $g"
+  # do something stupid
+  bnd = g * ZZ(discriminant(maximal_order(k)))
+  while true
+    for _A in abelian_groups(Int(g))
+      el = Int.(elementary_divisors(_A))
+      for N in abelian_normal_extensions(k, el, bnd)
+        gg = _gcd_of_indice_for_N(N, S)
+        @assert gg % g == 0
+        if gg == g
+          return gg, el
+        end
+      end
+    end
+    bnd = 2 * bnd
+  end
+end
+
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
