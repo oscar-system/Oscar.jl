@@ -141,7 +141,7 @@ so most of the differences are differences between these two languages.
 | `power_mod(a, e, m)` | `powermod(a, e, m)` |
 | `CRT([r1, r2], [m1, m2])` | `crt([r1, r2], [m1, m2])` |
 | `q.numerator()`, `q.denominator()` | `numerator(q)`, `denominator(q)` |
-| `floor(q)`, `ceil(q)`, `round(q)` | `floor(q)`, `ceil(q)`, `round(q)` |
+| `floor(q)`, `ceil(q)`, `round(q)` | `floor(ZZRingElem, q)`, `ceil(ZZRingElem, q)`, `round(ZZRingElem, q)` |
 | `isqrt(n)`, `n.is_square()` | `isqrt(n)`, `is_square(n)` |
 | `Integers(n)`, `Zmod(n)` | `residue_ring(ZZ, n)` |
 | `GF(q)`, `GF(q, 'a')` | `GF(q)` |
@@ -158,7 +158,7 @@ so most of the differences are differences between these two languages.
 | `G((1,2,3))` | `cperm(G, [1, 2, 3])` |
 | `Permutation([2, 3, 1])` | `perm([2, 3, 1])` |
 | `G.order()`, `g.order()` | `order(G)`, `order(g)` |
-| `G.gens()`, `G.gen(0)` | `gens(G)`, `G[1]` |
+| `G.gens()`, `G.gen(0)` | `gens(G)`, `G[1]` or `gen(G, 1)` |
 | `G.identity()` | `one(G)` |
 | `G.list()` | `collect(G)` |
 | `G.random_element()` | `rand(G)` |
@@ -221,7 +221,7 @@ so most of the differences are differences between these two languages.
 |:---------|:------|
 | `matrix(QQ, [[1, 2], [3, 4]])` | `matrix(QQ, [1 2; 3 4])` |
 | `identity_matrix(QQ, n)`, `zero_matrix(QQ, m, n)` | `identity_matrix(QQ, n)`, `zero_matrix(QQ, m, n)` |
-| `vector(QQ, [1, 2])` | `QQ.([1, 2])` or `matrix(QQ, [1 2])` |
+| `vector(QQ, [1, 2])` | `QQ.([1, 2])` |
 | `M.nrows()`, `M.ncols()` | `nrows(M)`, `ncols(M)` |
 | `M[i, j]`, `M[i]` | `M[i + 1, j + 1]`, `M[i + 1, :]` |
 | `M.det()`, `M.trace()`, `M.rank()` | `det(M)`, `tr(M)`, `rank(M)` |
