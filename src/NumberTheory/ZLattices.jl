@@ -204,6 +204,7 @@ We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
     between different versions of Oscar.
 """
 function canonical_form(L::ZZLat)
+  L = lll(L) # leaves canonical form unchanged and helps if the basis is badly conditioned
   gram = matrix(ZZ, gram_matrix(L))
   char_vectors_set = Hecke._reduced_characteristic_vectors(L)
   graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
