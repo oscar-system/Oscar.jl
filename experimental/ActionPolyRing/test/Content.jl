@@ -1048,6 +1048,20 @@
       F = [f_1, f_2, f_3, f_4]
       @test initial(F[2]) == y_1^2 # This was zero at some point
     end
+    @testset "flawed constructor for mpolys" begin
+      R1, a = polynomial_ring(QQ, :a)
+      Rd, vs = differential_polynomial_ring(R1, :f, 2)
+      @test apply_action(vs, 1) == vs[1, 0]
+      Re, us = difference_polynomial_ring(R1, :g, 2)
+      @test apply_action(us, 1) == us[1, 0]
+
+      R2, (a, b) = polynomial_ring(QQ, [:a, :b])
+      Rd, vs = differential_polynomial_ring(R1, :f, 2)
+      @test apply_action(vs, 1) == vs[1, 0]
+      Re, us = difference_polynomial_ring(R1, :g, 2)
+      @test apply_action(us, 1) == us[1, 0]
+
+    end
   end
 
 end #All tests
