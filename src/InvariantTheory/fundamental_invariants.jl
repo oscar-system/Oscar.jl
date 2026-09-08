@@ -130,16 +130,16 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
         # Reynolds approach
         @vprintln :FundamentalInvariants "Generating invariants via Reynolds operator"
         invs = (
-                _cast_in_internal_poly_ring(
-                                            RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))
-                                           ) for m in mons
-               )
+          _cast_in_internal_poly_ring(
+            RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))
+          ) for m in mons
+        )
       else
         # Linear algebra approach
         @vprintln :FundamentalInvariants "Generating invariants via linear algebra"
         invs = (
-                _cast_in_internal_poly_ring(RG, f) for f in iterate_basis(RG, d, :linear_algebra)
-               )
+          _cast_in_internal_poly_ring(RG, f) for f in iterate_basis(RG, d, :linear_algebra)
+        )
       end
     end
 
