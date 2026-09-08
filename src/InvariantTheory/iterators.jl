@@ -244,6 +244,7 @@ function iterate_basis(R::FinGroupInvarRing, d::Int, algorithm::Symbol=:default)
   elseif algorithm === :linear_algebra
     return iterate_basis_linear_algebra(R, d)
   elseif algorithm === :orbit_sums
+    @req group(R) isa PermGroup "The underlying group must be of type PermGroup for orbit sums"
     return iterate_basis_orbit_sums(R, d)
   else
     error("Unsupported argument :$(algorithm) for algorithm")
