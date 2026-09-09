@@ -90,7 +90,9 @@ function _toric_blow_up_plan(
     R = coordinate_ring(X)
     I = ideal([eval_poly(generator, R) for generator in center])
     coordinates = _cox_ring_ideal_to_minimal_supercone_coordinates(X, I)
-    isnothing(coordinates) && return blowups, ideal_sheaf(X, I)
+    if isnothing(coordinates)
+      return blowups, ideal_sheaf(X, I)
+    end
 
     blowup = blow_up_along_minimal_supercone_coordinates(
       X, coordinates; coordinate_name=exceptional
