@@ -60,7 +60,7 @@ end
 function _polyringquo(R::LaurentMPolyWrapRing)
   get_attribute!(R, :polyring) do
     n = nvars(R)
-    C = base_ring(R)
+    C = coefficient_ring(R)
     var_names = symbols(R.mpolyring)
     Cx, x, xinv = polynomial_ring(C, var_names, [Symbol("inv(", name, ")")  for name in var_names]; cached = false)
     I = ideal(Cx, [x[i]*xinv[i] - 1 for i in 1:n])
@@ -180,7 +180,7 @@ end
 function preimage(f::MPolyAnyMap{X, <: LaurentMPolyRing, Y, Z}, I::LaurentMPolyIdeal) where {X<:Union{MPolyRing, MPolyQuoRing}, Y, Z}
   R = domain(f)
   S = codomain(f)
-  if coefficient_ring(R) === base_ring(S) && f.(gens(R)) == gens(S)
+  if coefficient_ring(R) === coefficient_ring(S) && f.(gens(R)) == gens(S)
     # We try to do something clever if f : K[x1,...xn] -> K[x1^+-,...xn^+-] is
     # the natural inclusion
     polygens = map(x -> _split(x)[2], gens(I))

@@ -887,7 +887,7 @@ function find_refinement_with_local_system_of_params_rec(
     mod_gens::Vector{PolyType} = lifted_numerator.(gens(modulus(OO(W)))),
     row_ind::Vector{Int} = Int[],
     col_ind::Vector{Int} = Int[],
-    trans_mat::MatrixElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
+    trans_mat::MatElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
     check::Bool=true
   ) where {PolyType <: MPolyRingElem, RingElemType <: RingElem}
 

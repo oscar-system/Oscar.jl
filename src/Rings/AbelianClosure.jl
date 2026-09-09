@@ -25,7 +25,7 @@ abstract type CyclotomicField end
 
 export CyclotomicField
 
-module AbelianClosure 
+module AbelianClosure
 
 using ..Oscar
 
@@ -104,7 +104,7 @@ For each positive  integer `n`, `z(n)` is the primitive `n`-th root of unity
 that corresponds to the complex number $\exp(2\pi i/n)$.
 In particular, we have `z(n)^m = z(div(n, m))`, for all divisors `m` of `n`.
 
-An optional keyword argument `sparse` can be set to `true` to switch to a 
+An optional keyword argument `sparse` can be set to `true` to switch to a
 sparse representation. Depending on the application this can be much faster
 or slower.
 
@@ -122,8 +122,8 @@ julia> z(36)
 
 ```
 """
-function abelian_closure(::QQField; sparse::Bool = false) 
-  if sparse 
+function abelian_closure(::QQField; sparse::Bool = false)
+  if sparse
     return _QQAb_sparse, _QQAbGen_sparse
   else
     return _QQAb, _QQAbGen
@@ -185,7 +185,7 @@ end
 
 _variable(b::QQAbFieldElem{AbsSimpleNumFieldElem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
 
-function _variable(b::QQAbFieldElem{AbsNonSimpleNumFieldElem}) 
+function _variable(b::QQAbFieldElem{AbsNonSimpleNumFieldElem})
   k = parent(b.data)
   lc = get_attribute(k, :decom)
   n = get_attribute(k, :cyclo)
@@ -583,12 +583,12 @@ Hecke.minpoly(a::QQAbFieldElem) = minpoly(data(a))
 ################################################################################
 """
 To parametrize subfields of the n-cyclotomic field we use blocks:
- - pick a prime n = 1 % p (so thre is a n-th root of 1 mod p)
+ - pick a prime n = 1 % p (so there is a n-th root of 1 mod p)
  - pick an n-th root Z of one
  - the roots are exactly Z^i for i coprime to n as the images
    of the n-th root of 1 in the QQab field
 This way the ordering of the roots is mentained across different primes
-(choice of Z correpsonds to fixing a prime ideal above p)
+(choice of Z corresponds to fixing a prime ideal above p)
 """
 struct RootData
    p::Int # n = 1 % p
@@ -611,7 +611,7 @@ struct RootData
      r, mr = quo(ZZ, n)
      u, mu = unit_group(r)
      c = sort(Int[preimage(mr, mu(g)) for g = u])
-     
+
      z = Int(lift(Zn))
      return new(p, Int[powermod(z, x, p) for x = c])
    end
@@ -686,7 +686,7 @@ end
 
 function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cached::Bool = true)
   f = lcm([Hecke.is_cyclotomic_type(parent(data(x)))[2] for x = s])
-  k = cyclotomic_field(f)[1]
+  k = cyclotomic_field(K, f)[1]
   b = [[i for i = 1:degree(k)]] #block system for QQ as a subfield
   pe = zero(K)
   for mu = s
@@ -723,14 +723,14 @@ function Oscar.sub(K::QQAbField, s::Vector{<:QQAbFieldElem}; cached::Bool = true
   @assert degree(g) == length(b)
   s, _ = number_field(g; check = false, cached = false)
   h = hom(s, k, k(pe.data))
-  hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y)))
+  hh = MapFromFunc(s, K, x->K(h(x)), y-> preimage(h, k(y.data)))
   if cached
     old = get_attribute(K, :subfields)
     old[(f, b[1])] = hh
   end
   return s, hh
 end
-    
+
 ################################################################################
 #
 #  Syntactic sugar
@@ -1008,7 +1008,7 @@ function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
     k, z = cyclotomic_field(QQAb, c)
     d = numerator(norm(k(discriminant(g))))
 
-    R, mR = ray_class_group(lcm(d, c)*maximal_order(QQ), infinite_places(QQ), 
+    R, mR = ray_class_group(lcm(d, c)*maximal_order(QQ), infinite_places(QQ),
                                         n_quo = degree(g)*degree(k))
     q, mq = quo(R, [R[0]], false)
     for p = PrimesSet(100, -1, c, 1) #totally split primes.
@@ -1050,13 +1050,13 @@ function Oscar.roots(a::QQAbFieldElem{T}, n::Int) where {T}
   #strategy:
   # - if a is a root-of-1: trivial, as the answer is also roots-of-1
   # - if a can "easily" be made into a root-of-one: doit
-  #   easily is "defined" as <a> = b^n and gens(inv(b))[2]^n*a is a root 
+  #   easily is "defined" as <a> = b^n and gens(inv(b))[2]^n*a is a root
   #   as ideal roots are easy
   # - else: call the function above which is non-trivial...
 
   corr = one(parent(a))
 
-  if !is_root_of_unity(a) 
+  if !is_root_of_unity(a)
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
     _, x = polynomial_ring(parent(a); cached = false)
@@ -1068,7 +1068,7 @@ function Oscar.roots(a::QQAbFieldElem{T}, n::Int) where {T}
     fl = is_root_of_unity(a)
     fl || return (corr .* roots(x^n-a))::Vector{QQAbFieldElem{T}}
   end
-  
+
   o = order(a)
   l = o*n
   mu = root_of_unity(parent(a), Int(l))

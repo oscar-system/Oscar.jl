@@ -16,17 +16,17 @@ function ideal_sheaf_of_critical_locus(phi::AbsCoveredSchemeMorphism)
   IdealSheaf(domain(phi), ideal_dict, check=false)
 end
 
-function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyRingElem}
+function _degeneracy_locus(df::MatElem{T}, r::Int) where {T<:MPolyRingElem}
   R = base_ring(df)
   return ideal(R, minors(df, r))
 end
 
-function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyLocRingElem}
+function _degeneracy_locus(df::MatElem{T}, r::Int) where {T<:MPolyLocRingElem}
   R = base_ring(df)
   return ideal(R, minors(df, r))
 end
 
-function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyQuoRingElem}
+function _degeneracy_locus(df::MatElem{T}, r::Int) where {T<:MPolyQuoRingElem}
   A = base_ring(df)
   R = base_ring(A)::MPolyRing
   M = map_entries(lift, dF)
@@ -37,7 +37,7 @@ function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyQuoRingElem
   return ideal(A, minors(M, s))
 end
 
-function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyQuoLocRingElem}
+function _degeneracy_locus(df::MatElem{T}, r::Int) where {T<:MPolyQuoLocRingElem}
   L = base_ring(df)
   R = localized_ring(L)::MPolyLocRing
   M = map_entries(lift, df)

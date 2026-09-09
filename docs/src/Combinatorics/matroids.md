@@ -26,8 +26,8 @@ matroid_from_bases(bases::AbstractVector{T}, nelements::IntegerUnion; check::Boo
 matroid_from_nonbases(nonbases::AbstractVector{T}, nelements::IntegerUnion; check::Bool=true) where T<:GroundsetType
 matroid_from_circuits(circuits::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType
 matroid_from_hyperplanes(hyperplanes::AbstractVector{T}, nelements::IntegerUnion) where T<:GroundsetType
-matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
-matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true)
+matroid_from_matrix_columns(A::MatElem; check::Bool=true)
+matroid_from_matrix_rows(A::MatElem, ; check::Bool=true)
 cycle_matroid
 bond_matroid(g::Graph)
 cocycle_matroid(g::Graph)
@@ -102,6 +102,8 @@ coloops(M::Matroid)
 is_loopless(M::Matroid)
 is_coloopless(M::Matroid)
 is_simple(M::Matroid)
+is_transversal(M::Matroid)
+is_transversal_with_presentation(::Type{Int}, M::Matroid)
 direct_sum_components(M::Matroid)
 connectivity_function(M::Matroid, set::GroundsetType)
 is_vertical_k_separation(M::Matroid,k::IntegerUnion, set::GroundsetType) 
@@ -118,6 +120,13 @@ is_minor(M::Matroid, N::Matroid)
 matroid_hex(M::Matroid)
 automorphism_group(M::Matroid)
 matroid_base_polytope(M::Matroid)
+bergman_fan(M::Matroid, convention::Union{typeof(min),typeof(max)} = min; fan_structure::Symbol = :coarse)
+```
+
+### Tutte Group
+```@docs
+tutte_group
+is_tutte_realizable(M::Matroid)
 ```
 
 

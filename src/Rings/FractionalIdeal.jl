@@ -1,4 +1,4 @@
-mutable struct FractionalIdeal{S <: Ideal, T <: RingElem}
+struct FractionalIdeal{S <: Ideal, T <: RingElem}
   num::S
   den::T
 end

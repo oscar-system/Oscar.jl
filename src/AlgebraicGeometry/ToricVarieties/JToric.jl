@@ -57,20 +57,19 @@ include("ToricLineBundles/constructors.jl")
 include("ToricLineBundles/properties.jl")
 include("ToricLineBundles/attributes.jl")
 include("ToricLineBundles/standard_constructions.jl")
-include("ToricLineBundles/cech-cohomology.jl")
+
+include("ToricLineBundles/LineBundleCohomology/chamberCounting/cech-cohomology.jl")
+include("ToricLineBundles/LineBundleCohomology/cohomCalg/VanishingSets/constructors.jl")
+include("ToricLineBundles/LineBundleCohomology/cohomCalg/VanishingSets/attributes.jl")
+include("ToricLineBundles/LineBundleCohomology/cohomCalg/VanishingSets/methods.jl")
+include("ToricLineBundles/LineBundleCohomology/cohomCalg/auxiliary.jl")
+include("ToricLineBundles/special_attributes.jl")
 
 include("CohomologyClasses/constructors.jl")
 include("CohomologyClasses/properties.jl")
 include("CohomologyClasses/attributes.jl")
 include("CohomologyClasses/special_attributes.jl")
 include("CohomologyClasses/methods.jl")
-
-include("cohomCalg/VanishingSets/constructors.jl")
-include("cohomCalg/VanishingSets/attributes.jl")
-include("cohomCalg/VanishingSets/methods.jl")
-
-include("cohomCalg/auxiliary.jl")
-include("cohomCalg/special_attributes.jl")
 
 include("Subvarieties/constructors.jl")
 include("Subvarieties/properties.jl")

@@ -5,7 +5,7 @@
 
   R1 = free_module(R, 1)
   I, inc = sub(R1, [a*R1[1] for a in minors(A, 2)])
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
   R4 = free_module(R, 4)
   theta = sum(a*g for (a, g) in zip(gens(R), gens(R4)); init=zero(R4))
   K = koszul_complex(Oscar.KoszulComplex, theta)

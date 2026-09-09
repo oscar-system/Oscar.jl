@@ -99,6 +99,8 @@ lattice_volume(P::Polyhedron{QQFieldElem})
 ```@docs
 Base.in(v::AbstractVector, P::Polyhedron)
 Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types
+contains(P::Polyhedron, v::AbstractVector)
+contains_in_interior(P::Polyhedron, v::AbstractVector)
 demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
 is_archimedean_solid(P::Polyhedron)
 is_johnson_solid(P::Polyhedron)
@@ -112,6 +114,8 @@ solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix, d::ZZMatrix) whe
 solve_mixed(as::Type{T}, A::ZZMatrix, b::ZZMatrix, C::ZZMatrix) where {T}
 solve_non_negative(as::Type{T}, A::ZZMatrix, b::ZZMatrix) where {T}
 support_function(P::Polyhedron{T}; convention::Symbol = :max) where T<:scalar_types
+slack_ideal_non_saturated
+slack_ideal
 ```
 
 

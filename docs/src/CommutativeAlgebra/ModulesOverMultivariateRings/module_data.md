@@ -9,5 +9,5 @@ DocTestSetup = Oscar.doctestsetup()
 ## Krull dimension
 
 ```@docs
-krull_dim(M::ModuleFP)
+krull_dim(M::OFPModule)
 ```

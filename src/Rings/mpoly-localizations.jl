@@ -549,26 +549,26 @@ function issubset(
 end
 
 function issubset(
-    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
-    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
-  ) where {BRT, BRET, RT, RET}
-  R = ring(T)
-  R == ring(U) || error("multiplicative sets do not belong to the same ring")
-  a = point_coordinates(T)
-  for i in 1:length(a)
-    (gen(R, i)- R(a[i])) in prime_ideal(U) || return false
-  end
-  return true
-end
-
-function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
   R = ring(T)
   R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
-  for f in gens(prime_ideal(T))
+  for i in 1:length(a)
+    (gen(R, i) - R(a[i])) in prime_ideal(T) || return false
+  end
+  return true
+end
+
+function issubset(
+    T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
+    U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
+  ) where {BRT, BRET, RT, RET}
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
+  a = point_coordinates(T)
+  for f in gens(prime_ideal(U))
     iszero(evaluate(f, a)) || return false
   end
   return true
@@ -907,6 +907,7 @@ inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
 gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
+gen(W::MPolyLocRing, i::Int) = W(gen(base_ring(W), i))
 number_of_generators(W::MPolyLocRing) = number_of_generators(base_ring(W))
 
 ### required extension of the localization function
@@ -1555,7 +1556,7 @@ function pre_saturation_data(I::MPolyLocalizedIdeal)
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::PT, x::MatrixElem{PT}, u::PT;
+    I::MPolyLocalizedIdeal, f::PT, x::MatElem{PT}, u::PT;
     check::Bool=true
   ) where {PT <: MPolyRingElem}
   nrows(x) == 1 || error("matrix must be a row vector")
@@ -1577,7 +1578,7 @@ function extend_pre_saturated_ideal!(
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatrixElem{PT}, u::Vector{PT};
+    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatElem{PT}, u::Vector{PT};
     check::Bool=true
   ) where {PT <: MPolyRingElem}
   L = base_ring(I)

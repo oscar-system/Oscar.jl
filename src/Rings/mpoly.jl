@@ -21,24 +21,6 @@ end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
 
-######################################################################
-# pretty printing for iJulia notebooks..
-#
-
-function Base.show(io::IO, mime::IJuliaMime, R::MPolyRing)
-  io = IOContext(io, :compact => true)
-  print(io, "\$")
-  math_html(io, R)
-  print(io, "\$")
-end
-
-function math_html(io::IO, R::MPolyRing)
-  print(io, "\\text{Multivariate Polynomial Ring in $(nvars(R)) variables:} ")
-  math_html(io, gens(R))
-  print(io, "\\text{ over }")
-  math_html(io, base_ring(R))
-end
-
 ###################################################
 
 using .Orderings
@@ -403,7 +385,7 @@ function Base.:(==)(G1::IdealGens, G2::IdealGens)
   if isdefined(G1, :ord) && G1.ord != G2.ord
       return false
   end
-  return G1.gensBiPolyArray == G2.gensBiPolyArray
+  return issetequal(G1.gensBiPolyArray, G2.gensBiPolyArray)
 end
 
 function Base.hash(G::IdealGens, h::UInt)
@@ -1157,3 +1139,19 @@ function hessian_matrix(f::MPolyRingElem)
 end
 
 hessian(f::MPolyRingElem) = det(hessian_matrix(f))
+
+#############################################################################
+##  monomial_basis (compatibility function)
+#############################################################################
+@doc raw"""
+   monomial_basis(A::MPolyRing, d::IntegerUnion)
+
+Return the vector of all monomials of degree `d` in `A` with respect to the standard grading of `A`.
+
+!!! note
+    For different gradings choose `A` of type `MPolyDecRing` and see respective documentation.
+
+!!! note
+    To obtain an iterator instead of a vector as return value use [`monomials_of_degree`](@ref).
+"""
+monomial_basis(A::MPolyRing, d::IntegerUnion) = collect(monomials_of_degree(A,d))

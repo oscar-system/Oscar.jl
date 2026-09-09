@@ -11,7 +11,8 @@ A differential polynomial ring over the commutative ring ``R`` is an action poly
 ## Construction
 
 ```@docs
-differential_polynomial_ring
+differential_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
+differential_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int; kwargs...)
 ```
 
 ## Action maps

@@ -103,7 +103,7 @@ julia> f = 1*x^2+x+0
 
 julia> roots(f)
 2-element Vector{QQFieldElem}:
- 0
+  0
  -1
 
 julia> R,x = polynomial_ring(tropical_semiring(max),:x)

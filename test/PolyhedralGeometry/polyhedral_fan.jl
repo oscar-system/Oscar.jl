@@ -39,9 +39,11 @@
     @test !is_complete(F0)
     @test length(rays(F0)) == 3
     @test n_rays(F1) == 3
+    @test n_rays_modulo_lineality(F1) == 3
     @test dim(F1) == 2
     @test ambient_dim(F1) == 3
     @test n_rays(F2) == 0
+    @test n_rays_modulo_lineality(F2) == 2
     @test lineality_dim(F2) == 1
     RMLF2 = rays_modulo_lineality(F2)
     @test length(RMLF2[:rays_modulo_lineality]) == 2
@@ -119,6 +121,12 @@
     @test polyhedral_fan(cones(F1NR, 1); non_redundant=true) isa PolyhedralFan
     @test f_vector(polyhedral_fan(cones(F1NR, 1))) == [3]
     @test f_vector(polyhedral_fan(Cone5)) == [2, 1]
+
+    # tests for f_vector with positive lineality dim
+    Tin3 = convex_hull([1 0 0; 0 1 0; 0 0 1])
+    @test f_vector(normal_fan(Tin3)) == [1, 3, 3]
+    plane = cone([], [1 0 0; 0 1 0])
+    @test f_vector(polyhedral_fan(plane)) == [0, 1]
   end
 end
 

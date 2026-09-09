@@ -534,12 +534,12 @@ Polytope in ambient dimension 6
 
 julia> f_vector(op)
 6-element Vector{ZZRingElem}:
- 18
- 73
+  18
+  73
  129
  116
- 54
- 12
+  54
+  12
 ```
 """
 function order_polytope(p::PartiallyOrderedSet)

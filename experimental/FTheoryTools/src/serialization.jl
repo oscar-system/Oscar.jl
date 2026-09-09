@@ -120,25 +120,25 @@ function _fmodel_params(m::Union{WeierstrassModel,GlobalTateModel,HypersurfaceMo
       nothing
     end,
     if !isempty(explicit_model_sections(m))
-      (:explicit_model_sections => type_params(explicit_model_sections(m)))
+      (:explicit_model_sections => type_and_params(explicit_model_sections(m)))
     else
       nothing
     end,
     if !isempty(defining_classes(m))
-      (:defining_classes => type_params(defining_classes(m)))
+      (:defining_classes => type_and_params(defining_classes(m)))
     else
       nothing
     end,
     if !isempty(model_section_parametrization(m))
-      (:model_section_parametrization => type_params(model_section_parametrization(m)))
+      (:model_section_parametrization => type_and_params(model_section_parametrization(m)))
     else
       nothing
     end]
   return filter(!isnothing, params)
 end
 
-type_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
-  TypeParams(
+type_and_params(m::T) where {T<:Union{WeierstrassModel,GlobalTateModel,HypersurfaceModel}} =
+  TypeAndParams(
     T, _fmodel_params(m)...
   )
 

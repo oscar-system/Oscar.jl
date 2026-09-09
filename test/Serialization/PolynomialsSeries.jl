@@ -108,7 +108,7 @@ cases = [
             end
 
             # need a cleaner way to setup type params in general
-            params = Dict(Oscar.Serialization.params(Oscar.type_params(gb))...)
+            params = Dict(Oscar.Serialization.params(Oscar.type_and_params(gb))...)
             params[:ordering_type] = Oscar.Serialization.type(params[:ordering_type])
             test_save_load_roundtrip(path, gb; params=params) do loaded_gb
               @test gens(gb) == gens(loaded_gb)
@@ -124,7 +124,7 @@ cases = [
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
           test_p = z^2 + case[2] * z * w + case[3] * w^3
-          @test loaded.p == test_p.p
+          @test loaded == test_p
         end
 
         @testset "Load with params" begin

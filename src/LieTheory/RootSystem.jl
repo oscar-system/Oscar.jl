@@ -142,6 +142,14 @@ end
   return QQMatrix(bilinear_form(R))
 end
 
+@attr ZZMatrix function bilinear_form_of_dual(R::RootSystem)
+  return cartan_bilinear_form(cartan_matrix_tr(R); check=false)
+end
+
+@attr QQMatrix function _bilinear_form_QQ_of_dual(R::RootSystem)
+  return QQMatrix(bilinear_form_of_dual(R))
+end
+
 @doc raw"""
     cartan_matrix(R::RootSystem) -> ZZMatrix
 
@@ -1362,6 +1370,16 @@ function Base.getindex(r::DualRootSpaceElem, i::Int)
   return coeff(r, i)
 end
 
+function dot(r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(r1) === root_system(r2) "parent root system mismatch"
+
+  # return dot(coefficients(r1) * _bilinear_form_QQ_of_dual(root_system(r1)), coefficients(r2)) # currently the below is faster
+  return only(
+    coefficients(r1) * _bilinear_form_QQ_of_dual(root_system(r1)) *
+    transpose(coefficients(r2)),
+  )
+end
+
 function expressify(r::DualRootSpaceElem; context=nothing)
   if is_unicode_allowed()
     return expressify(r, :α̌; context)
@@ -1544,6 +1562,36 @@ end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)
   return dot(r, w)
+end
+
+@doc raw"""
+    dual(r::RootSpaceElem) -> DualRootSpaceElem
+
+Return the dual element to `r`.
+
+If `r` is a root, this is the coroot corresponding to `r`.
+"""
+function dual(r::RootSpaceElem)
+  R = root_system(r)
+  lr = dot(r, r)
+  coeffs = [dot(simple_root(R, i), simple_root(R, i))//lr * coeff(r, i) for i in 1:rank(R)]
+  return DualRootSpaceElem(R, coeffs)
+end
+
+@doc raw"""
+    dual(r::DualRootSpaceElem) -> RootSpaceElem
+
+Return the dual element to `r`, identified with an element in the root space instead of its bidual space.
+
+If `r` is a coroot, this is the root corresponding to `r`.
+"""
+function dual(r::DualRootSpaceElem)
+  R = root_system(r)
+  lr = dot(r, r)
+  coeffs = [
+    dot(simple_coroot(R, i), simple_coroot(R, i))//lr * coeff(r, i) for i in 1:rank(R)
+  ]
+  return RootSpaceElem(R, coeffs)
 end
 
 ###############################################################################

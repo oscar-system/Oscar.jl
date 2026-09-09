@@ -22,7 +22,7 @@
   ac3 = rational_equivalence_class(canonical_bundle(dP3))
   ac4 = rational_equivalence_class(toric_divisor_class(dP3, [4, 3, 2, 1]))
 
-  @testset "Should fail" begin
+  @testset "Should fail due to bad arguments (algebraic cycles in toric varieties)" begin
     @test_throws ArgumentError rational_equivalence_class(antv, [1, 2, 3])
     @test_throws ArgumentError rational_equivalence_class(toric_variety(ac1), [1, 2, 3])
     @test_throws ArgumentError ac1 + ac3

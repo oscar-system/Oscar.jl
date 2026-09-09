@@ -22,6 +22,31 @@ sort_edges(N::PhylogeneticNetwork{M,L}, sorted_edges::Union{Vector{Edge}, Nothin
 sort_edges(pt::PhylogeneticTree, sorted_edges::Union{Vector{Edge}, Nothing} = nothing) = sort_edges(adjacency_tree(pt), sorted_edges)
 
 descendants(pt::PhylogeneticTree, v::Int) = descendants(adjacency_tree(pt), v)
+children(pt::PhylogeneticTree, v::Int) = Oscar.children(adjacency_tree(pt), v)
+
+function reverse_order_interior_nodes(pt::PhylogeneticTree)
+  # Interior nodes from leaves to the root
+  r = root(pt)
+  lvs = leaves(pt)
+  
+  order = Int[]
+  sizehint!(order, length(Oscar.interior_nodes(pt))) 
+    
+  function dfs!(u::Int)
+    # Visit all children first
+    for v in children(pt, u)
+      if u == v; continue; end # Skip u
+      if v in lvs; continue; end # Skip if v is a leaf
+      dfs!(v)
+    end
+    # Push the parent
+    push!(order, u)
+  end
+  
+  dfs!(r)
+  return order
+end
+
 
 ###################################################################################
 #
@@ -30,30 +55,31 @@ descendants(pt::PhylogeneticTree, v::Int) = descendants(adjacency_tree(pt), v)
 ###################################################################################
 
 function is_phylogenetic_network(G::Graph{Directed})
-  ## We assume phylogenetic networks are binary
+  is_acyclic(G) || return false
 
-  A = matrix(ZZ, adjacency_matrix(G))
-  indegrees = sum(A[i,:] for i in 1:size(A)[1])
-  outdegrees = sum(A[:,i] for i in 1:size(A)[1])
+  roots = 0
+  leaves = 0
 
-  roots = findall(indegrees .== 0) #findall((indegrees .== 0) .& (outdegrees .== 2))
-  lvs = findall((indegrees .== 1) .& (outdegrees .== 0))
-  tree_nodes = findall((indegrees .== 1) .& (outdegrees .<= 2) .& (outdegrees .> 0))
-  h_nodes = findall((indegrees .== 2) .& (outdegrees .== 1))
+  for v in vertices(G)
+    in_d = indegree(G, v)
+    out_d = outdegree(G, v)
 
-  length(roots) != 1 && return false
-  length(lvs) == 0 && return false
-  length(vertices(G)) != length(vcat(roots, lvs, tree_nodes, h_nodes)) &&  return false
+    # Root vertices: indegree 0
+    if iszero(in_d)
+      roots += 1
+    end
 
-  return true
+    # Leaf vertices: outdegree 0
+    if iszero(out_d)
+      leaves += 1
+    end
+  end
+
+  return isone(roots) && leaves > 0
 end
 
 function hybrid_vertices(G::Graph{Directed})
-  A = matrix(ZZ, adjacency_matrix(G))
-  indegrees = sum(A[i,:] for i in 1:size(A)[1])
-  outdegrees = sum(A[:,i] for i in 1:size(A)[1])
-
-  return findall((indegrees .== 2) .& (outdegrees .== 1))
+  return [v for v in vertices(G) if indegree(G, v) >= 2]
 end
 
 function hybrid_edges(G::Graph{Directed})
@@ -61,20 +87,21 @@ function hybrid_edges(G::Graph{Directed})
   return [[Edge(j, i) for j in sort(inneighbors(G, i))] for i in hybrid_nodes]
 end
 
-function hybrid_edges(G::Graph{Directed}, i)
-  hybrid_nodes = hybrid_vertices(G)
-  if !(i in hybrid_nodes)
-    error("$i is not a hybrid node.")
+function hybrid_edges(G::Graph{Directed}, i::Int)
+  if indegree(G, i) < 2
+    error("$i is not a hybrid node (indegree is $(indegree(G, i)), expected at least 2).")
   end
   return [Edge(j, i) for j in sort(inneighbors(G, i))]
 end
 
 function level_phylogenetic_network(G::Graph{Directed})
   if !is_phylogenetic_network(G)
-    error("$G is not a phylogenetic network.")
+    error("$G is not a valid phylogenetic network.")
   end
 
   h_nodes = hybrid_vertices(G)
+  isempty(h_nodes) && return 0
+
   bicon_comps = biconnected_components(graph_from_edges(Undirected,edges(G)))
 
   return maximum([length(intersect(component, h_nodes)) for component in bicon_comps])
@@ -82,8 +109,7 @@ end
 
 function tree_edges(N::PhylogeneticNetwork)
   hyb = hybrids(N)
-  egdes_N = collect(edges(N))
-  return egdes_N[findall(e -> !(dst(e) in collect(keys(hyb))), egdes_N)]
+  return [e for e in edges(N) if !haskey(hyb, dst(e))]
 end
 
 ###################################################################################
@@ -171,11 +197,43 @@ entry_hybrid_parameter(PM::Union{GroupBasedPhylogeneticModel{<: PhylogeneticNetw
 
 ###################################################################################
 #
+#       Auxiliary functions to treat polynomials as Dictionaries of exp => coeff
+#
+###################################################################################
+
+function add_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: Union{FieldElem, QQMPolyRingElem}}
+  if !isempty(pd1) && !isempty(pd2)
+    len1 = length(first(keys(pd1)))
+    len2 = length(first(keys(pd2)))
+    if len1 != len2
+      error(DimensionMismatch("Exponent vector length mismatch ($len1 vs $len2). Cannot add polynomials from different rings."))
+    end
+  end
+  
+  return merge(+, pd1, pd2) 
+end
+
+function multiply_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: Union{FieldElem, QQMPolyRingElem}}
+  result = Dict{Vector{Int}, U}()
+  for (e1, c1) in pd1
+    for (e2, c2) in pd2
+      e_new = e1 .+ e2
+      c_new = c1 * c2
+      result[e_new] = get(result, e_new, zero(c1)) + c_new
+    end
+  end
+  return result
+end
+
+###################################################################################
+#
 #       Auxiliary functions to compute the parametrizations
 #
 ###################################################################################
 
 root(PM::PhylogeneticModel) = _root(adjacency_tree(graph(PM)))
+
+## PROBABILITY PARMAETRIZATION
 
 function leaves_indices(PM::PhylogeneticModel)
   leave_nodes = leaves(graph(PM))
@@ -194,34 +252,79 @@ function hybrid_indices(PM::Union{GroupBasedPhylogeneticModel{GT}, PhylogeneticM
   return hyb_indices
 end
 
-function fully_observed_probability(PM::PhylogeneticModel, vertices_states::Dict{Int, Int}, tree::AbstractGraph{Directed}) 
-  r = root(tree)
-  coeff = entry_root_distribution(PM, vertices_states[r])
-  exponent = zeros(Int, ngens(parameter_ring(PM)[1]))
-  for edge in edges(tree)
-    state_parent = vertices_states[src(edge)]
-    state_child = vertices_states[dst(edge)]
-    gen = entry_transition_matrix(PM, state_parent, state_child, edge)
-    exponent += first(exponents(gen))
-  end
-  return coeff, exponent
-end
-
 function leaves_probability(PM::PhylogeneticModel, leaves_states::Dict{Int, Int}, tree::AbstractGraph{Directed})
-  int_nodes = interior_nodes(tree)
+  R = parameter_ring(PM)[1]
+  n_vars = ngens(R)
 
-  interior_indices = collect.(Iterators.product([collect(1:n_states(PM)) for _ in int_nodes]...))  
-  vertices_states = leaves_states
+  coeff_ring = base_ring(R)
+  coeffType = elem_type(coeff_ring)
 
-  poly = MPolyBuildCtx(parameter_ring(PM)[1])
-  for labels in interior_indices
-    for (int_node, label) in zip(int_nodes, labels)
-      vertices_states[int_node] = label
+  states = 1:n_states(PM)
+  
+  probability = Dict{Int, Dict{Int, Dict{Vector{Int}, coeffType}}}()
+
+  # Initialize the leaves
+  for leaf in leaves(tree)
+    probability[leaf] = Dict{Int, Dict{Vector{Int}, coeffType}}()
+    observed_state = leaves_states[leaf]
+    for s in states
+      if s == observed_state # Prob 1 for the observed states
+        probability[leaf][s] = Dict(zeros(Int, n_vars) => one(coeff_ring))
+      end
     end
-    push_term!(poly, fully_observed_probability(PM, vertices_states, tree)...)
-  end 
-  return finish(poly)
+  end
+
+  # Compute cond probabilities from leaves to root 
+  for u in reverse_order_interior_nodes(tree)
+        
+    probability[u] = Dict{Int, Dict{Vector{Int}, coeffType}}()
+        
+    for s_u in states
+      
+      prob_su = Dict(zeros(Int, n_vars) => one(coeff_ring)) # Start the product with "1"
+            
+      for v in children(tree, u) 
+        if u == v; continue; end # Skip u (as it appears as a descendant of u)
+        prob_v = Dict{Vector{Int}, coeffType}()
+                
+        for s_v in keys(probability[v])              
+          p_su_to_sv = entry_transition_matrix(PM, s_u, s_v, u, v) 
+          p_su_to_sv_dict = Dict(e => c for (c, e) in coefficients_and_exponents(p_su_to_sv))
+          
+          prob_su_sv = multiply_terms(p_su_to_sv_dict, probability[v][s_v]) # P(s_v | s_u) * P_v(s_v)
+          prob_v = add_terms(prob_v, prob_su_sv)
+        end
+                
+        prob_su = multiply_terms(prob_su, prob_v)
+      end
+
+      probability[u][s_u] = prob_su
+      end
+  end
+
+  # Add coefficients from the root
+  r = root(tree)
+  final_probabilities = Dict{Vector{Int}, coeffType}()
+    
+  for s_r in keys(probability[r])  
+    root_dist = entry_root_distribution(PM, s_r)
+    root_contrib = Dict(e => c * root_dist for (e, c) in probability[r][s_r]) 
+    final_probabilities = add_terms(final_probabilities, root_contrib)
+  end
+
+  # Build the final MPoly 
+  ctx = MPolyBuildCtx(R)
+  for (exp, coeff) in final_probabilities
+    if !iszero(coeff)
+      push_term!(ctx, coeff, exp)
+    end
+  end
+    
+  return finish(ctx)
 end 
+
+
+## FOURIER PARMAETRIZATION
 
 function monomial_fourier(PM::GroupBasedPhylogeneticModel{<:PhylogeneticTree}, leaves_states::Dict{Int, Int})
   gr = graph(PM)

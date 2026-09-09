@@ -26,13 +26,13 @@ struct InducedContravariantMorphismFactory{MorphismType} <: HyperComplexMorphism
       dom::HomComplex,
       cod::HomComplex
     )
-    return new{ModuleFPHom}(phi, dom, cod, D)
+    return new{OFPModuleHom}(phi, dom, cod, D)
   end
 end
 
-function hom(phi::ModuleFPHom, M::ModuleFP; 
-    domain::ModuleFP=hom(Oscar.codomain(phi), M),
-    codomain::ModuleFP=hom(Oscar.domain(phi), M)
+function hom(phi::OFPModuleHom, M::OFPModule; 
+    domain::OFPModule=hom(Oscar.codomain(phi), M),
+    codomain::OFPModule=hom(Oscar.domain(phi), M)
   )
   return lift_homomorphism_contravariant(domain, codomain, phi)
 end
@@ -77,7 +77,7 @@ end
     @assert Oscar.domain(codomain) === Oscar.domain(phi)
     map_factory = InducedContravariantMorphismFactory(phi, D, domain, codomain)
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[0 for i in 1:dim(domain)])
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 
@@ -106,13 +106,13 @@ struct InducedCovariantMorphismFactory{MorphismType} <: HyperComplexMorphismFact
       dom::HomComplex,
       cod::HomComplex
     )
-    return new{ModuleFPHom}(phi, dom, cod, D)
+    return new{OFPModuleHom}(phi, dom, cod, D)
   end
 end
 
-function hom(M::ModuleFP, phi::ModuleFPHom; 
-    domain::ModuleFP=hom(M, Oscar.domain(phi)),
-    codomain::ModuleFP=hom(M, Oscar.codomain(phi))
+function hom(M::OFPModule, phi::OFPModuleHom; 
+    domain::OFPModule=hom(M, Oscar.domain(phi)),
+    codomain::OFPModule=hom(M, Oscar.codomain(phi))
   )
   return lift_homomorphism_covariant(domain, codomain, phi)
 end
@@ -158,7 +158,7 @@ end
     map_factory = InducedCovariantMorphismFactory(phi, D, domain, codomain)
 
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[0 for i in 1:dim(domain)])
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

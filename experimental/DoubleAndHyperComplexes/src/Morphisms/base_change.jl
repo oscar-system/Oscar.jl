@@ -41,12 +41,12 @@ end
       codomain::AbsHyperComplex=change_base_ring(bc, codomain(orig))[1],
       check::Bool=true
     )
-    map_factory = InducedBaseChangeMorphismFactory{ModuleFPHom}(bc, orig, domain, codomain, check)
+    map_factory = InducedBaseChangeMorphismFactory{OFPModuleHom}(bc, orig, domain, codomain, check)
 
     internal_morphism = HyperComplexMorphism(domain, codomain, 
                                              map_factory, cached=true, 
                                              offset=[0 for i in 1:dim(domain)])
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

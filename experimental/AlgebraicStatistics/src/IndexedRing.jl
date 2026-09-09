@@ -11,13 +11,17 @@ struct IndexedRing{T, U}
     return new{Int, elem_type(R)}(R, index_to_gen, gen_to_index)
   end
 
-  function IndexedRing(S::Ring, varnames::Pair{String, <: Array{T}}; kw...) where T
+  function IndexedRing(S::Ring, varnames::Pair{<:VarName, <: Array{T}}; kw...) where T
     gen_names = ["$(varnames.first)[$(join(x, ","))]" for x in varnames.second]
     R, r =  polynomial_ring(S, gen_names; kw...)
     U = elem_type(R)
     index_to_gen = Dict{T, U}(t => r[i] for (i, t) in enumerate(varnames.second))
     gen_to_index = Dict{U, T}(v => k for (k, v) in index_to_gen)
     return new{T, U}(R, index_to_gen, gen_to_index)
+  end
+
+  function IndexedRing(R::Ring, gen_to_index::Dict{U, T}) where {T, U}
+    return new{T, U}(R, Dict(v => k for (k, v) in gen_to_index), gen_to_index)
   end
 end
 

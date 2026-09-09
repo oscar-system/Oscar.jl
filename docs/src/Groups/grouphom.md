@@ -143,6 +143,7 @@ isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
 ```@docs
 isomorphism(::Type{T}, G::Group) where T <: Group
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
+regular_action_homomorphism(G::GAPGroup)
 ```
 
 ## Technicalities

@@ -13,13 +13,13 @@ Map
   from number field of degree 4 over QQ
   to number field of degree 4 over QQ
 defined by
-  a -> -a
+  a -> -1//4*a^3 + 13//4*a
 
 julia> phi(a)
--a
+-1//4*a^3 + 13//4*a
 
 julia> preimage(m, hom(K, K, -a))
-(1,3)(2,4)
+(1,2)(3,4)
 
 julia> k, a = number_field(x^2 - 18, "a"); kt, t = k["t"];
 
@@ -57,10 +57,10 @@ true
 
 julia> rts = roots(C, 2)
 4-element Vector{QadicFieldElem}:
- (8*11^0 + O(11^2))*a + 8*11^0 + 9*11^1 + O(11^2)
- (3*11^0 + 10*11^1 + O(11^2))*a + 7*11^0 + 4*11^1 + O(11^2)
  (3*11^0 + 10*11^1 + O(11^2))*a + 3*11^0 + 11^1 + O(11^2)
  (8*11^0 + O(11^2))*a + 4*11^0 + 6*11^1 + O(11^2)
+ (8*11^0 + O(11^2))*a + 8*11^0 + 9*11^1 + O(11^2)
+ (3*11^0 + 10*11^1 + O(11^2))*a + 7*11^0 + 4*11^1 + O(11^2)
 
 julia> parent(rts[1])
 Unramified extension of 11-adic numbers of degree 2

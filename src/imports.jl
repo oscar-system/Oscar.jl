@@ -81,7 +81,6 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
-  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.push_term!,
   gens,
@@ -216,6 +215,11 @@ import Hecke:
   MapHeader,
   multiplicative_jordan_decomposition,
   primitive_element
+
+import Oscar: Polymake
+import Oscar.Polymake:
+  Directed, Undirected,
+  EdgeMap, NodeMap
 
 # temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
 if !isdefined(Hecke, :torsion_free_rank)

@@ -22,7 +22,7 @@ struct InducedStrandMorphismFactory{MorphismType} <: HyperComplexMorphismFactory
       domain::StrandComplex,
       codomain::StrandComplex
     )
-    return new{ModuleFPHom}(phi, d, domain, codomain)
+    return new{OFPModuleHom}(phi, d, domain, codomain)
   end
 end
 
@@ -82,7 +82,7 @@ end
     
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, 
                                              cached=true, offset=offset(phi))
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

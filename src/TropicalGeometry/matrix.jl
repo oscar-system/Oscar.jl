@@ -12,7 +12,7 @@
 ################################################################################
 
 @doc raw"""
-    det(A::MatrixElem{<: TropicalSemiringElem})
+    det(A::MatElem{<: TropicalSemiringElem})
 
 Return the tropical determinant of `A`.  That is, this function evaluates the tropicalization of the ordinary determinant considered as a multivariate polynomial at `A`.
 
@@ -31,7 +31,7 @@ julia> det(A)
 (5)
 ```
 """
-function det(A::MatrixElem{<:TropicalSemiringElem})
+function det(A::MatElem{<:TropicalSemiringElem})
   @req nrows(A) == ncols(A) "Non-square matrix"
   T = base_ring(A)
   return T(Polymake.tropical.tdet(A))
@@ -43,7 +43,7 @@ function det(A::Matrix{<:TropicalSemiringElem})
 end
 
 @doc raw"""
-    is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
+    is_tropically_generic(A::MatElem{<:TropicalSemiringElem})
 
 Check if a collection of vectors in the tropical torus (given as rows of a matrix `A`) are in tropical general position.
 
@@ -57,7 +57,7 @@ julia> is_tropically_generic(A)
 true
 ```
 """
-function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
+function is_tropically_generic(A::MatElem{<:TropicalSemiringElem})
   function helper(A,C,B)
     for b in subsets(C,B)
       Polymake.tropical.tsgn(A[b,:]) == 0 && return false
@@ -76,7 +76,7 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
 end
 
 @doc raw"""
-    do_rows_form_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+    do_rows_form_polytrope(A::MatElem{<:TropicalSemiringElem})
 
 Check if the tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
 
@@ -91,7 +91,7 @@ julia> Oscar.do_rows_form_polytrope(A)
 true
 ```
 """
-function do_rows_form_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+function do_rows_form_polytrope(A::MatElem{<:TropicalSemiringElem})
   #=Convert the matrix of tropical numbers into matrix of rational numbers in
   to pass it into polymake's tropical convex hull function =#
   ncA = ncols(A)

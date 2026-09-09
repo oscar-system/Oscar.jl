@@ -38,6 +38,7 @@ face_fan(P::Polyhedron{T}) where T<:scalar_types
 ```@docs
 ambient_dim(PF::PolyhedralFan)
 arrangement_polynomial
+common_refinement(PF1::PolyhedralFan{T}, PF2::PolyhedralFan{T}) where T<:scalar_types
 dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
 is_complete(PF::PolyhedralFan)
@@ -57,6 +58,7 @@ standard_coordinates(PF::PolyhedralFan, coords::AbstractVector{<:RationalUnion})
 n_maximal_cones(PF::PolyhedralFan)
 n_cones(PF::PolyhedralFan)
 n_rays(PF::PolyhedralFan)
+n_rays_modulo_lineality(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 rays_modulo_lineality(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)

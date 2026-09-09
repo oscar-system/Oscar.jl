@@ -80,4 +80,4 @@ of a $\mathbb{Z}^d$-graded module $M$. Then
 - `I.cochain_maps` refers to the cochain maps $d^0,\dots,d^{r-1}$,
 - `I.irr_sums` refers to the irreducible sums $\overline{W}^0, \dots, \overline{W}^r$,
 - `I.mod` refers to $M$, and,
-- `I.cochain_complex` refer to the exact sequence as a `ComplexOfMorphisms{ModuleFP}`.
+- `I.cochain_complex` refer to the exact sequence as a `ComplexOfMorphisms{OFPModule}`.

@@ -28,6 +28,18 @@ function _compute_standard_basis_with_transform(B::IdealGens, ordering::Monomial
   return IdealGens(R, istd), map_entries(R, m)
 end
 
+# same as above, but using a sparse matrix 
+function _compute_standard_basis_with_sparse_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
+  istd, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(B, ordering); 
+                                                           complete_reduction)
+  R = base_ring(B)
+  A = sparse_matrix(R, 0, length(B))
+  for v in gens(trans_mod)
+    push!(A, _build_sparse_row(R, v))
+  end
+  return IdealGens(R, istd), A
+end
+
 @doc raw"""
     standard_basis_with_transformation_matrix(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
@@ -58,6 +70,41 @@ function standard_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
   G.isGB = true
   I.gb[ordering]  = G
   return G, m
+end
+
+@doc raw"""
+    standard_basis_with_sparse_transformation_matrix(I::MPolyIdeal;
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
+      complete_reduction::Bool=false)
+
+Return a pair `G`, `T`, say, where `G` is a standard basis of `I` with respect to `ordering`, and `T` 
+is a sparse transformation matrix from `gens(I)` to `G`. That is, `T*gens(I) == gens(G)`.
+
+!!! note 
+    The matrix `T` here is the transpose of what you would get for the non-sparse version. This is a deliberate choice made for efficiency and compatibility with the conventions for sparse modules. 
+
+!!! note
+    The returned Gröbner basis is reduced if `ordering` is a global monomial ordering and `complete_reduction = true`.
+
+# Examples
+```jldoctest
+julia> R,(x,y) = polynomial_ring(QQ,[:x,:y]);
+
+julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
+
+julia> G, T = Oscar.standard_basis_with_sparse_transformation_matrix(I, ordering=neglex(R))
+(Standard basis with 1 element w.r.t. neglex([x, y]), Sparse 1 x 2 matrix with 1 non-zero entries)
+
+julia> gens(G) == [sum(c*gen(I, k) for (k, c) in v; init=zero(R)) for v in T]
+true
+```
+"""
+function standard_basis_with_sparse_transformation_matrix(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+  complete_reduction && @assert is_global(ordering)
+  G, A = _compute_standard_basis_with_sparse_transform(I.gens, ordering, complete_reduction)
+  G.isGB = true
+  I.gb[ordering] = G
+  return G, A
 end
 
 @doc raw"""

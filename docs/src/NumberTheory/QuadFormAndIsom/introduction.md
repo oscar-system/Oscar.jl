@@ -36,11 +36,12 @@ classes of pairs $(L, f)$, where $f$ is an isometry of finite order. The
 methods we resort to for this purpose are developed in the paper [BH23](@cite).
 
 We also provide some algorithms computing isomorphism classes of primitive
-embeddings of integral lattices following Nikulin's theory. More precisely, the
-function [`primitive_embeddings`](@ref) offers, under certain conditions,
-the possibility to compute representatives of primitive embeddings and classify
-them in different ways. Note nonetheless that these functions are not efficient
-in the case were the discriminant groups have a large number of subgroups.
+embeddings of integral lattices following Nikulin's theory [Nik79](@cite).
+More precisely, the function [`primitive_embeddings`](@ref) offers, under
+certain conditions, the possibility to compute representatives of primitive
+embeddings and classify them in different ways. Note nonetheless that these
+functions are not efficient in the case were the discriminant groups have a
+large number of subgroups.
 
 ## Status
 

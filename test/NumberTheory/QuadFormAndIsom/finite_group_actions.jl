@@ -32,4 +32,17 @@
 
   H5 = setwise_stabilizer_in_orthogonal_group(E8, A2+A4)
   @test order(H5) == 2880
+  
+  AB = integer_lattice(gram=ZZ[4 -2 0 0; -2 4 0 0; 0 0 16 42; 0 0 42 112])
+  BL = QQ[1 0 0 0; 0 1 0 0; 1//2 1//2 4 -3//2; 0 1//2 3//2 -1//2]
+  A = lattice_in_same_ambient_space(AB, basis_matrix(AB)[1:2,:])
+  B = lattice_in_same_ambient_space(AB, basis_matrix(AB)[3:4,:])
+  GA = orthogonal_group(A)
+  GB = orthogonal_group(B)
+  L = lattice_in_same_ambient_space(AB, BL)
+  GAB,_ = Oscar._isometry_group_via_decomposition(AB)
+  G1,_ = Oscar._overlattice_stabilizer(GAB,AB,L)
+  G2 = matrix_group(Oscar.stabilizer_in_diagonal_action(L,A,B,GA,GB))
+  G3 = matrix_group(Oscar.stabilizer_in_diagonal_action(L,B,A,GB,GA))
+  @test order(G1) == order(G2) == order(G3)
 end

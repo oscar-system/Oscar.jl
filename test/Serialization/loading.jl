@@ -1,4 +1,9 @@
 @testset "loading" begin
+  @testset "Test Default Finite Field" begin
+    a = load(joinpath(@__DIR__, "finite-field-default.mrdi"))
+    @test a isa FqFieldElem
+  end
+
   @testset "loading file format paper example" begin
     F = GF(7, 2)
     o = gen(F)
@@ -46,6 +51,72 @@ end
       Oscar.reset_global_serializer_state()
       loaded = load(filename; params=R)
       @test loaded == [f,g]
+    end
+  end
+end
+
+@testset "pretty printing" begin
+  mktempdir() do path
+    filename = joinpath(path, "pretty.mrdi")
+    save(filename, [[1, 2], [3, 4], [5, 6]]; pretty_print=true)
+    str = read(filename, String)
+    version_info = Oscar.Serialization.get_oscar_serialization_version()[:Oscar][2]
+    cmp_str = """
+{
+  "_ns":{
+    "Oscar":[
+      "https://github.com/oscar-system/Oscar.jl",
+      "$version_info"
+    ]
+  },
+  "_type":{
+    "name":"Vector",
+    "params":{
+      "name":"Vector",
+      "params":"Base.Int"
+    }
+  },
+  "data":[
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ]
+}"""
+    @test str == cmp_str
+  end
+
+  @testset "MultiFileRefSerializer" begin
+    mktempdir() do path
+      Qx, x = QQ[:x]
+      F, a = number_field(x^2 + 1)
+      R, (y, z) = F[:y, :z]
+      p = a * y - z
+
+      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R) do loaded
+        @test loaded == p
+      end
+
+      prefix_path = joinpath(path, "original")
+      files = readdir(path)
+      @test "original.mrdi" in files
+      @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
+
+      # compression: main and ref files should be gzip compressed
+      save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+      gz_files = filter(f -> startswith(f, "original") && (endswith(f, ".mrdi") || endswith(f, ".mrdi.gz")), readdir(path))
+      @test "original.mrdi.gz" in gz_files
+      Oscar.Serialization.reset_global_serializer_state()
+      loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
+      @test loaded == p
     end
   end
 end

@@ -6,7 +6,8 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Introduction
 
-This subproject contains the code for the OSCAR book chapter by Ghislain Fourier and Xin Fang on the bases of highest weight modules.
+This subproject contains the code for the OSCAR book chapter by Ghislain Fourier and Xin Fang on the bases of highest weight modules,
+as well as adaptations of this code for Demazure modules.
 
 ## Status
 

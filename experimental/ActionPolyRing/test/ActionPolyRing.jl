@@ -16,11 +16,13 @@ using Test
     @testset "DifferencePolyRing - conformance tests" begin
       ConformanceTests.test_Ring_interface(difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
       ConformanceTests.test_Ring_interface(difference_polynomial_ring(ZZ, 5, 8)[1])
+      ConformanceTests.test_Ring_interface(difference_polynomial_ring(ZZ, :x, 2)[1])
     end
     
     @testset "DifferentialPolyRing - conformance tests" begin
       ConformanceTests.test_Ring_interface(differential_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
       ConformanceTests.test_Ring_interface(differential_polynomial_ring(ZZ, 5, 8)[1])
+      ConformanceTests.test_Ring_interface(differential_polynomial_ring(ZZ, :x, 2)[1])
     end
 
   end
@@ -30,10 +32,14 @@ using Test
     @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
-    
+    @test is_domain_type(DifferencePolyRingElem{QQFieldElem})
+    @test is_exact_type(DifferencePolyRingElem{QQFieldElem})
+
     @test coefficient_ring_type(DifferentialPolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferentialPolyRing{QQFieldElem}) == DifferentialPolyRingElem{QQFieldElem}
     @test parent_type(DifferentialPolyRingElem{QQFieldElem}) == DifferentialPolyRing{QQFieldElem}
+    @test is_domain_type(DifferentialPolyRingElem{QQFieldElem})
+    @test is_exact_type(DifferentialPolyRingElem{QQFieldElem})
 
   end
 
@@ -929,5 +935,14 @@ using Test
       end #End for loop
     end #End further constructions
   end #Construction and basic field access
+
+  @testset "Fixed bugs" begin
+    @testset "diff_action for difference wiping data" begin
+      R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
+      p = y_1^2 * diff_action(y_1, [0, 1]) - 1
+      @test diff_action(p, 2) == diff_action(p, [0, 1])
+      @test diff_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
+    end
+  end
 
 end #All tests

@@ -26,6 +26,11 @@
   S = stabilizer(G, l, permuted)
   @test order(S[1]) == 4
 
+  # stabilizer under permutation action on vectors
+  l = ["a", "a", "b", "b", "c"]
+  S = stabilizer(G, l, permuted)
+  @test order(S[1]) == 4
+
   # a more complex example
   G = symmetric_group(14)
   gens = [ cperm([1,10], [2,12,13,7,8,14], [3,4,9,6,5,11]),
@@ -103,6 +108,18 @@ end
   V = free_module(K, 2)
   S, _ = stabilizer(G_oscar, [V[1]])
   @test order(S) == 2
+end
+
+@testset "action on nested objects" begin
+  G = symmetric_group(4)
+  data = [(Set([Set([1, 2]), Set([3, 4])]), on_sets_sets, 3),
+          (Set([(1, 2), (3, 4)]), on_sets_tuples, 12),
+          ((Set([1, 2]), Set([3, 4])), on_tuples_sets, 6)]
+  for (omega, fun, n) in data
+    Omega = gset(G, [omega])
+    @test action_function(Omega) === fun
+    @test length(Omega) == n
+  end
 end
 
 @testset "action on multivariate polynomials: permutations" begin
@@ -189,4 +206,33 @@ end
   epi = action_homomorphism(orb)
   @test (order(F) - 1) * order(image(epi)[1]) == order(G)
   @test_throws AssertionError on_lines(zero(V), one(G))
+end
+
+@testset "action of group automorphisms on groups" begin
+  G = dihedral_group(20)
+  A = automorphism_group(G)
+  H, _ = sylow_subgroup(G, 2)
+
+  a = gen(A, 1)
+  g = gen(G, 1)
+  @test g^a == a(g)
+  @test H^a == a(H)
+
+  Omega = gset(A, collect(H))
+  @test action_function(Omega) === ^
+  @test sort(map(length, orbits(Omega))) == [1, 1, 10]
+
+  Omega = gset(A, [H])
+  @test action_function(Omega) === ^
+  @test map(length, orbits(Omega)) == [5]
+
+  # `on_subgroups` works only for the action of automorphisms
+  Omega = gset(A, on_subgroups, [H])
+  @test map(length, orbits(Omega)) == [5]
+  @test any(a -> on_subgroups(H, a) != H, gens(A))
+
+  G = dihedral_group(PermGroup, 20)
+  H = sylow_subgroup(G, 2)[1]
+  @test_throws MethodError on_subgroups(H, gen(G,1))
+  @test_throws ArgumentError gset(G, on_subgroups, [H])
 end

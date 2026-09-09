@@ -380,7 +380,7 @@ function connected_components(X::AbsAffineScheme)
 
       # Conversion to assure compatibility.
       # This can be removed, once the ideal interface is streamlined.
-      if c isa MatrixElem
+      if c isa MatElem
         c = [c[1, i] for i in 1:ncols(c)]::Vector
       end
 

@@ -30,7 +30,7 @@ function _gather_tests(path::AbstractString; ignore=[])
                      r"Serialization/IPC(\.jl)?$",
                      r"MultigradedImplicitization(\.jl)?$",              
                      # ignore book example code (except for main file)
-                     r"(^|/)book/.*/.*\.jl$",
+                     r"(^|/)book/.*/.*\.jl$"
                    ]
   for i in ignore
     if i isa Regex

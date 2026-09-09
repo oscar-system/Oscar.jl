@@ -592,7 +592,7 @@ end
 Base.length(x::GAPGroup)::Int = order(Int, x)
 
 """
-    Base.in(g::GAPGroupElem, G::GAPGroup)
+    in(g::GAPGroupElem, G::GAPGroup)
 
 Return whether `g` is an element of `G`.
 The parent of `g` need not be equal to `G`.
@@ -752,16 +752,6 @@ end
 #   Conjugacy Classes
 #
 ################################################################################
-
-@attributes mutable struct GAPGroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}} <: GroupConjClass{T, S}
-   X::T
-   repr::S
-   CC::GapObj
-
-   function GAPGroupConjClass(G::T, obj::S, C::GapObj) where T<:GAPGroup where S<:Union{GAPGroupElem, GAPGroup}
-     return new{T, S}(G, obj, C, Dict{Symbol,Any}())
-   end
-end
 
 GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
@@ -1118,8 +1108,8 @@ julia> G = symmetric_group(5);
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of Sym(5) in G
- Conjugacy class of permutation group in G
  Conjugacy class of Alt(5) in G
+ Conjugacy class of permutation group in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)
@@ -1145,7 +1135,7 @@ julia> length(collect(low_index_subgroups(G, 6)))
 low_index_subgroups(G::T, n::Int) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(low_index_subgroup_classes(G, n))
 
 """
-    conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
+    conjugate_group(G::GAPGroup, x::GAPGroupElem)
 
 Return the group `G^x` that consists of the elements `g^x`, for `g` in `G`.
 
@@ -1161,7 +1151,7 @@ Permutation group of degree 4 and order 3
 
 ```
 """
-function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
+function conjugate_group(G::GAPGroup, x::GAPGroupElem)
   P = Oscar._common_parent_group(G, parent(x))
   return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), P)
 end

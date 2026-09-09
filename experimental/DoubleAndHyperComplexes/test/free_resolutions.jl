@@ -30,7 +30,7 @@ end
 
   J, inc = sub(F, [x*F[1], y*F[1]])
 
-  M = cokernel(inc)
+  M, _ = cokernel(inc)
 
   res, aug = free_resolution(Oscar.SimpleFreeResolution, M)
 

@@ -57,7 +57,7 @@ function can_compute(fac::StrandMorphismFactory, c::AbsHyperComplex, p::Int, i::
 end
 
 ### User facing constructor
-function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:ModuleFP}
+function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:OFPModule}
   result = StrandComplex(c, d; check)
   inc = StrandInclusionMorphism(result)
   result.inclusion_map = inc
@@ -67,8 +67,20 @@ function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::
 end
 
 
+# allocation free getter and conversion in one go
+function _getindex(::Type{Int}, b::FinGenAbGroupElem, i::Int)
+  return unsafe_load(Nemo.mat_entry_ptr(b.coeff, 1, i))
+end
+
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
 function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
+  if is_fine_graded(W) 
+    n = ngens(parent(d))
+    res = Int[_getindex(Int, d, i) for i in 1:n]
+    any(<(0), res) && return Vector{Int}[]
+    return [res]
+  end
+
   D = W.D
   @check is_free(D) "Grading group must be free"
   h = hom(free_abelian_group(ngens(W)), D, W.d)
