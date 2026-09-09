@@ -73,16 +73,16 @@ function _strict_transform_toric_sequence(
   return finish(builder)
 end
 
-function _toric_blow_up_plan(
+function _toric_blow_up_prefix(
   m::AbstractFTheoryModel,
   centers::Vector{BlowupCenterType},
   exceptionals::Vector{String},
 )
   isdefined(m, m isa GlobalTateModel ? :tate_polynomial : :weierstrass_polynomial) ||
-    return ToricBlowupMorphism[], nothing
+    return ToricBlowupMorphism[]
 
   X = ambient_space(m)
-  has_torusfactor(X) && return ToricBlowupMorphism[], nothing
+  has_torusfactor(X) && return ToricBlowupMorphism[]
   sections = explicit_model_sections(m)
   blowups = ToricBlowupMorphism[]
   for (center, exceptional) in zip(centers, exceptionals)
@@ -91,7 +91,7 @@ function _toric_blow_up_plan(
     I = ideal([eval_poly(generator, R) for generator in center])
     coordinates = _cox_ring_ideal_to_minimal_supercone_coordinates(X, I)
     if isnothing(coordinates)
-      return blowups, ideal_sheaf(X, I)
+      break
     end
 
     blowup = blow_up_along_minimal_supercone_coordinates(
@@ -101,7 +101,7 @@ function _toric_blow_up_plan(
     push!(blowups, blowup)
     X = domain(blowup)
   end
-  return blowups, nothing
+  return blowups
 end
 
 function _resolve_toric_blowup_sequence(
@@ -317,7 +317,6 @@ function _blow_up(
   m::AbstractFTheoryModel,
   I::AbsIdealSheaf;
   coordinate_name::String,
-  coords=missing,
 )
 
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
@@ -325,8 +324,7 @@ function _blow_up(
   @req (base_space(m) isa FamilyOfSpaces) == false "Base space must be a concrete space for blowups to work"
 
   # Compute the new ambient_space
-  ismissing(coords) &&
-    (coords = _ideal_sheaf_to_minimal_supercone_coordinates(ambient_space(m), I))
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(ambient_space(m), I)
   if !isnothing(coords)
     # Apply toric method
     bd = blow_up_along_minimal_supercone_coordinates(
@@ -414,43 +412,24 @@ function _blow_up(
   return model
 end
 
-function _resolve_mixed_blowup_sequence(
+function _resolve_blowup_sequence(
   m::Union{GlobalTateModel,WeierstrassModel},
   centers::Vector{BlowupCenterType},
   exceptionals::Vector{String},
-  toric_blowups::AbstractVector{<:ToricBlowupMorphism},
-  non_toric_center::Union{Nothing,AbsIdealSheaf},
 )
-  n = length(centers)
-  n_toric = length(toric_blowups)
-  @req n_toric < n "The mixed blowup sequence must contain a non-toric blowup"
-
-  # Retain the toric prefix constructed while planning instead of repeating it.
-  resolved_model =
-    isempty(toric_blowups) ? m : _resolve_toric_blowup_sequence(m, toric_blowups)
-  blowdowns = AbsSimpleBlowupMorphism[toric_blowups...]
-  for k in (n_toric + 1):n
+  # The input model already incorporates any toric prefix. Only the remaining
+  # centers are supplied, and each is interpreted on its current ambient space.
+  resolved_model = m
+  blowdowns = AbsSimpleBlowupMorphism[]
+  for (raw_center, exceptional) in zip(centers, exceptionals)
     sections = explicit_model_sections(resolved_model)
-    center = [string(get(sections, generator, generator)) for generator in centers[k]]
+    center = [string(get(sections, generator, generator)) for generator in raw_center]
 
     if ambient_space(resolved_model) isa NormalToricVariety
-      if !isnothing(non_toric_center) && k == n_toric + 1
-        resolved_model = _blow_up(
-          resolved_model,
-          non_toric_center;
-          coordinate_name=exceptionals[k],
-          coords=nothing,
-        )
-      else
-        X = ambient_space(resolved_model)
-        R = coordinate_ring(X)
-        I = ideal([eval_poly(generator, R) for generator in center])
-        resolved_model = _blow_up(
-          resolved_model, ideal_sheaf(X, I); coordinate_name=exceptionals[k]
-        )
-      end
+      resolved_model = blow_up(resolved_model, center; coordinate_name=exceptional)
     else
-      # Transform the non-exceptional part from the initial ambient space.
+      # Once the ambient space is non-toric, interpret centers as ideal sheaves.
+      # Coordinates from the toric prefix belong to the input ambient space.
       filtered_center = [c for c in center if !(c in exceptionals)]
       X = ambient_space(m)
       R = coordinate_ring(X)
@@ -475,7 +454,7 @@ function _resolve_mixed_blowup_sequence(
 
       isempty(exceptional_ideals) || (filtered_ideal += sum(exceptional_ideals))
       resolved_model = blow_up(
-        resolved_model, filtered_ideal; coordinate_name=exceptionals[k]
+        resolved_model, filtered_ideal; coordinate_name=exceptional
       )
     end
 
@@ -564,16 +543,15 @@ function resolve(
   n = length(centers)
   @req n > 0 "A resolution must contain at least one blowup"
 
-  toric_blowups, non_toric_center = _toric_blow_up_plan(m, centers, exceptionals)
+  toric_blowups = _toric_blow_up_prefix(m, centers, exceptionals)
   n_toric = length(toric_blowups)
   resolved_model =
-    if n_toric == n
-      _resolve_toric_blowup_sequence(m, toric_blowups)
-    else
-      _resolve_mixed_blowup_sequence(
-        m, centers, exceptionals, toric_blowups, non_toric_center
-      )
-    end
+    isempty(toric_blowups) ? m : _resolve_toric_blowup_sequence(m, toric_blowups)
+  if n_toric < n
+    resolved_model = _resolve_blowup_sequence(
+      resolved_model, centers[(n_toric + 1):end], exceptionals[(n_toric + 1):end]
+    )
+  end
 
   if is_resolution_1511_03209
     toric_model = resolved_model

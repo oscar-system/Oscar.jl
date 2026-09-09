@@ -81,10 +81,10 @@ end
   @test discriminant(single_model) === tate_discriminant
   @test !has_attribute(single_model, :resolutions)
 
-  blowups, non_toric_center = Oscar._toric_blow_up_plan(
+  blowups = Oscar._toric_blow_up_prefix(
     t, toric_centers, toric_exceptionals
   )
-  @test isnothing(non_toric_center)
+  @test length(blowups) == length(toric_centers)
 
   transform = tate_polynomial(t)
   transform = foldl((f, b) -> strict_transform(b, f), blowups; init=transform)
@@ -115,7 +115,7 @@ end
     B2; completeness_check=false, rng=Random.Xoshiro(5678)
   )
   add_resolution!(weierstrass, toric_centers, toric_exceptionals)
-  weierstrass_blowups, _ = Oscar._toric_blow_up_plan(
+  weierstrass_blowups = Oscar._toric_blow_up_prefix(
     weierstrass, toric_centers, toric_exceptionals
   )
   transform = weierstrass_polynomial(weierstrass)
@@ -127,11 +127,10 @@ end
 
   mixed_centers = [toric_centers[1], ["y", "toric_e1*x"]]
   mixed_exceptionals = ["toric_e1", "mixed_e2"]
-  mixed_blowups, non_toric_center = Oscar._toric_blow_up_plan(
+  mixed_blowups = Oscar._toric_blow_up_prefix(
     t, mixed_centers, mixed_exceptionals
   )
   @test length(mixed_blowups) == 1
-  @test !isnothing(non_toric_center)
 
   add_resolution!(t, mixed_centers, mixed_exceptionals)
   mixed_model = resolve(t, 3)
