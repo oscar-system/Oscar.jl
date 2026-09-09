@@ -24,10 +24,12 @@ You can query the database using the following parameters:
  
  Note that all query entries in the according dictionaries are strings, except if the value asked for is `nothing`.
 
- **Warning**: for rank 3 on 8 elements, for rank 4 on 9 elements and for rank 5 on 10 elements the computation of the selfprojecting realization space did not always terminate. In these cases (as in the example above) the proeprties that could not be computed, like `dim_s`, `equality_of_realizationspaces` and 
+ **Warnings**: for rank 3 on 8 elements, for rank 4 on 9 elements and for rank 5 on 10 elements the computation of the selfprojecting realization space did not always terminate. In these cases (as in the example above) the proeprties that could not be computed, like `dim_s`, `equality_of_realizationspaces` and 
 `selfprojecting_realization_space`, are set to `nothing`.
 
-Further, in rank 5 on 10 elements, for the matroids with identifiers `r_5_n_10_408` and `r_5_n_10_1038` the data from [github](https://github.com/sachihashimoto/self-dual) could not be fully transcribed. Additionally, [github](https://github.com/sachihashimoto/self-dual) contains some heuristic results for the following 9 matroids for which the concrete computations did not terminate:         `r_5_n_10_1001`, `r_5_n_10_952`, `r_5_n_10_998`, `r_5_n_10_985`, `r_5_n_10_984`, `r_5_n_10_971`, `r_5_n_10_970`,`r_5_n_10_967`, `r_5_n_10_958`. This heuristic data is not part of the database.
+Further, in rank 5 on 10 elements, for the matroids with identifiers `r_5_n_10_408` and `r_5_n_10_1038` the data from [github](https://github.com/sachihashimoto/self-dual) could not be fully transcribed. 
+The file for the matroid with identifier `r_5_n_10_0915` is too large to be included in the database at the present moment. It can be found [here](https://github.com/AlheydisGeiger/selfprojectingGrassmannian/tree/main/database/rank5/r5n10).
+Additionally, the data from [github](https://github.com/sachihashimoto/self-dual) contains some heuristic results for the following 9 matroids for which the concrete computations did not terminate:         `r_5_n_10_1001`, `r_5_n_10_952`, `r_5_n_10_998`, `r_5_n_10_985`, `r_5_n_10_984`, `r_5_n_10_971`, `r_5_n_10_970`,`r_5_n_10_967`, `r_5_n_10_958`. This heuristic data is not part of the database.
 
 
 ```julia-repl
