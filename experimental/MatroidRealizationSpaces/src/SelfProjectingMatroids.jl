@@ -412,7 +412,7 @@ RingElem[x1*x4 - x1 - x2*x3 + x2 + x3 - x4, -x1 + x2, -x2 + 1, x1 - 1, -x3 + x4,
 ```
 """
 function selfprojecting_realization_space(m::Matroid;
-  B::Union{GroundsetType,Nothing}=nothing, check::Bool = true;multiplicatives::Bool = false)::MatroidRealizationSpaceSelfProjecting
+  B::Union{GroundsetType,Nothing}=nothing, check::Bool = true,multiplicatives::Bool = false)::MatroidRealizationSpaceSelfProjecting
   if check
     @req is_selfprojecting(m) "The given matroid is not self-projecting."
   end
