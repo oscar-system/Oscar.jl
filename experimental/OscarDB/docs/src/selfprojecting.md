@@ -29,7 +29,7 @@ You can query the database using the following parameters:
 
 Further, in rank 5 on 10 elements, for the matroids with identifiers `r_5_n_10_408` and `r_5_n_10_1038` the data from [github](https://github.com/sachihashimoto/self-dual) could not be fully transcribed. 
 The file for the matroid with identifier `r_5_n_10_0915` is too large to be included in the database at the present moment. It can be found [here](https://github.com/AlheydisGeiger/selfprojectingGrassmannian/tree/main/database/rank5/r5n10).
-Additionally, the data from [github](https://github.com/sachihashimoto/self-dual) contains some heuristic results for the following 9 matroids for which the concrete computations did not terminate:         `r_5_n_10_1001`, `r_5_n_10_952`, `r_5_n_10_998`, `r_5_n_10_985`, `r_5_n_10_984`, `r_5_n_10_971`, `r_5_n_10_970`,`r_5_n_10_967`, `r_5_n_10_958`. This heuristic data is not part of the database.
+Additionally, the data from [github](https://github.com/sachihashimoto/self-dual) contains some heuristic results for the following 9 matroids for which the concrete computations did not terminate: `r_5_n_10_1001`, `r_5_n_10_952`, `r_5_n_10_998`, `r_5_n_10_985`, `r_5_n_10_984`, `r_5_n_10_971`, `r_5_n_10_970`,`r_5_n_10_967`, `r_5_n_10_958`. This heuristic data is not part of the database.
 
 
 ```julia-repl
