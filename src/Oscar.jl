@@ -319,6 +319,7 @@ include("InvariantTheory/InvariantTheory.jl")
 
 include("LieTheory/LieTheory.jl")
 
+include("Cryptography/UOV/UOV.jl")
 
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should
