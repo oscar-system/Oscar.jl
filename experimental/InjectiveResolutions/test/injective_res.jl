@@ -26,7 +26,7 @@
     # getters, monomial matrices, minimality, injective hull
     @test length(injective_modules(inj_res)) == inj_res.upto + 1
     @test length(cochain_maps(inj_res)) == inj_res.upto
-    @test nrows(embedding(inj_res)) == ngens(M)
+    @test nrows(augmentation_map(inj_res)) == ngens(M)
     mm = monomial_matrix(0, inj_res)
     @test mm === cochain_maps(inj_res)[1]
     @test cohomological_degree(mm) == 0
@@ -36,7 +36,7 @@
     @test ncols(matrix(mm)) == length(indecomposable_injectives(codomain(mm)))
     @test base_ring(matrix(mm)) == QQ
     @test length(cochain_maps(irr_res)) == length(irreducible_sums(irr_res)) - 1
-    @test domain(embedding(irr_res)) === M
+    @test domain(augmentation_map(irr_res)) === M
     @test nrows(matrix(monomial_matrix(0, irr_res))) == length(indecomposable_injectives(irreducible_sums(irr_res)[1]))
     @test is_minimal(inj_res)
     @test degree_shift(inj_res) isa Vector{Int}

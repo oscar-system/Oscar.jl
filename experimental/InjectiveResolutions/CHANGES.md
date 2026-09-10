@@ -30,7 +30,7 @@ local cohomology of finitely generated modules over monoid algebras following
   the summands of source and target as row and column labels
   (`cochain_maps(res)`, `monomial_matrix(i, res)`, `matrix`, `domain`,
   `codomain`, `cohomological_degree`). The map from the module into the
-  first term is `embedding(res)`.
+  first term is `augmentation_map(res)`.
 - **Bass numbers and minimality.** `graded_bass_numbers(M, p_F, i)` computes
   the graded Bass numbers at a face via `Ext`, and `is_minimal(res)` checks a
   computed injective resolution against them. `degrees_of_bass_numbers`

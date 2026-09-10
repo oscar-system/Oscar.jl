@@ -38,7 +38,7 @@ $0 \to M \xhookrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} 
 of a finitely generated $\mathbb{Z}^d$-graded module $M$. Then
 - `injective_modules(res)` returns the injective modules $J^0,J^1,\dots,J^i$,
 - `cochain_maps(res)` returns the differentials $d^0,d^1,\dots,d^{i-1}$ as monomial matrices, see below,
-- `embedding(res)` returns the matrix of $\epsilon \colon M \to J^0$,
+- `augmentation_map(res)` returns the matrix of $\epsilon \colon M \to J^0$,
 - `monomial_matrix(j, res)` returns the single differential $d^j$,
 - `degree_shift(res)` returns the degree $\alpha \in \mathbb{Z}^d$ by which $M$ was shifted internally, and
 - `Q_graded_part(res)` returns the irreducible resolution of $M(-\alpha)$ from which `res` was computed.
@@ -52,7 +52,7 @@ The entry in the row of $k\{a + F - Q\}$ and the column of $k\{b + G - Q\}$ is t
 MonomialMatrix
 monomial_matrix(i::Int, res::IrrRes)
 cochain_maps(res::InjRes)
-embedding(res::InjRes)
+augmentation_map(res::InjRes)
 ```
 The scalar matrix, the source and the target of a monomial matrix `mm` are returned by `matrix(mm)`, `domain(mm)` and `codomain(mm)`,
 and `cohomological_degree(mm)` is the index $i$ of the differential $d^i$.
@@ -93,7 +93,7 @@ $0 \to M \xhookrightarrow{\epsilon} \overline{W}^0 \xrightarrow{d^0} \overline{W
 of a $\mathbb{Z}^d$-graded module $M$. Then
 
 - `irreducible_sums(res)` returns the irreducible sums $\overline{W}^0, \dots, \overline{W}^r$,
-- `cochain_maps(res)` returns the cochain maps $d^0,\dots,d^{r-1}$ as module homomorphisms and `embedding(res)` the map $\epsilon$,
+- `cochain_maps(res)` returns the cochain maps $d^0,\dots,d^{r-1}$ as module homomorphisms and `augmentation_map(res)` the map $\epsilon$,
 - `cochain_complex(res)` returns the complex as a `ComplexOfMorphisms{OFPModule}`,
 - `is_exact(res)` checks exactness of that complex, and
 - `monomial_matrix(j, res)` returns the differential $d^j$ as a monomial matrix.

@@ -30,7 +30,6 @@ import ..Oscar:
   domain,
   codomain,
   elem_type,
-  embedding,
   evaluate,
   faces,
   free_resolution,
@@ -113,11 +112,11 @@ export MonoidAlgebraIdeal
 export MonomialMatrix
 export affine_semigroup
 export ambient_dimension
+export augmentation_map
 export cochain_maps
 export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
-export embedding
 export graded_bass_numbers
 export holes_module
 export indecomposable_injectives
@@ -248,7 +247,7 @@ end
 struct InjRes #ZZ^d-graded injective resolution
   mod::SubquoModule
   inj_mods::Vector{InjMod}
-  embedding::MatElem                            # M -> J^0, entries in k[Q]
+  augmentation_map::MatElem                     # M -> J^0, entries in k[Q]
   cochain_maps::Vector{MonomialMatrix{InjMod}}  # d^0, d^1, ..., d^{upto-1}
   upto::Int
   Q_graded_part::IrrRes
@@ -286,20 +285,20 @@ injective_modules(res::InjRes) = res.inj_mods
 Return the differentials $d^0, d^1, \dots$ of the resolution `res`, that is,
 the maps between consecutive terms. For an injective resolution these are
 `MonomialMatrix` objects, for an irreducible resolution module homomorphisms.
-The map from the resolved module into the first term is [`embedding`](@ref).
+The map from the resolved module into the first term is [`augmentation_map`](@ref).
 """
 cochain_maps(res::InjRes) = res.cochain_maps
 
 @doc raw"""
-    embedding(res::InjRes)
-    embedding(res::IrrRes)
+    augmentation_map(res::InjRes)
+    augmentation_map(res::IrrRes)
 
 Return the map from the resolved module into the first term of the resolution
 `res`, as a matrix with entries in $k[Q]$ for an injective resolution and as a
 module homomorphism for an irreducible resolution.
 """
-embedding(res::InjRes) = res.embedding
-embedding(res::IrrRes) = res.cochain_maps[1]
+augmentation_map(res::InjRes) = res.augmentation_map
+augmentation_map(res::IrrRes) = res.cochain_maps[1]
 
 @doc raw"""
     Q_graded_part(J::InjMod)
@@ -1781,11 +1780,11 @@ export MonoidAlgebraIdeal
 export MonomialMatrix
 export affine_semigroup
 export ambient_dimension
+export augmentation_map
 export cochain_maps
 export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
-export embedding
 export graded_bass_numbers
 export holes_module
 export indecomposable_injectives
