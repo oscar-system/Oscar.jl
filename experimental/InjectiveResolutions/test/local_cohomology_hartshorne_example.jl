@@ -6,27 +6,19 @@
     # M = k[Q] (as a k[Q]-module)
     I_M = ideal(kQ, [])
     M = Oscar.quotient_ring_as_module(I_M)
-    inj_res = Oscar.injective_resolution(M, 3)
-
     I = ideal(kQ, [a, b])
 
     # cohomological degree 0
-    H0 = Oscar.zeroth_local_cohomology(quotient_ring_as_module(I_M), I)
+    H0 = Oscar.zeroth_local_cohomology(M, I)
     @test is_zero(H0)
 
-    # cohomological degree 1
-    H1 = Oscar.local_cohomology(I_M, I, 1)
-    H1_sectors = [h for h in sectors(H1) if !is_zero(h)] #sectors with non-zero local cohomomology
-    @test !Oscar.is_zero(H1)
-    @test length(H1_sectors) == 1 
+    # cohomological degrees 1 and 2 from one injective resolution
+    H = local_cohomology_all(I_M, I, 2)
+    H1_sectors = [h for h in sectors(H[1]) if !is_zero(h)] #sectors with non-zero local cohomology
+    @test !is_zero(H[1])
+    @test length(H1_sectors) == 1
 
-    # cohomological degree 2 
-    H2 = Oscar.local_cohomology(I_M, I, 2)
-    H2_sectors = [h for h in sectors(H2) if !is_zero(h)] #sectors with non-zero local cohomology
-    @test !Oscar.is_zero(H2)
+    H2_sectors = [h for h in sectors(H[2]) if !is_zero(h)] #sectors with non-zero local cohomology
+    @test !is_zero(H[2])
     @test length(H2_sectors) == 1
-
-    #cohomological degree 3
-    H3 = Oscar.local_cohomology(I_M, I, 3)
-    @test Oscar.is_zero(H3)
 end

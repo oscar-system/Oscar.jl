@@ -30,7 +30,7 @@ $J = \bigoplus_{i=1}^r J_i = \bigoplus_{i=1}^r k\{a_i + F_i - Q\}.$
 
 Then
 - `indecomposable_injectives(J)` returns $J_1,\dots,J_r$,
-- `q_graded_part(J)` returns $J_Q = \bigoplus_{i=1}^r k\{a_i + F_i - Q\}_Q = \bigoplus_{i=1}^r k[Q]/W_i$ for some irreducible ideals $W_1,\dots,W_r$ as a finitely generated module, and
+- `Q_graded_part(J)` returns $J_Q = \bigoplus_{i=1}^r k\{a_i + F_i - Q\}_Q = \bigoplus_{i=1}^r k[Q]/W_i$ for some irreducible ideals $W_1,\dots,W_r$ as a finitely generated module, and
 - `monoid_algebra(J)` returns the monoid algebra $k[Q]$.
 
 ### Data associated to injective resolutions
@@ -43,10 +43,10 @@ of a finitely generated $\mathbb{Z}^d$-graded module $M$. Then
 - `cochain_maps(I)` returns the matrices of the cochain maps $d^0,d^1,\dots,d^{i-1}$,
 - `monomial_matrix(j, I)` returns the differential $d^j$ as a monomial matrix, that is, together with the labels of its rows and columns,
 - `degree_shift(I)` returns the degree $\alpha \in \mathbb{Z}^d$ by which $M$ was shifted internally, and
-- `q_graded_part(I)` returns the irreducible resolution of $M(-\alpha)$ from which `I` was computed.
+- `Q_graded_part(I)` returns the irreducible resolution of $M(-\alpha)$ from which `I` was computed.
 
 ```@docs
-monomial_matrix(i::Int, res::InjRes)
+monomial_matrix(i::Int, res::IrrRes)
 ```
 
 ### Injective hulls

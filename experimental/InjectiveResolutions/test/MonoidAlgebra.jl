@@ -70,8 +70,8 @@ end
     @test is_zero(holes_module(kQsat))
 
     M = quotient_ring_as_module(ideal(kQ, [gens(kQ)[1]^2]))
-    @test is_q_graded(M)
-    @test !is_q_graded(twist(M, -grading_group(kQ)([1])))
+    @test is_Q_graded(M)
+    @test !is_Q_graded(twist(M, -grading_group(kQ)([1])))
 
     @test ambient_dimension(affine_semigroup(kQ)) == 1
     @test semigroup_generators(kQ) == [2 3]

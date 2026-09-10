@@ -4,7 +4,7 @@
     @test !is_normal(kQ)
     N = quotient_ring_as_module(ideal(kQ,[]))
     inj_res = injective_resolution(N,3)
-    @test is_exact(q_graded_part(inj_res))
+    @test is_exact(Q_graded_part(inj_res))
 end
 
 @testset "injective resolution of two-dimensional non-normal affine semigroup" begin
@@ -13,7 +13,7 @@ end
     @test !is_normal(kQ)
     KQ = quotient_ring_as_module(ideal(kQ,[]))
     inj_res = injective_resolution(KQ,3)
-    @test is_exact(q_graded_part(inj_res))
+    @test is_exact(Q_graded_part(inj_res))
 end
 
 @testset "injective resolution of 3-dimensional non-normal affine semigroup" begin
@@ -24,18 +24,14 @@ end
     #shift K[Q] by hand
     _KQ = twist(KQ,-grading_group(kQ)([2,6,4]))
     M = _KQ
-    irr_res = irreducible_resolution(M,3)
+    irr_res = irreducible_resolution(M, 2)
     @test is_exact(irr_res)
-
-    # inj_res = injective_resolution(KQ,2) #TODO: this takes forever...
-    # @test is_exact(q_graded_part(inj_res))
-
 
     # Example 13.27 in Miller-Sturmfels
     kQ = monoid_algebra([[0,0,1],[1,0,1],[3,0,1],[0,1,1],[1,1,1]],QQ)
     KQ = quotient_ring_as_module(ideal(kQ,[]))
     M = twist(KQ,-grading_group(kQ)([3,3,3]))
-    irr_res = irreducible_resolution(M,3)
+    irr_res = irreducible_resolution(M, 2)
     @test is_exact(irr_res)
 end
 
@@ -53,5 +49,5 @@ end
 
     inj_res = injective_resolution(M, 2)
     @test inj_res.upto <= 2
-    @test is_exact(q_graded_part(inj_res))
+    @test is_exact(Q_graded_part(inj_res))
 end

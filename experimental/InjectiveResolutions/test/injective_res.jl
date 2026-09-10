@@ -20,7 +20,7 @@
     @test inj_res.upto <= 2
 
     ## irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
-    inj_res_Q = q_graded_part(inj_res)
+    inj_res_Q = Q_graded_part(inj_res)
     @test is_exact(inj_res_Q)
 
     # getters, monomial matrices, minimality, injective hull
@@ -80,7 +80,7 @@ end
     @test inj_res.upto <= 3
 
     # irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
-    irr_res_Q = q_graded_part(inj_res)
+    irr_res_Q = Q_graded_part(inj_res)
     @test is_exact(irr_res_Q)
 
 
@@ -101,7 +101,7 @@ end
     @test inj_res.upto <= 3
 
     # irreducible resolution that is the Q-graded part of the minimal injective resolution above
-    inj_res_Q = q_graded_part(inj_res)
+    inj_res_Q = Q_graded_part(inj_res)
     @test is_exact(inj_res_Q)
 
 
@@ -123,7 +123,7 @@ end
     @test inj_res.upto <= 3
 
     # get irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
-    irr_res_Q = q_graded_part(inj_res)
+    irr_res_Q = Q_graded_part(inj_res)
     @test is_exact(irr_res_Q)
 
 
@@ -144,7 +144,7 @@ end
     inj_res = injective_resolution(I, 3)
     @test inj_res.upto <= 3
 
-    irr_res_Q = q_graded_part(inj_res)
+    irr_res_Q = Q_graded_part(inj_res)
     @test is_exact(irr_res_Q)
 end
 
@@ -160,7 +160,7 @@ end
 
     inj_res = injective_resolution(I, 1)
     @test inj_res.upto <= 1
-    @test is_exact(q_graded_part(inj_res))
+    @test is_exact(Q_graded_part(inj_res))
 
     # second example
     I = ideal(kQ, [a^2*b, c^2, d*a^4])
@@ -169,5 +169,5 @@ end
 
     inj_res = injective_resolution(I, 1)
     @test inj_res.upto <= 1
-    @test is_exact(q_graded_part(inj_res))
+    @test is_exact(Q_graded_part(inj_res))
 end

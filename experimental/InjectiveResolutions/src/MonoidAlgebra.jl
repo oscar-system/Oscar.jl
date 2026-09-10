@@ -696,11 +696,11 @@ function holes_module(kQ::MonoidAlgebra)
 end
 
 @doc raw"""
-    is_q_graded(M::SubquoModule{<:MonoidAlgebraElem})
+    is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
 
 Check if all generators of $M$ have degrees in the semigroup $Q$.
 """
-function is_q_graded(M::SubquoModule{<:MonoidAlgebraElem})
+function is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
   return all(g -> is_zero(g) || is_in_semigroup(kQ, degree(Vector{Int}, g)), gens(M))
 end

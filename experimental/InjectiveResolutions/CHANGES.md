@@ -18,7 +18,7 @@ local cohomology of finitely generated modules over monoid algebras following
   Algorithm 3.15 of [HM05] to compute the irreducible ideals in `k[Q]` from
   those in the saturation. Supporting functions: `saturation(kQ)`,
   `saturation_map`, `saturation_ideal`, `holes_module` (the module
-  `k[Q_sat]/k[Q]`), `is_q_graded`, semigroup membership tests.
+  `k[Q_sat]/k[Q]`), `is_Q_graded`, semigroup membership tests.
   Local cohomology still requires a normal monoid algebra.
 - **Corrected coefficient computation.** Algorithm 3.6 of [HM05] can produce
   a non-injective map into the irreducible hull when a socle element is
@@ -36,7 +36,7 @@ local cohomology of finitely generated modules over monoid algebras following
 - **Ideals.** `minimal_generating_set`, `number_of_generators`, `radical`,
   `intersect` of several ideals, `monoid_algebra_ideal` wrapper.
 - **Getters** replacing field access: `injective_modules`, `cochain_maps`,
-  `q_graded_part`, `degree_shift`, `irreducible_sums`, `cochain_complex`,
+  `Q_graded_part`, `degree_shift`, `irreducible_sums`, `cochain_complex`,
   `is_exact`, `indecomposable_injectives`, `monoid_algebra`, `sectors`.
 
 ## Performance
