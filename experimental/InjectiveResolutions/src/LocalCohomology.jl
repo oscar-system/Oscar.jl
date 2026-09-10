@@ -222,7 +222,7 @@ For $1 \leq j \leq i$ compute sector partitions of the local cohomology modules 
 """
 function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
   @req I_M.algebra == I.algebra "ideals must be over same monoid algebra"
-  return local_cohomology_all(quotient_ring_as_module(M),I,i)
+  return local_cohomology_all(quotient_ring_as_module(I_M),I,i)
 end
 
 @doc raw"""
@@ -250,12 +250,12 @@ function local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Inte
     Jj_1 = inj_res.inj_mods[j + 1]
     Jj_2 = inj_res.inj_mods[j + 2]
 
-    J, phi, psi, (j, k) = apply_gamma!(Jj, Jj_1, Jj_2, _phi, _psi, I)
-    Hj = sector_partition(kQ, phi, psi, j, k, J...)
-    push!(
-      H,
-      SectorPartitionLC(M, j, I.ideal, Hj, maps_needed(kQ, Hj)),
-    )
+    J, phi, psi, (j0, k0) = apply_gamma!(Jj, Jj_1, Jj_2, _phi, _psi, I)
+    Hj = sector_partition(kQ, phi, psi, j0, k0, J...)
+    lc = SectorPartitionLC(M, j, I)
+    lc.sectors = Hj
+    lc.maps = maps_needed(kQ, Hj)
+    push!(H, lc)
   end
   return H
 end
@@ -299,9 +299,9 @@ function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
     push!(_tau, tau_i)
   end
 
-  #transform _tau consisting of length(kQ.hyperplanes)-lists into a list of length(J) (divide by coordinate index)
+  #transform _tau consisting of length(hyperplanes(kQ))-lists into a list of length(J) (divide by coordinate index)
   tau = []
-  for i in 1:length(kQ.hyperplanes)
+  for i in 1:length(hyperplanes(kQ))
     push!(tau, [t[i] for t in _tau])
   end
   return tau
@@ -316,8 +316,8 @@ Return a finite set of positive halfspaces such that $Q$ is the intersection of 
     The corresponding semigroup $Q$ must be saturated. 
 """
 function get_halfspace_eq(kQ::MonoidAlgebra)
-  A, _ = halfspace_matrix_pair(facets(kQ.cone))
-  return [[kQ.hyperplanes[i].hyperplane, A[i, :]] for i in 1:length(kQ.hyperplanes)]
+  A, _ = halfspace_matrix_pair(facets(cone(kQ)))
+  return [[hyperplanes(kQ)[i].hyperplane, A[i, :]] for i in 1:length(hyperplanes(kQ))]
 end
 
 @doc raw"""
@@ -580,7 +580,7 @@ function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
     issubset(s2.A, s1.A) || continue
     s1.index_vector >= s2.index_vector || continue # check if B \subseteq A and (l_1, ..., l_n) <= (l_1', ..., l_n')
       K = s2.sector + (-1)*s1.sector # minkowski sum (|Delta_B - \Delta_A)
-      if dim(intersect(K, kQ.cone)) > -1 # check if Q \cap (|Delta_B - \Delta_A) \neq \emptyset
+      if dim(intersect(K, cone(kQ))) > -1 # check if Q \cap (|Delta_B - \Delta_A) \neq \emptyset
         # compute the map x^{B - A}: H_A -> H_B
         A = vcat(s1.A...)
         B = vcat(s2.A...)

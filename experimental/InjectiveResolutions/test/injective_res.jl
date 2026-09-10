@@ -46,7 +46,7 @@ end
     @test is_exact(irr_res.cochain_complex) #this test fails
 
     # minimal injective resolution of kQ/I up to cohomological degree 3
-    inj_res = injective_resolution(M, 3)
+    inj_res = injective_resolution(M, 3) #TODO: this fails!!!
     @test inj_res.upto <= 3
 
     # irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
@@ -122,24 +122,30 @@ end
     kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
     a, b, c, d = gens(kQ)
 
-    # ### these examples take some time...
-    # #first example
-    # I = ideal(kQ, [a^2*b, c^2])
+    ### these examples take some time...
+    #first example
+    I = ideal(kQ, [a^2*b, c^2])
 
-    # W = irreducible_decomposition(I)
-    # @test I == intersect(W)
+    W = irreducible_decomposition(I)
+    @test I == intersect(W)
 
-    # inj_res = injective_resolution(I, 3)
+    inj_res = injective_resolution(I, 3)
 
-    # inj_res_Q = inj_res.Q_graded_part
-    # @test is_exact(inj_res_Q.cochain_complex)
+    inj_res_Q = inj_res.Q_graded_part
+    @test is_exact(inj_res_Q.cochain_complex)
 
-    # #second example
-    # I = ideal(kQ, [a^2*b, c^2, d*a^4])
+    #second example
+    I = ideal(kQ, [a^2*b, c^2, d*a^4])
 
-    # W = irreducible_decomposition(I)
-    # @test I == intersect(W)
+    W = irreducible_decomposition(I)
+    @test I == intersect(W)
 
-    # inj_res = injective_resolution(I, 3)
-    # @test is_exact(inj_res_Q.cochain_complex)
+    inj_res = injective_resolution(I, 3)
+    @test is_exact(inj_res_Q.cochain_complex)
+
+    image(inj_res_Q.cochain_maps[1])[1] == kernel(inj_res_Q.cochain_maps[2])[1]
+    image(inj_res_Q.cochain_maps[2])[1] == kernel(inj_res_Q.cochain_maps[3])[1]
+    dim(quo(kernel(inj_res_Q.cochain_maps[3])[1], image(inj_res_Q.cochain_maps[2])[1])[1])
+
+    image(inj_res_Q.cochain_maps[3])[1] == kernel(inj_res_Q.cochain_maps[4])[1]
 end

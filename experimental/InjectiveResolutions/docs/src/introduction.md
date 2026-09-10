@@ -7,9 +7,9 @@ Castelnuovo-Mumford regularity can be formulated in terms of vanishing of local
 cohomology in specific degrees.
 
 This project implements the algorithms in [HM05](@cite) to compute 
-[injective resolutions](./injective_resolutions.md) and 
-[local cohomology](./local_cohomology.md) over 
-[monoid algebras](./monoid_algebras.md) (also called semigroup
+[injective resolutions](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/injective_resolutions.md) and 
+[local cohomology](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/local_cohomology.md) over 
+[monoid algebras](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/monoid_algebras.md) (also called semigroup
 rings in the literature).  A key feature of this setting is that monoid algebras 
 also include many non-regular rings.  A technical limitation is that for several
 algorithms only saturated semigroups (i.e. modules over *normal* monoid

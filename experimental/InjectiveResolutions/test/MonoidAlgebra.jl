@@ -26,9 +26,25 @@ end
   @test dim(cone(kQ)) == 3
   @test length([f for f in faces(kQ) if dim(f.poly) == 2]) == 4 && length(facets(cone(kQ))) == 4
   @test is_pointed(kQ)
-  end
+end
 
-  @testset "test is_normal" begin
+@testset "minimal_generating_set for MonoidAlgebraIdeal" begin
+  kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]], QQ)
+  x, y, z = gens(kQ)
+
+  # x^2*z = x*y^2 in kQ, so x^2*z is redundant in (x*y, x^2*z)
+  I = ideal(kQ, [x*y, x^2*z])
+  mg = minimal_generating_set(I)
+  @test all(g -> g in I, mg)
+  @test ideal(kQ, mg) == I
+  @test length(mg) < length(gens(I))
+
+  # zero ideal
+  I0 = ideal(kQ, elem_type(kQ)[])
+  @test isempty(minimal_generating_set(I0))
+end
+
+@testset "test is_normal" begin
   kQ = monoid_algebra([[3,0,0,3],[2,1,0,3],[0,3,0,3],[3,0,1,0],[2,1,1,0],[0,3,1,0]],QQ)
   @test !is_normal(kQ)
   kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)

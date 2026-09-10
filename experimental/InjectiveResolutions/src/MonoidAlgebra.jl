@@ -12,9 +12,11 @@
 # `ModuleGens` directly; see `ModuleFunctionality.jl` for that. 
 ########################################################################
 
-struct FaceQ # face of semigroup  
+
+struct FaceQ # face of semigroup 
   prime::Union{MPolyIdeal,MPolyQuoIdeal} #homogeneous prime corresponding to face
   poly::Polyhedron  #face as polyhedron
+  A::Union{Matrix{Int},Nothing} #semigroup generators of the face as columns of a matrix
 end
 
 struct HyperplaneQ # a hyperplane bounding the cone RR_{\geq 0}Q
@@ -22,35 +24,135 @@ struct HyperplaneQ # a hyperplane bounding the cone RR_{\geq 0}Q
   A::Matrix{Int}
   b::Vector{Int}
 end
+@attributes mutable struct AffineSemigroup # affine semigroup
+  generators::Matrix{Int}  # semigroup generators as columns of the matrix
+
+  function AffineSemigroup(generators::Matrix{Int})
+    return new(generators)
+  end
+end
+
+function Base.show(io::IO, S::AffineSemigroup)
+  print(io, "affine semigroup in ambient dimension ", ambient_dimension(S))
+end
+
+function Base.show(io::IO, ::MIME"text/plain", S::AffineSemigroup)
+  print(io, "affine semigroup with generators: ")
+  gens_list = gens(S)
+  for (i, s) in enumerate(gens_list)
+    print(io, s)
+    if i < length(gens_list)
+      print(io, ", ")
+    end
+  end
+end
+
+function gens(Q::AffineSemigroup)
+  return [Q.generators[:, i] for i in 1:size(Q.generators, 2)]
+end
+
+function rank(Q::AffineSemigroup)
+  return rank(matrix(ZZ,Q.generators))
+end
+
+function ambient_dimension(Q::AffineSemigroup)
+  return size(Q.generators, 1)
+end
+
+@doc raw"""
+    affine_semigroup(M::Matrix{Int})
+
+Create an affine semigroup from a matrix of integer generators (as columns).
+"""
+function affine_semigroup(M::Matrix{Int})
+  return AffineSemigroup(M)
+end
+
+@doc raw"""
+    affine_semigroup(V_Q::Vector{Vector{Int}})
+
+Create an affine semigroup.
+"""
+function affine_semigroup(V_Q::Vector{Vector{Int}})
+  return affine_semigroup(hcat(V_Q...))
+end
+
+@doc raw"""
+    is_pointed(S::AffineSemigroup)
+
+Given an affine semigroup, check if its cone is pointed.
+"""
+@attr Bool function is_pointed(S::AffineSemigroup)
+  return is_pointed(polyhedral_cone(S))
+end
+
+@attr Cone{QQFieldElem} function polyhedral_cone(S::AffineSemigroup)
+  G = [S.generators[:, i] for i in 1:size(S.generators, 2)]
+  return positive_hull(G)
+end
+
+@attr Polyhedron function cone(S::AffineSemigroup)
+  return polyhedron(polyhedral_cone(S))
+end
+
+@attr Vector{HyperplaneQ} function hyperplanes(S::AffineSemigroup)
+  return get_bounding_hyperplanes(cone(S))
+end
+
+@attr Tuple{Polyhedron,Vector{Int}} function zonotope(S::AffineSemigroup)
+  return get_zonotope(cone(S))
+end
+
 @attributes mutable struct MonoidAlgebra{CoeffType,AlgebraType} <: Ring # monoid algebra with associated data
   algebra::AlgebraType
-  pointed::Union{Nothing,Bool} #cone pointed
-  polyhedral_cone::Cone{QQFieldElem}
-  cone::Polyhedron
-  faces::Vector{FaceQ}
-  hyperplanes::Vector{HyperplaneQ}
-  zonotope::Tuple{Polyhedron,Vector{Int}}
+  affine_semigroup::AffineSemigroup
 
   function MonoidAlgebra(
-    A::AlgebraType; check::Bool=true
+    A::AlgebraType, Q::AffineSemigroup; check::Bool=true
   ) where {AlgebraType<:Union{MPolyRing,MPolyQuoRing}}
-    #check if monoid algebra
     @check is_zm_graded(A) "given algebra is not ZZ^d-graded"
     gg_Q = grading_group(A)
     @check is_free(gg_Q) && is_abelian(gg_Q) "given algebra is not a monoid algebra"
     kk = coefficient_ring(A)
-    result = new{elem_type(kk),AlgebraType}(A, nothing)
+    return new{elem_type(kk),AlgebraType}(A, Q)
+  end
+
+  function MonoidAlgebra(
+    A::AlgebraType; check::Bool=true
+  ) where {AlgebraType<:Union{MPolyRing,MPolyQuoRing}}
+    @check is_zm_graded(A) "given algebra is not ZZ^d-graded"
+    gg_Q = grading_group(A)
+    @check is_free(gg_Q) && is_abelian(gg_Q) "given algebra is not a monoid algebra"
+    D = [degree(Vector{Int}, g) for g in gens(A)]
+    Q = AffineSemigroup(hcat(D...))
+    kk = coefficient_ring(A)
+    return new{elem_type(kk),AlgebraType}(A, Q)
   end
 end
 
 is_graded(A::MonoidAlgebra) = true
 is_zm_graded(A::MonoidAlgebra) = true
 
+@doc raw"""
+    affine_semigroup(A::MonoidAlgebra)
+
+Given a monoid algebra kQ, this function returns the underlying affine semigroup Q.
+"""
+function affine_semigroup(A::MonoidAlgebra)
+  return A.affine_semigroup
+end
+
+@doc raw"""
+    semigroup_generators(A::MonoidAlgebra)
+
+Given a monoid algebra kQ, this function returns the matrix of semigroup generators as columns.
+"""
+function semigroup_generators(A::MonoidAlgebra)
+  return affine_semigroup(A).generators
+end
+
 function polyhedral_cone(A::MonoidAlgebra)
-  if !isdefined(A, :polyhedral_cone)
-    A.polyhedral_cone = get_polyhedral_cone(A.algebra)
-  end
-  return A.polyhedral_cone
+  return polyhedral_cone(affine_semigroup(A))
 end
 
 @doc raw"""
@@ -60,10 +162,7 @@ Given a monoid algebra with underlying monoid $Q$, this function returns the pol
 
 """
 function cone(A::MonoidAlgebra)
-  if !isdefined(A, :cone)
-    A.cone = polyhedron(polyhedral_cone(A))
-  end
-  return A.cone
+  return cone(affine_semigroup(A))
 end
 
 
@@ -72,36 +171,104 @@ end
 
 Given a monoid algebra with underlying monoid $Q$, this function a list of all faces of the polyhedral cone $\mathbb{R}_{\geq 0}Q$ with their corresponding homogeneous prime ideals. 
 """
-function faces(A::MonoidAlgebra)
-  if !isdefined(A, :faces)
-    A.faces = get_faces_of_polyhedral_cone(A.algebra, zonotope(A)[1], cone(A))
+@attr Vector{FaceQ} function faces(A::MonoidAlgebra)
+  # Compute all faces of the cone
+  P = cone(A)
+  P_faces = Vector{Polyhedron}()
+  for i in 0:dim(P)
+    append!(P_faces, Oscar.faces(P, i))
   end
-  return A.faces
+
+  # Get semigroup generators
+  D = semigroup_generators(A)
+
+  # For each face, compute its semigroup generators and prime ideal
+  _faces = Vector{FaceQ}()
+  for F in P_faces
+    # Determine which generators lie on this face
+    A_face = [D[:,i] for i in 1:size(D,2) if is_subset(convex_hull(D[:,i]), F)]
+    if is_empty(A_face)
+      face_gens = nothing
+    else
+      face_gens = hcat(A_face...)
+    end
+
+    # Compute the corresponding homogeneous prime ideal
+    prime = prime_of_face(A.algebra, F)
+    push!(_faces, FaceQ(prime, F, face_gens))
+  end
+
+  return _faces
 end
 
 function hyperplanes(A::MonoidAlgebra)
-  if !isdefined(A, :hyperplanes)
-    A.hyperplanes = get_bounding_hyperplanes(cone(A))
-  end
-  return A.hyperplanes
+  return hyperplanes(affine_semigroup(A))
 end
 
 function is_pointed(A::MonoidAlgebra)
-  if isnothing(A.pointed)
-    A.pointed = is_pointed(polyhedral_cone(A))
-  end
-  return A.pointed::Bool
+  semigroup = affine_semigroup(A)
+  return is_pointed(semigroup)
 end
 
 function zonotope(A::MonoidAlgebra)
-  if !isdefined(A, :zonotope)
-    A.zonotope = get_zonotope(cone(A))
-  end
-  return A.zonotope
+  return zonotope(affine_semigroup(A))
 end
 
 coefficient_ring(A::MonoidAlgebra) = coefficient_ring(A.algebra)
 number_of_variables(A::MonoidAlgebra) = ngens(A.algebra)
+
+@doc raw"""
+    is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
+
+Test if the given monoid algebra is normal by testing first the S2 and then the
+R1 condition.
+# Examples
+```jldoctest
+julia> A = monoid_algebra([[4,0],[3,1],[1,3],[0,4]],QQ)
+monoid algebra over rational field with cone of dimension 2
+
+julia> is_normal(A)
+false
+```
+"""
+@attr Bool function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
+  # Implementation adapted from
+  #
+  #    M2/Macaulay2/packages/IntegralClosure.m2,
+  #
+  # line 666 ff. of https://github.com/Macaulay2/M2/blob/2565455411d15a3386204aa62a00e20ee5c0e99f/M2/Macaulay2/packages/IntegralClosure.m2
+  # on Apr 25, 2025.
+  R = A.algebra::MPolyQuoRing
+  R_B = base_ring(R)
+  I = modulus(R)
+  M = quotient_ring_as_module(I)
+  n = codim(I)
+
+  # Check the S2 condition
+  test_range = 0:(krull_dim(R_B) - n - 2)
+
+  for j in test_range
+    # Check if codimension of Ext^{j+n+1} is at least j+n+3
+    E = ext(M, graded_free_module(R_B, 1), j + n + 1)
+    # work around issue https://github.com/oscar-system/Oscar.jl/issues/4884
+    if is_zero(E)
+      d = -1
+    else
+      d = krull_dim(E)
+    end
+    cod = krull_dim(R_B) - d
+    if cod < j + n + 3
+      return false
+    end
+  end
+
+  Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))
+  d = krull_dim(Jac)
+  d < 0 && return true
+  return krull_dim(R) - d >= 2
+end
+
+is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing}) = true
 
 ### Elements of MonoidAlgebras
 mutable struct MonoidAlgebraElem{CoeffType,ParentType} <: RingElem
@@ -141,6 +308,15 @@ function degree(
   ) where {RT <: MPolyRing, PT <: MonoidAlgebra{<:FieldElem, RT}}
   !isdefined(a, :elem) && return zero(grading_group(parent(a)))
   return degree(underlying_element(a); check)
+end
+
+function degree(
+    ::Type{Vector{Int}},
+    a::MonoidAlgebraElem{<:FieldElem, PT};
+    check::Bool=true
+  ) where {RT <: MPolyRing, PT <: MonoidAlgebra{<:FieldElem, RT}}
+  !isdefined(a, :elem) && return zero(grading_group(parent(a)))
+  return degree(Vector{Int},underlying_element(a))
 end
 
 grading_group(A::MonoidAlgebra) = grading_group(A.algebra)
@@ -298,26 +474,20 @@ parent_type(
 # TODO: Finish implementation of the ring interface! 
 
 @doc raw"""
-    prime_to_face(kQ::Union{MPolyRing,MPolyQuoRing}, zonotope::Polyhedron, F::Polyhedron)
+    prime_of_face(kQ::Union{MPolyRing,MPolyQuoRing}, F::Polyhedron)
 
 Let kQ be a monoid algebra over some semigroup $Q$. Given a face $F$ of the cone $C = \RR_{\geq 0}Q$ of the monoid algebra kQ,
 return the corresponding homogeneous prime ideal
 
-$P_F = k\{Q\setminus F\}.$
-
-The zonotope is the Minkowski sum of all primitive integer vectors along rays of $Q$. 
+$P_F = k\{Q\setminus F\}.$ 
 """
-function prime_to_face(
-  kQ::Union{MPolyRing,MPolyQuoRing}, zonotope::Polyhedron, F::Polyhedron
-)
-  gens = Vector{MPolyDecRingElem}()
-  for lp in lattice_points(zonotope)
-    if !(lp in F) #check if lattice point is in F
-      a_v = [a_p for a_p in lp]
-      push!(gens, monomial_basis(kQ, a_v)[1])
-    end
-  end
-  return ideal(kQ, gens)
+function prime_of_face(kQ::Union{MPolyRing,MPolyQuoRing},F::Polyhedron)
+  #get degrees of generators of kQ
+  G = [degree(Vector{Int},g) for g in Oscar.gens(kQ)]
+
+  #generators of P_F
+  gens_PF = [g for g in G if !is_subset(convex_hull(g),F)]
+  return ideal(kQ,[monomial_basis(kQ,g)[1] for g in gens_PF])
 end
 
 # given a monoid algebra, this function returns the corresponding polyhedral cone
@@ -328,23 +498,7 @@ function get_polyhedral_cone(R::Union{MPolyDecRing,MPolyQuoRing})
   return positive_hull(D)
 end
 
-# (works more general for polyhedra)
-# given a polyhedral cone, this function returns its faces
-# INPUT:    polyhedral cone C
-# OUTPUT:   set of faces of C
-function get_faces_of_polyhedral_cone(
-  kQ::Union{MPolyRing,MPolyQuoRing}, zonotope::Polyhedron, P::Polyhedron
-)
-  P_faces = Vector{Polyhedron}()
-  for i in 0:dim(P)
-    append!(P_faces, faces(P, i))
-  end
-  return [FaceQ(prime_to_face(kQ, zonotope, F), F) for F in P_faces]
-end
 
-# given a polyhedral cone, this function returns the hyperplanes bounding it
-# INPUT:    polyhedral cone C
-# OUTPUT:   set of hyperplanes bounding C
 function get_bounding_hyperplanes(P::Polyhedron)
   hyperplanes = Vector{HyperplaneQ}()
   for f in facets(Polyhedron, P)
@@ -384,7 +538,7 @@ function get_hyperplane_H_presentation(h::Polyhedron)
   _M = Matrix{Rational}(aff_hull)
   M = hcat(map(row -> reshape(primitive_generator(Int, row), 1, :), eachrow(_M))...)
   A = [M[:, 2:n_columns(M)]; -M[:, 2:n_columns(M)]]
-  b = [M[:, 1]; -M[:1]]
+  b = [M[:, 1]; -M[:, 1]]
   return A, b
 end
 
@@ -407,7 +561,7 @@ end
 @doc raw"""
     monoid_algebra(B::Matrix{Int},k::Field)
 
-Return the monoid algebra generated by monomials $x^{v_1},\dots,x^{v_n}\in k[x_1,\dots,x_d]$, where $v_1,\dots,v_n\in \mathbb{Z}^d$ are the columns of $M_Q$. 
+Return the monoid algebra generated by monomials $x^{v_1},\dots,x^{v_n}\in k[x_1,\dots,x_d]$, where $v_1,\dots,v_n\in \mathbb{Z}^d$ are the columns of $M_Q$.
 
 # Examples
 ```jldoctest
@@ -423,10 +577,12 @@ monoid algebra over rational field with cone of dimension 2
 function monoid_algebra(M_Q::Matrix{Int}, k::Field)
   d = size(M_Q, 1)
 
-  # construct k[t_1,...,t_d]
   t_vars = [Symbol("t_$i") for i in 1:d]
-  T, t = graded_polynomial_ring(k, t_vars; cached = false)
-
+  if all(M_Q .>= 0)
+    T, t = graded_polynomial_ring(k, t_vars; cached = false)
+  else
+    T, t = laurent_polynomial_ring(k, t_vars) 
+  end
   # construct k[x_1,...,x_n] where n is the number of columns/generators
   x_vars = [Symbol("x_$i") for i in 1:size(M_Q, 2)]
   R, _ = graded_polynomial_ring(
@@ -438,11 +594,13 @@ function monoid_algebra(M_Q::Matrix{Int}, k::Field)
   map_T_R = hom(R, T, targ)
 
   # return monoid algebra
-   if is_zero(ideal(gens(kernel(map_T_R))))
-    return MonoidAlgebra(R)
-   else
-    return  MonoidAlgebra(quo(R, ideal(gens(kernel(map_T_R))))[1])
-   end
+  Q = AffineSemigroup(M_Q)
+  if is_zero(ideal(gens(kernel(map_T_R))))
+    kQ = MonoidAlgebra(R, Q)
+  else
+    kQ = MonoidAlgebra(quo(R, ideal(gens(kernel(map_T_R))))[1], Q)
+  end
+  return kQ
 end
 
 @doc raw"""
@@ -466,6 +624,95 @@ Quotient
 """
 function monoid_algebra(V_Q::Vector{Vector{Int}}, k::Field)
   return monoid_algebra(Matrix{Int}(transpose(matrix(V_Q))), k)
+end
+
+@doc raw"""
+    monoid_algebra(Q::AffineSemigroup, k::Field)
+
+Return the monoid algebra over affine semigroup.
+"""
+function monoid_algebra(Q::AffineSemigroup, k::Field)
+  @assert is_pointed(Q) "the semigroup must be pointed"
+  return monoid_algebra(Q.generators,k)
+end
+
+# compute the saturation of a monoid algebra
+@attr MonoidAlgebra function saturation(kQ::MonoidAlgebra)
+  C = polyhedral_cone(kQ)
+  k = coefficient_ring(kQ)
+  Csat = matrix(ZZ, hilbert_basis(C))
+  Csat_int = Int.(Csat)
+  Csat_gens = [Csat_int[i,:] for i in 1:size(Csat_int,1)]
+  return monoid_algebra(Csat_gens, k)
+end
+
+@doc raw"""
+    saturation_map(kQ::MonoidAlgebra)
+
+Return the inclusion map $k[Q] \hookrightarrow k[\overline{Q}]$ from a monoid algebra to its saturation.
+"""
+function saturation_map(kQ::MonoidAlgebra)
+  kQsat = saturation(kQ)
+  im_phi = [monomial_basis(kQsat, degree(g))[1] for g in gens(kQ.algebra)]
+  return Oscar.hom(kQ, kQsat, im_phi)
+end
+
+@doc raw"""
+    saturation_ideal(kQ::MonoidAlgebra)
+
+Return the ideal in $k[\overline{Q}]$ generated by the image of the generators of $k[Q]$,
+i.e., the ideal defining $k[Q]$ as a $k[\overline{Q}]$-module.
+"""
+function saturation_ideal(kQ::MonoidAlgebra)
+  kQsat = saturation(kQ)
+  phi = saturation_map(kQ)
+  return ideal(kQsat, [phi(underlying_element(g)) for g in gens(kQ)])
+end
+
+@doc raw"""
+    holes_module(kQ::MonoidAlgebra)
+
+Return the $k[Q]$-module $k[\overline{Q}]/k[Q]$, where $\overline{Q}$ is the saturation of $Q$.
+This module encodes the "holes" of the semigroup, i.e., the elements in $\overline{Q} \setminus Q$.
+
+Returns a `SubquoModule` over `kQ`.
+"""
+function holes_module(kQ::MonoidAlgebra)
+  if is_normal(kQ)
+    F = graded_free_module(kQ, 0)
+    return quo(F, [zero(F)])[1]
+  end
+
+  # present kQsat as a kQ-module: kQ^r →^PM kQ^s → kQsat → 0
+  # the last generator in gs is always 1, corresponding to the copy of kQ
+  # dropping it directly gives kQsat/kQ
+  phi = saturation_map(kQ)
+  gs, PM, sect = present_finite_extension_ring(phi)
+
+  s = length(gs)
+  r = size(PM, 1)
+
+  # build graded free module over kQ with shifts from the non-trivial generators
+  kQsat = saturation(kQ)
+  G = grading_group(kQ)
+  degrees = [G(degree(Vector{Int}, kQsat(g))) for g in gs[1:s-1]]
+  F = graded_free_module(kQ, degrees)
+
+  # relations: first s-1 columns of PM (since e_s = 0)
+  rels = [sum(kQ(PM[i,j]) * F[j] for j in 1:s-1) for i in 1:r]
+  filter!(!is_zero, rels)
+
+  return quo(F, rels)[1]
+end
+
+@doc raw"""
+    is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
+
+Check if all generators of $M$ have degrees in the semigroup $Q$.
+"""
+function is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
+  kQ = base_ring(M)
+  return all(g -> is_zero(g) || is_in_semigroup(kQ, degree(Vector{Int}, g)), gens(M))
 end
 
 function Base.show(io::IO,F::FaceQ)
@@ -510,6 +757,10 @@ function gens(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
   return I.gens::Vector{ElemType}
 end
 
+function number_of_generators(I::MonoidAlgebraIdeal{ElemType}) where {ElemType}
+  return length(I.gens)
+end
+
 function underlying_ideal(I::MonoidAlgebraIdeal)
   if !isdefined(I, :ideal)
     I.ideal = ideal(base_ring(I).algebra, [underlying_element(x) for x in gens(I)])
@@ -521,6 +772,11 @@ end
 # and wrapping the result.
 function radical(I::MonoidAlgebraIdeal)
   return MonoidAlgebraIdeal(base_ring(I), radical(underlying_ideal(I)))
+end
+
+function minimal_generating_set(I::MonoidAlgebraIdeal)
+  kQ = base_ring(I)
+  return [kQ(g) for g in minimal_generating_set(underlying_ideal(I))]
 end
 
 dim(I::MonoidAlgebraIdeal) = krull_dim(underlying_ideal(I))
@@ -555,7 +811,7 @@ end
 rand(A::MonoidAlgebra, v...) = A(rand(A.algebra, v...))
 
 ### Additional functionality for ring conformance tests
-Base.hash(a::MonoidAlgebraElem, h::UInt) = hash(underlying_element, h)
+Base.hash(a::MonoidAlgebraElem, h::UInt) = hash(underlying_element(a), h)
 characteristic(A::MonoidAlgebra) = characteristic(A.algebra)
 divexact(a::MonoidAlgebraElem, b::MonoidAlgebraElem; check::Bool=true) = parent(a)(divexact(underlying_element(a), underlying_element(b); check))
 
@@ -592,3 +848,86 @@ function Base.show(io::IO,I::MonoidAlgebraIdeal)
   print(io,underlying_ideal(I))
 end
 
+# Let p in \ZZ^d, a in \ZZ^d and F a face of a semigroup Q. This function checks if p is in a + ZF.
+function is_in_aZF(a::Vector{Int},F::FaceQ,p::Vector{Int})
+    if F.A === nothing
+        return a == p
+    else
+        A = vcat(F.A,-F.A)
+        #we want to check if p is in a + ZF, where F is a face of the semigroup generated by the columns of A
+        #this is equivalent to checking if p is in the semigroup generated by the columns of A and -A
+        b = vcat(p .- a,-p .+ a)
+        P = polyhedron(A,b)
+        milp = mixed_integer_linear_program(P,zeros(Int64,size(A,2)))
+        return solve_milp(milp) != (nothing,nothing)
+    end
+end
+
+# return integer identity matrix
+function I_n(n)
+    I = zeros(Int64, n, n)
+    for i in 1:n
+        I[i, i] = 1
+    end
+    return I
+end
+
+@attr Dict{Vector{Int},Bool} function _is_in_semigroup_cache(kQ::MonoidAlgebra)
+    return Dict{Vector{Int},Bool}()
+end
+
+#check if a point in ZZ^d is in the semigroup generated by the degrees of the generators of a monoid algebra
+function is_in_semigroup(kQ::MonoidAlgebra, p::Vector{Int})
+    cache = _is_in_semigroup_cache(kQ)
+    return get!(cache, p) do
+        D = [degree(Vector{Int},g) for g in gens(kQ)]
+        _is_in_semigroup(hcat(D...),p)
+    end
+end
+
+#check if a point in ZZ^d is in the semigroup generated by the columns of a matrix A
+function _is_in_semigroup(A,p)
+    @assert size(A,1) == length(p)
+    n = size(A,2)
+    #only positive integer combinations
+    _In = - I_n(n)
+    _A = vcat(_In,A,-A)
+    _b = vcat(zeros(Int64,n),p,-p)
+    P = polyhedron(_A,_b)
+    milp = mixed_integer_linear_program(P,zeros(Int64,n))
+    return solve_milp(milp) != (nothing,nothing)
+end
+
+# this function checks if the semigroup generated Z^d
+function generates_Zd(kQ::MonoidAlgebra)
+  _M = [degree(Vector{Int},g) for g in gens(kQ)]
+  M = matrix(ZZ,hcat(_M...))
+  S = snf(M)
+  diag_entries = [S[i,i] for i in 1:min(nrows(S), ncols(S))]
+  return rank(M) == rank(grading_group(kQ)) && all(diag_entries .== 1)
+end
+
+# check if the intersection (g + Q) \cap (a + ZF) is non-empty
+function in_intersection(kQ::MonoidAlgebra,g_vec::Vector{Int},a_vec::Vector{Int},F::FaceQ)
+    # cheap cone-level pre-filter: (g + cone(Q)) ∩ (a + ZF) = ∅ implies (g + Q) ∩ (a + ZF) = ∅
+    g_p = convex_hull(g_vec)
+    a_p = convex_hull(a_vec)
+    if dim(intersect(g_p + cone(kQ), a_p + F.poly + (-1)*F.poly)) < 0
+        return false
+    end
+
+    n = ngens(kQ)
+    _D = [degree(Vector{Int},g) for g in gens(kQ)]
+    D = hcat(_D...)
+    if F.A === nothing
+        _A = vcat(D,-D)
+        A = vcat(_A,-I_n(n))
+    else
+        _A = vcat(hcat(-F.A,D),hcat(F.A,-D))
+        A = vcat(_A,hcat(zeros(Int64,n,size(F.A,2)),-I_n(n)))
+    end
+    b = vcat(a_vec.-g_vec,g_vec .- a_vec, zeros(Int64,n))
+    P = polyhedron(A,b)
+    milp = mixed_integer_linear_program(P,zeros(Int64,size(A,2)))
+    return solve_milp(milp) != (nothing,nothing)
+end
