@@ -7,6 +7,7 @@ include("MBOld.jl")
 # compute with the weaker version.
 
 function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
+  @show dynkin, n, lambda
   # old algorithm
   mons_old = MBOld.basisLieHighestWeight(string(dynkin), n, lambda) # basic algorithm
 
