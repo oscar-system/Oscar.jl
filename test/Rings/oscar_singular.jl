@@ -86,4 +86,31 @@
     @test base_ring(codomain(phi)) isa Singular.N_ZnRing
     @test preimage(phi, phi(h)) == h
   end
+
+  let
+    p = next_prime(ZZ(2)^70)
+    F, a = finite_field(p, 2, "a")
+    R, (x,) = polynomial_ring(F, [:x])
+    h = (x + a)*(x + 1)^2
+    phi = Oscar.iso_oscar_singular_poly_ring(R)
+    sh = phi(h)
+    @test base_ring(codomain(phi)) isa Singular.N_Field
+
+    Fsh = Singular.factor(sh)
+    @test sh == Fsh.unit*prod(q^e for (q, e) in Fsh)
+
+    R, (x, y) = polynomial_ring(F, [:x, :y])
+    h = (x + a)*(y + 1)
+    phi = Oscar.iso_oscar_singular_poly_ring(R)
+    sh = phi(h)
+
+    err = try
+      Singular.factor(sh)
+      nothing
+    catch e
+      e
+    end
+    @test err isa ErrorException
+    @test occursin("coefficient factorization callback is not implemented", sprint(showerror, err))
+  end
 end
