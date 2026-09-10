@@ -25,9 +25,12 @@ local cohomology of finitely generated modules over monoid algebras following
   supported on several generators. The coefficients are now chosen as a dual
   basis on each `ZF`-class of socle degrees (`_dual_basis_lambdas`), which
   makes the map injective; relevant relations are handled correctly.
-- **Monomial matrices.** `monomial_matrix(i, res)` returns the differential
-  `d^i` of an injective or irreducible resolution with its row and column
-  labels (`MonomialMatrix`).
+- **Monomial matrices.** The differentials of an injective resolution are
+  `MonomialMatrix` objects in the sense of Helm–Miller: a scalar matrix with
+  the summands of source and target as row and column labels
+  (`cochain_maps(res)`, `monomial_matrix(i, res)`, `matrix`, `domain`,
+  `codomain`, `cohomological_degree`). The map from the module into the
+  first term is `embedding(res)`.
 - **Bass numbers and minimality.** `graded_bass_numbers(M, p_F, i)` computes
   the graded Bass numbers at a face via `Ext`, and `is_minimal(res)` checks a
   computed injective resolution against them. `degrees_of_bass_numbers`

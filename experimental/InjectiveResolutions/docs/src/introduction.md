@@ -11,9 +11,9 @@ This project implements the algorithms in [HM05](@cite) to compute
 [local cohomology](local_cohomology.md) over 
 [monoid algebras](monoid_algebras.md) (also called affine semigroup
 rings in the literature).  A key feature of this setting is that monoid algebras 
-also include many non-regular rings.  A technical limitation is that for several
-algorithms only saturated semigroups (i.e. modules over *normal* monoid
-algebras) can be considered.
+also include many non-regular rings.  Injective resolutions are available for arbitrary affine semigroups, while
+local cohomology currently requires a saturated semigroup, that is, a *normal*
+monoid algebra.
 
 Injective modules over polynomial rings or monoid algebras are generally not
 finitely generated and hence cannot be algorithmically treated with off-the-shelf

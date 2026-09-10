@@ -27,7 +27,10 @@ import ..Oscar:
   dim,
   divexact,
   divides,
+  domain,
+  codomain,
   elem_type,
+  embedding,
   evaluate,
   faces,
   free_resolution,
@@ -55,6 +58,7 @@ import ..Oscar:
   kernel_atomic,
   krull_dim,
   lift_std,
+  matrix,
   minimal_generating_set,
   monomial_basis,
   normal_form,
@@ -110,8 +114,10 @@ export MonomialMatrix
 export affine_semigroup
 export ambient_dimension
 export cochain_maps
+export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
+export embedding
 export graded_bass_numbers
 export holes_module
 export indecomposable_injectives
@@ -215,10 +221,38 @@ function +(I::IrrSum, J::IrrSum)
   return IrrSum(I.monoid_algebra, vcat(I.indec_injectives, J.indec_injectives))
 end
 
+@doc raw"""
+    MonomialMatrix{T}
+
+A map between direct sums of indecomposable injectives (`T = InjMod`) or of
+their $Q$-graded parts (`T = IrrSum`) in the sense of [HM05](@cite): a scalar
+matrix whose rows and columns are labelled by the summands of the source and
+the target. The entry in row $r$ and column $c$ is the coefficient of the
+monomial $x^{a_c - a_r}$ of the map between the corresponding summands.
+"""
+struct MonomialMatrix{T <: Union{InjMod, IrrSum}}
+  matrix::MatElem   # scalar matrix over the coefficient field
+  source::T
+  target::T
+  index::Int        # cohomological degree i of the differential d^i
+end
+
+matrix(mm::MonomialMatrix) = mm.matrix
+domain(mm::MonomialMatrix) = mm.source
+codomain(mm::MonomialMatrix) = mm.target
+cohomological_degree(mm::MonomialMatrix) = mm.index
+
+# scalar coefficients of a matrix with monomial entries over the monoid algebra
+function _scalar_matrix(kQ::MonoidAlgebra, A::MatElem)
+  k = coefficient_ring(kQ)
+  return map(x -> evaluate(x, ones(elem_type(k), ngens(kQ))), A)
+end
+
 struct InjRes #ZZ^d-graded injective resolution
   mod::SubquoModule
   inj_mods::Vector{InjMod}
-  cochain_maps::Vector{MatElem}
+  embedding::MatElem                            # M -> I^0, entries in k[Q]
+  cochain_maps::Vector{MonomialMatrix{InjMod}}  # d^0, d^1, ..., d^{upto-1}
   upto::Int
   Q_graded_part::IrrRes
   shift::Vector{Int}
@@ -252,11 +286,23 @@ injective_modules(res::InjRes) = res.inj_mods
     cochain_maps(res::InjRes)
     cochain_maps(res::IrrRes)
 
-Return the cochain maps $d^0, d^1, \dots$ of the resolution `res`. For an
-injective resolution these are the scalar matrices of the monomial matrices,
-for an irreducible resolution they are module homomorphisms.
+Return the differentials $d^0, d^1, \dots$ of the resolution `res`, that is,
+the maps between consecutive terms. For an injective resolution these are
+`MonomialMatrix` objects, for an irreducible resolution module homomorphisms.
+The map from the resolved module into the first term is [`embedding`](@ref).
 """
 cochain_maps(res::InjRes) = res.cochain_maps
+
+@doc raw"""
+    embedding(res::InjRes)
+    embedding(res::IrrRes)
+
+Return the map from the resolved module into the first term of the resolution
+`res`, as a matrix with entries in $k[Q]$ for an injective resolution and as a
+module homomorphism for an irreducible resolution.
+"""
+embedding(res::InjRes) = res.embedding
+embedding(res::IrrRes) = res.cochain_maps[1]
 
 @doc raw"""
     Q_graded_part(J::InjMod)
@@ -285,7 +331,7 @@ Return the irreducible sums $\overline{W}^0, \overline{W}^1, \dots$ of the
 irreducible resolution `res`.
 """
 irreducible_sums(res::IrrRes) = res.irr_sums
-cochain_maps(res::IrrRes) = res.cochain_maps
+cochain_maps(res::IrrRes) = res.cochain_maps[2:end]
 
 @doc raw"""
     cochain_complex(res::IrrRes)
@@ -300,13 +346,6 @@ cochain_complex(res::IrrRes) = res.cochain_complex
 Check whether the cochain complex of the irreducible resolution `res` is exact.
 """
 is_exact(res::IrrRes) = is_exact(res.cochain_complex)
-
-struct MonomialMatrix{T <: Union{InjMod, IrrSum}} # monomial matrix as in [HM05]
-  matrix::MatElem
-  source::T
-  target::T
-  index::Int  # cohomological index i of the differential d^i
-end
 
 function Base.show(io::IO, mm::MonomialMatrix{InjMod})
   print(io, "Monomial matrix for I^", mm.index, " -> I^", mm.index + 1)
@@ -396,32 +435,22 @@ end
     monomial_matrix(i::Int, res::InjRes)
 
 Return the differential $d^i$ of the (co)chain complex of `res` as a
-`MonomialMatrix`: the matrix of the map together with its row and column
-labels, i.e. the `(face, degree)` data of the source and target summands.
+`MonomialMatrix`.
 
 Here `i` is the cohomological degree of the differential
 $d^i \colon W^i \to W^{i+1}$ (resp. $J^i \to J^{i+1}$).
 """
 function monomial_matrix(i::Int, res::IrrRes)
   n = length(res.irr_sums)
-  @req 0 <= i <= n - 2 "cohomological index i must be in 0:$(n - 2) for this resolution"
-  A = matrix(res.cochain_maps[i + 2])
-  src = res.irr_sums[i + 1]
-  tgt = res.irr_sums[i + 2]
-  @assert nrows(A) == length(src.indec_injectives) "row count $(nrows(A)) ≠ number of source summands $(length(src.indec_injectives))"
-  @assert ncols(A) == length(tgt.indec_injectives) "column count $(ncols(A)) ≠ number of target summands $(length(tgt.indec_injectives))"
-  return MonomialMatrix(A, src, tgt, i)
+  @req 0 <= i <= n - 2 "cohomological degree i must be in 0:$(n - 2) for this resolution"
+  A = _scalar_matrix(base_ring(res.mod), matrix(res.cochain_maps[i + 2]))
+  return MonomialMatrix(A, res.irr_sums[i + 1], res.irr_sums[i + 2], i)
 end
 
 function monomial_matrix(i::Int, res::InjRes)
-  maxi = min(length(res.cochain_maps), length(res.inj_mods)) - 2
-  @req 0 <= i <= maxi "cohomological index i must be in 0:$maxi for this resolution"
-  A = res.cochain_maps[i + 2]
-  src = res.inj_mods[i + 1]
-  tgt = res.inj_mods[i + 2]
-  @assert nrows(A) == length(src.indec_injectives) "row count $(nrows(A)) ≠ number of source summands $(length(src.indec_injectives))"
-  @assert ncols(A) == length(tgt.indec_injectives) "column count $(ncols(A)) ≠ number of target summands $(length(tgt.indec_injectives))"
-  return MonomialMatrix(A, src, tgt, i)
+  n = length(res.cochain_maps)
+  @req 0 <= i <= n - 1 "cohomological degree i must be in 0:$(n - 1) for this resolution"
+  return res.cochain_maps[i + 1]
 end
 
 function Base.show(io::IO, ::MIME"text/plain", Ji::IndecInj)
@@ -439,15 +468,15 @@ end
 @doc raw"""
     generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
 
-Given a monoid algebra  kQ = $k[Q]$, a hyperplane $H$ that bounds the polyhedral cone $\RR_{\geq 0}Q$ and a vector
-$a \in \mathbb{Z}^d$, return a finite set $B$ such that
+Return, for a hyperplane `H` bounding the cone $\mathbb{R}_{\geq 0}Q$ of the
+monoid algebra `kQ` and a vector $a \in \mathbb{Z}^d$, a finite set $B$ such that
 
 $(x^b \mid b \in B) \cong k\{(a + H_+^\circ)\cap Q\}.$
 
 This is Algorithm 3.11. in [HM05](@cite).
 
 !!! note
-    The monoid algebra $k[Q]$ must be normal. 
+    The monoid algebra $k[Q]$ must be normal.
 """
 function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
   @assert torsion_free_rank(grading_group(kQ)) == length(a)
@@ -481,7 +510,7 @@ end
 @doc raw"""
     degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Return the $\mathbb{Z}^d$-degrees of non-zero Bass numbers of $M$ up to cohomological degree $i$.
+Return the $\mathbb{Z}^d$-degrees of non-zero Bass numbers of `M` up to cohomological degree `i`.
 """
 function degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   R_Q = base_ring(M)
@@ -505,23 +534,11 @@ function degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 end
 
 @doc raw"""
-    degrees_of_bass_numbers_bound(M::SubquoModule, i::Int)
+    degrees_of_bass_numbers_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Return a finite set `D` of $\mathbb{Z}^d$-degrees such that every degree of a
-non-zero Bass number of `M` up to cohomological degree `i` lies in `D + Q`:
-
-$$D = \{\deg(g) - \deg(e) : g \in \mathrm{gens}(M),\ e \in \mathrm{gens}(F_j),\ 0 \le j \le i+1\},$$
-
-where $F_\bullet$ is a graded free resolution of the residue field $k = R_Q/m$.
-
-Since $\mathrm{Ext}^j(k,M)$ is a subquotient of $\mathrm{Hom}(F_j, M) = \bigoplus_e M(\deg e)$
-and $\mathrm{supp}(M) \subseteq \bigcup_g (\deg(g) + Q)$, the degrees of the Bass
-numbers are contained in `D + Q`. This is a cheap over-approximation of
-[`degrees_of_bass_numbers`](@ref): it reads degrees off the resolution and avoids
-applying $\mathrm{Hom}(-, M)$ and computing homology, at the cost of a possibly
-larger set. Because $Q$ is a semigroup, any shift `a` with `D + a ⊆ Q` also
-satisfies `(bass degrees) + a ⊆ Q`, so `D` may replace the exact Bass degrees
-in `compute_shift`; see `compute_shift_bound`.
+Return a finite set $D$ of $\mathbb{Z}^d$-degrees such that every degree of a
+non-zero Bass number of `M` up to cohomological degree `i` lies in $D + Q$.
+Unlike [`degrees_of_bass_numbers`](@ref) this needs no $\mathrm{Ext}$ computation.
 """
 function degrees_of_bass_numbers_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   R_Q = base_ring(M)
@@ -557,7 +574,7 @@ function _shift_into_Q(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
   if is_normal(kQ)
     c = zonotope(kQ)[2]
     C = cone(kQ)
-    in_Q = b -> is_subset(convex_hull(b), C) # for normal Q: Q = cone ∩ lattice
+    in_Q = b -> is_subset(convex_hull(b), C) # for normal Q: Q = cone intersected with the lattice
   else
     c = sum(gens(Q)) #TODO: is the best way?
     in_Q = b -> is_in_semigroup(kQ, b)
@@ -579,7 +596,7 @@ end
 @doc raw"""
     compute_shift(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Let $M$ be finitely generated $\mathbb{Z}^d$-graded module over a monoid algebra $k[Q]$. This function computes $a\in \mathbb{Z}^d$
+Let `M` be finitely generated $\mathbb{Z}^d$-graded module over a monoid algebra $k[Q]$. This function computes $a\in \mathbb{Z}^d$
 such that all $\mathbb{Z}^d$-degrees of non-zero Bass numbers of $M(-a)$ lie in $Q$.
 """
 function compute_shift(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
@@ -592,16 +609,13 @@ end
 
 Like `compute_shift`, but uses the cheap over-approximation
 `degrees_of_bass_numbers_bound` instead of the exact Bass-number degrees.
-The returned shift is valid (all Bass degrees of `M(-a)` lie in `Q`) but may be
-larger than the one from `compute_shift`.
 """
 function compute_shift_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   return _shift_into_Q(base_ring(M), degrees_of_bass_numbers_bound(M, i))
 end
 
-# MILP that minimises sum(a) subject to a + B[j] ∈ Q for all j, where a ≥ 0.
-# Variables: [a (d); λ_0 (n); λ_1 (n); ...; λ_k (n)] with λ_i integer for non-normal Q.
-# For normal Q, λ_i can stay continuous (cone ∩ ℤ^d = Q), giving a pure LP.
+# MILP that minimises sum(a) subject to a + B[j] in Q for all j, where a in Q.
+# Variables: [a (d); lambda_0 (n); lambda_1 (n); ...; lambda_k (n)], all integer.
 function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
   isempty(degrees) && return zeros(Int, ambient_dimension(kQ))
   A  = Matrix{Int64}(semigroup_generators(kQ))
@@ -618,22 +632,22 @@ function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
 
   P    = polyhedron(M, M_b)
   c    = vcat(ones(Int64, d), zeros(Int64, (k+1)*n))
-  # For non-normal Q, make λ_i integer so we enforce semigroup (not just cone) membership.
-  int_vars = is_normal(kQ) ? Int[] : collect(d+1 : d+(k+1)*n)
+  # The multipliers are integers, so that a + b_j = A lambda_j lies in the
+  # semigroup generated by the columns of A (rounding a real solution up
+  # coordinatewise would not stay in the cone in general).
+  int_vars = collect(d+1 : d+(k+1)*n)
   milp = mixed_integer_linear_program(P, c; integer_variables=int_vars, convention = :min)
   _, opt = solve_milp(milp)
-  opt === nothing && error("MILP shift infeasible — no shift puts all Bass-number degrees into Q")
-  return [ceil(Int, opt[i]) for i in 1:d]
+  opt === nothing && error("MILP shift infeasible: no shift puts all Bass-number degrees into Q")
+  return [Int(opt[i]) for i in 1:d]
 end
 
 @doc raw"""
     compute_shift_milp(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Like `compute_shift`, but computes the shift by minimising `sum(a)`
-subject to `a + b ∈ Q` for every Bass-number degree `b` (LP for normal `Q`,
-MILP with integer semigroup-membership variables for non-normal `Q`).
-This can give a smaller shift than `compute_shift` when the optimal direction
-is not a multiple of the sum of primitive ray generators.
+Like `compute_shift`, but chooses the shift $a$ with minimal coordinate sum
+such that $a + b \in Q$ for every Bass-number degree $b$, by solving an
+integer linear program.
 """
 function compute_shift_milp(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   return _shift_milp(base_ring(M), degrees_of_bass_numbers(M, i))
@@ -642,7 +656,7 @@ end
 @doc raw"""
     compute_shift_milp_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Like `compute_shift_milp`, but uses the cheap over-approximation
+Like `compute_shift_milp`, but uses
 `degrees_of_bass_numbers_bound` for the Bass-number degrees.
 """
 function compute_shift_milp_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
@@ -652,7 +666,7 @@ end
 @doc raw"""
     mod_quotient(M::SubquoModule, I::Ideal)
 
-Computes the submodule
+Return the submodule
 
 $(0 :_M I) := \{m \in M \mid m\cdot I = 0\}.$
 
@@ -796,7 +810,7 @@ function ZF_basis(N::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ)
   #initialize
   L = Np
   h_L = identity_map(L)
-  B = Vector{T}() # empty vector of k[ZF]-basis 
+  B = Vector{T}() # empty vector of k[ZF]-basis
 
   for g in filter(!is_zero, gens(Np))
     N_g = sub(L, [h_L(g)])[1] #submodule of N =(0 :_M p_F)/(y0,...,yn) generated by g
@@ -810,13 +824,12 @@ function ZF_basis(N::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ)
       break
     end
   end
-  # return filter(!is_zero, B)
   return B
 end
 
 function evaluate(
-    f::MonoidAlgebraElem{<:RingElem, PT}, 
-    vals::Vector; 
+    f::MonoidAlgebraElem{<:RingElem, PT},
+    vals::Vector;
     check::Bool=true
   ) where {PT <: MonoidAlgebra{<:RingElem, <:MPolyQuoRing}}
   return evaluate(underlying_element(f), vals; check)
@@ -828,8 +841,8 @@ function evaluate(a::MPolyQuoRingElem, vals::Vector; check::Bool=true)
 end
 
 function evaluate(
-    f::MonoidAlgebraElem{<:RingElem, PT}, 
-    vals::Vector; 
+    f::MonoidAlgebraElem{<:RingElem, PT},
+    vals::Vector;
     check::Bool=true
   ) where {PT <: MonoidAlgebra{<:RingElem, <:MPolyRing}}
   return evaluate(underlying_element(f), vals)
@@ -837,7 +850,6 @@ end
 
 # get coefficients of m w.r.t. generators of M
 function coefficients_wrt_generators(m::SubquoModuleElem{T}, N::SubquoModule{T}) where {T <: MonoidAlgebraElem}
-  # @assert parent(m) == N "m is not an element of N"
   kQ = base_ring(N)
   k = coefficient_ring(kQ)
   m_amb = ambient_representative(m) ## why is this needed??
@@ -858,12 +870,11 @@ end
 #get all relevant generators of N, i.e., check (deg(b) + F) \cap (deg(g) + Q) ≠ ∅
 function relevant_generators(N::SubquoModule{T}, p::FaceQ, b::SubquoModuleElem{T}) where {T <: MonoidAlgebraElem}
   kQ = base_ring(N)
-  # b_poly = convex_hull(degree(Vector{Int},b))
   rel_gens = Vector{SubquoModuleElem}()
   for g in filter(!is_zero,gens(N))
     if in_intersection(kQ,degree(Vector{Int},g),degree(Vector{Int},b),p)
       push!(rel_gens,g)
-    end 
+    end
   end
   return rel_gens
 end
@@ -978,7 +989,7 @@ function _coefficients_normal(N::SubquoModule{T}, p::FaceQ, Bp) where {T <: Mono
     #get coefficient vector w.r.t. generators of N
     b_amb = ambient_representative(b)
     _c_b = coordinates(N(b_amb))
-    @assert all(is_zero(_c_b[i]) || is_homogeneous(_c_b[i]) for i in 1:ngens(N)) "non-homogeneous coordinate — all-ones evaluation is wrong here"
+    @assert all(is_zero(_c_b[i]) || is_homogeneous(_c_b[i]) for i in 1:ngens(N)) "non-homogeneous coordinate, all-ones evaluation is wrong here"
     c_b = [evaluate(_c_b[i], [1 for _ in 1:ngens(kQ)]) for i in 1:ngens(N)]
 
     #get all relevant generators of N, i.e., check (deg(b) + ZF) \cap (deg(g) + Q) ≠ ∅
@@ -1102,7 +1113,7 @@ end
 @doc raw"""
     irreducible_hull(M::SubquoModule{<:MonoidAlgebraElem}, j=0)
 
-Return an irreducible hull of $M$, that is, an irreducible sum $\overline{W}$
+Return an irreducible hull of `M`, that is, an irreducible sum $\overline{W}$
 together with a matrix $\Lambda$ defining an injective map $M \to \overline{W}$.
 This is Algorithm 3.6 in [HM05](@cite) with the correction for socle
 elements supported on several generators.
@@ -1120,7 +1131,7 @@ function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
   P = faces(kQ)
   for p in P
     Bp, lambda_p = coefficients(N, p)
-    
+
     for b in Bp
       push!(summands, IndecInj(p, degree(Vector{Int}, b)))
     end
@@ -1133,18 +1144,17 @@ function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
     if !is_zero(p.prime) && !is_zero(M_sat)
       N, _ = quo(Mi, M_sat)
     end
-    if is_zero(N) #TODO: should this be zero a some point? 
+    if is_zero(N) #TODO: should this be zero a some point?
       break
     end
   end
-  # return summands, hcat(lambda...)
   return IrrSum(kQ,summands), hcat(lambda...)
 end
 
 @doc raw"""
     irreducible_decomposition(I::MonoidAlgebraIdeal)
 
-Return an irreducible decomposition of $I$.
+Return an irreducible decomposition of `I`.
 
 # Examples
 ```jldoctest
@@ -1183,10 +1193,11 @@ end
 @doc raw"""
     _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
 
-Given a monoid algebra $k[Q]$ and an indecomposable injective $J = k\{a + F - Q\}$ return the irreducible ideal $W\subseteq k[Q]$ such that $J_Q = k[Q]/W$ ($Q$-graded part of $J$). 
+Return the irreducible ideal $W \subseteq k[Q]$ with $J_Q = k[Q]/W$, the $Q$-graded
+part of the indecomposable injective $J = k\{a + F - Q\}$ over the monoid algebra `kQ`.
 
 !!! note
-    The monoid algebra $k[Q]$ must be normal. 
+    The monoid algebra $k[Q]$ must be normal.
 """
 function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
   B_i = Vector{Vector{Vector{Int}}}()
@@ -1211,7 +1222,7 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
   return ideal(kQ, G_W)
 end
 
-#compute the irreducible ideal (kQ unsaturated) (Algorithm 3.15 in HM05) 
+#compute the irreducible ideal (kQ unsaturated) (Algorithm 3.15 in HM05)
 function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
   @assert base_ring(J.face.prime) == kQ.algebra
   @assert is_pointed(kQ) "k[Q] must be pointed"
@@ -1232,7 +1243,7 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
   W = intersect(I_kQ,V) #this is an ideal in kQsat
 
   B = [degree(Vector{Int},w) for w in filter(!is_zero,gens(W))]
-  
+
   #intersection of p_D for all facets D of F
   I_D = Vector{MPolyQuoIdeal}()
   for d in facets(F)
@@ -1289,7 +1300,6 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
        sat_W_bar = mod_saturate(W_bar,I)
       append!(_B,filter(!is_zero,[degree(g) for g in gens(sat_W_bar)]))
 
-      # _W = ideal(kQ.algebra,[monomial_basis(kQ,d)[1] for d in _B])
       _G = filter(!is_zero,gens(sat_W_bar))
 
       #update W_bar
@@ -1312,8 +1322,8 @@ end
 @doc raw"""
     irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing; check::Bool=true)
 
-Return an irreducible resolution of $M$. If $i$ is specified then the resolution
-is only computed up to cohomological degree $i$. With `check = false` the
+Return an irreducible resolution of `M`. If `i` is specified then the resolution
+is only computed up to cohomological degree `i`. With `check = false` the
 internal verification that each map into an irreducible hull is well-defined
 and injective is skipped.
 
@@ -1360,13 +1370,8 @@ over Monoid algebra over rational field with cone of dimension 2
 function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing; check::Bool=true)
   kQ = base_ring(M)
   @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
-  # @assert is_Q_graded(M) "M should be Q-graded."
 
-  # if !is_normal(kQ)
-  #   R_Q = saturation(kQ).algebra
-  # else
-    R_Q = kQ.algebra
-  # end
+  R_Q = kQ.algebra
   Mi = M # current module in resolution
 
   #initialize
@@ -1378,7 +1383,7 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
   while !is_zero(Mi) #until cokernel Mi is zero
     #compute irreducible hull
     Ji, _lambda = irreducible_hull(Mi, j)
-    
+
     #get Q-graded part
     Wi = underlying_module(Ji)
 
@@ -1389,7 +1394,6 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
       x_ii = monomial_basis(R_Q, degree(Mi[ii]))[1]
       for jj in 1:n
         lambda[ii, jj] = x_ii * _lambda[ii, jj]
-        # lambda[ii, jj] = one(R_Q) * _lambda[ii, jj]
       end
     end
 
@@ -1408,9 +1412,8 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
     else
       Mi, gi = quo(Wi, sub(Wi, nz_img_gens)[1])
     end
-    # replace the cokernel by a minimal presentation: the irreducible ideals
-    # come with many redundant generators, and the next irreducible hull is
-    # much cheaper on a small presentation
+
+    # replace the cokernel by a minimal presentation
     if !is_zero(Mi)
       Mi_min, phi = prune_with_map(Mi)
       gi = gi * inv(phi; check=false)
@@ -1436,13 +1439,13 @@ end
 @doc raw"""
     injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound, check::Bool=true)
 
-Return an injective resolution of $M$ up to cohomological degree `i`.
+Return an injective resolution of `M` up to cohomological degree `i`.
 With `check = false` the internal verification of the maps is skipped.
 
 The keyword `shift` selects how the initial shift is computed:
-* `:bound` (default) uses `compute_shift_bound`.
-* `:helm_miller` uses `compute_shift` (the shift described in
-  Helm-Miller)
+* `:bound` (default) uses `compute_shift_bound`, a cheap bound on the degrees of the Bass numbers.
+* `:helm_miller` uses `compute_shift`, the shift described in [HM05](@cite), which needs the exact Bass numbers.
+* `:milp_bound` and `:milp` choose the shift with minimal coordinate sum by an integer linear program, from the bound and from the exact Bass numbers respectively.
 
 # Examples
 ```jldoctest
@@ -1577,7 +1580,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
   else
     throw(ArgumentError("unknown shift strategy :$shift; expected :bound, :helm_miller, :milp, or :milp_bound"))
   end
-  
+
   M_a = twist(M, -G(a_shift))
   irr_res = irreducible_resolution(M_a, i; check)
 
@@ -1590,11 +1593,15 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
     push!(inj_modules, InjMod(kQ, shifted_comp))
   end
 
-  #get all needed maps (as k-matrix or k[Q]-matrix?)
-  cochain_maps = [
-    matrix(irr_res.cochain_maps[k]) for k in eachindex(irr_res.cochain_maps) if 1 <= k <= i+1
-  ]
-  return InjRes(M, inj_modules, cochain_maps, length(inj_modules)-1, irr_res, a_shift)
+  # the embedding M -> I^0 and the differentials d^k: I^k -> I^{k+1} as
+  # monomial matrices (irr_res.cochain_maps[1] is the embedding, [k+2] is d^k)
+  emb = matrix(irr_res.cochain_maps[1])
+  cochain_maps = MonomialMatrix{InjMod}[]
+  for k in 0:(length(inj_modules) - 2)
+    A = _scalar_matrix(kQ, matrix(irr_res.cochain_maps[k + 2]))
+    push!(cochain_maps, MonomialMatrix(A, inj_modules[k + 1], inj_modules[k + 2], k))
+  end
+  return InjRes(M, inj_modules, emb, cochain_maps, length(inj_modules) - 1, irr_res, a_shift)
 end
 
 # Generic rank of a SubquoModule M, i.e. dim_{Frac R} (M ⊗ Frac R). For f.g. M
@@ -1625,7 +1632,7 @@ function _reduce_mod_ZF(b::Vector{Int}, A::Union{Matrix{Int},Nothing})
       if !iszero(H[i, k]); j = k; break; end
     end
     j == 0 && continue
-    q = fdiv(bb[j], H[i, j])                   # floor div → canonical rep
+    q = fdiv(bb[j], H[i, j])                   # floor division gives the canonical representative
     for k in 1:ncols(H)
       bb[k] -= q * H[i, k]
     end
@@ -1636,14 +1643,9 @@ end
 @doc raw"""
     graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::Int)
 
-Return the graded Bass numbers of `M` at the prime `p = p_F` up to cohomological
-degree `i`. The result is a `Vector` of length `i+1`; entry `j+1` is a dictionary
-mapping each $\mathbb{Z}^d$-degree `a` (a canonical representative modulo
-$\mathbb{Z}F$) to the multiplicity $\mu^j(p_F, M)_a$, i.e. the number of copies
-of the indecomposable injective $E(F, a) = k\{a + F - Q\}$ in the `j`-th term of
-the minimal injective resolution of `M`. Degrees are reduced modulo $\mathbb{Z}F$
-because $E(F, a) \cong E(F, a+v)$ as graded $k[Q]$-modules for $v \in \mathbb{Z}F$
-(via the $k[\mathbb{Z}F]$-action on $E_F = k\{F - Q\}$).
+Return the graded Bass numbers $\mu^j(p_F, M)_a$ of `M` at the face `p` for
+$0 \le j \le i$, which corresponds to the number of copies of $k\{a + F - Q\}$ in the $j$-th
+term of a minimal injective resolution of `M`.
 """
 function graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::Int)
   kQ = base_ring(M)
@@ -1686,14 +1688,10 @@ end
 @doc raw"""
     is_minimal(res::InjRes; verbose::Bool=false)
 
-Check that the injective resolution `res` of `M = res.mod` is minimal, by
-comparing, for every face `F` and cohomological degree `j`, the multiplicity of
-each indecomposable injective $E(F, a)$ in `res.inj_mods[j+1]` against the
-independently computed graded Bass number $\mu^j(p_F, M)_a$ (see
-[`graded_bass_numbers`](@ref)).
-
-Returns `true` iff all multiplicities agree. With `verbose=true`, logs each
-mismatch (face, cohomological degree, claimed vs. expected multiplicities).
+Check whether the injective resolution `res` is minimal by comparing the
+multiplicities of its indecomposable injectives with the graded Bass numbers
+of the resolved module, see [`graded_bass_numbers`](@ref). With `verbose = true`
+each mismatch is reported.
 """
 function is_minimal(res::InjRes; verbose::Bool=false)
   M  = res.mod
@@ -1732,13 +1730,12 @@ end
     injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
 
 Return the injective hull $E(M)$ of the finitely generated $\mathbb{Z}^d$-graded
-module $M$ as an `InjMod` together with the matrix defining the
+module `M` as an `InjMod` together with the matrix defining the
 embedding $M \hookrightarrow E(M)$.
 """
 function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
   @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
-  # @assert is_Q_graded(M) "M should be Q-graded."
 
   R_Q = kQ.algebra
   G = grading_group(kQ)
@@ -1788,8 +1785,10 @@ export MonomialMatrix
 export affine_semigroup
 export ambient_dimension
 export cochain_maps
+export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
+export embedding
 export graded_bass_numbers
 export holes_module
 export indecomposable_injectives

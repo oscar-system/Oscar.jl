@@ -7,10 +7,8 @@ $0 \to M \xhookrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} 
 
 The maps $d^j$ are given by monomial matrices. The function [`injective_resolution`](@ref) computes 
 an injective resolution up to some given cohomological degree. 
-This is an implementation of the algorithms in [HM05](@cite).
-
-!!! note
-    We require that the monoid algebra $k[Q]$ is normal. 
+This is an implementation of the algorithms in [HM05](@cite). The monoid algebra $k[Q]$ may be normal or not.
+In the non-normal case the irreducible ideals are computed via the saturation of $Q$ (Algorithm 3.15 in [HM05](@cite)).
 
 ```@docs
 injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
@@ -40,14 +38,25 @@ $0 \to M \xhookrightarrow{\epsilon} I^0 \xrightarrow{d^0} I^1 \xrightarrow{d^1} 
 
 of a finitely generated $\mathbb{Z}^d$-graded module $M$. Then
 - `injective_modules(I)` returns the injective modules $I^0,I^1,\dots,I^i$,
-- `cochain_maps(I)` returns the matrices of the cochain maps $d^0,d^1,\dots,d^{i-1}$,
-- `monomial_matrix(j, I)` returns the differential $d^j$ as a monomial matrix, that is, together with the labels of its rows and columns,
+- `cochain_maps(I)` returns the differentials $d^0,d^1,\dots,d^{i-1}$ as monomial matrices, see below,
+- `embedding(I)` returns the matrix of $\epsilon \colon M \to I^0$,
+- `monomial_matrix(j, I)` returns the single differential $d^j$,
 - `degree_shift(I)` returns the degree $\alpha \in \mathbb{Z}^d$ by which $M$ was shifted internally, and
 - `Q_graded_part(I)` returns the irreducible resolution of $M(-\alpha)$ from which `I` was computed.
 
+### Monomial matrices
+A map between direct sums of indecomposable injectives is a *monomial matrix* in the sense of [HM05](@cite):
+a scalar matrix whose rows and columns are labelled by the summands of source and target.
+The entry in the row of $k\{a + F - Q\}$ and the column of $k\{b + G - Q\}$ is the coefficient of the monomial $x^{b - a}$.
+
 ```@docs
+MonomialMatrix
 monomial_matrix(i::Int, res::IrrRes)
+cochain_maps(res::InjRes)
+embedding(res::InjRes)
 ```
+The scalar matrix, the source and the target of a monomial matrix `mm` are returned by `matrix(mm)`, `domain(mm)` and `codomain(mm)`,
+and `cohomological_degree(mm)` is the index $i$ of the differential $d^i$.
 
 ### Injective hulls
 ```@docs
@@ -86,7 +95,7 @@ $0 \to M \xhookrightarrow{\epsilon} \overline{W}^0 \xrightarrow{d^0} \overline{W
 of a $\mathbb{Z}^d$-graded module $M$. Then
 
 - `irreducible_sums(I)` returns the irreducible sums $\overline{W}^0, \dots, \overline{W}^r$,
-- `cochain_maps(I)` returns the cochain maps $d^0,\dots,d^{r-1}$ as module homomorphisms,
+- `cochain_maps(I)` returns the cochain maps $d^0,\dots,d^{r-1}$ as module homomorphisms and `embedding(I)` the map $\epsilon$,
 - `cochain_complex(I)` returns the complex as a `ComplexOfMorphisms{OFPModule}`,
 - `is_exact(I)` checks exactness of that complex, and
 - `monomial_matrix(j, I)` returns the differential $d^j$ as a monomial matrix.

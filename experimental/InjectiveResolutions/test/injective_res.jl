@@ -25,10 +25,19 @@
 
     # getters, monomial matrices, minimality, injective hull
     @test length(injective_modules(inj_res)) == inj_res.upto + 1
-    @test length(cochain_maps(inj_res)) == inj_res.upto + 1
+    @test length(cochain_maps(inj_res)) == inj_res.upto
+    @test nrows(embedding(inj_res)) == ngens(M)
     mm = monomial_matrix(0, inj_res)
-    @test nrows(mm.matrix) == length(indecomposable_injectives(injective_modules(inj_res)[1]))
-    @test ncols(mm.matrix) == length(indecomposable_injectives(injective_modules(inj_res)[2]))
+    @test mm === cochain_maps(inj_res)[1]
+    @test cohomological_degree(mm) == 0
+    @test domain(mm) === injective_modules(inj_res)[1]
+    @test codomain(mm) === injective_modules(inj_res)[2]
+    @test nrows(matrix(mm)) == length(indecomposable_injectives(domain(mm)))
+    @test ncols(matrix(mm)) == length(indecomposable_injectives(codomain(mm)))
+    @test base_ring(matrix(mm)) == QQ
+    @test length(cochain_maps(irr_res)) == length(irreducible_sums(irr_res)) - 1
+    @test domain(embedding(irr_res)) === M
+    @test nrows(matrix(monomial_matrix(0, irr_res))) == length(indecomposable_injectives(irreducible_sums(irr_res)[1]))
     @test is_minimal(inj_res)
     @test degree_shift(inj_res) isa Vector{Int}
     @test monoid_algebra(injective_modules(inj_res)[1]) == kQ

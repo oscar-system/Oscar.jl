@@ -1,19 +1,19 @@
 ########################################################################
 # MonoidAlgebra.jl
 #
-# This is a wrapper type for `MPolyRing` or `MPolyQuoRing` which is 
-# graded and available at the field `.algebra`. This datum is enhanced 
-# by various combinatorial stuff. 
+# This is a wrapper type for `MPolyRing` or `MPolyQuoRing` which is
+# graded and available at the field `.algebra`. This datum is enhanced
+# by various combinatorial stuff.
 #
-# In order to facilitate functionality for ideals, we introduce a 
-# wrapper type `MonoidAlgebraIdeal` for `MPolyIdeal` (resp. 
-# `MPolyQuoIdeal`). For finitely generated modules, on the other hand, 
-# we implement the translation to the singular side within the 
-# `ModuleGens` directly; see `ModuleFunctionality.jl` for that. 
+# In order to facilitate functionality for ideals, we introduce a
+# wrapper type `MonoidAlgebraIdeal` for `MPolyIdeal` (resp.
+# `MPolyQuoIdeal`). For finitely generated modules, on the other hand,
+# we implement the translation to the singular side within the
+# `ModuleGens` directly; see `ModuleFunctionality.jl` for that.
 ########################################################################
 
 
-struct FaceQ # face of semigroup 
+struct FaceQ # face of semigroup
   prime::Union{MPolyIdeal,MPolyQuoIdeal} #homogeneous prime corresponding to face
   poly::Polyhedron  #face as polyhedron
   A::Union{Matrix{Int},Nothing} #semigroup generators of the face as columns of a matrix
@@ -79,7 +79,7 @@ end
 @doc raw"""
     is_pointed(S::AffineSemigroup)
 
-Given an affine semigroup, check if its cone is pointed.
+Check whether the cone of the affine semigroup `S` is pointed.
 """
 @attr Bool function is_pointed(S::AffineSemigroup)
   return is_pointed(polyhedral_cone(S))
@@ -135,7 +135,7 @@ is_zm_graded(A::MonoidAlgebra) = true
 @doc raw"""
     affine_semigroup(A::MonoidAlgebra)
 
-Given a monoid algebra kQ, this function returns the underlying affine semigroup Q.
+Return the affine semigroup $Q$ of the monoid algebra `A` $= k[Q]$.
 """
 function affine_semigroup(A::MonoidAlgebra)
   return A.affine_semigroup
@@ -144,7 +144,7 @@ end
 @doc raw"""
     semigroup_generators(A::MonoidAlgebra)
 
-Given a monoid algebra kQ, this function returns the matrix of semigroup generators as columns.
+Return the generators of the affine semigroup of the monoid algebra `A` as the columns of a matrix.
 """
 function semigroup_generators(A::MonoidAlgebra)
   return affine_semigroup(A).generators
@@ -157,8 +157,7 @@ end
 @doc raw"""
     cone(A::MonoidAlgebra)
 
-Given a monoid algebra with underlying monoid $Q$, this function returns the polyhedral cone $\mathbb{R}_{\geq 0}Q$ as a polyhedron. 
-
+Return the cone $\mathbb{R}_{\geq 0}Q$ of the monoid algebra `A` $= k[Q]$ as a polyhedron.
 """
 function cone(A::MonoidAlgebra)
   return cone(affine_semigroup(A))
@@ -168,7 +167,7 @@ end
 @doc raw"""
     faces(A::MonoidAlgebra)
 
-Given a monoid algebra with underlying monoid $Q$, this function a list of all faces of the polyhedral cone $\mathbb{R}_{\geq 0}Q$ with their corresponding homogeneous prime ideals. 
+Return all faces of the cone $\mathbb{R}_{\geq 0}Q$ of the monoid algebra `A` $= k[Q]$, each with its homogeneous prime ideal.
 """
 @attr Vector{FaceQ} function faces(A::MonoidAlgebra)
   # Compute all faces of the cone
@@ -406,7 +405,7 @@ end
 
 monomial_basis(A::MonoidAlgebra, g::FinGenAbGroupElem) = monomial_basis(A.algebra, g)
 
-evaluate(a::MonoidAlgebraElem, vals::Vector) = evaluate(underlying_element(a),vals) 
+evaluate(a::MonoidAlgebraElem, vals::Vector) = evaluate(underlying_element(a),vals)
 
 is_homogeneous(a::MonoidAlgebraElem) = is_homogeneous(underlying_element(a))
 
@@ -442,9 +441,9 @@ AbstractAlgebra.promote_rule(
                              ::Type{CoeffType}, ::Type{T}
                             ) where {CoeffType,T<:MonoidAlgebraElem{CoeffType}} = T
 
-# TODO: We would like to use the parametrization of the `MonoidAlgebra` 
+# TODO: We would like to use the parametrization of the `MonoidAlgebra`
 # with the type of its underlying ring directly. But this parameter only
-# provides the type of the ring, not its elements. So we have to work 
+# provides the type of the ring, not its elements. So we have to work
 # as if `MonoidAlgebra` was not parametrized.
 AbstractAlgebra.promote_rule(
                              ::Type{MPolyDecRingElem{CoeffType, T}}, ::Type{U}
@@ -470,15 +469,15 @@ parent_type(
 ) where {ParentType,CoeffType,ElemType<:MonoidAlgebraElem{CoeffType,ParentType}} =
   ParentType
 
-# TODO: Finish implementation of the ring interface! 
+# TODO: Finish implementation of the ring interface!
 
 @doc raw"""
     prime_of_face(kQ::Union{MPolyRing,MPolyQuoRing}, F::Polyhedron)
 
-Let kQ be a monoid algebra over some semigroup $Q$. Given a face $F$ of the cone $C = \RR_{\geq 0}Q$ of the monoid algebra kQ,
+Let `kQ` be a monoid algebra over some semigroup $Q$. Given a face `F` of the cone $C = \mathbb{R}_{\geq 0}Q$ of `kQ`,
 return the corresponding homogeneous prime ideal
 
-$P_F = k\{Q\setminus F\}.$ 
+$P_F = k\{Q\setminus F\}.$
 """
 function prime_of_face(kQ::Union{MPolyRing,MPolyQuoRing},F::Polyhedron)
   #get degrees of generators of kQ
@@ -506,7 +505,7 @@ function primitive_generator(::Type{Int}, r::AbstractVector{T}) where {T<:Ration
   return Vector{Int}(first(primitive_generator_with_scaling_factor(Int, r)))
 end
 
-# This method returns a triple `(v, num, den)` where `v` is a `Vector{Int}` 
+# This method returns a triple `(v, num, den)` where `v` is a `Vector{Int}`
 # and `num` and `den` are both `Int`s so that `num//den` is the scaling factor.
 function primitive_generator_with_scaling_factor(
     ::Type{Int},
@@ -533,8 +532,8 @@ function get_hyperplane_H_presentation(h::Polyhedron)
 end
 
 # given a polyhedral cone, return the zonotope as in Lemma 3.10 in [HM05]
-# INPUT:    polyhedral cone C  
-# OUTPUT:   zonotope, sum of primitive integer vector ong rays of C 
+# INPUT:    polyhedral cone C
+# OUTPUT:   zonotope, sum of primitive integer vector ong rays of C
 function get_zonotope(P::Polyhedron)
   d = ambient_dim(P)
   P_rays = [primitive_generator(Int, Vector(r)) for r in rays(P)]
@@ -551,7 +550,7 @@ end
 @doc raw"""
     monoid_algebra(M_Q::Matrix{Int}, k::Field)
 
-Return the monoid algebra generated by monomials $x^{v_1},\dots,x^{v_n}\in k[x_1,\dots,x_d]$, where $v_1,\dots,v_n\in \mathbb{Z}^d$ are the columns of $M_Q$.
+Return the monoid algebra generated by monomials $x^{v_1},\dots,x^{v_n}\in k[x_1,\dots,x_d]$, where $v_1,\dots,v_n\in \mathbb{Z}^d$ are the columns of `M_Q`.
 
 # Examples
 ```jldoctest
@@ -571,7 +570,7 @@ function monoid_algebra(M_Q::Matrix{Int}, k::Field)
   if all(M_Q .>= 0)
     T, t = graded_polynomial_ring(k, t_vars; cached = false)
   else
-    T, t = laurent_polynomial_ring(k, t_vars) 
+    T, t = laurent_polynomial_ring(k, t_vars)
   end
   # construct k[x_1,...,x_n] where n is the number of columns/generators
   x_vars = [Symbol("x_$i") for i in 1:size(M_Q, 2)]
@@ -698,7 +697,7 @@ end
 @doc raw"""
     is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
 
-Check if all generators of $M$ have degrees in the semigroup $Q$.
+Check if all generators of `M` have degrees in the semigroup $Q$.
 """
 function is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
@@ -796,7 +795,7 @@ function Base.intersect(V::Vector{T}) where {T <: MonoidAlgebraIdeal}
   return intersect(V[1], V[2:end]...)
 end
 
-# random elements for testing 
+# random elements for testing
 rand(A::MonoidAlgebra, v...) = A(rand(A.algebra, v...))
 
 ### Additional functionality for ring conformance tests
@@ -812,8 +811,6 @@ end
 is_nilpotent(a::MonoidAlgebraElem) = is_nilpotent(underlying_element(a))
 canonical_unit(a::MonoidAlgebraElem) = canonical_unit(underlying_element(a))
 is_domain_type(::Type{MonoidAlgebraElem{CT, PT}}) where {CT, AT, PT <: MonoidAlgebra{CT, AT}} = is_domain_type(elem_type(AT))
-# dummy method required by the conformance test
-#divrem(a::MonoidAlgebraElem, b::MonoidAlgebraElem; check::Bool=true) = zero(a), a
 
 function monoid_algebra_ideal(kQ::MonoidAlgebra, I::Ideal)
   @req base_ring(I) == kQ.algebra "base rings do not match"
@@ -824,7 +821,7 @@ function Oscar.quotient_ring_as_module(I::MonoidAlgebraIdeal)
   R = base_ring(I)
   F = graded_free_module(R,1)
   e1 = F[1]
-  return quo_object(F, [x * e1 for x = gens(I)]) 
+  return quo_object(F, [x * e1 for x = gens(I)])
 end
 
 function Base.show(io::IO, ::MIME"text/plain", I::MonoidAlgebraIdeal)
