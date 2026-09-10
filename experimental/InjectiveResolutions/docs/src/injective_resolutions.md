@@ -24,28 +24,42 @@ $J = \bigoplus_{i=1}^r k\{a_i + F_i - Q\},$
 
 where $k\{a_i + F_i - Q\}$ are so-called *indecomposable injective modules* (see, e.g., Chapter 11 of [MS05](@cite)). 
 
-
 Let `J` be a $\mathbb{Z}^d$-graded injective module
 
 $J = \bigoplus_{i=1}^r J_i = \bigoplus_{i=1}^r k\{a_i + F_i - Q\}.$
 
 Then
-- `J.Q_graded_part` refers to $J_Q = \bigoplus_{i=1}^r k\{a_i + F_i - Q\}_Q = \bigoplus_{i=1}^r k[Q]/W_i$ for some irreducible ideals $W_1,\dots,W_r$,
-- `J.indec_injectives` refers to $J_1,\dots,J_r$, and, 
-- `J.monoid_algebra` refers to the monoid algebra $k[Q]$.
+- `indecomposable_injectives(J)` returns $J_1,\dots,J_r$,
+- `q_graded_part(J)` returns $J_Q = \bigoplus_{i=1}^r k\{a_i + F_i - Q\}_Q = \bigoplus_{i=1}^r k[Q]/W_i$ for some irreducible ideals $W_1,\dots,W_r$ as a finitely generated module, and
+- `monoid_algebra(J)` returns the monoid algebra $k[Q]$.
 
 ### Data associated to injective resolutions
-Let `I = injective_resolution(M,i)` be an injective resolution (up to cohomological degree i)
+Let `I = injective_resolution(M, i)` be an injective resolution (up to cohomological degree `i`)
 
 $0 \to M \xhookrightarrow{\epsilon} I^0 \xrightarrow{d^0} I^1 \xrightarrow{d^1} \cdots \xrightarrow{d^{i-1}} I^i$
 
-of a finitely generated $Q$-graded module $M$. Then
-- `I.cochain_maps` refers to the cochain maps $d^0,d^1,d^2,\dots,d^{i-1}$,
-- `I.inj_mods` refers to the injective modules $I^0,I^1,I^2,\dots,I^i$,
-- `I.mod` refers to $M$,
-- `I.upto` refers to the length of `I`,
-- `I.shift` refers to a degree $\alpha \in \mathbb{Z}^d$, and, 
-- `I.Q_graded_part` refers to the irreducible resolution of $M$ shifted by $\alpha$.
+of a finitely generated $\mathbb{Z}^d$-graded module $M$. Then
+- `injective_modules(I)` returns the injective modules $I^0,I^1,\dots,I^i$,
+- `cochain_maps(I)` returns the matrices of the cochain maps $d^0,d^1,\dots,d^{i-1}$,
+- `monomial_matrix(j, I)` returns the differential $d^j$ as a monomial matrix, that is, together with the labels of its rows and columns,
+- `degree_shift(I)` returns the degree $\alpha \in \mathbb{Z}^d$ by which $M$ was shifted internally, and
+- `q_graded_part(I)` returns the irreducible resolution of $M(-\alpha)$ from which `I` was computed.
+
+```@docs
+monomial_matrix(i::Int, res::InjRes)
+```
+
+### Injective hulls
+```@docs
+injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
+```
+
+### Bass numbers and minimality
+```@docs
+graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::Int)
+degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
+is_minimal(res::InjRes)
+```
 
 ## Irreducible Resolutions
 Let $M$ be a finitely generated $\mathbb{Z}^d$-graded module. An *irreducible resolution* of $M$ is an exact sequence
@@ -61,7 +75,7 @@ for irreducible ideals $W_{i_j}$. The $k[Q]$-modules $\overline{W}^i$ are called
 Every finitely generated $Q$-graded module has a finite minimal irreducible resolution, i.e., it is finite in length and the components are finite direct sums. It is unique up to isomorphism and obtained as the $Q$-graded part of a minimal injective resolution. For more details see, e.g., Chapter 11 of [MS05](@cite).
 
 ```@docs
-irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int=0)
+irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing})
 ```
 
 ### Data associated to irreducible resolutions
@@ -71,7 +85,12 @@ $0 \to M \xhookrightarrow{\epsilon} \overline{W}^0 \xrightarrow{d^0} \overline{W
 
 of a $\mathbb{Z}^d$-graded module $M$. Then
 
-- `I.cochain_maps` refers to the cochain maps $d^0,\dots,d^{r-1}$,
-- `I.irr_sums` refers to the irreducible sums $\overline{W}^0, \dots, \overline{W}^r$,
-- `I.mod` refers to $M$, and,
-- `I.cochain_complex` refer to the exact sequence as a `ComplexOfMorphisms{OFPModule}`.
+- `irreducible_sums(I)` returns the irreducible sums $\overline{W}^0, \dots, \overline{W}^r$,
+- `cochain_maps(I)` returns the cochain maps $d^0,\dots,d^{r-1}$ as module homomorphisms,
+- `cochain_complex(I)` returns the complex as a `ComplexOfMorphisms{OFPModule}`,
+- `is_exact(I)` checks exactness of that complex, and
+- `monomial_matrix(j, I)` returns the differential $d^j$ as a monomial matrix.
+
+```@docs
+irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j)
+```

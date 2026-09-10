@@ -34,7 +34,7 @@ represented using sector partitions.
 zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal)
 ```
 
-## Sector Partition of Local Cohomology Module
+## Sector partitions of local cohomology modules
 The local cohomology modules $H^i_I(M)$ are in general not finitely generated 
 for $i>0$. However, sector partitions are a finite data structure for them.
 
@@ -59,21 +59,14 @@ should be computed at once using the function `local_cohomology_all`.
     local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
 ```
 
-### Data associated to Sector Partitions
-Let `H = local_cohomology(M,I,i)` be a sector partition of the local cohomology module $H^i_I(M)$. Then
+### Data associated to sector partitions
+Let `H = local_cohomology(M, I, i)` be a sector partition of the local cohomology module $H^i_I(M)$.
+Then `sectors(H)` returns the finite partition of $\mathbb{Z}^d$ into sectors. Each sector `S` consists of
 
-- `H.M` refers to $M$,
-- `H.I` refers to $I$,
-- `H.i` refers to `i`,
-- `H.sectors` refers to the finite partition of $\mathbb{Z}^d$ into sectors as polyhedron, and,
-- `H.maps` refers to the maps between the finite dimensional vector spaces. 
+- the finite dimensional $k$-vector space $H_S$ = `S.H`, and
+- the sector as a polyhedron `S.sector`.
 
-Each sector `S` of a sector partition consists of
-
-- the finite dimensional $k$-vector space $H_S$ = `S.H`,
-- the sector as a polyhedron `S.sector`. 
-
-### Tests on Local Cohomology Modules
+### Tests on local cohomology modules
 To test vanishing of local cohomology independent of the internal representation use `is_zero`:
 ```@docs
 is_zero(S::Oscar.InjectiveResolutions.SectorPartitionLC)

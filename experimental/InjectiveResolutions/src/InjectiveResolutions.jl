@@ -1,56 +1,83 @@
 module InjectiveResolutions
 using ..Oscar
-using ..Oscar: IntegerUnion # add other things that are not exported from Oscar here
-# functions with new methods
+using ..Oscar: IntegerUnion, ModuleGens, SubModuleOfFreeModule, OFPModule, Orderings
+using ..Oscar: _extend_free_resolution, _graded_kernel, _presentation_minimal, _reduce
+using ..Oscar: images_of_generators, oscar_free_module, oscar_generators
+using ..Oscar: singular_freemodule
+using ..Oscar: pretty, terse, is_terse, Lowercase, Indent, Dedent
+
+# functions from OSCAR for which this module adds methods
 import ..Oscar:
   _build_sparse_row,
   _degree_fast,
-  _extend_free_resolution,
-  _graded_kernel,
-  _reduce,
   _saturation,
   annihilator,
+  base_ring,
+  canonical_unit,
+  characteristic,
   coefficient_ring,
   coefficients,
+  cochain_complex,
   cone,
   coordinates,
   coordinates_atomic,
   coordinates_via_transform,
+  default_ordering,
   degree,
   dim,
+  divexact,
+  divides,
   elem_type,
   evaluate,
   faces,
   free_resolution,
   gens,
   grading_group,
+  hom,
   hyperplanes,
-  images_of_generators,
+  ideal,
   in_atomic,
   intersect,
   inv,
+  irreducible_decomposition,
+  is_domain_type,
+  is_exact,
+  is_graded,
+  is_homogeneous,
+  is_nilpotent,
   is_normal,
   is_pointed,
   is_subset,
+  is_unit,
+  is_zero,
   is_zm_graded,
   kernel,
   kernel_atomic,
+  krull_dim,
   lift_std,
-  ModuleGens,
+  minimal_generating_set,
+  monomial_basis,
   normal_form,
+  number_of_generators,
+  number_of_variables,
   one,
-  oscar_free_module,
-  oscar_generators,
+  parent,
+  parent_type,
   primitive_generator,
-  singular_freemodule,
+  primitive_generator_with_scaling_factor,
+  prune_with_map,
+  radical,
+  rand,
+  rank,
+  saturation,
   singular_generators,
   singular_module,
   singular_poly_ring,
   sparse_row,
   standard_basis,
-  SubModuleOfFreeModule,
   syzygy_module,
   twist,
+  underlying_module,
   zero,
   zonotope
 
@@ -60,97 +87,53 @@ import ..Oscar.Singular:
   svector,
   Module
 
-
-for i in names(Oscar)
-  !isdefined(Oscar, i) && continue
-  @eval import Oscar: $i
-  #@eval export $i
-end
-
-for i in names(Oscar.Orderings)
-  !isdefined(Oscar.Orderings, i) && continue
-  @eval import Oscar.Orderings: $i
-  #@eval export $i
-end
-
-#=
-for i in names(Oscar; all=true)
-  !isdefined(Oscar, i) && continue
-  @eval import Hecke: $i
-end
-=#
-
 import Base:
   +,
   -,
   *,
   ==,
-  deepcopy_internal
-# add more things here
+  deepcopy_internal,
+  getindex
 
-## Functions visible on the outside
-export monoid_algebra
-export monoid_algebra_ideal
-export faces
-export hyperplanes
-export saturation
-
-export irreducible_resolution
-export irreducible_decomposition
-
-export injective_resolution
-export old_injective_resolution
-
-export local_cohomology
-export local_cohomology_all
-export zeroth_local_cohomology
-
-export MonoidAlgebra
-export MonoidAlgebraIdeal
-export MonoidAlgebraElem
+## Functions and types visible on the outside
 export AffineSemigroup
+export FaceQ
+export IndecInj
+export InjMod
+export InjRes
+export IrrRes
+export IrrSum
+export MonoidAlgebra
+export MonoidAlgebraElem
+export MonoidAlgebraIdeal
+export MonomialMatrix
 export affine_semigroup
 export ambient_dimension
-export semigroup_generators
-export polyhedral_cone
-export cone
-export saturation_ideal
-export saturation_map
-export holes_module
-export is_Q_graded
-
-export compute_shift
-export compute_shift_bound
-export InjMod
-export IndecInj
-export monomial_matrix
-export irreducible_hull
-export kQ_module
-export injective_hull
-export Q_graded_part
-export mod_quotient
-export monoid_algebra_ideal
-export FaceQ
-export prime_of_face
-export generators_W_H
-export ZF_basis
-export generates_Zd
+export cochain_maps
+export degree_shift
 export degrees_of_bass_numbers
-export degrees_of_bass_numbers_bound
 export graded_bass_numbers
+export holes_module
+export indecomposable_injectives
+export injective_hull
+export injective_modules
+export injective_resolution
+export irreducible_hull
+export irreducible_resolution
+export irreducible_sums
+export is_q_graded
 export is_minimal
-export in_intersection
-export in_semigroup
-export is_in_aZF
-export coefficients_wrt_generators
-export relevant_generators
-export relevant_relations
-export _get_irreducible_ideal
-export underlying_element
-export mod_saturate
-export underlying_ideal
-export _get_irreducible_ideal_unsaturated
-export is_in_semigroup
+export local_cohomology
+export local_cohomology_all
+export monoid_algebra
+export monoid_algebra_ideal
+export monomial_matrix
+export q_graded_part
+export saturation_ideal
+export sectors
+export saturation_map
+export semigroup_generators
+export zeroth_local_cohomology
 
 #########################
 # some composite types
@@ -182,21 +165,22 @@ mutable struct IrrSum #direct sum of modules k[Q]/W, where W is an irreducible i
   end
 end
 
-function kQ_module(I::IrrSum) #irreducible sum as finitely generated k[Q]-module
+# irreducible sum as a finitely generated k[Q]-module
+function underlying_module(I::IrrSum)
   if I.kQ_module === nothing
-    I.kQ_module = compute_Q_graded_part(I.monoid_algebra, I.indec_injectives)
+    I.kQ_module = _compute_q_graded_part(I.monoid_algebra, I.indec_injectives)
   end
   return I.kQ_module
 end
 
-function Q_graded_part(I::InjMod)
+function q_graded_part(I::InjMod)
   if I.Q_graded_part === nothing
-    I.Q_graded_part = compute_Q_graded_part(I.monoid_algebra, I.indec_injectives)
+    I.Q_graded_part = _compute_q_graded_part(I.monoid_algebra, I.indec_injectives)
   end
   return I.Q_graded_part
 end
 
-function compute_Q_graded_part(kQ::MonoidAlgebra, I::Vector{IndecInj})
+function _compute_q_graded_part(kQ::MonoidAlgebra, I::Vector{IndecInj})
   if isempty(I)
     F = graded_free_module(kQ, 0)
     return quo(F, [zero(F)])[1]
@@ -237,8 +221,85 @@ struct InjRes #ZZ^d-graded injective resolution
   cochain_maps::Vector{MatElem}
   upto::Int
   Q_graded_part::IrrRes
-  shift::Vector{Int} #not needed
+  shift::Vector{Int}
 end
+
+@doc raw"""
+    indecomposable_injectives(J::InjMod)
+    indecomposable_injectives(W::IrrSum)
+
+Return the indecomposable injectives $k\{a_i + F_i - Q\}$ whose direct sum is `J`
+(respectively whose $Q$-graded parts form the irreducible sum `W`).
+"""
+indecomposable_injectives(J::Union{InjMod,IrrSum}) = J.indec_injectives
+
+@doc raw"""
+    monoid_algebra(J::InjMod)
+    monoid_algebra(W::IrrSum)
+
+Return the monoid algebra over which `J` (respectively `W`) is defined.
+"""
+monoid_algebra(J::Union{InjMod,IrrSum}) = J.monoid_algebra
+
+@doc raw"""
+    injective_modules(res::InjRes)
+
+Return the injective modules $I^0, I^1, \dots, I^i$ of the injective resolution `res`.
+"""
+injective_modules(res::InjRes) = res.inj_mods
+
+@doc raw"""
+    cochain_maps(res::InjRes)
+    cochain_maps(res::IrrRes)
+
+Return the cochain maps $d^0, d^1, \dots$ of the resolution `res`. For an
+injective resolution these are the scalar matrices of the monomial matrices,
+for an irreducible resolution they are module homomorphisms.
+"""
+cochain_maps(res::InjRes) = res.cochain_maps
+
+@doc raw"""
+    q_graded_part(J::InjMod)
+    q_graded_part(res::InjRes)
+
+Return the $Q$-graded part of an injective module as a finitely generated
+module, respectively the irreducible resolution of the shifted module
+$M(-\alpha)$ from which the injective resolution `res` was computed, see
+[`degree_shift`](@ref).
+"""
+q_graded_part(res::InjRes) = res.Q_graded_part
+
+@doc raw"""
+    degree_shift(res::InjRes)
+
+Return the degree $\alpha \in \mathbb{Z}^d$ such that all Bass numbers of
+$M(-\alpha)$ up to the length of `res` lie in $Q$. The resolution `res` was
+obtained by shifting an irreducible resolution of $M(-\alpha)$ back by $\alpha$.
+"""
+degree_shift(res::InjRes) = res.shift
+
+@doc raw"""
+    irreducible_sums(res::IrrRes)
+
+Return the irreducible sums $\overline{W}^0, \overline{W}^1, \dots$ of the
+irreducible resolution `res`.
+"""
+irreducible_sums(res::IrrRes) = res.irr_sums
+cochain_maps(res::IrrRes) = res.cochain_maps
+
+@doc raw"""
+    cochain_complex(res::IrrRes)
+
+Return the irreducible resolution `res` as a cochain complex of modules.
+"""
+cochain_complex(res::IrrRes) = res.cochain_complex
+
+@doc raw"""
+    is_exact(res::IrrRes)
+
+Check whether the cochain complex of the irreducible resolution `res` is exact.
+"""
+is_exact(res::IrrRes) = is_exact(res.cochain_complex)
 
 struct MonomialMatrix{T <: Union{InjMod, IrrSum}} # monomial matrix as in [HM05]
   matrix::MatElem
@@ -248,11 +309,11 @@ struct MonomialMatrix{T <: Union{InjMod, IrrSum}} # monomial matrix as in [HM05]
 end
 
 function Base.show(io::IO, mm::MonomialMatrix{InjMod})
-  print(io, "monomial matrix for I^", mm.index, " -> I^", mm.index + 1)
+  print(io, "Monomial matrix for I^", mm.index, " -> I^", mm.index + 1)
 end
 
 function Base.show(io::IO, mm::MonomialMatrix{IrrSum})
-  print(io, "monomial matrix for W^", mm.index, " -> W^", mm.index + 1)
+  print(io, "Monomial matrix for W^", mm.index, " -> W^", mm.index + 1)
 end
 
 function _show_indec(io::IO, J::IndecInj, ::Type{InjMod})
@@ -264,7 +325,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", mm::MonomialMatrix{T}) where T
   src_label, tgt_label = T == InjMod ? ("I^$(mm.index)", "I^$(mm.index + 1)") : ("W^$(mm.index)", "W^$(mm.index + 1)")
-  println(io, "monomial matrix for $src_label -> $tgt_label")
+  println(io, "Monomial matrix for $src_label -> $tgt_label")
   println(io, "source summands ($src_label):")
   for J in mm.source.indec_injectives
     _show_indec(io, J, T)
@@ -278,12 +339,12 @@ end
 
 function Base.show(io::IO,J::InjMod)
   print(
-    io, "injective module given by direct sum of ", length(J.indec_injectives)," indecomposable injectives"
+    io, "Injective module given by direct sum of ", length(J.indec_injectives), " indecomposable injectives"
   )
 end
 
 function Base.show(io::IO, ::MIME"text/plain", J::InjMod)
-  println(io, "injective module given by direct sum of indecomposable injectives")
+  println(io, "Injective module given by direct sum of indecomposable injectives")
   for Ji in J.indec_injectives
     _show_indec(io, Ji, InjMod)
   end
@@ -291,11 +352,11 @@ function Base.show(io::IO, ::MIME"text/plain", J::InjMod)
 end
 
 function Base.show(io::IO,W::IrrSum)
-  print(io, "irreducible sum given by direct sum of ", length(W.indec_injectives)," components")
+  print(io, "Irreducible sum given by direct sum of ", length(W.indec_injectives), " components")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", W::IrrSum)
-  println(io, "irreducible sum given by direct sum of components")
+  println(io, "Irreducible sum given by direct sum of components")
   for Ji in W.indec_injectives
     _show_indec(io, Ji, IrrSum)
   end
@@ -303,9 +364,9 @@ function Base.show(io::IO, ::MIME"text/plain", W::IrrSum)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
-  println(io, "injective resolution ")
+  println(io, "Injective resolution")
   println(io, "  ", join(["I^$i" for i in 0:res.upto], " -> "))
-  println(io, "where ")
+  println(io, "where")
   for i in eachindex(res.inj_mods)
     println(io, " I^$(i-1) = direct sum of")
     for Ji in res.inj_mods[i].indec_injectives
@@ -317,9 +378,9 @@ function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", res::IrrRes)
-  println(io, "irreducible resolution ")
+  println(io, "Irreducible resolution")
   println(io, "  ", join(["W^$i" for i in 0:(length(res.irr_sums) - 1)], " -> "))
-  println(io, "where ")
+  println(io, "where")
   for i in eachindex(res.irr_sums)
     println(io, " W^$(i-1) = direct sum of")
     for Ji in res.irr_sums[i].indec_injectives
@@ -364,14 +425,14 @@ function monomial_matrix(i::Int, res::InjRes)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", Ji::IndecInj)
-  println(io, "indecomposable injective")
+  println(io, "Indecomposable injective")
   println(io, "  k{", Ji.vector, " + F - Q},")
   print(io, "where p_F = ", Ji.face.prime)
 end
 
 function Base.show(io::IO, Ji::IndecInj)
   print(
-      io, "indecomposable injective k{", Ji.vector, " + F - Q}, where p_F = ", Ji.face.prime
+      io, "Indecomposable injective k{", Ji.vector, " + F - Q}, where p_F = ", Ji.face.prime
     )
 end
 
@@ -418,7 +479,7 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
 end
 
 @doc raw"""
-    degrees_of_bass_numbers(M::SubquoModule,i::Int)
+    degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
 Return the $\mathbb{Z}^d$-degrees of non-zero Bass numbers of $M$ up to cohomological degree $i$.
 """
@@ -589,7 +650,7 @@ function compute_shift_milp_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 end
 
 @doc raw"""
-    mod_quotient(M::SubquoModule,I::Ideal)
+    mod_quotient(M::SubquoModule, I::Ideal)
 
 Computes the submodule
 
@@ -597,10 +658,10 @@ $(0 :_M I) := \{m \in M \mid m\cdot I = 0\}.$
 
 # Examples
 ```jldoctest
-julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"]; weights = [[1,0],[0,1]])
+julia> R_Q, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [[1, 0], [0, 1]])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
-julia> I = ideal(R_Q,[x^4,x^2*y^2,y^4])
+julia> I = ideal(R_Q, [x^4, x^2*y^2, y^4])
 Ideal generated by
   x^4
   x^2*y^2
@@ -614,12 +675,12 @@ by graded submodule of R_Q^1 with 3 generators
   2: x^2*y^2*e[1]
   3: y^4*e[1]
 
-julia> m = ideal(R_Q,[x,y])
+julia> m = ideal(R_Q, [x, y])
 Ideal generated by
   x
   y
 
-julia> Oscar.InjectiveResolutions.mod_quotient(M,m)
+julia> Oscar.InjectiveResolutions.mod_quotient(M, m)
 (Graded subquotient of graded submodule of R_Q^1 with 2 generators
   1: x*y^3*e[1]
   2: x^3*y*e[1]
@@ -650,7 +711,7 @@ function mod_quotient(M::SubquoModule, I::Ideal)
 end
 
 @doc raw"""
-    mod_saturate(M::SubquoModule,I::Ideal)
+    mod_saturate(M::SubquoModule, I::Ideal)
 
 Compute the saturation
 
@@ -658,10 +719,10 @@ $(0 :_M I^\infty) := \{m \in M \mid m\cdot I^n = 0\text{ for some }n\in \NN_{>0}
 
 # Examples
 ```jldoctest
-julia> R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"]; weights = [[1,0],[0,1]])
+julia> R_Q, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [[1, 0], [0, 1]])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
-julia> I = ideal(R_Q,[x^4,x^2*y^2,y^4])
+julia> I = ideal(R_Q, [x^4, x^2*y^2, y^4])
 Ideal generated by
   x^4
   x^2*y^2
@@ -675,12 +736,12 @@ by graded submodule of R_Q^1 with 3 generators
   2: x^2*y^2*e[1]
   3: y^4*e[1]
 
-julia> m = ideal(R_Q,[x,y])
+julia> m = ideal(R_Q, [x, y])
 Ideal generated by
   x
   y
 
-julia> Oscar.InjectiveResolutions.mod_saturate(M,m)
+julia> Oscar.InjectiveResolutions.mod_saturate(M, m)
 Graded subquotient of graded submodule of R_Q^1 with 12 generators
   1: x*y^3*e[1]
   2: x^3*y*e[1]
@@ -717,13 +778,13 @@ function mod_saturate(M::SubquoModule, I::Ideal)
 end
 
 @doc raw"""
-    ZF_basis(M::SubquoModule, p::FaceQ)
+    _zf_basis(M::SubquoModule, p::FaceQ)
 
 Let $p = k\{Q\setminus F\}$ for some face $F$. This functions computes a $k[\mathbb{Z}F]$-basis of the quotient
 
 $(0 :_M p)[\mathhbb{Z}F] = \{m \in M \mid m\cdot p = 0\}[\mathbb{Z}F].$
 """
-function ZF_basis(N::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ)
+function _zf_basis(N::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ)
   kQ = base_ring(N)
   @assert kQ.algebra == base_ring(p.prime)
 
@@ -838,7 +899,7 @@ function coefficients(N::SubquoModule{T}, p::FaceQ) where {T <: MonoidAlgebraEle
   k = coefficient_ring(kQ)
 
   # compute a k[ZF]-basis of (0 :_N p)[ZF]
-  Bp = ZF_basis(N, p)
+  Bp = _zf_basis(N, p)
   if is_empty(Bp)
     return Bp, matrix(kQ, zeros(kQ, 1, 1))
   end
@@ -1039,9 +1100,12 @@ function _coefficients_non_normal(N::SubquoModule{T}, p::FaceQ, Bp) where {T <: 
 end
 
 @doc raw"""
-    irreducible_hull(Mi::SubquoModule, kQ::MonoidAlgebra, j=0)
+    irreducible_hull(M::SubquoModule{<:MonoidAlgebraElem}, j=0)
 
-Return an irreducible hull of $M$.
+Return an irreducible hull of $M$, that is, an irreducible sum $\overline{W}$
+together with a matrix $\Lambda$ defining an injective map $M \to \overline{W}$.
+This is Algorithm 3.6 in [HM05](@cite) with the correction for socle
+elements supported on several generators.
 """
 function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
   kQ = base_ring(Mi)
@@ -1084,21 +1148,22 @@ Return an irreducible decomposition of $I$.
 
 # Examples
 ```jldoctest
-julia> kQ = monoid_algebra([[1,0],[0,1]],QQ)
-monoid algebra over rational field with cone of dimension 2
+julia> kQ = monoid_algebra([[1, 0], [0, 1]], QQ)
+Monoid algebra over rational field with cone of dimension 2
 
-julia> x,y = gens(kQ)
+julia> x, y = gens(kQ)
 2-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyDecRing{QQFieldElem, QQMPolyRing}}}}:
  x_1
  x_2
 
-julia> I = ideal(kQ,[x^4,x^2*y^2,y^4])
-ideal over monoid algebra over rational field with cone of dimension 2 generated by x_1^4, x_1^2*x_2^2, x_2^4
+julia> I = ideal(kQ, [x^4, x^2*y^2, y^4])
+Ideal over monoid algebra over rational field with cone of dimension 2
+generated by x_1^4, x_1^2*x_2^2, x_2^4
 
 julia> W = irreducible_decomposition(I)
 2-element Vector{MonoidAlgebraIdeal{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyDecRing{QQFieldElem, QQMPolyRing}}}}}:
- ideal over monoid algebra over rational field with cone of dimension 2 generated by x_1^2, x_1^2*x_2, x_2^4, x_1*x_2^4
- ideal over monoid algebra over rational field with cone of dimension 2 generated by x_1^4, x_1^4*x_2, x_2^2, x_1*x_2^2
+ Ideal (x_1^2, x_1^2*x_2, x_2^4, x_1*x_2^4)
+ Ideal (x_1^4, x_1^4*x_2, x_2^2, x_1*x_2^2)
 
 julia> I == intersect(W)
 true
@@ -1235,96 +1300,6 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
   return ideal(kQ,[monomial_basis(kQ,b)[1] for b in _B])
 end
 
-# ── Combinatorial prototype for _get_irreducible_ideal_unsaturated (optimization 3) ──
-#
-# The key identity: b ∈ (W : p_F) \ W  iff
-#   (a) b ∈ Q, b ∉ Q-span(_B)
-#   (b) for every generator e of p_F:  b + e ∈ Q-span(_B)
-# Candidates are {w − e : w ∈ _B, e ∈ prime_gens} ∩ Q, then filtered by (a) and (b).
-# This replaces the mod_quotient Gröbner-basis call with semigroup-membership queries
-# (which are already cached).  mod_saturate is kept as a Singular call for now.
-#
-# Toggle on/off with:  use_comb_unsaturated!(true)   /   use_comb_unsaturated!(false)
-
-# ∃ w ∈ B, b − w ∈ Q  (i.e. b is in the ideal generated by B in Q-order)
-function _in_Q_ideal(B_set::Set{Vector{Int}}, b::Vector{Int}, kQ::MonoidAlgebra)
-    return any(is_in_semigroup(kQ, b .- w) for w in B_set)
-end
-
-# Returns degree vectors of new elements of (W : prime) \ W that are not in a + ZF.
-function _comb_new_generators(B_set::Set{Vector{Int}}, prime_gens::Vector{Vector{Int}},
-                               kQ::MonoidAlgebra, a::Vector{Int}, face::FaceQ)
-    seen   = Set{Vector{Int}}()
-    result = Vector{Int}[]
-    for w in collect(B_set), e in prime_gens
-        c = w .- e
-        c ∈ seen && continue
-        push!(seen, c)
-        is_in_semigroup(kQ, c) || continue
-        _in_Q_ideal(B_set, c, kQ) && continue                                    # already in W
-        all(_in_Q_ideal(B_set, c .+ e2, kQ) for e2 in prime_gens) || continue   # (W:p_F) cond
-        is_in_aZF(a, face, c) && continue                                        # in a + ZF
-        push!(result, c)
-    end
-    return result
-end
-
-function _get_irreducible_ideal_unsaturated_comb(kQ::MonoidAlgebra, J::IndecInj)
-    @assert base_ring(J.face.prime) == kQ.algebra
-    @assert is_pointed(kQ) "k[Q] must be pointed"
-
-    F  = J.face.poly
-    a  = J.vector
-
-    kQsat = saturation(kQ)
-    V     = _get_irreducible_ideal(kQsat, J)
-    I_kQ  = saturation_ideal(kQ)
-    W     = intersect(I_kQ, V)
-
-    B = [degree(Vector{Int}, w) for w in filter(!is_zero, gens(W))]
-
-    I_D = Vector{MPolyQuoIdeal}()
-    for d in facets(F)
-        for p in faces(kQ)
-            _facet = polyhedron([d], affine_hull(F))
-            if _facet != F && p.poly == _facet
-                push!(I_D, p.prime)
-            end
-        end
-    end
-    if dim(F) == 1
-        push!(I_D, faces(kQ)[1].prime)
-    end
-    has_sat = !isempty(I_D)
-    I = has_sat ? intersect(I_D...) : ideal(kQ.algebra, [])
-
-    _B     = filter(b -> is_in_semigroup(kQ, b), B)
-    _B_set = Set{Vector{Int}}(_B)
-
-    prime_gens = [degree(Vector{Int}, g) for g in filter(!is_zero, gens(J.face.prime))]
-    zero_vec   = zeros(Int, length(a))
-
-    while zero_vec ∉ _B_set
-        new_gens = _comb_new_generators(_B_set, prime_gens, kQ, a, J.face)
-        isempty(new_gens) && break
-        for c in new_gens
-            push!(_B, c); push!(_B_set, c)
-        end
-
-        if has_sat
-            W_bar     = quotient_ring_as_module(ideal(kQ.algebra, [monomial_basis(kQ, b)[1] for b in _B]))
-            sat_W_bar = mod_saturate(W_bar, I)
-            for g in filter(!is_zero, gens(sat_W_bar))
-                d_vec = degree(Vector{Int}, g)
-                _in_Q_ideal(_B_set, d_vec, kQ) && continue
-                push!(_B, d_vec); push!(_B_set, d_vec)
-            end
-        end
-    end
-
-    return ideal(kQ, [monomial_basis(kQ, b)[1] for b in _B])
-end
-
 # workaround for homomorphism between monoid algebras
 function hom(kQ1::MonoidAlgebra, kQ2::MonoidAlgebra, V::Vector)
   return hom(kQ1.algebra,kQ2.algebra,V)
@@ -1335,23 +1310,26 @@ function monomial_basis(kQ::MonoidAlgebra, a::Vector{Int})
 end
 
 @doc raw"""
-    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
+    irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing; check::Bool=true)
 
 Return an irreducible resolution of $M$. If $i$ is specified then the resolution
-is only computed up to cohomological degree $i$.
+is only computed up to cohomological degree $i$. With `check = false` the
+internal verification that each map into an irreducible hull is well-defined
+and injective is skipped.
 
 # Examples
 ```jldoctest
-julia> kQ = monoid_algebra([[1,0],[0,1]],QQ)
-monoid algebra over rational field with cone of dimension 2
+julia> kQ = monoid_algebra([[1, 0], [0, 1]], QQ)
+Monoid algebra over rational field with cone of dimension 2
 
-julia> x,y = gens(kQ)
+julia> x, y = gens(kQ)
 2-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyDecRing{QQFieldElem, QQMPolyRing}}}}:
  x_1
  x_2
 
-julia> I = ideal(kQ,[x^4,x^2*y^2,y^4])
-ideal over monoid algebra over rational field with cone of dimension 2 generated by x_1^4, x_1^2*x_2^2, x_2^4
+julia> I = ideal(kQ, [x^4, x^2*y^2, y^4])
+Ideal over monoid algebra over rational field with cone of dimension 2
+generated by x_1^4, x_1^2*x_2^2, x_2^4
 
 julia> M = quotient_ring_as_module(I)
 Graded subquotient of graded submodule of kQ^1 with 1 generator
@@ -1362,27 +1340,27 @@ by graded submodule of kQ^1 with 3 generators
   3: x_2^4*e[1]
 
 julia> irr_res = irreducible_resolution(M)
-irreducible resolution 
+Irreducible resolution
   W^0 -> W^1
-where 
+where
  W^0 = direct sum of
-    k{[1, 3] + F - Q}_Q, where p_F = Ideal (x_2, x_1, x_1*x_2)
-    k{[3, 1] + F - Q}_Q, where p_F = Ideal (x_2, x_1, x_1*x_2)
+    k{[1, 3] + F - Q}_Q, where p_F = Ideal (x_1, x_2)
+    k{[3, 1] + F - Q}_Q, where p_F = Ideal (x_1, x_2)
  W^1 = direct sum of
-    k{[1, 1] + F - Q}_Q, where p_F = Ideal (x_2, x_1, x_1*x_2)
+    k{[1, 1] + F - Q}_Q, where p_F = Ideal (x_1, x_2)
 of Graded subquotient of graded submodule of kQ^1 with 1 generator
   1: 1*e[1]
 by graded submodule of kQ^1 with 3 generators
   1: x_1^4*e[1]
   2: x_1^2*x_2^2*e[1]
   3: x_2^4*e[1]
-over monoid algebra over rational field with cone of dimension 2
+over Monoid algebra over rational field with cone of dimension 2
 ```
 """
-function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing)
+function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing; check::Bool=true)
   kQ = base_ring(M)
-  @assert generates_Zd(kQ) "The semigroup should generate ZZ^d."
-  # @assert is_Q_graded(M) "M should be Q-graded."
+  @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
+  # @assert is_q_graded(M) "M should be Q-graded."
 
   # if !is_normal(kQ)
   #   R_Q = saturation(kQ).algebra
@@ -1402,7 +1380,7 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
     Ji, _lambda = irreducible_hull(Mi, j)
     
     #get Q-graded part
-    Wi = kQ_module(Ji)
+    Wi = underlying_module(Ji)
 
     #multiply rows of lambda by degrees of generators of Mi
     m, n = size(_lambda)
@@ -1417,8 +1395,8 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
 
     #define injective map Mi -> Wi
     fi = hom(Mi, Wi, matrix(lambda))
-    @assert is_injective(fi) "fi not injective"
-    @assert is_welldefined(fi) "fi not well-defined"
+    @check is_welldefined(fi) "map into the irreducible hull is not well-defined"
+    @check is_injective(fi) "map into the irreducible hull is not injective"
 
     #get boundary map W{i-1} -> Wi
     hi = gi*fi
@@ -1429,6 +1407,14 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
       Mi, gi = Wi, identity_map(Wi)
     else
       Mi, gi = quo(Wi, sub(Wi, nz_img_gens)[1])
+    end
+    # replace the cokernel by a minimal presentation: the irreducible ideals
+    # come with many redundant generators, and the next irreducible hull is
+    # much cheaper on a small presentation
+    if !is_zero(Mi)
+      Mi_min, phi = prune_with_map(Mi)
+      gi = gi * inv(phi; check=false)
+      Mi = Mi_min
     end
 
     push!(irreducible_sums, Ji)
@@ -1448,9 +1434,10 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
 end
 
 @doc raw"""
-    injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound)
+    injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound, check::Bool=true)
 
-Return an injective resolution of $M$ up to cohomological degree i.
+Return an injective resolution of $M$ up to cohomological degree `i`.
+With `check = false` the internal verification of the maps is skipped.
 
 The keyword `shift` selects how the initial shift is computed:
 * `:bound` (default) uses [`compute_shift_bound`](@ref).
@@ -1459,16 +1446,17 @@ The keyword `shift` selects how the initial shift is computed:
 
 # Examples
 ```jldoctest
-julia> kQ = monoid_algebra([[1,0],[0,1]],QQ)
-monoid algebra over rational field with cone of dimension 2
+julia> kQ = monoid_algebra([[1, 0], [0, 1]], QQ)
+Monoid algebra over rational field with cone of dimension 2
 
-julia> x,y = gens(kQ)
+julia> x, y = gens(kQ)
 2-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyDecRing{QQFieldElem, QQMPolyRing}}}}:
  x_1
  x_2
 
-julia> I = ideal(kQ,[x^4,x^2*y^2,y^4])
-ideal over monoid algebra over rational field with cone of dimension 2 generated by x_1^4, x_1^2*x_2^2, x_2^4
+julia> I = ideal(kQ, [x^4, x^2*y^2, y^4])
+Ideal over monoid algebra over rational field with cone of dimension 2
+generated by x_1^4, x_1^2*x_2^2, x_2^4
 
 julia> M = quotient_ring_as_module(I)
 Graded subquotient of graded submodule of kQ^1 with 1 generator
@@ -1478,40 +1466,40 @@ by graded submodule of kQ^1 with 3 generators
   2: x_1^2*x_2^2*e[1]
   3: x_2^4*e[1]
 
-julia> injective_resolution(M,2)
-injective resolution 
-  J^0 -> J^1 -> J^2
-where 
- J^0 = direct sum of
-    k{[1, 3] + F - Q}, where p_F = Ideal (x_2, x_1, x_1*x_2)
-    k{[3, 1] + F - Q}, where p_F = Ideal (x_2, x_1, x_1*x_2)
- J^1 = direct sum of
-    k{[-1, 3] + F - Q}, where p_F = Ideal (x_2, x_1, x_1*x_2)
-    k{[1, 1] + F - Q}, where p_F = Ideal (x_2, x_1, x_1*x_2)
-    k{[3, -1] + F - Q}, where p_F = Ideal (x_2, x_1, x_1*x_2)
- J^2 = direct sum of
-    k{[-1, -1] + F - Q}, where p_F = Ideal (x_2, x_1, x_1*x_2)
+julia> injective_resolution(M, 2)
+Injective resolution
+  I^0 -> I^1 -> I^2
+where
+ I^0 = direct sum of
+    k{[1, 3] + F - Q}, where p_F = Ideal (x_1, x_2)
+    k{[3, 1] + F - Q}, where p_F = Ideal (x_1, x_2)
+ I^1 = direct sum of
+    k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2)
+    k{[1, 1] + F - Q}, where p_F = Ideal (x_1, x_2)
+    k{[3, -1] + F - Q}, where p_F = Ideal (x_1, x_2)
+ I^2 = direct sum of
+    k{[-1, -1] + F - Q}, where p_F = Ideal (x_1, x_2)
 of Graded subquotient of graded submodule of kQ^1 with 1 generator
   1: 1*e[1]
 by graded submodule of kQ^1 with 3 generators
   1: x_1^4*e[1]
   2: x_1^2*x_2^2*e[1]
   3: x_2^4*e[1]
-over monoid algebra over rational field with cone of dimension 2
+over Monoid algebra over rational field with cone of dimension 2
 ```
 
 ```jldoctest
-julia> kQ = monoid_algebra([[0,1],[1,1],[2,1]],QQ)
-monoid algebra over rational field with cone of dimension 2
+julia> kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]], QQ)
+Monoid algebra over rational field with cone of dimension 2
 
-julia> x,y,z = gens(kQ)
+julia> x, y, z = gens(kQ)
 3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
  x_1
  x_2
  x_3
 
-julia> F = graded_free_module(kQ,2)
-Graded free module monoid algebra over rational field with cone of dimension 2^2([0 0]) of rank 2 over monoid algebra over rational field with cone of dimension 2
+julia> F = graded_free_module(kQ, 2)
+Graded free module Monoid algebra over rational field with cone of dimension 2^2([0 0]) of rank 2 over monoid algebra over rational field with cone of dimension 2
 
 julia> a = kQ[y y;0 x^2]
 [x_2     x_2]
@@ -1523,7 +1511,7 @@ julia> b = kQ[x^2*z 0; x^4*y 0; 0 x^5*y; 0 z^3]
 [        0   x_1^5*x_2]
 [        0       x_3^3]
 
-julia> M = SubquoModule(F,a,b)
+julia> M = SubquoModule(F, a, b)
 Graded subquotient of graded submodule of F with 2 generators
   1: x_2*e[1] + x_2*e[2]
   2: x_1^2*e[2]
@@ -1533,33 +1521,33 @@ by graded submodule of F with 4 generators
   3: x_1^5*x_2*e[2]
   4: x_3^3*e[2]
 
-julia> injective_resolution(M,2)
-injective resolution
-  J^0 -> J^1 -> J^2
+julia> injective_resolution(M, 2)
+Injective resolution
+  I^0 -> I^1 -> I^2
 where
- J^0 = direct sum of
-    k{[1, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[5, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[4, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[0, 2] + F - Q}, where p_F = Ideal (x_2, x_3, x_1*x_3)
-    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_1*x_3)
- J^1 = direct sum of
-    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[0, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[5, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[0, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[4, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[3, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[-1, -2] + F - Q}, where p_F = Ideal (x_2, x_3, x_1*x_3)
-    k{[-4, -2] + F - Q}, where p_F = Ideal (x_1, x_2, x_1*x_3)
- J^2 = direct sum of
-    k{[0, 0] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[-1, 1] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[-1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[-2, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[3, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
-    k{[2, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3, x_1*x_3)
+ I^0 = direct sum of
+    k{[1, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[5, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[4, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[0, 2] + F - Q}, where p_F = Ideal (x_2, x_3)
+    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2)
+ I^1 = direct sum of
+    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[0, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[5, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[0, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[4, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[3, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[-1, -3] + F - Q}, where p_F = Ideal (x_2, x_3)
+    k{[-6, -3] + F - Q}, where p_F = Ideal (x_1, x_2)
+ I^2 = direct sum of
+    k{[0, 0] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[-1, 1] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[-1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[-2, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[3, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
+    k{[2, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
 of Graded subquotient of graded submodule of F with 2 generators
   1: x_2*e[1] + x_2*e[2]
   2: x_1^2*e[2]
@@ -1568,12 +1556,12 @@ by graded submodule of F with 4 generators
   2: x_1^4*x_2*e[1]
   3: x_1^5*x_2*e[2]
   4: x_3^3*e[2]
-over monoid algebra over rational field with cone of dimension 2
+over Monoid algebra over rational field with cone of dimension 2
 ```
 """
-function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound)
+function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound, check::Bool=true)
   kQ = base_ring(M)
-  @assert generates_Zd(kQ) "The semigroup should generate ZZ^d."
+  @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
 
   G = grading_group(kQ)
 
@@ -1587,11 +1575,11 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
   elseif shift === :milp_bound
     a_shift = compute_shift_milp_bound(M, i+1)
   else
-    error("unknown shift strategy :$shift; expected :bound, :helm_miller, :milp, or :milp_bound")
+    throw(ArgumentError("unknown shift strategy :$shift; expected :bound, :helm_miller, :milp, or :milp_bound"))
   end
   
   M_a = twist(M, -G(a_shift))
-  irr_res = irreducible_resolution(M_a,i)
+  irr_res = irreducible_resolution(M_a, i; check)
 
   #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
   inj_modules = Vector{InjMod}()
@@ -1625,7 +1613,7 @@ end
 
 # Reduce `b ∈ ZZ^d` modulo the sublattice `ZF` spanned by the columns of `A`
 # (the face generators). The indecomposable injective `E(F, a)` depends on `a`
-# only modulo `ZF`, so degrees produced by `ZF_basis` are well-defined only up
+# only modulo `ZF`, so degrees produced by `_zf_basis` are well-defined only up
 # to that equivalence; this picks a canonical representative via HNF reduction.
 function _reduce_mod_ZF(b::Vector{Int}, A::Union{Matrix{Int},Nothing})
   (A === nothing || size(A, 2) == 0) && return copy(b)
@@ -1682,11 +1670,11 @@ function graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::
   out = Vector{Dict{Vector{Int},Int}}()
   for j in 0:i
     # for the whole-cone face p_F = (0), k[Q]/p_F is free and the homology can
-    # come back as a FreeMod; ZF_basis expects a SubquoModule, so coerce.
+    # come back as a FreeMod; _zf_basis expects a SubquoModule, so coerce.
     Hj    = homology(lifted, j)
     Ej    = simplify_light(Hj isa SubquoModule ? Hj : sub(Hj, gens(Hj))[1])[1]
     tally = Dict{Vector{Int},Int}()
-    for b in ZF_basis(Ej, p)                 # k[ZF]-basis of (0 :_{Ej} p)[ZF]
+    for b in _zf_basis(Ej, p)                 # k[ZF]-basis of (0 :_{Ej} p)[ZF]
       a = _reduce_mod_ZF(degree(Vector{Int}, b), p.A)
       tally[a] = get(tally, a, 0) + 1
     end
@@ -1731,19 +1719,26 @@ function is_minimal(res::InjRes; verbose::Bool=false)
 end
 
 @doc raw"""
-    injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound)
+    injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound, check::Bool=true)
 
-Return an injective resolution of $M = k[Q]/I$ up to cohomological degree i.
+Return an injective resolution of $M = k[Q]/I$ up to cohomological degree `i`.
 See the module version for the `shift` keyword.
 """
-function injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound)
-  return injective_resolution(quotient_ring_as_module(I), i; shift=shift)
+function injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound, check::Bool=true)
+  return injective_resolution(quotient_ring_as_module(I), i; shift, check)
 end
 
+@doc raw"""
+    injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
+
+Return the injective hull $E(M)$ of the finitely generated $\mathbb{Z}^d$-graded
+module $M$ as an [`InjMod`](@ref) together with the matrix defining the
+embedding $M \hookrightarrow E(M)$.
+"""
 function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
-  @assert generates_Zd(kQ) "The semigroup should generate ZZ^d."
-  # @assert is_Q_graded(M) "M should be Q-graded."
+  @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
+  # @assert is_q_graded(M) "M should be Q-graded."
 
   R_Q = kQ.algebra
   G = grading_group(kQ)
@@ -1778,65 +1773,42 @@ end # module InjectiveResolutions
 
 using .InjectiveResolutions
 
-## Functions visible on the outside
-export monoid_algebra
-export faces
-export hyperplanes
-export saturation
-
-export irreducible_resolution
-export irreducible_decomposition
-
-export injective_resolution
-export old_injective_resolution
-
-export local_cohomology
-export local_cohomology_all
-export zeroth_local_cohomology
-
-export MonoidAlgebra
-export MonoidAlgebraIdeal
-export MonoidAlgebraElem
+## Functions and types visible on the outside
 export AffineSemigroup
+export FaceQ
+export IndecInj
+export InjMod
+export InjRes
+export IrrRes
+export IrrSum
+export MonoidAlgebra
+export MonoidAlgebraElem
+export MonoidAlgebraIdeal
+export MonomialMatrix
 export affine_semigroup
 export ambient_dimension
-export semigroup_generators
-export polyhedral_cone
-export cone
-export saturation_ideal
-export saturation_map
-export holes_module
-export is_Q_graded
-
-export compute_shift
-export compute_shift_bound
-export InjMod
-export IndecInj
-export monomial_matrix
-export irreducible_hull
-export kQ_module
-export injective_hull
-export Q_graded_part
-export mod_quotient
-export monoid_algebra_ideal
-export FaceQ
-export prime_of_face
-export generators_W_H
-export ZF_basis
-export generates_Zd
+export cochain_maps
+export degree_shift
 export degrees_of_bass_numbers
-export degrees_of_bass_numbers_bound
 export graded_bass_numbers
+export holes_module
+export indecomposable_injectives
+export injective_hull
+export injective_modules
+export injective_resolution
+export irreducible_hull
+export irreducible_resolution
+export irreducible_sums
+export is_q_graded
 export is_minimal
-export in_intersection
-export in_semigroup
-export is_in_aZF
-export coefficients_wrt_generators
-export relevant_generators
-export relevant_relations
-export _get_irreducible_ideal
-export underlying_element
-export mod_saturate
-export underlying_ideal
-export _get_irreducible_ideal_unsaturated
-export is_in_semigroup
+export local_cohomology
+export local_cohomology_all
+export monoid_algebra
+export monoid_algebra_ideal
+export monomial_matrix
+export q_graded_part
+export saturation_ideal
+export sectors
+export saturation_map
+export semigroup_generators
+export zeroth_local_cohomology

@@ -4,7 +4,7 @@
     @test !is_normal(kQ)
     N = quotient_ring_as_module(ideal(kQ,[]))
     inj_res = injective_resolution(N,3)
-    @test is_exact(inj_res.Q_graded_part.cochain_complex)
+    @test is_exact(q_graded_part(inj_res))
 end
 
 @testset "injective resolution of two-dimensional non-normal affine semigroup" begin
@@ -13,23 +13,22 @@ end
     @test !is_normal(kQ)
     KQ = quotient_ring_as_module(ideal(kQ,[]))
     inj_res = injective_resolution(KQ,3)
-    @test is_exact(inj_res.Q_graded_part.cochain_complex)
+    @test is_exact(q_graded_part(inj_res))
 end
 
 @testset "injective resolution of 3-dimensional non-normal affine semigroup" begin
     # Example 4.5 in Katthän
     kQ = monoid_algebra([[0,0,1],[1,0,1],[0,2,1],[0,3,1],[1,3,1],[1,2,1]],QQ)
     KQ = quotient_ring_as_module(ideal(kQ,[]))
-    # a = compute_shift(KQ,3) #TODO: this takes forever (Ext in degree 3)...
 
     #shift K[Q] by hand
     _KQ = twist(KQ,-grading_group(kQ)([2,6,4]))
     M = _KQ
     irr_res = irreducible_resolution(M,3)
-    @test is_exact(irr_res.cochain_complex)
+    @test is_exact(irr_res)
 
     # inj_res = injective_resolution(KQ,2) #TODO: this takes forever...
-    # @test is_exact(inj_res.Q_graded_part.cochain_complex)
+    # @test is_exact(q_graded_part(inj_res))
 
 
     # Example 13.27 in Miller-Sturmfels
@@ -37,10 +36,22 @@ end
     KQ = quotient_ring_as_module(ideal(kQ,[]))
     M = twist(KQ,-grading_group(kQ)([3,3,3]))
     irr_res = irreducible_resolution(M,3)
-    @test is_exact(irr_res.cochain_complex)
+    @test is_exact(irr_res)
 end
 
 
 @testset "injective resolution of module over non-normal monoid algebra" begin
-    #TODO: write a test
+    # quotient of the numerical semigroup ring k[t^2, t^3] by a monomial ideal
+    kQ = monoid_algebra([[2], [3]], QQ)
+    x, y = gens(kQ)
+    I = ideal(kQ, [x^3, y^3])
+    M = quotient_ring_as_module(I)
+    @test !is_normal(kQ)
+
+    irr_res = irreducible_resolution(M)
+    @test is_exact(irr_res)
+
+    inj_res = injective_resolution(M, 2)
+    @test inj_res.upto <= 2
+    @test is_exact(q_graded_part(inj_res))
 end

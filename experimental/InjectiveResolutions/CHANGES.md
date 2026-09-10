@@ -1,94 +1,83 @@
 # Changes — experimental/InjectiveResolutions
 
-Working summary of updates to the `InjectiveResolutions` experimental package, to accompany the upcoming pull request.
+Summary of the changes to the `InjectiveResolutions` experimental package
+since the version in OSCAR master (last upstream change: PR #5497), to
+accompany the pull request. The package computes injective resolutions and
+local cohomology of finitely generated modules over monoid algebras following
+[HM05].
 
-The package provides tools for computing injective resolutions and local cohomology of finitely generated modules over monoid algebras, implementing algorithms from [HM05]. This update focuses on performance and correctness fixes in `LocalCohomology.jl`.
+## New functionality
 
----
+- **Affine semigroups.** New type `AffineSemigroup` with constructors
+  `affine_semigroup` (from a matrix, a list of generators, or a monoid
+  algebra), `semigroup_generators`, `ambient_dimension`, `is_pointed`, and
+  cached polyhedral data (cone, bounding hyperplanes, zonotope). Monoid
+  algebras store their semigroup; `monoid_algebra(Q::AffineSemigroup, k)`.
+- **Non-normal monoid algebras.** `irreducible_resolution` and
+  `injective_resolution` work for non-normal (unsaturated) `k[Q]`, using
+  Algorithm 3.15 of [HM05] to compute the irreducible ideals in `k[Q]` from
+  those in the saturation. Supporting functions: `saturation(kQ)`,
+  `saturation_map`, `saturation_ideal`, `holes_module` (the module
+  `k[Q_sat]/k[Q]`), `is_q_graded`, semigroup membership tests.
+  Local cohomology still requires a normal monoid algebra.
+- **Corrected coefficient computation.** Algorithm 3.6 of [HM05] can produce
+  a non-injective map into the irreducible hull when a socle element is
+  supported on several generators. The coefficients are now chosen as a dual
+  basis on each `ZF`-class of socle degrees (`_dual_basis_lambdas`), which
+  makes the map injective; relevant relations are handled correctly.
+- **Monomial matrices.** `monomial_matrix(i, res)` returns the differential
+  `d^i` of an injective or irreducible resolution with its row and column
+  labels (`MonomialMatrix`).
+- **Bass numbers and minimality.** `graded_bass_numbers(M, p_F, i)` computes
+  the graded Bass numbers at a face via `Ext`, and `is_minimal(res)` checks a
+  computed injective resolution against them. `degrees_of_bass_numbers`
+  returns the degrees of non-zero Bass numbers.
+- **Injective hulls.** `injective_hull(M)` returns `E(M)` with the embedding.
+- **Ideals.** `minimal_generating_set`, `number_of_generators`, `radical`,
+  `intersect` of several ideals, `monoid_algebra_ideal` wrapper.
+- **Getters** replacing field access: `injective_modules`, `cochain_maps`,
+  `q_graded_part`, `degree_shift`, `irreducible_sums`, `cochain_complex`,
+  `is_exact`, `indecomposable_injectives`, `monoid_algebra`, `sectors`.
 
 ## Performance
 
-### `degrees_of_bass_numbers` — share the residue-field resolution
-Previously, each cohomological degree `j ∈ 0:i` triggered a fresh `ext(k, M, j)`, which rebuilt the free resolution of the residue field `k = R_Q/m` from scratch. The resolution is now built **once** (to length `i+2`), `Hom(-, M)` is applied **once**, and each `Ext^j(k, M)` is obtained as a homology lookup on the resulting cochain complex.
+- The shift needed to move all Bass numbers into `Q` is computed from a
+  cheap over-approximation of their degrees read off a free resolution of
+  the residue field (`compute_shift_bound`, default `shift = :bound`),
+  instead of computing `Ext^j(k, M)` for every `j` (`shift = :helm_miller`).
+  An LP/MILP-based minimal shift is available as `shift = :milp` and
+  `shift = :milp_bound`.
+- `degrees_of_bass_numbers` builds the residue field resolution once.
+- Relevance checks for generators and relations in the coefficient
+  computation precompute the polyhedra once per face; semigroup membership
+  queries are cached per monoid algebra.
+- Loop-invariant computations hoisted out of the main loops of
+  `irreducible_hull` and `irreducible_resolution`.
 
-### New: `degrees_of_bass_numbers_bound(M, i)`
-A cheap over-approximation that avoids the `Hom(-, M)` and `homology` calls entirely:
+## Bug fixes
 
-$$
-D := \{\deg(g) - \deg(e) : g \in \mathrm{gens}(M),\ e \in \mathrm{gens}(F_j),\ 0 \le j \le i+1\}.
-$$
+- `local_cohomology_all`: a destructuring shadowed the loop counter, the
+  `SectorPartitionLC` constructor was called with the wrong arguments, and the
+  ideal-argument method compared a nonexistent field.
+- `apply_gamma!`: crashed on an empty `hcat` when every summand was removed
+  by `Γ_I`.
+- `_compute_q_graded_part`: handles the empty case.
+- `compute_shift`: no longer overshoots by one multiple of the ray sum.
 
-Since `Ext^j(k, M)` is a subquotient of `Hom(F_j, M) = ⊕_e M(\deg e)` and `supp(M) ⊆ ⋃_g (\deg(g) + Q)`, the Bass-number degrees lie in `D + Q`. Because `Q` is a semigroup, any shift `a` with `D + a ⊆ Q` automatically satisfies `(bass degrees) + a ⊆ Q`. The bound is only used as a sufficient set for `compute_shift_bound`; the exact `degrees_of_bass_numbers` is unchanged.
+## API cleanup
 
-This is a large speedup on **quotient-ring** monoid algebras, where the residue-field resolution has fast-growing ranks and the `Hom(F_j, M) ≅ M^{n_j}` term dominates the runtime.
-
-### New: `compute_shift_bound(M, i)`
-Shift computation driven by `degrees_of_bass_numbers_bound`. Returns a valid (possibly larger) shift; used by `injective_resolution` by default.
-
-### `compute_shift` — per-point translation
-Rewritten so each Bass-number degree is translated by `c` only until it lands in `Q`, rather than re-testing the entire list on every iteration. Returns the minimal `j·c` (the previous version always over-shot by one `c`).
-
-### `injective_resolution`
-Now uses `compute_shift_bound`. The previous behaviour is preserved as `old_injective_resolution`.
-
-### `_coefficients_normal` (split out of `coefficients`)
-The per-face relevance checks for generators and relations involve polyhedral intersection of Minkowski sums. The polyhedra `\deg(g) + cone(Q)` (resp. `\deg(r) + cone(Q)`) depend only on the face, not on the socle basis element `b`, so they are now precomputed once per face and reused across all `b ∈ Bp`. Eliminates `|Bp| × (|gens(N)| + |relations(N)|)` redundant `convex_hull` / Minkowski-sum constructions per face.
-
-### Misc. loop-invariant hoisting
-- `irreducible_hull`: `(ideal(kQ, []) * Mi)[1]` hoisted out of the face loop.
-- `irreducible_resolution`: `monomial_basis(R_Q, degree(Mi[ii]))[1]` hoisted out of the inner column loop.
-
----
-
-## Bug fixes — `LocalCohomology.jl`
-
-### `local_cohomology_all`: shadowed loop variable
-The destructure `J, phi, psi, (j, k) = apply_gamma!(...)` was clobbering the outer loop counter `j`, silently shifting its meaning mid-iteration. Renamed the destructured names to `j0, k0`.
-
-### `local_cohomology_all`: wrong `SectorPartitionLC` constructor call
-The call `SectorPartitionLC(M, j, I.ideal, Hj, maps_needed(kQ, Hj))` passed 5 arguments to a 3-argument constructor, and used `I.ideal` (an `Ideal`) where a `MonoidAlgebraIdeal` is expected. Fixed: construct via the 3-arg constructor, then set `.sectors` and `.maps` separately.
-
-### `apply_gamma!`: empty `hcat` crash
-`transpose(hcat(rows_phi...))` (and the analogous `rows_psi` line) crashed when every indecomposable injective in `J^0` (resp. `J^1`) was filtered out by `Γ_I` — `hcat()` on an empty vector raised an error. Guarded both sites.
-
----
-
-## API additions
-
-Reference implementations kept for correctness/performance comparison alongside the new versions:
-
-- `old_degrees_of_bass_numbers` — the original `ext`-loop implementation
-- `old_compute_shift` — the original re-translate-all-degrees loop
-- `old_injective_resolution` — uses the exact `compute_shift`
-
-New public functions:
-
-- `degrees_of_bass_numbers_bound`
-- `compute_shift_bound`
-
----
-
-## Other additions
-
-<!-- Anna: fill in details of the items below that you added independently of the
-     perf/bug-fix work. Each was already in your working tree by the time this
-     document was started, so I left them as stubs rather than guessing. -->
-
-- `saturation_ideal`, `saturation_map` — TODO
-- `holes_module` — TODO
-- `is_Q_graded` — TODO
-- `injective_hull` — TODO
-- `compute_Q_graded_part`: now handles the empty `indec_injectives` case (returns the zero subquotient of `graded_free_module(kQ, 0)`).
-
----
-
-## Known issues / not addressed in this update
-
-- `irreducible_resolution` produces a non-exact complex for multi-generator (non-cyclic) modules. This is a **pre-existing** failure (already documented with `#this test fails` in `test/injective_res.jl` before this update). Diagnosis ongoing; localized to the multi-generator branch of `coefficients` / map assembly (assertion `is_homogeneous(_c_b[i])` holds, so the all-ones-evaluation step is not the cause; shape of `_lambda` matches `ngens(Mi)`).
-- The two `@assert is_injective(fi)` / `@assert is_welldefined(fi)` checks in `irreducible_resolution`'s main loop are still always-on. Each runs a kernel computation per iteration; gating them behind a debug flag is an outstanding minor speedup, left for a follow-up to keep this PR focused on already-validated changes.
-
----
+- Explicit imports instead of importing every OSCAR name; exports reduced to
+  the public API; internal helpers unexported and named with a leading
+  underscore.
+- `check` keyword on `irreducible_resolution` and `injective_resolution`
+  gates the internal exactness assertions.
+- Printing follows the OSCAR conventions (capitalized first word, terse
+  form for monoid algebras, ordinals in sector partition output).
+- Removed `old_*` reference implementations and an unused combinatorial
+  prototype.
 
 ## References
 
-- [HM05] D. Helm, E. Miller, *Algorithms for graded injective resolutions and local cohomology over semigroup rings*. J. Symbolic Comput. 39 (2005), 373–395.
+- [HM05] D. Helm, E. Miller, *Algorithms for graded injective resolutions and
+  local cohomology over semigroup rings*. J. Symbolic Comput. 39 (2005),
+  373–395.

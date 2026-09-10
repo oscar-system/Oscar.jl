@@ -19,9 +19,9 @@
 
     H1 = Oscar.local_cohomology(I_M,m,1)
     @test !is_zero(H1)
-    H1_sectors = [h for h in H1.sectors if dim(h.H) > 0]
+    H1_sectors = [h for h in sectors(H1) if dim(h.H) > 0]
     @test all([dim(h.H) == 1 for h in H1_sectors])
-    @test all([ambient_dim(h.sector) == 2 for h in H1.sectors])
+    @test all([ambient_dim(h.sector) == 2 for h in sectors(H1)])
 
     H2 = Oscar.local_cohomology(I_M,m,2)
     @test Oscar.is_zero(H2)
