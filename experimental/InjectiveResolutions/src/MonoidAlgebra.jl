@@ -618,7 +618,7 @@ end
 @doc raw"""
     monoid_algebra(Q::AffineSemigroup, k::Field)
 
-Return the monoid algebra over affine semigroup.
+Return the monoid algebra $k[A]$.
 """
 function monoid_algebra(Q::AffineSemigroup, k::Field)
   @req is_pointed(Q) "the semigroup must be pointed"

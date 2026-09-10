@@ -86,18 +86,6 @@ julia> faces(kQ)
  face corresponding to homogeneous prime ideal ()
 ```
 
-## Constructors
-Let $v_1,\dots,v_n$ in $\mathbb{Z}^d$ be the generators of a monoid $Q$. 
-The corresponding monoid algebra is
-
-$k[Q] \cong k[x^{v_1},\dots,x^{v_n}]\subseteq k[x_1,\dots, x_d].$
-
-```@docs
-monoid_algebra(V_Q::Vector{Vector{Int}},k::Field)
-monoid_algebra(B::Matrix{Int},k::Field)
-monoid_algebra(Q::AffineSemigroup, k::Field)
-```
-
 ## Affine semigroups
 The monoid $Q$ itself is represented by an `AffineSemigroup`, which stores the
 generators and caches polyhedral data such as the cone and its bounding hyperplanes.
@@ -109,6 +97,18 @@ affine_semigroup(A::MonoidAlgebra)
 semigroup_generators(A::MonoidAlgebra)
 ambient_dimension(Q::AffineSemigroup)
 is_pointed(S::AffineSemigroup)
+```
+
+## Constructors
+Let $v_1,\dots,v_n$ in $\mathbb{Z}^d$ be the generators of a monoid $Q$. 
+The corresponding monoid algebra is
+
+$k[Q] \cong k[x^{v_1},\dots,x^{v_n}]\subseteq k[x_1,\dots, x_d].$
+
+```@docs
+monoid_algebra(V_Q::Vector{Vector{Int}},k::Field)
+monoid_algebra(B::Matrix{Int},k::Field)
+monoid_algebra(Q::AffineSemigroup, k::Field)
 ```
 
 ## Irreducible decomposition
@@ -129,11 +129,9 @@ This can be checked algorithmically.
 is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
 ```
 
-For a non-normal monoid algebra $k[Q]$, the saturation $k[\overline{Q}]$ and the
-relation between the two rings are available as follows.
+For a non-normal monoid algebra $k[Q]$, the quotient of the saturation $k[\overline{Q}]$
+by $k[Q]$ is available as a module.
 ```@docs
-saturation_map(kQ::MonoidAlgebra)
-saturation_ideal(kQ::MonoidAlgebra)
 holes_module(kQ::MonoidAlgebra)
 ```
 

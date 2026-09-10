@@ -124,7 +124,6 @@ export indecomposable_injectives
 export injective_hull
 export injective_modules
 export injective_resolution
-export irreducible_hull
 export irreducible_resolution
 export irreducible_sums
 export is_Q_graded
@@ -135,9 +134,7 @@ export monoid_algebra
 export monoid_algebra_ideal
 export monomial_matrix
 export Q_graded_part
-export saturation_ideal
 export sectors
-export saturation_map
 export semigroup_generators
 export zeroth_local_cohomology
 
@@ -225,7 +222,7 @@ end
     MonomialMatrix{T}
 
 A map between direct sums of indecomposable injectives (`T = InjMod`) or of
-their $Q$-graded parts (`T = IrrSum`) in the sense of [HM05](@cite): a scalar
+their $Q$-graded parts (`T = IrrSum`) in the sense of [HM05](@cite). It consists of a scalar
 matrix whose rows and columns are labelled by the summands of the source and
 the target. The entry in row $r$ and column $c$ is the coefficient of the
 monomial $x^{a_c - a_r}$ of the map between the corresponding summands.
@@ -251,7 +248,7 @@ end
 struct InjRes #ZZ^d-graded injective resolution
   mod::SubquoModule
   inj_mods::Vector{InjMod}
-  embedding::MatElem                            # M -> I^0, entries in k[Q]
+  embedding::MatElem                            # M -> J^0, entries in k[Q]
   cochain_maps::Vector{MonomialMatrix{InjMod}}  # d^0, d^1, ..., d^{upto-1}
   upto::Int
   Q_graded_part::IrrRes
@@ -278,7 +275,7 @@ monoid_algebra(J::Union{InjMod,IrrSum}) = J.monoid_algebra
 @doc raw"""
     injective_modules(res::InjRes)
 
-Return the injective modules $I^0, I^1, \dots, I^i$ of the injective resolution `res`.
+Return the injective modules $J^0, J^1, \dots, J^i$ of the injective resolution `res`.
 """
 injective_modules(res::InjRes) = res.inj_mods
 
@@ -348,7 +345,7 @@ Check whether the cochain complex of the irreducible resolution `res` is exact.
 is_exact(res::IrrRes) = is_exact(res.cochain_complex)
 
 function Base.show(io::IO, mm::MonomialMatrix{InjMod})
-  print(io, "Monomial matrix for I^", mm.index, " -> I^", mm.index + 1)
+  print(io, "Monomial matrix for J^", mm.index, " -> J^", mm.index + 1)
 end
 
 function Base.show(io::IO, mm::MonomialMatrix{IrrSum})
@@ -363,7 +360,7 @@ function _show_indec(io::IO, J::IndecInj, ::Type{IrrSum})
 end
 
 function Base.show(io::IO, ::MIME"text/plain", mm::MonomialMatrix{T}) where T
-  src_label, tgt_label = T == InjMod ? ("I^$(mm.index)", "I^$(mm.index + 1)") : ("W^$(mm.index)", "W^$(mm.index + 1)")
+  src_label, tgt_label = T == InjMod ? ("J^$(mm.index)", "J^$(mm.index + 1)") : ("W^$(mm.index)", "W^$(mm.index + 1)")
   println(io, "Monomial matrix for $src_label -> $tgt_label")
   println(io, "source summands ($src_label):")
   for J in mm.source.indec_injectives
@@ -404,10 +401,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
   println(io, "Injective resolution")
-  println(io, "  ", join(["I^$i" for i in 0:res.upto], " -> "))
+  println(io, "  ", join(["J^$i" for i in 0:res.upto], " -> "))
   println(io, "where")
   for i in eachindex(res.inj_mods)
-    println(io, " I^$(i-1) = direct sum of")
+    println(io, " J^$(i-1) = direct sum of")
     for Ji in res.inj_mods[i].indec_injectives
       print(io, "  "); _show_indec(io, Ji, InjMod)
     end
@@ -538,7 +535,7 @@ end
 
 Return a finite set $D$ of $\mathbb{Z}^d$-degrees such that every degree of a
 non-zero Bass number of `M` up to cohomological degree `i` lies in $D + Q$.
-Unlike [`degrees_of_bass_numbers`](@ref) this needs no $\mathrm{Ext}$ computation.
+Unlike `degrees_of_bass_numbers` this needs no $\mathrm{Ext}$ computation.
 """
 function degrees_of_bass_numbers_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   R_Q = base_ring(M)
@@ -1471,16 +1468,16 @@ by graded submodule of kQ^1 with 3 generators
 
 julia> injective_resolution(M, 2)
 Injective resolution
-  I^0 -> I^1 -> I^2
+  J^0 -> J^1 -> J^2
 where
- I^0 = direct sum of
+ J^0 = direct sum of
     k{[1, 3] + F - Q}, where p_F = Ideal (x_1, x_2)
     k{[3, 1] + F - Q}, where p_F = Ideal (x_1, x_2)
- I^1 = direct sum of
+ J^1 = direct sum of
     k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2)
     k{[1, 1] + F - Q}, where p_F = Ideal (x_1, x_2)
     k{[3, -1] + F - Q}, where p_F = Ideal (x_1, x_2)
- I^2 = direct sum of
+ J^2 = direct sum of
     k{[-1, -1] + F - Q}, where p_F = Ideal (x_1, x_2)
 of Graded subquotient of graded submodule of kQ^1 with 1 generator
   1: 1*e[1]
@@ -1526,15 +1523,15 @@ by graded submodule of F with 4 generators
 
 julia> injective_resolution(M, 2)
 Injective resolution
-  I^0 -> I^1 -> I^2
+  J^0 -> J^1 -> J^2
 where
- I^0 = direct sum of
+ J^0 = direct sum of
     k{[1, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[5, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[4, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[0, 2] + F - Q}, where p_F = Ideal (x_2, x_3)
     k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2)
- I^1 = direct sum of
+ J^1 = direct sum of
     k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[0, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
@@ -1544,7 +1541,7 @@ where
     k{[3, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[-1, -3] + F - Q}, where p_F = Ideal (x_2, x_3)
     k{[-6, -3] + F - Q}, where p_F = Ideal (x_1, x_2)
- I^2 = direct sum of
+ J^2 = direct sum of
     k{[0, 0] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[-1, 1] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
     k{[-1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
@@ -1593,7 +1590,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
     push!(inj_modules, InjMod(kQ, shifted_comp))
   end
 
-  # the embedding M -> I^0 and the differentials d^k: I^k -> I^{k+1} as
+  # the embedding M -> J^0 and the differentials d^k: J^k -> J^{k+1} as
   # monomial matrices (irr_res.cochain_maps[1] is the embedding, [k+2] is d^k)
   emb = matrix(irr_res.cochain_maps[1])
   cochain_maps = MonomialMatrix{InjMod}[]
@@ -1795,7 +1792,6 @@ export indecomposable_injectives
 export injective_hull
 export injective_modules
 export injective_resolution
-export irreducible_hull
 export irreducible_resolution
 export irreducible_sums
 export is_Q_graded
@@ -1806,8 +1802,6 @@ export monoid_algebra
 export monoid_algebra_ideal
 export monomial_matrix
 export Q_graded_part
-export saturation_ideal
 export sectors
-export saturation_map
 export semigroup_generators
 export zeroth_local_cohomology

@@ -48,7 +48,7 @@
 
     # irreducible hull and Bass numbers of M = k[x,y]/(x^4, x^2y^2, y^4):
     # the socle lives in degrees [1,3] and [3,1]
-    W, lambda = irreducible_hull(M)
+    W, lambda = Oscar.InjectiveResolutions.irreducible_hull(M)
     @test length(indecomposable_injectives(W)) == 2
     @test sort(degrees_of_bass_numbers(M, 0)) == [[1, 3], [3, 1]]
     p = faces(kQ)[1]

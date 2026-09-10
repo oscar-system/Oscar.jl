@@ -16,9 +16,9 @@ local cohomology of finitely generated modules over monoid algebras following
 - **Non-normal monoid algebras.** `irreducible_resolution` and
   `injective_resolution` work for non-normal (unsaturated) `k[Q]`, using
   Algorithm 3.15 of [HM05] to compute the irreducible ideals in `k[Q]` from
-  those in the saturation. Supporting functions: `saturation(kQ)`,
-  `saturation_map`, `saturation_ideal`, `holes_module` (the module
-  `k[Q_sat]/k[Q]`), `is_Q_graded`, semigroup membership tests.
+  those in the saturation. Supporting functions: `holes_module` (the module
+  `k[Q_sat]/k[Q]`), `is_Q_graded`, and internal saturation and semigroup
+  membership helpers.
   Local cohomology still requires a normal monoid algebra.
 - **Corrected coefficient computation.** Algorithm 3.6 of [HM05] can produce
   a non-injective map into the irreducible hull when a socle element is

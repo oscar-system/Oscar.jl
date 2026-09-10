@@ -5,17 +5,17 @@ The $i$-th local cohomology module of $M$, denoted $H^i_I(M)$, is obtained as fo
 
 Let
 
-$I^\bullet \colon 0 \to M \xrightarrow{\epsilon} I^0 \xrightarrow{d^0} I^1 \xrightarrow{d^1}\cdots \xrightarrow{d^{i-1}} I^i \xrightarrow{d^i} \cdots$
+$J^\bullet \colon 0 \to M \xrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1}\cdots \xrightarrow{d^{i-1}} J^i \xrightarrow{d^i} \cdots$
 
 be an injective resolution of $M$. Applying the left exact functor $\Gamma_I$, which maps a $\mathbb{Z}^d$-graded module $N$ to the submodule
 
 $\Gamma_I(N) = \{n \in N \mid \exists m \in \mathbb{N} \colon n\cdot I^m = 0\},$
 
-to $I^\bullet$ we obtain the complex
+to $J^\bullet$ we obtain the complex
 
-$\Gamma_I(I^\bullet) \colon 0 \to \Gamma_I(I^0) \xrightarrow{d^0} \Gamma_I(I^1) \xrightarrow{d^1}\cdots \xrightarrow{d^{i-1}} \Gamma_I(I^i) \xrightarrow{d^i} \cdots.$
+$\Gamma_I(J^\bullet) \colon 0 \to \Gamma_I(J^0) \xrightarrow{d^0} \Gamma_I(J^1) \xrightarrow{d^1}\cdots \xrightarrow{d^{i-1}} \Gamma_I(J^i) \xrightarrow{d^i} \cdots.$
 
-The *$i$-th local cohomology module of $M$ supported on $I$* is the $i$-th cohomology module of $\Gamma_I(I^\bullet)$.
+The *$i$-th local cohomology module of $M$ supported on $I$* is the $i$-th cohomology module of $\Gamma_I(J^\bullet)$.
 
 !!! note
     We require that the monoid algebra $k[Q]$ is normal. 

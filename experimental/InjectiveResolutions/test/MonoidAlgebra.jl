@@ -59,10 +59,10 @@ end
     @test !is_normal(kQ)
     kQsat = Oscar.InjectiveResolutions.saturation(kQ)
     @test is_normal(kQsat)
-    phi = saturation_map(kQ)
+    phi = Oscar.InjectiveResolutions.saturation_map(kQ)
     @test domain(phi) == kQ.algebra
     @test codomain(phi) == kQsat.algebra
-    J = saturation_ideal(kQ)
+    J = Oscar.InjectiveResolutions.saturation_ideal(kQ)
     @test base_ring(J) == kQsat
     H = holes_module(kQ)
     # the only hole of <2, 3> is 1, so k[Q_sat]/k[Q] is one-dimensional
