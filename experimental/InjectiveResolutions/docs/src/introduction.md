@@ -1,6 +1,6 @@
 # Introduction
 
-Injective resolutions are a fundmental homological tool in commutative algebra to understand modules
+Injective resolutions are a fundamental homological tool in commutative algebra to understand modules
 and in algebraic geometry to study sheaves.  Local cohomology allows one to
 study the local geometric features of sheaves.  Many invariants such as
 Castelnuovo-Mumford regularity can be formulated in terms of vanishing of local
@@ -9,7 +9,7 @@ cohomology in specific degrees.
 This project implements the algorithms in [HM05](@cite) to compute 
 [injective resolutions](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/injective_resolutions.md) and 
 [local cohomology](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/local_cohomology.md) over 
-[monoid algebras](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/monoid_algebras.md) (also called semigroup
+[monoid algebras](Research/ResearchProjects/InjectiveResolutions/injectiveResAlgorithms/Oscar.jl/experimental/InjectiveResolutions/docs/src/monoid_algebras.md) (also called affine semigroup
 rings in the literature).  A key feature of this setting is that monoid algebras 
 also include many non-regular rings.  A technical limitation is that for several
 algorithms only saturated semigroups (i.e. modules over *normal* monoid
@@ -18,9 +18,9 @@ algebras) can be considered.
 Injective modules over polynomial rings or monoid algebras are generally not
 finitely generated and hence cannot be algorithmically treated with off-the-shelf
 tools implemented in OSCAR.  However, there exist polyhedral data structures for
-both injective modules and local cohomlogy that allow to represent them using
+both injective modules and local cohomology that allow to represent them using
 lattice points and polyhedra.  Because resolutions typically are also infinite,
-we can finitely represent it them only up to a given cohomological degree.
+we can finitely represent them only up to a given cohomological degree.
 This package provides all the necessary data structures and algorithms.
 
 ## Example
