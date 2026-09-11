@@ -2065,12 +2065,16 @@ end
 #for the idele `a` in `I` find an "equivalent" ideal.
 function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; 
    coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing} = nothing,
-   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
+   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing,
+   reduce::ZZRingElem = ZZ(-1))
 
   if parent(_a) == codomain(I.mq)
     a = preimage(I.mq, _a)
   else
     a = _a
+  end
+  if reduce > 0
+    a = parent(a)(Hecke.mod_sym(a.coeff, reduce))
   end
 
   zk = maximal_order(I.k)
@@ -2169,7 +2173,7 @@ function induce_hom(I::IdeleParent, mR::Union{MapRayClassGrp,Hecke.MapClassGrp};
   function idl(x)
     px = parent(x)
 #    x = px(Hecke.mod_sym(x.coeff, eA)) #TODO: this seems to be illegal.
-    J = ideal(I, x; coprime = m0, sign = inf)
+    J = ideal(I, x; coprime = m0, sign = inf, reduce = eA)
     return (preimage(mR, J))
   end
 
