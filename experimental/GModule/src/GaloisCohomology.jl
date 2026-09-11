@@ -2060,15 +2060,12 @@ end
 #for the idele `a` in `I` find an "equivalent" ideal.
 function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem; 
    coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing} = nothing,
-   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing,
-   reduce::ZZRingElem = -1)
+   sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
+
   if parent(_a) == codomain(I.mq)
     a = preimage(I.mq, _a)
   else
     a = _a
-  end
-  if reduce != -1
-    a = parent(a)(Hecke.mod_sym(a.coeff, reduce))
   end
 
   zk = maximal_order(I.k)
@@ -2090,8 +2087,8 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
         id *= FacElem(Dict(o_zk*P[1]=>vx))
       else
         if vx != 0
-          #need to "shift" x to have val. 0. The valuatin can be huge as it 
-          #comes from some linear algebra - particulary if the moduse has large
+          #need to "shift" x to have val. 0. The valuation can be huge as it 
+          #comes from some linear algebra - particulary if the module has large
           #exp.
           #Idea: mult. by pi^-val as the map to ideals sees the valuation
           #      and Acciaro/Klueners get the unit
@@ -2112,10 +2109,14 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
           u = x
         end
         @assert valuation(u) == 0
-        iv = _local_norm(coprime, zk(preimage(nKp, u)), P[1])
+        _u = preimage(nKp, u)
         if !isnothing(sign) && length(sign) > 0
-          iv = approximate(iv, coprime, sign)
+          _v = _u
+          _u = approximate(_u, coprime, sign)
+          @hassert :GaloisCohomology 2 all(isone, values(signs(_u, sign)))
+          @hassert :GaloisCohomology 2 all(x->_u == _v || valuation(_u/_v -1, x) >= valuation(coprime, x), keys(factor(coprime)))
         end
+        iv = _local_norm(coprime, zk(_u), P[1])
         iu = o_zk*iv
         if vx != 0
           #TODO: preimage return things way too large/ precise.
@@ -2165,9 +2166,11 @@ function induce_hom(I::IdeleParent, mR::Union{MapRayClassGrp,Hecke.MapClassGrp};
   end
 
   A = domain(mR)
+  eA = ZZ(exponent(A))
   function idl(x)
     px = parent(x)
-    J = ideal(I, x; coprime = m0, sign = inf, reduce = ZZ(exponent(A)))
+#    x = px(Hecke.mod_sym(x.coeff, eA)) #TODO: this seems to be illegal.
+    J = ideal(I, x; coprime = m0, sign = inf)
     return (preimage(mR, J))
   end
 
