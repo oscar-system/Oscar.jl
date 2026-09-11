@@ -2395,7 +2395,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
       done = true
       break
     end
-    V_gens = vcat(V_gens, [m for m in monomials_of_degree(R, d) if !(m in lead_I)])
+    append!(V_gens, inc)
     d = d + 1
   end
 
