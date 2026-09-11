@@ -1,61 +1,89 @@
 # Notes for GAP users
 
-This page describes differences between GAP and Oscar.
-(Hints about using GAP in OSCAR can be found in the section about
-[GAP Integration](@ref).)
+OSCAR uses GAP for most of its group theory,
+via the Julia package [GAP.jl](https://github.com/oscar-system/GAP.jl).
+This page describes differences between GAP and OSCAR,
+and lists GAP functions together with their OSCAR counterparts.
 
-- The syntax of the languages is slightly different.
+Only a part of GAP's functionality has a counterpart in OSCAR.
+If you need something that OSCAR does not provide, you can call the GAP
+function directly, see [Using GAP from OSCAR](@ref); in that case please
+also [open an issue](https://github.com/oscar-system/Oscar.jl/issues),
+so that we can add a proper OSCAR interface for it.
 
-  - In GAP, equality of two objects is checked with `=`,
-    and one assigns a value to a variable with `:=`.
-    In Julia, equality is checked with `==`,
-    and `=` denotes assignment.
-    Similarly, inequality of objects is checked with `<>` in GAP
-    and with `!=` in Julia.
+## Differences in syntax
 
-  - In GAP, the operator `not` is used to negate boolean expressions,
-    whereas `!` is used in Julia.
+- In GAP, equality of two objects is checked with `=`,
+  and one assigns a value to a variable with `:=`.
+  In Julia, equality is checked with `==`,
+  and `=` denotes assignment.
+  Similarly, inequality of objects is checked with `<>` in GAP
+  and with `!=` in Julia.
 
-  - In GAP, object identity is checked with the function `IsIdenticalObj`,
-    whereas the infix operator `===` (with negation `!==`)
-    is used in Julia.
+- In GAP, the operator `not` is used to negate boolean expressions,
+  whereas `!` is used in Julia.
+  The operators `and` and `or` are `&&` and `||` in Julia.
 
-  - In GAP, `if` statements have the form
-    ```gap
-    if condition1 then
-      statements1
-    elif condition2 then
-      statements2
-    else
-      statements3
-    fi;
-    ```
-    whereas the Julia syntax is
-    ```julia
-    if condition1
-      statements1
-    elseif condition2
-      statements2
-    else
-      statements3
-    end
-    ```
-    Similarly, GAP's `for` loops have the form
-    ```gap
-    for var in list do
-      statements
-    od;
-    ```
-    whereas the Julia syntax is
-    ```julia
-    for var in list
-      statements
-    end
-    ```
-    (The situation with `while` loops is analogous.)
+- In GAP, object identity is checked with the function `IsIdenticalObj`,
+  whereas the infix operator `===` (with negation `!==`)
+  is used in Julia.
 
-- Also the semantics is slightly different.
+- In GAP, `if` statements have the form
+  ```gap
+  if condition1 then
+    statements1
+  elif condition2 then
+    statements2
+  else
+    statements3
+  fi;
+  ```
+  whereas the Julia syntax is
+  ```julia
+  if condition1
+    statements1
+  elseif condition2
+    statements2
+  else
+    statements3
+  end
+  ```
+  Similarly, GAP's `for` loops have the form
+  ```gap
+  for var in list do
+    statements
+  od;
+  ```
+  whereas the Julia syntax is
+  ```julia
+  for var in list
+    statements
+  end
+  ```
+  (The situation with `while` loops is analogous.)
 
+- GAP functions are defined as `f := function(x) ... end;`,
+  the Julia equivalents are `function f(x) ... end`
+  and, for one-liners, `f(x) = ...`.
+  Anonymous functions look the same in both languages: `x -> x^2`.
+
+- GAP's `G.1` for the first generator of a group is `G[1]` in OSCAR.
+
+- The `;` at the end of a statement is mandatory in GAP,
+  and two semicolons suppress the output of the value.
+  In Julia, no semicolon is needed, and a trailing `;` suppresses the
+  output of the value in an interactive session,
+  see [Semicolons and output](@ref).
+  So in both languages, an extra semicolon suppresses output.
+
+## Differences in semantics
+
+- **Integer literals are machine integers.**
+  In GAP, all integers are arbitrary precision integers.
+  In Julia, `2^100` evaluates to `0`,
+  see [Integers and rational numbers](@ref other_integers).
+
+- **The sum of a matrix and a scalar is different.**
   In GAP, the sum of a matrix (a list of lists) and a scalar is defined
   recursively as the pointwise sum.
   ```gap-repl
@@ -65,45 +93,14 @@ This page describes differences between GAP and Oscar.
   In OSCAR, the sum of a matrix and a scalar is defined as the sum of
   the given matrix and the multiple of the identity matrix that is given
   by the scalar.
-  ```julia-repl
+  ```jldoctest
   julia> matrix(ZZ, [1 2; 3 4]) + 2
   [3   2]
   [3   6]
   ```
 
-- The interactive sessions behave differently.
-
-  When an error occurs or when the user hits ctrl-C in a GAP session,
-  usually a break loop is entered,
-  from which one can either try to continue the computations,
-  by entering `return`, or return to the GAP prompt, by entering `quit`;
-  in the latter case, some objects may be corrupted afterwards.
-
-  In a Julia session, one gets automatically back to the Julia prompt
-  when an error occurs or when the user hits ctrl-C,
-  and again some objects may be corrupted afterwards.
-
-- Variable names in GAP and Julia are recommended to be written in
-  camel case and snake case, respectively, see [Naming conventions](@ref).
-  For example, the GAP function `SylowSubgroup` corresponds to
-  OSCAR's `sylow_subgroup`.
-
-  Thus the GAP rule that the names of user variables should start with a
-  lowercase letter, in order to avoid clashes with system variables,
-  does not make sense in Julia.
-
-  Moreover, global OSCAR variables are not write protected,
-  contrary to most global GAP variables.
-  Thus there is always the danger that assignments overwrite Julia functions.
-  For example, it is tempting to use `gens`, `hom`, and `map` as names for
-  variables, but Julia or OSCAR define them already.
-
-  (Also copying some lines of code from an OSCAR function into a Julia session
-  can be dangerous in this sense,
-  because some names of local variables of the function may coincide with the
-  names of global variables.)
-
-- GAP provides natural embeddings of many algebraic structures.
+- **There are no natural embeddings.**
+  GAP provides natural embeddings of many algebraic structures.
   For example, two finite fields of the same characteristic are embedded
   into each other whenever this makes sense, and the elements of the smaller
   field are regarded also as elements of the larger field.
@@ -116,10 +113,18 @@ This page describes differences between GAP and Oscar.
   and operations involving several elements (such as arithmetic operations)
   are usually restricted to the situation that their parents coincide.
   One has to explicitly coerce a given element into a different parent
-  if necessary.
+  if necessary, see [Every object has a parent](@ref).
 
-  The consequences can be quite subtle.
-  Each permutation group in OSCAR has a fixed degree,
+- **Permutations belong to a symmetric group of fixed degree.**
+  This is a consequence of the previous point.
+  `cperm([1, 2, 3])` creates the permutation `(1,2,3)` as an element of
+  the symmetric group of degree 3,
+  and it cannot be multiplied with an element of the symmetric group of
+  degree 4.
+  Create permutations as elements of the group `G` you want to work in,
+  for example with `cperm(G, [1, 2, 3])` or `perm(G, [2, 3, 1])`.
+
+  Similarly, each permutation group in OSCAR has a fixed degree,
   and the function `is_transitive` checks whether its argument is transitive
   on the points from 1 to the degree.
   In GAP, however, the function `IsTransitive`, called with a permutation
@@ -131,3 +136,216 @@ This page describes differences between GAP and Oscar.
   For the same reason, `transitive_group` in OSCAR supports degree 1,
   where the trivial group is the unique transitive group,
   whereas GAP's library of transitive groups starts at degree 2.
+
+- **Subgroups come together with embeddings.**
+  Functions that return a subgroup, such as `sub`, `center`,
+  `derived_subgroup`, `sylow_subgroup`, `stabilizer`, and `kernel`,
+  return a tuple consisting of the subgroup and its embedding into the
+  given group, and `quo` returns the quotient group together with the
+  natural projection,
+  see [Many constructors return more than one object](@ref).
+
+- **The argument order of subset tests is reversed.**
+  GAP's `IsSubset(G, H)` and `IsSubgroup(G, H)` put the larger object
+  first.
+  OSCAR follows the Julia convention that the arguments of `issubset`,
+  `is_subset`, `is_subgroup`, and `is_normal_subgroup` appear in the
+  same order as in the mathematical notation ``H \subseteq G``,
+  that is, `is_subset(H, G)` and `is_subgroup(H, G)`.
+
+- **`Size` has several counterparts.**
+  Depending on the object, GAP's `Size` corresponds to `order(G)` for a
+  group, `length(l)` for a list or another collection,
+  and `number_of_rows(M)` for a matrix.
+  Julia's `size(M)` returns the tuple of dimensions of a matrix.
+
+- **Global variables are not protected.**
+  Global OSCAR variables are not write protected,
+  contrary to most global GAP variables.
+  Thus there is always the danger that assignments overwrite Julia functions.
+  For example, it is tempting to use `gens`, `hom`, and `map` as names for
+  variables, but Julia or OSCAR define them already.
+
+  (Also copying some lines of code from an OSCAR function into a Julia session
+  can be dangerous in this sense,
+  because some names of local variables of the function may coincide with the
+  names of global variables.)
+
+## Interactive sessions
+
+When an error occurs or when the user hits ctrl-C in a GAP session,
+usually a break loop is entered,
+from which one can either try to continue the computations,
+by entering `return`, or return to the GAP prompt, by entering `quit`;
+in the latter case, some objects may be corrupted afterwards.
+
+In a Julia session, one gets automatically back to the Julia prompt
+when an error occurs or when the user hits ctrl-C,
+and again some objects may be corrupted afterwards.
+
+## Names of functions and variables
+
+Variable names in GAP and Julia are recommended to be written in
+camel case and snake case, respectively, see [Naming conventions](@ref).
+For example, the GAP function `SylowSubgroup` corresponds to
+OSCAR's `sylow_subgroup`.
+Guessing the OSCAR name this way works surprisingly often.
+The tables below list common GAP functions with their OSCAR
+counterparts, among them those that cannot be guessed.
+
+The GAP rule that the names of user variables should start with a
+lowercase letter, in order to avoid clashes with system variables,
+does not make sense in Julia.
+
+## Common GAP functions and their OSCAR counterparts
+
+### Lists and functional programming
+
+| GAP | OSCAR |
+|:----|:------|
+| `Length(l)`, `Size(l)` | `length(l)` |
+| `[1..10]` | `1:10` (`collect(1:10)` for a vector) |
+| `l[i]`, `l{[i, j]}` | `l[i]`, `l[[i, j]]` |
+| `List(l, f)` | `map(f, l)` or `[f(x) for x in l]` |
+| `Filtered(l, f)` | `filter(f, l)` or `[x for x in l if f(x)]` |
+| `ForAll(l, f)`, `ForAny(l, f)` | `all(f, l)`, `any(f, l)` |
+| `Number(l, f)` | `count(f, l)` |
+| `Position(l, x)`, `PositionProperty(l, f)` | `findfirst(==(x), l)`, `findfirst(f, l)` |
+| `Sum(l)`, `Product(l)` | `sum(l)`, `prod(l)` |
+| `Add(l, x)`, `Append(l, m)` | `push!(l, x)`, `append!(l, m)` |
+| `Concatenation(l, m)` | `vcat(l, m)` |
+| `Reversed(l)` | `reverse(l)` |
+| `Sort(l)`, `SortedList(l)` | `sort!(l)`, `sort(l)` |
+| `Set(l)` | `sort(unique(l))` (`Set(l)` creates a Julia set) |
+| `Union(a, b)`, `Intersection(a, b)`, `Difference(a, b)` | `union(a, b)`, `intersect(a, b)`, `setdiff(a, b)` |
+| `IsSubset(a, b)` | `issubset(b, a)` |
+| `IsEmpty(l)` | `isempty(l)` |
+| `Cartesian(a, b)` | `Iterators.product(a, b)` |
+| `Combinations(l, k)` | `combinations(l, k)` |
+| `Partitions(n)` | `partitions(n)` |
+| `ShallowCopy(x)`, `StructuralCopy(x)` | `copy(x)`, `deepcopy(x)` |
+| `rec(a := 1)`, `r.a` | `Dict(:a => 1)`, `r[:a]` |
+| `IsBound(x)` | `@isdefined x` |
+| `Print(x)`, `Display(x)` | `print(x)`, `display(x)` |
+| `Read("file.g")` | `include("file.jl")` |
+| `Random(l)` | `rand(l)` |
+
+### Integers
+
+| GAP | OSCAR |
+|:----|:------|
+| `Factorial(n)` | `factorial(ZZ(n))` |
+| `Binomial(n, k)` | `binomial(n, k)` |
+| `Gcd(a, b)`, `Lcm(a, b)`, `Gcdex(a, b)` | `gcd(a, b)`, `lcm(a, b)`, `gcdx(a, b)` |
+| `QuoInt(a, b)`, `RemInt(a, b)`, `a mod b` | `div(a, b)`, `rem(a, b)`, `mod(a, b)` |
+| `PowerMod(a, e, m)` | `powermod(a, e, m)` |
+| `IsPrimeInt(n)`, `NextPrimeInt(n)` | `is_prime(n)`, `next_prime(n)` |
+| `Factors(n)` | `factor(n)` |
+| `DivisorsInt(n)` | `divisors(n)` |
+| `Phi(n)` | `euler_phi(n)` |
+| `Jacobi(a, n)` | `jacobi_symbol(a, n)` |
+| `ChineseRem([m1, m2], [r1, r2])` | `crt([r1, r2], [m1, m2])` |
+| `RootInt(n, k)` | `iroot(n, k)` |
+| `Fibonacci(n)`, `Bell(n)` | `fibonacci(n)`, `bell(n)` |
+
+### Groups
+
+| GAP | OSCAR |
+|:----|:------|
+| `SymmetricGroup(n)`, `AlternatingGroup(n)` | `symmetric_group(n)`, `alternating_group(n)` |
+| `CyclicGroup(n)`, `DihedralGroup(n)` | `cyclic_group(n)`, `dihedral_group(n)` |
+| `AbelianGroup([2, 4])` | `abelian_group([2, 4])` |
+| `SmallGroup(n, i)`, `IdGroup(G)` | `small_group(n, i)`, `small_group_identification(G)` |
+| `Group(g, h)` (permutations) | `permutation_group(n, [g, h])` |
+| `Group(m1, m2)` (matrices) | `matrix_group([m1, m2])` |
+| `GL(n, q)`, `SL(n, q)` | `GL(n, q)`, `SL(n, q)` |
+| `FreeGroup(2)`, `F / rels` | `free_group(2)`, `quo(F, rels)` |
+| `DirectProduct(G, H)` | `direct_product(G, H)` |
+| `Subgroup(G, gens)` | `sub(G, gens)` |
+| `GeneratorsOfGroup(G)`, `G.1` | `gens(G)`, `G[1]` |
+| `One(G)` | `one(G)` |
+| `Size(G)`, `Order(g)` | `order(G)`, `order(g)` |
+| `Elements(G)` | `collect(G)` |
+| `Random(G)` | `rand(G)` |
+| `Exponent(G)` | `exponent(G)` |
+| `Centre(G)`, `DerivedSubgroup(G)` | `center(G)`, `derived_subgroup(G)` |
+| `FittingSubgroup(G)`, `FrattiniSubgroup(G)`, `Socle(G)` | `fitting_subgroup(G)`, `frattini_subgroup(G)`, `socle(G)` |
+| `Centralizer(G, x)`, `Normalizer(G, H)` | `centralizer(G, x)`, `normalizer(G, H)` |
+| `SylowSubgroup(G, p)` | `sylow_subgroup(G, p)` |
+| `Intersection(G, H)` | `intersect(G, H)` |
+| `Index(G, H)` | `index(G, H)` |
+| `IsSubgroup(G, H)`, `IsNormal(G, H)` | `is_subgroup(H, G)`, `is_normal_subgroup(H, G)` |
+| `NormalSubgroups(G)`, `MaximalSubgroups(G)` | `normal_subgroups(G)`, `maximal_subgroups(G)` |
+| `ConjugacyClassesSubgroups(G)` | `subgroup_classes(G)` |
+| `IsAbelian(G)`, `IsSolvable(G)`, `IsNilpotent(G)`, `IsSimple(G)`, `IsPerfect(G)` | `is_abelian(G)`, `is_solvable(G)`, `is_nilpotent(G)`, `is_simple(G)`, `is_perfect(G)` |
+| `ConjugacyClasses(G)`, `NrConjugacyClasses(G)` | `conjugacy_classes(G)`, `number_of_conjugacy_classes(G)` |
+| `Representative(C)` | `representative(C)` |
+| `IsConjugate(G, x, y)` | `is_conjugate(G, x, y)` |
+| `CharacterTable(G)`, `CharacterTable("M11")` | `character_table(G)`, `character_table("M11")` |
+| `TableOfMarks(G)` | `table_of_marks(G)` |
+| `AutomorphismGroup(G)` | `automorphism_group(G)` |
+| `StructureDescription(G)` | `describe(G)` |
+| `AbelianInvariants(G)` | `abelian_invariants(G)` |
+| `IsomorphismGroups(G, H)` | `isomorphism(G, H)` |
+| `IsomorphismPermGroup(G)`, `IsomorphismPcGroup(G)`, `IsomorphismFpGroup(G)` | `isomorphism(PermGroup, G)`, `isomorphism(PcGroup, G)`, `isomorphism(FPGroup, G)` |
+| `GroupHomomorphismByImages(G, H, gens, imgs)` | `hom(G, H, gens, imgs)` |
+| `Image(f, x)`, `x^f` | `f(x)` |
+| `Image(f)`, `Kernel(f)` | `image(f)`, `kernel(f)` |
+| `PreImagesRepresentative(f, y)` | `preimage(f, y)` |
+| `NaturalHomomorphismByNormalSubgroup(G, N)`, `FactorGroup(G, N)` | `quo(G, N)` |
+| `Orbit(G, x)`, `Orbits(G)` | `orbit(G, x)`, `orbits(G)` |
+| `Stabilizer(G, x)` | `stabilizer(G, x)` |
+| `IsTransitive(G)`, `IsPrimitive(G)` | `is_transitive(G)`, `is_primitive(G)` |
+
+### Permutations
+
+| GAP | OSCAR |
+|:----|:------|
+| `(1,2,3)` | `cperm(G, [1, 2, 3])` |
+| `PermList([2, 3, 1])` | `perm(G, [2, 3, 1])` |
+| `ListPerm(g)` | `Vector(g)` |
+| `i^g`, `OnPoints(i, g)` | `i^g` |
+| `g^h`, `Comm(g, h)` | `g^h`, `comm(g, h)` |
+| `SignPerm(g)`, `CycleStructurePerm(g)` | `sign(g)`, `cycle_structure(g)` |
+| `MovedPoints(g)`, `NrMovedPoints(g)` | `moved_points(g)`, `number_of_moved_points(g)` |
+
+### Rings, fields, and polynomials
+
+| GAP | OSCAR |
+|:----|:------|
+| `Integers`, `Rationals` | `ZZ`, `QQ` |
+| `GF(q)`, `GF(p, n)` | `GF(q)`, `GF(p, n)` |
+| `Integers mod n` | `residue_ring(ZZ, n)` |
+| `CF(n)` | `cyclotomic_field(n)` |
+| `E(n)` | `K, z = abelian_closure(QQ); z(n)` |
+| `PolynomialRing(Rationals, ["x", "y"])` | `polynomial_ring(QQ, [:x, :y])` |
+| `Indeterminate(Rationals, "x")` | `R, x = polynomial_ring(QQ, :x); x` |
+| `Value(f, x)` | `evaluate(f, x)` or `f(x)` |
+| `Degree(f)`, `Derivative(f)` | `degree(f)`, `derivative(f)` |
+| `Factors(f)`, `IsIrreducible(f)` | `factor(f)`, `is_irreducible(f)` |
+| `RootsOfUPol(f)` | `roots(f)` |
+| `CoefficientsOfUnivariatePolynomial(f)` | `coefficients(f)` |
+| `Gcd(f, g)`, `Resultant(f, g)`, `Discriminant(f)` | `gcd(f, g)`, `resultant(f, g)`, `discriminant(f)` |
+| `AlgebraicExtension(Rationals, f)` | `number_field(f)` |
+| `Ideal(R, [f, g])` | `ideal(R, [f, g])` |
+| `GroebnerBasis(I, ord)` | `groebner_basis(I)` |
+
+### Matrices
+
+| GAP | OSCAR |
+|:----|:------|
+| `[[1, 2], [3, 4]]` | `matrix(ZZ, [1 2; 3 4])` |
+| `IdentityMat(n)`, `NullMat(m, n)`, `DiagonalMat(l)` | `identity_matrix(ZZ, n)`, `zero_matrix(ZZ, m, n)`, `diagonal_matrix(l)` |
+| `M[i][j]`, `M[i, j]` | `M[i, j]` |
+| `M[i]` | `M[i, :]` |
+| `NrRows(M)`, `NrCols(M)` | `nrows(M)`, `ncols(M)` |
+| `TransposedMat(M)` | `transpose(M)` |
+| `DeterminantMat(M)`, `TraceMat(M)`, `RankMat(M)` | `det(M)`, `tr(M)`, `rank(M)` |
+| `Inverse(M)`, `M^-1` | `inv(M)`, `M^-1` |
+| `NullspaceMat(M)` | `kernel(M)` |
+| `SolutionMat(M, v)` | `solve(M, v; side = :left)` |
+| `CharacteristicPolynomial(M)`, `MinimalPolynomial(M)` | `charpoly(M)`, `minpoly(M)` |
+| `Eigenvalues(F, M)` | `eigenvalues(M)` |
+| `SmithNormalFormIntegerMat(M)`, `HermiteNormalFormIntegerMat(M)` | `snf(M)`, `hnf(M)` |
+| `TriangulizedMat(M)` | `rref(M)` |
+| `KroneckerProduct(M, N)` | `kronecker_product(M, N)` |
