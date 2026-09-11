@@ -158,7 +158,7 @@ end
 
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
-function Generic.matrix_repr(x::LinearLieAlgebraElem)
+function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:FieldElem}
   L = parent(x)
   mat = zero_matrix(coefficient_ring(L), L.n, L.n)
   tmp = zero(mat)
