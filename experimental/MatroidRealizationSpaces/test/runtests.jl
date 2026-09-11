@@ -238,6 +238,27 @@ end
     end
 end
 
+@testset "saturate=true returns a saturated ideal" begin
+    # Regression: with simplify=saturate=true, the post-saturation reduction
+    # pass could return an UNSATURATED ideal — eliminating a variable via a
+    # solution with nontrivial denominator (a unit on the localized space)
+    # clears that denominator into the substituted generators, and the ideal
+    # picks up junk components inside its vanishing locus. On this matroid the
+    # non-basis minor [2,4,6] of the returned matrix then failed to lie in the
+    # returned ideal.
+    revlex = "0******0******0**********0********0*******0****************" *
+             "*****0*****************0***********0***********************" *
+             "0*****************0******0****0**********0*****"
+    M = matroid_from_revlex_basis_encoding(revlex, 3, 11)
+    RS = realization_space(M; B=[1, 5, 9], saturate=true)
+    I = defining_ideal(RS)
+    A = ambient_ring(RS)
+    @test Oscar.stepwise_saturation(I, inequations(RS)) == I
+    X = realization_matrix(RS)
+    m = det(matrix(A, [X[i, j] for i in 1:3, j in [2, 4, 6]]))
+    @test m in I
+end
+
 @testset "matroid realization space serialization" begin
     # Regression: a fully reduced (rigid) chart has ambient ring ZZ, and the
     # loader used to request the inequations as Vector{MPolyRingElem} over
