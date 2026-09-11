@@ -440,15 +440,7 @@ end
 singular_coeff_ring(::ZZRing) = Singular.Integers()
 singular_coeff_ring(::QQField) = Singular.Rationals()
 
-function _singular_prime_field(p)
-  p = ZZ(p)
-  if p <= ZZ(2)^29
-    return Singular.Fp(Int(p))
-  end
-  return Singular.residue_ring(Singular.Integers(), BigInt(p))[1]
-end
-
-singular_coeff_ring(F::fpField) = _singular_prime_field(characteristic(F))
+singular_coeff_ring(F::fpField) = Singular.Fp(characteristic(F))
 
 function singular_coeff_ring(F::Union{zzModRing, ZZModRing})
   return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
@@ -493,22 +485,6 @@ function (F::FqField)(a::Singular.n_Zp)
 end
 
 function (SF::Singular.N_ZpField)(a::FqFieldElem)
-   return SF(lift(ZZ, a))
-end
-
-function (F::FqField)(a::Singular.n_Zn)
-  return F(ZZ(BigInt(a)))
-end
-
-function (SF::Singular.N_ZnRing)(a::FqFieldElem)
-   return SF(lift(ZZ, a))
-end
-
-function (F::fpField)(a::Singular.n_Zn)
-  return F(ZZ(BigInt(a)))
-end
-
-function (SF::Singular.N_ZnRing)(a::fpFieldElem)
    return SF(lift(ZZ, a))
 end
 
