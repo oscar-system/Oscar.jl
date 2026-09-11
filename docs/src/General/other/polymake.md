@@ -2,58 +2,20 @@
 
 OSCAR uses polymake for polyhedral geometry and parts of combinatorics,
 via the Julia package
-[Polymake.jl](https://github.com/oscar-system/Polymake.jl),
-which is available as `Polymake`.
-The first section describes how to reach polymake functionality that has
-no OSCAR counterpart yet, the remaining sections describe differences
-between polymake and OSCAR, and list common polymake commands together
-with their OSCAR counterparts.
+[Polymake.jl](https://github.com/oscar-system/Polymake.jl).
+This page describes differences between polymake and OSCAR,
+and lists common polymake commands together with their OSCAR
+counterparts.
+
+Not every polymake function has a counterpart in OSCAR.
+If you need one that does not, you can call it directly,
+see [Using polymake from OSCAR](@ref); in that case please also
+[open an issue](https://github.com/oscar-system/Oscar.jl/issues),
+so that we can add a proper OSCAR interface for it.
 
 !!! note "Help wanted"
     This page is a start. Please tell us what is missing, see
     [Notes for users of other computer algebra systems](@ref).
-
-## Calling polymake from OSCAR
-
-Polyhedra, cones, fans, matroids, simplicial complexes, and graphs in
-OSCAR wrap polymake objects, and `Oscar.pm_object` returns the wrapped
-object.
-Properties of polymake objects are accessed with the dot syntax,
-and the functions of a polymake application `app` are available as
-`Polymake.app.<name>`.
-The results are polymake objects; `polyhedron` turns a polymake polytope
-back into an OSCAR polyhedron, and `matrix` converts polymake matrices.
-```jldoctest
-julia> P = cube(3);
-
-julia> pm = Oscar.pm_object(P);
-
-julia> pm.F_VECTOR
-pm::Vector<pm::Integer>
-8 12 6
-
-julia> matrix(QQ, pm.VERTICES)
-[1   -1   -1   -1]
-[1    1   -1   -1]
-[1   -1    1   -1]
-[1    1    1   -1]
-[1   -1   -1    1]
-[1    1   -1    1]
-[1   -1    1    1]
-[1    1    1    1]
-
-julia> polyhedron(Polymake.polytope.hypersimplex(2, 4))
-Polytope in ambient dimension 4
-```
-Note that `Oscar.pm_object` is not part of OSCAR's official interface
-and may change.
-Prefer the OSCAR functions whenever they exist
-(`f_vector(P)`, `vertices(P)`, and `hypersimplex(2, 4)` in the example
-above), they take care of the differences described below, and please
-[open an issue](https://github.com/oscar-system/Oscar.jl/issues)
-if you need polymake functionality that OSCAR does not provide.
-More details can be found in the
-[Polymake.jl manual](https://oscar-system.github.io/Polymake.jl/stable/).
 
 ## Differences in syntax
 
@@ -69,22 +31,6 @@ More details can be found in the
   `new Polytope(POINTS=>[[1,0,0],[1,1,0],[1,0,1]])` is
   `convex_hull([0 0; 1 0; 0 1])`,
   and `new Cone(INPUT_RAYS=>[[1,0],[1,1]])` is `positive_hull([1 0; 1 1])`.
-
-- `user_method`s cannot be accessed via Julia's dot syntax, i.e. something like
-
-  ```julia
-  c = Polymake.polytope.cube(3)
-  c.AMBIENT_DIM
-  ```
-
-  will not work. Instead `user_method`s are attached as Julia functions in
-  their respective application. They are always written in lowercase. In the
-  example the following works:
-
-  ```julia
-  c = Polymake.polytope.cube(3)
-  Polymake.polytope.ambient_dim(c)
-  ```
 
 - There are no applications to switch between.
   `application "fan";` is not needed, `normal_fan(P)` is available
