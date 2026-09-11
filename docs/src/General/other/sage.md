@@ -80,6 +80,9 @@ so most of the differences are differences between these two languages.
   `sqrt(2)`, `pi`, and `var('u')` have no counterparts;
   work in an algebraic structure instead, such as a number field
   (`quadratic_field(2)`) or the algebraic closure `algebraic_closure(QQ)`.
+  For numerical values, `RealField()` and `ComplexField()` provide
+  ball arithmetic with a global precision, `ArbField(100)` and
+  `AcbField(100)` with a precision fixed in the field.
 
 - **Constructors return tuples.**
   `Integers(5)` is `residue_ring(ZZ, 5)`, which returns the ring
@@ -144,6 +147,7 @@ so most of the differences are differences between these two languages.
 | `isqrt(n)`, `n.is_square()` | `isqrt(n)`, `is_square(n)` |
 | `Integers(n)`, `Zmod(n)` | `residue_ring(ZZ, n)` |
 | `GF(q)`, `GF(q, 'a')` | `GF(q)` |
+| `RR`, `CC`, `RealField(100)` | `RealField()`, `ComplexField()`, `ArbField(100)` |
 | `Mod(a, n)` | `residue_ring(ZZ, n)[1](a)` |
 
 ### Groups
