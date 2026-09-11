@@ -70,8 +70,8 @@ function gcd(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
 end
 
 function lcm(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-   check_parent(p, q)
-   return parent(p)(lcm(data(p), data(q)))
+  check_parent(p, q)
+  return parent(p)(lcm(data(p), data(q)))
 end
 
 ###############################################################################

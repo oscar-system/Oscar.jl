@@ -671,7 +671,7 @@ end
 function __leader(p::MPolyRingElem)
   @req !is_zero(p) "The zero polynomial has no leader"
   is_constant(p) && return one(parent(p))
-  return minimum(var_index, vars(p))
+  return maximum(vars(p))
 end
 __leader(p::ActionPolyRingElem) = leader(p)
 
