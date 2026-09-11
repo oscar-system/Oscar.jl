@@ -2082,7 +2082,6 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
   end
   id = FacElem(Dict((1*o_zk)=>1))
   for p = I.S
-    @show minimum(p)
     lp = prime_decomposition(zk, minimum(p))
     for P = lp
       Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
