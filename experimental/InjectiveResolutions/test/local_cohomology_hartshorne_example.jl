@@ -21,4 +21,14 @@
     H2_sectors = [h for h in sectors(H[2]) if !is_zero(h)] #sectors with non-zero local cohomology
     @test !is_zero(H[2])
     @test length(H2_sectors) == 1
+
+    # k[Q] is Cohen-Macaulay of dimension 3, so its Bass numbers at the maximal
+    # ideal vanish below degree 3. The shift for a resolution up to degree 1
+    # must nevertheless use them up to degree 1 + dim Q, otherwise J^1 is lost.
+    for shift in (:bound, :helm_miller, :milp)
+      res = injective_resolution(M, 1; shift)
+      @test res.upto == 1
+      @test length(indecomposable_injectives(injective_modules(res)[2])) == 4
+    end
+    @test is_minimal(injective_resolution(M, 1; shift=:helm_miller))
 end

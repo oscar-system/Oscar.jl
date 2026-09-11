@@ -62,6 +62,14 @@ local cohomology of finitely generated modules over monoid algebras following
 
 ## Bug fixes
 
+- The shift before an irreducible resolution used the Bass numbers up to
+  cohomological degree `i + 1` only. By Lemma 4.5 of [HM05] the summands of
+  `J^j` at a face `F` are controlled by the Bass numbers at the maximal ideal
+  in degree `j + dim Q - dim F`, so degrees up to `i + dim Q` are needed. For
+  a Cohen-Macaulay ring of dimension 3 and `i = 1` the exact strategies gave
+  the zero shift and lost `J^1` entirely. `injective_hull` had the same
+  problem. The MILP strategy also crashed when no Bass numbers were found.
+
 - `local_cohomology_all`: a destructuring shadowed the loop counter, the
   `SectorPartitionLC` constructor was called with the wrong arguments, and the
   ideal-argument method compared a nonexistent field.

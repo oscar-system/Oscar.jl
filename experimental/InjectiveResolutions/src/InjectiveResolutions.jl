@@ -619,7 +619,7 @@ end
 # MILP that minimises sum(a) subject to a + B[j] in Q for all j, where a in Q.
 # Variables: [a (d); lambda_0 (n); lambda_1 (n); ...; lambda_k (n)], all integer.
 function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
-  isempty(degrees) && return zeros(Int, ambient_dimension(kQ))
+  isempty(degrees) && return zeros(Int, ambient_dimension(affine_semigroup(kQ)))
   A  = Matrix{Int64}(semigroup_generators(kQ))
   d, n = size(A)
   B  = [Vector{Int64}(b) for b in degrees]
@@ -1445,7 +1445,9 @@ end
 Return an injective resolution of `M`, respectively of $k[Q]/I$, up to cohomological degree `i`.
 With `check = false` the internal verification of the maps is skipped.
 
-The keyword `shift` selects how the initial shift is computed:
+The module is first shifted so that the degrees of its Bass numbers at the maximal
+ideal up to cohomological degree `i + d`, $d = \dim Q$, lie in $Q$, see Lemma 4.5 in [HM05](@cite).
+The keyword `shift` selects how this shift is computed:
 * `:bound` (default) uses `compute_shift_bound`, a cheap bound on the degrees of the Bass numbers.
 * `:helm_miller` uses `compute_shift`, the shift described in [HM05](@cite), which needs the exact Bass numbers.
 * `:milp_bound` and `:milp` choose the shift with minimal coordinate sum by an integer linear program, from the bound and from the exact Bass numbers respectively.
@@ -1500,15 +1502,21 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
 
   G = grading_group(kQ)
 
+  # The shift must move the degrees of the Bass numbers at the maximal ideal
+  # into Q up to cohomological degree i + d, d = dim Q: by [HM05, Lemma 4.5] a
+  # summand k{a + F - Q} of J^j has non-zero Q-graded part once the summands
+  # of Gamma_m J^{j + d - dim F} do, and dim F can be 0.
+  depth = i + ambient_dimension(affine_semigroup(kQ))
+
   #compute irreducible resolution of shifted module
   if shift === :bound
-    a_shift = compute_shift_bound(M, i+1)
+    a_shift = compute_shift_bound(M, depth)
   elseif shift === :helm_miller
-    a_shift = compute_shift(M, i+1)
+    a_shift = compute_shift(M, depth)
   elseif shift === :milp
-    a_shift = compute_shift_milp(M, i+1)
+    a_shift = compute_shift_milp(M, depth)
   elseif shift === :milp_bound
-    a_shift = compute_shift_milp_bound(M, i+1)
+    a_shift = compute_shift_milp_bound(M, depth)
   else
     throw(ArgumentError("unknown shift strategy :$shift; expected :bound, :helm_miller, :milp, or :milp_bound"))
   end
@@ -1666,8 +1674,10 @@ function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
   R_Q = kQ.algebra
   G = grading_group(kQ)
 
-  #compute irreducible hull of shifted module
-  a_shift = compute_shift(M, 0)
+  #compute irreducible hull of shifted module; the Bass numbers up to
+  #cohomological degree d = dim Q control the summands of J^0, see
+  #injective_resolution
+  a_shift = compute_shift_bound(M, ambient_dimension(affine_semigroup(kQ)))
   M_a = twist(M, -G(a_shift))
   J, _lambda = irreducible_hull(M_a, 0)
 
