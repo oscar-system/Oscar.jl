@@ -3,7 +3,7 @@
     kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]],QQ);
     x, y, z = gens(kQ);
 
-    #example of computing local cohomology modules 
+    #example of computing local cohomology modules
     I_M = ideal(kQ, [x^2*z, x^4*y])
 
     @test base_ring(I_M) == kQ
@@ -31,4 +31,7 @@
 
     H4 = Oscar.local_cohomology(I_M,m,4)
     @test Oscar.is_zero(H4)
+
+    m = ideal(kQ,gens(kQ))
+    Lm = local_cohomology_all(I_M,m,2)
 end

@@ -65,7 +65,7 @@ faces(A::MonoidAlgebra)
 ### Example
 ```jldoctest
 julia> kQ = monoid_algebra([[0, 1], [1, 1], [1, 2]], QQ)
-monoid algebra over rational field with cone of dimension 2
+Monoid algebra over rational field with cone of dimension 2
 
 julia> kQ.algebra
 Quotient
@@ -79,11 +79,11 @@ julia> cone(kQ)
 Polyhedron in ambient dimension 2
 
 julia> faces(kQ)
-4-element Vector{Oscar.InjectiveResolutions.FaceQ}:
- face corresponding to homogeneous prime ideal (x_1, x_2, x_3)
- face corresponding to homogeneous prime ideal (x_1, x_3)
- face corresponding to homogeneous prime ideal (x_2, x_3)
- face corresponding to homogeneous prime ideal ()
+4-element Vector{FaceQ}:
+ Face corresponding to homogeneous prime ideal (x_1, x_2, x_3)
+ Face corresponding to homogeneous prime ideal (x_1, x_3)
+ Face corresponding to homogeneous prime ideal (x_2, x_3)
+ Face corresponding to homogeneous prime ideal ()
 ```
 
 ## Affine semigroups

@@ -17,9 +17,6 @@ $\Gamma_I(J^\bullet) \colon 0 \to \Gamma_I(J^0) \xrightarrow{d^0} \Gamma_I(J^1) 
 
 The *$i$-th local cohomology module of $M$ supported on $I$* is the $i$-th cohomology module of $\Gamma_I(J^\bullet)$.
 
-!!! note
-    We require that the monoid algebra $k[Q]$ is normal. 
-
 ## Cohomological degree zero
 The zeroth local cohomology module of $M$ supported on $I$ is
 
@@ -35,6 +32,9 @@ zeroth_local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraId
 ```
 
 ## Sector partitions of local cohomology modules
+!!! note
+    We require that the monoid algebra $k[Q]$ is normal.
+
 The local cohomology modules $H^i_I(M)$ are in general not finitely generated 
 for $i>0$. However, sector partitions are a finite data structure for them.
 
