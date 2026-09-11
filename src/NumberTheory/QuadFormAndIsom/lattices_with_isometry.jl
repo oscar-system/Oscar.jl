@@ -2319,7 +2319,7 @@ julia> L = root_lattice(:A, 2);
 
 julia> G = isometry_group(L);
 
-julia> F, C, _ = invariant_coinvariant_pair(L, matrix(last(gens(G))))
+julia> F, C, _ = invariant_coinvariant_pair(L, QQ[1 0; -1 -1])
 (Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, [1 0; -1 -1])
 
 julia> F

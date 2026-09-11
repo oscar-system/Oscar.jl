@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Group homomorphisms
 
 A *group homomorphism* from a group $G$ to a group $H$ is a map $f$ with

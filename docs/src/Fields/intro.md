@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Introduction](@id fields)
 
 OSCAR provides functionality for working with a wide variety of different fields.

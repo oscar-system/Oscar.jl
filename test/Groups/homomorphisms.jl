@@ -9,7 +9,16 @@
      @test id_hom(H) * emb == emb
      @test emb * id_hom(G) == emb
      @test is_trivial(ker)
+
+     @test_throws ArgumentError [image(emb, g) for g in gens(G)]
    end
+end
+
+@testset "image" begin
+  G = symmetric_group(3)
+  H, _ = trivial_subgroup(G)
+  f = hom(H, G, gens(H))
+  @test_throws ArgumentError f(gen(G, 1))
 end
 
 n = 6

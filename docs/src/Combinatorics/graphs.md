@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Graphs
 
 ## Introduction
@@ -79,6 +73,7 @@ diameter(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 ```@docs
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
+cycle_graph(n::Int64)
 petersen_graph()
 clebsch_graph()
 ```            

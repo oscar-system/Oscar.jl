@@ -3,11 +3,13 @@
 ################################################
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety; completeness_check::Bool = true, rng::AbstractRNG = Random.default_rng())
+    global_tate_model(base::NormalToricVariety; kwargs...)
 
 This method constructs a global Tate model over a given toric base
 3-fold. The Tate sections ``a_i`` are taken with (pseudo) random coefficients.
-The random source used in their creation can be set with the optional argument `rng`.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 !!! note "Complete toric base"
     This function assumes that the toric base space is **complete**.
@@ -31,7 +33,7 @@ global_tate_model(
 )
 
 @doc raw"""
-    global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
+    global_tate_model(base::NormalToricVariety, ais::Vector{T}; kwargs...) where {T<:MPolyRingElem}
 
 This method operates analogously to `global_tate_model(base::NormalToricVarietyType)`.
 The only difference is that the Tate sections ``a_i`` can be specified with non-generic values.
@@ -118,16 +120,19 @@ function global_tate_model(base::NormalToricVariety,
     explicit_model_sections, model_section_parametrization, pt, base, ambient_space
   )
   set_attribute!(model, :partially_resolved, false)
+  _initialize_exceptional_divisor_attributes!(model)
   return model
 end
 
 @doc raw"""
-    global_tate_model_over_projective_space(d::Int; rng::AbstractRNG = Random.default_rng())
+    global_tate_model_over_projective_space(d::Int; kwargs...)
 
 Construct a global Tate model over the ``d``-dimensional projective space,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -143,12 +148,14 @@ global_tate_model_over_projective_space(d::Int; rng::AbstractRNG=Random.default_
   )
 
 @doc raw"""
-    global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG = Random.default_rng())
+    global_tate_model_over_hirzebruch_surface(r::Int; kwargs...)
 
 Construct a global Tate model over the Hirzebruch surface ``F_r``,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -164,12 +171,14 @@ global_tate_model_over_hirzebruch_surface(r::Int; rng::AbstractRNG=Random.defaul
   )
 
 @doc raw"""
-    global_tate_model_over_del_pezzo_surface(b::Int; rng::AbstractRNG = Random.default_rng())
+    global_tate_model_over_del_pezzo_surface(b::Int; kwargs...)
 
 Construct a global Tate model over the del Pezzo surface ``\text{dP}_b``,
 represented as a toric variety. The Tate sections ``a_i`` are
-automatically generated with pseudorandom coefficients. The random
-source used in their creation can be set with the optional argument `rng`.
+automatically generated with pseudorandom coefficients.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest
@@ -298,35 +307,9 @@ end
 
 # Detailed printing
 function Base.show(io::IO, ::MIME"text/plain", t::GlobalTateModel)
-  io = pretty(io)
-  properties_string = String[]
-  if is_partially_resolved(t)
-    push!(properties_string, "Partially resolved global Tate model over a")
-  else
-    push!(properties_string, "Global Tate model over a")
-  end
-  if is_base_space_fully_specified(t)
-    push!(properties_string, "concrete base")
-  else
-    push!(properties_string, "not fully specified base")
-  end
-  if has_attribute(t, :model_description)
-    push!(properties_string, "-- " * model_description(t))
-    if has_attribute(t, :model_parameters)
-      push!(
-        properties_string,
-        "with parameter values (" *
-        join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")",
-      )
-    end
-  end
-  if has_attribute(t, :arxiv_id)
-    push!(properties_string, "based on arXiv paper " * arxiv_id(t))
-  end
-  if has_attribute(t, :arxiv_model_equation_number)
-    push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
-  end
-  join(io, properties_string, " ")
+  return _show_model_over_base(
+    io, t, "Global Tate model"; partially_resolved_model_name="global Tate model"
+  )
 end
 
 # Terse and one line printing

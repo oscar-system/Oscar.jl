@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Weight lattices
 
 Weight lattices are represented by objects of type `WeightLattice <: AdditiveGroup`, and their elements by `WeightLatticeElem <: AdditiveGroupElement`.

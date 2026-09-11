@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lie algebra homomorphisms
 
 Homomorphisms of Lie algebras in Oscar are represented by the type

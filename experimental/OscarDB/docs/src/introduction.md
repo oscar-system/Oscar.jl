@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # OscarDB
 
 This module provides a general database framework which, conceptually, works for all OSCAR types.
@@ -67,16 +61,12 @@ You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/communit
 
 Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
 
-```@meta
-CurrentModule = Oscar.OscarDB
-```
-
 ```@docs
-get_db
-find_one
-find
-length(c::Collection, d::Dict=Dict())
-getindex(db::Database, name::AbstractString)
-get_collection_names
+OscarDB.get_db
+OscarDB.find_one
+OscarDB.find
+OscarDB.length(c::OscarDB.Collection, d::Dict=Dict())
+OscarDB.getindex(db::OscarDB.Database, name::AbstractString)
+OscarDB.get_collection_names
 ```
 

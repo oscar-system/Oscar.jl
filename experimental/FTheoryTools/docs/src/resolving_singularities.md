@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Resolving F-Theory Models](@id resolving_f_theory_models)
 
 In F-theory, the standard approach to handling singular geometries is to replace them with **smooth** ones
@@ -37,9 +31,9 @@ over the resolution process.
 You can execute individual blowups, whether toric or not, using the following methods:
 
 ```@docs
-blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
-blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
-blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String})
+blow_up(m::AbstractFTheoryModel, I::MPolyIdeal)
+blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf)
 ```
 
 ### Data Format for Resolutions

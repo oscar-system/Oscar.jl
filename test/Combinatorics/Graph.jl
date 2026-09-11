@@ -7,12 +7,17 @@
         add_edge!(g, 1, 2)
         @test n_edges(g) == 1
         @test has_edge(g, 1, 2)
+        h = copy(g)
         rem_edge!(g, 1, 2)
         @test n_edges(g) == 0
+        @test n_edges(h) == 1
         @test !has_edge(g, 1, 2)
+        @test has_edge(h, 1, 2)
         @test add_vertex!(g)
         @test n_vertices(g) == 6
+        @test n_vertices(h) == 5
         @test has_vertex(g, 6)
+        @test !has_vertex(h, 6)
         rem_vertex!(g, 1)
         @test n_vertices(g) == 5
         @test has_vertex(g, 1)
@@ -90,6 +95,11 @@
         g = dual_graph(convex_hull([0 0 0; 1 0 0], [0 0 1; 0 1 0]))
         @test n_vertices(g) == 4
         @test n_edges(g) == 5
+
+        @test egtriangle == graph_from_edges(triangle)
+        @test egcube == graph_from_edges(c)
+        @test egpl == graph_from_edges(pl)
+        @test egplc == graph_from_edges(pl, modulo_lineality=true)
     end
 
     @testset "isomorphic" begin
@@ -327,6 +337,13 @@
       @test sg4.vertexlabels[2] == "fourth"
     end
 
+    @testset "cycle_graph" begin
+      G = cycle_graph(4)
+      @test n_vertices(G) == 4
+      @test n_edges(G) == 4
+      @test degree(G) == fill(2,4)
+    end
+
     @testset "petersen_graph" begin
       P = petersen_graph()
       @test n_vertices(P) == 10
@@ -424,6 +441,20 @@
       G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
       @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
+
+      let	
+        # the canonical hash must not depend on the order in which the labels are stored internally
+        g = graph_from_labeled_edges(
+                                     Dict((1, 10) => 1),
+                                     Dict(i => i for i in 1:22);
+                                     n_vertices=22,
+                                    )
+
+        p = collect(1:22)
+        p[11], p[19] = p[19], p[11]
+        h = on_graph(g, perm(p))
+        @test Oscar._canonical_hash(g; label=:label) == Oscar._canonical_hash(h; label=:label)
+      end
     end
 
     @testset "on_graph" begin
@@ -474,5 +505,9 @@
       @test G.label[2, 1] == 10
       @test G.label[1, 3] == 20
       @test G.color[2] == "red"
+
+      H = copy(G)
+      permute_nodes!(H, p)
+      @test G.label[1, 3] == H.label[2, 3]
     end
 end

@@ -301,7 +301,7 @@ julia> rho = smaller_degree_permutation_representation(s)
 """
 function smaller_degree_permutation_representation(G::PermGroup)
   mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
-  img = PermGroup(GAP.Globals.Image(mp))
+  img = PermGroup(GAPWrap.Image(mp))
   return img, GAPGroupHomomorphism(G, img, mp)
 end
 
@@ -590,26 +590,6 @@ Base.iseven(n::PermGroup) = !isodd(n)
 ##
 # cycle types and support
 ##
-struct CycleType <: AbstractVector{Pair{Int64, Int64}}
-  # pairs 'cycle length => number of times it occurs'
-  # so 'n => 1' is a single n-cycle and  '1 => n' is the identity on n points
-  s::Vector{Pair{Int, Int}}
-
-  # take a vector of cycle lengths
-  function CycleType(c::Vector{Int})
-    s = Vector{Pair{Int, Int}}()
-    for i = c
-      _push_cycle!(s, i)
-    end
-    sort!(s; by=first)
-    return new(s)
-  end
-  function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
-    sorted && return new(v)
-    return new(sort(v; by=first))
-#TODO: check that each cycle length is specified at most once?
-  end
-end
 
 Base.iterate(C::CycleType) = iterate(C.s)
 Base.iterate(C::CycleType, x) = iterate(C.s, x)
@@ -765,7 +745,7 @@ julia> cycle_structure(g)
 function cycle_structure(g::PermGroupElem)
     c = GAPWrap.CycleStructurePerm(GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
-    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
+    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAPWrap.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))
     if s < degree(g)
       @assert length(c) == 0 || ct[1][1] > 1

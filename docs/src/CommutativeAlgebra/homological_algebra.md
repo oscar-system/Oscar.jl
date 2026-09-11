@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Homological Algebra
 
 Some OSCAR functions which are fundamental to homological algebra such as the `kernel` function

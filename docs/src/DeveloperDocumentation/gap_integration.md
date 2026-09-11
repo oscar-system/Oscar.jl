@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # GAP Integration
 
 This section explains how OSCAR interacts with GAP.
@@ -58,6 +52,12 @@ GAP.jl cannot provide utility functions such as conversions to and from GAP.
   (The reason why we collect the `GAP.@wrap` lines in an OSCAR file and
   not inside GAP.jl is that we can extend the list without waiting for
   releases of GAP.jl.)
+
+  Note that `Oscar.GAPWrap` is intended only for *calling* the GAP function
+  in question.
+  In situations where a GAP function is used for other purposes,
+  usually as an argument in a function call,
+  one should access it via `GAP.Globals`.
 
 - In GAP code, global Julia variables can be accessed as members of
   `Julia`, relative to its `Main` module.

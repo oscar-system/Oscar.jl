@@ -37,7 +37,7 @@ julia> order(G)
 """
 function symmetric_group(n::Int)
   @req n >= 1 "n must be a positive integer"
-  return PermGroup(GAP.Globals.SymmetricGroup(n)::GapObj)
+  return PermGroup(GAPWrap.SymmetricGroup(n))
 end
 
 # for functions like perm, cperm or macros like @perm provide a cached
@@ -83,7 +83,7 @@ julia> order(G)
 """
 function alternating_group(n::Int)
   @req n >= 1 "n must be a positive integer"
-  return PermGroup(GAP.Globals.AlternatingGroup(n)::GapObj)
+  return PermGroup(GAPWrap.AlternatingGroup(n))
 end
 
 """
@@ -131,7 +131,7 @@ end
 # special handling for pc groups: distinguish on the GAP side
 function cyclic_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: Union{PcGroup, SubPcGroup}
   if is_infinite(n)
-    return T(GAP.Globals.AbelianPcpGroup(1, GapObj([])))
+    return T(GAPWrap.AbelianPcpGroup(1, GapObj([])))
   elseif n > 0
     return T(GAP.Globals.CyclicGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
   end
@@ -199,7 +199,7 @@ and the order of the `i`-th generator is `v[i]`.
 """
 function abelian_group(::Type{T}, v::Vector{S}) where T <: GAPGroup where S <: IntegerUnion
   vgap = GAP.Obj(v; recursive = true)
-  return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap)::GapObj)
+  return T(GAPWrap.AbelianGroup(_gap_filter(T), vgap))
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
@@ -212,13 +212,13 @@ function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubP
     #      so we keep the code from the master branch here.
     # We cannot construct an `IsPcGroup` group if some generator shall have
     # order infinity or 1 or a composed number.
-    return TG(GAP.Globals.AbelianPcpGroup(length(v), GapObj(v; recursive = true)))
+    return TG(GAPWrap.AbelianPcpGroup(length(v), GapObj(v; recursive = true)))
   elseif TG == PcGroup && any(!is_prime, v)
     # GAP's IsPcGroup groups cannot have generators that correspond to the
     # orders given by `v` and to the defining presentation.
     error("cannot create a PcGroup group with relative orders $v, perhaps try SubPcGroup")
   else
-    return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(v; recursive = true)))
+    return TG(GAPWrap.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(v; recursive = true)))
   end
 end
 
@@ -899,7 +899,7 @@ and `T` is a suitable group type such as
 !!! note
     In the literature, these groups are sometimes called dicyclic groups and
     sometimes (generalized) quaternion groups. For user convenience we support
-    both names. However, the two functions are fully identical. 
+    both names. However, the two functions are fully identical.
 
 # Examples
 ```jldoctest
@@ -943,7 +943,7 @@ of order $4k, k > 1$, and `false` otherwise.
     In the literature, these groups are sometimes called dicyclic groups and
     sometimes (generalized) quaternion groups. For user convenience we support
     both names. However, the two functions are fully identical.
-    
+
     If you wish to check that `G` is a quaternion group in a stricter sense,
     e.g. that its order exactly 8 resp. a power of two, you can check
     the order explicitly resp. use `is_pgroup`.
@@ -962,7 +962,7 @@ is_dicyclic_group(G::GAPGroup) = _is_dicyclic_group(G)
 function _is_dicyclic_group(G::GAPGroup)
   N = order(G)
   !iszero(mod(N, 4)) && return false
-  
+
   n = div(N, 2)
   a = div(n, 2)
 

@@ -249,12 +249,12 @@ julia> length(resolutions(m))
 ```
 """
 function add_resolution!(
-  m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String}
+  m::AbstractFTheoryModel, centers::Vector{BlowupCenterType}, exceptionals::Vector{String}
 )
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
   new_entry = (centers, exceptionals)
   known_resolutions = get_attribute(
-    m, :resolutions, Tuple{Vector{Vector{String}},Vector{String}}[]
+    m, :resolutions, ResolutionsType()
   )
   if !(new_entry in known_resolutions)
     set_attribute!(m, :resolutions => vcat(known_resolutions, [new_entry]))
@@ -297,7 +297,7 @@ julia> length(weighted_resolutions(m))
 """
 function add_weighted_resolution!(
   m::AbstractFTheoryModel,
-  centers::Vector{Tuple{Vector{String},Vector{Int64}}},
+  centers::Vector{WeightedBlowupCenterType},
   exceptionals::Vector{String},
 )
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
@@ -305,7 +305,7 @@ function add_weighted_resolution!(
   known_values = get_attribute(
     m,
     :weighted_resolutions,
-    Tuple{Vector{Tuple{Vector{String},Vector{Int64}}},Vector{String}}[],
+    WeightedResolutionsType(),
   )
   if !(new_entry in known_values)
     set_attribute!(m, :weighted_resolutions => vcat(known_values, [new_entry]))
@@ -341,7 +341,7 @@ julia> length(resolution_zero_sections(m))
 ```
 """
 function add_resolution_zero_section!(
-  m::AbstractFTheoryModel, addition::Vector{Vector{String}}
+  m::AbstractFTheoryModel, addition::ResolutionSectionInputType
 )
   R = parent(first(values(explicit_model_sections(m))))
   new_entry = deepmap(s -> eval_poly(s, R), addition)
@@ -376,7 +376,7 @@ julia> length(resolution_generating_sections(m))
 ```
 """
 function add_resolution_generating_section!(
-  m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}}
+  m::AbstractFTheoryModel, addition::ResolutionGeneratingSectionInputType
 )
   R = parent(first(values(explicit_model_sections(m))))
   new_entry = deepmap(s -> eval_poly(s, R), addition)
@@ -422,7 +422,7 @@ julia> length(weighted_resolution_zero_sections(m))
 ```
 """
 function add_weighted_resolution_zero_section!(
-  m::AbstractFTheoryModel, addition::Vector{Vector{String}}
+  m::AbstractFTheoryModel, addition::ResolutionSectionInputType
 )
   R = parent(first(values(explicit_model_sections(m))))
   new_entry = deepmap(s -> eval_poly(s, R), addition)
@@ -470,7 +470,7 @@ julia> length(weighted_resolution_generating_sections(m))
 ```
 """
 function add_weighted_resolution_generating_section!(
-  m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}}
+  m::AbstractFTheoryModel, addition::ResolutionGeneratingSectionInputType
 )
   R = parent(first(values(explicit_model_sections(m))))
   new_entry = deepmap(s -> eval_poly(s, R), addition)

@@ -15,23 +15,6 @@
 # we transfer changes in the Julia object to the GAP side
 # as soon as the GAP object exists.
 
-abstract type Collector{T} end
-
-mutable struct GAP_Collector{T} <: Collector{T}
-  ngens::Int
-  relorders::Vector{T}
-  powers::Vector{Vector{Pair{Int, T}}}
-  conjugates::Matrix{Vector{Pair{Int, T}}}
-  X::GapObj   # a collector in GAP, if defined
-  F::FPGroup  # the free group in Oscar that belongs to `X`, if defined
-
-  function GAP_Collector{T}(n::Int) where T <: IntegerUnion
-    return new(n, zeros(T, n), # relative orders undefined
-                  repeat([Pair{Int, T}[]], n), # default powers are identity
-                  Matrix{Vector{Pair{Int, T}}}(undef, n, n)) # conjugates undefined
-  end
-end
-
 """
     collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion
 
@@ -360,7 +343,7 @@ function Base.deepcopy_internal(c::GAP_Collector{T}, dict::IdDict) where T <: In
     if GAP.Globals.IsSingleCollectorRep(c.X)
       # For this type of collectors, `GAP.Globals.ShallowCopy`
       # returns an independent copy.
-      cc.X = GAP.Globals.ShallowCopy(c.X)::GapObj
+      cc.X = GAPWrap.ShallowCopy(c.X)
     elseif GAP.Globals.IsFromTheLeftCollectorRep(c.X)
       # Currently there is no `GAP.Globals.ShallowCopy` method for `c.X`.
       # Create the GAP object anew.

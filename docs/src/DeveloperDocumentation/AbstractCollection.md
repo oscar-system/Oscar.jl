@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # `AbstractCollection`
 
 Allowing the user to pass input using several formats usually is handled within

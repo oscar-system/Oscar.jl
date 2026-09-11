@@ -1,0 +1,7 @@
+[
+   "Drinfeld--Hecke Algebras" => [
+      "introduction.md",
+      "construction.md",
+      "useful_functions.md"
+   ],
+]

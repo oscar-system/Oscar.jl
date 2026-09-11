@@ -24,6 +24,8 @@ h = hypersurface_model(
   @test symbols(coordinate_ring(fiber_ambient_space(h))) == [:x, :y, :z]
   @test toric_variety(calabi_yau_hypersurface(h)) == ambient_space(h)
   @test is_base_space_fully_specified(h) == true
+  @test isempty(exceptional_classes(h))
+  @test isempty(exceptional_divisor_indices(h))
 end
 
 @testset "Error messages in hypersurface models over concrete base spaces" begin
@@ -45,6 +47,31 @@ end
       @test explicit_model_sections(h) == explicit_model_sections(loaded)
       @test defining_classes(h) == defining_classes(loaded)
     end
+  end
+end
+
+# Legacy serialized attribute names are upgraded to their public getter names on load.
+@testset "Loading legacy F-theory model attributes" begin
+  set_attribute!(h, :hodge_h11, 31)
+  set_attribute!(h, :global_gauge_group_quotient, [["-identity_matrix(C,2)"]])
+  mktempdir() do path
+    filename = joinpath(path, "legacy_attributes.mrdi")
+    save(filename, h)
+    serialized_model = read(filename, String)
+    @test contains(serialized_model, "\"hodge_h11\"")
+    @test contains(serialized_model, "\"global_gauge_group_quotient\"")
+    serialized_model = replace(
+      serialized_model,
+      "\"hodge_h11\"" => "\"h11\"",
+      "\"global_gauge_group_quotient\"" => "\"global_gauge_group_quotients\"",
+    )
+    write(filename, serialized_model)
+
+    loaded = load(filename)
+    @test hodge_h11(loaded) == 31
+    @test global_gauge_group_quotient(loaded) == [["-identity_matrix(C,2)"]]
+    @test !has_attribute(loaded, :h11)
+    @test !has_attribute(loaded, :global_gauge_group_quotients)
   end
 end
 
@@ -98,6 +125,17 @@ set_global_tate_model(h3, gt_model)
 @testset "Test assignment of Weierstrass and global Tate models to hypersurface models" begin
   @test weierstrass_model(h3) == w_model
   @test global_tate_model(h3) == gt_model
+end
+
+# Explicitly assigned related models are preserved by serialization.
+@testset "Saving related models of a hypersurface model" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, h3) do loaded
+      @test weierstrass_polynomial(weierstrass_model(loaded)) ==
+        weierstrass_polynomial(w_model)
+      @test tate_polynomial(global_tate_model(loaded)) == tate_polynomial(gt_model)
+    end
+  end
 end
 
 @testset "Attributes and properties of hypersurface literature models over concrete base space" begin

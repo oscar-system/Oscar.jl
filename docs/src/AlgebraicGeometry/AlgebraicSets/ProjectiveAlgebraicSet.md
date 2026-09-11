@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Projective Algebraic Sets
 For finitely many homogeneous polynomials $f_1,\dots f_r \in k[x_0,\dots x_n]$,
 and $I=(f_1,\dots , f_n) \leq k[x_0,\dots x_n]$ the homogeneous ideal they generate, we denote by $X = V(I) \subseteq \mathbb{P}^n$ the

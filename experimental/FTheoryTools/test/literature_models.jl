@@ -5,6 +5,25 @@
 using Random
 our_rng = Random.Xoshiro(1234)
 
+# Ensure construction does not mutate caller-owned literature metadata.
+@testset "Literature model dictionary input" begin
+  model_dict = Oscar.JSON.parse(
+    raw"""
+    {
+      "model_parameters": ["k"],
+      "model_data": {"value": "k"},
+      "model_descriptors": {"description": "#k"},
+      "arxiv_data": {"id": "test"}
+    }
+    """,
+  )
+  original_model_dict = deepcopy(model_dict)
+  @test_throws ArgumentError literature_model(
+    model_dict; model_parameters=Dict("k" => 2)
+  )
+  @test isequal(model_dict, original_model_dict)
+end
+
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor_class(B3)
 w = torusinvariant_prime_divisors(B3)[1]
@@ -91,9 +110,33 @@ end
   @test_throws ArgumentError birational_literature_models(t1)
 end
 
+# Resolving a toric model must refresh ambient-dependent data without mutating the input.
+zero_section_index_t1 =
+  findfirst(==(:z), symbols(coordinate_ring(ambient_space(t1))))::Int
+zero_section_divisor_t1 = torusinvariant_prime_divisors(ambient_space(t1))[zero_section_index_t1]
+set_attribute!(t1, :zero_section_index => zero_section_index_t1)
+set_attribute!(
+  t1,
+  :zero_section_class => cohomology_class(
+    zero_section_divisor_t1; completeness_check=false
+  ),
+)
+initial_zero_section_class = zero_section_class(t1)
+resolution_data = deepcopy(resolutions(t1))
+initial_exceptional_indices = copy(exceptional_divisor_indices(t1))
 t2 = resolve(t1, 1)
 
 @testset "Test resolving literature Tate model over concrete base" begin
+  @test zero_section_class(t1) === initial_zero_section_class
+  @test toric_variety(zero_section_class(t1)) === ambient_space(t1)
+  @test zero_section_index(t2) == zero_section_index_t1
+  @test toric_variety(zero_section_class(t2)) === ambient_space(t2)
+  @test zero_section_class(t2) == cohomology_class(
+    torusinvariant_prime_divisors(ambient_space(t2))[zero_section_index_t1];
+    completeness_check=false,
+  )
+  @test resolutions(t1) == resolution_data
+  @test exceptional_divisor_indices(t1) == initial_exceptional_indices
   @test is_smooth(ambient_space(t2)) == false
   @test is_partially_resolved(t2) == true
   @test base_space(t1) == base_space(t2)
@@ -248,6 +291,41 @@ end
   @test length(weighted_resolution_zero_sections(t3)) == 1
 end
 
+# Check specialization of an abstract Tate model and validation of its section data.
+tate_specialization_data = Dict{String,Any}("base" => B3)
+for name in ("w", "a21", "a32", "a43")
+  tate_specialization_data[name] = explicit_model_sections(t1)[name]
+end
+specialized_t3 = put_over_concrete_base(
+  t3, tate_specialization_data; completeness_check=false, rng=Random.Xoshiro(1234)
+)
+
+@testset "Putting a literature Tate model over a concrete base" begin
+  @test is_base_space_fully_specified(specialized_t3)
+  @test arxiv_id(specialized_t3) == arxiv_id(t3)
+  @test tate_section_a2(specialized_t3) == tate_section_a2(t1)
+  @test tate_section_a3(specialized_t3) == tate_section_a3(t1)
+  @test tate_section_a4(specialized_t3) == tate_section_a4(t1)
+
+  missing_section_data = copy(tate_specialization_data)
+  delete!(missing_section_data, "a43")
+  @test_throws ArgumentError put_over_concrete_base(
+    t3, missing_section_data; completeness_check=false
+  )
+
+  wrong_parent_data = copy(tate_specialization_data)
+  wrong_parent_data["a21"] = explicit_model_sections(t3)["a21"]
+  @test_throws ArgumentError put_over_concrete_base(
+    t3, wrong_parent_data; completeness_check=false
+  )
+
+  wrong_degree_data = copy(tate_specialization_data)
+  wrong_degree_data["a21"] = wrong_degree_data["w"]
+  @test_throws ArgumentError put_over_concrete_base(
+    t3, wrong_degree_data; completeness_check=false
+  )
+end
+
 @testset "Test error messages for literature Tate model over arbitrary base" begin
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
@@ -399,6 +477,22 @@ end
   @test paper_description(w2) == "General construction of U(1) model"
   @test paper_title(w2) ==
     "F-Theory and the Mordell-Weil Group of Elliptically-Fibered Calabi-Yau Threefolds"
+end
+
+# Check specialization of the corresponding abstract Weierstrass model.
+weierstrass_specialization_data = Dict{String,Any}("base" => base_space(w1))
+for name in tunable_sections(w2)
+  weierstrass_specialization_data[name] = explicit_model_sections(w1)[name]
+end
+specialized_w2 = put_over_concrete_base(
+  w2, weierstrass_specialization_data; completeness_check=false, rng=Random.Xoshiro(1234)
+)
+
+@testset "Putting a literature Weierstrass model over a concrete base" begin
+  @test is_base_space_fully_specified(specialized_w2)
+  @test arxiv_id(specialized_w2) == arxiv_id(w2)
+  @test weierstrass_section_f(specialized_w2) == weierstrass_section_f(w1)
+  @test weierstrass_section_g(specialized_w2) == weierstrass_section_g(w1)
 end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
