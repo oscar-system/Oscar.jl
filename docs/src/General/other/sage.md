@@ -101,14 +101,13 @@ so most of the differences are differences between these two languages.
   `M.kernel()` is `kernel(M)`, both compute the left kernel by default.
 
 - **Accessing GAP and Singular.**
-  Prefer the OSCAR functions (`symmetric_group(4)`, `groebner_basis(I)`)
-  whenever they exist, they take care of the conversions.
-  If you need something that is only available in GAP,
-  `libgap.SymmetricGroup(4)` is `GAP.Globals.SymmetricGroup(4)`,
-  and `G.gap()` is `GapObj(G)`, see [Notes for GAP users](@ref).
-  The Singular kernel is accessed via the Julia package
-  [Singular.jl](https://github.com/oscar-system/Singular.jl),
-  available as `Oscar.Singular`.
+  OSCAR builds on GAP and Singular just as SageMath does, but use the
+  OSCAR functions (`symmetric_group(4)`, `groebner_basis(I)`) whenever
+  they exist; they take care of the conversions and return OSCAR
+  objects. Should your needs go beyond them, GAP can be reached as
+  described in [GAP Integration](@ref), and Singular through the Julia
+  package
+  [Singular.jl](https://github.com/oscar-system/Singular.jl).
 
 ## Common SageMath functions and their OSCAR counterparts
 
