@@ -49,11 +49,7 @@ function rank(Q::AffineSemigroup)
   return rank(matrix(ZZ,Q.generators))
 end
 
-@doc raw"""
-    ambient_dimension(Q::AffineSemigroup)
-
-Return the dimension $d$ of the lattice $\mathbb{Z}^d$ containing `Q`.
-"""
+# dimension d of the lattice ZZ^d containing Q
 function ambient_dimension(Q::AffineSemigroup)
   return size(Q.generators, 1)
 end
@@ -569,6 +565,8 @@ Quotient
 ```
 """
 function monoid_algebra(M_Q::Matrix{Int}, k::Field)
+  Q = AffineSemigroup(M_Q)
+  @req is_pointed(Q) "the semigroup must be pointed"
   d = size(M_Q, 1)
 
   t_vars = [Symbol("t_$i") for i in 1:d]
@@ -588,7 +586,6 @@ function monoid_algebra(M_Q::Matrix{Int}, k::Field)
   map_T_R = hom(R, T, targ)
 
   # return monoid algebra
-  Q = AffineSemigroup(M_Q)
   if is_zero(ideal(gens(kernel(map_T_R))))
     kQ = MonoidAlgebra(R, Q)
   else
@@ -602,8 +599,7 @@ function monoid_algebra(V_Q::Vector{Vector{Int}}, k::Field)
 end
 
 function monoid_algebra(Q::AffineSemigroup, k::Field)
-  @req is_pointed(Q) "the semigroup must be pointed"
-  return monoid_algebra(Q.generators,k)
+  return monoid_algebra(Q.generators, k)
 end
 
 # compute the saturation of a monoid algebra

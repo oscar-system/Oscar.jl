@@ -6,7 +6,7 @@
     # define ideal over monoid algebra
     I = ideal(kQ, [x^4, x^2*y^2, y^4])
 
-    #irreducible decomposition 
+    #irreducible decomposition
     W = irreducible_decomposition(I)
     @test I == intersect(W)
 
@@ -27,6 +27,7 @@
     @test length(injective_modules(inj_res)) == inj_res.upto + 1
     @test length(cochain_maps(inj_res)) == inj_res.upto
     @test nrows(augmentation_map(inj_res)) == ngens(M)
+    @test base_ring(augmentation_map(inj_res)) == QQ
     mm = monomial_matrix(0, inj_res)
     @test mm === cochain_maps(inj_res)[1]
     @test cohomological_degree(mm) == 0
@@ -53,7 +54,7 @@
     @test sort(degrees_of_bass_numbers(M, 0)) == [[1, 3], [3, 1]]
     p = faces(kQ)[1]
     @test is_zero(p.prime) == false
-    bass = graded_bass_numbers(M, p, 1)
+    bass = Oscar.InjectiveResolutions.graded_bass_numbers(M, p, 1)
     @test bass[1] == Dict([1, 3] => 1, [3, 1] => 1)
     @test bass[2] == Dict([-1, 3] => 1, [1, 1] => 1, [3, -1] => 1)
 
@@ -86,6 +87,7 @@ end
 
     # minimal injective resolution of kQ/I up to cohomological degree 3
     inj_res = injective_resolution(M, 3)
+    injective_resolution(M,3,shift=:helm_miller)
     @test inj_res.upto <= 3
 
     # irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
@@ -137,7 +139,7 @@ end
 
 
 
-    ##fourth example 
+    ##fourth example
     I = ideal(kQ, [z^2, z*y, x^4])
 
     #irreducible decomposition

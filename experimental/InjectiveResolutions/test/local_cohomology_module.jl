@@ -28,4 +28,6 @@
     H_ideal = local_cohomology_all(I, m, 1)
     @test length(H_ideal) == 1
     @test_throws ArgumentError local_cohomology(M, ideal(monoid_algebra([[1, 0], [0, 1]], QQ), []), 1)
+    @test_throws ArgumentError local_cohomology(M, m, 0)
+    @test_throws ArgumentError local_cohomology_all(M, m, 0)
 end

@@ -145,6 +145,7 @@ function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer)
 
   @req kQ == I.monoid_algebra "module and ideal must be over same monoid algebra"
   @req is_normal(kQ) "monoid algebra must be normal"
+  @req i >= 1 "the cohomological degree must be at least 1, use zeroth_local_cohomology for degree 0"
 
   #compute injective resolution
   inj_res = injective_resolution(M, i+1)
@@ -245,6 +246,7 @@ function local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Inte
   kQ = base_ring(M)
   @req kQ == I.monoid_algebra "module and ideal must be over same monoid algebra"
   @req is_normal(kQ) "monoid algebra must be normal"
+  @req i >= 1 "the cohomological degree must be at least 1, use zeroth_local_cohomology for degree 0"
 
   #compute injective resolution
   inj_res = injective_resolution(M, i+1)

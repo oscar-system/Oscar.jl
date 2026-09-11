@@ -3,7 +3,7 @@
     Q = affine_semigroup([1 0;0 1])
     @test is_pointed(Q)
     C = cone(Q)
-    @test ambient_dim(C) == ambient_dimension(Q)
+    @test ambient_dim(C) == Oscar.InjectiveResolutions.ambient_dimension(Q)
     H = hyperplanes(Q)
     @test length(H) == 2
     @test dim(zonotope(Q)[1]) == rank(Q) 
@@ -18,5 +18,8 @@
 
     #non-pointed example
     Q = affine_semigroup([[-1],[2]])
-    @test !is_pointed(Q) 
+    @test !is_pointed(Q)
+    @test_throws ArgumentError monoid_algebra(Q, QQ)
+    @test_throws ArgumentError monoid_algebra([[-1], [2]], QQ)
+    @test_throws ArgumentError monoid_algebra([-1 2], QQ)
 end

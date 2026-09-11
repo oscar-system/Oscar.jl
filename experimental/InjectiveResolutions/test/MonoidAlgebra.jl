@@ -73,7 +73,7 @@ end
     @test is_Q_graded(M)
     @test !is_Q_graded(twist(M, -grading_group(kQ)([1])))
 
-    @test ambient_dimension(affine_semigroup(kQ)) == 1
+    @test Oscar.InjectiveResolutions.ambient_dimension(affine_semigroup(kQ)) == 1
     @test semigroup_generators(kQ) == [2 3]
 end
 

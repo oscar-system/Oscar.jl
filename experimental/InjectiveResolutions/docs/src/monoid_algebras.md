@@ -94,7 +94,6 @@ generators and caches polyhedral data such as the cone and its bounding hyperpla
 affine_semigroup(M::Matrix{Int})
 affine_semigroup(A::MonoidAlgebra)
 semigroup_generators(A::MonoidAlgebra)
-ambient_dimension(Q::AffineSemigroup)
 is_pointed(S::AffineSemigroup)
 ```
 

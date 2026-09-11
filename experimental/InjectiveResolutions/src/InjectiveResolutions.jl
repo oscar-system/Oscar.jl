@@ -112,13 +112,11 @@ export MonoidAlgebraElem
 export MonoidAlgebraIdeal
 export MonomialMatrix
 export affine_semigroup
-export ambient_dimension
 export augmentation_map
 export cochain_maps
 export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
-export graded_bass_numbers
 export holes_module
 export indecomposable_injectives
 export injective_hull
@@ -248,7 +246,7 @@ end
 struct InjRes #ZZ^d-graded injective resolution
   mod::SubquoModule
   inj_mods::Vector{InjMod}
-  augmentation_map::MatElem                     # M -> J^0, entries in k[Q]
+  augmentation_map::MatElem                     # scalar matrix of M -> J^0
   cochain_maps::Vector{MonomialMatrix{InjMod}}  # d^0, d^1, ..., d^{upto-1}
   upto::Int
   Q_graded_part::IrrRes
@@ -294,9 +292,11 @@ cochain_maps(res::InjRes) = res.cochain_maps
     augmentation_map(res::InjRes)
     augmentation_map(res::IrrRes)
 
-Return the map from the resolved module into the first term of the resolution
-`res`, as a matrix with entries in $k[Q]$ for an injective resolution and as a
-module homomorphism for an irreducible resolution.
+Return the map $\epsilon$ from the resolved module $M$ into the first term of
+the resolution `res`. For an injective resolution this is the scalar matrix
+whose entry $(i, j)$ is the coefficient with which the $i$-th generator of $M$
+maps into the $j$-th summand of $J^0$, for an irreducible resolution it is the
+module homomorphism $M \to \overline{W}^0$.
 """
 augmentation_map(res::InjRes) = res.augmentation_map
 augmentation_map(res::IrrRes) = res.cochain_maps[1]
@@ -1528,7 +1528,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
 
   # the embedding M -> J^0 and the differentials d^k: J^k -> J^{k+1} as
   # monomial matrices (irr_res.cochain_maps[1] is the embedding, [k+2] is d^k)
-  emb = matrix(irr_res.cochain_maps[1])
+  emb = _scalar_matrix(kQ, matrix(irr_res.cochain_maps[1]))
   cochain_maps = MonomialMatrix{InjMod}[]
   for k in 0:(length(inj_modules) - 2)
     A = _scalar_matrix(kQ, matrix(irr_res.cochain_maps[k + 2]))
@@ -1623,7 +1623,7 @@ end
 
 Check whether the injective resolution `res` is minimal by comparing the
 multiplicities of its indecomposable injectives with the graded Bass numbers
-of the resolved module, see [`graded_bass_numbers`](@ref). With `verbose = true`
+of the resolved module, see `graded_bass_numbers`. With `verbose = true`
 each mismatch is reported.
 """
 function is_minimal(res::InjRes; verbose::Bool=false)
@@ -1710,13 +1710,11 @@ export MonoidAlgebraElem
 export MonoidAlgebraIdeal
 export MonomialMatrix
 export affine_semigroup
-export ambient_dimension
 export augmentation_map
 export cochain_maps
 export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
-export graded_bass_numbers
 export holes_module
 export indecomposable_injectives
 export injective_hull

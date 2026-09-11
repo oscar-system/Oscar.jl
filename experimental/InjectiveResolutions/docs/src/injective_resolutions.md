@@ -37,7 +37,7 @@ $0 \to M \xhookrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} 
 of a finitely generated $\mathbb{Z}^d$-graded module $M$. Then
 - `injective_modules(res)` returns the injective modules $J^0,J^1,\dots,J^i$,
 - `cochain_maps(res)` returns the differentials $d^0,d^1,\dots,d^{i-1}$ as monomial matrices, see below,
-- `augmentation_map(res)` returns the matrix of $\epsilon \colon M \to J^0$,
+- `augmentation_map(res)` returns the scalar matrix of $\epsilon \colon M \to J^0$, whose entry $(i, j)$ is the coefficient with which the $i$-th generator of $M$ maps into the $j$-th summand of $J^0$,
 - `monomial_matrix(j, res)` returns the single differential $d^j$,
 - `degree_shift(res)` returns the degree $\alpha \in \mathbb{Z}^d$ by which $M$ was shifted internally, and
 - `Q_graded_part(res)` returns the irreducible resolution of $M(-\alpha)$ from which `res` was computed.
@@ -48,7 +48,6 @@ It consists of a scalar matrix whose rows and columns are labelled by the summan
 The entry in the row of $k\{a + F - Q\}$ and the column of $k\{b + G - Q\}$ is the coefficient of the monomial $x^{b - a}$.
 
 ```@docs
-MonomialMatrix
 monomial_matrix(i::Int, res::IrrRes)
 cochain_maps(res::InjRes)
 augmentation_map(res::InjRes)
@@ -63,7 +62,6 @@ injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
 
 ### Bass numbers and minimality
 ```@docs
-graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::Int)
 is_minimal(res::InjRes)
 ```
 
