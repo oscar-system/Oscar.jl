@@ -10,7 +10,7 @@ local cohomology of finitely generated modules over monoid algebras following
 
 - **Affine semigroups.** New type `AffineSemigroup` with constructors
   `affine_semigroup` (from a matrix, a list of generators, or a monoid
-  algebra), `semigroup_generators`, `ambient_dimension`, `is_pointed`, and
+  algebra), `semigroup_generators`, `is_pointed`, and
   cached polyhedral data (cone, bounding hyperplanes, zonotope). Monoid
   algebras store their semigroup; `monoid_algebra(Q::AffineSemigroup, k)`.
 - **Non-normal monoid algebras.** `irreducible_resolution` and
@@ -31,10 +31,9 @@ local cohomology of finitely generated modules over monoid algebras following
   (`cochain_maps(res)`, `monomial_matrix(i, res)`, `matrix`, `domain`,
   `codomain`, `cohomological_degree`). The map from the module into the
   first term is `augmentation_map(res)`.
-- **Bass numbers and minimality.** `graded_bass_numbers(M, p_F, i)` computes
-  the graded Bass numbers at a face via `Ext`, and `is_minimal(res)` checks a
-  computed injective resolution against them. `degrees_of_bass_numbers`
-  returns the degrees of non-zero Bass numbers.
+- **Minimality.** `is_minimal(res)` checks a computed injective resolution
+  against the graded Bass numbers, which are computed via `Ext`.
+  `degrees_of_bass_numbers` returns the degrees of non-zero Bass numbers.
 - **Injective hulls.** `injective_hull(M)` returns `E(M)` with the embedding.
 - **Ideals.** `minimal_generating_set`, `number_of_generators`, `radical`,
   `intersect` of several ideals, `monoid_algebra_ideal` wrapper.
@@ -48,12 +47,15 @@ local cohomology of finitely generated modules over monoid algebras following
   cheap over-approximation of their degrees read off a free resolution of
   the residue field (`compute_shift_bound`, default `shift = :bound`),
   instead of computing `Ext^j(k, M)` for every `j` (`shift = :helm_miller`).
-  An LP/MILP-based minimal shift is available as `shift = :milp` and
+  A minimal shift from an integer linear program is available as `shift = :milp` and
   `shift = :milp_bound`.
 - `degrees_of_bass_numbers` builds the residue field resolution once.
 - Relevance checks for generators and relations in the coefficient
   computation precompute the polyhedra once per face; semigroup membership
-  queries are cached per monoid algebra.
+  queries are cached per monoid algebra. Cone and semigroup membership
+  tests use inequalities instead of polyhedral computations where possible.
+- Cokernels are replaced by minimal presentations between hull steps, which
+  keeps the number of relations small.
 - Loop-invariant computations hoisted out of the main loops of
   `irreducible_hull` and `irreducible_resolution`.
 
@@ -62,8 +64,6 @@ local cohomology of finitely generated modules over monoid algebras following
 - `local_cohomology_all`: a destructuring shadowed the loop counter, the
   `SectorPartitionLC` constructor was called with the wrong arguments, and the
   ideal-argument method compared a nonexistent field.
-- `apply_gamma!`: crashed on an empty `hcat` when every summand was removed
-  by `Γ_I`.
 - `_compute_q_graded_part`: handles the empty case.
 - `compute_shift`: no longer overshoots by one multiple of the ray sum.
 
