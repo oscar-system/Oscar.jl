@@ -8,6 +8,7 @@ Notes for users of specific systems follow on separate pages:
 
 - [Notes for GAP users](@ref)
 - [Notes for Magma users](@ref)
+- [Notes for PARI/GP users](@ref)
 - [Notes for SageMath users](@ref)
 - [Notes for Singular users](@ref)
 - [Notes for polymake users](@ref)
