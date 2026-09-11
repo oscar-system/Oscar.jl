@@ -490,15 +490,17 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
   end
 
   B = Vector{Vector{Int}}()
-  PaF = polyhedron(H.A, H.A*a+H.b) #a + RR h
+  rhs = H.A*a + H.b
+  PaF = polyhedron(H.A, rhs) #a + RR H
+  Z = zonotope(kQ)[1]
   for d in D
     I = intersect(PaF, d) #(a + RR H)\cap RR_+D
     if dim(I) >= 0
-      B_d = [
-        a for
-        a in lattice_points(I + zonotope(kQ)[1]) if (dim(intersect(convex_hull(a), PaF)) < 0)
-      ]
-      append!(B, B_d)
+      for pt in lattice_points(I + Z)
+        v = Vector{Int}(pt)
+        # keep the points off the hyperplane a + RR H
+        all(H.A*v .<= rhs) || push!(B, v)
+      end
     end
   end
   return B
@@ -570,8 +572,12 @@ function _shift_into_Q(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
   Q = affine_semigroup(kQ)
   if is_normal(kQ)
     c = zonotope(kQ)[2]
-    C = cone(kQ)
-    in_Q = b -> is_subset(convex_hull(b), C) # for normal Q: Q = cone intersected with the lattice
+    # for normal Q the semigroup is the cone intersected with the lattice,
+    # so membership is a check against the facet inequalities
+    A_f, b_f = halfspace_matrix_pair(facets(cone(kQ)))
+    A_m = Matrix(A_f)
+    b_v = Vector(b_f)
+    in_Q = b -> all(A_m*b .<= b_v)
   else
     c = sum(gens(Q)) #TODO: is the best way?
     in_Q = b -> is_in_semigroup(kQ, b)
