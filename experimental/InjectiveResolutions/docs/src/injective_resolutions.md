@@ -11,7 +11,6 @@ This is an implementation of the algorithms in [HM05](@cite).
 
 ```@docs
 injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
-injective_resolution(I::Oscar.InjectiveResolutions.MonoidAlgebraIdeal, i::Int)
 ```
 
 ### Data associated to injective modules

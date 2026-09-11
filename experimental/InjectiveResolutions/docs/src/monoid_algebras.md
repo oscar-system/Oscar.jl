@@ -91,7 +91,6 @@ The monoid $Q$ itself is represented by an `AffineSemigroup`, which stores the
 generators and caches polyhedral data such as the cone and its bounding hyperplanes.
 
 ```@docs
-affine_semigroup(V_Q::Vector{Vector{Int}})
 affine_semigroup(M::Matrix{Int})
 affine_semigroup(A::MonoidAlgebra)
 semigroup_generators(A::MonoidAlgebra)
@@ -106,9 +105,7 @@ The corresponding monoid algebra is
 $k[Q] \cong k[x^{v_1},\dots,x^{v_n}]\subseteq k[x_1,\dots, x_d].$
 
 ```@docs
-monoid_algebra(V_Q::Vector{Vector{Int}},k::Field)
-monoid_algebra(B::Matrix{Int},k::Field)
-monoid_algebra(Q::AffineSemigroup, k::Field)
+monoid_algebra(M_Q::Matrix{Int}, k::Field)
 ```
 
 ## Irreducible decomposition

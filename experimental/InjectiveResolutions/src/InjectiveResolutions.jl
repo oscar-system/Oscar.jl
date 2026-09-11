@@ -12,6 +12,7 @@ import ..Oscar:
   _degree_fast,
   _saturation,
   annihilator,
+  augmentation_map,
   base_ring,
   canonical_unit,
   characteristic,
@@ -383,7 +384,7 @@ function Base.show(io::IO, ::MIME"text/plain", J::InjMod)
   for Ji in J.indec_injectives
     _show_indec(io, Ji, InjMod)
   end
-  print(io, "over ", J.monoid_algebra)
+  print(pretty(io), "over ", Lowercase(), J.monoid_algebra)
 end
 
 function Base.show(io::IO,W::IrrSum)
@@ -395,7 +396,7 @@ function Base.show(io::IO, ::MIME"text/plain", W::IrrSum)
   for Ji in W.indec_injectives
     _show_indec(io, Ji, IrrSum)
   end
-  print(io, "over ", W.monoid_algebra)
+  print(pretty(io), "over ", Lowercase(), W.monoid_algebra)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
@@ -409,7 +410,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::InjRes)
     end
   end
   println(io, "of ", res.mod)
-  print(io, "over ", base_ring(res.mod))
+  print(pretty(io), "over ", Lowercase(), base_ring(res.mod))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", res::IrrRes)
@@ -423,7 +424,7 @@ function Base.show(io::IO, ::MIME"text/plain", res::IrrRes)
     end
   end
   println(io, "of ", res.mod)
-  print(io, "over ", base_ring(res.mod))
+  print(pretty(io), "over ", Lowercase(), base_ring(res.mod))
 end
 
 @doc raw"""
@@ -1360,7 +1361,7 @@ by graded submodule of kQ^1 with 3 generators
   1: x_1^4*e[1]
   2: x_1^2*x_2^2*e[1]
   3: x_2^4*e[1]
-over Monoid algebra over rational field with cone of dimension 2
+over monoid algebra over rational field with cone of dimension 2
 ```
 """
 function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing; check::Bool=true)
@@ -1434,8 +1435,9 @@ end
 
 @doc raw"""
     injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound, check::Bool=true)
+    injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound, check::Bool=true)
 
-Return an injective resolution of `M` up to cohomological degree `i`.
+Return an injective resolution of `M`, respectively of $k[Q]/I$, up to cohomological degree `i`.
 With `check = false` the internal verification of the maps is skipped.
 
 The keyword `shift` selects how the initial shift is computed:
@@ -1484,78 +1486,7 @@ by graded submodule of kQ^1 with 3 generators
   1: x_1^4*e[1]
   2: x_1^2*x_2^2*e[1]
   3: x_2^4*e[1]
-over Monoid algebra over rational field with cone of dimension 2
-```
-
-```jldoctest
-julia> kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]], QQ)
-Monoid algebra over rational field with cone of dimension 2
-
-julia> x, y, z = gens(kQ)
-3-element Vector{MonoidAlgebraElem{QQFieldElem, MonoidAlgebra{QQFieldElem, MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}}:
- x_1
- x_2
- x_3
-
-julia> F = graded_free_module(kQ, 2)
-Graded free module Monoid algebra over rational field with cone of dimension 2^2([0 0]) of rank 2 over monoid algebra over rational field with cone of dimension 2
-
-julia> a = kQ[y y;0 x^2]
-[x_2     x_2]
-[  0   x_1^2]
-
-julia> b = kQ[x^2*z 0; x^4*y 0; 0 x^5*y; 0 z^3]
-[x_1^2*x_3           0]
-[x_1^4*x_2           0]
-[        0   x_1^5*x_2]
-[        0       x_3^3]
-
-julia> M = SubquoModule(F, a, b)
-Graded subquotient of graded submodule of F with 2 generators
-  1: x_2*e[1] + x_2*e[2]
-  2: x_1^2*e[2]
-by graded submodule of F with 4 generators
-  1: x_1^2*x_3*e[1]
-  2: x_1^4*x_2*e[1]
-  3: x_1^5*x_2*e[2]
-  4: x_3^3*e[2]
-
-julia> injective_resolution(M, 2)
-Injective resolution
-  J^0 -> J^1 -> J^2
-where
- J^0 = direct sum of
-    k{[1, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[5, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[4, 7] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[0, 2] + F - Q}, where p_F = Ideal (x_2, x_3)
-    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2)
- J^1 = direct sum of
-    k{[1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[0, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[-1, 3] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[5, 4] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[0, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[4, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[3, 6] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[-1, -3] + F - Q}, where p_F = Ideal (x_2, x_3)
-    k{[-6, -3] + F - Q}, where p_F = Ideal (x_1, x_2)
- J^2 = direct sum of
-    k{[0, 0] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[-1, 1] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[-1, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[-2, 2] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[3, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-    k{[2, 5] + F - Q}, where p_F = Ideal (x_1, x_2, x_3)
-of Graded subquotient of graded submodule of F with 2 generators
-  1: x_2*e[1] + x_2*e[2]
-  2: x_1^2*e[2]
-by graded submodule of F with 4 generators
-  1: x_1^2*x_3*e[1]
-  2: x_1^4*x_2*e[1]
-  3: x_1^5*x_2*e[2]
-  4: x_3^3*e[2]
-over Monoid algebra over rational field with cone of dimension 2
+over monoid algebra over rational field with cone of dimension 2
 ```
 """
 function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound, check::Bool=true)
@@ -1712,12 +1643,6 @@ function is_minimal(res::InjRes; verbose::Bool=false)
   return ok
 end
 
-@doc raw"""
-    injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound, check::Bool=true)
-
-Return an injective resolution of $M = k[Q]/I$ up to cohomological degree `i`.
-See the module version for the `shift` keyword.
-"""
 function injective_resolution(I::MonoidAlgebraIdeal, i::Int; shift::Symbol=:bound, check::Bool=true)
   return injective_resolution(quotient_ring_as_module(I), i; shift, check)
 end

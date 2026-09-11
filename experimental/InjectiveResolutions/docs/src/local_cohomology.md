@@ -55,8 +55,8 @@ of $H^i_I(M)$. For performance, multiple local cohomology modules $H^1_I(M),\dot
 should be computed at once using the function `local_cohomology_all`.
 
 ```@docs
-    local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
-    local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
+local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
+local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
 ```
 
 ### Data associated to sector partitions

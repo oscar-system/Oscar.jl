@@ -89,9 +89,11 @@ function Base.show(io::IO, ::MIME"text/plain", SP::SectorPartitionLC)
 end
 
 @doc raw"""
+    local_cohomology(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
     local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
 
-Compute a sector partition of the local cohomology module $H^i_I(k[Q]/I_M)$, where `I_M` and `I` are ideals in $k[Q]$.
+Return a sector partition of the local cohomology module $H^i_I(M)$ of the
+module `M`, respectively of $M = k[Q]/I_M$, supported on the ideal `I`.
 
 !!! note
     The monoid algebra $k[Q]$ must be normal.
@@ -128,14 +130,6 @@ function local_cohomology(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Int
   return local_cohomology(quotient_ring_as_module(I_M),I,i)
 end
 
-@doc raw"""
-    local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
-
-Compute a sector partition of the local cohomology module $H^i_I(M)$.
-
-!!! note
-    The monoid algebra $k[Q]$ must be normal.
-"""
 function local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
   kQ = base_ring(M)
   k = coefficient_ring(kQ)
@@ -223,9 +217,12 @@ function zeroth_local_cohomology(M::SubquoModule{T}, I::MonoidAlgebraIdeal) wher
 end
 
 @doc raw"""
+    local_cohomology_all(M::SubquoModule{<:MonoidAlgebraElem}, I::MonoidAlgebraIdeal, i::Integer)
     local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i::Integer)
 
-For $1 \leq j \leq i$ compute sector partitions of the local cohomology modules $H^i_I(k[Q]/I_M)$, where $k[Q]$ is a monoid algebra. This function only computes one injective resolution of $k[Q]/I_M$ up to cohomological degree $i+1$.
+Return sector partitions of the local cohomology modules $H^j_I(M)$ for
+$1 \leq j \leq i$, where `M` is given as a module or as $k[Q]/I_M$. Only one
+injective resolution of `M` up to cohomological degree $i+1$ is computed.
 
 !!! note
     The monoid algebra $k[Q]$ must be normal.
@@ -235,14 +232,6 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal, I::MonoidAlgebraIdeal, i:
   return local_cohomology_all(quotient_ring_as_module(I_M),I,i)
 end
 
-@doc raw"""
-    local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
-
-For $1 \leq j \leq i $ compute sector partitions of the local cohomology modules $H^i_I(M))$. This function only computes one injective resolution of `M` up to cohomological degree $i+1$.
-
-!!! note
-    The monoid algebra $k[Q]$ must be normal.
-"""
 function local_cohomology_all(M::SubquoModule{T}, I::MonoidAlgebraIdeal, i::Integer) where {T<:MonoidAlgebraElem}
   kQ = base_ring(M)
   @req kQ == I.monoid_algebra "module and ideal must be over same monoid algebra"
