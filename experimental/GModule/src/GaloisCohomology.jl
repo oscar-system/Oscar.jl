@@ -2044,12 +2044,17 @@ end
 
 #from is_local_norm in Hecke
 #based on Klueners/ Acciaro
-function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p::AbsNumFieldOrderIdeal)
+function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p::AbsNumFieldOrderIdeal, sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
   v1 = valuation(a, p)
   v2 = valuation(m0, p)
   n0 = divexact(m0, p^v2)
   o0 = p^(v1 + v2)
-  y = crt(order(p)(1), n0, a, o0)
+  zk = order(p)
+  k = number_field(zk)
+  y = crt(zk(1), n0, a, o0)
+  if !isnothing(sign) && length(sign) > 0
+    y = zk(approximate(k(y), n0*o0, sign))
+  end
   Y = y*order(p)
   Y = divexact(Y, p^v1)
   return Y
@@ -2077,6 +2082,7 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
   end
   id = FacElem(Dict((1*o_zk)=>1))
   for p = I.S
+    @show minimum(p)
     lp = prime_decomposition(zk, minimum(p))
     for P = lp
       Kp, nKp, mGp, mUp, pro, inj = completion(I, P[1])
@@ -2110,13 +2116,7 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
         end
         @assert valuation(u) == 0
         _u = preimage(nKp, u)
-        if !isnothing(sign) && length(sign) > 0
-          _v = _u
-          _u = approximate(_u, coprime, sign)
-          @hassert :GaloisCohomology 2 all(isone, values(signs(_u, sign)))
-          @hassert :GaloisCohomology 2 all(x->_u == _v || valuation(_u/_v -1, x) >= valuation(coprime, x), keys(factor(coprime)))
-        end
-        iv = _local_norm(coprime, zk(_u), P[1])
+        iv = _local_norm(coprime, zk(_u), P[1], sign)
         iu = o_zk*iv
         if vx != 0
           #TODO: preimage return things way too large/ precise.
