@@ -130,8 +130,3 @@ by $k[Q]$ is available as a module.
 ```@docs
 holes_module(kQ::MonoidAlgebra)
 ```
-
-## Graded modules
-```@docs
-is_Q_graded(M::SubquoModule{<:MonoidAlgebraElem})
-```

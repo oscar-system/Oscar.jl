@@ -14,6 +14,13 @@ end
     KQ = quotient_ring_as_module(ideal(kQ,[]))
     inj_res = injective_resolution(KQ,3)
     @test is_exact(Q_graded_part(inj_res))
+
+    counts = [length(indecomposable_injectives(J)) for J in injective_modules(inj_res)]
+    for shift in (:helm_miller, :milp, :milp_bound)
+      res = injective_resolution(KQ, 3; shift)
+      @test is_exact(Q_graded_part(res))
+      @test [length(indecomposable_injectives(J)) for J in injective_modules(res)] == counts
+    end
 end
 
 @testset "injective resolution of 3-dimensional non-normal affine semigroup" begin

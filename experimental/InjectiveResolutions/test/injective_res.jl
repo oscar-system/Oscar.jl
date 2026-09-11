@@ -87,8 +87,15 @@ end
 
     # minimal injective resolution of kQ/I up to cohomological degree 3
     inj_res = injective_resolution(M, 3)
-    injective_resolution(M,3,shift=:helm_miller)
     @test inj_res.upto <= 3
+
+    # the other shift strategies give resolutions with the same summand counts
+    counts = [length(indecomposable_injectives(J)) for J in injective_modules(inj_res)]
+    for shift in (:helm_miller, :milp, :milp_bound)
+      res = injective_resolution(M, 3; shift)
+      @test is_exact(Q_graded_part(res))
+      @test [length(indecomposable_injectives(J)) for J in injective_modules(res)] == counts
+    end
 
     # irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
     irr_res_Q = Q_graded_part(inj_res)
@@ -181,4 +188,11 @@ end
     inj_res = injective_resolution(I, 1)
     @test inj_res.upto <= 1
     @test is_exact(Q_graded_part(inj_res))
+
+    counts = [length(indecomposable_injectives(J)) for J in injective_modules(inj_res)]
+    for shift in (:helm_miller, :milp)
+      res = injective_resolution(I, 1; shift)
+      @test is_exact(Q_graded_part(res))
+      @test [length(indecomposable_injectives(J)) for J in injective_modules(res)] == counts
+    end
 end

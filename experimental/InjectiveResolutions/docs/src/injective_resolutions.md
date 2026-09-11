@@ -60,7 +60,7 @@ and `cohomological_degree(mm)` is the index $i$ of the differential $d^i$.
 injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
 ```
 
-### Bass numbers and minimality
+### Minimality
 ```@docs
 is_minimal(res::InjRes)
 ```

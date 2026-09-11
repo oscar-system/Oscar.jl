@@ -124,7 +124,6 @@ export injective_modules
 export injective_resolution
 export irreducible_resolution
 export irreducible_sums
-export is_Q_graded
 export is_minimal
 export local_cohomology
 export local_cohomology_all
@@ -1722,7 +1721,6 @@ export injective_modules
 export injective_resolution
 export irreducible_resolution
 export irreducible_sums
-export is_Q_graded
 export is_minimal
 export local_cohomology
 export local_cohomology_all
