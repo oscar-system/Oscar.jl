@@ -186,11 +186,15 @@ end
 _has_node(G::Graph, node::Int64) = 0 < node <= n_vertices(G)
 
 @doc raw"""
-    add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
-    add_edge!(mg::MixedGraph, ::Type{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
+    add_edge!(g::Graph{T}, s::Int64, t::Int64; check::Bool=true) where {T <: Union{Directed, Undirected}}
+    add_edge!(mg::MixedGraph, ::Type{T}, s::Int64, t::Int64; check::Bool=true) where {T <: Union{Directed, Undirected}}
 
 Add edge `(s,t)` to the graph `g`.
 Return `true` if a new edge `(s,t)` was added, `false` otherwise. For `MixedGraph` the second input determines which component to apply the operation to.
+
+If `check` is `false`, then `s` and `t` are not checked to be nodes of `g` and
+the return value is always `true`. This saves counting the edges of `g` twice,
+which is worthwhile when many edges are added.
 
 # Examples
 ```jldoctest
@@ -224,15 +228,19 @@ julia> n_edges(mg)
 2
 ```
 """
-function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
+function add_edge!(g::Graph{T}, source::Int64, target::Int64; check::Bool=true) where {T <: Union{Directed, Undirected}}
+  if !check
+    Polymake._add_edge(pm_object(g), source-1, target-1)
+    return true
+  end
   _has_node(g, source) && _has_node(g, target) || return false
   old_nedges = n_edges(g)
   Polymake._add_edge(pm_object(g), source-1, target-1)
   return n_edges(g) == old_nedges + 1
 end
 
-add_edge!(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64) = add_edge!(_directed_component(mg), source, target)
-add_edge!(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64) = add_edge!(_undirected_component(mg), source, target)
+add_edge!(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64; check::Bool=true) = add_edge!(_directed_component(mg), source, target; check)
+add_edge!(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64; check::Bool=true) = add_edge!(_undirected_component(mg), source, target; check)
 
 @doc raw"""
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}

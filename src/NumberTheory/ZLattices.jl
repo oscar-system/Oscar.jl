@@ -161,49 +161,89 @@ _canonical_ordering(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _canonical_or
 # Return an ordering of the characteristic vectors `cv_set` which depends only
 # on the isometry class of the lattice with gram matrix `gram`.
 #
-# The characteristic vectors together with their inner products form a complete
-# graph whose vertices are colored by the norms and whose edges are labeled by
-# the inner products. Following section 14 of the nauty manual the edge labels
-# are turned into vertex colors: the label of an edge is written in binary and
-# the edge is inserted into those of the `nlayers` copies of the vertex set
-# which correspond to the bits set. The labels are numbered by decreasing
-# frequency, so the most frequent inner product is encoded by zero, that is, by
-# no edge at all; this keeps the resulting graph small.
+# The characteristic vectors together with their inner products form a graph
+# whose vertices are colored by the norms and whose edges are labeled by the
+# inner products. It is enough to take the pairs meeting a subset which spans
+# the rational span of the lattice: a characteristic vector is determined by
+# its inner products with such a subset, so every automorphism of the graph is
+# still induced by an isometry. We use the classes of equal norm, which are
+# invariant, smallest first, until they span. Following section 14 of the nauty
+# manual the edge labels are turned into vertex colors: the label of an edge is
+# written in binary and the edge is inserted into those of the `nlayers` copies
+# of the vertex set which correspond to the bits set. The labels are numbered
+# by decreasing frequency, so the most frequent inner product is encoded by
+# zero, that is, by no edge at all; this keeps the resulting graph small.
 function _canonical_ordering(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
   p = length(cv_set)
   cv = reduce(vcat, cv_set)
-  prods = (cv*gram)*transpose(cv)
+  A = cv*gram
+  norms = [sum(A[i, j]*cv[i, j] for j in 1:size(cv, 2)) for i in 1:p]
+
+  classes = Dict{Int, Vector{Int}}()
+  for i in 1:p
+    push!(get!(Vector{Int}, classes, norms[i]), i)
+  end
+  classes = sort!(collect(classes); by = c -> (length(c[2]), c[1]))
+  ref = Int[]
+  for (_, idx) in classes
+    append!(ref, idx)
+    rank(matrix(ZZ, cv[ref, :])) == size(cv, 2) && break
+  end
+  q = length(ref)
+  # the characteristic vectors are reordered so that the reference vectors come
+  # first; `sigma` translates back
+  sigma = append!(copy(ref), setdiff(1:p, ref))
+  # rebinding `cv` and `A` here would box them inside `visit_pairs` below
+  cvs = cv[sigma, :]
+  As = A[sigma, :]
+  cls = zeros(Int, p)
+  for (c, (_, idx)) in enumerate(classes), i in idx
+    cls[i] = c
+  end
+  col = cls[sigma]
+
+  bs = max(div(2^20, p), 1) # the number of rows treated at once
+  # call `f(i, j, w)` for all `i < j` with `i` a reference vector, where `w` is
+  # the inner product of the `i`-th and the `j`-th characteristic vector. The
+  # inner products are computed in blocks of `bs` rows, so that the whole `q`
+  # times `p` matrix of them is never stored.
+  function visit_pairs(f::F) where F
+    for k in 1:bs:q
+      l = min(k+bs-1, q)
+      B = As[k:l, :]*transpose(cvs)
+      for j in 1:p, i in k:min(l, j-1)
+        f(i, j, B[i-k+1, j])
+      end
+    end
+  end
 
   counts = Dict{Int, Int}()
-  for j in 1:p, i in 1:j-1
-    counts[prods[i, j]] = get(counts, prods[i, j], 0) + 1
-  end
+  visit_pairs((i, j, w) -> counts[w] = get(counts, w, 0) + 1)
   labels = sort!(collect(keys(counts)); by = w -> (-counts[w], w))
   nlayers = length(digits(length(labels)-1; base=2))
   codes = sort(0:2^nlayers-1; by = c -> (count_ones(c), c))
   code = Dict{Int, Int}(w => codes[k] for (k, w) in enumerate(labels))
 
-  norms = sort!(unique([prods[i, i] for i in 1:p]))
-  colors = [(l-1)*length(norms) + searchsortedfirst(norms, prods[i, i]) for l in 1:nlayers for i in 1:p]
+  colors = [(l-1)*length(classes) + col[i] for l in 1:nlayers for i in 1:p]
 
   g = graph(Undirected, nlayers*p)
-  for j in 1:p, i in 1:j-1
-    c = code[prods[i, j]]
+  visit_pairs(function(i, j, w)
+    c = code[w]
     while !iszero(c)
       l = trailing_zeros(c)
-      add_edge!(g, i + l*p, j + l*p)
+      add_edge!(g, i + l*p, j + l*p; check=false)
       c &= c-1
     end
-  end
+  end)
   for l in 1:nlayers-1, i in 1:p
-    add_edge!(g, i + (l-1)*p, i + l*p)
+    add_edge!(g, i + (l-1)*p, i + l*p; check=false)
   end
   perm = Polymake._canonical_perm(pm_object(g), Polymake.Array{Int}(colors))
   # the vertices of the first layer come first in the coloring, hence they are
   # exactly the first `p` entries of the canonical labeling
   order = Polymake.to_one_based_indexing(perm)[1:p]
   @assert isperm(order)
-  return order
+  return sigma[order]
 end
 
 """
