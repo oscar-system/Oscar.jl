@@ -605,36 +605,67 @@ function _check_field_polyhedral(::Type{T}) where {T}
   @req hasmethod(isless, (T, T)) "Field must be ordered and have `isless` method."
 end
 
-_find_elem_type(x::Nothing) = Any
-_find_elem_type(x::Any) = typeof(x)
-_find_elem_type(x::Type) = x
-_find_elem_type(x::Polymake.Rational) = QQFieldElem
-_find_elem_type(x::Polymake.Integer) = ZZRingElem
-_find_elem_type(x::AbstractArray) = collect(reshape(_find_elem_type.(x), :))
-_find_elem_type(x::Tuple) = reduce(vcat, _find_elem_type.(x))
-_find_elem_type(x::AbstractArray{<:AbstractArray}) =
-  reduce(vcat, _find_elem_type.(x); init=[])
-_find_elem_type(x::MatElem) = [elem_type(base_ring(x))]
-_find_elem_type(x::SMat) = [elem_type(base_ring(x))]
+# Constructors such as `convex_hull` accept a wild mix of input: julia arrays and
+# matrices, Oscar matrices, `SubObjectIterator`s of existing polyhedral objects,
+# single (field) elements, and tuples resp. nested arrays of all of these. If the
+# caller does not name a coefficient field, `_guess_fieldelem_type` picks a single
+# scalar type `T <: Union{FieldElem,Float64}` that all of the input can be
+# converted to; `_determine_parent_and_scalar` then turns `T` into a parent field.
+# In practice that yields `QQFieldElem`, `Float64`, `QQBarFieldElem` or an
+# embedded number field element type, but nothing here is restricted to those.
+#
+# Oscar code should not rely on this guessing and pass the coefficient field
+# explicitly; it exists for the convenience of interactive users.
+#
+# `_find_elem_type` maps one argument to its candidate scalar type, with `Any`
+# meaning "carries no type information". Whenever the candidate is determined by
+# the argument's type alone -- the common case -- the method takes a `Type`, so
+# that the guess is constant folded by the compiler instead of computed at runtime.
 
-function _guess_fieldelem_type(x...)
-  types = filter(!=(Any), _find_elem_type(x))
+_find_elem_type(x) = _find_elem_type(typeof(x))
+_find_elem_type(::Type{T}) where {T} = T
+_find_elem_type(::Type{Nothing}) = Any
+_find_elem_type(::Type{<:Polymake.Rational}) = QQFieldElem
+_find_elem_type(::Type{<:Polymake.Integer}) = ZZRingElem
+_find_elem_type(::Type{T}) where {T<:Union{MatElem,SMat}} = elem_type(base_ring_type(T))
+_find_elem_type(::Type{<:AbstractArray{T}}) where {T} = _find_elem_type(T)
+
+function _find_elem_type(x::AbstractArray)
+  # if the element type alone pins down a concrete candidate we are done;
+  # otherwise (`Vector{Any}` and friends) the entries have to be inspected
+  T = _find_elem_type(typeof(x))
+  isconcretetype(T) && return T
+  return _reduce_elem_types(x)
+end
+
+_find_elem_type(x::Tuple) = _reduce_elem_types(x)
+
+# Merge the candidate types of the entries of `xs` into a single scalar type.
+#
+# `promote_type` is of little use here: for most Oscar field element types it
+# only yields the abstract `FieldElem`. So instead of promoting we keep the
+# largest field seen so far, using `promote_type` merely to recognize the
+# integer/rational types that fit into every field we support.
+function _reduce_elem_types(xs)
   T = QQFieldElem
-  for t in types
-    if t == Float64
-      return Float64
-    elseif promote_type(t, T) != T
-      T = t
-    end
+  for x in xs
+    S = _find_elem_type(x)
+    S === Any && continue
+    # inexact arithmetic poisons everything else
+    S === Float64 && return Float64
+    (promote_type(S, T) === T || promote_type(S, QQFieldElem) === QQFieldElem) && continue
+    T = S
   end
   return T
 end
+
+_guess_fieldelem_type(x...) = _reduce_elem_types(x)
 
 _parent_or_coefficient_field(::Type{Float64}, x...) = AbstractAlgebra.Floats{Float64}()
 _parent_or_coefficient_field(::Type{ZZRingElem}, x...) = ZZ
 
 _parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem,ZZRingElem}}, x...) =
-  parent(r.x)
+  parent(r[])
 _parent_or_coefficient_field(v::AbstractArray{T}) where {T<:Union{FieldElem,ZZRingElem}} =
   _parent_or_coefficient_field(T, v)
 
