@@ -1,16 +1,6 @@
-# Notes for users of other computer algebra systems
+# Notes for GAP users
 
-## General differences
-
-- Julia evaluates `2^100` to `0` because `2` is regarded as a 64 bit integer.
-  Write `ZZRingElem(2)^100` to get a long.
-
-- OSCAR makes a subtle but important [distinction between `/` and `//`](@ref subtle_distinction_for_rings).
-
-
-## Notes for GAP users
-
-This section describes differences between GAP and Oscar.
+This page describes differences between GAP and Oscar.
 (Hints about using GAP in OSCAR can be found in the section about
 [GAP Integration](@ref).)
 
@@ -141,34 +131,3 @@ This section describes differences between GAP and Oscar.
   For the same reason, `transitive_group` in OSCAR supports degree 1,
   where the trivial group is the unique transitive group,
   whereas GAP's library of transitive groups starts at degree 2.
-
-
-## Notes for Polymake users
-
-- OSCAR (and Julia) is `1`-based, meaning that it counts from `1`, rather than
-  from `0` like polymake. For most properties we have taken care of the
-  translation but be aware that it might pop up at some point and generate
-  confusion.
-
-  For convenience, `Polymake.jl` provides `Polymake.to_one_based_indexing` and
-  `Polymake.to_zero_based_indexing`.
-
-- Polyhedra and polyhedral complexes in OSCAR are represented inhomogeneously,
-  i.e. without the leading `1` for vertices or `0` for rays. Hence constructors
-  take points, rays, and lineality generators separately.
-
-- `user_method`s cannot be accessed via Julia's dot syntax, i.e. something like
-
-  ```julia
-  c = Polymake.polytope.cube(3)
-  c.AMBIENT_DIM
-  ```
-
-  will not work. Instead `user_method`s are attached as Julia functions in
-  their respective application. They are always written in lowercase. In the
-  example the following works:
-
-  ```julia
-  c = Polymake.polytope.cube(3)
-  Polymake.polytope.ambient_dim(c)
-  ```

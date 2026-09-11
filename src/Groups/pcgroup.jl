@@ -333,10 +333,17 @@ end
 
 # Create a collector independent of `c`.
 function Base.deepcopy_internal(c::GAP_Collector{T}, dict::IdDict) where T <: IntegerUnion
+  haskey(dict, c) && return dict[c]
+
   cc = GAP_Collector{T}(c.ngens,
-         deepcopy_internal(c.relorders, dict::IdDict),
-         deepcopy_internal(c.powers, dict::IdDict), 
-         deepcopy_internal(c.conjugates, dict::IdDict))
+         deepcopy_internal(c.relorders, dict),
+         deepcopy_internal(c.powers, dict),
+         deepcopy_internal(c.conjugates, dict))
+  dict[c] = cc
+
+  # The free group belongs to `c.X`, hence it fits also to the copy of `c.X`;
+  # it is not mutated, thus it need not be copied.
+  isdefined(c, :F) && (cc.F = c.F)
 
   # If the GAP collector has already been created then copy it.
   if isdefined(c, :X)

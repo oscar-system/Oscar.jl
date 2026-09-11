@@ -1237,6 +1237,12 @@ mutable struct GAP_Collector{T} <: Collector{T}
                repeat([Pair{Int, T}[]], n), # default powers are identity
                Matrix{Vector{Pair{Int, T}}}(undef, n, n)) # conjugates undefined
   end
+
+  function GAP_Collector{T}(n::Int, relorders::Vector{T},
+                            powers::Vector{Vector{Pair{Int, T}}},
+                            conjugates::Matrix{Vector{Pair{Int, T}}}) where T <: IntegerUnion
+    return new(n, relorders, powers, conjugates)
+  end
 end
 
 ################################################################################
