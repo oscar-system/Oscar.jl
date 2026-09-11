@@ -23,9 +23,10 @@ Notes for users of specific systems follow on separate pages:
 
 ## [Integers and rational numbers](@id other_integers)
 
-An integer literal such as `2` is a 64 bit machine integer in Julia.
+An integer literal such as `2` is a 64 bit machine integer in Julia
+(only literals too large for 64 bits become big integers automatically).
 Arithmetic with machine integers silently wraps around on overflow,
-and some functions throw an error instead.
+and some functions detect the overflow and throw an error instead.
 ```jldoctest
 julia> 2^100
 0
@@ -42,8 +43,9 @@ julia> ZZ(2)^100
 julia> factorial(ZZ(21))
 51090942171709440000
 ```
-Integers returned by OSCAR functions are of this type already, only literals
-that you type yourself are affected.
+The error message above suggests `big(21)`, a Julia `BigInt`, which
+works as well; OSCAR's own functions return elements of `ZZ`, so only
+the literals you type yourself are affected.
 
 The quotient of two integers is a floating point number in Julia,
 and `//` creates rational numbers.
@@ -59,8 +61,9 @@ julia> QQ(3, 4)
 
 ## Every object has a parent
 
-Each element of an algebraic structure knows its parent,
-and `parent(x)` returns it.
+Each element of an algebraic structure knows its parent, that is,
+the structure it belongs to: the ring of a polynomial, the group of a
+permutation, the field of a number. `parent(x)` returns it.
 Operations that involve several elements usually require that the
 parents coincide.
 Some conversions happen automatically, for example integers and
@@ -71,7 +74,7 @@ rational numbers, defined wherever the denominator is invertible in
 ``R``. This is what `R(5)` and `R(7//2)` compute, and such an automatic
 conversion is called a coercion.
 In other cases, an element has to be moved into the required structure
-explicitly, by calling the parent like a function.
+explicitly, by calling the parent as if it were a function.
 ```jldoctest
 julia> ZZ(7) + QQ(3, 2)
 17//2
@@ -148,12 +151,12 @@ an exclamation mark, for example `push!`.
 
 Functions are not attached to objects, that is, one writes `order(G)`
 rather than `G.order()`.
-Instead, Julia chooses the method to be called according to the types of
-*all* arguments (this is called multiple dispatch),
-and the same function name is used for analogous operations on different
-kinds of objects, for example `order` for groups and group elements,
-`degree` for polynomials, field extensions, and permutation groups,
-and `length` for lists and other collections.
+One name serves all kinds of objects it makes sense for:
+there is a single `order`, for groups as well as for group elements,
+rather than an `order_of_group` and an `order_of_element`;
+likewise `degree` for polynomials, field extensions, and permutation
+groups, and `length` for lists and other collections.
+Which implementation runs is decided by the types of the arguments.
 
 Optional arguments are usually given by name, after a semicolon,
 for example `kernel(M; side = :right)`.
@@ -175,6 +178,10 @@ Some hints for finding the function you are looking for:
 
 - When an error occurs, or when you hit ctrl-C, Julia returns to the prompt.
   There is no break loop, in contrast to GAP and Magma.
+- Julia compiles a function the first time it is called with arguments
+  of a given type, so the first call of a command can take noticeably
+  longer than later ones. A slow first impression says nothing about
+  the speed of the computation itself.
 - Measure the runtime of a computation with the `@time` macro:
   `@time f(x)`.
 - Read a file with Julia code with `include("file.jl")`.
