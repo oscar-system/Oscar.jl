@@ -64,8 +64,12 @@ and `parent(x)` returns it.
 Operations that involve several elements usually require that the
 parents coincide.
 Some conversions happen automatically, for example integers and
-rational numbers can be combined with elements of most rings,
-since there is exactly one way to coerce them.
+rational numbers can be combined with elements of most rings:
+for any ring ``R`` there is exactly one ring homomorphism from the
+integers into ``R``, and it extends uniquely to a partial map from the
+rational numbers, defined wherever the denominator is invertible in
+``R``. This is what `R(5)` and `R(7//2)` compute, and such an automatic
+conversion is called a coercion.
 In other cases, an element has to be moved into the required structure
 explicitly, by calling the parent like a function.
 ```jldoctest
