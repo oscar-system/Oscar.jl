@@ -1,8 +1,8 @@
 # Notes for users of other computer algebra systems
 
 OSCAR is written in Julia, and an OSCAR session is a Julia session.
-Users of other computer algebra systems will thus have to get used to
-the syntax of Julia and to some of its conventions.
+Many of the differences described here are therefore differences between
+Julia and the language of the system you are used to.
 This page collects differences that affect users of all such systems.
 Notes for users of specific systems follow on separate pages:
 
@@ -65,7 +65,7 @@ Operations that involve several elements usually require that the
 parents coincide.
 Some conversions happen automatically, for example integers and
 rational numbers can be combined with elements of most rings,
-since there is exactly one way to interpret them.
+since there is exactly one way to coerce them.
 In other cases, an element has to be moved into the required structure
 explicitly, by calling the parent like a function.
 ```jldoctest
@@ -161,8 +161,8 @@ Some hints for finding the function you are looking for:
 - Type the beginning of a name and hit the tab key to see all completions.
 - `?name` shows the documentation of the function `name`,
   and `methods(name)` shows for which types of arguments it is defined.
-- `methodswith(typeof(x))` lists all functions that have a method for
-  objects of the same type as `x`.
+- `methodswith(typeof(x); supertypes = true)` lists all functions that
+  have a method for objects of the same type as `x`.
 - `apropos("text")` lists all functions whose documentation mentions
   the given text.
 - The search field at the top of this manual searches the whole manual.
