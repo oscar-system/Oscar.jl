@@ -164,6 +164,7 @@ often are the `snake_case` versions of the Magma names.
 | `Floor(q)`, `Ceiling(q)`, `Round(q)` | `floor(ZZRingElem, q)`, `ceil(ZZRingElem, q)`, `round(ZZRingElem, q)` |
 | `Isqrt(n)`, `IsSquare(n)` | `isqrt(n)`, `is_square(n)`, `is_square_with_sqrt(n)` |
 | `Integers(n)` | `residue_ring(ZZ, n)` |
+| `RealField(30)`, `ComplexField(30)` | `ArbField(100)`, `AcbField(100)` (precision in bits, not digits) |
 
 ### Groups
 
