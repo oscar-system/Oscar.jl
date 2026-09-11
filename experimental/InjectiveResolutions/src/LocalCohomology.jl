@@ -76,6 +76,15 @@ function Base.show(io::IO, S::SectorLC)
   print(io, "Sector of ZZ^", ambient_dim(S.sector), " with local cohomology of dimension ", dim(S.H))
 end
 
+function Base.show(io::IO, SP::SectorPartitionLC)
+  if is_terse(io)
+    print(io, "Sector partition of a local cohomology module")
+  else
+    print(io, "Sector partition of the ", _ordinal(SP.i),
+      " local cohomology module supported on ideal (", join(gens(SP.I), ", "), ")")
+  end
+end
+
 function Base.show(io::IO, ::MIME"text/plain", SP::SectorPartitionLC)
   println(
     io,

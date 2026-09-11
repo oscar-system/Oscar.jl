@@ -17,6 +17,8 @@
     H1 = Oscar.local_cohomology(M,m,1)
     @test !is_zero(H1)
     @test length(sectors(H1)) > 0
+    @test sprint(show, H1) == "Sector partition of the 1st local cohomology module supported on ideal (x_1, x_3)"
+    @test sprint(show, H1; context = :supercompact => true) == "Sector partition of a local cohomology module"
     # all local cohomology modules at once, and the ideal-argument method
     H = local_cohomology_all(M, m, 2)
     @test length(H) == 2
