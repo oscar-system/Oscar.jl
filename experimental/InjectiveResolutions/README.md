@@ -9,11 +9,11 @@ This experimental package provides tools to compute injective resolutions and lo
 Implemented:
 
 - monoid algebras `k[Q]` of affine semigroups `Q` (normal or not), with their
-  polyhedral data (cone, faces, hyperplanes);
+  polyhedral data (cone, faces, hyperplanes).
 - irreducible decompositions of monomial ideals, irreducible and injective
   resolutions of finitely generated `ZZ^d`-graded modules, injective hulls,
   monomial matrices, and graded Bass numbers, for normal and for non-normal
-  monoid algebras;
+  monoid algebras.
 - sector partitions of local cohomology modules `H^i_I(M)`, for normal
   monoid algebras only.
 

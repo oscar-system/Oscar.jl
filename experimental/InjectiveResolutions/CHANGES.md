@@ -12,7 +12,8 @@ local cohomology of finitely generated modules over monoid algebras following
   `affine_semigroup` (from a matrix, a list of generators, or a monoid
   algebra), `semigroup_generators`, `is_pointed`, and
   cached polyhedral data (cone, bounding hyperplanes, zonotope). Monoid
-  algebras store their semigroup; `monoid_algebra(Q::AffineSemigroup, k)`.
+  algebras store their semigroup, and `monoid_algebra(Q::AffineSemigroup, k)`
+  builds one from it.
 - **Non-normal monoid algebras.** `irreducible_resolution` and
   `injective_resolution` work for non-normal (unsaturated) `k[Q]`, using
   Algorithm 3.15 of [HM05] to compute the irreducible ideals in `k[Q]` from
@@ -24,7 +25,7 @@ local cohomology of finitely generated modules over monoid algebras following
   a non-injective map into the irreducible hull when a socle element is
   supported on several generators. The coefficients are now chosen as a dual
   basis on each `ZF`-class of socle degrees (`_dual_basis_lambdas`), which
-  makes the map injective; relevant relations are handled correctly.
+  makes the map injective, and relevant relations are handled correctly.
 - **Monomial matrices.** The differentials of an injective resolution are
   `MonomialMatrix` objects in the sense of Helm–Miller: a scalar matrix with
   the summands of source and target as row and column labels
@@ -51,7 +52,7 @@ local cohomology of finitely generated modules over monoid algebras following
   `shift = :milp_bound`.
 - `degrees_of_bass_numbers` builds the residue field resolution once.
 - Relevance checks for generators and relations in the coefficient
-  computation precompute the polyhedra once per face; semigroup membership
+  computation precompute the polyhedra once per face, and semigroup membership
   queries are cached per monoid algebra. Cone and semigroup membership
   tests use inequalities instead of polyhedral computations where possible.
 - Cokernels are replaced by minimal presentations between hull steps, which
@@ -69,8 +70,8 @@ local cohomology of finitely generated modules over monoid algebras following
 
 ## API cleanup
 
-- Explicit imports instead of importing every OSCAR name; exports reduced to
-  the public API; internal helpers unexported and named with a leading
+- Explicit imports instead of importing every OSCAR name. Exports reduced to
+  the public API, internal helpers unexported and named with a leading
   underscore.
 - `check` keyword on `irreducible_resolution` and `injective_resolution`
   gates the internal exactness assertions.
