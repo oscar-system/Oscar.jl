@@ -1,8 +1,8 @@
 # Notes for users of other computer algebra systems
 
-OSCAR is written in Julia, and an OSCAR session is a Julia session.
-Many of the differences described here are therefore differences between
-Julia and the language of the system you are used to.
+OSCAR is written in Julia, so an OSCAR session is just a Julia session.
+Many of the differences described here are therefore differences in
+behaviour and syntax between Julia and the CAS you are used to.
 This page collects differences that affect users of all such systems.
 Notes for users of specific systems follow on separate pages:
 
