@@ -17,10 +17,12 @@ one can return to the Julia prompt by entering `quit;` in the GAP session.
 
 ## Using GAP from OSCAR
 
-Only a part of GAP's functionality has a counterpart in OSCAR.
-Everything else can be called directly, which is described here.
-Whenever an OSCAR function for the task exists, prefer it: it takes care
-of the conversions, and it returns OSCAR objects.
+!!! warning "A route of last resort"
+    Calling GAP directly is an escape hatch for functionality that
+    OSCAR does not provide yet.
+    Prefer OSCAR's own functions whenever they exist, and please
+    [open an issue](https://github.com/oscar-system/Oscar.jl/issues)
+    for what is missing, so that it can be added to OSCAR itself.
 
 ### Global GAP variables and functions
 
