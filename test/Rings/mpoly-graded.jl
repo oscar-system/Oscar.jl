@@ -326,6 +326,14 @@ end
     for i in 1:100
       f = rand(R, 5:10, 1:10, 1:100)
       @test parent(f) === R
+
+      # a graded ring yields homogeneous polynomials, with or without an
+      # explicit rng
+      for g in (rand(S, 5:10, 1:10, 1:100),
+                rand(Random.default_rng(), S, 5:10, 1:10, 1:100))
+        @test parent(g) === S
+        @test is_homogeneous(g)
+      end
     end
   end
 end
