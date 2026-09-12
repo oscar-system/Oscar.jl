@@ -2373,22 +2373,23 @@ end
 #create homogeneous polynomials in graded rings
 #TODO: make this work for non-standard gradings
 @doc raw"""
-    rand(S::MPolyDecRing, term_range, deg_range, v...)
+    rand([rng::Random.AbstractRNG,] S::MPolyDecRing, term_range::UnitRange{Int}, deg_range::UnitRange{Int}, v...)
 
 Create a random homogeneous polynomial with a random number of
 terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
 and random coefficients via `v...`.
 """
-function rand(S::MPolyDecRing, term_range, deg_range, v...)
+function rand(rng::Random.AbstractRNG, S::MPolyDecRing,
+              term_range::UnitRange{Int}, deg_range::UnitRange{Int}, v...)
   f = zero(forget_decoration(S))
-  d = rand(deg_range)
-  for i=1:rand(term_range)
-    t = forget_decoration(S)(rand(base_ring(S), v...))
+  d = rand(rng, deg_range)
+  for i=1:rand(rng, term_range)
+    t = forget_decoration(S)(rand(rng, base_ring(S), v...))
     if iszero(t)
       continue
     end
     for j=1:ngens(forget_decoration(S))-1
-      t *= gen(forget_decoration(S), j)^rand(0:(d-total_degree(t)))
+      t *= gen(forget_decoration(S), j)^rand(rng, 0:(d-total_degree(t)))
     end
     #the last exponent is deterministic...
     t *= gen(forget_decoration(S), ngens(forget_decoration(S)))^(d-total_degree(t))
@@ -2396,6 +2397,9 @@ function rand(S::MPolyDecRing, term_range, deg_range, v...)
   end
   return S(f)
 end
+
+rand(S::MPolyDecRing, term_range::UnitRange{Int}, deg_range::UnitRange{Int}, v...) =
+  rand(Random.default_rng(), S, term_range, deg_range, v...)
 
 ################################################################################
 #
