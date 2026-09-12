@@ -1355,3 +1355,21 @@ end
   F = graded_free_module(R, 2)
   @test sprint(show, minimal_betti_table(F)) == sprint(show, minimal_betti_table(free_resolution(F)))
 end
+
+@testset "right scalar multiplication" begin
+  # right scalar multiplication on graded modules agrees with the left one
+  Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  F = graded_free_module(Rg, [0, 1])
+  v = F[1] + y*F[2]
+
+  @test v*x == x*v
+  @test parent(v*x) === F
+  @test v*2 == 2*v
+
+  Q, _ = quo(F, [x*F[1]])
+  w = Q[1] + y*Q[2]
+
+  @test w*x == x*w
+  @test parent(w*x) === Q
+  @test w*2 == 2*w
+end
