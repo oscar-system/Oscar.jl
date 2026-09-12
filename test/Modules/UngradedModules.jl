@@ -2219,3 +2219,12 @@ end
   @test normal_form(v, SB) == -x*F[3]
   @test normal_form(w, SB) == zero(F)
 end
+
+@testset "right scalar multiplication is not supported" begin
+  # right multiplication is rejected by its own error, not by a dispatch ambiguity
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  F = free_module(R, 2)
+
+  @test_throws ErrorException F[1]*x
+  @test_throws ErrorException F[1]*2
+end

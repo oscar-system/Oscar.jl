@@ -263,7 +263,7 @@ function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleOFPModuleRingE
   error("right multiplication is not supported at the moment")
 end
 
-function *(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem}
+function *(b::AbstractFreeModElem, a::Any)
   error("scalar multiplication from the right is not yet supported")
 end
 
@@ -275,11 +275,11 @@ is_left(M::OFPModule) = is_left(typeof(M))
 is_left(::Type{T}) where {RET<:RingElem, T<:OFPModule{RET}} = true
 is_left(::Type{T}) where {RET<:AdmissibleOFPModuleRingElem, T<:OFPModule{RET}} = true # Left multiplication is generically supported
 
-is_right(M::OFPModule) = is_right_module(typeof(M))
+is_right(M::OFPModule) = is_right(typeof(M))
 is_right(::Type{T}) where {RET<:RingElem, T<:OFPModule{RET}} = true
 is_right(::Type{T}) where {RET<:AdmissibleOFPModuleRingElem, T<:OFPModule{RET}} = false # Right multiplication is not supported by the generic code at the moment, but we plan to do so eventually. 
 
-is_two_sided(M::OFPModule) = is_right_module(typeof(M))
+is_two_sided(M::OFPModule) = is_two_sided(typeof(M))
 is_two_sided(::Type{T}) where {RET<:RingElem, T<:OFPModule{RET}} = true
 is_two_sided(::Type{T}) where {RET<:AdmissibleOFPModuleRingElem, T<:OFPModule{RET}} = false # see above
 

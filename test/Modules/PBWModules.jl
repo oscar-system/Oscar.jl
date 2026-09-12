@@ -58,3 +58,12 @@ end
     #@test !is_canonically_isomorphic(Q2,Q1)
     #simplify(Q[1])
 end
+
+@testset "right scalar multiplication is rejected" begin
+    # free modules over a PBW algebra are left modules only
+    E, x = exterior_algebra(QQ, 3)
+    M = FreeMod(E, 3)
+
+    @test !is_zero(x[1]*M[1])
+    @test_throws AssertionError M[1]*x[1]
+end
