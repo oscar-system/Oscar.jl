@@ -104,6 +104,20 @@ Once registered, the following method applies the complete sequence of blowups i
 resolve(m::AbstractFTheoryModel, index::Int)
 ```
 
+For the large arXiv:1511.03209 model, `resolve(m, 1)` loads an artifact. Set
+`use_resolved_model_artifact=false` for the direct resolution, which can take
+days or longer. `resolve` batches toric blowups, computing the hypersurface
+strict transform once along their composition. For mixed resolutions, it keeps
+the model obtained from the toric prefix and executes the remaining centers in
+order. Once the ambient space is non-toric, every subsequent center is interpreted
+as an ideal sheaf using strict transforms of coordinates on the last toric ambient
+space and the exceptional divisors introduced by later blowups. This supports successive
+non-toric blowups. Results drop known (weighted)
+resolutions to prevent repeated application; source models remain unchanged.
+Base and literature data are preserved, while coordinate-dependent sections
+and ambient-space caches are discarded. For toric results, zero-section and
+exceptional-divisor classes are reconstructed lazily in the new ambient space.
+
 ---
 
 ## [Resolution Metadata Functions](@id resolution_meta_data)
@@ -130,8 +144,9 @@ add_weighted_resolution_generating_section!(m::AbstractFTheoryModel, addition::V
 
 ## [Exceptional Divisors](@id exceptional_divisors)
 
-The following methods return information on exceptional divisors introduced by toric blowups.
-Therefore, these attributes are only available for models build over a concrete toric base space.
+The following methods return information on exceptional divisors introduced by
+toric blowups. Therefore, these attributes are only available for models with a
+toric ambient space.
 
 ```@docs
 exceptional_classes(::AbstractFTheoryModel)
