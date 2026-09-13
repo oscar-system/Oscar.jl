@@ -91,7 +91,7 @@ end
 # assumes V is sorted (e.g. [1,1,1,2,3,3])
 function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    n = sum(V)
-   _lambda = gen(F)
+   _lambda = primitive_element(F)
 
    # L = multiset(V)
    L=[[V[1],1]]
@@ -107,16 +107,16 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    # generators for GL + internal diagonal blocks
    pos=1
    for l in L
-      idN = identity_matrix(F,n)
       v_g = isSL ? _gens_for_SL(l[2],F) : _gens_for_GL(l[2],F)
       for x in v_g
+         idN = identity_matrix(F,n)
          z = hvcat(l[2], [x[i,j]*identity_matrix(F,l[1]) for j in 1:l[2] for i in 1:l[2]]...)
          idN[pos:pos+l[1]*l[2]-1,pos:pos+l[1]*l[2]-1] = z
          push!(listgens,idN)
       end
-      idN = identity_matrix(F,n)
       if l[1]>1
          for i in 1:l[1]-1, j in 1:degree(F)
+            idN = identity_matrix(F,n)
             z = identity_matrix(F,l[1])
             for k in 1:l[1]-i z[k,i+k]=_lambda^j end
             idN[pos:pos+l[1]-1, pos:pos+l[1]-1] = z
@@ -130,20 +130,23 @@ function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    pos=1
    for i in 1:length(L)-1
       pos += L[i][1]*L[i][2]
-      # block above diagonal
-      z = identity_matrix(F,n)
-      for j in 1:L[i][1]
-         idx = pos-L[i][1]+j-1
-         z[idx,idx+L[i+1][1]] = 1
+      for k in 1:degree(F)
+         c = _lambda^k
+         # block above diagonal
+         z = identity_matrix(F,n)
+         for j in 1:L[i][1]
+            idx = pos-L[i][1]+j-1
+            z[idx,idx+L[i+1][1]] = c
+         end
+         push!(listgens,z)
+         # block below diagonal
+         z = identity_matrix(F,n)
+         for j in 1:L[i][1]
+            idx = pos+j-1
+            z[idx,idx-L[i][1]] = c
+         end
+         push!(listgens,z)
       end
-      push!(listgens,z)
-      # block below diagonal
-      z = identity_matrix(F,n)
-      for j in 1:L[i][1]
-         idx = pos+j-1
-         z[idx,idx-L[i][1]]=1
-      end
-      push!(listgens,z)
    end
 
    # cardinality
@@ -170,6 +173,12 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
    C = companion_matrix(f)
    idN = identity_matrix(F,n)
    idD = identity_matrix(F,d)
+   lambda = primitive_element(F)
+   # The nilpotent directions form a vector space over the prime field.
+   # Use a prime-field basis of F times 1, C, ..., C^(d-1); powers
+   # 1, lambda, ..., lambda^(degree(F)-1) would also work, but the
+   # shifted powers below match the basis used in _centr_unipotent.
+   basisF = [lambda^i for i in 1:degree(F)]
 
    # L = multiset(V)
    L=[[V[1],1]]
@@ -186,23 +195,26 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
    pos=1
    for l in L
       v_g = isSL ? _gens_for_SL_matrix(f,l[2],F; D=l[1]) : _gens_for_GL_matrix(f,l[2],F; D=l[1])
-      idN = identity_matrix(F,n)
       for x in v_g
+         idN = identity_matrix(F,n)
          idN[pos:pos+nrows(x)-1,pos:pos+ncols(x)-1] = x
          push!(listgens,idN)
       end
       if l[1]>1
-         idN = identity_matrix(F,n)
          for i in 1:l[1]-1
-            c = idD
-            for j in 1:degree(F)*d
-               z = identity_matrix(F,l[1]*d)
-               for k in 0:l[1]-i-1
-                  z[d*k+1:d*(k+1),d*(k+i)+1:d*(k+i+1)] = c
+            pow = idD
+            for _ in 1:d
+               for alpha in basisF
+                  c = alpha * pow
+                  idN = identity_matrix(F,n)
+                  z = identity_matrix(F,l[1]*d)
+                  for k in 0:l[1]-i-1
+                     z[d*k+1:d*(k+1),d*(k+i)+1:d*(k+i+1)] = c
+                  end
+                  idN[pos:pos+l[1]*d-1,pos:pos+l[1]*d-1] = z
+                  push!(listgens,idN)
                end
-               idN[pos:pos+l[1]*d-1,pos:pos+l[1]*d-1] = z
-               c *= C           # every time, the block C^(j-1) is inserted
-               push!(listgens,idN)
+               pow *= C
             end
          end
       end
@@ -213,20 +225,29 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
    pos=1
    for i in 1:length(L)-1
       pos += L[i][1]*L[i][2]*d
-      # block above diagonal
-      z = idN
-      for j in 1:L[i][1]*d
-         idx = pos-L[i][1]*d+j-1
-         z[idx,idx+L[i+1][1]*d]=1
+      pow = idD
+      for _ in 1:d
+         for alpha in basisF
+            c = alpha * pow
+            # block above diagonal
+            z = identity_matrix(F,n)
+            for j in 1:L[i][1]
+               idx = pos - L[i][1]*d + (j-1)*d
+               idx2 = idx + L[i+1][1]*d
+               z[idx:idx+d-1, idx2:idx2+d-1] = c
+            end
+            push!(listgens,z)
+            # block below diagonal
+            z = identity_matrix(F,n)
+            for j in 1:L[i][1]
+               idx = pos + (j-1)*d
+               idx2 = idx - L[i][1]*d
+               z[idx:idx+d-1, idx2:idx2+d-1] = c
+            end
+            push!(listgens,z)
+         end
+         pow *= C
       end
-      push!(listgens,z)
-      # block below diagonal
-      z = idN
-      for j in 1:L[i][1]*d
-         idx = pos+j-1
-         z[idx,idx-L[i][1]*d]=1
-      end
-      push!(listgens,z)
    end
 
    # cardinality
@@ -244,13 +265,12 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
 end
 
 # returns the list of generators and the cardinality of the centralizer of x in GL
-function _centralizer_GL(x::MatElem)
+function _centralizer_GL(x::T) where {T <: MatElem{<:FinFieldElem}}
    _,a,ED = generalized_jordan_form(x; with_pol=true)    # a = change basis matrix
-   am = inv(a)
-   n=nrows(x)
-   listgens = MatElem[]
+   ainv = inv(a)
+   listgens = T[]
    res = ZZRingElem(1)
-   idN = identity_matrix(base_ring(x),n)
+   idN = one(x)
 
    i=1
    pos=1
@@ -263,9 +283,9 @@ function _centralizer_GL(x::MatElem)
       else
          L = _centr_block_unipotent(f,base_ring(x),V)
          for z in L[1]
-            idN = identity_matrix(base_ring(x),n)
+            idN = one(x)
             idN[pos:pos+nrows(z)-1, pos:pos+ncols(z)-1] = z
-            push!(listgens, am*idN*a)
+            push!(listgens, ainv*idN*a)
          end
          res *= L[2]
          pos += degree(f)*sum(V)
@@ -326,7 +346,7 @@ function _gens_for_SL_matrix(f::PolyRingElem, n::Int, F::FinField; D::Int=1)
    CPi = inv(CP)
    Df = D*degree(f)
 
-   n != 1 || return dense_matrix_type(F)[]
+   n != 1 || return [cat([CP^(order(F)-1) for i in 1:D]..., dims=(1,2))]
    h1 = identity_matrix(F,n*Df)
    h1[1:Df, 1:Df] = cat([CP for i in 1:D]..., dims=(1,2))
    h1[Df+1:2*Df, Df+1:2*Df] = cat([CPi for i in 1:D]..., dims=(1,2))
@@ -347,6 +367,21 @@ function _gens_for_SL_matrix(f::PolyRingElem, n::Int, F::FinField; D::Int=1)
    return [h1,h2,h3]
 end
 
+# Return a polynomial representing a primitive element of the field F[t]/(f),
+# normalized so that its determinant as an F-linear map is the chosen
+# primitive element of F.
+function _centralizer_with_base_determinant(f::PolyRingElem, F::FinField)
+   c = _centralizer(f)(companion_matrix(f))
+   m = Int(order(F)) - 1
+   if m == 1
+      return c
+   end
+   logdet = Int(disc_log(det(c), primitive_element(F)))
+   # If det(c) = lambda^logdet, then c^invmod(logdet, q-1) has
+   # determinant lambda.
+   return c^invmod(logdet, m)
+end
+
 
 # generators for centralizer of unipotent elements are described in:
 # Giovanni De Franceschi, Centralizers and conjugacy classes in finite classical groups, arXiv:2008.12651
@@ -357,7 +392,6 @@ function _centralizer_SL(x::MatElem)
    am = inv(a)
    n=nrows(x)
    listgens = MatElem[]
-   _lambda = primitive_element(base_ring(x))
    res = ZZRingElem(1)
    ind = ZZRingElem(0)
    idN = identity_matrix(base_ring(x),n)
@@ -366,10 +400,7 @@ function _centralizer_SL(x::MatElem)
    pos=1
    f=ED[1][1]
    V=[ED[1][2]]
-   c = _centralizer(f)(companion_matrix(f))
-   # Computes d such that det(c)^d = lambda and replace c by c^d.
-   # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
-   c = c^(disc_log(det(c),_lambda))
+   c = _centralizer_with_base_determinant(f, base_ring(x))
    # block_dim is a list of triples [d,m,c], where
    # d = dimension of the Jordan block, m = its multiplicity, c = el of max order determinant in centralizer of the companion matrix
    block_dim = [[ED[1][2],1,c]]
@@ -394,10 +425,7 @@ function _centralizer_SL(x::MatElem)
          if i<=length(ED)
             f = ED[i][1]
             V = [ED[i][2]]
-            c = _centralizer(f)(companion_matrix(f))
-            # Computes d such that det(c)^d = lambda and replace c by c^d.
-            # The result c^d is a primitive root for the base ring of x such that det(c^d) = lambda
-            c = c^(disc_log(det(c),_lambda))
+            c = _centralizer_with_base_determinant(f, base_ring(x))
             push!(block_dim, [ED[i][2],1,c])
          end
       end
