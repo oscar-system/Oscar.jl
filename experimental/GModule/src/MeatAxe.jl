@@ -7,10 +7,26 @@ import Oscar: AbstractAlgebra
 import AbstractAlgebra: FPModuleElem, FPModule
 
 
+function some_low_index_subgroups(G, limit)
+  m = [representative(x) for x = maximal_subgroup_classes(G)]
+  m = [x for x = m if index(G, x) <= limit]
+  length(m) == 0 || return m
+  while length(m) <= 20  
+    x = intersect(rand(m), rand(m))
+    if index(G, x) <= limit
+      push!(m, x)
+    end
+  end
+  return m
+end
+
+
 #very basic...
 function gmodule_new(chi::Oscar.GAPGroupClassFunction; limit::Int = 500)
   G = group(chi)
-  s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
+#  s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
+  s = some_low_index_subgroups(G, limit)
+
   sort!(s, lt = (a,b) -> isless(order(b), order(a)))
   for i = s
     if !is_zero(scalar_product(permutation_character(G, i), chi))
@@ -147,6 +163,11 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
 
   _try_tensor_products!(res, t; limit) && return res
   _try_squares!(res, t; limit) && return res
+
+  #too slow, way too slow: G = 24T11154
+  # small_index subgroup: slow
+  # small subgroups: slow
+  # G = 24T5154 better, but also bad (length(_v) == 1 failed)
 
   all_K = [x for x = subgroup_reps(G) if order(x) <= 20] #how to do this?
 
@@ -994,9 +1015,9 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
       if has_attribute(M, :endo)
         set_attribute!(k, :get_endo => x -> restrict_endo(get_attribute(M, :endo), mk)[2])
       end
-#      if degree(p) > 1 #can we use it to split over this extension?
-#        set_attribute!(k, :split =>(p, b, mC))
-#      end
+      if degree(p) > 1 #can we use it to split over this extension?
+        set_attribute!(k, :split =>(p, b, mC))
+      end
 #      q, mq = quo(M, mk.module_map)
 #      @assert dim(q) > 0 && dim(k) > 0
 #      _, mF = restrict_endo(mC, mk)
