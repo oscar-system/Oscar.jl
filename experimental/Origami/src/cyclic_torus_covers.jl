@@ -70,9 +70,9 @@ end
 @doc raw"""
       base_change_l_to_s(n::Int)
 
-Returns a matrix corresponding to the change of basis from ``L`` to ``S`` on the homology of ``T_n``. The matrix has
-the following property: given any cyclic torus cover origami as a monodromy vector ``v`` with respect to the basis
-``S``, you may obtain the corresponding monodromy vector with respect to basis ``L`` using ``v \cdot D_{SL}``.
+Returns a matrix ``M = D_{SL}`` corresponding to the change of basis from ``L`` to ``S`` on the homology of ``T_n``.
+The matrix has the following property: given any cyclic torus cover origami as a monodromy vector ``v`` with respect
+to the basis ``S``, you may obtain the corresponding monodromy vector with respect to basis ``L`` using ``v \cdot D_{SL}``.
 
 # Examples
 ```jldoctest
