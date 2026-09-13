@@ -210,6 +210,25 @@ end
   @test is_isomorphic(D, abelian_group([0]))
 end
 
+# Test monomial bases for polynomial rings and quotients with torsion gradings.
+@testset "Monomial basis with torsion" begin
+  # The relation matrix gives G = Z ⊕ Z/2, so the second generator is torsion.
+  G = abelian_group([0, 2])
+  g1, g2 = gens(G)
+  @test !is_free(G)
+  @test order(g2) == 2
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, G([1, 1])])
+  d = G([2, 1])
+
+  @test_throws ErrorException monomial_basis(R, d)
+  @test monomial_basis_with_torsion(R, d) == [x * y]
+  @test Set(monomial_basis_with_torsion(R, G([2, 0]))) == Set([x^2, y^2])
+  @test all(degree(p) == d for p in monomial_basis_with_torsion(R, d))
+
+  Q, _ = quo(R, ideal(R, [x^2]))
+  @test monomial_basis_with_torsion(Q, G([2, 0])) == [y^2]
+end
+
 @testset "Minimal generating set" begin
   R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y]; weights = [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])

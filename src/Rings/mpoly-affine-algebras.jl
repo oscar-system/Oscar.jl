@@ -208,6 +208,38 @@ function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
     return L
 end
 
+@doc raw"""
+    monomial_basis_with_torsion(A::MPolyQuoRing, g::FinGenAbGroupElem)
+
+Given a quotient `A = R/I` of a polynomial ring `R` over a field by a
+homogeneous ideal `I`, where `R` is graded by a finitely generated abelian
+group, and given an element `g` of that group, return monomials of `R` whose
+residue classes form a basis of the graded component of `A` of degree `g`.
+This method also works when the grading group has torsion. If the considered
+graded component of `R` is infinite dimensional, an error will be thrown.
+Otherwise, the method first computes the monomials in that component and
+removes those in the leading ideal of `I`.
+"""
+function monomial_basis_with_torsion(A::MPolyQuoRing, g::FinGenAbGroupElem)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  R = base_ring(A)
+  @req is_graded(R) "The ring must be graded"
+  L = try
+    monomial_basis_with_torsion(R, g)  ## only change made to monomial_basis!
+  catch e
+    if e isa AbstractAlgebra.InfiniteDimensionError
+      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
+    else
+      rethrow(e)
+    end
+  end
+  LI = leading_ideal(A.I)
+  # TODO: Decide whether we should check whether a GB with respect
+  # to whatever <ordering is already available
+  L = [x for x = L if !(x in LI)]
+  return L
+end
+
 function monomial_basis(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
   @assert is_zm_graded(A)
   return monomial_basis(A, grading_group(A)(g))

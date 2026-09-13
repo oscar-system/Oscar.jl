@@ -1493,6 +1493,40 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
   return B
 end
 
+@doc raw"""
+    monomial_basis_with_torsion(R::MPolyDecRing, g::FinGenAbGroupElem)
+
+Given a polynomial ring `R` over a field which is graded by a finitely
+generated abelian group, and given an element `g` of that group, return the
+monomials of degree `g` in `R`. This method also works when the grading group
+has torsion.
+
+If the grading group has torsion, the computation first projects the grading
+to the free quotient by its torsion subgroup. The finite set of monomials in
+the projected degree is then filtered using the original grading. Thus, if
+the graded component is finite dimensional, the returned monomials form a
+basis over the coefficient field. An `InfiniteDimensionError` is thrown if
+the projected component is infinite dimensional.
+"""
+function monomial_basis_with_torsion(W::MPolyDecRing, d::FinGenAbGroupElem)
+  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  D = grading_group(W)
+  is_free(D) && return monomial_basis(W, d)
+
+  # Project the grading to the torsion-free quotient.
+  _, inj = torsion_subgroup(D)
+  _, sur = cokernel(inj)
+
+  # Enumerate candidates in the free quotient grading.
+  deg_F = sur.(W.d)
+  R_F, _ = grade(forget_grading(W), deg_F)
+  B_F = monomial_basis(R_F, sur(d))   ## makes function rather inefficient, maybe cache result?
+
+  # Convert the candidates back and retain only those with the original degree.
+  B = [W(forget_grading(p)) for p = B_F]
+  return filter!(p -> degree(p) == d, B)
+end
+
 
 function monomial_basis(R::MPolyDecRing, g::Vector{<:IntegerUnion})
   @assert is_zm_graded(R)
