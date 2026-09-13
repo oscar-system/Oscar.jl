@@ -52,220 +52,93 @@ function doctestfilter_hash_changes_in_1_13()
   end
 end
 
-# use tempdir by default to ensure a clean manifest (and avoid modifying the project)
-function doc_init(;path=mktempdir())
-  global docsproject = path
-  if !isfile(joinpath(docsproject,"Project.toml"))
-    target = joinpath(docsproject,"Project.toml")
-    cp(joinpath(oscardir, "docs", "Project.toml"), target)
-    # we need to make sure this tempfile is writable even
-    # when copied from a readonly pkg directory
-    if uperm(target) & 0o2 == 0
-      chmod(target, filemode(target) | 0o200)
-    end
+################################################################################
+#
+#  The documentation environment
+#
+################################################################################
+#
+# Building the manual needs Documenter, which OSCAR does not depend on. `docs/`
+# is an environment providing it, stacked onto whatever project the user works
+# in, so that OSCAR itself keeps being loaded from there.
+#
+# It deliberately contains no OSCAR package. That keeps its manifest independent
+# of OSCAR's dependency graph, so it neither has to be re-resolved whenever that
+# graph moves nor can it disagree with the OSCAR that is already loaded.
+
+# Instantiating is cheap once done, but not free; only do it once per session.
+const _docs_env_instantiated = Ref(false)
+
+@doc raw"""
+    Oscar.docs_env()
+
+Make `Documenter` and the `OscarDocs` build driver loadable by appending the
+`docs/` environment to `LOAD_PATH`, instantiating it if necessary, and return
+its path.
+
+This is called for you by [`Oscar.@build_doc`](@ref) and friends.
+"""
+function docs_env()
+  env = joinpath(oscardir, "docs")
+
+  if !_docs_env_instantiated[]
+    Pkg.activate(Pkg.instantiate, env)
+    _docs_env_instantiated[] = true
   end
-  Pkg.activate(docsproject) do
-    # we dev all "our" packages with the paths from where they are currently
-    # loaded
-    pkglist = [AbstractAlgebra, Nemo, Hecke, Singular, GAP, Polymake]
-    paths = [PackageSpec(path=Base.pkgdir(pkg)) for pkg in pkglist]
-    push!(paths, PackageSpec(path=oscardir))
-    Pkg.develop(paths)
-    Pkg.instantiate()
-    Base.include(Main, joinpath(oscardir, "docs", "make_work.jl"))
-  end
-  docsproject in Base.LOAD_PATH || pushfirst!(Base.LOAD_PATH, docsproject)
-  return nothing
+
+  env in LOAD_PATH || push!(LOAD_PATH, env)
+  return env
 end
 
-"""
-    @doc_init
+################################################################################
+#
+#  Entry points
+#
+################################################################################
+#
+# Each entry point has to set up the environment, load `OscarDocs` and then call
+# into it. The macros do that as a `:toplevel` block evaluated in the caller's
+# module, so that each step gets its own world age. The functions of the same
+# names do the same work but have to resort to `invokelatest` for it.
 
-Initialize a new temporary project with Documenter and Oscar for doctesting.
-Adds that project to the load path and runs `using Documenter` in the calling module.
-
-# Examples
-```julia
-julia> Oscar.@doc_init
-<...>
-
-julia> Oscar.doctest(cube)
-page: ../src/PolyhedralGeometry/Polyhedron/standard_constructions.jl:202-207
-  0.020471 seconds (69.71 k allocations: 1.828 MiB)
-"""
-macro doc_init()
-  isdefined(Oscar, :docsproject) && isdefined(Main, :Documenter) && return nothing
-  doc_init()
-  return :(using Documenter)
-end
-
-function get_document(set_meta::Bool; doctest=:fix)
-  if !isdefined(Main, :Documenter)
-    error("you need to do `using Documenter` or `Oscar.@doc_init` first")
-  end
-  Documenter = Main.Documenter
-  if pkgversion(Documenter) < v"1.19-"
-    error("you need to use Documenter.jl version 1.19.0 or later")
-  end
-
-  doc = Documenter.Document(root = joinpath(oscardir, "docs"); doctest = doctest, doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())
-
-  if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
-    Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
-  end
-
-  return doc, Documenter._doctest
-end
-
-"""
-    doctest_fix(f::Function; set_meta::Bool = false)
-
-Fixes all doctests for the given function `f`.
-
-# Examples
-The following call fixes all doctests for the function `symmetric_group`:
-```julia
-julia> Oscar.doctest_fix(symmetric_group)
-```
-"""
-doctest_fix(f::Function; set_meta::Bool = false) = doctest(f; set_meta = set_meta, doctest = :fix)
-
-"""
-    doctest(f::Function; set_meta::Bool = false)
-
-Run all doctests for the given function `f`.
-"""
-function doctest(f::Function; set_meta::Bool = false, doctest = true)
-  S = Symbol(f)
-  doc, doctest = get_document(set_meta; doctest=doctest)
-
-  withenv("COLUMNS"=>80, "LINES"=>24) do
-    with_unicode(false) do
-      #essentially inspired by Documenter/src/DocTests.jl
-      pm = parentmodule(f)
-      bm = Base.Docs.meta(pm)
-      md = bm[Base.Docs.Binding(pm, S)]
-      for s in md.order
-        doctest(md.docs[s], Oscar, doc)
-      end
-    end
-  end
-end
-
-"""
-    doctest_fix(path::String; set_meta::Bool = false)
-
-Fixes all doctests for all files in Oscar where
-`path` occurs in the full pathname.
-
-# Examples
-The following call fixes all doctests in files that live in a directory
-called `Rings` (or a subdirectory thereof), so e.g. everything in `src/Rings/`:
-```julia
-julia> Oscar.doctest_fix("/Rings/")
-```
-"""
-doctest_fix(path::String; set_meta::Bool = false) = doctest(path; set_meta = set_meta, doctest = :fix)
-
-
-"""
-    doctest(path::String; set_meta::Bool = false)
-
-Run all doctests for all files in Oscar where
-`path` occurs in the full pathname.
-"""
-function doctest(path::String; set_meta::Bool = false, doctest = true)
-  doc, doctest = get_document(set_meta; doctest = doctest)
-
-  withenv("COLUMNS"=>80, "LINES"=>24) do
-    with_unicode(false) do
-      walkmodules(Oscar) do m
-        #essentially inspired by Documenter/src/DocTests.jl
-        bm = Base.Docs.meta(m)
-        for (_, md) in bm
-          for s in md.order
-            if occursin(path, md.docs[s].data[:path])
-              doctest(md.docs[s], Oscar, doc)
-            end
-          end
-        end
-      end
-    end
-  end
-end
-
-"""
-    doctest()
-
-Run all doctests for Oscar, calls [`build_doc`](@ref) with `doctest=true`.
-"""
-doctest(; doctest = true) = build_doc(; doctest = doctest, warnonly = false, open_browser = false, start_server = false)
-
-# copied from JuliaTesting/Aqua.jl
-function walkmodules(f, x::Module)
-  f(x)
-  for n in names(x; all=true)
-    # `isdefined` and `getproperty` can trigger deprecation warnings
-    if Base.isbindingresolved(x, n) && !Base.isdeprecated(x, n)
-      isdefined(x, n) || continue
-      y = getproperty(x, n)
-      if y isa Module && y !== x && parentmodule(y) === x
-        walkmodules(f, y)
-      end
-    end
-  end
-end
-
-#function doc_update_deps()
-#  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
-#end
-
-function open_doc()
-    filename = normpath(Oscar.oscardir, "docs", "build", "index.html")
-    @static if Sys.isapple()
-        run(`open $(filename)`; wait = false)
-    elseif Sys.islinux() || Sys.isbsd()
-        run(`xdg-open $(filename)`; wait = false)
-    elseif Sys.iswindows()
-        cmd = get(ENV, "COMSPEC", "cmd.exe")
-        run(`$(cmd) /c start $(filename)`; wait = false)
+function _split_macro_args(args)
+  kws = Any[]
+  pos = Any[]
+  for arg in args
+    if arg isa Expr && (arg.head === :(=) || arg.head === :kw)
+      push!(kws, Expr(:kw, arg.args[1], arg.args[2]))
     else
-        @warn("Opening files the default application is not supported on this OS.",
-              KERNEL = Sys.KERNEL)
+      push!(pos, arg)
     end
+  end
+  return pos, kws
 end
 
-function start_doc_preview_server(;open_browser::Bool = true, port::Int = 8000)
-  build_dir = normpath(Oscar.oscardir, "docs", "build")
-  cmd = """
-        using Pkg;
-        Pkg.activate(temp = true);
-        Pkg.add("LiveServer");
-        using LiveServer;
-        LiveServer.serve(dir = "$build_dir", launch_browser = $open_browser, port = $port);
-        """
-  live_server_process = run(`$(Base.julia_cmd()) -e $cmd`, wait = false)
-  atexit(_ -> kill(live_server_process))
-  @info "Starting server with PID $(getpid(live_server_process)) listening on 127.0.0.1:$port"
-  return nothing
+function _docs_toplevel(__source__, callee::Symbol, pos, kws)
+  # `Oscar` goes in as the module object itself, so that the caller does not
+  # need to have it in scope
+  call = Expr(:call, Expr(:., :OscarDocs, QuoteNode(callee)),
+              Expr(:parameters, kws...), Oscar, pos...)
+  result = Expr(:toplevel,
+                :($(Oscar).docs_env()),
+                :(import OscarDocs),
+                esc(call))
+  Meta.replace_sourceloc!(__source__, result)
+  return result
 end
 
 @doc raw"""
-    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false)
+    Oscar.@build_doc
+    Oscar.@build_doc doctest=false warnonly=true
+    Oscar.@build_doc open_browser=true start_server=false
 
-Build the manual of `Oscar.jl` locally and open the front page in a
-browser.
+Build the manual of `Oscar.jl` locally and open the front page in a browser.
 
 The optional parameter `doctest` can take three values:
   - `false`: Do not run the doctests (default).
   - `true`: Run the doctests and report errors.
   - `:fix`: Run the doctests and replace the output in the manual with
     the output produced by Oscar. Please use this option carefully.
-
-In GitHub Actions the Julia version used for building the manual is 1.10 and
-doctests are run with >= 1.7. Using a different Julia version may produce
-errors in some parts of Oscar, so please be careful, especially when setting
-`doctest=:fix`.
 
 The optional parameter `warnonly` is passed on to `makedocs` of `Documenter.jl`
 and if set to `false` then according to the manual of `Documenter.jl` "a
@@ -281,49 +154,142 @@ server in the build directory which is accessible via `127.0.0.1:8000`. If both
 `start_server` and `open_browser` are `true`, the browser will show this page.
 The server keeps running in the background until the `julia` session is
 terminated, so the proposed usage for this option is to run
-`build_doc(start_server = true)` for the first build and
-`build_doc(open_browser = false)` for following builds and only refresh the
+`Oscar.@build_doc start_server=true` for the first build and
+`Oscar.@build_doc open_browser=false` for following builds and only refresh the
 browser tab.
 
 When working on the manual the `Revise` package can significantly speed
-up running `build_doc`. First, install `Revise` in the following way:
-```
+up rebuilding. First, install `Revise` in the following way:
+```julia
 using Pkg ; Pkg.add("Revise")
 ```
 Second, restart Julia and load `Revise` before Oscar:
-```
+```julia
 using Revise, Oscar;
 ```
-The first run of `build_doc` will take the usual few minutes, subsequent runs
-will be significantly faster.
+The first build will take the usual few minutes, subsequent ones will be
+significantly faster.
+
+!!! note
+    This must be called at the top level, it does not work inside a function.
 """
-function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open_browser::Bool = true, start_server::Bool = false)
-  versioncheck = (VERSION.major == 1) && (VERSION.minor >= 7)
-  versionwarn = """The Julia reference version for the doctests is 1.7 or later, but you are using
-                $(VERSION). Running the doctests will produce errors that you do not expect."""
-  if doctest != false && !versioncheck
-    @warn versionwarn
-  end
-  if !isdefined(Main, :BuildDoc)
-    doc_init()
-  end
-  BuildDoc = @invokelatest Main.BuildDoc
-  withenv("COLUMNS"=>80, "LINES"=>24) do
-    with_unicode(false) do
-      Pkg.activate(docsproject) do
-        @invokelatest BuildDoc.doit(Oscar; warnonly=warnonly, local_build=true, doctest=doctest)
-      end
-    end
-  end
-  if start_server
-    start_doc_preview_server(open_browser = open_browser)
-  elseif open_browser
-    open_doc()
-  end
-  if doctest != false && !versioncheck
-    @warn versionwarn
-  end
+macro build_doc(args...)
+  pos, kws = _split_macro_args(args)
+  isempty(pos) || throw(ArgumentError("@build_doc only takes keyword arguments"))
+  return _docs_toplevel(__source__, :build, pos, kws)
 end
+
+@doc raw"""
+    Oscar.@doctest
+    Oscar.@doctest f
+    Oscar.@doctest path
+
+Run the doctests of OSCAR. Without an argument, all of them are run, both those
+in docstrings and those in the manual sources; this does not build the manual.
+
+Given a function `f`, only the doctests of that function are run. Given a
+string `path`, only the doctests in files whose full pathname contains `path`
+are run.
+
+# Examples
+```julia
+julia> Oscar.@doctest symmetric_group
+
+julia> Oscar.@doctest "/Rings/"
+```
+
+!!! note
+    This must be called at the top level, it does not work inside a function.
+"""
+macro doctest(args...)
+  pos, kws = _split_macro_args(args)
+  length(pos) <= 1 || throw(ArgumentError("@doctest takes at most one argument"))
+  return _docs_toplevel(__source__, :doctest, pos, kws)
+end
+
+@doc raw"""
+    Oscar.@doctest_fix
+    Oscar.@doctest_fix f
+    Oscar.@doctest_fix path
+
+Like [`Oscar.@doctest`](@ref), but replace the expected output of every doctest
+that is run by the output OSCAR actually produces.
+
+# Examples
+The following call fixes all doctests for the function `symmetric_group`:
+```julia
+julia> Oscar.@doctest_fix symmetric_group
+```
+The following call fixes all doctests in files that live in a directory called
+`Rings` (or a subdirectory thereof), so e.g. everything in `src/Rings/`:
+```julia
+julia> Oscar.@doctest_fix "/Rings/"
+```
+
+!!! danger
+    Please use this carefully:
+    - Make sure to only commit the changes to the doctests originating from
+      your changes to the code.
+    - The doctests also serve as actual tests, so make absolutely sure that the
+      output is still mathematically correct.
+
+!!! note
+    This must be called at the top level, it does not work inside a function.
+"""
+macro doctest_fix(args...)
+  pos, kws = _split_macro_args(args)
+  length(pos) <= 1 || throw(ArgumentError("@doctest_fix takes at most one argument"))
+  filter!(kw -> kw.args[1] !== :fix, kws)
+  push!(kws, Expr(:kw, :fix, true))
+  return _docs_toplevel(__source__, :doctest, pos, kws)
+end
+
+# The functions are kept alongside the macros because they are what everyone
+# has in their fingers, and because downstream code such as OscarDevTools calls
+# them. `OscarDocs` may only become loadable during the call, hence
+# `invokelatest`.
+const _oscardocs_uuid = UUID("39b4aa4e-cfe7-45c1-b576-a6789dd0b603")
+
+function _oscardocs()
+  docs_env()
+  return Base.require(Base.PkgId(_oscardocs_uuid, "OscarDocs"))
+end
+
+@doc raw"""
+    build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false)
+
+Build the OSCAR manual. Equivalent to [`Oscar.@build_doc`](@ref), which should
+be preferred at the REPL.
+"""
+build_doc(; kwargs...) = Base.invokelatest(_oscardocs().build, Oscar; kwargs...)
+
+@doc raw"""
+    doctest(; fix::Bool = false)
+    doctest(f::Function; fix::Bool = false, set_meta::Bool = false)
+    doctest(path::String; fix::Bool = false, set_meta::Bool = false)
+
+Run the doctests of OSCAR, of a single function, or of every file whose path
+contains `path`. Equivalent to [`Oscar.@doctest`](@ref), which should be
+preferred at the REPL.
+"""
+doctest(; kwargs...) = Base.invokelatest(_oscardocs().doctest, Oscar; kwargs...)
+doctest(what::Union{Function,String}; kwargs...) =
+  Base.invokelatest(_oscardocs().doctest, Oscar, what; kwargs...)
+
+@doc raw"""
+    doctest_fix(f::Function; set_meta::Bool = false)
+    doctest_fix(path::String; set_meta::Bool = false)
+
+Run doctests as [`Oscar.doctest`](@ref) does, replacing their expected output
+with what OSCAR produces. Please use carefully.
+"""
+doctest_fix(what::Union{Function,String}; kwargs...) = doctest(what; fix=true, kwargs...)
+
+################################################################################
+#
+#  Experimental documentation
+#
+################################################################################
 
 # Create symbolic links from any documentation directory in `experimental` into
 # `docs/src`

@@ -46,12 +46,12 @@ them some code that they can copy-paste and manipulate, and, as a bonus,
 provides a testcase as well.
 
 
-The docstrings can be tested separately by function or path name substring; or all at once:
+The docstrings can be tested separately by function or path name substring, or
+all at once:
 
 ```@docs
-doctest(f::Function; set_meta::Bool = false, doctest = true)
-doctest(path::String; set_meta::Bool = false, doctest = true)
-doctest(; doctest = true)
+@doctest
+Oscar.doctest
 ```
 
 ## The folder `docs`
@@ -76,7 +76,7 @@ not live in `Oscar` itself, qualify it (`OscarDB.get_db`) rather than switching
 `CurrentModule`.
 
 
-## Building the OSCAR documentation with `Oscar.build_doc`
+## Building the OSCAR documentation with `Oscar.@build_doc`
 
 !!! note "Previewing the documentation"
     Once you have created a pull request it is possible to preview the
@@ -90,16 +90,30 @@ not live in `Oscar` itself, qualify it (`OscarDB.get_db`) rather than switching
     You can still build the documentation locally with the commands described below.
 
 ```@docs
+@build_doc
 build_doc
 ```
 Please also read the section below on repairing the `jldoctest`s using
-`build_doc`.
+`Oscar.@build_doc`.
 !!! note "Browser reports denied access"
     Depending on your system, it might happen that the browser opens after a
     successful build, but only informs you that the access to the file was denied.
     This happens, for example, on Ubuntu which comes with a sandboxed Firefox.
-    In this case, using `build_doc` with `start_server = true` should circumvent
+    In this case, using `Oscar.@build_doc start_server=true` should circumvent
     this problem.
+
+
+### The documentation environment
+
+Building the manual needs `Documenter.jl`, which OSCAR does not depend on. The
+`docs/` folder is an environment providing it, and the first invocation
+instantiates it and appends it to your `LOAD_PATH`; OSCAR itself keeps being
+loaded from your own project. That environment contains no OSCAR package, so it
+does not have to be resolved again whenever OSCAR's dependencies move.
+
+```@docs
+Oscar.docs_env
+```
 
 
 ### Automatically repairing `jldoctest`s
@@ -108,20 +122,14 @@ It is possible to have julia fix the output of all `jldoctest`s when your
 changes to the code entail changes to the output. Just run the following
 command:
 ```julia
-build_doc(doctest = :fix)
+Oscar.@build_doc doctest=:fix
 ```
 If you just want to fix some of the `jldoctest`s, and do not want to build
-the documentation, you can also use `Oscar.doctest_fix`:
+the documentation, you can also use `Oscar.@doctest_fix`:
 ```@docs
+@doctest_fix
 Oscar.doctest_fix
 ```
-!!! danger
-    Please use these commands carefully:
-    - Make sure to only commit the changes to the doctests originating from
-      your changes to the code.
-    - The doctests also serve as actual tests, so make absolutely sure that the
-      output is still mathematically correct.
-
 !!! tip
     If these commands fail with an error message indicating lacking permissions
     to change `AbstractAlgebra.jl` related docs, it may help to run the

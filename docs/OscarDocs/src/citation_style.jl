@@ -1,5 +1,5 @@
 #
-# This file is included by docs/make_work.jl to define the custom citation style `oscar_style`.
+# Defines the custom citation style `oscar_style`.
 #
 # It is heavily based upon
 # https://juliadocs.org/DocumenterCitations.jl/v1.0.0/gallery/#Custom-style:-Citation-key-labels
