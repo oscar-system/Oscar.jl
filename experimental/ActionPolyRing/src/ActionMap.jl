@@ -60,14 +60,11 @@ function __is_trivial_shift(m::Map{D, D}) where {D <: Ring}
   m isa AbstractAlgebra.Generic.IdentityMap && return true
 
   R = domain(m)
-  !applicable(gens, R) && return false 
-
   return all(g -> m(g) == g, gens(R))
 end
 
 function __is_trivial_derivation(m::Map{D, D}) where {D <: Ring}
   R = domain(m)
-  !applicable(gens, R) && return false
   return all(g -> iszero(m(g)), gens(R))
 end
 
@@ -78,7 +75,6 @@ function __is_probably_valid_shift(m::Map{D, D}) where {D <: Ring}
 
   (!is_one(m(one(R))) || !is_zero(m(zero(R)))) && return false
 
-  !applicable(gens, R) && return true # Impossible to check so trust the user
   G = gens(R)
   mG = [m(g) for g in G]
   n = length(G)
@@ -96,7 +92,6 @@ function __is_probably_valid_derivation(m::Map{D, D}) where {D <: Ring}
 
   !is_zero(m(one(R))) && return false
 
-  !applicable(gens, R) && return true # Impossible to check so trust the user
   G = gens(R)
   mG = [m(g) for g in G]
   n = length(G)
@@ -118,10 +113,8 @@ function __are_probably_commuting(m1::ActionMap{D}, m2::ActionMap{D}) where {D <
     return true
   end
 
-  dom = domain(m1)
-
-  !applicable(gens, dom) && return true
-  for g in gens(dom)
+  gdom = gens(domain(m1))
+  for g in gdom
     m1(m2(g)) != m2(m1(g)) && return false
   end
 
