@@ -1,8 +1,7 @@
 # [Difference polynomial rings](@id differencepolyring)
 
 A difference polynomial ring over the commutative ring ``R`` is an action polynomial ring ``A`` whose action maps
-are (injective) endomorphisms of ``A``, i.e. ``R``-linear maps that are also multiplicative. We also call them
-shift operators.
+are (injective) endomorphisms of ``A``. We also call them shift operators.
 
 ## [Construction](@id differencepolyring_construction)
 We provide the following methods to construct shift operators on the coefficient ring `R`. Using these is necessary, if

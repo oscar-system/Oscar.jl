@@ -12,13 +12,13 @@ An *action polynomial ring* over the commutative ring ``R`` is a polynomial ring
 S = R[\, (u_i)_J \mid i \in \underline{m}, \, J \in \mathbb{Z}_{\geq 0}^n ]
 ```
 in the countably infinitely many *jet variables* ``(u_i)_J``, equipped with ``n`` commuting
-``R``-linear *action maps* ``\sigma_1, \ldots, \sigma_n``, where ``m`` and ``n`` are positive
-integers. The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, the multiindices
+*action maps* ``\sigma_1, \ldots, \sigma_n``, where ``m`` and ``n`` are positive integers.
+The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, the multiindices
 ``J \in \mathbb{Z}_{\geq 0}^n`` are called *jets*. Note that depending on the specific setting, the
-action maps and action indeterminates are given a more specific name; for example, if ``S`` is a difference
+action maps and action indeterminates are given more specific names; for example, if ``S`` is a difference
 polynomial ring then the ``\sigma_j`` are called *shift operators* and the ``u_i`` are called
 *difference indeterminates*. If instead ``S`` is a differential polynomial ring S, then the ``\sigma_j``
-are called *derivatives* and the ``u_i`` are called *differential indeterminates*.
+are called *derivations* and the ``u_i`` are called *differential indeterminates*.
 
 We put ``\Delta \coloneqq \{ \sigma_1, \ldots, \sigma_n\}`` and denote the set of monomials in ``\Delta`` by
 ```math

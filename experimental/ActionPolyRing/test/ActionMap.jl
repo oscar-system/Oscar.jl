@@ -37,7 +37,7 @@
     R, x = polynomial_ring(QQ, :x)
 
     zero_R = action_derivation(map_from_func(R, R, p -> zero(R)))
-    @test zero_R isa Oscar.TrivialActionDerivation
+    @test zero_R isa Oscar.NontrivialActionDerivation
 
     ddx = action_derivation(map_from_func(R, R, derivative))
     @test ddx isa Oscar.NontrivialActionDerivation
@@ -47,7 +47,7 @@
     @test ddx(17*x) == 17
 
     id_R = action_shift(map_from_func(R, R, p -> p))
-    @test id_R isa Oscar.TrivialActionShift
+    @test id_R isa Oscar.NontrivialActionShift
     @test id_R(x^2 + 1) == x^2 + 1
 
     x_to_zero = action_shift(hom(R, R, zero(R))) # evaluation at zero
@@ -104,12 +104,15 @@
   @testset "Quadratic number fields" begin
     for d in [-5, -3, -1, 2, 3, 5]
       K, a = quadratic_field(d)
-
+      
+      true_trivial_galois = action_shift(K)
       trivial_galois = action_shift(hom(K, K, a))
       nontrivial_galois = action_shift(hom(K, K, -a))
 
-      @test trivial_galois isa Oscar.TrivialActionShift
+      @test true_trivial_galois isa Oscar.TrivialActionShift
+      @test trivial_galois isa Oscar.NontrivialActionShift
       @test nontrivial_galois isa Oscar.NontrivialActionShift
+      @test true_trivial_galois(a) == a
       @test trivial_galois(a) == a
       @test nontrivial_galois(a) == -a
       @test trivial_galois(a) + nontrivial_galois(a) == trace(a)
