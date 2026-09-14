@@ -8,8 +8,8 @@ function _index(s::PermGroupElem, t::PermGroupElem)
 end
 
 function modular_subgroup(s::PermGroupElem, t::PermGroupElem; check::Bool)
-  # Coerce both permutations into the same symmetric group, so that
-  # the caller may pass permutations of different degrees.
+  # Coerce both permutations into the same symmetric group, so that the caller
+  # may pass permutations living a priori in different parent symmetric groups.
   Sym = symmetric_group(_index(s, t))
   s = Sym(s)
   t = Sym(t)
