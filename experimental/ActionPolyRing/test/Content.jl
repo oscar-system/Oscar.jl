@@ -985,8 +985,6 @@
         @test apply_action(b[3, 1], [2, 0]) == b[5, 1]
         
         @test apply_action(a + 2*b, [3, 4]) == a[3, 4] + 2*b[3, 4]
-        @test apply_action(a + 2*b, [3, 4]) == a[3, 4] + 2*b[3, 4]
-        @test apply_action(a * 2*b, [3, 4]) == 2*a[3, 4] * b[3, 4]
         @test apply_action(a * 2*b, [3, 4]) == 2*a[3, 4] * b[3, 4]
       end
       @testset "arbitrary polynomials" begin
@@ -1056,11 +1054,10 @@
       @test apply_action(us, 1) == us[1, 0]
 
       R2, (a, b) = polynomial_ring(QQ, [:a, :b])
-      Rd, vs = differential_polynomial_ring(R1, :f, 2)
+      Rd, vs = differential_polynomial_ring(R2, :f, 2)
       @test apply_action(vs, 1) == vs[1, 0]
-      Re, us = difference_polynomial_ring(R1, :g, 2)
+      Re, us = difference_polynomial_ring(R2, :g, 2)
       @test apply_action(us, 1) == us[1, 0]
-
     end
   end
 

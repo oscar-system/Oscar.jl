@@ -6,7 +6,7 @@ shift operators.
 
 ## [Construction](@id differencepolyring_construction)
 We provide the following methods to construct shift operators on the coefficient ring `R`. Using these is necessary, if
-one want to use difference polynomial rings with nontrivial shift operators.
+one wants to use difference polynomial rings with nontrivial shift operators.
 
 ```@docs
 action_shift(R::Ring)
@@ -22,7 +22,7 @@ difference_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int; kwargs...)
 ```
 
 We provide the following constructors to create difference polynomial rings with arbitrary commuting shift operators. We verify that
-the shift operators commute on generators of the coefficient ring `R`. However, if `gens` is not applicable to it then no check is performed at all.
+the shift operators commute on generators of the coefficient ring `R`. However, if `gens` is not applicable to it, then no check is performed at all.
 
 ```@docs
 difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
