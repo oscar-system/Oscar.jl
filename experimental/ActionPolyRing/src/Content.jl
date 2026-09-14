@@ -112,26 +112,6 @@ but additionally allows the user to pass a custom vector of shift operators `act
 ```jldoctest
 julia> S, x = polynomial_ring(QQ, :x);
 
-julia> nontrivial_shifts = action_shift.([hom(S,S,x+1), hom(S,S,-x)])
-2-element Vector{Oscar.NontrivialActionShift{QQPolyRing}}:
- Shift operator on S
- Shift operator on S
-
-julia> dpr, (u, v) = difference_polynomial_ring(S, [:u, :v], nontrivial_shifts)
-(Difference polynomial ring in 2 action indeterminates over S, DifferencePolyRingElem{QQPolyRingElem}[u[0,0], v[0,0]])
-```
-"""
-
-@doc raw"""
-    difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, action_maps::Vector{<:ActionShift}; kwargs...) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
-
-This constructor behaves exactly like and comes with the same features as [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
-but additionally allows the user to pass a custom vector of shift operators `action_maps`. In particular, this constructor allows for nontrivial shift operators.
-
-# Examples
-```jldoctest
-julia> S, x = polynomial_ring(QQ, :x);
-
 julia> nontrivial_shifts = action_shift.([hom(S, S, x + 1), hom(S, S, x + 2)])
 2-element Vector{Oscar.NontrivialActionShift{QQPolyRing}}:
  Shift operator on S
@@ -431,7 +411,7 @@ action_indeterminates(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dp
 @doc raw"""
     n_action_maps(A::ActionPolyRing) -> Int
 
-Return the number of action indeterminates of the action polynomial ring `A`.
+Return the number of action maps of the action polynomial ring `A`.
 """
 n_action_maps(apr::ActionPolyRing) = length(action_maps(apr))
 
@@ -440,6 +420,8 @@ n_action_maps(apr::ActionPolyRing) = length(action_maps(apr))
 
 Return the action maps of the action polynomial ring `A` as a vector.
 """
+action_maps(A::ActionPolyRing)
+
 action_maps(dpr::DifferencePolyRing) = dpr.action_maps::Vector{<:Union{TrivialActionShift{coefficient_ring_type(dpr)}, NontrivialActionShift{coefficient_ring_type(dpr)}}}
 action_maps(dpr::DifferentialPolyRing) = dpr.action_maps::Vector{<:Union{TrivialActionDerivation{coefficient_ring_type(dpr)}, NontrivialActionDerivation{coefficient_ring_type(dpr)}}}
 
@@ -961,7 +943,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
       new_exp_vec[shifted_var_pos] = ev[var_pos]
     end
 
-    push_term!(C, coeff_t , new_exp_vec)
+    push_term!(C, coeff_t, new_exp_vec)
   end
   return dpr(finish(C))
 end
@@ -1113,7 +1095,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
       new_exp_vec[shifted_var_pos] = ev[var_pos]
     end
 
-    push_term!(C, coeff_t , new_exp_vec)
+    push_term!(C, coeff_t, new_exp_vec)
   end
   return dpr(finish(C))
 end

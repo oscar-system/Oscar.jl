@@ -113,7 +113,7 @@ end
 function __are_probably_commuting(m1::ActionMap{D}, m2::ActionMap{D}) where {D <: Ring}
   @req domain(m1) === domain(m2) "The domains of the action maps do not coincide"
 
-  if m1 isa Union{TrivialActionShift, TrivialActionDerivation} || 
+  if m1 isa Union{TrivialActionShift, TrivialActionDerivation} ||
      m2 isa Union{TrivialActionShift, TrivialActionDerivation}
     return true
   end

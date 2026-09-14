@@ -349,7 +349,7 @@
       end
     end # two diff indets
   end # Difference reduction methods
-  
+
   @testset "autoreduction" begin
     @testset "single differential indeterminate and single action map" begin
       dxr, x = difference_polynomial_ring(QQ, :x, 1)
