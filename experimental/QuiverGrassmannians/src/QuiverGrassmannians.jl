@@ -99,7 +99,7 @@ function edge_gens(e::Edge, nsi::Vector{Int}, dsi::Vector{Int}, A::MatElem, xdic
     L1 = subsets(nsi[1], dsi[1]-1)
     L2 = subsets(nsi[2], dsi[2]+1)
     #pairs
-    X = [(a, b) for a in L1, b in L2 if length(b) - length(a) >= 2]
+    X = [(a, b) for a in L1 for b in L2]
     #generators
     T = [P_gen(A, I, J, e, nsi[1], xdict) for (I,J) in X]
     return unique(filter!(!iszero, T))
