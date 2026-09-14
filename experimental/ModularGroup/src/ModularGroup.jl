@@ -7,7 +7,7 @@ function _index(s::PermGroupElem, t::PermGroupElem)
   return max(1, largest_moved_point(s), largest_moved_point(t))
 end
 
-function modular_subgroup(s::PermGroupElem, t::PermGroupElem, check::Bool)
+function modular_subgroup(s::PermGroupElem, t::PermGroupElem; check::Bool)
   # Coerce both permutations into the same symmetric group, so that
   # the caller may pass permutations of different degrees.
   Sym = symmetric_group(_index(s, t))
@@ -20,7 +20,9 @@ end
     modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check=true)
 
 Construct a `ModularGroup` object corresponding to the finite-index subgroup
-of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``. For `check = true`, this
+of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``.
+
+For `check = true`, this
 constructor tests if the given permutations actually describe the (right) coset action of the matrices
 ```math
 S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad T= \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix},
@@ -41,7 +43,7 @@ julia> G = modular_subgroup_via_right_action(s, t)
 Modular subgroup of index 10
 ```
 """
-function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check=true)
+function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
   return modular_subgroup(s, t, check)
 end
 
@@ -49,9 +51,10 @@ end
     modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check=true)
 
 Same as [`modular_subgroup_via_right_action`](@ref), but now the permutations describe the action
-by left multiplication on the left cosets. Under the bijection ``gH \mapsto Hg^{-1}``
-this is the right action of the inverse matrices, hence the subgroup is stored via
-the inverse permutations.
+by left multiplication on the left cosets.
+
+Under the bijection ``gH \mapsto Hg^{-1}`` this is the right action of the inverse matrices,
+hence the subgroup is stored via the inverse permutations.
 
 # Examples
 ```jldoctest
@@ -90,7 +93,7 @@ end
 function Base.show(io::IO, x::ModularGroupElem)
   A = matrix(x)
   idx = index(parent(x))
-  print(io, "$(A) in moodular group of index $(idx)")
+  print(io, "$(A) in modular group of index $(idx)")
 end
 
 elem_type(::Type{ModularGroup}) = ModularGroupElem
@@ -123,12 +126,11 @@ function order(::Type{T}, x::ModularGroupElem) where {T<:IntegerUnion}
   end
 end
 
-order(x::ModularGroupElem) = order(ZZRingElem, x)
 
 function is_finite_order(x::ModularGroupElem)
   A = matrix(x)
   t = tr(A)
-  return abs(t) < 2 || (t == 2 && isone(A)) || (t == -2 && A == -one(A))
+  return abs(t) < 2 || (t == 2 && isone(A)) || (t == -2 && isone(-A))
 end
 
 @doc raw"""
@@ -191,7 +193,7 @@ function _SL2Z_fp()
   if !isassigned(_SL2Z_FP_CACHE)
     # Words like T^k with huge k arise from matrices with large entries;
     # the syllable representation stores them in constant space.
-    F = free_group(["S", "T"]; eltype = :syllable)
+    F = free_group([:S, :T]; eltype = :syllable)
     S, T = gens(F)
 
     SL2Z, _ = quo(F, [S^4, (S^3*T)^3, S^2*T*S^-2*T^-1])
