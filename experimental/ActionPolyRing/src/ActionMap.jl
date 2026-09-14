@@ -13,8 +13,6 @@ Wrap the map `m` into an `ActionDerivation`. If `check` is true, a heuristic val
 """
 function action_derivation(m::Map{D, D}; check::Bool=true) where {D <: Ring}
   check && @req __is_probably_valid_derivation(m) "The provided map fails the Leibniz rule or additivity on generators; it is not a valid derivation"
-
-  __is_trivial_derivation(m) && return TrivialActionDerivation{D}(domain(m))
   return NontrivialActionDerivation{D}(m)
 end
 
@@ -32,8 +30,6 @@ Wrap the map `m` into an `ActionShift`. If `check` is true, a heuristic validati
 """
 function action_shift(m::Map{D, D}; check::Bool=true) where {D <: Ring}
   check && @req __is_probably_valid_shift(m) "The provided map fails multiplicativity or additivity on generators; it is not a valid shift"
-
-  __is_trivial_shift(m) && return TrivialActionShift{D}(domain(m))
   return NontrivialActionShift{D}(m)
 end
 
@@ -54,19 +50,6 @@ function (m::TrivialActionDerivation)(x)
 end
 (m::TrivialActionShift)(x) = domain(m)(x)
 (m::Union{NontrivialActionDerivation, NontrivialActionShift})(x) = __underlying_map(m)(domain(m)(x))
-
-### Triviality Helpers
-function __is_trivial_shift(m::Map{D, D}) where {D <: Ring}
-  m isa AbstractAlgebra.Generic.IdentityMap && return true
-
-  R = domain(m)
-  return all(g -> m(g) == g, gens(R))
-end
-
-function __is_trivial_derivation(m::Map{D, D}) where {D <: Ring}
-  R = domain(m)
-  return all(g -> iszero(m(g)), gens(R))
-end
 
 ### Heuristic verifiers
 function __is_probably_valid_shift(m::Map{D, D}) where {D <: Ring}
