@@ -56,15 +56,15 @@ julia> variablesS
 ```
 """
 function difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
-  maps = [action_shift(R) for _ in 1:n_action_maps]
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, maps)
+  action_maps = Union{TrivialActionShift{typeof(R)}, NontrivialActionShift{typeof(R)}}[action_shift(R) for _ in 1:n_action_maps]
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_action_indeterminates])))
 end
 
 function difference_polynomial_ring(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int; kwargs...)
-  maps = [action_shift(R) for _ in 1:n_action_maps]
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, action_indeterminates, maps)
+  action_maps = Union{TrivialActionShift{typeof(R)}, NontrivialActionShift{typeof(R)}}[action_shift(R) for _ in 1:n_action_maps]
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(action_indeterminates)])))
 end
@@ -122,7 +122,9 @@ julia> dpr, (u, v) = difference_polynomial_ring(S, [:u, :v], nontrivial_shifts)
 ```
 """
 function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring "
   @req __are_probably_commuting(action_maps) "The shift operators do not commute on the coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}, action_maps)
   n_maps = length(action_maps)
   dpr = DifferencePolyRing{elem_type(D)}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -130,7 +132,9 @@ function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_m
 end
 
 function difference_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring "
   @req __are_probably_commuting(action_maps) "The shift operators do not commute on the coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}, action_maps)
   n_maps = length(action_maps)
   dpr = DifferencePolyRing{elem_type(D)}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -199,15 +203,15 @@ julia> variablesS
 ```
 """
 function differential_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
-  maps = [action_derivation(R) for _ in 1:n_action_maps]
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, maps)
+  action_maps = Union{TrivialActionDerivation{typeof(R)}, NontrivialActionDerivation{typeof(R)}}[action_derivation(R) for _ in 1:n_action_maps]
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_action_indeterminates])))
 end
 
 function differential_polynomial_ring(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int; kwargs...)
-  maps = [action_derivation(R) for _ in 1:n_action_maps]
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, action_indeterminates, maps)
+  action_maps = Union{TrivialActionDerivation{typeof(R)}, NontrivialActionDerivation{typeof(R)}}[action_derivation(R) for _ in 1:n_action_maps]
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(action_indeterminates)])))
 end
@@ -265,7 +269,9 @@ julia> dpr, (u, v) = differential_polynomial_ring(S, [:u, :v], nontrivial_deriva
 ```
 """
 function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring "
   @req __are_probably_commuting(action_maps) "The derivations do not commute on the coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}, action_maps)
   n_maps = length(action_maps)
   dpr = DifferentialPolyRing{elem_type(D)}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -273,7 +279,9 @@ function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action
 end
 
 function differential_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring "
   @req __are_probably_commuting(action_maps) "The derivations do not commute on the coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}, action_maps)
   n_maps = length(action_maps)
   dpr = DifferentialPolyRing{elem_type(D)}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
@@ -422,8 +430,8 @@ Return the action maps of the action polynomial ring `A` as a vector.
 """
 action_maps(A::ActionPolyRing)
 
-action_maps(dpr::DifferencePolyRing) = dpr.action_maps::Vector{<:Union{TrivialActionShift{coefficient_ring_type(dpr)}, NontrivialActionShift{coefficient_ring_type(dpr)}}}
-action_maps(dpr::DifferentialPolyRing) = dpr.action_maps::Vector{<:Union{TrivialActionDerivation{coefficient_ring_type(dpr)}, NontrivialActionDerivation{coefficient_ring_type(dpr)}}}
+action_maps(dpr::DifferencePolyRing) = dpr.action_maps::Vector{Union{TrivialActionShift{coefficient_ring_type(dpr)}, NontrivialActionShift{coefficient_ring_type(dpr)}}}
+action_maps(dpr::DifferentialPolyRing) = dpr.action_maps::Vector{Union{TrivialActionDerivation{coefficient_ring_type(dpr)}, NontrivialActionDerivation{coefficient_ring_type(dpr)}}}
 
 @doc raw"""
     action_map(A::ActionPolyRing, i::Int) -> ActionMap
@@ -857,7 +865,7 @@ Return the separant of `p` which is the formal derivative of `p` with respect to
 If `p` is a constant, then `p` itself is returned.
 """
 function separant(dpre::DifferentialPolyRingElem)
-  is_constant(dpre) && return parent(dpre)(dpre)
+  is_constant(dpre) && return deepcopy(dpre)
   return derivative(dpre, leader(dpre))
 end
 
@@ -894,7 +902,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
   
-  is_zero(dpre) && return dpr(dpre)
+  is_zero(dpre) && return zero(dpr)
 
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = Tuple{Int, Vector{Int}}[]
@@ -1046,7 +1054,7 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
   @req length(d) == n_action_maps(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
 
-  is_zero(d) && return dpr(dpre)
+  is_zero(d) && return deepcopy(dpre)
 
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
   add_new_vars_idx = Tuple{Int, Vector{Int}}[]
@@ -1125,7 +1133,7 @@ If `p` is a nonzero constant, `p` itself is returned. If `p` is the zero polynom
 """
 function initial(apre::ActionPolyRingElem)
   @req !is_zero(apre) "The zero polynomial has no initial"
-  is_constant(apre) && return parent(apre)(apre)
+  is_constant(apre) && return deepcopy(apre)
   return univariate_leading_coefficient(apre, leader(apre))
 end
 

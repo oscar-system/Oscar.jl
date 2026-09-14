@@ -119,14 +119,14 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type ActionPolyRanking{T, DifferencePolyRing{T}}
   permutation::Vector{Int}
 
-  function DifferencePolyRing{T}(R::D, n_action_indeterminates::Int, action_maps::Vector{<:Union{TrivialActionShift{D}, NontrivialActionShift{D}}}) where {D <: Ring, T}
+  function DifferencePolyRing{T}(R::D, n_action_indeterminates::Int, action_maps::Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}) where {D <: Ring, T}
     @req n_action_indeterminates >= 1 "The number of action indeterminates must be positive"
     action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
 
     return DifferencePolyRing{T}(R, action_indeterminates, action_maps)
   end
 
-  function DifferencePolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:Union{TrivialActionShift{D}, NontrivialActionShift{D}}}) where {D <: Ring, T}
+  function DifferencePolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}) where {D <: Ring, T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req !is_empty(action_maps) "The number of shift operators must be positive"
     upoly_ring = universal_polynomial_ring(R; cached = false)
@@ -167,14 +167,14 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Always of type ActionPolyRanking{T, DifferentialPolyRing{T}}
   permutation::Vector{Int}
 
-  function DifferentialPolyRing{T}(R::D, n_action_indeterminates::Int, action_maps::Vector{<:Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
+  function DifferentialPolyRing{T}(R::D, n_action_indeterminates::Int, action_maps::Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
     @req n_action_indeterminates >= 1 "The number of action indeterminates must be positive"
     action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
 
     return DifferentialPolyRing{T}(R, action_indeterminates, action_maps)
   end
  
-  function DifferentialPolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
+  function DifferentialPolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req !is_empty(action_maps) "The number of derivations must be positive"
     upoly_ring = universal_polynomial_ring(R; cached = false)
