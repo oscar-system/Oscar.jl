@@ -534,33 +534,38 @@ end
 @doc raw"""
     degrees_of_bass_numbers_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
 
-Return a finite set $D$ of $\mathbb{Z}^d$-degrees such that every degree of a
-non-zero Bass number of `M` up to cohomological degree `i` lies in $D + Q$.
+Return a finite set $D$ of $\mathbb{Z}^d$-degrees such that for every face $F$
+and every summand $k\{a + F - Q\}$ in the first `i` terms of the minimal
+injective resolution of `M` the degree $a$ lies in $D + Q + \mathbb{Z}F$.
 Unlike `degrees_of_bass_numbers` this needs no $\mathrm{Ext}$ computation.
 """
 function degrees_of_bass_numbers_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
-  R_Q = base_ring(M)
-
-  # residue field k = R_Q/m and its graded free resolution
-  k = quotient_ring_as_module(ideal(R_Q, gens(R_Q)))
-  free_res = free_resolution(k; length=i+2)
+  kQ = base_ring(M)
 
   # generator degrees of M
   deg_M = [degree(Vector{Int}, g) for g in filter(!is_zero, gens(M))]
 
-  # generator degrees of F_0, ..., F_{i+1}
-  deg_F = Vector{Vector{Int}}()
-  for j in 0:(i + 1)
-    Fj = free_res[j]
-    for d in degrees_of_generators(Fj)
-      push!(deg_F, Int[d[l] for l in 1:ngens(parent(d))])
-    end
-  end
-
-  # D = { deg(g) - deg(e) }
+  # The summands k{a + F - Q} of J^j are counted by the graded Bass numbers
+  # of M at P_F, which are read off Ext^j(k[Q]/P_F, M) localized along F.
+  # Ext^j(k[Q]/P_F, M) is a subquotient of Hom(G_j, M) = sum_l M(a_jl) for a
+  # graded free resolution G of k[Q]/P_F with G_j = sum_l k[Q](-a_jl), so its
+  # degrees lie in deg(g) - a_jl + Q. Localizing adds ZZF. Bounding every
+  # face directly avoids the detour through the maximal ideal in Lemma 4.5 of
+  # [HM05], which would need the resolution of k up to degree i + dim Q.
   D = Set{Vector{Int}}()
-  for dg in deg_M, de in deg_F
-    push!(D, dg .- de)
+  for p in faces(kQ)
+    # F = Q: k{a + Q - Q} = k{ZZ^d} has non-zero Q-graded part for every a
+    is_zero(p.prime) && continue
+    RpF = quotient_ring_as_module(monoid_algebra_ideal(kQ, p.prime))
+    free_res = free_resolution(RpF; length=i+1)
+    for j in 0:i
+      for d in degrees_of_generators(free_res[j])
+        de = Int[d[l] for l in 1:ngens(parent(d))]
+        for dg in deg_M
+          push!(D, dg .- de)
+        end
+      end
+    end
   end
   return collect(D)
 end
@@ -1445,11 +1450,11 @@ end
 Return an injective resolution of `M`, respectively of $k[Q]/I$, up to cohomological degree `i`.
 With `check = false` the internal verification of the maps is skipped.
 
-The module is first shifted so that the degrees of its Bass numbers at the maximal
-ideal up to cohomological degree `i + d`, $d = \dim Q$, lie in $Q$, see Lemma 4.5 in [HM05](@cite).
-The keyword `shift` selects how this shift is computed:
-* `:bound` (default) uses `compute_shift_bound`, a cheap bound on the degrees of the Bass numbers.
-* `:helm_miller` uses `compute_shift`, the shift described in [HM05](@cite), which needs the exact Bass numbers.
+The module is first shifted so that every summand of the first `i` terms of its minimal
+injective resolution has non-zero $Q$-graded part. The keyword `shift` selects how this
+shift is computed:
+* `:bound` (default) uses `compute_shift_bound`, a cheap bound on the degrees of the summands at every face.
+* `:helm_miller` uses `compute_shift`, the shift described in [HM05](@cite), which needs the exact Bass numbers at the maximal ideal up to cohomological degree `i + d`, $d = \dim Q$.
 * `:milp_bound` and `:milp` choose the shift with minimal coordinate sum by an integer linear program, from the bound and from the exact Bass numbers respectively.
 
 # Examples
@@ -1502,21 +1507,24 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
 
   G = grading_group(kQ)
 
-  # The shift must move the degrees of the Bass numbers at the maximal ideal
-  # into Q up to cohomological degree i + d, d = dim Q: by [HM05, Lemma 4.5] a
-  # summand k{a + F - Q} of J^j has non-zero Q-graded part once the summands
-  # of Gamma_m J^{j + d - dim F} do, and dim F can be 0.
-  depth = i + ambient_dimension(affine_semigroup(kQ))
+  # The shift must make the Q-graded part of every summand k{a + F - Q} of
+  # J^0, ..., J^i non-zero. The bound strategies control the degrees a at
+  # every face directly (see degrees_of_bass_numbers_bound). The exact
+  # strategies use the Bass numbers at the maximal ideal only, which by
+  # [HM05, Lemma 4.5] control the summands at a face F in cohomological
+  # degree j through those of Gamma_m J^{j + dim Q - dim F}, so they need
+  # the Bass numbers up to degree i + dim Q.
+  depth_m = i + ambient_dimension(affine_semigroup(kQ))
 
   #compute irreducible resolution of shifted module
   if shift === :bound
-    a_shift = compute_shift_bound(M, depth)
+    a_shift = compute_shift_bound(M, i+1)
   elseif shift === :helm_miller
-    a_shift = compute_shift(M, depth)
+    a_shift = compute_shift(M, depth_m)
   elseif shift === :milp
-    a_shift = compute_shift_milp(M, depth)
+    a_shift = compute_shift_milp(M, depth_m)
   elseif shift === :milp_bound
-    a_shift = compute_shift_milp_bound(M, depth)
+    a_shift = compute_shift_milp_bound(M, i+1)
   else
     throw(ArgumentError("unknown shift strategy :$shift; expected :bound, :helm_miller, :milp, or :milp_bound"))
   end
@@ -1674,10 +1682,9 @@ function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
   R_Q = kQ.algebra
   G = grading_group(kQ)
 
-  #compute irreducible hull of shifted module; the Bass numbers up to
-  #cohomological degree d = dim Q control the summands of J^0, see
-  #injective_resolution
-  a_shift = compute_shift_bound(M, ambient_dimension(affine_semigroup(kQ)))
+  #compute irreducible hull of shifted module; the bound controls the
+  #summands of J^0 at every face, see degrees_of_bass_numbers_bound
+  a_shift = compute_shift_bound(M, 1)
   M_a = twist(M, -G(a_shift))
   J, _lambda = irreducible_hull(M_a, 0)
 
