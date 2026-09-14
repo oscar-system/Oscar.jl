@@ -13,11 +13,11 @@ function modular_subgroup(s::PermGroupElem, t::PermGroupElem; check::Bool)
   Sym = symmetric_group(_index(s, t))
   s = Sym(s)
   t = Sym(t)
-  return ModularGroup(s, t, check)
+  return ModularGroup(s, t; check)
 end
 
 @doc raw"""
-    modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check=true)
+    modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
 
 Construct a `ModularGroup` object corresponding to the finite-index subgroup
 of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``.
@@ -44,11 +44,11 @@ Modular subgroup of index 10
 ```
 """
 function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
-  return modular_subgroup(s, t, check)
+  return modular_subgroup(s, t; check)
 end
 
 @doc raw"""
-    modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check=true)
+    modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
 
 Same as [`modular_subgroup_via_right_action`](@ref), but now the permutations describe the action
 by left multiplication on the left cosets.
@@ -68,8 +68,8 @@ julia> G = modular_subgroup_via_left_action(s, t)
 Modular subgroup of index 10
 ```
 """
-function modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check=true)
-  return modular_subgroup(s^-1, t^-1, check)
+function modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
+  return modular_subgroup(s^-1, t^-1; check)
 end
 
 function Base.:(==)(G::ModularGroup, H::ModularGroup)
@@ -288,8 +288,14 @@ of the finitely presented group returned by `Oscar._SL2Z_fp()`.
 
 # Examples
 ```jldoctest
-julia> s_t_decomposition(matrix(ZZ, [1 0; -4 1]))
-S*T^4*S^-1
+julia> G = modular_subgroup_via_right_action(cperm([2, 3]), cperm([1, 2]))
+Modular subgroup of index 3
+
+julia> A = gens(G)[2]
+[1 -2; 0 1] in modular group of index 3
+
+julia> s_t_decomposition(matrix(A))
+T^-2
 ```
 """
 function s_t_decomposition(M::ZZMatrix)
