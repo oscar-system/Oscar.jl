@@ -1409,12 +1409,12 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
 
   k = domain(mp)
   K = codomain(mp)
-  if istotally_real(k)
+  if is_totally_real(k)
     i1 = real_embeddings(k)[1]
   else
     i1 = complex_embeddings(k)[1]
   end
-  if istotally_real(K)
+  if is_totally_real(K)
     i2 = real_embeddings(K)[1]
   else
     i2 = complex_embeddings(K)[1]
