@@ -1129,7 +1129,7 @@ function induce_hom_W(mp, Alpha, Beta, c_U, c_V)
     #  gen + sigma(gen) -> U -> V -> W' gives some x
     #  x should be of the form y + sigma(y)
     # so map gen -> y
-    fl, pre = has_preimage(Alpha, g)
+    fl, pre = has_preimage_with_preimage(Alpha, g)
     if fl
       push!(im, Beta(mp(pre)))
     else
@@ -1151,13 +1151,13 @@ function induce_hom_W(mp, Alpha, Beta, c_U, c_V)
         continue
       end
      
-      fl, pre = has_preimage(Alpha, g + c_U(g))
+      fl, pre = has_preimage_with_preimage(Alpha, g + c_U(g))
       @assert fl
       if isnothing(tr)
         tr = FinGenAbGroupHom(id_hom(codomain(Beta)) + c_V)
       end
       pre = Beta(mp(pre))
-      fl, pre = has_preimage(tr, pre)
+      fl, pre = has_preimage_with_preimage(tr, pre)
       @assert fl
       @assert iszero(pre) || c_V(pre) != pre
       #
@@ -1300,7 +1300,7 @@ function split_units(I1::IdeleParent, I2::IdeleParent; positive::Bool = true)
     fl, mu = is_subgroup(u, domain(I1.mU))
     @assert fl
     z = codomain(h)[findfirst(isequal(I1.S[i]), P1)]
-    fl, v = has_preimage(FinGenAbGroupHom(mu*h), z)
+    fl, v = has_preimage_with_preimage(FinGenAbGroupHom(mu*h), z)
     @assert fl
     for r = right_transversal(codomain(mD), image(mD)[1])
       q[I1.mG(r)(I1.S[i])] = action(I1.data[6], r, mo + mu(v))
