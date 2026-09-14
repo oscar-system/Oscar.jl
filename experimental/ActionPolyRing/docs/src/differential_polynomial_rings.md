@@ -21,7 +21,7 @@ differential_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int; kwargs...)
 ```
 
 We provide the following constructors to create differential polynomial rings with arbitrary commuting derivations. We verify that
-the derivations commute on generators of the coefficient ring `R`. However, if `gens` is not applicable to it, then no check is performed at all.
+the derivations commute on generators of the coefficient ring `R`.
 
 ```@docs
 differential_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
