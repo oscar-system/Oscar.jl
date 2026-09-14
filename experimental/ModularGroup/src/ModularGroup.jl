@@ -107,7 +107,7 @@ one(x::ModularGroupElem) = one(parent(x))
 
 function order(::Type{T}, x::ModularGroupElem) where {T<:IntegerUnion}
   A = matrix(x)
-  t = A[1, 1] + A[2, 2]
+  t = tr(A)
 
   if t == 2
     isone(A) || throw(InfiniteOrderError(x))
