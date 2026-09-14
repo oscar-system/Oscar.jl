@@ -2446,7 +2446,7 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   rel_e = divexact(absolute_ramification_index(L), absolute_ramification_index(l))
   pr_ml = ml.precision
   pr_mL = mL.precision
-  setprecision!(ml, max(pr_ml*rel_e, pr_mL))
+  setprecision!(ml, max(pr_ml, div(pr_mL, rel_e)+5))
   setprecision!(mL, max(pr_ml*rel_e, pr_mL))
   im_data = mL(mkK(preimage(ml, gen(l))))
   #CompletionMap is always Eisenstein/Unram
@@ -2531,6 +2531,10 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
         l, ml = completion(B.k, pp)
         setprecision!(ml, precision(codomain(mL)))
         mlL = induce_hom(ml, mL, B.mkK)
+        setprecision!(l, precision(codomain(mL))) #probably too large
+                                 #should be divided by rel ram index
+                                 #however, too large is correct, too low
+                                 #will crash
         s = Hecke.local_fundamental_class_serre(mlL)
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
       end
