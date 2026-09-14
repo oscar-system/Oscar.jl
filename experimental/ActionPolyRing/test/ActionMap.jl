@@ -3,7 +3,7 @@
   @testset "ZZ and QQ" begin
     s_ZZ = action_shift(ZZ)
     d_ZZ = action_derivation(ZZ)
-    
+
     s_QQ = action_shift(QQ)
     d_QQ = action_derivation(QQ)
 
