@@ -1,8 +1,19 @@
-using Documenter, Oscar
+#
+# Build and deploy the manual. Run from the root of the repository as
+#
+#     julia --project=. docs/make.jl
+#
+# For a local build use `Oscar.@build_doc` instead.
+#
+using Oscar
 
-include("make_work.jl")
+# Put Documenter and the OscarDocs driver on the load path; Oscar itself comes
+# from the active project.
+Oscar.docs_env()
 
-@invokelatest BuildDoc.doit(Oscar; warnonly=false, local_build=false, doctest=false)
+using Documenter, OscarDocs
+
+OscarDocs.build(Oscar; warnonly=false, local_build=false, doctest=false, open_browser=false)
 
 should_push_preview = true
 if get(ENV, "GITHUB_ACTOR", "") == "dependabot[bot]"
