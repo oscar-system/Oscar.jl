@@ -261,7 +261,7 @@ function subscheme(U::AffineSchemeOpenSubscheme, g::Vector{T}) where {T<:AffineS
   X = ambient_scheme(U)
   gen_list = Vector{elem_type(OO(X))}()
   for f in g
-    gen_list = vcat(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
+    append!(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
   end
   Z = subscheme(X, gen_list)
   return AffineSchemeOpenSubscheme(Z, complement_equations(U))
