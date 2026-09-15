@@ -1265,6 +1265,7 @@ export moebius_kantor_matroid
 export moebius_mu
 export molien_series
 export monomial_basis
+export monomial_basis_with_torsion
 export monomial_ordering
 export monomials
 export monomials_of_degree

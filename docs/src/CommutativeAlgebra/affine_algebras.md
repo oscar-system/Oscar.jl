@@ -105,6 +105,10 @@ monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
+monomial_basis_with_torsion(A::MPolyQuoRing, g::FinGenAbGroupElem)
+```
+
+```@docs
 homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 ```
 
