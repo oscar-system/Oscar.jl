@@ -319,6 +319,8 @@ end
   @test custom == gcd == generator == cocoa == indeterminate
 end
 
+using Random
+
 @testset "Rand" begin
   for K in [ZZ, GF(3), QQ]
     R, = K[:x, :y, :z]
