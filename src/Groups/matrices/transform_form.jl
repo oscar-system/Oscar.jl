@@ -258,12 +258,9 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
          d = 1
          c = 1
       end
-      S = matrix(F,2,2,[a,b,c,d])
-      if div(n-NOZ,2)==0
-         S = zero_matrix(F,0,0)
-      else
-         S = cat([S for i in 1:div(n-NOZ,2)]..., dims=(1,2))
-      end
+      S0 = matrix(F,2,2,[a,b,c,d])
+      S = div(n-NOZ,2)==0 ? zero_matrix(F,0,0) :
+                            cat([S0 for i in 1:div(n-NOZ,2)]..., dims=(1,2))
       # turn into standard GAP form
       sec_perm = Int[]
       for i in 1:div(n,2)
@@ -338,18 +335,20 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
       D2 = _elim_hyp_lines(A2)*D2
       is_square( prod(diagonal(A1))*prod(diagonal(A2)) )[1] || return false, nothing
       # move all the squares on the diagonal at the begin
-      _squares = [i for i in 1:n if is_square(A1[i,i])[1]]
+      A1c = A1
+      _squares = [i for i in 1:n if is_square(A1c[i,i])[1]]
       our_perm = vcat(_squares, setdiff(1:n, _squares))
       P = permutation_matrix(F,our_perm)
       s1 = length(_squares)
       D1 = P*D1
-      A1 = P*A1*transpose(P)
-      _squares = [i for i in 1:n if is_square(A2[i,i])[1]]
+      A1 = P*A1c*transpose(P)
+      A2c = A2
+      _squares = [i for i in 1:n if is_square(A2c[i,i])[1]]
       our_perm = vcat(_squares, setdiff(1:n, _squares))
       P = permutation_matrix(F,our_perm)
       s2 = length(_squares)
       D2 = P*D2
-      A2 = P*A2*transpose(P)
+      A2 = P*A2c*transpose(P)
       # get same number of squares on the two diagonals of A1 and A2 by modifying A1
       if s1!=s2
          s = min(s1,s2)+1
@@ -365,7 +364,8 @@ function _change_basis_forms(B1::MatElem{T}, B2::MatElem{T}, _type::Symbol)  whe
          A1 = L*A1*transpose(L)
       end
       # change matrix from A1 to A2
-      S = diagonal_matrix([sqrt(A1[i,i]*A2[i,i]^-1) for i in 1:n])
+      A1f, A2f = A1, A2
+      S = diagonal_matrix([sqrt(A1f[i,i]*A2f[i,i]^-1) for i in 1:n])
       return true, D1^-1*S*D2
    end
 

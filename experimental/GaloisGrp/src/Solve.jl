@@ -172,14 +172,10 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   @hassert :SolveRadical 1 is_subset(U, S.grp)
   t = right_transversal(S.grp, U)
   @assert isone(t[1])
-  if invar !== nothing
-    PE = invar
-  else
-    PE, _ = Oscar.GaloisGrp.relative_invariant(S.grp, U)
-  end
+  PE = invar !== nothing ? invar : Oscar.GaloisGrp.relative_invariant(S.grp, U)[1]
 
-  rt = roots(C, Oscar.GaloisGrp.bound_to_precision(C, C.B))
-  ts = Oscar.GaloisGrp.find_transformation(rt, PE, t)
+  rt_lo = roots(C, Oscar.GaloisGrp.bound_to_precision(C, C.B))
+  ts = Oscar.GaloisGrp.find_transformation(rt_lo, PE, t)
   B1 = length(t)*Oscar.GaloisGrp.upper_bound(C, PE^(1+length(t)), ts)
   B2 = dual_basis_bound(C, S)
   B = B2*B1 #maybe dual_basis_bound should do bound_ring stuff?
@@ -187,10 +183,8 @@ function _fixed_field(C::GaloisCtx, S::SubField, U::PermGroup; invar=nothing, ma
   if isa(pr, Int)
     pr = min(pr, max_prec)
   end
-  rt = roots(C, pr)
-  if ts != gen(parent(ts))
-    rt = map(ts, rt)
-  end
+  rt_pr = roots(C, pr)
+  rt = ts != gen(parent(ts)) ? map(ts, rt_pr) : rt_pr
   ps = [[] for i=t]
   con = []
   dbc = dual_basis_conj(C, S, pr) #dbc[i] = array of the i-th conjugate of all dual basis elts
@@ -394,10 +388,8 @@ function recognize(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly}, d=false)
               maximum(I->Oscar.GaloisGrp.upper_bound(C, I), J)
   end            
   pr = Oscar.GaloisGrp.bound_to_precision(C, B)
-  r = roots(C, pr)
-  if isdefined(S, :ts) && S.ts != gen(parent(S.ts))
-    r = map(S.ts, r)
-  end
+  r0 = roots(C, pr)
+  r = isdefined(S, :ts) && S.ts != gen(parent(S.ts)) ? map(S.ts, r0) : r0
   b = basis_abs(S)
   db = dual_basis_conj(C, S, pr)
 
@@ -506,11 +498,13 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   #switches check = true in hom and number_field on
   CHECK = get_assertion_level(:SolveRadical) > 0
   @vprint :SolveRadical 1 "computing initial galois group...\n"
-  @vtime :SolveRadical 1 G, C = galois_group(f)
-  lp = [p for (p, _) in factor(order(G)) if p > 2]
-  if length(lp) > 0
+  @vtime :SolveRadical 1 G0, C0 = galois_group(f)
+  lp = [p for (p, _) in factor(order(G0)) if p > 2]
+  G, C = if isempty(lp)
+    (G0, C0)
+  else
     @vprint :SolveRadical 1 "need to add roots-of-one: $lp\n"
-    @vtime :SolveRadical 1 G, C = galois_group(f*prod(cyclotomic(Int(p), gen(parent(f))) for p = lp))
+    @vtime :SolveRadical 1 galois_group(f*prod(cyclotomic(Int(p), gen(parent(f))) for p = lp))
   end
   r = roots(C, 2, raw = true)
   #the indices of zeta
@@ -543,7 +537,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   cyclo = fld_arr[length(pp)+1]
   @vprint :SolveRadical 1 "finding roots-of-1...\n"
   @vtime :SolveRadical 1 zeta = [recognize(C, cyclo, gens(parent(cyclo.pe))[i])//scale for i=pp]
-  @hassert :SolveRadical 1 all(i->isone(zeta[i]^lp[i]), 1:length(pp))
+  @hassert :SolveRadical 1 all(isone, zeta .^ lp)
   aut = []
   @vprint :SolveRadical 1 "finding automorphisms...\n"
   for i=length(pp)+2:length(fld_arr)
@@ -574,19 +568,19 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
     @assert domain(h) === base_field(L)
     @assert codomain(h) === K
     if degree(L) == 2
-      f = defining_polynomial(L)
-      f = map_coefficients(h, f)
-      t = coeff(f, 1)
+      fL = defining_polynomial(L)
+      fL = map_coefficients(h, fL)
+      t = coeff(fL, 1)
       if !iszero(t)
-        x = gen(parent(f))
+        x = gen(parent(fL))
         t = divexact(t, 2)
-        f = f(x-t)
-        @assert iszero(coeff(f, 1))
-        K = number_field(f, cached = false, check = CHECK)[1]
+        fL = fL(x-t)
+        @assert iszero(coeff(fL, 1))
+        K = number_field(fL, cached = false, check = CHECK)[1]
         push!(h_data, gen(K)-t)
         h = hom(L, K, h_data..., check = CHECK)
       else
-        K_ = number_field(f, cached = false, check = CHECK)[1]
+        K_ = number_field(fL, cached = false, check = CHECK)[1]
         @assert base_field(K_) === K
         K = K_
         @assert base_field(L) === domain(h)
@@ -600,17 +594,17 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
         if p == QQ
           lf = factor(s, ZZ)
           t = prod([p for (p, k) = lf if isodd(k)], init = ZZ(1)) * lf.unit
-          r = root(s//t, 2)    
+          sr = root(s//t, 2)    
         else
           _, ma = absolute_simple_field(p)
           t = ma(evaluate(Hecke.reduce_mod_powers(preimage(ma, s), 2)))
-          r = ma(root(preimage(ma, s//t), 2))
+          sr = ma(root(preimage(ma, s//t), 2))
         end
         K_, _ = radical_extension(2, t, check = false, cached = false)
         if h_data[end] == gen(K)
-          h_data[end] = gen(K_)*r
+          h_data[end] = gen(K_)*sr
         else
-          h_data[end] = gen(K_)*r+coeff(h_data[end]-gen(K), 0)
+          h_data[end] = gen(K_)*sr+coeff(h_data[end]-gen(K), 0)
         end
         K = K_
         h = hom(L, K, h_data..., check = CHECK)

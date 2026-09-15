@@ -27,8 +27,8 @@ function (fac::TotalComplexChainFactory{ChainType})(c::AbsHyperComplex, I::Tuple
   if all(k->has_lower_bound(orig, k), 1:dim(orig))
     b0 = [lower_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
-    for j in weak_compositions(d - b, dim(orig))
-      j = j + b0
+    for jj in weak_compositions(d - b, dim(orig))
+      j = jj + b0
       any(k->(has_upper_bound(orig, k) && j[k] > upper_bound(orig, k)), 1:dim(orig)) && continue
       J = Tuple(j)
       if can_compute_index(orig, J)
@@ -40,8 +40,8 @@ function (fac::TotalComplexChainFactory{ChainType})(c::AbsHyperComplex, I::Tuple
   else # all(k->has_upper_bound(orig, k), 1:dim(orig)) must be true then
     b0 = [upper_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
-    for j in weak_compositions(b - d, dim(orig))
-      j = b0 - j
+    for jj in weak_compositions(b - d, dim(orig))
+      j = b0 - jj
       any(k->(has_lower_bound(orig, k) && j[k] < lower_bound(orig, k)), 1:dim(orig)) && continue
       J = Tuple(j)
       if can_compute_index(orig, J)
@@ -172,8 +172,8 @@ function can_compute(fac::TotalComplexChainFactory{ChainType}, c::AbsHyperComple
     b0 = [lower_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
     d - b < 0 && return false
-    for j in weak_compositions(d - b, dim(orig))
-      j = j + b0
+    for jj in weak_compositions(d - b, dim(orig))
+      j = jj + b0
       any(k->(has_upper_bound(orig, k) && j[k] > upper_bound(orig, k)), 1:dim(orig)) && continue
       J = Tuple(j)
       can_compute_index(orig, J) && return true
@@ -182,8 +182,8 @@ function can_compute(fac::TotalComplexChainFactory{ChainType}, c::AbsHyperComple
     b0 = [upper_bound(orig, k) for k in 1:dim(orig)]
     b = sum(b0; init=0)
     b - d < 0 && return false
-    for j in weak_compositions(b - d, dim(orig))
-      j = b0 - j
+    for jj in weak_compositions(b - d, dim(orig))
+      j = b0 - jj
       J = Tuple(j)
       can_compute_index(orig, J) && return true
     end

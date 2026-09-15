@@ -988,12 +988,12 @@ function _compute_raw_orth_data!(C::CliffordOrder)
     C.disq = tuple(disq(ambalg) * c_ideal^2, disq(ambalg))
     C._raw_orth_data = (ambalg(z_elt), c_ideal)
   else
-    z_elt = (2 * lambda_empt)^(-1) .* z_elt
+    z_scaled = (2 * lambda_empt)^(-1) .* z_elt
     c_ideal = c_ideal * (2 * lambda_empt)
         
     b_ideal = simplify(lcm(fractional_ideal(br, br(2)), c_ideal))
     C.disq = tuple(simplify((2*lambda_empt)^(-2) * disq(ambalg) * b_ideal^2), disq(ambalg))
-    C._raw_orth_data = (ambalg(z_elt), c_ideal)
+    C._raw_orth_data = (ambalg(z_scaled), c_ideal)
   end
     
   return C._raw_orth_data::Tuple{elem_type(ambalg), Hecke.fractional_ideal_type(base_ring_type(C))}

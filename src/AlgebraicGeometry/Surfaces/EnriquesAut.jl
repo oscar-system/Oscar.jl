@@ -764,8 +764,11 @@ function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
       wallsDmodAutD = [representative(w).v for w in orbits(W) if !(vv in w)]
       @vprintln :EnriquesAuto 3 " done"
     else
-      # the minus shouldn't be necessary ... but who knows?
-      wallsDmodAutD = (v for v in walls(D) if !(v==D.parent_wall || -v==D.parent_wall))
+      # the minus shouldn't be necessary ... but who knows? `D` is reassigned
+      # each round, so the generator captures an alias; see
+      # docs/src/DeveloperDocumentation/closure_boxes.md
+      pw = D.parent_wall
+      wallsDmodAutD = (v for v in walls(D) if !(v==pw || -v==pw))
     end
     # compute the adjacent chambers to be explored
     for v in wallsDmodAutD
@@ -924,13 +927,16 @@ function reducible_fibers(Y::EnriquesBorcherdsCtx, fbar::TorQuadModuleElem)
   sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2]==4]
   sv2 = [codomain(phi)(i) for i in sv2 if i in cover(codomain(phi))]
   DeltabarY = Set([inc_Dplus(inv(phi)(i)) for i in sv2])
-  ebar = 0*DY[1]
+  # searched under its own name; `ebar` below is captured and must stay
+  # single-assigned; see docs/src/DeveloperDocumentation/closure_boxes.md
+  e = 0*DY[1]
   for x in DY
     if inner_product(x,fbar)!=0
-      ebar = x
+      e = x
       break
     end
   end
+  ebar = e
   @assert !iszero(ebar)
 
   Delta_fbar = [x for x in DeltabarY if inner_product(fbar,x) ==0]

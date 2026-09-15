@@ -204,11 +204,7 @@ end
 Return a (free) presentation of `F`.
 """
 function presentation(F::FreeMod; minimal = false)
-  if is_graded(F)
-    Z = graded_free_module(F.R, 0)
-  else
-    Z = FreeMod(F.R, 0)
-  end
+  Z = is_graded(F) ? graded_free_module(F.R, 0) : FreeMod(F.R, 0)
   M = Hecke.ComplexOfMorphisms(OFPModule, OFPModuleHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
   return M

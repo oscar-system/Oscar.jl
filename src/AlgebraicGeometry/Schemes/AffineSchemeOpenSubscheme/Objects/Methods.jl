@@ -14,10 +14,8 @@ function intersect(
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   X === Y && return AffineSchemeOpenSubscheme(Y, complement_equations(U), check=check)
-  if check && !is_subscheme(Y, X)
-    Y = intersect(Y, X)
-  end
-  return AffineSchemeOpenSubscheme(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))], check=check)
+  Z = check && !is_subscheme(Y, X) ? intersect(Y, X) : Y
+  return AffineSchemeOpenSubscheme(Z, [g for g in complement_equations(U) if !iszero(OO(Z)(g))], check=check)
 end
 
 intersect(U::AffineSchemeOpenSubscheme, Y::AbsAffineScheme) = intersect(Y, U)

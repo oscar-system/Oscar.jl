@@ -191,10 +191,10 @@ function unit_group_nonrecursive(R::Union{FiniteRing, AbstractAssociativeAlgebra
   @vprintln :FiniteRings "Constructing presentation unipotent units"
   OJabs = effective_presentation(OJ; chain = (Oscar.get_attribute(R, :radical_chain, nothing), 2))
   Rs, RtoRs = quo(R, J)
-  if R isa AbstractAssociativeAlgebra
-    A, AtoRs = Rs, Oscar.hom(Rs, Rs, identity_matrix(base_ring(Rs), dim(Rs)), identity_matrix(base_ring(Rs), dim(Rs)); check = false)
+  A, AtoRs = if R isa AbstractAssociativeAlgebra
+    (Rs, Oscar.hom(Rs, Rs, identity_matrix(base_ring(Rs), dim(Rs)), identity_matrix(base_ring(Rs), dim(Rs)); check = false))
   else
-    A, AtoRs = isomorphism(Oscar.MatAlgebra, Rs)
+    isomorphism(Oscar.MatAlgebra, Rs)
   end
   @assert domain(AtoRs) === A
   @vprintln :FiniteRings "Constructing presentation of semisimple quotient"

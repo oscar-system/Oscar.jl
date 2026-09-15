@@ -155,11 +155,8 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  exponent_vectors_gen = AbstractAlgebra.exponent_vectors(p)
-  index = 0
   save_data_array(s) do
-    for c in coefficients(p)
-      exponent_vector, index = iterate(exponent_vectors_gen, index)
+    for (c, exponent_vector) in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))
       save_data_array(s) do
         save_object(s, map(string, exponent_vector))
         save_object(s, c)
@@ -174,20 +171,14 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  coeffs = coefficients(p)
-  exponent = 0
   save_data_array(s) do
-    for coeff in coeffs
+    for (i, coeff) in enumerate(coefficients(p))
       # collect only non trivial terms
-      if is_zero(coeff)
-        exponent += 1
-        continue
-      end
+      is_zero(coeff) && continue
       save_data_array(s) do
-        save_object(s, string(exponent))
+        save_object(s, string(i - 1))
         save_object(s, coeff)
       end
-      exponent += 1
     end
   end
 end
@@ -593,9 +584,9 @@ function load_object(s::DeserializerState,
     # account for index shift
     loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
-      e -= lowest_degree - 1
+      idx = e - (lowest_degree - 1)
       load_node(s, i) do _
-        loaded_terms[e] = load_object(s, coeff_type, base, 2)
+        loaded_terms[idx] = load_object(s, coeff_type, base, 2)
       end
     end
     return loaded_terms

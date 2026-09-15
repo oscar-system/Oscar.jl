@@ -222,9 +222,9 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
       V = affine_charts(Y)[i]
       VW = PrincipalOpenSubset(V, E(V))
       p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
-      g = OO(UW).(gens(I))
+      gU = OO(UW).(gens(I))
       set_attribute!(p_res_dict[VW], :inverse,
-                     morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                     morphism(UW, VW, vcat([gU[j]*inv(gU[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
     set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
@@ -237,9 +237,9 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     x = gens(R)
     kk = coefficient_ring(R)
     A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]), cached=false)
-    t = last(x_ext)
+    tt = last(x_ext)
     inc = hom(R, A, x_ext[1:end-1], check=false)
-    phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
+    phi = hom(OO(CIPW), A, vcat([inc(g[i])*tt for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
     J = kernel(phi)
     pb = inverse(pullback_to_cone)
     Jh = ideal(homogeneous_coordinate_ring(IPW), pb.(lifted_numerator.(gens(J))))
@@ -265,9 +265,9 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
       V = affine_charts(Y)[i]
       VW = PrincipalOpenSubset(V, E(V))
       p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
-      g = OO(UW).(gens(I))
+      gU = OO(UW).(gens(I))
       set_attribute!(p_res_dict[VW], :inverse,
-                     morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                     morphism(UW, VW, vcat([gU[j]*inv(gU[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
 

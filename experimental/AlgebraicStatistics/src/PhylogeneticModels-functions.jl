@@ -24,26 +24,25 @@ sort_edges(pt::PhylogeneticTree, sorted_edges::Union{Vector{Edge}, Nothing} = no
 descendants(pt::PhylogeneticTree, v::Int) = descendants(adjacency_tree(pt), v)
 children(pt::PhylogeneticTree, v::Int) = Oscar.children(adjacency_tree(pt), v)
 
+# Visit all interior children of `u` before pushing `u` itself.
+# A top-level function rather than a closure: a self-recursive closure is
+# boxed; see docs/src/DeveloperDocumentation/closure_boxes.md.
+function _push_interior_nodes!(order::Vector{Int}, pt::PhylogeneticTree, lvs, u::Int)
+  for v in children(pt, u)
+    (u == v || v in lvs) && continue
+    _push_interior_nodes!(order, pt, lvs, v)
+  end
+  push!(order, u)
+end
+
 function reverse_order_interior_nodes(pt::PhylogeneticTree)
   # Interior nodes from leaves to the root
-  r = root(pt)
   lvs = leaves(pt)
-  
+
   order = Int[]
-  sizehint!(order, length(Oscar.interior_nodes(pt))) 
-    
-  function dfs!(u::Int)
-    # Visit all children first
-    for v in children(pt, u)
-      if u == v; continue; end # Skip u
-      if v in lvs; continue; end # Skip if v is a leaf
-      dfs!(v)
-    end
-    # Push the parent
-    push!(order, u)
-  end
-  
-  dfs!(r)
+  sizehint!(order, length(Oscar.interior_nodes(pt)))
+
+  _push_interior_nodes!(order, pt, lvs, root(pt))
   return order
 end
 

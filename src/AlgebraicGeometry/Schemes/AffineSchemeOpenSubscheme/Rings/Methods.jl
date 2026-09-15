@@ -241,7 +241,7 @@ function restriction_map(
   I = complement_ideal(U)
   # _minimal_power_such_that(P, h) returns a tuple (k, h^k) with
   # k the minimal exponent such that the property P(h^k) returns `true`.
-  (k, poh) = Oscar._minimal_power_such_that(h, x->(base_ring(I)(x) in I))
+  poh = Oscar._minimal_power_such_that(h, x->(base_ring(I)(x) in I))[2]
   a = coordinates(base_ring(I)(poh), I)
   r = length(d)
 
@@ -409,16 +409,16 @@ function restriction_map(U::AffineSchemeOpenSubscheme, V::AffineSchemeOpenSubsch
   end
 
   if ambient_scheme(U) === ambient_scheme(V)
-    g = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), complement_equations(V))]
+    gd = [restriction_map(U, W, d, check=false) for (W, d) in zip(affine_patches(V), complement_equations(V))]
     function mysecondmap(f::AffineSchemeOpenSubschemeRingElem)
-      return AffineSchemeOpenSubschemeRingElem(OO(V), [h(f) for h in g], check=false)
+      return AffineSchemeOpenSubschemeRingElem(OO(V), [h(f) for h in gd], check=false)
     end
     return MapFromFunc(OO(U), OO(V), mysecondmap)
   end
 
-  g = [restriction_map(U, W, check=false) for W in affine_patches(V)]
+  gp = [restriction_map(U, W, check=false) for W in affine_patches(V)]
   function mythirdmap(f::AffineSchemeOpenSubschemeRingElem)
-    return AffineSchemeOpenSubschemeRingElem(OO(V), [g(f) for g in g], check=false)
+    return AffineSchemeOpenSubschemeRingElem(OO(V), [h(f) for h in gp], check=false)
   end
   return MapFromFunc(OO(U), OO(V), mythirdmap)
 end

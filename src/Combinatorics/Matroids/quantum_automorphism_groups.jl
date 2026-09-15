@@ -20,13 +20,13 @@ function _magic_unitary_symbols(n::Int=4)
 end
 
 function _quantum_symmetric_group_groebner_basis(n::Int; u::Matrix{Generic.FreeAssociativeAlgebraElem{T}}) where T
-  function rwel(k::Int, j::Int, h::Int=3, v::Int=3)
+  function rwel(k::Int, j::Int, h::Int, v::Int)
     return sum([u[2, k] * u[s, j] for s in h:n]; init=zero(T)) - sum([u[s, k] * u[1, j] for s in v:n]) + u[1, j] - u[2, k]
   end
 
-  function rinj(k::Int, j::Int, h::Int=3, v::Int=3)
-    n = size(u)[1]
-    return sum([u[k, 2] * u[j, s] for s in h:n]) - sum([u[k, s] * u[j, 1] for s in v:n]) + u[j, 1] - u[k, 2]
+  function rinj(k::Int, j::Int, h::Int, v::Int)
+    m = size(u)[1]
+    return sum([u[k, 2] * u[j, s] for s in h:m]) - sum([u[k, s] * u[j, 1] for s in v:m]) + u[j, 1] - u[k, 2]
   end
 
   function wel(i::Int, j::Int, k::Int) 
@@ -51,8 +51,8 @@ function _quantum_symmetric_group_groebner_basis(n::Int; u::Matrix{Generic.FreeA
   end
 
   function bg(z::Int, k::Int, j::Int, i::Int)
-    z == 2  && return u[k, 2] * inj(j, 3, i) - rinj(k, j) * u[i, 3] 
-    z == 8  && return u[2, k] * wel(3, j, i) - rwel(k, j) * u[3, i]
+    z == 2  && return u[k, 2] * inj(j, 3, i) - rinj(k, j, 3, 3) * u[i, 3] 
+    z == 8  && return u[2, k] * wel(3, j, i) - rwel(k, j, 3, 3) * u[3, i]
   end
 
   cs = [col_sum(i) for i in 1:n]
@@ -61,8 +61,8 @@ function _quantum_symmetric_group_groebner_basis(n::Int; u::Matrix{Generic.FreeA
   ips = [ip(i,j) for i in 2:n for j in 2:n]
   wels = [wel(i,j,k) for i in 2:n for j in 2:n for k in 2:n if j != k]
   injs = [inj(i,j,k) for i in 2:n for j in 2:n for k in 2:n if i != k]
-  rwels = [rwel(k, j) for j in 2:n for k in 2:n if  k != j &&!(j == 3 && k == 2)]
-  rinjs = [rinj(k, j) for j in 2:n for k in 2:n if k != j]
+  rwels = [rwel(k, j, 3, 3) for j in 2:n for k in 2:n if  k != j &&!(j == 3 && k == 2)]
+  rinjs = [rinj(k, j, 3, 3) for j in 2:n for k in 2:n if k != j]
 
   e1 = [bg(2,k,j,i) for k=3:n for j=3:n for i=2:n if i!=j && j!=k]
   e1_s = [bg(8,k,j,i) for k=3:n for j=3:n for i=2:n if i!=j && j!=k]
@@ -172,12 +172,12 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
 
   rels = Vector{Tuple{Int,Int}}[]
 
-  if structure == :bases
-    sets = bases(M)
+  sets = if structure == :bases
+    bases(M)
   elseif structure == :circuits
-    sets = circuits(M)
+    circuits(M)
   elseif structure == :flats
-    sets = flats(M)
+    flats(M)
   else
     error("unreachable")
   end
@@ -313,16 +313,18 @@ end
 
 function Base.iterate(S::MultiPartitionIterator{T}, state=0) where T
   n = length(S.elements)
+  st = state
   while true
-    if state > n^S.size-1
+    if st > n^S.size-1
       return nothing
     else
-      subset = [S.elements[div(state, n^(i-1)) % n + 1] for i in 1:S.size]
+      st_cur = st
+      subset = [S.elements[div(st_cur, n^(i-1)) % n + 1] for i in 1:S.size]
       if subset in S.toskip
-        state += 1
+        st += 1
         continue
       else
-        return (subset, state + 1)
+        return (subset, st + 1)
       end
     end
   end

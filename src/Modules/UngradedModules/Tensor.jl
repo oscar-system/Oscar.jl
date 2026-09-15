@@ -27,7 +27,10 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
 
-  function pure(g::FreeModElem...)
+  t_fin = t
+  # `pure` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _pure_vararg(g::FreeModElem...)
     @assert length(g) == length(G)
     @assert all(i -> parent(g[i]) === G[i], 1:length(G))
     z = [[x] for x = coordinates(g[1]).pos]
@@ -44,12 +47,11 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
       z = zzz
       zz = zzzz
     end
-    indices = Vector{Int}([findfirst(==(y), t) for y = z])
+    indices = Vector{Int}([findfirst(==(y), t_fin) for y = z])
     return FreeModElem(sparse_row(F.R, indices, zz), F)
   end
-  function pure(T::Tuple)
-    return pure(T...)
-  end
+  pure(g::FreeModElem...) = _pure_vararg(g...)
+  pure(T::Tuple) = _pure_vararg(T...)
   function inv_pure(e::FreeModElem)
     c = coordinates(e)
     if length(c.pos) == 0
@@ -57,7 +59,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     end
     @assert length(c.pos) == 1
     @assert isone(c.values[1])
-    return Tuple(gen(G[i], t[c.pos[1]][i]) for i = 1:length(G))
+    return Tuple(gen(G[i], t_fin[c.pos[1]][i]) for i = 1:length(G))
   end
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
@@ -134,15 +136,16 @@ function tensor_product(G::OFPModule...; task::Symbol = :none)
   # assemble the multiplication and decomposition functions
   z = Tuple([0 for _ in 1:length(G)])
   @assert _is_tensor_product(res_prod[z])[1]
-  function pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
+  # `pure` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _pure_vararg(tuple_elems::Union{SubquoModuleElem,FreeModElem}...)
     w = [preimage(augs[i], x) for (i, x) in enumerate(tuple_elems)]
     free_pure = tensor_pure_function(res_prod[z])
     ww = free_pure(w...)
     return pr_res(canonical_injection(tot[0], 1)(ww))
   end
-  function pure(T::Tuple)
-    return pure(T...)
-  end
+  pure(tuple_elems::Union{SubquoModuleElem,FreeModElem}...) = _pure_vararg(tuple_elems...)
+  pure(T::Tuple) = _pure_vararg(T...)
   
   decompose_generator = function(v::SubquoModuleElem)
     ind = findfirst(==(v), images_of_generators(pr_res))

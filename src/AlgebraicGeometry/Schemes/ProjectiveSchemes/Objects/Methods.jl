@@ -287,10 +287,10 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRi
   t = gens(S)
 
   w = vcat([1 for j in 1:n-1], [0 for j in n:ngens(R)])
-  v = copy(gens(S))
   # prepare a vector of elements on which to evaluate the lifts
-  popat!(v, i)
-  v = vcat(v, S.(gens(B)))
+  hom_vars = copy(gens(S))
+  popat!(hom_vars, i)
+  v = vcat(hom_vars, S.(gens(B)))
   function my_dehom(a::RingElem)
     parent(a) === OO(U) || error("element does not belong to the correct ring")
     p = lifted_numerator(a)
@@ -332,10 +332,10 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
   t = gens(S)
 
   w = vcat([1 for j in 1:n-1], [0 for j in n:ngens(R)])
-  v = copy(gens(S))
   # prepare a vector of elements on which to evaluate the lifts
-  popat!(v, i)
-  v = vcat(v, S.(gens(B)))
+  hom_vars = copy(gens(S))
+  popat!(hom_vars, i)
+  v = vcat(hom_vars, S.(gens(B)))
   function my_dehom(a::RingElem)
     parent(a) === OO(U) || error("element does not belong to the correct ring")
     p = lifted_numerator(a)

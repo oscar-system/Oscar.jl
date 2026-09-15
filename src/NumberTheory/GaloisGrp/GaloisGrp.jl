@@ -285,10 +285,10 @@ An upper upper_bound for the absolute value of the complex roots of the input.
 Uses the Cauchy bound.
 """
 function Nemo.roots_upper_bound(f::ZZPolyRingElem)
-  a = coeff(f, degree(f))
-  b = ceil(ZZRingElem, abs(coeff(f, degree(f)-1)//a))
+  lc = coeff(f, degree(f))
+  b = ceil(ZZRingElem, abs(coeff(f, degree(f)-1)//lc))
   for i=0:degree(f)-2
-    b = max(b, iroot(ceil(ZZRingElem, abs(coeff(f, i)//a)), degree(f)-i)+1)
+    b = max(b, iroot(ceil(ZZRingElem, abs(coeff(f, i)//lc)), degree(f)-i)+1)
   end
   return 2*b
   return max(ZZRingElem(1), maximum([ceil(ZZRingElem, abs(coeff(f, i)//a)) for i=0:degree(f)]))
@@ -311,10 +311,9 @@ resultants.
 function msum_poly(f::PolyRingElem, m::Int)
   f = divexact(f, leading_coefficient(f))
   N = binomial(degree(f), m)
-  p = Hecke.polynomial_to_power_sums(f, N)
-  p = vcat([degree(f)*one(base_ring(f))], p)
+  ps = vcat([degree(f)*one(base_ring(f))], Hecke.polynomial_to_power_sums(f, N))
   S, a = power_series_ring(base_ring(f), N+1, "a")
-  Hfs = S([p[i]//factorial(ZZRingElem(i-1)) for i=1:length(p)], N+1, N+1, 0)
+  Hfs = S([ps[i]//factorial(ZZRingElem(i-1)) for i=1:length(ps)], N+1, N+1, 0)
   H = [S(1), Hfs]
   for i=2:m
     push!(H, 1//i*sum((-1)^(h+1)*Hfs(h*a)*H[i-h+1] for h=1:i))
@@ -630,9 +629,10 @@ The bound in the `GaloisCtx` is also adjusted.
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
   a = Hecke.roots(G.C, pr)::Vector{QadicFieldElem}
-  b = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{QadicFieldElem}
+  b0 = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{QadicFieldElem}
+  b = b0
   if isdefined(G, :rt_num)
-    b = [b[G.rt_num[i]] for i=1:length(G.rt_num)]
+    b = [b0[G.rt_num[i]] for i=1:length(G.rt_num)]
   end
   if raw
     return b
@@ -669,10 +669,11 @@ function Hecke.roots(G::GaloisCtx{<:Hecke.MPolyFact.HenselCtxFqRelSeries}, pr::T
   while precision(C)[2] < pr[2]
     Hecke.MPolyFact.lift(C)
   end
-  rt = [-coeff(x, 0) for x = C.lf[1:C.n]]
-  rt = map(y->map_coefficients(x->setprecision(x, pr[1]), setprecision(y, pr[2]), parent = parent(y)), rt)
+  rt0 = [-coeff(x, 0) for x = C.lf[1:C.n]]
+  rt = map(y->map_coefficients(x->setprecision(x, pr[1]), setprecision(y, pr[2]), parent = parent(y)), rt0)
   if isdefined(G, :rt_num)
-    rt = [rt[G.rt_num[i]] for i=1:length(G.rt_num)]
+    rt_p = rt
+    rt = [rt_p[G.rt_num[i]] for i=1:length(G.rt_num)]
   end
   return rt
 end
@@ -987,10 +988,12 @@ function invariant(G::PermGroup, H::PermGroup)
     h = Oscar.action_homomorphism(os)
     GG = h(G)[1]
     HH = h(H)[1]
-    I = invariant(GG, HH)
+    I0 = invariant(GG, HH)
     ex = 1
+    local I
     while true
-      J = evaluate(I, [sum(g[o])^ex for o = collect(os)])
+      ex_c = ex
+      J = evaluate(I0, [sum(g[o])^ex_c for o = collect(os)])
       if !isprobably_invariant(J, G)
         I = J
         break
@@ -1026,39 +1029,40 @@ function invariant(G::PermGroup, H::PermGroup)
       #      in starting group the sieving has been improved
       #      classical D_sm or similar may no-longer be possible
       B = block_system(H, BB)
-      m = length(B)
+      nb = length(B)
       l = length(B[1])
       y = [sum(g[b]) for b = B]
       d = [sqrt_disc(g[b]) for b = B]
       D = sqrt_disc(y)
 
+      # the candidate is passed as an argument: capturing a variable that is
+      # assigned once per candidate would box it; see
+      # docs/src/DeveloperDocumentation/closure_boxes.md TODO: this can be
+      # decided theoretically
+      _separates(J) = all(p->isprobably_invariant(J, p), H) &&
+                      any(p->!isprobably_invariant(J, p), G)
       I = D
-      if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G) #TODO: this can be decided theoretically
+      if _separates(I)
         @vprint :GaloisInvariant 3 "using D-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 1)
-      if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G) #TODO: this can be decided theoretically
+      if _separates(I)
         @vprint :GaloisInvariant 3 "using s1-invar for $BB\n"
         return I
       end
-      I = elementary_symmetric(d, m)
-      if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G) #TODO: this can decided theoretically
+      I = elementary_symmetric(d, nb)
+      if _separates(I)
         @vprint :GaloisInvariant 3 "using sm-invar for $BB\n"
         return I
       end
       I = elementary_symmetric(d, 2)
-      if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G) #TODO
+      if _separates(I)
         @vprint :GaloisInvariant 3 "using s2-invar for $BB\n"
         return I
       end
-      I = D*elementary_symmetric(d, m)
-      if all(p->isprobably_invariant(I, p), H) &&
-         any(p->!isprobably_invariant(I, p), G)
+      I = D*elementary_symmetric(d, nb)
+      if _separates(I)
         @vprint :GaloisInvariant 3 "using D sm-invar for $BB\n"
         return I
       end
@@ -1086,8 +1090,8 @@ function invariant(G::PermGroup, H::PermGroup)
         J = invariant(ssG, ssH)
         C = left_transversal(H, sH)
         gg = g[BB]
-        J = evaluate(J, gg)
-        F = sum(J^t for t = C)
+        Jg = evaluate(J, gg)
+        F = sum(Jg^t for t = C)
         @hassert :GaloisInvariant 1 isprobably_invariant(F, H)
         @hassert :GaloisInvariant 1 !isprobably_invariant(F, G)
         @vprint :GaloisInvariant 3 "using F-invar for $BB (4.1.4)\n"
@@ -1120,9 +1124,8 @@ function resolvent(C::GaloisCtx, G::PermGroup, U::PermGroup, extra::Int = 5)
   ts = find_transformation(k_rt, I, t)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
-  rt = roots(C, bound_to_precision(C, B, extra))
-  rt = map(ts, rt)
-  rt = [evaluate(I^s, rt) for s = t]
+  rt_pr = map(ts, roots(C, bound_to_precision(C, B, extra)))
+  rt = [evaluate(I^s, rt_pr) for s = t]
   pr = copy(rt)
   ps = [isinteger(C, B, sum(pr))[2]]
   while length(ps) < n
@@ -1154,9 +1157,8 @@ function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
   ts = find_transformation(r, O)
 
   B = 2*n*evaluate(I, map(ts, [C.B for i = 1:ngens(parent(I))]))^n
-  rt = roots(C, bound_to_precision(C, B, extra))
-  rt = map(ts, rt)
-  rt = [evaluate(i, rt) for i = O]
+  rt_pr = map(ts, roots(C, bound_to_precision(C, B, extra)))
+  rt = [evaluate(i, rt_pr) for i = O]
   pr = copy(rt)
   ps = [isinteger(C, B, sum(pr))[2]]
   while length(ps) < n
@@ -1338,9 +1340,7 @@ function sum_orbits(K, Qt_to_G, r)
   @assert all(isone(e) for (_, e) in fg)
 
   O = []
-  if isa(r[1], AcbFieldElem)
-    mm = collect(m)
-  end
+  mm = collect(m)
   for (f, _) in fg
     r = roots(map_coefficients(Qt_to_G, f))
     if isa(r[1], AcbFieldElem)
@@ -1423,11 +1423,10 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     local v
     #TODO: maybe also use cycle_types for lower bounds?
     while true
-      c = roots(GC, pr, raw = true)
+      c_pr = roots(GC, pr, raw = true)
       g = ms(gen(s))
       gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(g))
-      d = map(gg, c)
-      v = Hecke.MPolyFact.block_system(d)
+      v = Hecke.MPolyFact.block_system(map(gg, c_pr))
       if any(x->length(x) != div(degree(K), degree(s)), v)
         pr *= 2
         if pr > 100
@@ -1543,17 +1542,17 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       r = map(mf, r)
       r = map(mfF, r)
       @assert parent(R[1]) == parent(d[1])
-      d = map(mF, d)
+      dF = map(mF, d)
       R = map(mF, R)
 
       if length(Set(r)) == length(r) &&
-         length(Set(d)) == length(r) &&
+         length(Set(dF)) == length(r) &&
          length(Set(R)) == length(R) #no problems with precision, 
                                      #we can proceed.
-        @assert Set(r) == Set(d)
+        @assert Set(r) == Set(dF)
         #assuming wreath_product(A, B) has block system [[1..l], [l+1..2l]...]
         # the re-ordering is easy: W^s for s = vcat(bs)
-        bs = map(x->findall(isequal(x), d), r)
+        bs = map(x->findall(isequal(x), dF), r)
         @assert allequal(length, bs)
         W = PermGroup(wreath_product(symmetric_group(length(bs[2])), g))
         #should have the block system as above..
@@ -1668,14 +1667,10 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   if length(bs) == 0 #primitive case: no subfields, no blocks, primitive group!
     push!(F, is_primitive, "primitivity")
     pc = parent(c[1])
-    if isa(pc, NumField)
-      k = pc
-      mk = identity
-    elseif isa(c[1], AcbFieldElem)
-      k = pc
-      mk = identity
+    k, mk = if isa(pc, NumField) || isa(c[1], AcbFieldElem)
+      (pc, identity)
     else
-      k, mk = residue_field(pc)
+      residue_field(pc)
     end
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
     GC.start = (2, O)
@@ -1968,11 +1963,12 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
     end
   end
 
-  if do_shape
-    p, ct = find_prime(K.pol, pStart)
+  ct = if do_shape
+    p, c = find_prime(K.pol, pStart)
+    c
   else
-    ct = Set{CycleType}()
     @assert prime != 0
+    Set{CycleType}()
   end
 
   if prime != 0
@@ -2303,13 +2299,14 @@ function relative_invariant(G, U; Chain::Union{Nothing, <:Vector{<:Tuple{PermGro
     return one(S), [one(G)]
   end
 
-  if Chain !== nothing
-    c = [x[1] for x = Chain]
-    I = [x[2] for x = Chain]
-    pop!(I)
+  c, I = if Chain !== nothing
+    ch = [x[1] for x = Chain]
+    inv_ch = [x[2] for x = Chain]
+    pop!(inv_ch)
+    (ch, inv_ch)
   else
-    c = reverse(maximal_subgroup_chain(G, U))
-    I = [invariant(c[i], c[i+1]) for i=1:length(c)-1]
+    ch2 = reverse(maximal_subgroup_chain(G, U))
+    (ch2, [invariant(ch2[i], ch2[i+1]) for i=1:length(ch2)-1])
   end
 
   @vprint :GaloisGroup 2 "using a subgroup chain with orders $(map(order, c))\n"
@@ -2350,7 +2347,8 @@ function relative_invariant(G, U; Chain::Union{Nothing, <:Vector{<:Tuple{PermGro
       b = evaluate(I[j], map(ts[j], gens(parent(I[1]))))
     end
     while true
-      d = Set([evaluate((mu[j]*a+b)^t, r) for t = T])
+      a_c, b_c, r_c, mu_c = a, b, r, mu[j]
+      d = Set([evaluate((mu_c*a_c+b_c)^t, r_c) for t = T])
       if length(d) == length(T)
         break
       end
@@ -2384,17 +2382,15 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)
-  r = roots(GC, bound_to_precision(GC, GC.B))
-  ts = find_transformation(r, a, T, RNG = MersenneTwister(1))
+  r_lo = roots(GC, bound_to_precision(GC, GC.B))
+  ts = find_transformation(r_lo, a, T, RNG = MersenneTwister(1))
 
   B = upper_bound(GC, a, ts)
   m = length(T)
   B = m*B^m
 
-  @vtime :GaloisGroup 2 r = roots(GC, bound_to_precision(GC, B, extra))
-  if ts != gen(parent(ts))
-    r = map(ts, r)
-  end
+  r0 = @vtime :GaloisGroup 2 roots(GC, bound_to_precision(GC, B, extra))
+  r = ts != gen(parent(ts)) ? map(ts, r0) : r0
   compile!(a)
   @vtime :GaloisGroup 2 conj = [evaluate(a, t, r) for t = T]
 
@@ -2614,16 +2610,18 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
       # might work well
       # if G is small, then iterated factoring (possibly using the SolveRadical
       # stuff) is better. See galois_factor there
-      r = roots(C, 5)
+      r5 = roots(C, 5)
       k = 0
       while true
-        pe = [prod(r[b] .+ k) for b = bs]
+        k_c = k
+        pe = [prod(r5[b] .+ k_c) for b = bs]
         if length(Set(pe)) == length(bs)
           break
         end
         k += 1
       end
-      PE = [prod(g[b] .+ k) for b = bs]
+      k_f = k
+      PE = [prod(g[b] .+ k_f) for b = bs]
       B = upper_bound(C, power_sum, PE, length(PE))
       rt = roots(C, bound_to_precision(C, B))
       pe = [evaluate(I, rt) for I = PE]
@@ -2639,14 +2637,14 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
         push!(h, QQ(v))
         push!(id, sum(evaluate(I^length(h), x) for I = PE) - v)
       end
-      h = Hecke.power_sums_to_polynomial(h)
-      q = roots(number_field(C.f)[1], h)
+      hp = Hecke.power_sums_to_polynomial(h)
+      q = roots(number_field(C.f)[1], hp)
       @assert length(q) > 0
       q = parent(defining_polynomial(parent(q[1])))(q[1])
       #TODO: think h(q(y)) is probably boring, while q(y) == pe might be 
       #      not....
       for y = x
-        push!(id, h(q(y)))
+        push!(id, hp(q(y)))
       end
     end
   end
@@ -2657,17 +2655,16 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
     c = maximal_subgroup_chain(G, C.chn[1][1])
   end
 
-  r = roots(C, bound_to_precision(C, C.B))
-  k, mk = residue_field(parent(r[1]))
-  r = map(mk, r)
+  r0 = roots(C, bound_to_precision(C, C.B))
+  kres, mk = residue_field(parent(r0[1]))
+  r_res = map(mk, r0)
 
   for i=1:length(c)-1
     I = invariant(c[i+1], c[i]) 
     T = right_transversal(c[i+1], c[i])
-    ts = find_transformation(r, I, T)
+    ts = find_transformation(r_res, I, T)
     B = upper_bound(C, I, ts)
-    r = roots(C, bound_to_precision(C, B))
-    r = map(ts, r)
+    r = map(ts, roots(C, bound_to_precision(C, B)))
     compile!(I)
     for t = T
       e = evaluate(I, t, r)
@@ -2681,8 +2678,7 @@ function galois_ideal(C::GaloisCtx, extra::Int = 5)
 
   for (_, I, ts, T) = C.chn
     B = upper_bound(C, I, ts)
-    r = roots(C, bound_to_precision(C, B, extra))
-    r = map(ts, r)
+    r = map(ts, roots(C, bound_to_precision(C, B, extra)))
     compile!(I)
     for t = T
       e = evaluate(I, t, r)
@@ -2746,10 +2742,11 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
       st += degree(g)
       continue
     end
-    S = symmetric_group(degree(g))
+    Sg = symmetric_group(degree(g))
+    st_g = st
     #need proj G -> G_i, so need a subset of the points (st+1:st+deg(g))
     # moved by re, then mapped to 1:deg(g)
-    h = [S([(i+st)^(gg^re)-st for i=1:degree(g)]) for gg = gens(G)]
+    h = [Sg([(i+st_g)^(gg^re)-st_g for i=1:degree(g)]) for gg = gens(G)]
     for j=2:k
       S = symmetric_group(degree(g))
       push!(H, S)
@@ -2862,8 +2859,8 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
 
   lg = [x[1] for x = lf]
   
-  g = prod(lg)
-  p, ct = find_prime(g, pStart = pStart, prime = prime)
+  gprod = prod(lg)
+  p, ct = find_prime(gprod, pStart = pStart, prime = prime)
 
   C = [galois_group(extension_field(x, cached = false)[1], prime = p)[2] for x = lg]
   #= Strategy:
@@ -2884,25 +2881,25 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
      - form the big product
   =#
 
-  g = Graph{Undirected}(length(C))
+  gr = Graph{Undirected}(length(C))
   for i=1:length(C)
     for j=i+1:length(C)
       if !are_disjoint(C[i], C[j])
-        add_edge!(g, i, j)
+        add_edge!(gr, i, j)
       end
     end
   end
-  cl = connected_components(g)
+  cl = connected_components(gr)
   @vprint :GaloisGroup 1 "found $(length(cl)) connected components\n"
 
   res = Vector{Tuple{typeof(C[1]), PermGroupElem}}()
   llf = Int[]
   function setup(C::Vector{<:GaloisCtx})
-    G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
+    Gdp, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
     g = prod(x.f for x = C)
 
-    CC = GaloisCtx(g, p)
-    rr = roots(CC, 5, raw = true) #raw is necessary for non-monic case
+    ctxC = GaloisCtx(g, p)
+    rr = roots(ctxC, 5, raw = true) #raw is necessary for non-monic case
                                   #the scaling factor is the lead coeff
                                   #thus not the same for all factors...
     @assert length(Set(rr)) == length(rr)
@@ -2913,19 +2910,19 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
     k, mk = residue_field(parent(rr[1]))
-    rr = map(mk, rr)
+    rr_res = map(mk, rr)
     po = Int[]
     for GC = C
-      r = roots(GC, 5, raw = true)
-      K, mK = residue_field(parent(r[1]))
-      r = map(mK, r)
+      r0 = roots(GC, 5, raw = true)
+      K, mK = residue_field(parent(r0[1]))
+      r = map(mK, r0)
       phi = Hecke.find_morphism(K, k)
-      po = vcat(po, [findfirst(==(phi(y)), rr) for y = r])
+      po = vcat(po, [findfirst(==(phi(y)), rr_res) for y = r])
     end
 
-    con = (symmetric_group(length(po))(po))
-    G = G^con
-    CC.G = G #needed as a fallback if no descent is used
+    cn = (symmetric_group(length(po))(po))
+    Gc = Gdp^cn
+    ctxC.G = Gc #needed as a fallback if no descent is used
     F = GroupFilter()
   #=
     function fi(x)
@@ -2936,8 +2933,8 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
   =#  
 
     push!(F, x->!is_transitive(x), "subdirect case: group is transitive")
-    push!(F, x->all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C)), "subdirect case: wrong projections")
-    return CC, G, F, G(si), con
+    push!(F, x->all(y->pro[y](x^inv(cn))[1] == C[y].G, 1:length(C)), "subdirect case: wrong projections")
+    return ctxC, Gc, F, Gc(si), cn
   end
   for X = cl
     @vprint :GaloisGroup 1 "dealing with factors $X ...\n"
@@ -2945,8 +2942,8 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
       push!(res, (C[X][1], one(C[X][1].G)))
     else
       function red(A::GaloisCtx, B::GaloisCtx)
-        CC, G, F, fr, con = setup([A, B])
-        return descent(CC, G, F, fr, grp_id = x->(:-, :-))[2], con
+        ctxAB, grpAB, filtAB, frobAB, cAB = setup([A, B])
+        return descent(ctxAB, grpAB, filtAB, frobAB, grp_id = x->(:-, :-))[2], cAB
       end
       local con
       #=
@@ -2997,12 +2994,12 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
   end
 
   @vprint :GaloisGroup 1 "combining clusters...\n"
-  if length(res) == 1
-    CC = res[1][1]
-    G = CC.G
-    con = res[1][2]
+  CC, G, con = if length(res) == 1
+    ctx = res[1][1]
+    (ctx, ctx.G, res[1][2])
   else
-    CC, G, F, fr, con = setup([x[1] for x = res])
+    ctx, grp, _, _, c = setup([x[1] for x = res])
+    (ctx, grp, c)
   end
   @vprint :GaloisGroup 1 "adding multiplicity...\n"
 

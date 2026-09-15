@@ -46,6 +46,11 @@ end
 #  the rat-reco for different polys in parallel
 #  crt in parallel
 #  use walk, tracing, ...
+# Does any coefficient of `f` survive the reduction modulo the primes in `me`?
+function _has_new_information(f, me::Hecke.modular_env)
+  return any(x -> any(!is_zero, Hecke.modular_proj(x, me)), AbstractAlgebra.coefficients(f))
+end
+
 function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, ordering::MonomialOrdering; use_hilbert::Bool = false)
   if haskey(I.gb, ordering)
     return I.gb[ordering]
@@ -107,7 +112,10 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}
       end
 #      @show gd
     else
-      new_idx = [any(x -> any(!is_zero, Hecke.modular_proj(x, me)), AbstractAlgebra.coefficients(gd[i] - IP[i])) for i=1:length(gc)]
+      new_idx = Bool[]
+      for i = 1:length(gc)
+        push!(new_idx, _has_new_information(gd[i] - IP[i], me))
+      end
       @vprint :ModStdNF 1 "new information in $new_idx\n"
       push!(R, ZZRingElem(p), lift(Zx, me.ce.pr[end]))
       fl = !any(new_idx)

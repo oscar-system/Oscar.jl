@@ -994,14 +994,14 @@ function representatives_of_hermitian_type(
   # Detect if we have a finite order isometry
   R = parent(chi)
   is_cyclo, n = is_cyclotomic_polynomial_with_data(chi)
-  if is_cyclo
-    E, b = cyclotomic_field_as_cm_extension(n)
+  E, b = if is_cyclo
+    cyclotomic_field_as_cm_extension(n)
   else
     Etemp, btemp = number_field(chi; cached=false)
     @req is_maximal(equation_order(Etemp)) "For isometries of infinite order, the equation order of the associated number field must be maximal (for now)"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
     Kt, t = K[:t]
-    E, b = number_field(t^2-a*t+1, "b"; cached=false)
+    number_field(t^2-a*t+1, "b"; cached=false)
   end
 
   gene = Hecke.genus_herm_type(E)[]
@@ -1239,14 +1239,14 @@ function representatives_of_hermitian_type(
 
   R = parent(chi)
   is_cyclo, n = is_cyclotomic_polynomial_with_data(chi)
-  if is_cyclo
-    E, b = cyclotomic_field_as_cm_extension(n)
+  E, b = if is_cyclo
+    cyclotomic_field_as_cm_extension(n)
   else
     Etemp, btemp = number_field(chi; cached=false)
     @req is_maximal(equation_order(Etemp)) "For isometries of infinite order, the equation order of the associated number field must be maximal (for now)"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
     Kt, t = K[:t]
-    E, b = number_field(t^2-a*t+1, "b"; cached=false)
+    number_field(t^2-a*t+1, "b"; cached=false)
   end
 
   DEK = different(maximal_order(E))
@@ -1571,13 +1571,11 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
     _reps_j = [i^j for i in HH]
     filter!(x->is_annihilated_on_discriminant(x, ctx.discriminant_annihilator_lb), _reps_j)
     # filter _reps_j for equivalent pairs
-    if k > 2
-      E = cyclotomic_field_as_cm_extension(k; cached=false)[1]
-    end    
+    Ek = k > 2 ? cyclotomic_field_as_cm_extension(k; cached=false)[1] : nothing
     function _herm(x::ZZLatWithIsom)
-      k = order_of_isometry(x)
-      if k > 2
-        return hermitian_structure(lattice(x),isometry(x); ambient_representation=false, E)
+      kx = order_of_isometry(x)
+      if kx > 2
+        return hermitian_structure(lattice(x),isometry(x); ambient_representation=false, E = Ek)
       else 
         return lattice(x)
       end 
@@ -2329,11 +2327,9 @@ function splitting(
   if char_poly !== nothing
     char_polys = [char_poly]
   end 
-  if min_poly !==nothing
-    min_polys=[min_poly]
-  end
+  mps = min_poly !== nothing ? [min_poly] : min_polys
   if isempty(eiglat_cond)
-    eiglat_cond = [_conditions_from_input(p*n, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
+    eiglat_cond = [_conditions_from_input(p*n, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in mps]
   end
   ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test,info_depth,discriminant_annihilator_lb=discriminant_annihilator,_local)
   return _splitting(Lf, p, b; ctx, min_poly)
@@ -2544,11 +2540,9 @@ function enumerate_classes_of_lattices_with_isometry(
   if char_poly !== nothing
     char_polys = [char_poly]
   end 
-  if min_poly !==nothing
-    min_polys=[min_poly]
-  end
+  mps = min_poly !== nothing ? [min_poly] : min_polys
   if length(eiglat_cond) == 0
-    eiglat_cond = [_conditions_from_input(m, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in min_polys]
+    eiglat_cond = [_conditions_from_input(m, char_p, min_p, rks, pos_sigs, neg_sigs) for char_p in char_polys for min_p in mps]
   end
   allow_info && println("Conditions computed") 
 
@@ -3460,8 +3454,8 @@ function _restrict(ctx::ZZLatWithIsomEnumCtX, p)
     ctx_new.discriminant_annihilator_lb = ideal(R,[Rp*i(gen(R,1)) for i in gens(I)])
   end
   if !(ctx_new.discriminant_annihilator_ub isa Nothing)
-    R = base_ring(ctx_new.discriminant_annihilator_ub)
-    ctx_new.discriminant_annihilator_ub = ideal(R(1))# can this be improved?
+    Rub = base_ring(ctx_new.discriminant_annihilator_ub)
+    ctx_new.discriminant_annihilator_ub = ideal(Rub(1))# can this be improved?
   end 
   return ctx_new
 end 
@@ -3486,9 +3480,9 @@ function _split(ctx::ZZLatWithIsomEnumCtX, a, b)
   end
   if !(ctx.discriminant_annihilator_ub isa Nothing)
     # can this be improved?
-    R = base_ring(ctx.discriminant_annihilator_ub)
-    ctx_A.discriminant_annihilator_ub = ideal(R(1))
-    ctx_B.discriminant_annihilator_ub = ideal(R(1))
+    Rub = base_ring(ctx.discriminant_annihilator_ub)
+    ctx_A.discriminant_annihilator_ub = ideal(Rub(1))
+    ctx_B.discriminant_annihilator_ub = ideal(Rub(1))
   end
   # TODO: one could work with actions at the 
   # non-glued primes here instead

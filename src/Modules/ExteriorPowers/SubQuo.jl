@@ -8,9 +8,9 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
     haskey(powers, p) && return powers[p]
   end
 
-  if iszero(p)
+  result = if iszero(p)
     F = FreeMod(R, 1)
-    result, _ = sub(F, [F[1]])
+    sub(F, [F[1]])[1]
   else
     C = presentation(M)
     phi = map(C, 1)
@@ -19,18 +19,19 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
         return [Symbol("$e") for e in gens(M)]
       end
     end
-    result, mm = _exterior_power(phi, p)
+    _exterior_power(phi, p)[1]
   end
 
-  function my_mult(u::Tuple{Vararg{SubquoModuleElem}})
+  # `my_mult` must not call itself: a self-recursive closure is boxed; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  function _mult_tuple(u::Tuple{Vararg{SubquoModuleElem}})
     isempty(u) && return result[1] # only the case p=0
     @req all(x -> parent(x) === M, u) "elements must live in the same module"
     @req length(u) == p "need a $p-tuple of elements"
     return wedge(collect(u), parent=result)
   end
-  function my_mult(u::SubquoModuleElem...)
-    return my_mult(u)
-  end
+  my_mult(u::Tuple{Vararg{SubquoModuleElem}}) = _mult_tuple(u)
+  my_mult(u::SubquoModuleElem...) = _mult_tuple(u)
 
   function my_decomp(u::SubquoModuleElem)
     @req parent(u) === result "element does not belong to the correct module"
@@ -52,17 +53,18 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
 
   # Set the variable names for printing
   orig_symb = ["$(e)" for e in ambient_representatives_generators(M)]
-  new_symb = Symbol[]
-  if iszero(p)
-    new_symb = [Symbol("1")]
+  new_symb = if iszero(p)
+    [Symbol("1")]
   else
+    symbs = Symbol[]
     for ind in combinations(n, p)
       symb_str = orig_symb[ind[1]]
       for i in 2:p
         symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
       end
-      push!(new_symb, Symbol(symb_str))
+      push!(symbs, Symbol(symb_str))
     end
+    symbs
   end
 
   symbols(result) = new_symb

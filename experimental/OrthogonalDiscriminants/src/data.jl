@@ -451,9 +451,9 @@ function all_od_infos(L...)
     ids = conditions[identifier]
     if ids isa String
       haskey(OD_simple_names, ids) || return res
-      ids = (OD_simple_names[ids], ids)
-      names !== nothing && !(ids in names) && return []
-      names = [ids]
+      id = (OD_simple_names[ids], ids)
+      names !== nothing && !(id in names) && return []
+      names = [id]
     elseif ids isa Vector{String}
       if names !== nothing
         names = filter(in(names), [(OD_simple_names[x], x) for x in ids])

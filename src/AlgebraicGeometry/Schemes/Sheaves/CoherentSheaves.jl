@@ -1156,10 +1156,10 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
     # We nevertheless need to recreate U as a PrincipalOpenSubset of itself
     # as we are not allowed to alter the values of the sheaf M on U directly.
     V = PrincipalOpenSubset(U, one(OO(U)))
-    F = FreeMod(OO(V), ncols(A))
-    res = hom(MU, F, gens(F), OOX(U, V))
-    add_incoming_restriction!(M, U, F, res)
-    object_cache(M)[V] = F
+    F0 = FreeMod(OO(V), ncols(A))
+    res = hom(MU, F0, gens(F0), OOX(U, V))
+    add_incoming_restriction!(M, U, F0, res)
+    object_cache(M)[V] = F0
     return [V]
   end
 
@@ -1240,19 +1240,19 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
       # Intermediate recursion step.
       # Recreate the restriction of the module to the open subset but with one generator
       # less and construct the restriction map.
-      F, amb_res = change_base_ring(OOX(U, V), ambient_free_module(MU))
+      Famb, amb_res = change_base_ring(OOX(U, V), ambient_free_module(MU))
       v = ambient_representatives_generators(MU)
       M_gens = amb_res.(v)
       rest_gens = [M_gens[k] for k in 1:length(M_gens) if k!=j]
       rels = [amb_res(w) for w in relations(MU)]
-      MV = SubquoModule(F, rest_gens, rels)
-      img_gens = elem_type(F)[]
+      MV = SubquoModule(Famb, rest_gens, rels)
+      img_gens = elem_type(Famb)[]
       for k in 1:j-1
         push!(img_gens, M_gens[k])
       end
       push!(img_gens,
             -sum([Ares[i, k]*M_gens[k] for k in 1:length(M_gens) if k!=j],
-                 init=zero(F))
+                 init=zero(Famb))
            )
       for k in j+1:length(M_gens)
         push!(img_gens, M_gens[k])

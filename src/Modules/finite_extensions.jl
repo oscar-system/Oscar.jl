@@ -273,8 +273,8 @@ function co_extension_of_scalars(
     return function(v)
       parent(v) === result || error("wrong parent")
       phi = element_to_homomorphism(v)
-      psi = hom(FF, FF, elem_type(FF)[interp(x*preimage(interp, w)) for w in gens(FF)])
-      c = compose(psi, phi)
+      mu = hom(FF, FF, elem_type(FF)[interp(x*preimage(interp, w)) for w in gens(FF)])
+      c = compose(mu, phi)
       return homomorphism_to_element(result, c)
     end
   end
