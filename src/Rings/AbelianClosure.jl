@@ -923,7 +923,10 @@ function Base.copy(a::QQAbFieldElem)
 end
 
 function Base.deepcopy_internal(a::QQAbFieldElem, dict::IdDict)
-  return QQAbFieldElem(deepcopy_internal(data(a), dict), a.c)
+  haskey(dict, a) && return dict[a]
+  aa = QQAbFieldElem(deepcopy_internal(data(a), dict), a.c)
+  dict[a] = aa
+  return aa
 end
 
 ################################################################################
