@@ -40,7 +40,7 @@ julia> t = cperm([1,4], [2,5,9,10,8], [3,7,6])
 (1,4)(2,5,9,10,8)(3,7,6)
 
 julia> G = modular_subgroup_via_right_action(s, t)
-Modular subgroup of index 10
+modular subgroup of index 10
 ```
 """
 function modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
@@ -65,7 +65,7 @@ julia> t = cperm([1,4], [2,5,9,10,8], [3,7,6])
 (1,4)(2,5,9,10,8)(3,7,6)
 
 julia> G = modular_subgroup_via_left_action(s, t)
-Modular subgroup of index 10
+modular subgroup of index 10
 ```
 """
 function modular_subgroup_via_left_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
@@ -292,7 +292,7 @@ of the finitely presented group returned by `Oscar._SL2Z_fp()`.
 # Examples
 ```jldoctest
 julia> G = modular_subgroup_via_right_action(cperm([2, 3]), cperm([1, 2]))
-Modular subgroup of index 3
+modular subgroup of index 3
 
 julia> A = gens(G)[2]
 [1 -2; 0 1] in modular group of index 3
