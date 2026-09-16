@@ -402,7 +402,7 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
     lf = factor(ZZRingElem(index))
     primes = prime_divisors(ZZ(index))
     while length(primes) > 0
-      @time nw = brueckner(mp; limit = 1, primes)
+      @vtime :BruecknerSQ 1 nw = brueckner(mp; limit = 1, primes)
       if length(nw) == 0 
         return mp
       end
