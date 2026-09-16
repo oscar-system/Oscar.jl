@@ -72,9 +72,9 @@ for any ring ``R`` there is exactly one ring homomorphism from the
 integers into ``R``, and it extends uniquely to a partial map from the
 rational numbers, defined wherever the denominator is invertible in
 ``R``. This is what `R(5)` and `R(7//2)` compute, and such an automatic
-conversion is called a coercion.
-In other cases, an element has to be moved into the required structure
-explicitly, by calling the parent as if it were a function.
+conversion is called a *coercion*.
+In other cases, an element has to be moved explicitly into the required
+structure, by calling the parent as if it were a function.
 ```jldoctest
 julia> ZZ(7) + QQ(3, 2)
 17//2
@@ -139,6 +139,7 @@ use the `@show` macro.
 
 Like in GAP, Magma, and Singular, and unlike in Python (and hence in
 SageMath) and polymake, the first entry of a list has index 1.
+Analogously, matrix row and column indices start from 1.
 Ranges include both endpoints: `1:5` consists of the numbers 1 to 5.
 
 ## Names of functions
