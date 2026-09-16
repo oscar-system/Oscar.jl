@@ -317,17 +317,15 @@ perhaps filtered by some conditions.
 """
 function character_table(id::String, p::Int = 0)
     if p != 0
-      tbl = character_table(id, 0)
-      tbl === nothing && return nothing
-      return mod(tbl, p)
+      tbl0 = character_table(id, 0)
+      tbl0 === nothing && return nothing
+      return mod(tbl0, p)
     end
     # normalize `id`
     info = GAPWrap.LibInfoCharacterTable(GapObj(id))
-    if info !== GAP.Globals.fail
-      id = string(info.firstName)
-    end
-    return get!(character_tables_by_id, id) do
-      tbl = GAPWrap.CharacterTable(GapObj(id))
+    name = info !== GAP.Globals.fail ? string(info.firstName) : id
+    return get!(character_tables_by_id, name) do
+      tbl = GAPWrap.CharacterTable(GapObj(name))
       tbl === GAP.Globals.fail && return nothing
       return GAPGroupCharacterTable(tbl, 0)
     end
@@ -843,11 +841,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     primes = [x[1] for x in factor(size)]
     sort!(primes)
 
-    if :chars in keys(io)
-      chars = get(io, :chars, nothing)
-    else
-      chars = _irr(tbl)
-    end
+    chars = :chars in keys(io) ? get(io, :chars, nothing) : _irr(tbl)
 
     # Decide how to deal with irrationalities.
     alphabet = get(io, :alphabet, "")

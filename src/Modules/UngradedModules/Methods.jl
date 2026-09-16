@@ -160,6 +160,22 @@ function find_morphism(M::SubquoModule, N::SubquoModule)
   return reduce(*, morphisms)
 end
 
+# Collect all paths of morphisms from `U` to `D` in `all_paths`.
+# A top-level function rather than a closure: a self-recursive closure is
+# boxed; see docs/src/DeveloperDocumentation/closure_boxes.md.
+function _collect_morphism_paths!(all_paths::Vector, U::SubquoModule, D::SubquoModule,
+                                  visited::Vector{<:OFPModule}, path::Vector)
+  if U === D
+    push!(all_paths, path)
+    return
+  end
+  for (cod, neighbor_morphism) in U.outgoing
+    any(x->x===cod, visited) && continue
+    _collect_morphism_paths!(all_paths, cod, D, push!(visited, cod),
+                             union(path, [_recreate_morphism(U, cod, neighbor_morphism)]))
+  end
+end
+
 @doc raw"""
     find_morphisms(N::SubquoModule, M::SubquoModule)
 
@@ -170,19 +186,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
   # from N to M
 
   all_paths = []
-
-  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:OFPModule}, path::Vector)
-    if U === D
-      push!(all_paths, path)
-      return
-    end
-    for (cod, neighbor_morphism) in U.outgoing
-      any(x->x===cod, visited) && continue
-      helper_dfs!(cod, D, push!(visited, cod), union(path, [_recreate_morphism(U, cod, neighbor_morphism)]))
-    end
-  end
-
-  helper_dfs!(N, M, Vector{OFPModule}(), [])
+  _collect_morphism_paths!(all_paths, N, M, Vector{OFPModule}(), [])
 
   morphisms = Vector{OFPModuleHom}()
   for path in all_paths
@@ -327,7 +331,6 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
     if parent(v) !== M
       throw(DomainError("v does not represent a homomorphism"))
     end
-    R = base_ring(M)
     c = coordinates(repres(v))
     A = copy_and_reshape(dense_row(c[1:s0*t0], s0*t0), s0, t0)
     return A

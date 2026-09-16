@@ -231,8 +231,9 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
     end
     pos_vec += ((v.p)*transpose(K))[1,:]
   end
-  ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
-  ret = (x -> div(x, gcd(ret))).(ret) 
+  scaled = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
+  g = gcd(scaled)
+  ret = (x -> div(x, g)).(scaled)
   # assure that the weights fit in Int32 for singular
   return all(ret .< 2^32) ? ret : zeros(Int,ncols)
 end

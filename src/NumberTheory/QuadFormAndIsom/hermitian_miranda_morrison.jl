@@ -29,9 +29,9 @@ function _get_quotient_split(P::Hecke.RelNumFieldOrderIdeal, i::Int)
     for PP in F
       @hassert :ZZLatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
-      exp = valuation(OEabs(d), PP[1])
-      dabs *= api^exp
-      xabs *= api^exp
+      v = valuation(OEabs(d), PP[1])
+      dabs *= api^v
+      xabs *= api^v
     end
 
     xabs_image = mURPabs\mRPabs(OEabs(xabs))
@@ -89,9 +89,9 @@ function _get_quotient_inert(P::Hecke.RelNumFieldOrderIdeal, i::Int)
     for PP in F
       @hassert :ZZLatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
-      exp = valuation(OEabs(d), PP[1])
-      dabs *= api^exp
-      xabs *= api^exp
+      v = valuation(OEabs(d), PP[1])
+      dabs *= api^v
+      xabs *= api^v
     end
 
     xabs_image = mURPabs\(mRPabs(OEabs(xabs)))
@@ -114,8 +114,8 @@ function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   e = valuation(different(OE), P)
 
   if i < e
-    S = abelian_group()
-    return S, _ -> one(E), _ -> id(S)
+    Striv = abelian_group()
+    return Striv, _ -> one(E), _ -> id(Striv)
   end
 
   t = e-1
@@ -161,9 +161,9 @@ function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
     for PP in F
       @hassert :ZZLatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
-      exp = valuation(OEabs(d), PP[1])
-      dabs *= api^exp
-      xabs *= api^exp
+      v = valuation(OEabs(d), PP[1])
+      dabs *= api^v
+      xabs *= api^v
     end
 
     xabs_image = mURPabs\(mRPabs(OEabs(xabs)))

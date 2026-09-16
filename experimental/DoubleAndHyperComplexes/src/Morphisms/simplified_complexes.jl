@@ -53,147 +53,150 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
   ### Computations for the outgoing map
   if can_compute_index(d, next) && !has_index(d, next)
-    # If the first was not true then the next map is simply not there.
-    #
-    # If the index `next` has already been computed, then a simplification of the 
-    # outgoing map has already been computed as the incoming map 
-    # for `next` and we don't need to do it again.
-    outgoing = map(c, 1, Ind)
-    @assert domain(outgoing) === c[i]
-    @assert codomain(outgoing) === c[next]
-    if haskey(fac.maps_from_original, next)
-      outgoing = compose(outgoing, fac.maps_from_original[next])
-    end
-    if haskey(fac.maps_to_original, i)
-      outgoing = compose(fac.maps_to_original[i], outgoing)
-    end
-
-    M = domain(outgoing)
-    N = codomain(outgoing)
-
-    # Simplify for the outgoing morphism
-    A = sparse_matrix(outgoing)
-    S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
-    @assert nrows(Tinv) == ncols(Tinv) == ncols(A)
-    @assert nrows(T) == ncols(T) == ncols(A)
-    @assert nrows(Sinv) == ncols(Sinv) == nrows(A)
-    @assert nrows(S) == ncols(S) == nrows(A)
-    fac.base_change_cache[i] = S, Sinv, T, Tinv, ind
-
-    m = nrows(A)
-    n = ncols(A)
-    I_inv = [i for (i, _) in ind]
-    I = [i for i in 1:m if !(i in I_inv)]
-    J_inv = [j for (_, j) in ind]
-    J = [j for j in 1:n if !(j in J_inv)]
-
-    # Assembly of the homotopy matrix
-    if fac.with_homotopy_maps
-      R = base_ring(Tinv)
-      H = sparse_matrix(R, ncols(A), nrows(A)) # Allocate the result
-      # A quick form of the inverse of the submatrix A[I_inv, J_inv]:
-      inv_dict = Dict{Int, Tuple{Int, elem_type(R)}}(k=>(i, inv(A[i, k])) for (i, k) in ind)
-      del_row_cache = Dict{Int, sparse_row_type(R)}()
-      for j in J_inv
-        for (k, c) in Tinv[j]
-          tmp = get(inv_dict, k, nothing)
-          isnothing(tmp) && continue
-          ii, u = tmp
-          row = get!(del_row_cache, ii) do
-            sparse_row(R, [(l, a) for (l, a) in S[ii] if l in I_inv])
-          end
-          H[j] = addmul!(H[j], copy(row), c*u)
-        end
-      end
-
-      h = hom(N, M,
-              elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
-                           for row in H]; check=false)
+    # If the first was not true then the next map is simply not there. If the
+    # index `next` has already been computed, then a simplification of the
+    # outgoing map has already been computed as the incoming map for `next` and
+    # we don't need to do it again. `let`: the block for the incoming map below
+    # reuses these names, and a captured variable assigned in both blocks would
+    # be boxed; see docs/src/DeveloperDocumentation/closure_boxes.md
+    let
+      outgoing = map(c, 1, Ind)
+      @assert domain(outgoing) === c[i]
+      @assert codomain(outgoing) === c[next]
       if haskey(fac.maps_from_original, next)
-        h = compose(fac.maps_from_original[next], h)
+        outgoing = compose(outgoing, fac.maps_from_original[next])
       end
       if haskey(fac.maps_to_original, i)
-        h = compose(h, fac.maps_to_original[i])
-      end
-      @assert domain(h) === c[next]
-      @assert codomain(h) === c[i]
-
-      fac.homotopy_maps[i] = h
-    end
-
-    # Create the maps to the old complex
-    img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
-    new_dom = _make_free_module(M, img_gens_dom)
-    dom_map = hom(new_dom, M, img_gens_dom; check=false)
-
-    if haskey(fac.maps_to_original, i)
-      # This means that for the next map a partial or 
-      # full simplification has already been computed
-      fac.maps_to_original[i] = compose(dom_map, fac.maps_to_original[i])
-    else
-      fac.maps_to_original[i] = dom_map
-    end
-
-
-    img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
-    new_cod = _make_free_module(N, img_gens_cod)
-    cod_map = hom(new_cod, N, img_gens_cod; check=false)
-
-    if haskey(fac.maps_to_original, next)
-      fac.maps_to_original[next] = compose(cod_map, fac.maps_to_original[next])
-    else
-      fac.maps_to_original[next] = cod_map
-    end
-
-    # Create the maps from the old complex
-    img_gens_dom = elem_type(new_dom)[]
-    inv_map_dict = Dict{Int, Int}(I[j] => j for j in 1:length(I))
-    for i in 1:m
-      w = Sinv[i]
-      v = zero(new_dom)
-      for (real_j, a) in w
-        !haskey(inv_map_dict, real_j) && continue
-        j = inv_map_dict[real_j]
-        v += a*new_dom[j]
+        outgoing = compose(fac.maps_to_original[i], outgoing)
       end
 
-      # v = zero(new_dom)
-      # for j in 1:length(I)
-      #   success, a = _has_index(w, I[j])
-      #   success && (v += a*new_dom[j])
-      #   # a = w[I[j]]
-      #   # !iszero(a) && (v += a*new_dom[j])
-      # end
-      push!(img_gens_dom, v)
-    end
-    dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
+      M = domain(outgoing)
+      N = codomain(outgoing)
 
-    if haskey(fac.maps_from_original, i)
-      fac.maps_from_original[i] = compose(fac.maps_from_original[i], dom_map_inv)
-    else
-      fac.maps_from_original[i] = dom_map_inv
-    end
+      # Simplify for the outgoing morphism
+      A = sparse_matrix(outgoing)
+      S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
+      @assert nrows(Tinv) == ncols(Tinv) == ncols(A)
+      @assert nrows(T) == ncols(T) == ncols(A)
+      @assert nrows(Sinv) == ncols(Sinv) == nrows(A)
+      @assert nrows(S) == ncols(S) == nrows(A)
+      fac.base_change_cache[i] = S, Sinv, T, Tinv, ind
 
+      m = nrows(A)
+      n = ncols(A)
+      I_inv = [i for (i, _) in ind]
+      I = [i for i in 1:m if !(i in I_inv)]
+      J_inv = [j for (_, j) in ind]
+      J = [j for j in 1:n if !(j in J_inv)]
 
-    img_gens_cod = elem_type(new_cod)[]
-    inv_map_dict = Dict{Int, Int}(J[j]=>j for j in 1:length(J))
-    for i in 1:n
-      w = Tinv[i]
-      new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
-      for (real_j, b) in w
-        !haskey(inv_map_dict, real_j) && continue
-        j = inv_map_dict[real_j]
-        push!(new_entries, (j, b))
+      # Assembly of the homotopy matrix
+      if fac.with_homotopy_maps
+        R = base_ring(Tinv)
+        H = sparse_matrix(R, ncols(A), nrows(A)) # Allocate the result
+        # A quick form of the inverse of the submatrix A[I_inv, J_inv]:
+        inv_dict = Dict{Int, Tuple{Int, elem_type(R)}}(k=>(i, inv(A[i, k])) for (i, k) in ind)
+        del_row_cache = Dict{Int, sparse_row_type(R)}()
+        for j in J_inv
+          for (k, c) in Tinv[j]
+            tmp = get(inv_dict, k, nothing)
+            isnothing(tmp) && continue
+            ii, u = tmp
+            row = get!(del_row_cache, ii) do
+              sparse_row(R, [(l, a) for (l, a) in S[ii] if l in I_inv])
+            end
+            H[j] = addmul!(H[j], copy(row), c*u)
+          end
+        end
+
+        h = hom(N, M,
+                elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
+                             for row in H]; check=false)
+        if haskey(fac.maps_from_original, next)
+          h = compose(fac.maps_from_original[next], h)
+        end
+        if haskey(fac.maps_to_original, i)
+          h = compose(h, fac.maps_to_original[i])
+        end
+        @assert domain(h) === c[next]
+        @assert codomain(h) === c[i]
+
+        fac.homotopy_maps[i] = h
       end
-      w_new = sparse_row(base_ring(w), new_entries)
-      push!(img_gens_cod, FreeModElem(w_new, new_cod))
-    end
-    cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
 
-    if haskey(fac.maps_from_original, next)
-      fac.maps_from_original[next] = compose(fac.maps_from_original[next], cod_map_inv)
-    else
-      fac.maps_from_original[next] = cod_map_inv
+      # Create the maps to the old complex
+      img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
+      new_dom = _make_free_module(M, img_gens_dom)
+      dom_map = hom(new_dom, M, img_gens_dom; check=false)
+
+      if haskey(fac.maps_to_original, i)
+        # This means that for the next map a partial or 
+        # full simplification has already been computed
+        fac.maps_to_original[i] = compose(dom_map, fac.maps_to_original[i])
+      else
+        fac.maps_to_original[i] = dom_map
+      end
+
+
+      img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
+      new_cod = _make_free_module(N, img_gens_cod)
+      cod_map = hom(new_cod, N, img_gens_cod; check=false)
+
+      if haskey(fac.maps_to_original, next)
+        fac.maps_to_original[next] = compose(cod_map, fac.maps_to_original[next])
+      else
+        fac.maps_to_original[next] = cod_map
+      end
+
+      # Create the maps from the old complex
+      img_gens_dom = elem_type(new_dom)[]
+      inv_map_dict = Dict{Int, Int}(I[j] => j for j in 1:length(I))
+      for i in 1:m
+        w = Sinv[i]
+        v = zero(new_dom)
+        for (real_j, a) in w
+          !haskey(inv_map_dict, real_j) && continue
+          j = inv_map_dict[real_j]
+          v += a*new_dom[j]
+        end
+
+        # v = zero(new_dom)
+        # for j in 1:length(I)
+        #   success, a = _has_index(w, I[j])
+        #   success && (v += a*new_dom[j])
+        #   # a = w[I[j]]
+        #   # !iszero(a) && (v += a*new_dom[j])
+        # end
+        push!(img_gens_dom, v)
+      end
+      dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
+
+      if haskey(fac.maps_from_original, i)
+        fac.maps_from_original[i] = compose(fac.maps_from_original[i], dom_map_inv)
+      else
+        fac.maps_from_original[i] = dom_map_inv
+      end
+
+
+      img_gens_cod = elem_type(new_cod)[]
+      inv_map_dict = Dict{Int, Int}(J[j]=>j for j in 1:length(J))
+      for i in 1:n
+        w = Tinv[i]
+        new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
+        for (real_j, b) in w
+          !haskey(inv_map_dict, real_j) && continue
+          j = inv_map_dict[real_j]
+          push!(new_entries, (j, b))
+        end
+        w_new = sparse_row(base_ring(w), new_entries)
+        push!(img_gens_cod, FreeModElem(w_new, new_cod))
+      end
+      cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
+
+      if haskey(fac.maps_from_original, next)
+        fac.maps_from_original[next] = compose(fac.maps_from_original[next], cod_map_inv)
+      else
+        fac.maps_from_original[next] = cod_map_inv
+      end
     end
   end
 
@@ -203,122 +206,125 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     # If the second was not true, then a simplification of the incoming 
     # map has already been computed as the outgoing map of the previous 
     # entry and we don't need to do it again.
-    incoming = map(c, 1, (prev,))
-    if haskey(fac.maps_from_original, i)
-      incoming = compose(incoming, fac.maps_from_original[i])
-    end
-    if haskey(fac.maps_to_original, prev)
-      incoming = compose(fac.maps_to_original[prev], incoming)
-    end
-
-    M = domain(incoming)
-    N = codomain(incoming)
-
-    # Simplify for the incoming morphism
-    A = sparse_matrix(incoming)
-    S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
-
-    m = nrows(A)
-    n = ncols(A)
-    I_inv = [i for (i, _) in ind]
-    I = [i for i in 1:m if !(i in I_inv)]
-    J_inv = [j for (_, j) in ind]
-    J = [j for j in 1:n if !(j in J_inv)]
-
-    # Assembly of the homotopy matrix
-    if fac.with_homotopy_maps
-      R = base_ring(Tinv)
-      H = sparse_matrix(R, ncols(A), nrows(A)) # Allocate the result
-      # A quick form of the inverse of the submatrix A[I_inv, J_inv]:
-      inv_dict = Dict{Int, Tuple{Int, elem_type(R)}}(k=>(i, inv(A[i, k])) for (i, k) in ind)
-      del_row_cache = Dict{Int, sparse_row_type(R)}()
-      for j in J_inv
-        for (k, c) in Tinv[j]
-          tmp = get(inv_dict, k, nothing)
-          isnothing(tmp) && continue
-          ii, u = tmp
-          row = get!(del_row_cache, ii) do
-            sparse_row(R, [(l, a) for (l, a) in S[ii] if l in I_inv])
-          end
-          H[j] = addmul!(H[j], copy(row), c*u)
-        end
-      end
-
-      h = hom(N, M,
-              elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
-                           for row in H]; check=false)
+    # `let`: see the block for the outgoing map above
+    let
+      incoming = map(c, 1, (prev,))
       if haskey(fac.maps_from_original, i)
-        h = compose(fac.maps_from_original[i], h)
+        incoming = compose(incoming, fac.maps_from_original[i])
       end
       if haskey(fac.maps_to_original, prev)
-        h = compose(h, fac.maps_to_original[prev])
+        incoming = compose(fac.maps_to_original[prev], incoming)
       end
-      @assert domain(h) === c[i]
-      @assert codomain(h) === c[prev]
 
-      fac.homotopy_maps[prev] = h
-    end
+      M = domain(incoming)
+      N = codomain(incoming)
 
-    # Create the maps to the old complex
-    img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
-    new_dom = _make_free_module(M, img_gens_dom)
-    dom_map = hom(new_dom, M, img_gens_dom; check=false)
+      # Simplify for the incoming morphism
+      A = sparse_matrix(incoming)
+      S, Sinv, T, Tinv, ind = _simplify_matrix!(A)
 
-    if haskey(fac.maps_to_original, prev)
-      fac.maps_to_original[prev] = compose(dom_map, fac.maps_to_original[prev])
-    else
-      fac.maps_to_original[prev] = dom_map
-    end
+      m = nrows(A)
+      n = ncols(A)
+      I_inv = [i for (i, _) in ind]
+      I = [i for i in 1:m if !(i in I_inv)]
+      J_inv = [j for (_, j) in ind]
+      J = [j for j in 1:n if !(j in J_inv)]
 
+      # Assembly of the homotopy matrix
+      if fac.with_homotopy_maps
+        R = base_ring(Tinv)
+        H = sparse_matrix(R, ncols(A), nrows(A)) # Allocate the result
+        # A quick form of the inverse of the submatrix A[I_inv, J_inv]:
+        inv_dict = Dict{Int, Tuple{Int, elem_type(R)}}(k=>(i, inv(A[i, k])) for (i, k) in ind)
+        del_row_cache = Dict{Int, sparse_row_type(R)}()
+        for j in J_inv
+          for (k, c) in Tinv[j]
+            tmp = get(inv_dict, k, nothing)
+            isnothing(tmp) && continue
+            ii, u = tmp
+            row = get!(del_row_cache, ii) do
+              sparse_row(R, [(l, a) for (l, a) in S[ii] if l in I_inv])
+            end
+            H[j] = addmul!(H[j], copy(row), c*u)
+          end
+        end
 
-    img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
-    new_cod = _make_free_module(N, img_gens_cod)
-    cod_map = hom(new_cod, N, img_gens_cod; check=false)
+        h = hom(N, M,
+                elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
+                             for row in H]; check=false)
+        if haskey(fac.maps_from_original, i)
+          h = compose(fac.maps_from_original[i], h)
+        end
+        if haskey(fac.maps_to_original, prev)
+          h = compose(h, fac.maps_to_original[prev])
+        end
+        @assert domain(h) === c[i]
+        @assert codomain(h) === c[prev]
 
-    if haskey(fac.maps_to_original, i)
-      fac.maps_to_original[i] = compose(cod_map, fac.maps_to_original[i])
-    else 
-      fac.maps_to_original[i] = cod_map
-    end
-
-    # Create the maps from the old complex
-    img_gens_dom = elem_type(new_dom)[]
-    for i in 1:m
-      w = Sinv[i]
-      v = zero(new_dom)
-      for (j, ind) in enumerate(I)
-        success, a = _has_index(w, ind)
-        success && (v += a*new_dom[j])
+        fac.homotopy_maps[prev] = h
       end
-      push!(img_gens_dom, v)
-    end
-    dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
 
-    if haskey(fac.maps_from_original, prev)
-      fac.maps_from_original[prev] = compose(fac.maps_from_original[prev], dom_map_inv)
-    else
-      fac.maps_from_original[prev] = dom_map_inv
-    end
+      # Create the maps to the old complex
+      img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
+      new_dom = _make_free_module(M, img_gens_dom)
+      dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
-
-    img_gens_cod = elem_type(new_cod)[]
-    for i in 1:n
-      w = Tinv[i]
-      new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
-      for (real_j, b) in w
-        j = findfirst(==(real_j), J)
-        j === nothing && continue
-        push!(new_entries, (j, b))
+      if haskey(fac.maps_to_original, prev)
+        fac.maps_to_original[prev] = compose(dom_map, fac.maps_to_original[prev])
+      else
+        fac.maps_to_original[prev] = dom_map
       end
-      w_new = sparse_row(base_ring(w), new_entries)
-      push!(img_gens_cod, FreeModElem(w_new, new_cod))
-    end
-    cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
 
-    if haskey(fac.maps_from_original, i)
-      fac.maps_from_original[i] = compose(fac.maps_from_original[i], cod_map_inv)
-    else
-      fac.maps_from_original[i] = cod_map_inv
+
+      img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
+      new_cod = _make_free_module(N, img_gens_cod)
+      cod_map = hom(new_cod, N, img_gens_cod; check=false)
+
+      if haskey(fac.maps_to_original, i)
+        fac.maps_to_original[i] = compose(cod_map, fac.maps_to_original[i])
+      else 
+        fac.maps_to_original[i] = cod_map
+      end
+
+      # Create the maps from the old complex
+      img_gens_dom = elem_type(new_dom)[]
+      for i in 1:m
+        w = Sinv[i]
+        v = zero(new_dom)
+        for (j, ind) in enumerate(I)
+          success, a = _has_index(w, ind)
+          success && (v += a*new_dom[j])
+        end
+        push!(img_gens_dom, v)
+      end
+      dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
+
+      if haskey(fac.maps_from_original, prev)
+        fac.maps_from_original[prev] = compose(fac.maps_from_original[prev], dom_map_inv)
+      else
+        fac.maps_from_original[prev] = dom_map_inv
+      end
+
+
+      img_gens_cod = elem_type(new_cod)[]
+      for i in 1:n
+        w = Tinv[i]
+        new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
+        for (real_j, b) in w
+          j = findfirst(==(real_j), J)
+          j === nothing && continue
+          push!(new_entries, (j, b))
+        end
+        w_new = sparse_row(base_ring(w), new_entries)
+        push!(img_gens_cod, FreeModElem(w_new, new_cod))
+      end
+      cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
+
+      if haskey(fac.maps_from_original, i)
+        fac.maps_from_original[i] = compose(fac.maps_from_original[i], cod_map_inv)
+      else
+        fac.maps_from_original[i] = cod_map_inv
+      end
     end
   end
 

@@ -64,11 +64,11 @@ function load_type_and_params(s::DeserializerState, T::Type{<: Union{Array, MatV
       end
        
       dims = load_object(s, Int, :dims)
-      subtype, params = load_type_and_params(s, U, :subtype_params)
-      return T{subtype, dims}, params
+      sub, par = load_type_and_params(s, U, :subtype_params)
+      return T{sub, dims}, par
     else
-      subtype, params = load_type_and_params(s, decode_type(s))
-      return T{subtype}, params
+      sub, par = load_type_and_params(s, decode_type(s))
+      return T{sub}, par
     end
   end
 end
@@ -576,7 +576,7 @@ end
 function load_type_and_params(s::DeserializerState, T::Type{<: Set})
   !haskey(s, :params) && return T, nothing
   subtype, params = load_node(s, :params) do _
-    subtype, params = load_type_and_params(s, decode_type(s))
+    load_type_and_params(s, decode_type(s))
   end
   return T{subtype}, params
 end

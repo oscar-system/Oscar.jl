@@ -446,6 +446,33 @@ function _extension_with_tower_basis(
 end
 
 
+# Build the standard field of degree `prod(m^e for (m, e) in N)` over the prime
+# field `F` of characteristic `p`, one prime factor at a time.  A top-level
+# function rather than a closure: a self-recursive closure is boxed; see
+# docs/src/DeveloperDocumentation/closure_boxes.md.
+function _standard_finite_field(F::FinField, p::IntegerUnion, N::Dict{ZZRingElem, Int})
+  m, k = pop_largest_factor!(N)
+  nK = prod(q^e for (q, e) in N; init = one(ZZ))
+
+  K = get_standard_extension!(F, nK) do
+    _standard_finite_field(F, p, N)
+  end
+  stn = steinitz_number_for_prime_degree(p, m, k)
+  n1 = ZZ(m)^(k - 1)
+  q1 = ZZ(p)^n1
+
+  l = digits(stn, base = BigInt(q1))
+  c = map(y -> element_from_steinitz_number(K, embed_steinitz(p, n1, nK, y)), l)
+
+  d = divexact(nK, n1)
+  b = element_from_steinitz_number(
+    K,
+    p^(findfirst(==(d), standard_monomial_degrees(nK)) - 1),
+  )
+
+  return _extension_with_tower_basis(K, m, c, b)
+end
+
 @doc raw"""
     standard_finite_field(p::Union{ZZRingElem, Integer}, n::Union{ZZRingElem, Integer}) -> FinField
 
@@ -462,34 +489,9 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
   F = Native.GF(p)
   set_standard_prime_field!(F)
 
-  function _sff(N::Dict{ZZRingElem, Int})
-    # local m::ZZRingElem, k::IntegerUnion, nK::ZZRingElem, K::FinField, stn::ZZRingElem,
-    #         n1::ZZRingElem, q1::ZZRingElem, l::Vector{ZZRingElem}, c::Vector{ZZRingElem}, b::FinFieldElem
-    m, k = pop_largest_factor!(N)
-    nK = prod(p^e for (p, e) in N; init = one(ZZ))
-
-    K = get_standard_extension!(F, nK) do
-      _sff(N)
-    end
-    stn = steinitz_number_for_prime_degree(p, m, k)
-    n1 = ZZ(m)^(k - 1)
-    q1 = ZZ(p)^n1
-
-    l = digits(stn, base = BigInt(q1))
-    c = map(y -> element_from_steinitz_number(K, embed_steinitz(p, n1, nK, y)), l)
-
-    d = divexact(nK, n1)
-    b = element_from_steinitz_number(
-      K,
-      p^(findfirst(==(d), standard_monomial_degrees(nK)) - 1),
-    )
-
-    return _extension_with_tower_basis(K, m, c, b)
-  end
-
   return get_standard_extension!(F, n) do
     N = factor(ZZ(n))
-    return _sff(Dict(p => e for (p, e) in N))
+    return _standard_finite_field(F, p, Dict(q => e for (q, e) in N))
   end
 end
 

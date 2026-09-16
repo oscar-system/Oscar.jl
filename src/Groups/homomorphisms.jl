@@ -1044,10 +1044,10 @@ function isomorphism(::Type{T}, A::FinGenAbGroup; on_gens::Bool=false) where T <
      # `GAPWrap.GeneratorsOfGroup(GapG)` corresponds to `gens(A2)`,
      # we let `hom` compute elements in `A2` that correspond to
      # `GAP.Globals.IndependentGenerators(GapG)`.
-     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapG)::GapObj)
-     if length(Ggens) < length(exponents)
+     gapgens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapG)::GapObj)
+     Ggens = if length(gapgens) < length(exponents)
        # It may happen that GAP omits the generators of order 1. Insert them.
-       @assert length(Ggens) + length(filter(is_one, exponents)) ==
+       @assert length(gapgens) + length(filter(is_one, exponents)) ==
                length(exponents)
        o = GapObj(one(G))
        newGgens = Vector{GapObj}()
@@ -1056,11 +1056,13 @@ function isomorphism(::Type{T}, A::FinGenAbGroup; on_gens::Bool=false) where T <
          if exponents[i] == 1
            push!(newGgens, o)
          else
-           push!(newGgens, Ggens[pos])
+           push!(newGgens, gapgens[pos])
            pos = pos+1
          end
        end
-       Ggens = newGgens
+       newGgens
+     else
+       gapgens
      end
      gensindep = GAPWrap.IndependentGeneratorsOfAbelianGroup(GapG)::GapObj
      orders = [GAPWrap.Order(g) for g in gensindep]
@@ -1119,10 +1121,12 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
        C = GAPWrap.Collector(GapG)::GapObj
        G = PcGroup(GapG)
 
-       f = function(a::FinGenAbGroupElem)
-         diag = A_to_A2(a)
-         exps = GapObj([diag[i] for i in 1:n], recursive = true)
-         return group_element(G, GAPWrap.PcpElementByExponentsNC(C, exps))
+       f = let G = G
+         function(a::FinGenAbGroupElem)
+           diag = A_to_A2(a)
+           exps = GapObj([diag[i] for i in 1:n], recursive = true)
+           return group_element(G, GAPWrap.PcpElementByExponentsNC(C, exps))
+         end
        end
 
        finv = g -> A2_to_A(A2(exponent_vector(g)))
@@ -1154,14 +1158,17 @@ function isomorphism(::Type{PcGroup}, A::FinGenAbGroup; on_gens::Bool=false)
            e = e * relord[i]
          end
        end
-       starts = starts[1:n]
+       # positions of the generators of `A2` in the pcgs
+       gen_pos = starts[1:n]
 
-       f = function(a::FinGenAbGroupElem)
-         diag = A_to_A2(a)
-         v = zeros(ZZRingElem, m)
-         v[starts] = [diag[i] for i in 1:n]
-         exps = GapObj(v, recursive = true)
-         return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))
+       f = let G = G
+         function(a::FinGenAbGroupElem)
+           diag = A_to_A2(a)
+           v = zeros(ZZRingElem, m)
+           v[gen_pos] = [diag[i] for i in 1:n]
+           exps = GapObj(v, recursive = true)
+           return group_element(G, GAPWrap.LinearCombinationPcgs(Gpcgs, GapObj(v, true)))
+         end
        end
 
        finv = g -> A2_to_A(A2(exponent_vector(g) * M))
@@ -1336,10 +1343,14 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
         return M(c)
       end
 
+      # `Julia_to_gap` has two methods, hence two assignments; the closures
+      # below capture this alias instead of boxing it; see
+      # docs/src/DeveloperDocumentation/closure_boxes.md
+      jtg = Julia_to_gap
       if T === PcGroup
         return MapFromFunc(
           M, B,
-          y -> PcGroupElem(B, GAPWrap.ObjByExtRep(FB, Julia_to_gap(y))),
+          y -> PcGroupElem(B, GAPWrap.ObjByExtRep(FB, jtg(y))),
           x -> Gap_to_julia(GapObj(x)))
       else
         # We need an indirection: First create the word in the free group,
@@ -1348,7 +1359,7 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
 
         return MapFromFunc(
           M, B,
-          y -> FPGroupElem(B, GAPWrap.ElementOfFpGroup(FB, GAPWrap.ObjByExtRep(FR, Julia_to_gap(y)))),
+          y -> FPGroupElem(B, GAPWrap.ElementOfFpGroup(FB, GAPWrap.ObjByExtRep(FR, jtg(y)))),
           x -> Gap_to_julia(GapObj(x)))
       end
    end::MapFromFunc{S, T}
@@ -1448,17 +1459,17 @@ function isomorphism(::Type{T}, A::MultTableGroup; on_gens::Bool=false) where T 
        end
        return MapFromFunc(A, GP, f, finv)
      else
-       m = isomorphism(T, GP)
+       iso = isomorphism(T, GP)
 
        f = function(a::elem_type(MultTableGroup))
-         return m(fwd[a])
+         return iso(fwd[a])
        end
 
        finv = function(g)
-         return bwd[preimage(m, g)]
+         return bwd[preimage(iso, g)]
        end
 
-       return MapFromFunc(A, codomain(m), f, finv)
+       return MapFromFunc(A, codomain(iso), f, finv)
      end
    end::MapFromFunc{MultTableGroup, T}
 end

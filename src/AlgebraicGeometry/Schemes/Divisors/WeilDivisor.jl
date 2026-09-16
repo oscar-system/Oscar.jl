@@ -558,19 +558,15 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=sim
   # Assemble the local representatives
   R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
-  if length(loc_rep) == 0
-    common_denominator = R(1)
-  else
-    common_denominator = lcm([denominator(g) for g in loc_rep])
-  end
+  common_denominator = length(loc_rep) == 0 ? R(1) : lcm([denominator(g) for g in loc_rep])
   numerators = [numerator(g)*divexact(common_denominator, denominator(g)) for g in loc_rep]
 
   # compute a symbolic power
   RP, _ = localization(OO(U), complement_of_prime_ideal(saturated_ideal(P(U))))
   PP = RP(prime_ideal(inverted_set(RP)))
-  K = function_field(X)
+  KK = function_field(X)
 
-  denom_mult = order_of_vanishing(K(common_denominator), P, check=false)
+  denom_mult = order_of_vanishing(KK(common_denominator), P, check=false)
   #denom_mult = (_minimal_power_such_that(PP, I -> !(RP(common_denominator) in I))[1])-1
   w = n + denom_mult # Adjust!
   if w < 0
@@ -586,7 +582,10 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=sim
   # collect a monomial basis in which to represent the results
   all_mons = elem_type(R)[]
   for b in images
-    all_mons = vcat(all_mons, [m for m in monomials(b) if !(b in all_mons)])
+    # alias for the comprehension: `all_mons` grows each round; see
+    # docs/src/DeveloperDocumentation/closure_boxes.md
+    seen = all_mons
+    all_mons = vcat(seen, [m for m in monomials(b) if !(b in seen)])
   end
 
   kk = base_ring(X)

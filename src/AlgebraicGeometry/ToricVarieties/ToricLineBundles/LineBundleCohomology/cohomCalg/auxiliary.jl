@@ -181,8 +181,8 @@ function contributing_denominators(variety::NormalToricVarietyType)
   stdout = read(out, String)
   start = findfirst("Final list of contributing monomials with factors:", stdout)[1]
   diff = findfirst("Verbose Level 1:", stdout)[1]
-  output_string_reduced = [strip(s) for s in split(SubString(stdout, start, diff), "\n")]
-  output_string_reduced = output_string_reduced[4:(length(output_string_reduced) - 3)]
+  lines = [strip(s) for s in split(SubString(stdout, start, diff), "\n")]
+  output_string_reduced = lines[4:(length(lines) - 3)]
 
   # ambiguous monomial contributions found during execution?
   if last(output_string_reduced) !=

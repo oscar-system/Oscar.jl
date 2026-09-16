@@ -189,6 +189,16 @@ function Base.push!(S::SubfieldLattice, v::Vector)
   return prod(vv)
 end
 
+# Invariants separating the blocks of `bs`: the sum of the roots in each block
+# if those already differ, otherwise the product of the roots shifted by a
+# constant.  `R` are numerical roots, `X` the matching indeterminates.
+function _separating_block_invariants(R::Vector, X::Vector, bs::BlockSystem_t)
+  length(Set([sum(R[b]) for b = bs])) == length(bs) && return [sum(X[b]) for b = bs]
+  for k in Iterators.countfrom(0)
+    length(Set([prod(R[b] .+ k) for b = bs])) == length(bs) && return [prod(X[b] .+ k) for b = bs]
+  end
+end
+
 """
 For a (potential) block system `bs` either find the corresponding subfield,
 thus proving the block system to be valid, or return `nothing` showing the
@@ -205,13 +215,12 @@ function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
     return S.l[S.P(bs)]
   end
   pr = 5
-  local func
 
-  R = roots(GaloisCtx(S), pr, raw = true)
+  R0 = roots(GaloisCtx(S), pr, raw = true)
   s = Set{Int}()
   union!(s, bs...)
 
-  if s != Set(1:length(R))
+  if s != Set(1:length(R0))
     return nothing
   end
 
@@ -219,32 +228,17 @@ function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
     return nothing
   end
 
-  X = gens(SLPolyRing(ZZ, length(R)))
+  X = gens(SLPolyRing(ZZ, length(R0)))
 
-  r = [sum(R[b]) for b = bs]
-  if length(Set(r)) == length(bs)
-    func = [sum(X[b]) for b = bs]
-  else
-    k = 0
-    while true
-      r = [prod(R[b] .+ k) for b = bs]
-      if length(Set(r)) == length(bs)
-        let k = k
-          func = [prod(X[b] .+ k) for b = bs]
-          break
-        end
-      end
-      k += 1
-    end
-  end
+  func = _separating_block_invariants(R0, X, bs)
 
   G = GaloisCtx(S)
   #power sums: degree of k is length(bs), so need
   #Tr(beta^i) for i=1:length(bs)
   B = GaloisGrp.upper_bound(G, power_sum, func, length(bs))
   pr = bound_to_precision(G, B)
-  R = roots(G, pr, raw = !true)
-  beta = [evaluate(f, R) for f = func]
+  Rb = roots(G, pr, raw = !true)
+  beta = [evaluate(f, Rb) for f = func]
   pow = copy(beta)
 
   K = field(S)
@@ -271,7 +265,7 @@ function Oscar.subfield(S::SubfieldLattice, bs::BlockSystem_t)
   Gt = [Qt(x) for x = coefficients(Gk)]
   fsa = derivative(defining_polynomial(K))(gen(K))
   fsat = Qt(fsa)
-  B = length(bs)*evaluate(func[1], [G.B for x = R])*parent(B)(maximum(ceil(ZZRingElem, length(x)) for x = coefficients(Gk)))
+  B = length(bs)*evaluate(func[1], [G.B for x = Rb])*parent(B)(maximum(ceil(ZZRingElem, length(x)) for x = coefficients(Gk)))
   pr = bound_to_precision(G, B)
   R = roots(G, pr, raw = true)
   RR = roots(G, pr, raw = !true)
@@ -347,8 +341,8 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
 
   pr = 5
   nf = sum(x*x for x = coefficients(f))
-  B = degree(f)^2*(iroot(nf, 2)+1) #from Paper: bound on the coeffs we need
-  B = B^2 # Nemo works with norm-squared....
+  #from Paper: bound on the coeffs we need; Nemo works with norm-squared....
+  B = (degree(f)^2*(iroot(nf, 2)+1))^2
 
   pr = clog(B, p)
   pr *= div(n,2)
@@ -362,7 +356,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   bz = [change_base_ring(ZZ, bd[i]*bt[i]; parent = Zx) for i=1:length(bd)]
   @assert parent(f) == parent(bz[1])
 
-  lf = Hecke.factor_mod_pk(Array, H, 1)
+  lf1 = Hecke.factor_mod_pk(Array, H, 1)
   #the roots in G are of course roots of the lf[i]
   #roots that belong to the same factor would give rise
   #to the same principal subfield. So we can save on LLL calls.
@@ -372,9 +366,9 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   si = symmetric_group(degree(K))([findfirst(==(x), r) for x = d])
 
   F, mF = residue_field(parent(r[1]))
-  r = map(mF, r)
-  rt_to_lf = [findall(x->iszero(f[1](x)), r) for f = lf]
-  done = zeros(Int, length(lf))
+  rF = map(mF, r)
+  rt_to_lf = [findall(x->iszero(f[1](x)), rF) for f = lf1]
+  done = zeros(Int, length(lf1))
   while true
     lf = Hecke.factor_mod_pk(Array, H, pr)
     ppr = ZZRingElem(p)^pr
@@ -408,12 +402,12 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the
         #      van Hoeij factoring)
-        r, M = lll_with_removal(M, B, LLLContext(0.501, 0.75))
-        M = M[1:r, :]
+        rk, Mlll = lll_with_removal(M, B, LLLContext(0.501, 0.75))
+        Mr = Mlll[1:rk, :]
 
-        if iszero(M[:, 1:di])
-          if n % r == 0
-            gens = [sum(M[k, di+j] * b[j] for j=1:n) for k=1:r]
+        if iszero(Mr[:, 1:di])
+          if n % rk == 0
+            gens = [sum(Mr[k, di+j] * b[j] for j=1:n) for k=1:rk]
             #need the subfield poly - or a guess...
             #this is an upper bound.
             Qt = parent(defining_polynomial(K))
@@ -444,7 +438,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
             #thus one should be able to get the 1st block as well
             #However, instead of blocks, T is as good an indicator for
             #subfields
-            if sum(degree(lf[t][1]) for t = T) *r != degree(K)
+            if sum(degree(lf[t][1]) for t = T) *rk != degree(K)
 #              @show :subfield_pol_wrong
             else
               E = push!(S, gens)
@@ -476,7 +470,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
           break
         else
 #          @show :scale
-          M = M*D
+          M = Mr*D
         end
       end
     end

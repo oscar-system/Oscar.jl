@@ -1029,11 +1029,11 @@ function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1), order_bound::S
   else
     L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(GapObj(G)))
     if order != -1
-      gaporder = GAP.Obj(order)
-      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == gaporder, L)
+      o = GAP.Obj(order)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) == o, L)
     elseif order_bound != inf
-      gapbound = GAP.Obj(order_bound)
-      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) <= gapbound, L)
+      ob = GAP.Obj(order_bound)
+      filter!(x -> GAPWrap.Size(GAPWrap.Representative(x)) <= ob, L)
     end
   end
   return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]

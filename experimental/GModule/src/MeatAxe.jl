@@ -127,26 +127,23 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   @time s = [representative(x) for x = low_index_subgroup_classes(G, limit)]
   s = [x for x = s if order(x) < order(G)]
   sort!(s, lt = (a,b) -> isless(order(b), order(a)))
-  if t !== nothing
-    @assert length(t) == length(X)
-  else
-    t = [degree(x) <= limit for x = X]
-  end
+  t === nothing || @assert length(t) == length(X)
+  todo = t === nothing ? [degree(x) <= limit for x = X] : t
   res = GModule[]
   #permutation gmodules are good as the endomorphism ring
   #is "for free", the endo is used for the splitting
   #poss. the limits should be adjusted as this is easier...
   for i = s
-    _try_perm_character!(res, t, G, i) && return res
+    _try_perm_character!(res, todo, G, i) && return res
   end
-#  @show "after permutation modules", t
+#  @show "after permutation modules", todo
   #BaumClausen is also getting gmodules for "free",
   #the 1-dim are also "easy" (and might be included in Baum-Clausen
   #Problem: BC get reps over QQab and thus needs work to write over
   #smallest poss. field
 
-  _try_tensor_products!(res, t; limit) && return res
-  _try_squares!(res, t; limit) && return res
+  _try_tensor_products!(res, todo; limit) && return res
+  _try_squares!(res, todo; limit) && return res
 
   all_K = [x for x = subgroup_reps(G) if order(x) <= 20] #how to do this?
 
@@ -160,8 +157,8 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
         continue
       end
       chi_G = induce(chi, G) #could be irreducible...
-      cc = map(iszero, coordinates(chi_G)) .& t
-      if cc != t
+      cc = map(iszero, coordinates(chi_G)) .& todo
+      if cc != todo
 #        @show "could help"
         _v = gmodule_new(chi)
         @assert length(_v) == 1
@@ -170,17 +167,17 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
 
         if is_irreducible(chi_G)
           V = induce(v, embedding(i, G))[1]
-          _do_one!(res, t, V; is_irr = true) && return res
+          _do_one!(res, todo, V; is_irr = true) && return res
           continue
         end
         deg = dim(v) * index(G, i)
         if deg <= limit
 #          @show "direct induce"
-          for j=1:length(t)
-            if cc[j] != t[j] 
+          for j=1:length(todo)
+            if cc[j] != todo[j] 
 #              @show :induce
               V = induce(v, embedding(i, G))[1]
-              _do_one!(res, t, V) && return res
+              _do_one!(res, todo, V) && return res
             else
 #              @show "bad"
             end
@@ -195,7 +192,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
             #the dimension of the condensed module
             if dim_C <= limit
               #test if K makes sense
-              tt = [!t[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i= 1:length(t)]
+              tt = [!todo[i] || is_zero(scalar_product(restrict(X[i], K), trivial_character(K))) for i= 1:length(todo)]
               #check which modules can/ will exist under condensation: 
               #the degree of the constituent under condensation must be > 0
               if all(tt)
@@ -211,7 +208,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
             continue
           end
           for ii = findall(!, reduce(.&, [x[3] for x = good_K]))
-            t[ii] || continue #due to orbits
+            todo[ii] || continue #due to orbits
             char = galois_orbit_sum(X[ii]) #everthing is over Q...
             if degree(char) > limit
 #              @show "too large, abandoning"
@@ -290,12 +287,12 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
   #                @show dim(d), dim(V), coordinates(character(d))
                   if dim(d) <= limit
                     found = true
-                    _do_one!(res, t, d; is_irr = true) && return res
+                    _do_one!(res, todo, d; is_irr = true) && return res
                   end
                 else
                   @show "wrong module lifted"
                 end
-                if !any(cc .& t)
+                if !any(cc .& todo)
                   @show "OK, leaving this level"
                   #can't get any more out of V
                   break
@@ -308,7 +305,7 @@ function gmodule_irred_rational(G::Group; limit::Int = 50, t::Union{Nothing, Vec
               end
               break
             end
-            if !any(cc .& t)
+            if !any(cc .& todo)
               #can't get any more out of V
               break
             end
@@ -380,13 +377,13 @@ function gmodule_new(G::Group; limit::Int = 50, t::Union{Nothing, Vector{Bool}} 
     return Oscar.GModuleFromGap._abs_irred_abelian(G; cyclo = true)
   end
   zz = []
-  if false #even better use the supersolvable part!
+  z, mG = if false #even better use the supersolvable part!
     #linear characters come from the max. ab. quot.
-    Gab, mG = maximal_abelian_quotient(G)
-    z = Oscar.GModuleFromGap._abs_irred_abelian(Gab; cyclo = true)
+    Gab, m = maximal_abelian_quotient(G)
+    (Oscar.GModuleFromGap._abs_irred_abelian(Gab; cyclo = true), m)
   else
-    Gs, mG = maximal_supersolvable_quotient(G)
-    z = irreducible_modules(Gs; algo = :BaumClausen)
+    Gs, m = maximal_supersolvable_quotient(G)
+    (irreducible_modules(Gs; algo = :BaumClausen), m)
   end
   Xs = character_table(codomain(mG))
   d = [inflate(character(x), mG) for x = z]
@@ -555,17 +552,20 @@ function condense(C::GModule, K::Oscar.GAPGroup, extra::Int = 5)
   #TODO: sanity: for everything in rG, the traces will be "for free"
   #      as the action is already computed. so use it?
   rG = gens(G)
-  if ngens(s) == 0
-    gs = elem_type(codomain(ms))[]
-    return gmodule(nothing, [hom(s, s, gens(s)) for g = rG]), ms, phi
+  # `s` and `ms` are updated in the loop above; rebind them so the closures
+  # below do not box them; see docs/src/DeveloperDocumentation/closure_boxes.md
+  let s = s, ms = ms
+    if ngens(s) == 0
+      return gmodule(nothing, [hom(s, s, gens(s)) for g = rG]), ms, phi
+    end
+    gs = map(ms, gens(s))::Vector{elem_type(C.M)}
+    D = gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))) for g = rG])
+    set_attribute!(D, :condensed => (C, K, ms, phi, rG), :show => show_condensed)
+    if extra > 0
+      add_gens(D, extra)
+    end
+    return D, ms, phi
   end
-  gs = map(ms, gens(s))::Vector{elem_type(C.M)}
-  D = gmodule(nothing, [hom(s, s, preimage(ms, map(phi, action(C, g, gs)::Vector{elem_type(C.M)}))) for g = rG])
-  set_attribute!(D, :condensed => (C, K, ms, phi, rG), :show => show_condensed)
-  if extra > 0
-    add_gens(D, extra)
-  end
-  return D, ms, phi
 end
 
 #if condensation did not use enough elements to condensate Q[G]
@@ -611,7 +611,12 @@ function spin(C::GModule, v::Vector)
       break
     end
   end
-  return gmodule(group(C), [hom(s, s, preimage(ms, action(C, g, v))) for g = gens(group(C))])
+  # `s`, `ms` and `v` are updated in the loop above; rebind them so the
+  # comprehension does not box them; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  return let s = s, ms = ms, v = v
+    gmodule(group(C), [hom(s, s, preimage(ms, action(C, g, v))) for g = gens(group(C))])
+  end
 end
 
 #same as above, but bypass modules and work with matrices directly
@@ -685,14 +690,19 @@ function spin2(C::GModule{<:GAPGroup, T}, v::Vector; limit::Int = 50) where T <:
 #      @assert _x[1] == r
 #      @assert _x[2] == s
   end
-  v = [C.M(collect(view(s, i, :))) for i=1:r]::Vector{elem_type(T)}
+  # `s` grows in the loop above; capturing it directly would box it; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  s_fin = s
+  v = [C.M(collect(view(s_fin, i, :))) for i=1:r]::Vector{elem_type(T)}
   ss, mss = sub(C.M, v)
   mss = _simplify(mss)
   v = map(mss, gens(ss))::Vector{elem_type(T)}
   #preimage can handle vectors of elements, this means only one rref
   #possibly eventually homs should use the solve_ctx?
   #similarly, action can handle vectors, removing identical group theory
-  return gmodule(group(C), [hom(ss, ss, preimage(mss, action(C, g, v)::Vector{elem_type(T)})) for g = gens(group(C))])
+  return let mss = mss, v = v
+    gmodule(group(C), [hom(ss, ss, preimage(mss, action(C, g, v)::Vector{elem_type(T)})) for g = gens(group(C))])
+  end
 end
 
 #b is an endomorphism of M
@@ -732,16 +742,14 @@ end
 function Oscar.lll_basis(M::Hecke.AlgAssAbsOrd{MatAlgebra{QQFieldElem, QQMatrix}, ZZRing})
   A = algebra(M)
   b = basis(M, A)
-  m = matrix(QQ, transpose(hcat([coefficients(x) for x = b]...)))
-  m = lll(m)
+  m = lll(matrix(QQ, transpose(hcat([coefficients(x) for x = b]...))))
   return [M(A(m[i, :])) for i=1:nrows(m)]
 end
 
 function Oscar.lll_basis(M::Hecke.AlgAssAbsOrd{ZZRing, MatAlgebra{QQFieldElem, QQMatrix}})
   A = algebra(M)
   b = basis(M, A)
-  m = matrix(QQ, transpose(hcat([coefficients(x) for x = b]...)))
-  m = lll(m)
+  m = lll(matrix(QQ, transpose(hcat([coefficients(x) for x = b]...))))
   return [M(A(m[i, :])) for i=1:nrows(m)]
 end
 
@@ -749,8 +757,7 @@ function Oscar.lll_basis(I::Hecke.AlgAssAbsOrdIdl{MatAlgebra{QQFieldElem, QQMatr
   M = order(I)
   A = algebra(M)
   b = basis(I) # is in A
-  m = matrix(QQ, transpose(hcat([coefficients(x) for x = b]...)))
-  m = lll(m)
+  m = lll(matrix(QQ, transpose(hcat([coefficients(x) for x = b]...))))
   return [M(A(m[i, :])) for i=1:nrows(m)]
 end
 
@@ -961,12 +968,12 @@ function split_into_homogenous(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFi
   #      have a sane overall strategy
   #TODO: center_of_endo for sub and quo modules
   #      irreducibles for abelian groups
-  if is_regular_gmodule(M) || has_attribute(M, :center_endo)
-    C, mC = Oscar.GModuleFromGap.center_of_endo(M)
+  C, mC = if is_regular_gmodule(M) || has_attribute(M, :center_endo)
+    Oscar.GModuleFromGap.center_of_endo(M)
   else
     E, mE = endo(M)
-    C, mC = center(E)
-    mC = mC*mE
+    Cc, mCc = center(E)
+    (Cc, mCc*mE)
   end
   H = []
   for b = elem_gen_ctx(basis(C))

@@ -521,9 +521,9 @@ function _simplify_for_realization_space(goodM::Matroid)
 
   # Fast path: simple matroids need no reduction
   if is_simple(goodM)
-    rep_of = Dict(e => e for e in gs)
-    rep_col = Dict(gs[i] => i for i in 1:n)
-    return (goodM, n, rep_of, rep_col, (mat, R) -> mat)
+    id_of = Dict(e => e for e in gs)
+    id_col = Dict(gs[i] => i for i in 1:n)
+    return (goodM, n, id_of, id_col, (mat, R) -> mat)
   end
 
   loop_elems = loops(goodM)
@@ -755,11 +755,11 @@ function realization(RS::MatroidRealizationSpace)
   RSnew = reduce_realization_space(RSnew)
   ineqsnew = RSnew.inequations
   if length(ineqsnew) > 0
-    Inew = RSnew.defining_ideal
+    Ifinal = RSnew.defining_ideal
     Rnew = RSnew.ambient_ring
-    ineqsnew = filter(p -> !isone(ideal(groebner_basis(Inew + ideal(Rnew, p)))), ineqsnew)
+    ineqsnew = filter(p -> !isone(ideal(groebner_basis(Ifinal + ideal(Rnew, p)))), ineqsnew)
     RSnew = MatroidRealizationSpace(
-      Inew, ineqsnew, Rnew, RSnew.realization_matrix, RSnew.char, RSnew.q, RSnew.ground_ring
+      Ifinal, ineqsnew, Rnew, RSnew.realization_matrix, RSnew.char, RSnew.q, RSnew.ground_ring
     )
   end
 
@@ -853,8 +853,8 @@ function n_new_Igens(
     m = hom(R, R, map(v -> v == x ? divexact(numerator(t), den) : v, xs))
     preIgens = unique!([clean(m(f), R, Sgens) for f in Igens])
   else
-    m = sub_map(x, t, R, xs)
-    preIgens = unique!([clean(numerator(m(f)), R, Sgens) for f in Igens])
+    mfrac = sub_map(x, t, R, xs)
+    preIgens = unique!([clean(numerator(mfrac(f)), R, Sgens) for f in Igens])
   end
   return filter(!iszero, preIgens)
 end
@@ -1021,7 +1021,7 @@ function reduce_realization_space(
           normal_Sgens = gens_2_prime_divisors(Sgens_new)
         end
       else
-        normal_Sgens = [normal_form(g, Inew) for g in Sgens_new]
+        normal_Sgens = normal_form.(Sgens_new, Ref(Inew))
         if !(ambR(0) in normal_Sgens)
           normal_Sgens = gens_2_prime_divisors(Sgens_new)
         end
@@ -1035,7 +1035,7 @@ function reduce_realization_space(
     return MRS_new
   end
 
-  Xnew = matrix(ambR, [phi(X[i, j]) for i in 1:nr, j in 1:nc])
+  Xnew = matrix(ambR, phi.([X[i, j] for i in 1:nr, j in 1:nc]))
 
   #Try to reduce the matrix one last time using the ideal and the inequations
   m, n = size(Xnew)

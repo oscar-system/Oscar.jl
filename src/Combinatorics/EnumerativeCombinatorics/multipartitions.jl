@@ -81,6 +81,37 @@ function Base.sum(MP::Multipartition{T}) where T<:IntegerUnion
   return sum(sum, MP.mp; init=zero(T))
 end
 
+# Recursively produce all multipartitions such that the i-th partition sums up
+# to `p[i]`, and append them to `MP`.
+function _rec_multipartitions!(MP::Vector{Multipartition{T}}, mp::Vector{Partition{T}},
+                               p::Vector{T}, i::T) where T<:IntegerUnion
+  for q in partitions(p[Int(i)])
+    mp[Int(i)] = q
+    if i == length(p)
+      push!(MP, Multipartition{T}(copy(mp)))
+    else
+      _rec_multipartitions!(MP, copy(mp), p, T(i+1))
+    end
+  end
+end
+
+# Recursively produce all integer vectors `p` of length `r` summing to `n`, and
+# collect the multipartitions belonging to each of them.
+# Top-level functions rather than closures: mutually recursive closures are
+# boxed; see docs/src/DeveloperDocumentation/closure_boxes.md.
+function _rec_compositions!(MP::Vector{Multipartition{T}}, p::Vector{T}, i::T, n::T,
+                            r::IntegerUnion) where T<:IntegerUnion
+  if i==length(p) || n==0
+    p[Int(i)] = n
+    _rec_multipartitions!(MP, fill(Partition(T[]),r), p, T(1))
+  else
+    for j=0:n
+      p[Int(i)] = T(j)
+      _rec_compositions!(MP, copy(p), T(i+1), T(n-j), r)
+    end
+  end
+end
+
 
 """
     multipartitions(n::T, r::IntegerUnion)  where T<:IntegerUnion
@@ -118,35 +149,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   #the composition.
   #We create the compositions here in place for efficiency.
 
-  #recursively produces all Integer Vectors p of length r such that the sum of all the Elements equals n. Then calls recMultipartitions!
-  function recP!(p::Vector{T}, i::T, n::T) #where T<:IntegerUnion
-    if i==length(p) || n==0
-      p[Int(i)] = n
-      recMultipartitions!(fill(Partition(T[]),r), p, T(1))
-    else
-      for j=0:n
-        p[Int(i)] = T(j)
-        recP!(copy(p), T(i+1), T(n-j))
-      end
-    end
-  end
-
-  #recursively produces all multipartitions such that the i-th partition sums up to p[i]
-  function recMultipartitions!(mp::Vector{Partition{T}}, p::Vector{T}, i::T) #where T<:IntegerUnion
-    if i == length(p)
-      for q in partitions(p[Int(i)])
-        mp[Int(i)] = q
-        push!(MP, Multipartition{T}(copy(mp)))
-      end
-    else
-      for q in partitions(p[Int(i)])
-        mp[Int(i)] = q
-        recMultipartitions!(copy(mp), p, T(i+1))
-      end
-    end
-  end
-
-  recP!(zeros(T,r), T(1), n)
+  _rec_compositions!(MP, zeros(T,r), T(1), n, r)
   return (x for x in MP)
   # return MP
 end

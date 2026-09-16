@@ -255,8 +255,12 @@ function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
     put!(wp, wid)
     rethrow()
   end
+  # `fut` is only assigned inside the `try`, so the task below captures this
+  # alias instead: capturing `fut` itself would force a `Core.Box`; see
+  # docs/src/DeveloperDocumentation/closure_boxes.md
+  future = fut
   t = Threads.@spawn Threads.threadpool() try
-    wait(fut)
+    wait(future)
   catch
   finally
     put!(wp, wid)

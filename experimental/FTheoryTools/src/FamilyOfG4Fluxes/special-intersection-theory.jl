@@ -215,18 +215,18 @@ function _reduce_hypersurface_equation(
   end
 
   # Identify the remaining variables
-  remaining_vars_pos = Set(1:length(data.gS))
+  remaining_set = Set(1:length(data.gS))
   for my_exps in data.sr_ideal_pos
     len_my_exps = length(my_exps)
     inter_len = count(idx -> idx in vanishing_vars_pos, my_exps)
     if len_my_exps == inter_len + 1
       delete!(
-        remaining_vars_pos, my_exps[findfirst(idx -> !(idx in vanishing_vars_pos), my_exps)]
+        remaining_set, my_exps[findfirst(idx -> !(idx in vanishing_vars_pos), my_exps)]
       )
     end
   end
-  set_to_one_list = sort([k for k in 1:length(data.gS) if k ∉ remaining_vars_pos])
-  remaining_vars_pos = setdiff(collect(remaining_vars_pos), vanishing_vars_pos)
+  set_to_one_list = sort([k for k in 1:length(data.gS) if k ∉ remaining_set])
+  remaining_vars_pos = setdiff(collect(remaining_set), vanishing_vars_pos)
   remaining_vars = [data.gS[k] for k in remaining_vars_pos]
 
   # Extract remaining Stanley-Reisner ideal relations

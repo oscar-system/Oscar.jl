@@ -93,6 +93,41 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   return upgraded_dict
 end
 
+# Top-level methods rather than closures: mutually recursive closures are
+# boxed; see docs/src/DeveloperDocumentation/closure_boxes.md.
+_upgrade_type(d::String, renamings::Dict{String, String}) = get(renamings, d, d)
+
+_upgrade_type(v::Vector, renamings::Dict{String, String}) =
+  map(x -> _upgrade_type(x, renamings), v)
+
+function _upgrade_type(d::AbstractDict, renamings::Dict{String, String})
+  upg_d = d
+
+  if haskey(d, :name)
+    upg_d[:name] = get(renamings, d[:name], d[:name])
+  elseif haskey(d, :_type)
+    upg_d[:_type] = get(renamings, d[:_type], d[:_type])
+    return upg_d
+  end
+
+  if haskey(d, :params)
+    if d[:params] isa AbstractDict
+      if haskey(d[:params], :_type)
+        upg_d[:params][:_type] = _upgrade_type(d[:params][:_type], renamings)
+
+      else
+        for (k, v) in d[:params]
+          upg_d[:params][k] = _upgrade_type(d[:params][k], renamings)
+        end
+      end
+    elseif d[:params] isa Vector
+      upg_d[:params] = _upgrade_type(d[:params], renamings)
+    end
+  end
+
+  return upg_d
+end
+
 """
     rename_types(dict::AbstractDict, renamings::Dict{String, String})
 
@@ -100,44 +135,8 @@ Provides functionality for recursing on the tree structure of `dict`
 and replace all type names that occur as keys in renamings with the values. 
 """
 function rename_types(dict::AbstractDict, renamings::Dict{String, String})
-  function upgrade_type(d::String)
-    return get(renamings, d, d)
-  end
-
-  function upgrade_type(v::Vector)
-    return map(upgrade_type, v)
-  end
-  
-  function upgrade_type(d::AbstractDict)
-    upg_d = d
-
-    if haskey(d, :name)
-      upg_d[:name] = get(renamings, d[:name], d[:name])
-    elseif haskey(d, :_type)
-      upg_d[:_type] = get(renamings, d[:_type], d[:_type])
-      return upg_d
-    end
-
-    if haskey(d, :params)
-      if d[:params] isa AbstractDict
-        if haskey(d[:params], :_type)
-          upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
-          
-        else
-          for (k, v) in d[:params]
-            upg_d[:params][k] = upgrade_type(d[:params][k])
-          end
-        end
-      elseif d[:params] isa Vector
-        upg_d[:params] = upgrade_type(d[:params])
-      end
-    end
-    
-    return upg_d
-  end
-
   if haskey(dict, :_type)
-    dict[:_type] = upgrade_type(dict[:_type])
+    dict[:_type] = _upgrade_type(dict[:_type], renamings)
   end
   return dict
 end

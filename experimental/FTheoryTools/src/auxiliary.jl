@@ -525,15 +525,13 @@ function _eval_poly(E::Number, vars)
 end
 
 function eval_poly(s::String, R)
-  if (R isa PolyRing || R isa MPolyRing)
-    symR = symbols(R) # Symbol[]
-    genR = gens(R)
+  gen_dict = if (R isa PolyRing || R isa MPolyRing)
+    Dict(sym => gen for (sym, gen) in zip(symbols(R), gens(R)))
   else
-    symR = []
-    genR = []
+    Dict()
   end
 
-  return R(_eval_poly(Meta.parse(s), Dict(symR[i] => genR[i] for i in 1:length(symR))))
+  return R(_eval_poly(Meta.parse(s), gen_dict))
 end
 
 eval_poly(n::Number, R) = R(n)

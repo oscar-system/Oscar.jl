@@ -43,12 +43,13 @@ function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   i = 0
   for f = F
+    off = i
     if task in [:sum, :both]
-      push!(emb, hom(f, G, Vector{elem_type(G)}([gen(G, j+i) for j=1:ngens(f)]); check=false))
+      push!(emb, hom(f, G, Vector{elem_type(G)}([gen(G, j+off) for j=1:ngens(f)]); check=false))
       injection_dictionary[length(emb)] = emb[length(emb)]
     end
     if task in [:prod, :both]
-      push!(pro, hom(G, f, vcat(elem_type(f)[zero(f) for j=1:i], gens(f), elem_type(f)[zero(f) for j=i+ngens(f)+1:ngens(G)]); check=false))
+      push!(pro, hom(G, f, vcat(elem_type(f)[zero(f) for j=1:off], gens(f), elem_type(f)[zero(f) for j=off+ngens(f)+1:ngens(G)]); check=false))
       projection_dictionary[length(pro)] = pro[length(pro)]
     end
     i += ngens(f)
@@ -82,10 +83,7 @@ function direct_product(M::Vector{<:OFPModule{T}}; task::Symbol = :prod) where T
   F, pro, mF = direct_product([ambient_free_module(x) for x = M], task = :both)
   s, emb_sF = sub(F, vcat([elem_type(F)[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...))
   q::Vector{elem_type(F)} = vcat([elem_type(F)[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
-  pro_quo = nothing
-  if length(q) != 0
-    s, pro_quo = quo(s, q)
-  end
+  s, pro_quo = length(q) != 0 ? quo(s, q) : (s, nothing)
   set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => M)
   projection_dictionary = IdDict{Int,OFPModuleHom}()
   injection_dictionary = IdDict{Int,OFPModuleHom}()

@@ -108,7 +108,8 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
 
         # in some cases, the first unit vector can be a lineality generator
         # hence we need to filter out potential zero rows from linealityGenerators
-        linealityGenerators = linealityGenerators[findall(i->!iszero(linealityGenerators[i,:]),1:nrows(linealityGenerators)),:]
+        lg = linealityGenerators
+        linealityGenerators = lg[findall(i->!iszero(lg[i,:]),1:nrows(lg)),:]
         return polyhedral_complex(IncidenceMatrix(coneIncidences), rayGenerators, rayIndices, linealityGenerators)
     else
         # if the singular fan is an honest polyhedral fan
