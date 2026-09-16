@@ -1,7 +1,7 @@
 # Introduction
 
-This package provides methods for computing with finite-index subgroups of the modular groups
-${\rm SL}_2(\mathbb{Z})$ and ${\rm PSL}_2(\mathbb{Z})$.
+This package provides methods for computing with finite-index subgroups of the modular group
+${\rm SL}_2(\mathbb{Z})$.
 
 A convenient way to represent finite-index subgroups of ${\rm SL}_2(\mathbb{Z})$ is by specifying the action
 of generator matrices of ${\rm SL}_2(\mathbb{Z})$ on the right cosets by right multiplication. For example,
