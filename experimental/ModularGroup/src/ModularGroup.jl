@@ -87,7 +87,7 @@ end
 
 function Base.show(io::IO, G::ModularGroup)
   idx = index(G)
-  print(io, "Modular subgroup of index $(idx)")
+  print(io, "modular subgroup of index $(idx)")
 end
 
 function Base.show(io::IO, x::ModularGroupElem)
