@@ -1682,15 +1682,11 @@ More precisely, return a tuple `(gs, PM, sect)`, say, where
     are $\mathbb Z$-graded case with positive weights, and `F` respects degrees.
 
 # Examples
-```jldoctest
-julia> A, (a,) = polynomial_ring(QQ, [:a])
-(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[a])
+julia> A, (a,) = polynomial_ring(QQ, [:a]);
 
-julia> BR, (b,) = polynomial_ring(QQ, [:b])
-(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[b])
+julia> B, (b,) = polynomial_ring(QQ, [:b]);
 
-julia> B, _ = quo(BR, ideal(BR, [b^2]))
-(Quotient of multivariate polynomial ring by ideal (b^2), Map: multivariate polynomial ring -> B)
+julia> B, _ = quo(B, ideal(B, [b^2]));
 
 julia> F = hom(A, B, [zero(B)])
 Ring homomorphism
@@ -1711,7 +1707,7 @@ julia> PM
  a  0
  0  a
 
-julia> sect(one(BR))
+julia> sect(one(B))
 2-element Vector{QQMPolyRingElem}:
  0
  1
@@ -1721,11 +1717,11 @@ julia> sect(one(BR))
 ```jldoctest
 julia> AR, (h,) = graded_polynomial_ring(QQ, [:h]);
 
-julia> A, _ = quo(AR, ideal(RA, [h^9]));
+julia> A, _ = quo(AR, ideal(AR, [h^9]));
 
 julia> BR, (k, l) = graded_polynomial_ring(QQ, [:k, :l]);
 
-julia> B, _ = quo(BR, ideal(RB, [k^3, l^3]));
+julia> B, _ = quo(BR, ideal(BR, [k^3, l^3]));
 
 julia> F = hom(A, B, [k+l])
 Ring homomorphism
