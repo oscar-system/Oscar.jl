@@ -111,6 +111,19 @@ counterparts.
 - `code f` is `@less f(x)`, which shows the source of the method that
   the call `f(x)` would use; `q` leaves the viewer.
   `@edit f(x)` opens it in an editor.
+- `needsPackage "Foo"` is `using Foo`, after a one-time `Pkg.add("Foo")`.
+  OSCAR's own components, the experimental ones included, are all
+  loaded by `using Oscar`.
+- There is no `debug needsPackage`.
+  Unexported functions exist and are reachable at any time by
+  qualifying the name with the module, as in `Oscar.group_element`;
+  only exported names work without the prefix.
+- There is no built-in debugger that stops inside a function with its
+  local variables in view.
+  An error prints a stack trace, `Base.@locals` inside a function
+  returns its local variables as a dictionary, and the packages
+  Debugger.jl (`@enter f(x)`) and Infiltrator.jl (`@infiltrate`, then
+  `@locals` at the breakpoint) add interactive debugging.
 
 ## Common Macaulay2 commands and their OSCAR counterparts
 
