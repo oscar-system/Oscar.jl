@@ -4,8 +4,14 @@
   s = @perm (2, 3)
   t = @perm (1, 2)
   G = modular_subgroup_via_right_action(s, t)
+  GL = modular_subgroup_via_left_action(s, t)
+  S = Oscar._perm_group(G)
 
   @test (@inferred index(G)) == 3
+  @test (@inferred index(GL)) == 3
+
+  @test (@inferred s_right_perm(GL)) == S(s^-1)
+  @test (@inferred t_right_perm(GL)) == S(t^-1)
 
   s = cperm([1,2], [3,4], [5,6], [7,8], [9,10])
   t = cperm([1,4], [2,5,9,10,8], [3,7,6])
@@ -34,6 +40,7 @@
   ]
   @test all(m in G for m in actual_mat_gens)
   @test all(ZZMatrix(m) in G for m in expected_mat_gens)
+  @test all(gen(G, i) in G for i in 1:length(actual_mat_gens))
 
   M = matrix(ZZ, [1 0; -4 1])
   @test (@inferred s_t_decomposition(M)) == S * T^4 * S^-1
@@ -76,6 +83,7 @@ end
   W = modular_subgroup_via_right_action(cperm(), cperm())
   @test index(W) == 1
   @test matrix(ZZ, [1 0; 1 1]) in W
+  @test isone(coset_right_action_of(A, W))
 
   # only 2x2 matrices of determinant 1 can be elements
   @test !(identity_matrix(ZZ, 3) in G)
@@ -88,4 +96,14 @@ end
   N = ZZ(10)^12
   @test matrix(ZZ, [1 N; 0 1]) in G
   @test !(matrix(ZZ, [1 N + 1; 0 1]) in G)
+
+  # order must be infinite whenever the trace exceeds 2
+  x = Oscar.ModularGroupElem(G, matrix(ZZ, [N -1; 1 0]))
+  @test !is_finite_order(x)
+  # whenever the trace is 1, the order must be 6
+  y = Oscar.ModularGroupElem(G, matrix(ZZ, [2 -3; 1 -1]))
+  @test order(y) == 6
+
+  @test_throws ArgumentError modular_subgroup_via_right_action(cperm([1,2,3]), cperm([1,2]))
+  @test_throws ArgumentError modular_subgroup_via_left_action(cperm([1,2]), cperm([3,4]))
 end

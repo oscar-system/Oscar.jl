@@ -387,6 +387,7 @@ presented group returned by `Oscar._SL2Z_fp()` represents an element of `G`.
 """
 function is_word_element_of(w::FPGroupElem, G::ModularGroup)
   _check_compatible(parent(w), _SL2Z_fp())
+  return _image_of_pt(w, G, 1) == 1
 end
 
 function Base.issubset(H::ModularGroup, G::ModularGroup)
