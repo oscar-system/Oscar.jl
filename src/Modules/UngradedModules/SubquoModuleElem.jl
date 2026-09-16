@@ -431,11 +431,9 @@ end
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 
-# Over a commutative base ring (`RingElem` by Oscar convention) right scalar
-# multiplication coincides with the left one. Modules over the non-commutative
-# PBW algebras are left modules only, hence the restriction on `T`. The scalar
-# types mirror those admitted on the left; an unrestricted `a` would make
-# `b1*b2` for two module elements recurse into itself.
+# Right and left scalar multiplication agree over a commutative base ring;
+# `T <: RingElem` excludes the PBW algebras, which are left modules only.
+# `a::Any` here would make `b1*b2` for two module elements recurse.
 *(b::SubquoModuleElem{T}, a::RingElem) where {T <: RingElem} = a*b
 *(b::SubquoModuleElem{T}, a::Integer) where {T <: RingElem} = a*b
 

@@ -258,9 +258,8 @@ function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleOFPModuleRingE
   return parent(b)(base_ring(parent(b))(a)*coordinates(b))
 end
 
-# Over a commutative base ring (`RingElem` by Oscar convention) right scalar
-# multiplication coincides with the left one. The second method resolves the
-# ambiguity with the non-commutative method below in the case `a::T`.
+# Right and left scalar multiplication agree over a commutative base ring.
+# The `a::T` method breaks the ambiguity with the non-commutative one below.
 *(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem} = a*b
 *(b::AbstractFreeModElem{T}, a::T) where {T <: RingElem} = a*b
 
