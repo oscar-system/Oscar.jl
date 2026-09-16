@@ -14,3 +14,6 @@ struct ModularGroupElem <: GroupElem
   parent::ModularGroup
   mat::ZZMatrix
 end
+
+Base.deepcopy_internal(x::ModularGroupElem, dict::IdDict) =
+  ModularGroupElem(x.parent, Base.deepcopy_internal(x.mat, dict))

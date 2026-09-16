@@ -234,7 +234,10 @@ end
 
 inv(x::ModularGroupElem) = ModularGroupElem(parent(x), inv(matrix(x)))
 
-*(x::ModularGroupElem, y::ModularGroupElem) = ModularGroupElem(parent(x), matrix(x) * matrix(y))
+function *(x::ModularGroupElem, y::ModularGroupElem)
+  check_parent(x, y)
+  return ModularGroupElem(parent(x), matrix(x) * matrix(y))
+end
 
 ^(x::ModularGroupElem, n::Integer) =
   ModularGroupElem(parent(x), matrix(x)^n)
@@ -383,7 +386,7 @@ Return whether the word `w` in the generators `S` and `T` of the finitely
 presented group returned by `Oscar._SL2Z_fp()` represents an element of `G`.
 """
 function is_word_element_of(w::FPGroupElem, G::ModularGroup)
-  return _image_of_pt(w, G, 1) == 1
+  _check_compatible(parent(w), _SL2Z_fp())
 end
 
 function Base.issubset(H::ModularGroup, G::ModularGroup)
