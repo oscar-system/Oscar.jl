@@ -4397,7 +4397,11 @@ function _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finit
   @assert gs[end] == 1 # the last one should always be 1
   g = length(gs)
 
-  R, _ = tensor_product(BR, AR; use_product_ordering=true)
+  Wa = weights(Int, AR)
+  Wb = weights(Int, BR)
+  Wba = vcat(Wb, Wa)
+  R, br, ar = graded_polynomial_ring(base_ring(AR), symbols(BR), symbols(AR), weights = Wba)
+  Oscar.set_default_ordering!(R, wdegrevlex(bR, Wb)*wdegrevlex(ar, Wa))
   ba = gens(R)
   ARtoR = Oscar.hom(AR, R, ba[(b + 1):end])
   BRtoR = Oscar.hom(BR, R, ba[1:b])
