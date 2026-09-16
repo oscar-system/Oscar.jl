@@ -44,37 +44,32 @@ counterparts.
   [Integers and rational numbers](@ref other_integers).
 
 - **There is no current ring.**
-  In Macaulay2, the symbols `x` and `y` refer to the ring created most
-  recently, and `use R` makes them refer to `R` again.
-  In OSCAR, every element knows its parent, that is, the algebraic
-  structure it lives in (see [Every object has a parent](@ref)),
-  and the variables returned by `polynomial_ring` keep referring to
-  their ring, whatever else is created afterwards.
+  In Macaulay2, creating `S = QQ[x,y]` makes the symbols `x` and `y`
+  refer to `S`, and `use R` makes them refer to `R` again.
+  In OSCAR, a name is only rebound by an assignment:
+  after `S, (x, y) = polynomial_ring(ZZ, [:x, :y])`, the name `x`
+  refers to the generator of `S`, while `R[1]` and `gens(R)` still give
+  those of `R`, as `R_0` and `gens R` do in Macaulay2.
+  Every element knows its parent, that is, the algebraic structure it
+  lives in (see [Every object has a parent](@ref)), and elements of
+  different rings cannot be mixed.
   ```jldoctest
   julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
-  julia> S, (u, v) = polynomial_ring(QQ, [:u, :v]);
+  julia> S, (x, y) = polynomial_ring(ZZ, [:x, :y]);
 
   julia> parent(x)
   Multivariate polynomial ring in 2 variables x, y
+    over integer ring
+
+  julia> parent(R[1])
+  Multivariate polynomial ring in 2 variables x, y
     over rational field
 
-  julia> x + u
-  ERROR: parents do not match
+  julia> R[1] + x
+  ERROR: Cannot promote to common type
   [...]
   ```
-
-- **You rarely need a Gröbner basis yourself.**
-  Both systems compute Gröbner bases on demand and cache them:
-  `dim(I)`, `normal_form(f, I)` and `f in I` take the ideal,
-  as `dim I` and `f % I` do in Macaulay2.
-  Call `groebner_basis(I)` only if you want the basis itself,
-  where you would write `gens gb I`.
-  If the ideal is there to define a variety, ask the variety instead:
-  `dim(variety(I))`.
-  Both systems use the degree reverse lexicographical ordering by
-  default; another one is passed to `groebner_basis` as a keyword
-  argument, as in `groebner_basis(I; ordering = lex(R))`.
 
 - **Gradings are explicit.**
   A polynomial ring in OSCAR is not graded unless you say so.
@@ -106,6 +101,17 @@ counterparts.
   true
   ```
 
+## Interactive sessions
+
+- `quit` is `exit()`.
+  There is no counterpart of `restart`; leave Julia and start it again.
+- Global functions are not protected: `order = 5` silently replaces
+  OSCAR's `order` in your session, and `order = Oscar.order` brings it
+  back.
+- `code f` is `@less f(x)`, which shows the source of the method that
+  the call `f(x)` would use; `q` leaves the viewer.
+  `@edit f(x)` opens it in an editor.
+
 ## Common Macaulay2 commands and their OSCAR counterparts
 
 ### Rings and polynomials
@@ -114,7 +120,7 @@ counterparts.
 |:----------|:------|
 | `R = QQ[x,y]` | `R, (x, y) = polynomial_ring(QQ, [:x, :y])` |
 | `R = ZZ/32003[x,y]` | `R, (x, y) = polynomial_ring(GF(32003), [:x, :y])` |
-| `QQ[x,y,MonomialOrder=>Lex]` | `groebner_basis(I; ordering = lex(R))` |
+| `QQ[x,y,MonomialOrder=>Lex]` | `groebner_basis(I; ordering = lex(R))`; both default to degree reverse lexicographic |
 | `coefficientRing R`, `numgens R`, `gens R` | `coefficient_ring(R)`, `ngens(R)`, `gens(R)` |
 | `ring f` | `parent(f)` |
 | `degree f` | `total_degree(f)` |
@@ -131,12 +137,16 @@ counterparts.
 
 ### Ideals and modules
 
+Both systems compute Gröbner bases on demand; `groebner_basis(I)` is
+only needed if you want the basis itself, where Macaulay2 has `gens gb I`.
+
 | Macaulay2 | OSCAR |
 |:----------|:------|
 | `I = ideal(f, g)` | `I = ideal(R, [f, g])` |
 | `numgens I`, `I_0` | `ngens(I)`, `I[1]` |
 | `gens gb I` | `groebner_basis(I)` |
 | `dim I`, `codim I`, `degree I` | `dim(I)`, `codim(I)`, `degree(I)` |
+| `dim I` for the variety of `I` | `dim(variety(I))` |
 | `f % (gb I)` | `normal_form(f, I)` |
 | `isSubset(ideal f, I)` | `f in I` |
 | `radical I` | `radical(I)` |
