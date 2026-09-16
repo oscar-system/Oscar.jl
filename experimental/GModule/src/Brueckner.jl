@@ -332,7 +332,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
   function _process(mu; is_trivial::Bool = false, limit::Int)
-    allG = typeof(mp)[]
+    res = typeof(mp)[]
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
     @assert isa(GG, PcGroup)
 
@@ -351,18 +351,18 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     end
     if !fl
 #      @show :no_sol
-      return allG
+      return res
     end
     k, mk = kernel(s)
     for x = k
       hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
       if is_surjective(hm)
-        push!(allG, hm)
+        push!(res, hm)
       else
 #        @show :not_sur
       end
     end
-    return allG
+    return res
   end
 
 
