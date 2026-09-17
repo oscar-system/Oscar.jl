@@ -357,21 +357,36 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   ordZN = ngens(N) == 0 ? ZZ(1) :
                           order(kernel(Oscar.GrpCoh.H_one_maps(C)[2])[1])
 
+  # the canonical lifts of the generators of `G`, and the defects of the
+  # relators there
+  function _lifted_gens(GG, GGinj, GGpro, GMtoGG)
+    gns = [GMtoGG([x for x in Oscar.GAPWrap.ExtRepOfObj(GapObj(h))], zero(M)) for h in gens(N)]
+    gns = [map_word(mp(g), gns, init = one(GG)) for g in gens(G)]
+    rel = [map_word(r, gns, init = one(GG)) for r in R]
+    @assert all(x->isone(GGpro(x)), rel)
+    return gns, [preimage(GGinj, x) for x in rel]
+  end
+
+  #= Replacing `gns[i]` by `gns[i]*m` moves the relator defects by a map that
+     is linear in the `m` and built only from the action of `N` on `M` and the
+     relators: the cocycle enters the defects as a constant. So `s` below, and
+     with it Z^1(G, M), is the same for every class, and is worth computing
+     once - it costs ngens(D) evaluations of every relator in `GG`, which for
+     a large quotient dwarfs everything else here.
+  =#
+  ext0 = Oscar.GrpCoh.split_extension(PcGroup, C)
+  gns0, rhs0 = _lifted_gens(ext0...)
+  @hassert :BruecknerSQ 1 all(is_zero, rhs0)
+  s = hom(D, K, [K([preimage(ext0[2], map_word(r, [gns0[i] * ext0[2](pro[i](h)) for i in 1:ngens(G)])) for r in R] .- rhs0) for h in gens(D)])
+  k, mk = kernel(s)
+
   function _process(GG, GGinj, GGpro, GMtoGG; is_trivial::Bool = false, limit::Int)
     res = typeof(mp)[]
     @assert isa(GG, PcGroup)
 
-    gns = [GMtoGG([x for x in Oscar.GAPWrap.ExtRepOfObj(GapObj(h))], zero(M)) for h in gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g in gens(G)]
-    rel = [map_word(r, gns, init = one(GG)) for r in relators(G)]
-    @assert all(x->isone(GGpro(x)), rel)
-    rhs = [preimage(GGinj, x) for x in rel]
-    @hassert :BruecknerSQ 1 !is_trivial || all(is_zero, rhs)
-    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i in 1:ngens(G)])) for r in relators(G)] .- rhs) for h in gens(D)])
-
+    gns, rhs = _lifted_gens(GG, GGinj, GGpro, GMtoGG)
     fl, pe = has_preimage_with_preimage(s, K(rhs))
     fl || return res
-    k, mk = kernel(s)
 
     #= The lifts form a torsor under Z^1(G, M) = `k`. Such a lift misses `M`
        iff its image is a complement to `M` in `GG`, since the image meets `M`
@@ -414,7 +429,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     return res
   end
 
-  allG = _process(Oscar.GrpCoh.split_extension(PcGroup, C)...; is_trivial = true, limit)
+  allG = _process(ext0...; is_trivial = true, limit)
   if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
     return allG
   end
