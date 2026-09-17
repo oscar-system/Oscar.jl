@@ -321,6 +321,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   N = group(C)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
+  # the surjectivity argument in `_process` needs `M` to have no proper
+  # non-zero submodule
+  @req dim(C) == 1 || is_irreducible(C) "the module has to be irreducible"
 
   R = relators(G)
   M = C.M
@@ -346,18 +349,22 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   K = is_empty(R) ? free_module(base_ring(M), 0) :
                     direct_product([M for i in 1:length(R)]..., task = :none)
 
+  # |Z^1(N, M)|, the number of lifts that miss `M`; independent of the cocycle
+  ordZN = ngens(N) == 0 ? ZZ(1) :
+                          order(kernel(Oscar.GrpCoh.H_one_maps(C)[2])[1])
+
   function _process(mu; is_trivial::Bool = false, limit::Int)
     res = typeof(mp)[]
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
     @assert isa(GG, PcGroup)
 
-    s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
-    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
+    gns = [GMtoGG([x for x in Oscar.GAPWrap.ExtRepOfObj(GapObj(h))], zero(M)) for h in gens(N)]
+    gns = [map_word(mp(g), gns, init = one(GG)) for g in gens(G)]
+    rel = [map_word(r, gns, init = one(GG)) for r in relators(G)]
     @assert all(x->isone(GGpro(x)), rel)
-    rhs = [preimage(GGinj, x) for x = rel]
-    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
+    rhs = [preimage(GGinj, x) for x in rel]
+    @hassert :BruecknerSQ 1 !is_trivial || all(is_zero, rhs)
+    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i in 1:ngens(G)])) for r in relators(G)] .- rhs) for h in gens(D)])
 
     fl, pe = try
       true, preimage(s, K(rhs))
@@ -369,13 +376,45 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       return res
     end
     k, mk = kernel(s)
-    for x = k
-      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
-      is_surjective(hm) || continue
+
+    #= The lifts form a torsor under Z^1(G, M) = `k`. Such a lift misses `M`
+       iff its image is a complement to `M` in `GG`, since the image meets `M`
+       in a submodule of the irreducible `M`. Only a split extension has
+       complements, and there the offending lifts are exactly the subspace
+       inf(Z^1(N, M)) of `k`. Hence:
+         - for a non-trivial class no surjectivity test is needed at all;
+         - for the trivial one, a surjective lift exists iff `k` is bigger than
+           that subspace, and then some generator of `k` lies outside it.
+       Trying the generators first matters: `k` is enumerated along an rref
+       basis, so the subspace can occupy a long prefix.
+    =#
+    is_trivial && order(k) == ordZN && return res
+
+    function _try(x)
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe + mk(x))) for i in 1:ngens(G)])
+      if is_trivial
+        is_surjective(hm) || return false
+      else
+        @hassert :BruecknerSQ 1 is_surjective(hm)
+      end
 
       push!(res, hm)
-      length(res) >= limit && return res
+      return length(res) >= limit
     end
+
+    tried = elem_type(k)[]
+    if is_trivial
+      for x in gens(k)
+        push!(tried, x)
+        _try(x) && return res
+      end
+    end
+
+    for x in k
+      x in tried && continue
+      _try(x) && return res
+    end
+    @hassert :BruecknerSQ 1 length(res) == order(k) - (is_trivial ? ordZN : 0)
     return res
   end
 
