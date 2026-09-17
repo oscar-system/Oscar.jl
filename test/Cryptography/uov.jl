@@ -84,5 +84,5 @@ end
   pk, sk = keygen(uov)
   msg = UInt8[1, 2, 3]
   sm = vcat(msg, sign(uov, msg, sk))
-  uov_open(uov, sm, pk)
+  @test msg == uov_open(uov, sm, pk)
 end
