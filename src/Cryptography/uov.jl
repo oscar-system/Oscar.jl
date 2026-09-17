@@ -4,7 +4,6 @@
 # [BCDGKPPS.EA25](@cite) for further information.
 # ---------------------------------------------------------------------------
 using Random: rand
-using Keccak: shake_256
 
 # ---------------------------------------------------------------------------
 # Field setup: build fast multiplication and inverse tables. The tables are
