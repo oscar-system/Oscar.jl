@@ -139,7 +139,7 @@ function reps(K, G::Oscar.PcGroup)
           for j in 2:p
             Gj = gmodule(M, s, conjreps[j])
             for k in (pos+1):length(R)
-              if is_isomorphic(Gj, R[k]) > 0
+              if is_isomorphic(Gj, R[k])
                 todo[k] = false
               end
             end
@@ -312,16 +312,6 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   return allR
 end
 
-function trivial_chain(C::GModule, n::Int)
-  #TODO: do for other n as well...(or change the name)
-  @assert n == 2
-  G = C.G
-  c = Dict((one(G), one(G)) => zero(C.M))
-  S = elem_type(C.G)
-  T = elem_type(C.M)
-  return Oscar.GrpCoh.CoChain{2, S, T}(C, c, x->zero(C.M))
-end
-
 """
   mp: G ->> Q
   C a F_p[Q]-module
@@ -367,9 +357,8 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   ordZN = ngens(N) == 0 ? ZZ(1) :
                           order(kernel(Oscar.GrpCoh.H_one_maps(C)[2])[1])
 
-  function _process(mu; is_trivial::Bool = false, limit::Int)
+  function _process(GG, GGinj, GGpro, GMtoGG; is_trivial::Bool = false, limit::Int)
     res = typeof(mp)[]
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
     @assert isa(GG, PcGroup)
 
     gns = [GMtoGG([x for x in Oscar.GAPWrap.ExtRepOfObj(GapObj(h))], zero(M)) for h in gens(N)]
@@ -380,15 +369,8 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     @hassert :BruecknerSQ 1 !is_trivial || all(is_zero, rhs)
     s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i in 1:ngens(G)])) for r in relators(G)] .- rhs) for h in gens(D)])
 
-    fl, pe = try
-      true, preimage(s, K(rhs))
-    catch
-      false, zero(D)
-    end
-    if !fl
-#      @show :no_sol
-      return res
-    end
+    fl, pe = has_preimage_with_preimage(s, K(rhs))
+    fl || return res
     k, mk = kernel(s)
 
     #= The lifts form a torsor under Z^1(G, M) = `k`. Such a lift misses `M`
@@ -440,17 +422,16 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     # (Thm 15, part b & c) (and the weird lemma)
 
 
-  mu = trivial_chain(C, 2)
-  allG = _process(mu; is_trivial = true, limit)
+  allG = _process(Oscar.GrpCoh.split_extension(PcGroup, C)...; is_trivial = true, limit)
   if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
     return allG
   end
 
   H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
 
-  for h = H2
+  for h in H2
     is_zero(h) && continue
-    append!(allG, _process(z(h); is_trivial = false, limit = limit - length(allG)))
+    append!(allG, _process(Oscar.GrpCoh.extension(PcGroup, z(h))...; is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
       return allG
     end
