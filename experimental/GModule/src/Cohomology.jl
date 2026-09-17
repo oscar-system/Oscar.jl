@@ -60,6 +60,10 @@ Oscar.parent_type(::Type{MultGrpElem{T}}) where T = MultGrp{T}
 Oscar.zero(a::MultGrpElem) = parent(a)(one(a.data))
 Oscar.zero(a::MultGrp) = a(one(a.data))
 
+Oscar.is_finitely_generated(::MultGrp) = false
+Oscar.has_gens(::MultGrp) = false
+Oscar.gens(M::MultGrp) = throw(NotImplementedError(:gens, M))
+
 import Base: ==, +, -, *
 
 *(a::Integer, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
@@ -159,6 +163,13 @@ function gmodule(M, H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(M, H, ac)
 end
 
+#elements on which an endomorphism of `V` is determined
+_test_elems(V) = gens(V)
+#`MultGrp` has no generating set, but its maps are induced by maps of `data`
+_test_elems(V::MultGrp) = [V(x) for x in gens(V.data)]
+#no cheap test: the inducing automorphism is checked on the number field
+_test_elems(V::MultGrp{<:Oscar.Hecke.NumFieldOrderFractionalIdeal}) = elem_type(V)[]
+
 """
 Check if the action maps satisfy the same relations
 as the generators of `G`.
@@ -173,7 +184,7 @@ function is_consistent(M::GModule)
     for i=2:length(w)
       a = a* action(M, preimage(mG, w[i]< 0 ? inv(gen(G, -w[i])) : gen(G, w[i])))
     end
-    all(x->a(x) == x, gens(V)) || (@show r; return false)
+    all(x->a(x) == x, _test_elems(V)) || (@show r; return false)
   end
 
   return true
