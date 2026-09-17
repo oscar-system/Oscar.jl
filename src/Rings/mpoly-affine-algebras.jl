@@ -1678,8 +1678,8 @@ More precisely, return a tuple `(gs, PM, sect)`, say, where
     The function is implemented so that the last element of `gs` is the monomial 1.
 
 !!! note
-    The function works if both `A` and `B` are ungraded or if if both `A` and `B
-    are $\mathbb Z$-graded case with positive weights, and `F` respects degrees.
+    The function works if both `A` and `B` are ungraded or if both `A` and `B`
+    are $\mathbb Z$-graded with positive weights and `F` respects degrees.
 
 # Examples
 julia> A, (a,) = polynomial_ring(QQ, [:a]);
@@ -1751,6 +1751,33 @@ julia> sect(k*l)
  0
 
 ```
+
+```jldoctest
+julia> A, (u, v) = polynomial_ring(QQ, [:u, :v]);
+
+julia> BR, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> B, _ = quo(BR, ideal(BR, x^2 + y^2 + z^2));
+
+julia> F = hom(A, B, B.([x, y]))
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to quotient of multivariate polynomial ring by ideal (x^2 + y^2 + z^2)
+defined by
+  u -> x
+  v -> y
+
+julia> gs, PM, sect = present_finite_extension_ring(F);
+
+julia> gs
+2-element Vector{QQMPolyRingElem}:
+ z
+ 1
+
+julia> PM
+Matrix{QQMPolyRingElem}[]
+
+```
 """
 function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   A, B = F.domain, F.codomain
@@ -1768,7 +1795,11 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
     Wy = weights(Int, BR)
     Wyx = vcat(Wy, Wx)
     @assert all(w>0 for w in Wyx)
-    @assert all(Wx[i] == degree(Int, F(x[i])) for i = 1:lx)
+    for  i = 1:lx
+      if !iszero(F(gens(A)[i]))
+        @assert degree(Int, gens(A)[i]) == degree(Int, F(gens(A)[i]))
+      end
+    end
   end
 
   #####
@@ -1884,6 +1915,11 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
                        the last generator should be 1")
   lgs = length(gs)
 
+  #####
+  # Implement a section of pi: A^lgs --> B --> 0.
+  # The result is just a map, not necessarily an A-homomorphism.
+  #####
+
   y_staircase_index = Dict{Tuple, Int}(
     Tuple(e) => i for (i, e) in enumerate(y_staircase_exponents))
 
@@ -1905,6 +1941,9 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
     end
     return result
   end
+
+  sect = b -> (t = reduce(BRtoTR(b), Gpolys, complete_reduction = true);
+               ans = coefficients_over_AR(t))
 
   #####
   #find the presentation matrix
@@ -1934,25 +1973,21 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
       push!(relation_rows, coefficients_over_AR(y_staircase_relation))
     end
   end
-  nr = length(relation_rows)
 
-  relation_rows = _interreduce(relation_rows, gr_check)
-
-  PM = Matrix{elem_type(TR)}(undef, length(relation_rows), lgs)
-  for i in axes(PM, 1), j in axes(PM, 2)
-    PM[i, j] = relation_rows[i][j]
+  if other_Gpolys == []
+    PM = Matrix{elem_type(AR)}[]
+    #PM = []
+  else
+     relation_rows = _interreduce(relation_rows, gr_check)
+     PM = Matrix{elem_type(AR)}(undef, length(relation_rows), lgs)
+     for i in axes(PM, 1), j in axes(PM, 2)
+        PM[i, j] = relation_rows[i][j]
+     end
   end
-
-  #####
-  # We finitely implement the desired section of pi: A^lgs --> B --> 0.
-  # The result is just a map, not necessarily an A-homomorphism.
-  #####
-
-  sect = b -> (t = reduce(BRtoTR(b), Gpolys, complete_reduction = true);
-               ans = coefficients_over_AR(t))
 
   return gs, PM, sect
 end
+
 
 ###################
 # helper function #
