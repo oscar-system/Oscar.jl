@@ -258,43 +258,57 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
-  if length(primes) == 0
-    @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-    lp = _admissible_primes(mQ)
-  else
-    lp = map(ZZRingElem, primes)
-  end
-  @vprint :BruecknerSQ 1 "using primes $lp\n"
 
   allR = []
-  for p = lp
-    _, j = ppio(exponent(Q), p)
-    f = j == 1 ? 1 : modord(p, j)
-    @assert (p^f-1) % j == 0
-    @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
-    if f == 1
-      @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q)
-    else
-      @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
-    end
-    @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
 
-    for i = I
-      @vprint :BruecknerSQ 1 "starting to process module\n"
-      @vprint :BruecknerSQ 2 "... transfer over min. field\n"
-      @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
-      @vprint :BruecknerSQ 2 "... lift...\n"
-      #TODO: why do we need the module over GF(p)???
-      iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
-      @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
-      @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
-      #TODO: in Plesken p119 has more comments what not to do
-      append!(allR, [x for x in l])# if is_surjective(x)])
-      if length(allR) >= limit
-        return allR
+  # collect lifts for the given primes; `true` once `limit` of them are known
+  function _extend_by(lp::Vector{ZZRingElem})
+    @vprint :BruecknerSQ 1 "using primes $lp\n"
+    for p in lp
+      _, j = ppio(exponent(Q), p)
+      f = j == 1 ? 1 : modord(p, j)
+      @assert (p^f-1) % j == 0
+      @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
+      if f == 1
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q)
+      else
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
+      end
+      @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
+
+      for i in I
+        @vprint :BruecknerSQ 1 "starting to process module\n"
+        @vprint :BruecknerSQ 2 "... transfer over min. field\n"
+        @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
+        @vprint :BruecknerSQ 2 "... lift...\n"
+        #TODO: why do we need the module over GF(p)???
+        iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
+        @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
+        @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
+        #TODO: in Plesken p119 has more comments what not to do
+        append!(allR, [x for x in l])# if is_surjective(x)])
+        length(allR) >= limit && return true
       end
     end
+    return false
   end
+
+  if length(primes) > 0
+    _extend_by(map(ZZRingElem, primes))
+    return allR
+  end
+
+  #= `_admissible_primes` needs the kernel, hence an enumeration of the |Q|
+     cosets. A caller that stops early can often avoid that: the primes
+     dividing |Q| are free to name, and one of them usually does lift. Only
+     the exact set is guaranteed complete, so an exhaustive caller goes
+     straight there.
+  =#
+  cheap = limit == typemax(Int) ? ZZRingElem[] : sort(prime_divisors(order(Q)))
+  _extend_by(cheap) && return allR
+
+  @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
+  _extend_by(setdiff(_admissible_primes(mQ), cheap))
   return allR
 end
 
