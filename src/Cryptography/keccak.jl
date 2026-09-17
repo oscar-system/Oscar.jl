@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
 # This file implements the SHAKE256 extendable output function, which is part
-# of the SHA-3 standard, see [FIPS202](@cite). It is implemented as a sponge
+# of the SHA-3 standard, see [NIS15](@cite). It is implemented as a sponge
 # construction over the Keccak-f[1600] permutation with a rate of 136 bytes
 # and the "10*1" padding scheme.
 # ---------------------------------------------------------------------------
 
 # Round constants of the Keccak-f[1600] permutation, see Table 3 of
-# [FIPS202](@cite).
+# [NIS15](@cite).
 const _KECCAK_RC = (
     0x0000000000000001, 0x0000000000008082, 0x800000000000808A, 0x8000000080008000,
     0x000000000000808B, 0x0000000080000001, 0x8000000080008081, 0x8000000000008009,
@@ -17,12 +17,12 @@ const _KECCAK_RC = (
 )
 
 # Rotation offsets of the rho step for the 25 lanes of the state, see Table 2
-# of [FIPS202](@cite). Lane `i` (1-based) is the lane with first coordinate
+# of [NIS15](@cite). Lane `i` (1-based) is the lane with first coordinate
 # `(i-1) mod 5` and second coordinate `(i-1) div 5` of the state.
 const _KECCAK_ROT = (0, 1, 62, 28, 27, 36, 44, 6, 55, 20, 3, 10, 43, 25, 39, 41, 45, 15, 21, 8, 18, 2, 61, 56, 14)
 
 # Destination lane (1-based) of the pi permutation for each source lane
-# (1-based), as defined in [FIPS202](@cite).
+# (1-based), as defined in [NIS15](@cite).
 const _KECCAK_PI = (1, 11, 21, 6, 16, 17, 2, 12, 22, 7, 8, 18, 3, 13, 23, 24, 9, 19, 4, 14, 15, 25, 10, 20, 5)
 
 # Apply the Keccak-f[1600] permutation to the 25-lane state `s` in place,
@@ -79,7 +79,7 @@ end
     shake_256(msg::AbstractVector{UInt8}, outlen::Int) -> Vector{UInt8}
 
 Return the first `outlen` bytes of the SHAKE256 extendable output function
-applied to the byte vector `msg`, see [FIPS202](@cite) for details.
+applied to the byte vector `msg`, see [NIS15](@cite) for details.
 
 # Examples
 ```jldoctest
