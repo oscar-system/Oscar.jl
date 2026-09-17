@@ -463,7 +463,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
 #      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
@@ -485,7 +485,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
     end
     return im_q
@@ -508,8 +508,9 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     a -> sum a g_i^-1 otimes g_i
     works (direct computation with reps and cosets)
   =#
-  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
-  return iC, h
+  #not `h`: that would clobber the map `ind_action` closed over
+  mDi = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), x))) for i=1:length(g)) for x = gens(D.M)])
+  return iC, mDi
 end
 
 function is_induced(C::GModule)

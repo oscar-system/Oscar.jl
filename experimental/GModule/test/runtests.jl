@@ -219,6 +219,17 @@ end
   end
 end
 
+@testset "Experimental.gmodule induced action" begin
+  G = symmetric_group(3)
+  U, mU = sub(G, [cperm(G, [1, 2])])
+  A = abelian_group([0])
+  iC, _ = Oscar.GrpCoh.induce(trivial_gmodule(U, A), mU,
+                              trivial_gmodule(G, A), hom(A, A, [A[1]]))
+  @test all(i -> action(iC, gen(G, i), gens(iC.M)) == map(action(iC)[i], gens(iC.M)),
+            1:ngens(G))
+  @test is_zero(action(iC, gen(G, 1), zero(iC.M)))
+end
+
 @testset "Experimental Schur" begin
   G = alternating_group(4)
   Z = free_abelian_group(1)
