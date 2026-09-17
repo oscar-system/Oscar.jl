@@ -113,6 +113,14 @@ end
   _, mq = maximal_abelian_quotient(PcGroup, S3)
   @test Oscar.RepPc._admissible_primes(mq) == ZZRingElem[3]
   @test issubset(Oscar.RepPc._admissible_primes(mq), Oscar.RepPc.find_primes(mq))
+
+  # at assertion level 1 this also checks that the number of lifts is
+  # |Z^1(G, M)| - |Z^1(Q, M)| and that every lift found is surjective
+  set_assertion_level(:BruecknerSQ, 1)
+  @test length(Oscar.RepPc.brueckner(mq)) == 6
+  @test all(is_surjective, Oscar.RepPc.brueckner(mq))
+  @test length(Oscar.RepPc.brueckner(mq; limit = 1)) == 1
+  set_assertion_level(:BruecknerSQ, 0)
 end
 
 @testset "Experimental.gmodule natural G-modules" begin
