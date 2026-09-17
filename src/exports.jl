@@ -1700,6 +1700,7 @@ export set_relative_orders!
 export set_theoretic_intersection
 export sets
 export setwise_stabilizer_in_orthogonal_group
+export shake_256
 export shape
 export sheaf_cohomology
 export sheaf_of_rings
