@@ -1017,7 +1017,7 @@ function H_one_maps(C::GModule; task::Symbol = :maps)
 
   F, mF = fp_group_with_isomorphism(C)
   @assert ngens(F) == ngens(G)
-  @hassert :GroupCohomology 1 all(i->mF(gen(F, i)) == gen(G, i), 1:ngens(G))
+  @hassert :GroupCohomology 1 all(i->mF(gen(G, i)) == gen(F, i), 1:ngens(G))
 
   R = relators(F)
 #  @assert G == F
@@ -1308,7 +1308,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   id = hom(M, M, gens(M), check = false)
-  @vtime :GroupCohomology 1 F, mF = fp_group_with_isomorphism(C) #mF: F -> G
+  @vtime :GroupCohomology 1 F, mF = fp_group_with_isomorphism(C) #mF: G -> F
 
   if !force_rws && (isa(G, PcGroup) || is_solvable(G))
     @vprint :GroupCohomology 2 "using pc-presentation ...\n"

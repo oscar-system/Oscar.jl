@@ -208,6 +208,17 @@ end
   @test is_isomorphic(extension(FPGroup, c)[1], X)
 end
 
+@testset "Experimental.gmodule H^1 with assertions" begin
+  M = gmodule(hilbert_class_field(quadratic_field(10)[1]))
+  l = get_assertion_level(:GroupCohomology)
+  set_assertion_level(:GroupCohomology, 1)
+  try
+    @test order(cohomology_group(M, 1)[1]) == 2
+  finally
+    set_assertion_level(:GroupCohomology, l)
+  end
+end
+
 @testset "Experimental Schur" begin
   G = alternating_group(4)
   Z = free_abelian_group(1)
