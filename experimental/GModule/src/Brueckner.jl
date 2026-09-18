@@ -356,11 +356,10 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     k, mk = kernel(s)
     for x = k
       hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
-      if is_surjective(hm)
-        push!(res, hm)
-      else
-#        @show :not_sur
-      end
+      is_surjective(hm) || continue
+
+      push!(res, hm)
+      length(res) >= limit && return res
     end
     return res
   end
@@ -422,6 +421,7 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
       return mp
     end
     mp = nw[1]
+    @vprint :BruecknerSQ 2 "found quotient of order $(order(codomain(mp)))\n"
   end
 end
 
