@@ -122,7 +122,7 @@ julia> dpr, (u, v) = difference_polynomial_ring(S, [:u, :v], nontrivial_shifts)
 ```
 """
 function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
-  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring "
+  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring"
   @req __are_probably_commuting(action_maps) "The shift operators do not commute on the coefficient ring"
   action_maps = convert(Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}, action_maps)
   n_maps = length(action_maps)
@@ -132,7 +132,7 @@ function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_m
 end
 
 function difference_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
-  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring "
+  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring"
   @req __are_probably_commuting(action_maps) "The shift operators do not commute on the coefficient ring"
   action_maps = convert(Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}, action_maps)
   n_maps = length(action_maps)
@@ -269,7 +269,7 @@ julia> dpr, (u, v) = differential_polynomial_ring(S, [:u, :v], nontrivial_deriva
 ```
 """
 function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
-  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring "
+  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring"
   @req __are_probably_commuting(action_maps) "The derivations do not commute on the coefficient ring"
   action_maps = convert(Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}, action_maps)
   n_maps = length(action_maps)
@@ -279,7 +279,7 @@ function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action
 end
 
 function differential_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
-  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring "
+  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring"
   @req __are_probably_commuting(action_maps) "The derivations do not commute on the coefficient ring"
   action_maps = convert(Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}, action_maps)
   n_maps = length(action_maps)

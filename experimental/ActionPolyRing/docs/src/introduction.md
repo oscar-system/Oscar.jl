@@ -1,6 +1,6 @@
 # Introduction
 
-This project aims to provide functionality for what we call action polynomial rings. This phrase refers to a generalised
+This project aims to provide functionality for what we call action polynomial rings. This phrase refers to a generalized
 framework that allows for an algorithmic treatment of both difference polynomial rings and differential polynomial rings.
 In the future, further similar algebraic structures might be covered as well.
 
@@ -17,7 +17,7 @@ The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, the multiin
 ``J \in \mathbb{Z}_{\geq 0}^n`` are called *jets*. Note that depending on the specific setting, the
 action maps and action indeterminates are given more specific names; for example, if ``S`` is a difference
 polynomial ring then the ``\sigma_j`` are called *shift operators* and the ``u_i`` are called
-*difference indeterminates*. If instead ``S`` is a differential polynomial ring S, then the ``\sigma_j``
+*difference indeterminates*. If instead ``S`` is a differential polynomial ring, then the ``\sigma_j``
 are called *derivations* and the ``u_i`` are called *differential indeterminates*.
 
 We put ``\Delta \coloneqq \{ \sigma_1, \ldots, \sigma_n\}`` and denote the set of monomials in ``\Delta`` by
@@ -120,7 +120,7 @@ Note that for each fixed exponent ``a``, both ``s`` and ``r`` are unique (if the
 if we refer to the pseudo-remainder or pseudo-quotient of ``p`` by ``q``, we mean the values of ``s`` and ``r`` that correspond to the above
 identity where the exponent ``a`` is minimal.
 
-Slightly generalising the above, we also allow the divisor ``q`` to be a nonzero constant polynomial ``c`` by regarding ``1`` as the leader
+Slightly generalizing the above, we also allow the divisor ``q`` to be a nonzero constant polynomial ``c`` by regarding ``1`` as the leader
 of ``c`` and by putting ``\operatorname{init}(c) = c``. Thus, using the same formula as above, the pseudo-remainder of ``p`` by ``c`` is
 always equal to zero. The pseudo-quotient is ``p/c`` (with ``a = 0``) if ``p`` is divisible by ``c``; otherwise it is ``p`` (with ``a = 1``).
 
