@@ -2,7 +2,7 @@
 
 This project aims to provide functionality for what we call action polynomial rings. This phrase refers to a generalized
 framework that allows for an algorithmic treatment of both difference polynomial rings and differential polynomial rings.
-In the future, further similar algebraic structure might be covered as well.
+In the future, further similar algebraic structures might be covered as well.
 
 ## [Definitions and notations](@id definitionsandnotations_apr)
 
@@ -12,13 +12,13 @@ An *action polynomial ring* over the commutative ring ``R`` is a polynomial ring
 S = R[\, (u_i)_J \mid i \in \underline{m}, \, J \in \mathbb{Z}_{\geq 0}^n ]
 ```
 in the countably infinitely many *jet variables* ``(u_i)_J``, equipped with ``n`` commuting
-``R``-linear *action maps* ``\sigma_1, \ldots, \sigma_n``, where ``m`` and ``n`` are positive
-integers. The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, the multiindices
+*action maps* ``\sigma_1, \ldots, \sigma_n``, where ``m`` and ``n`` are positive integers.
+The symbols ``u_1, \ldots, u_m`` are called *action indeterminates*, the multiindices
 ``J \in \mathbb{Z}_{\geq 0}^n`` are called *jets*. Note that depending on the specific setting, the
-action maps and action indeterminates get a more specific name, e.g. if ``S`` is a difference polynomial ring then
-the ``\sigma_j`` are called *shift operators* and the ``u_i`` are called *difference indeterminates*. If instead,
-``S`` is a differential polynomial ring, then the ``\sigma_j`` are called *derivatives* and the ``u_i``
-are called *differential indeterminates*.
+action maps and action indeterminates are given more specific names; for example, if ``S`` is a difference
+polynomial ring then the ``\sigma_j`` are called *shift operators* and the ``u_i`` are called
+*difference indeterminates*. If instead ``S`` is a differential polynomial ring, then the ``\sigma_j``
+are called *derivations* and the ``u_i`` are called *differential indeterminates*.
 
 We put ``\Delta \coloneqq \{ \sigma_1, \ldots, \sigma_n\}`` and denote the set of monomials in ``\Delta`` by
 ```math
@@ -28,8 +28,8 @@ The ``j``-th action map ``\sigma_j`` has the property that, when applied to a je
 ``j``-th entry of its jet by one. Depending on the specific setting it also has further properties,
 e.g. it is multiplicative for difference polynomial rings and it is a derivation for differential
 polynomial rings.\
-Given an action polynomial ``p \in S`` we call an expression of the form ``\Theta(p)``, with some
-``\Theta \in \operatorname{Mon}(\Delta)`` an *action transform* of ``p``. It is called proper, if
+Given an action polynomial ``p \in S``, we call an expression of the form ``\Theta(p)``, with some
+``\Theta \in \operatorname{Mon}(\Delta)``, an *action transform* of ``p``. It is called proper if
 ``\Theta \neq 1``. Note that an action transform of a jet variable is itself a jet variable. Specifically,
 if ``\Theta = \sigma_1^{a_1} \ldots \sigma_n^{a_n}``, with ``a = (a_1, \ldots, a_n) \in \mathbb{N}_0^n``, then
 ```math
@@ -43,7 +43,7 @@ so-called *rankings*. A total ordering ``>`` on the set of jet variables of ``S`
 - ``\Theta(v) > v`` for each ``1 \neq \Theta \in \operatorname{Mon}(\Delta)`` and each jet variable ``v``
 - If ``v`` and ``w`` are jet variables in ``S`` with ``v > w`` then ``\Theta(v) > \Theta(w)`` for all ``\Theta \in \operatorname{Mon}(\Delta)``
 
-Analogous to how monomial orderings in a multivariate polynomial ring in ``n`` variables correspond to total
+Just as monomial orderings in a multivariate polynomial ring in ``n`` variables correspond to total
 orderings of ``\mathbb{N}_0^n`` that respect multiplication by monomials, rankings of jet variables correspond to total orderings
 of ``X := \underline{m} \times \mathbb{N}_0^n`` that respect the action maps. Specifically, one can identify the jet variable
 ``(u_i)_J \in S`` with the pair ``(i, J) \in X``. Consequently, by Dickson's Lemma, each properly descending chain of jet
@@ -53,7 +53,7 @@ variables that are ordered with respect to some ranking is necessarily finite.
 
 Let ``p \in S \setminus R`` be an action polynomial equipped with a ranking ``>``. The *leader* of ``p``, denoted by ``\operatorname{ld}(p)``,
 is the ``>``-largest (or highest ranked) jet variable occurring in ``p``. If we regard ``p`` as a univariate polynomial in
-``\operatorname{ld}(p)`` then its coefficients are itself action polynomials in lower ranked jet variables, which we once again can regard as
+``\operatorname{ld}(p)`` then its coefficients are themselves action polynomials in lower ranked jet variables, which we once again can regard as
 univariate polynomials in their respective leaders and so on. The *initial* of ``p``, denoted by ``\operatorname{init}(p)``, is the
 leading coefficient of ``p`` regarded as a univariate polynomial in ``\operatorname{ld}(p)``. The initial of ``p`` is very important
 in the context of [polynomial reduction](@ref polynomial_reduction_apr).
@@ -64,7 +64,7 @@ of ``c`` is just ``c`` itself. The zero polynomial has no leader and consequentl
 ### [Riquier rankings](@id actionpolyriquierranking)
 
 The rankings we use are called *Riquier rankings*. By definition, these are the rankings of ``X`` that extend to a ranking of
-``\{1\} \times \mathbb{N}^{m+n}``. Equivalently, we have that ``(u_i)_I > (u_i)_J`` implies ``(u_j)_I > (u_j)_J`` for all
+``\{1\} \times \mathbb{N}_0^{m+n}``. Equivalently, we have that ``(u_i)_I > (u_i)_J`` implies ``(u_j)_I > (u_j)_J`` for all
 ``i,j \in \underline{m}`` and all ``I,J \in \mathbb{N}_0^{n}``. Another equivalent condition and the one used for implementation
 is the following:
 
@@ -73,7 +73,7 @@ of the jet variables defined by ``X`` coincides with the ordering obtained from 
 on ``\mathbb{N}_0^{m+n}`` defined by ``M``.
 
 For this construction, we identify a jet variable ``(u_i)_J \in A`` with ``(e_i, J) \in \mathbb{N}_0^{m+n}``,
-where ``e_i`` is the ``i``-th unit row and restrict ourselves to integer matrices ``M``. In this context, we call ``M``
+where ``e_i`` is the ``i``-th unit row, and we restrict ourselves to integer matrices ``M``. In this context, we call ``M``
 a *Riquier matrix*.
 
 !!! note "Integer Riquier matrix"
@@ -84,7 +84,7 @@ a *Riquier matrix*.
 
 While it is possible to define a total ordering of the set of jet variables of the action polynomial ring ``S``, there is no obvious way
 to do the same for the set of all action polynomials. However, one can still compare two action polynomials using the so-called
-*Ritt ordering* (associated to a given ranking ``<`` on ``S``). Given ``p, q \in S``, we say that *``p`` is smaller than  ``q``* with
+*Ritt ordering* (associated to a given ranking ``<`` on ``S``). Given ``p, q \in S``, we say that *``p`` is smaller than ``q``* with
 respect to Ritt ordering, if one of the following conditions holds:
 - ``p \in R`` but ``q \notin R``
 - ``p, q \notin R`` and ``\operatorname{ld}(p) < \operatorname{ld}(q)``
@@ -120,7 +120,7 @@ Note that for each fixed exponent ``a``, both ``s`` and ``r`` are unique (if the
 if we refer to the pseudo-remainder or pseudo-quotient of ``p`` by ``q``, we mean the values of ``s`` and ``r`` that correspond to the above
 identity where the exponent ``a`` is minimal.
 
-Slightly generalising the above, we also allow the divisor ``q`` to be a nonzero constant polynomial ``c`` by regarding ``1`` as the leader
+Slightly generalizing the above, we also allow the divisor ``q`` to be a nonzero constant polynomial ``c`` by regarding ``1`` as the leader
 of ``c`` and by putting ``\operatorname{init}(c) = c``. Thus, using the same formula as above, the pseudo-remainder of ``p`` by ``c`` is
 always equal to zero. The pseudo-quotient is ``p/c`` (with ``a = 0``) if ``p`` is divisible by ``c``; otherwise it is ``p`` (with ``a = 1``).
 
@@ -137,12 +137,12 @@ Let ``p, q \in S``, ``q \notin R`` and ``v = \operatorname{ld}(q)``. We have the
     ``q`` is one. Thus, being partially reduced amounts to the condition that ``p`` contains no proper derivative
     of ``v`` as a variable.
 
-Also allowing ``q`` to be a nonzero constant polynomial ``c``, the only polynomial that is partially reduced or reduced with respect to ``c``
+If we also allow ``q`` to be a nonzero constant polynomial ``c``, the only polynomial that is partially reduced or reduced with respect to ``c``
 is the zero polynomial.
 
 ---
 
-There also exist the following set based notions of reducedness for action polynomials. For this, let ``p \in S`` and ``M \subset S \setminus \{0\}``.
+There also exist the following set-based notions of reducedness for action polynomials. For this, let ``p \in S`` and ``M \subset S \setminus \{0\}``.
 - ``p`` is called *partially reduced* with respect to ``M``, if ``p`` is partially reduced with respect to all elements of ``M``
 - ``p`` is called *reduced* with respect to ``M``, if ``p`` is reduced with respect to all elements of ``M``
 - The set ``M`` is *autoreduced*, if for any two distinct ``p_1, p_2 \in M``, ``p_1`` is reduced with respect to ``p_2``
@@ -155,7 +155,7 @@ the requirement that an autoreduced set must be ordered with respect to Ritt ord
 This project is structured as follows:
 
 - The section [Action polynomial rings](@ref actionpolyring) contains generic methods that work for all subtypes of the action polynomial ring interface.
-- The sections [Difference polynomial rings](@ref differencepolyring) and [Differential polynomial rings](@ref differentialpolyring) contain functionality that is unique to difference polynomial rings and differential polynomial rings respectively.
+- The sections [Difference polynomial rings](@ref differencepolyring) and [Differential polynomial rings](@ref differentialpolyring) contain functionality that is unique to difference polynomial rings and differential polynomial rings, respectively.
 - The section [Rankings](@ref actionpolyranking) contains the functionality for rankings of jet variables of action polynomial rings.
 
 ## Status
