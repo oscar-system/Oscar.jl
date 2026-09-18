@@ -1430,173 +1430,138 @@ end
 ################################################################
 
 @doc raw"""
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::Vector{<:IntegerUnion})
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::IntegerUnion)
 
-Given a graded quotient `A` of a multivariate polynomial ring over a field, 
-where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
-that group, return the `g`-graded component of `A` as a standard vector space. Additionally,
-return the embedding of the vector space into `A`.
+Given a quotient `A = R/I` of a polynomial ring `R` over a field `K`,
+graded by a finitely generated abelian group, return the homogeneous
+component of `A` of the specified degree as a `K`-vector space,
+together with its embedding into `A`.
 
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
-and given a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `A`, and proceed as above.
-
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
-
-Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
-and given an integer `g`, convert `g` into an element of the grading group of `A`, 
-and proceed as above.
+The degree `d` may be given as an element of the grading group. If the grading
+group has torsion, this is mandatory. In addition, we support the following
+convenience methods:
+* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
+* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
 
 !!! note
-    If the component is infinite dimensional, an error message will be thrown.
+    The computation first enumerates monomials in the underlying polynomial
+    ring `R`. If the grading group has torsion, it first ignores torsion
+    when enumerating candidates. The sets of candidates must be finite;
+    otherwise, an `InfiniteDimensionError` is thrown. Note that this restriction
+    applies even if the requested homogeneous component of `A` is finite-dimensional.
 
 # Examples
+
+The following example compares the degree-two homogeneous components of
+a $\mathbb{Z}$-graded polynomial ring and one of its quotients:
+
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z])
-(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
-julia> L = homogeneous_component(R, 2);
+julia> polynomial_component, _ = homogeneous_component(R, 2);
 
-julia> HC = gens(L[1]);
+julia> dim(polynomial_component)
+10
 
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from R_[2] of dim 10
-  to graded multivariate polynomial ring in 4 variables over QQ
+julia> I = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
 
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-z^2
-y*z
-y^2
-x*z
-x*y
-x^2
-w*z
-w*y
-w*x
-w^2
+julia> A, _ = quo(R, I);
 
-julia> PTC = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
+julia> quotient_component, embedding = homogeneous_component(A, 2);
 
-julia> A, _ = quo(R, PTC);
+julia> dim(quotient_component)
+7
 
-julia> L = homogeneous_component(A, 2);
-
-julia> HC = gens(L[1]);
-
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from quotient space over QQ with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal (-x*z + y^2, -w*z + x*y, -w*y + x^2)
-
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-z^2
-y*z
-x*z
-w*z
-w*y
-w*x
-w^2
+julia> embedding(preimage(embedding, A(y^2))) == A(x*z)
+true
 ```
 
+The following example compares homogeneous components of a
+$\mathbb{Z}^2$-graded polynomial ring and a quotient of that ring.
+The degree is specified by an integer vector:
+
 ```jldoctest
-julia> G = abelian_group([0, 0])
-Z^2
+julia> G = abelian_group([0, 0]);
 
-julia> W = [G[1], G[1], G[2], G[2], G[2]];
+julia> g1, g2 = gens(G);
 
-julia> S, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3; weights = W);
+julia> weights = [g1, g1, g2, g2, g2];
 
-julia> L = homogeneous_component(S, [2,1]);
+julia> S, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3; weights = weights);
 
-julia> HC = gens(L[1]);
+julia> polynomial_component, _ = homogeneous_component(S, [2, 1]);
 
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from S_[2 1] of dim 9
-  to graded multivariate polynomial ring in 5 variables over QQ
+julia> dim(polynomial_component)
+9
 
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-x[2]^2*y[3]
-x[2]^2*y[2]
-x[2]^2*y[1]
-x[1]*x[2]*y[3]
-x[1]*x[2]*y[2]
-x[1]*x[2]*y[1]
-x[1]^2*y[3]
-x[1]^2*y[2]
-x[1]^2*y[1]
+julia> I = ideal(S, [x[1]*y[1] - x[2]*y[2]]);
 
-julia> I = ideal(S, [x[1]*y[1]-x[2]*y[2]]);
+julia> A, _ = quo(S, I);
 
-julia> A, = quo(S, I);
+julia> quotient_component, embedding = homogeneous_component(A, [2, 1]);
 
-julia> L = homogeneous_component(A, [2,1]);
+julia> dim(quotient_component)
+7
 
-julia> HC = gens(L[1]);
+julia> embedding(preimage(embedding, A(x[1]^2*y[1]))) == A(x[1]*x[2]*y[2])
+true
+```
 
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from quotient space over QQ with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal (x[1]*y[1] - x[2]*y[2])
+The following example illustrates a grading group with torsion:
 
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-x[2]^2*y[3]
-x[2]^2*y[2]
-x[2]^2*y[1]
-x[1]*x[2]*y[3]
-x[1]*x[2]*y[2]
-x[1]^2*y[3]
-x[1]^2*y[2]
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> A, _ = quo(R, ideal(R, [x^2]));
+
+julia> V, embedding = homogeneous_component(A, G([2, 0]));
+
+julia> dim(V)
+1
+
+julia> embedding(preimage(embedding, A(y^2))) == A(y^2)
+true
 ```
 """
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      apparently it is possible to get the number of points faster than the points
-  D = parent(d)
-  @assert D == grading_group(W)
-  R = base_ring(W)
-
-  H, mH = try
-    homogeneous_component(R, d)
-  catch e
-    if e isa AbstractAlgebra.InfiniteDimensionError
-      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
-    else
-      rethrow(e)
+function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
+  @req parent(d) == grading_group(A) "The degree must belong to the grading group"
+  R = base_ring(A)
+  H, embedding = homogeneous_component(R, d)
+  leading_monomials = gens(leading_ideal(modulus(A)))
+  cache = Dict{typeof(d), typeof(embedding)}()
+  relations = Set{elem_type(H)}()
+  for m in leading_monomials
+    g = degree(m)
+    component_embedding = get!(cache, g) do
+      homogeneous_component(R, d - g)[2]
+    end
+    for x in gens(domain(component_embedding))
+      push!(relations, preimage(embedding, m * component_embedding(x)))
     end
   end
-
-  I = modulus(W)
-  M = gens(leading_ideal(I))
-  cache = Dict{typeof(d), typeof(mH)}()
-  q = Set{elem_type(H)}()
-  for h = M
-    g = degree(h)
-    mI = get!(cache, g) do
-      return homogeneous_component(R, d-g)[2]
-    end
-    for x = gens(domain(mI))
-      push!(q, preimage(mH, h*mI(x)))
-    end
-  end
-
-  s, ms = sub(H, collect(q))
-  Q, mQ = quo(H, s)
-#  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
+  relation_space, _ = sub(H, collect(relations))
+  Q, projection = quo(H, relation_space)
+  return Q, MapFromFunc(
+    Q, A,
+    x -> A(embedding(preimage(projection, x))),
+    y -> projection(preimage(embedding, y.f)),
+  )
 end
 
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(W)
-  return homogeneous_component(W, grading_group(W)(g))
+function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::Vector{<:IntegerUnion})
+  @req is_zm_graded(A) "The ring must be Z^m-graded"
+  return homogeneous_component(A, grading_group(A)(d))
 end
 
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
-  @assert is_z_graded(W)
-  return homogeneous_component(W, grading_group(W)([g]))
+function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::IntegerUnion)
+  @req is_z_graded(A) "The ring must be Z-graded"
+  return homogeneous_component(A, grading_group(A)([d]))
 end
 
 @doc raw"""

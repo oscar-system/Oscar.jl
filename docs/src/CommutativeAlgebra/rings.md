@@ -404,10 +404,6 @@ monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
-monomial_basis_with_torsion(R::MPolyDecRing, g::FinGenAbGroupElem)
-```
-
-```@docs
 homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
