@@ -82,6 +82,39 @@ end
   @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
+@testset "Experimental.gmodule: solvable quotient" begin
+  # `sq` has to reach the maximal solvable quotient: the whole abelianization
+  # first and then every further layer, and it must not report one where there
+  # is none
+  F = free_group(2)
+  G33, _ = quo(F, [F[1]^3, F[2]^3, comm(F[1], F[2])])
+  C63, _ = quo(F, [F[1]^7, F[2]^9, comm(F[1], F[2])])
+  Z2, _ = quo(F, [comm(F[1], F[2])])
+  G27 = codomain(isomorphism(FPGroup, small_group(27, 3)))
+  S3 = codomain(isomorphism(FPGroup, pc_group(symmetric_group(3)), on_gens = true))
+
+  @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(G33)))) == 9
+
+  # C7 x C9: GAP's abelianization is not on a canonical pcgs here
+  @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(C63)))) == 63
+
+  Q = codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(G27)))
+  @test order(Q) == 27
+  @test abelian_invariants(Q) == ZZRingElem[3, 3]
+
+  # an infinite abelianization admits no maximal finite solvable quotient and no
+  # finite set of usable primes, but bounded steps still work
+  @test_throws ArgumentError Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(Z2))
+  @test_throws ArgumentError Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2))
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2); primes = [2])) == 3
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(F); primes = [2])) == 3
+
+  # the exact prime set refines Brueckner's estimate from 1.3.1
+  _, mq = maximal_abelian_quotient(PcGroup, S3)
+  @test Oscar.RepPc._admissible_primes(mq) == ZZRingElem[3]
+  @test issubset(Oscar.RepPc._admissible_primes(mq), Oscar.RepPc.find_primes(mq))
+end
+
 @testset "Experimental.gmodule natural G-modules" begin
   # for permutation groups
   G = symmetric_group(3)
