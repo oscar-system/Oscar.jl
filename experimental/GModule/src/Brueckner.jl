@@ -158,6 +158,22 @@ end
 
 
 """
+    _admissible_primes(mQ::Map)
+
+Given `mQ: G ->> Q`, the primes `p` for which `Q` has an extension by an
+irreducible `F_p[Q]`-module admitting an epimorphism from `G`.
+
+Those are exactly the primes dividing the torsion of `N^ab`, `N = ker(mQ)`: any
+such module is a quotient of `N`, and conversely a non-zero `N/[N,N]N^p` has an
+irreducible quotient.
+"""
+function _admissible_primes(mQ::Map{<:Oscar.GAPGroup, PcGroup})
+  inv = abelian_invariants(kernel(mQ)[1])
+  @req !(0 in inv) "the kernel has infinite abelianization, so every prime is admissible; pass `primes`"
+  return sort!(unique!(reduce(vcat, (prime_divisors(x) for x in inv), init = ZZRingElem[])))
+end
+
+"""
 Brueckner Chap 1.3.1
 
 Given
@@ -244,7 +260,7 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
   if length(primes) == 0
     @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-    lp = find_primes(mQ) 
+    lp = _admissible_primes(mQ)
   else
     lp = map(ZZRingElem, primes)
   end
@@ -324,12 +340,11 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
    this needs to be "collected"
   =#
 
-  D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
-  K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
-  S = relators(N)
-  if length(S) != 0
-    X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
-  end
+  D, pro, inj = direct_product([M for i in 1:ngens(G)]..., task = :both)
+  # `direct_product` needs at least one factor; a presentation without relators
+  # imposes no conditions on the derivations
+  K = is_empty(R) ? free_module(base_ring(M), 0) :
+                    direct_product([M for i in 1:length(R)]..., task = :none)
 
   function _process(mu; is_trivial::Bool = false, limit::Int)
     res = typeof(mp)[]
@@ -392,11 +407,27 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
 end
 
 function solvable_quotient(G::Oscar.GAPGroup)
+  A, _ = maximal_abelian_quotient(G)
+  if is_finite(A)
+    # not `maximal_abelian_quotient(PcGroup, G)`: GAP hands back a pc group on
+    # a non-canonical pcgs for some inputs, and `isomorphism(PcGroup, .)`
+    # refuses those. Going through `FinGenAbGroup` always gives a full pc
+    # group, which `reps` needs.
+    B, mB = maximal_abelian_quotient(FinGenAbGroup, G)
+    iso = isomorphism(PcGroup, B)
+    return hom(G, codomain(iso), [iso(mB(x)) for x in gens(G)])
+  end
+
+  # no maximal finite abelian quotient to start from
   q = cyclic_group(1)
-  mp = hom(G, q, [one(q) for g in gens(G)])
+  return hom(G, q, [one(q) for g in gens(G)])
 end
 
 function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothing} = nothing)
+  if index === nothing
+    @req is_finite(maximal_abelian_quotient(domain(mp))[1]) "infinite abelianization: there is no maximal finite solvable quotient; pass `index`"
+  end
+
   if index !== nothing
     lf = factor(ZZRingElem(index))
     primes = prime_divisors(ZZ(index))
