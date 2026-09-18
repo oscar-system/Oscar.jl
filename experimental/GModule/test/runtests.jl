@@ -121,6 +121,28 @@ end
   @test all(is_surjective, Oscar.RepPc.brueckner(mq))
   @test length(Oscar.RepPc.brueckner(mq; limit = 1)) == 1
   set_assertion_level(:BruecknerSQ, 0)
+
+  # one class per line through 0 in H^2 suffices: scaling the module pairs
+  # with the identity on Q, so h and l*h yield the same quotients
+  _, m9 = maximal_abelian_quotient(PcGroup, G27)
+  l27 = Oscar.RepPc.brueckner(m9)
+  @test length(l27) == 9
+  @test all(is_surjective, l27)
+  @test all(x -> order(codomain(x)) == 27, l27)
+
+  # `End(M)` is a field that can be bigger than the prime field, and one class
+  # per line over it suffices: here that is 32 epimorphisms instead of 96
+  Q = pc_group(SL(2, 3))
+  mods = [Oscar.GModuleFromGap.gmodule(GF(2), Oscar.GModuleFromGap.gmodule_minimal_field(x))
+          for x in Oscar.RepPc.reps(GF(2, 6), Q)]
+  C = mods[findfirst(x -> dim(x) == 2, mods)]
+  @test length(Oscar.GModuleFromGap.hom_base(C, C)) == 2
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  GG, _, GGpro, _ = Oscar.GrpCoh.extension(PcGroup, z(first(x for x in H2 if !is_zero(x))))
+  iso = isomorphism(FPGroup, GG, on_gens = true)
+  l96 = Oscar.RepPc.brueckner(compose(inv(iso), GGpro); primes = [2])
+  @test length(l96) == 32
+  @test all(x -> order(codomain(x)) == 96, l96)
 end
 
 @testset "Experimental.gmodule natural G-modules" begin

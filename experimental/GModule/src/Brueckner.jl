@@ -414,14 +414,6 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     return res
   end
 
-
-    #TODO: not all "chn" yield distinct groups - the factoring by the
-    #      co-boundaries is missing
-    #      not all "epi" are epi, ie. surjective. The part of the thm
-    #      is missing...
-    # (Thm 15, part b & c) (and the weird lemma)
-
-
   allG = _process(Oscar.GrpCoh.split_extension(PcGroup, C)...; is_trivial = true, limit)
   if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
     return allG
@@ -429,8 +421,70 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
 
   H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
 
+  #= By Schur, E = End_{F_p[N]}(M) is a field, and each of its units is an
+     automorphism of `M` commuting with the action of `N`, so it pairs with
+     the identity on `N`. The isomorphism such a pair induces between the
+     extensions for `h` and `u*h` is then the identity on `N`, so it carries
+     lifts of `mp` to lifts of `mp`, bijectively and preserving both
+     surjectivity and the kernel: one class per E-line through 0 describes
+     every quotient that the whole line does. H^2 is an E-vector space, so
+     that line is the F_p-span of the images of `h` under an F_p-basis of E.
+
+     E-lines are as far as this goes. `Oscar.GrpCoh.compatible_pairs` gives
+     coarser orbits on H^2, but they buy nothing: (a, b) fixes the surjection
+     `mp` only for b = id, and those pairs are exactly the units of E. For
+     b != id the isomorphism E(h) -> E((a,b)*h) induces `b` on `N`, so lifts
+     of `mp` there are lifts of b^-1*mp here and have to be recovered by
+     transporting `mp`. The units of E act freely on H^2 minus 0, hence meet
+     no stabiliser, so an orbit of size s needs s/(|E|-1) transported maps -
+     exactly the number of E-lines it contains. The number of lifts to
+     compute is therefore the same, and all that orbits would save is
+     building each extension once per orbit instead of once per line, which
+     does not pay for the `automorphism_group(M)` inside `compatible_pairs`.
+     (Thm 15, part b & c) (and the weird lemma)
+  =#
+  p = Int(characteristic(base_ring(M)))
+  S = elem_type(N)
+  T = elem_type(M)
+  endo = [hom(M, M, b) for b in Oscar.GModuleFromGap.hom_base(C, C)]
+
+  #= The action of E on H^2 is F_p-linear, so get it once as maps rather than
+     transporting a cochain through `z` for every line: that is one pass over
+     the generators of H^2 instead of one per line. Pushing the cochain of a
+     generator forward along every basis element of E before moving on keeps
+     the values it memoised while being evaluated.
+
+     Over the prime field the line through `h` is spanned by `h`, and no
+     cochain has to be transported at all.
+  =#
+  endo_H2 = if length(endo) == 1
+    [id_hom(H2)]
+  else
+    imgs = map(gens(H2)) do g
+      c = z(g)
+      [preimage(z, Oscar.GrpCoh.CoChain{2, S, T}(C, Dict{NTuple{2, S}, T}(),
+                                                 x -> b(c(x[1], x[2]))))
+       for b in endo]
+    end
+    [hom(H2, H2, [imgs[i][j] for i in 1:ngens(H2)]) for j in 1:length(endo)]
+  end
+
+  function _line(h)
+    line = [zero(H2)]
+    for f in endo_H2
+      g = f(h)
+      line = [x + l*g for x in line for l in 0:p-1]
+    end
+    return line
+  end
+
+  seen = Set{elem_type(H2)}()
+
   for h in H2
     is_zero(h) && continue
+    h in seen && continue
+    union!(seen, _line(h))
+
     append!(allG, _process(Oscar.GrpCoh.extension(PcGroup, z(h))...; is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
       return allG
