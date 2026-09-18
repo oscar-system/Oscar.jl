@@ -434,9 +434,7 @@ is equal to `N`.
 function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  if !is_isomorphic(F, G)
-    return false
-  end
+  _has_canonical_isomorphism(F, G) || return false
   f = canonical_isomorphism(F,G)
   return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
 end

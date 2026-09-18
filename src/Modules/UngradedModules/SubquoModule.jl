@@ -962,9 +962,7 @@ true
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  if !is_isomorphic(F, G)
-    return false
-  end
+  _has_canonical_isomorphism(F, G) || return false
   return compare_helper(M, N, is_canonically_isomorphic)
 end
 
