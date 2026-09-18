@@ -1679,7 +1679,8 @@ More precisely, return a tuple `(gs, PM, sect)`, say, where
 
 !!! note
     The function works if both `A` and `B` are ungraded or if both `A` and `B`
-    are $\mathbb Z$-graded with positive weights and `F` respects degrees.
+    are $\mathbb Z$-graded with positive weights and `F` respects degrees. In
+    other graded cases use `forget_grading` first.
 
 # Examples
 julia> A, (a,) = polynomial_ring(QQ, [:a]);
@@ -1783,11 +1784,11 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   A, B = F.domain, F.codomain
   AR = A isa MPolyQuoRing ? base_ring(A) : A
   BR = B isa MPolyQuoRing ? base_ring(B) : B
+  @assert base_ring(AR) == base_ring(BR)
+  @req base_ring(AR) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  K = base_ring(AR)
   x, y = gens(AR), gens(BR)
   lx, ly = ngens(AR), ngens(BR)
-  @req base_ring(AR) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  @assert base_ring(AR) == base_ring(BR)
-  K = base_ring(AR)
   gr_check = is_graded(AR) || is_graded(BR)
   if gr_check
     @assert is_z_graded(AR) == is_z_graded(BR) == true
@@ -1807,13 +1808,8 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   #####
 
   if gr_check
-    if !is_standard_graded(AR)
-      TR, yT, xT = graded_polynomial_ring(K, symbols(BR), symbols(AR), weights = Wyx)
-      Oscar.set_default_ordering!(TR, wdegrevlex(yT, Wy)*wdegrevlex(xT, Wx))
-    else
-      TR, yT, xT = graded_polynomial_ring(K, symbols(BR), symbols(AR))
-      Oscar.set_default_ordering!(TR, degrevlex(yT)*degrevlex(xT))
-    end
+    TR, yT, xT = graded_polynomial_ring(K, symbols(BR), symbols(AR), weights = Wyx)
+    Oscar.set_default_ordering!(TR, wdegrevlex(yT, Wy)*wdegrevlex(xT, Wx))
   else
     TR, yT, xT = polynomial_ring(K, symbols(BR), symbols(AR))
     Oscar.set_default_ordering!(TR, degrevlex(yT)*degrevlex(xT))
@@ -1867,7 +1863,7 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
 
   # We apply the integrality criterion for affine K-algebra homomorphisms:
   # F is finite (that is, B is integral over A) iff lead_y_Gpolys contains
-  # a power of y[i] for each i. We collect these powers in the vector
+  # a power of y[i] for each i. We collect the least such powers in the vector
   # bounds. We then know that with respect to the given product ordering,
   # there are only finitely many standard (or staircase) monomials which depend
   # on the y-variables only. We collect these y-monomials in the vector gs_in_TR.
@@ -1911,8 +1907,8 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
 
   gs_in_TR = [y_monomial_in_TR(e) for e in y_staircase_exponents]
   gs = [y_monomial_in_BR(e) for e in y_staircase_exponents]
-  gs[end] == one(BR)  || error("internal error:
-                       the last generator should be 1")
+  gs[end] == one(BR) || error("internal error:
+                        the last generator should be 1")
   lgs = length(gs)
 
   #####
@@ -1976,7 +1972,6 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
 
   if other_Gpolys == []
     PM = Matrix{elem_type(AR)}[]
-    #PM = []
   else
      relation_rows = _interreduce(relation_rows, gr_check)
      PM = Matrix{elem_type(AR)}(undef, length(relation_rows), lgs)
@@ -1997,9 +1992,10 @@ function _interreduce(V::Vector, gr_check::Bool)
   R = parent(V[1][1])
   lVs = length(V[1])
   if gr_check
+    @assert is_z_graded(R)
     F0 = graded_free_module(R, lVs)
     if !is_standard_graded(R)
-      fmo = invlex(F0)*wdegrevlex(Wx)
+      fmo = invlex(F0)*wdegrevlex(R, weights(Int, R))
     else
       fmo = invlex(F0)*degrevlex(R)
     end
