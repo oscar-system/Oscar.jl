@@ -266,6 +266,15 @@ function is_zero(F::AbstractFreeMod)
   return rank(F) == 0
 end
 
+# Whether `canonical_isomorphism(F, G)` succeeds: the identification of the
+# generators must be forced, which for graded modules means pairwise distinct
+# degrees.
+function _has_canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+  F == G && return true
+  is_isomorphic(F, G) || return false
+  return !is_graded(F) || allunique(F.d)
+end
+
 @doc raw"""
     canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T})
 

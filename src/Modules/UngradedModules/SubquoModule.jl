@@ -961,9 +961,7 @@ true
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  if !is_isomorphic(F, G)
-    return false
-  end
+  _has_canonical_isomorphism(F, G) || return false
   return compare_helper(M, N, is_canonically_isomorphic)
 end
 
@@ -1019,7 +1017,7 @@ function is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{
     f = restrict_codomain(f, N)
     return true, f
   else
-    return false, hom(M, N, [zero(N) for _ in 1:gens(M)])
+    return false, hom(M, N, [zero(N) for _ in 1:ngens(M)])
   end
 end
 
