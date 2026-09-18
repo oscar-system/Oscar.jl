@@ -20,8 +20,8 @@ difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps:
 difference_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int; kwargs...)
 ```
 
-We provide the following constructors to create difference polynomial rings with arbitrary commuting shift operators. We verify that
-the shift operators commute on generators of the coefficient ring `R`.
+We provide the following constructors to create difference polynomial rings with arbitrary commuting shift operators. Note that commutativity
+is not actually checked and that ensuring it is left to the user.
 
 ```@docs
 difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}

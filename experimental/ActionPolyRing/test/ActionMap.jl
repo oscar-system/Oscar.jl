@@ -7,9 +7,6 @@
     s_QQ = action_shift(QQ)
     d_QQ = action_derivation(QQ)
 
-    @test_throws ArgumentError action_derivation(s_ZZ)
-    @test_throws ArgumentError action_shift(d_ZZ)
-
     @test s_ZZ isa Oscar.TrivialActionShift
     @test s_QQ isa Oscar.TrivialActionShift
     @test d_ZZ isa Oscar.TrivialActionDerivation
@@ -73,9 +70,6 @@
     @test ddx isa Oscar.NontrivialActionDerivation
     @test ddx(x^3 * y^2) == 3*x^2*y^2
     @test ddx(y^2 + 2*y + 1) == 0
-
-    @test_throws ArgumentError action_derivation(swap_hom)
-    @test_throws ArgumentError action_shift(mmf_ddx)
   end
   @testset "Rational function fields" begin
     R, x = polynomial_ring(QQ, :x)

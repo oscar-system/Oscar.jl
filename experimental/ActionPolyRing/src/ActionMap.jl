@@ -7,14 +7,11 @@ Construct the zero derivation on the ring `R`.
 action_derivation(R::Ring) = TrivialActionDerivation{typeof(R)}(R)
 
 @doc raw"""
-    action_derivation(m::Map{D, D}; check::Bool=true) where {D <: Ring}
+    action_derivation(m::Map{D, D}) where {D <: Ring}
 
-Wrap the map `m` into an `ActionDerivation`. If `check` is true, a heuristic validation on the generators is performed.
+Wrap the map `m` into an `ActionDerivation`. This does not check whether `m` is actually a derivation.
 """
-function action_derivation(m::Map{D, D}; check::Bool=true) where {D <: Ring}
-  check && @req __is_probably_valid_derivation(m) "The provided map fails the Leibniz rule or additivity on generators; it is not a valid derivation"
-  return NontrivialActionDerivation{D}(m)
-end
+action_derivation(m::Map{D, D}) where {D <: Ring} = NontrivialActionDerivation{D}(m)
 
 @doc raw"""
     action_shift(R::Ring)
@@ -24,14 +21,11 @@ Construct the trivial shift, i.e. the identity map on the ring `R`.
 action_shift(R::Ring) = TrivialActionShift{typeof(R)}(R)
 
 @doc raw"""
-    action_shift(m::Map{D, D}; check::Bool=true) where {D <: Ring}
+    action_shift(m::Map{D, D}) where {D <: Ring}
 
-Wrap the map `m` into an `ActionShift`. If `check` is true, a heuristic validation on the generators is performed.
+Wrap the map `m` into an `ActionShift`. This does not check whether `m` is actually a shift operator.
 """
-function action_shift(m::Map{D, D}; check::Bool=true) where {D <: Ring}
-  check && @req __is_probably_valid_shift(m) "The provided map fails multiplicativity or additivity on generators; it is not a valid shift"
-  return NontrivialActionShift{D}(m)
-end
+action_shift(m::Map{D, D}) where {D <: Ring} = NontrivialActionShift{D}(m)
 
 ### Getters
 domain(m::Union{TrivialActionDerivation, TrivialActionShift}) = m.domain
@@ -50,68 +44,4 @@ function (m::TrivialActionDerivation)(x)
 end
 (m::TrivialActionShift)(x) = domain(m)(x)
 (m::Union{NontrivialActionDerivation, NontrivialActionShift})(x) = __underlying_map(m)(domain(m)(x))
-
-### Heuristic verifiers
-function __is_probably_valid_shift(m::Map{D, D}) where {D <: Ring}
-  m isa AbstractAlgebra.Generic.IdentityMap && return true
-  R = domain(m)
-
-  (!is_one(m(one(R))) || !is_zero(m(zero(R)))) && return false
-
-  G = gens(R)
-  mG = [m(g) for g in G]
-  n = length(G)
-  @inbounds for i in 1:n
-    @inbounds for j in i:n
-      (m(G[i] + G[j]) != mG[i] + mG[j]) && return false
-      (m(G[i] * G[j]) != mG[i] * mG[j]) && return false
-    end
-  end
-  return true
-end
-
-function __is_probably_valid_derivation(m::Map{D, D}) where {D <: Ring}
-  R = domain(m)
-
-  !is_zero(m(one(R))) && return false
-
-  G = gens(R)
-  mG = [m(g) for g in G]
-  n = length(G)
-  @inbounds for i in 1:n
-    for j in i:n
-      (m(G[i] + G[j]) != mG[i] + mG[j]) && return false
-      (m(G[i] * G[j]) != mG[i] * G[j] + G[i] * mG[j]) && return false
-    end
-  end
-
-  return true
-end
-
-function __are_probably_commuting(m1::ActionMap{D}, m2::ActionMap{D}) where {D <: Ring}
-  @req domain(m1) === domain(m2) "The domains of the action maps do not coincide"
-
-  if m1 isa Union{TrivialActionShift, TrivialActionDerivation} ||
-     m2 isa Union{TrivialActionShift, TrivialActionDerivation}
-    return true
-  end
-
-  gdom = gens(domain(m1))
-  for g in gdom
-    m1(m2(g)) != m2(m1(g)) && return false
-  end
-
-  return true
-end
-
-function __are_probably_commuting(maps::Vector{<:ActionMap{D}}) where {D <: Ring}
-  n = length(maps)
-  @inbounds for i in 1:n
-    for j in (i + 1):n
-      !__are_probably_commuting(maps[i], maps[j]) && return false
-    end
-  end
-
-  return true
-end
 

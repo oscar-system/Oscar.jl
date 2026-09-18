@@ -65,8 +65,6 @@
       S, x = polynomial_ring(QQ, :x)
       non_comm_shifts = action_shift.([hom(S, S, -x), hom(S, S, x + 1)]) # ax + b and cx + d commute, iff d(a - 1) = b(c - 1)
       non_comm_derivations = action_derivation.([map_from_func(S, S, p -> derivative(p)), map_from_func(S, S, p -> x * derivative(p))])
-      @test_throws ArgumentError difference_polynomial_ring(S, 1, non_comm_shifts)
-      @test_throws ArgumentError differential_polynomial_ring(S, 1, non_comm_derivations)
       @test_throws MethodError difference_polynomial_ring(S, 1, non_comm_derivations)
       @test_throws MethodError differential_polynomial_ring(S, 1, non_comm_shifts)
     end
