@@ -357,14 +357,19 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   ordZN = ngens(N) == 0 ? ZZ(1) :
                           order(kernel(Oscar.GrpCoh.H_one_maps(C)[2])[1])
 
-  # the canonical lifts of the generators of `G`, and the defects of the
-  # relators there
-  function _lifted_gens(GG, GGinj, GGpro, GMtoGG)
+  # the canonical lifts of the generators of `G` into an extension
+  function _lifted_gens(ext)
+    GG, _, _, GMtoGG = ext
     gns = [GMtoGG([x for x in Oscar.GAPWrap.ExtRepOfObj(GapObj(h))], zero(M)) for h in gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g in gens(G)]
+    return [map_word(mp(g), gns, init = one(GG)) for g in gens(G)]
+  end
+
+  # by how much the relators of `G` miss being satisfied there
+  function _defect(ext, gns)
+    GG, GGinj, GGpro, _ = ext
     rel = [map_word(r, gns, init = one(GG)) for r in R]
     @assert all(x->isone(GGpro(x)), rel)
-    return gns, [preimage(GGinj, x) for x in rel]
+    return K([preimage(GGinj, x) for x in rel])
   end
 
   #= Replacing `gns[i]` by `gns[i]*m` moves the relator defects by a map that
@@ -375,18 +380,19 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
      a large quotient dwarfs everything else here.
   =#
   ext0 = Oscar.GrpCoh.split_extension(PcGroup, C)
-  gns0, rhs0 = _lifted_gens(ext0...)
-  @hassert :BruecknerSQ 1 all(is_zero, rhs0)
-  s = hom(D, K, [K([preimage(ext0[2], map_word(r, [gns0[i] * ext0[2](pro[i](h)) for i in 1:ngens(G)])) for r in R] .- rhs0) for h in gens(D)])
+  gns0 = _lifted_gens(ext0)
+  @hassert :BruecknerSQ 1 is_zero(_defect(ext0, gns0))
+  s = hom(D, K, [K([preimage(ext0[2], map_word(r, [gns0[i] * ext0[2](pro[i](h)) for i in 1:ngens(G)])) for r in R]) for h in gens(D)])
   k, mk = kernel(s)
 
-  function _process(GG, GGinj, GGpro, GMtoGG; is_trivial::Bool = false, limit::Int)
+  # `pe` solves s(pe) = defect, so the twist -pe kills the relators
+  function _process(ext, pe; is_trivial::Bool = false, limit::Int)
+    GG, GGinj, GGpro, _ = ext
     res = typeof(mp)[]
     @assert isa(GG, PcGroup)
 
-    gns, rhs = _lifted_gens(GG, GGinj, GGpro, GMtoGG)
-    fl, pe = has_preimage_with_preimage(s, K(rhs))
-    fl || return res
+    gns = _lifted_gens(ext)
+    @hassert :BruecknerSQ 1 s(pe) == _defect(ext, gns)
 
     #= The lifts form a torsor under Z^1(G, M) = `k`. Such a lift misses `M`
        iff its image is a complement to `M` in `GG`, since the image meets `M`
@@ -429,7 +435,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     return res
   end
 
-  allG = _process(ext0...; is_trivial = true, limit)
+  allG = _process(ext0, zero(D); is_trivial = true, limit)
   if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
     return allG
   end
@@ -493,6 +499,15 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     return line
   end
 
+  #= The defects are linear in the cocycle as well - a relator evaluates to a
+     sum of cocycle values moved around by the action - so read them off a map
+     built from the generators of H^2. Deciding whether a class lifts is then
+     linear algebra, and only the classes that do lift need their extension
+     built.
+  =#
+  rhs_H2 = hom(H2, K, elem_type(K)[_defect(e, _lifted_gens(e)) for e in
+                       (Oscar.GrpCoh.extension(PcGroup, z(g)) for g in gens(H2))])
+
   seen = Set{elem_type(H2)}()
 
   for h in H2
@@ -500,7 +515,10 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     h in seen && continue
     union!(seen, _line(h))
 
-    append!(allG, _process(Oscar.GrpCoh.extension(PcGroup, z(h))...; is_trivial = false, limit = limit - length(allG)))
+    fl, pe = has_preimage_with_preimage(s, rhs_H2(h))
+    fl || continue
+
+    append!(allG, _process(Oscar.GrpCoh.extension(PcGroup, z(h)), pe; is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
       return allG
     end
