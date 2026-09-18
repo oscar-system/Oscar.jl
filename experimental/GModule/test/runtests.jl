@@ -143,6 +143,17 @@ end
   l96 = Oscar.RepPc.brueckner(compose(inv(iso), GGpro); primes = [2])
   @test length(l96) == 32
   @test all(x -> order(codomain(x)) == 96, l96)
+
+  # a dimension bound prunes branches of the pc chain rather than filtering at
+  # the end, so it has to give the unbounded answer restricted to those dimensions
+  Q23 = pc_group(SL(2, 3))
+  allr = Oscar.RepPc.reps(GF(3, 6), Q23)
+  @test sort(unique([dim(x) for x in allr])) == [1, 2, 3]
+  for b in 1:3
+    @test sort([dim(x) for x in Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = b)]) ==
+          sort([dim(x) for x in allr if dim(x) <= b])
+  end
+  @test_throws ArgumentError Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = 0)
 end
 
 @testset "Experimental.gmodule natural G-modules" begin

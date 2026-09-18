@@ -12,6 +12,11 @@ using Oscar
   For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
 
+`dim_bound` restricts the search to representations of at most that
+dimension. Dimensions only grow along the pc chain, so a bound prunes whole
+branches rather than filtering at the end - which is the difference between
+answering and not answering for a large `G`.
+
 Note: the reps are NOT necessarily over the smallest field.
 
 Note: the field is NOT extended - but it throws an error if it was too small.
@@ -22,8 +27,9 @@ Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
 
 Implements: Brueckner, Chap 1.2.3
 """
-function reps(K, G::Oscar.PcGroup)
+function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int))
   @req is_finite(G) "the group is not finite"
+  @req dim_bound >= 1 "the dimension bound has to be positive"
   if order(G) == 1
     F = free_module(K, 1)
     h = hom(F, F, [F[1]])
@@ -99,6 +105,12 @@ function reps(K, G::Oscar.PcGroup)
           end
         else #need to extend dim
           n = dim(r)
+          # inducing multiplies the dimension by `p` and nothing further down
+          # the chain ever shrinks it, so this branch is out of range for good.
+          # The `h`-conjugates of `r` have the same dimension, so they drop out
+          # here too and need not be marked as done.
+          n*p > dim_bound && continue
+
           F = free_module(K, dim(r)*p)
 
           # a block permutation matrix for the element `h`
