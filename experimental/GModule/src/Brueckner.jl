@@ -273,22 +273,24 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
 
   allR = []
 
-  # collect lifts for the given primes; `true` once `limit` of them are known
-  function _extend_by(lp::Vector{ZZRingElem})
-    @vprint :BruecknerSQ 1 "using primes $lp\n"
+  # collect lifts for the given primes, from modules of dimension in
+  # `lo+1:hi`; `true` once `limit` of them are known
+  function _extend_by(lp::Vector{ZZRingElem}, lo::Int, hi::Int)
+    @vprint :BruecknerSQ 1 "using primes $lp, dimensions $(lo+1) to $hi\n"
     for p in lp
       _, j = ppio(exponent(Q), p)
       f = j == 1 ? 1 : modord(p, j)
       @assert (p^f-1) % j == 0
       @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
       if f == 1
-        @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q)
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q; dim_bound = hi)
       else
-        @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q; dim_bound = hi)
       end
       @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
 
       for i in I
+        dim(i) > lo || continue     # already tried in an earlier round
         @vprint :BruecknerSQ 1 "starting to process module\n"
         @vprint :BruecknerSQ 2 "... transfer over min. field\n"
         @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
@@ -305,8 +307,25 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
     return false
   end
 
+  #= The dimension bound prunes the pc chain rather than the answer, so asking
+     for small modules first is far cheaper than asking for all of them and
+     is usually where the next layer is anyway. Walk it upward, and pay for
+     the complete set only if nothing turned up. A caller that wants every
+     lift has to pay for it either way and goes straight there.
+  =#
+  function _search(lp::Vector{ZZRingElem})
+    limit == typemax(Int) && return _extend_by(lp, 0, typemax(Int))
+
+    lo = 0
+    for hi in (1, 2, 4)
+      _extend_by(lp, lo, hi) && return true
+      lo = hi
+    end
+    return _extend_by(lp, lo, typemax(Int))
+  end
+
   if length(primes) > 0
-    _extend_by(map(ZZRingElem, primes))
+    _search(map(ZZRingElem, primes))
     return allR
   end
 
@@ -317,10 +336,10 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
      straight there.
   =#
   cheap = limit == typemax(Int) ? ZZRingElem[] : sort(prime_divisors(order(Q)))
-  _extend_by(cheap) && return allR
+  _search(cheap) && return allR
 
   @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-  _extend_by(setdiff(_admissible_primes(mQ), cheap))
+  _search(setdiff(_admissible_primes(mQ), cheap))
   return allR
 end
 
