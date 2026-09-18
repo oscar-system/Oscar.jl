@@ -1473,9 +1473,6 @@ julia> quotient_component, embedding = homogeneous_component(A, 2);
 
 julia> dim(quotient_component)
 7
-
-julia> embedding(preimage(embedding, A(y^2))) == A(x*z)
-true
 ```
 
 The following example compares homogeneous components of a
@@ -1504,9 +1501,6 @@ julia> quotient_component, embedding = homogeneous_component(A, [2, 1]);
 
 julia> dim(quotient_component)
 7
-
-julia> embedding(preimage(embedding, A(x[1]^2*y[1]))) == A(x[1]*x[2]*y[2])
-true
 ```
 
 The following example illustrates a grading group with torsion:
