@@ -81,15 +81,15 @@ function quiver_representation(quiver::Graph{Directed}, ambient_dims::Vector{Int
 end
 
 ####Internal functions for Quiver Grassmannian
-function sign_j(j::Int, I::Vector{Int}, J::Vector{Int})
-    g = count(>(j), J) + count(>(j), I)  
+function sign_ij(i::Int, j::Int, I::Vector{Int}, J::Vector{Int})
+    g = count(<=(j), J) + count(<=(i), I)  
     return (-1)^(g)
 end
 
 #returns generator for (I,J) pair associated with an edge
 function P_gen(A::MatElem, I::Vector{Int}, J::Vector{Int}, e::Edge, n1::Int, xdict::AbstractDict)
     N = 1:n1
-    return sum(sign_j(j, I, J)*A[i,j]*xdict[(src(e),sort(union(I,j)))]*xdict[(dst(e),setdiff(J,i))] for 
+    return sum(sign_ij(i, j, I, J)*A[i,j]*xdict[(src(e),sort(union(I,j)))]*xdict[(dst(e),setdiff(J,i))] for 
                 j in setdiff(N,I), i in J);# init=0)
 end
 
