@@ -2,7 +2,7 @@
 
 ###############################################################################
 #
-#  Conversion type 
+#  Conversion type
 #
 ###############################################################################
 
@@ -24,7 +24,7 @@ end
 
 ###############################################################################
 #
-#  Variable extraction 
+#  Variable extraction
 #
 ###############################################################################
 
@@ -32,18 +32,18 @@ function __extract_occ_vars(F::AbstractVector{<:ActionPolyRingElem{T}}) where {T
   @req !isempty(F) "Cannot extract variables from an empty vector of action polynomials"
   R = parent(first(F))
   @req all(p -> parent(p) === R, F) "All polynomials must belong to the same ring"
-  
+
   var_set = Set{elem_type(R)}()
   for p in F
     union!(var_set, vars(p; sorted=false))
   end
-  
+
   return collect(var_set)
 end  
 
 ###############################################################################
 #
-#  Construction 
+#  Construction
 #
 ###############################################################################
 
@@ -54,29 +54,29 @@ function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractV
   if revsorted
     jet_vars = sort(jet_vars; rev=true)
   end
-  
+
   R = base_ring(base_ring(apr)) 
   n = length(jet_vars)
   S, S_vars = polynomial_ring(coefficient_ring(apr), n)
-  
+
   fwd_images = zeros(S, ngens(R))
   bwd_images = zeros(R, n)
-  
-  jtu = __jtu_idx(apr) 
+
+  jtu = __jtu_idx(apr)
   vtj = __vtj(apr) 
 
   for (i, v) in enumerate(jet_vars)
-    raw_idx = jtu[vtj[v]] 
+    raw_idx = jtu[vtj[v]]
     fwd_images[raw_idx] = S_vars[i]
     bwd_images[i] = gen(R, raw_idx)
   end
-  
+
   fwd_map = hom(R, S, fwd_images)
   bwd_map = hom(S, R, bwd_images)
-  
+
   supported_vars = Set(jet_vars)
   current_size = length(__jtv(apr))
-  
+
   return __AlgebraicConversionData(apr, S, fwd_map, bwd_map, supported_vars, current_size)
 end
 
@@ -88,7 +88,7 @@ __algebraic_conversion_data_from_polys(apr::ActionPolyRing{T}, F::AbstractVector
 
 ###############################################################################
 #
-#  Applying conversions 
+#  Applying conversions
 #
 ###############################################################################
 
@@ -113,14 +113,14 @@ end
 
 ###############################################################################
 #
-#  IO 
+#  IO
 #
 ###############################################################################
 
 function Base.show(io::IO, ::MIME"text/plain", conv::__AlgebraicConversionData)
   io = pretty(io)
   is_valid = length(__jtv(conv.apr)) == conv.original_ring_size
-  
+
   if !is_valid
     print(io, "Outdated conversion data for ", Lowercase(), conv.apr, "\n")
     print(io, Indent())
@@ -138,7 +138,7 @@ end
 function Base.show(io::IO, conv::__AlgebraicConversionData)
   io = pretty(io)
   is_valid = length(__jtv(conv.apr)) == conv.original_ring_size
-  
+
   if is_terse(io)
     print(io, is_valid ? "Conversion data" : "Outdated conversion data")
   else
