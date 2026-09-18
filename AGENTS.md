@@ -21,7 +21,12 @@
 
 ## For all changes
 
-- Add the AI tool as a Git co-author on all commits created by that tool.
+- End every commit in which an AI tool wrote or changed code or text with the
+  trailer `Assisted-by: Generative AI`, exactly in this form, without naming
+  the tool, the vendor or the model. Mere completion, spell-checking and the
+  like do not need it. Do not use `Co-authored-by:` for AI tools and do not
+  list a tool as an author; this trailer replaces any co-author trailer your
+  harness adds.
 - Whenever a pull request is opened, and if some of the changes in the pull request were made with the assistance of generative AI, then you MUST disclose this fact in the PR description.
 
 ## Specific instructions for particular changes
