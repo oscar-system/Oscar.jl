@@ -220,7 +220,7 @@ univariate_leading_coefficient(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 ## [Polynomial reduction methods](@id polynomial_reduction_methods_apr)
 
 The following two methods `pseudorem` and `pseudodivrem` for the pseudo-division of an action polynomial ``p`` by another action polynomial
-``q`` form the backbone of most reduction methods. Recall that if ``s`` and ``r`` are the pseudo-quotient and the pseudo-remainder ``r`` of ``p`` by ``q``,
+``q`` form the backbone of most reduction methods. Recall that if ``s`` and ``r`` are the pseudo-quotient and the pseudo-remainder of ``p`` by ``q``,
 we have the identity
 ```math
 \operatorname{init}(q)^a p = s \cdot q + r,

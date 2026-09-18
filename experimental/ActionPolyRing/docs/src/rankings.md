@@ -1,7 +1,7 @@
 # [Riquier rankings in OSCAR](@id riquier_rankings_in_OSCAR)
 
 In OSCAR, we define rankings, i.e., total orderings of ``X``, by combining the natural *less-than* relation on ``\underline{m}``
-with a customisable total ordering on ``\mathbb{N}_0^n``. The latter is constructed as a matrix ordering; see
+with a customizable total ordering on ``\mathbb{N}_0^n``. The latter is constructed as a matrix ordering; see
 [`index_ordering_matrix`](@ref).
 
 The way of combining these two total orderings to obtain a total ordering of ``X`` is specified by an ordered partition of
