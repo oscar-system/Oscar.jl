@@ -154,6 +154,14 @@ end
           sort([dim(x) for x in allr if dim(x) <= b])
   end
   @test_throws ArgumentError Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = 0)
+
+  # cross-check against GAP's own solvable quotient algorithm
+  bound = GAP.Obj((2*3*5*7)^6)
+  for H in [G33, G27, S3]
+    e = GAP.Globals.EpimorphismSolvableQuotient(GapObj(H), bound)
+    @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(H)))) ==
+          GAP.Globals.Size(GAP.Globals.Image(e))
+  end
 end
 
 @testset "Experimental.gmodule natural G-modules" begin
