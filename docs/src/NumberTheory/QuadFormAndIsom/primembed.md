@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Nikulin's theory on primitive embeddings
 
 We introduce here the necessary definitions and results which lie behind the

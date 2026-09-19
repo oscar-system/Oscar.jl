@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Differential polynomial rings](@id differentialpolyring)
 
 A differential polynomial ring over the commutative ring ``R`` is an action polynomial ring ``A`` whose action maps are derivations of ``A``, i.e. ``R``-linear maps that also satisfy the Leibniz-rule.

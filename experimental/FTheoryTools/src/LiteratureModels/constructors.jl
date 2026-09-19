@@ -786,8 +786,12 @@ function _set_all_attributes(
   if haskey(model_dict, "birational_models")
     for m in model_dict["birational_models"]
       model_data = JSON.parsefile(joinpath(@__DIR__, "Models", m))
-      if model_data["model_descriptors"]["type"] == "weierstrass"
-        set_attribute!(model, :weierstrass_model => m)
+      model_type = model_data["model_descriptors"]["type"]
+      model_index = parse(Int, model_data["model_index"])
+      if model_type == "weierstrass"
+        set_attribute!(model, :weierstrass_model_index => model_index)
+      elseif model_type == "tate"
+        set_attribute!(model, :global_tate_model_index => model_index)
       end
     end
   end

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Injective Resolutions
 Let $k[Q]$ be a monoid algebra for $Q\subset \mathbb{Z}^d$ and, let $M$ be a finitely 
 generated $\mathbb{Z}^d$-graded module over $k[Q]$. 

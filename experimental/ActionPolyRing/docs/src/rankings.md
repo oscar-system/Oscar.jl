@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Riquier rankings in OSCAR](@id riquier_rankings_in_OSCAR)
 
 In OSCAR, we define rankings, i.e., total orderings of ``X``, by combining the natural *less-than* relation on ``\underline{m}``

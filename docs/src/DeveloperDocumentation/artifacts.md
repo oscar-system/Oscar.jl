@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Artifacts
 
 This page explains what artifacts are, when to use them, and how to work with them in `Oscar.jl`.

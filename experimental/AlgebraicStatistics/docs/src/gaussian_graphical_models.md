@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Gaussian Graphical Models
 
 Gaussian graphical model types are parametrized as `GaussianGraphicalModel{T, L}` where `T` represents the type of graph and `L` represents the labelings of the graph. The parameters `T` and `L` are determined by the graph used to construct the model.

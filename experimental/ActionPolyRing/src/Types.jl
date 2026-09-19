@@ -1,19 +1,19 @@
 ###############################################################################
 #
-#  Action polynomial rings 
+#  Action polynomial rings
 #
 ###############################################################################
 
 abstract type ActionPolyRing{T} <: Ring end
 abstract type ActionPolyRingElem{T} <: RingElem end
 
- # To be implemented by subtypes: 
+ # To be implemented by subtypes:
  # Mandatory:
  #  Getters:
  #   __are_perms_up_to_date(R::MyActionPolyRing) -> Bool
  #   __is_perm_up_to_date(x::MyActionPolyRing) -> Bool
  #   __jtu_idx(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, Int}
- #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}} 
+ #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}}
  #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
  #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
  #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
@@ -23,7 +23,7 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   action_indeterminates(R::MyActionPolyRing) -> Vector{Symbols}
  #   n_action_maps(R::MyActionPolyRing) -> Int
  #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
- #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
+ #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T}
  #   ranking(R::MyActionPolyRing{T}) -> ActionPolyRingRanking{MyActionPolyRing{T}}
  #
  #  Setters:
@@ -78,16 +78,16 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
     action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
     return DifferencePolyRing{T}(R, action_indeterminates, n_action_maps)
   end
- 
+
   function DifferencePolyRing{T}(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int) where {T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req n_action_maps >= 1 "The number of endomorphisms must be positive"
     upoly_ring = universal_polynomial_ring(R; cached = false)
-    
+
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
+
     return new{T}(upoly_ring, action_indeterminates, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
@@ -125,16 +125,16 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
     action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
     return DifferentialPolyRing{T}(R, action_indeterminates, n_action_maps)
   end
- 
+
   function DifferentialPolyRing{T}(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int) where {T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req n_action_maps >= 1 "The number of endomorphisms must be nonnegative"
     upoly_ring = universal_polynomial_ring(R; cached = false)
-    
+
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}()
     var_to_jet = Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
+
     return new{T}(upoly_ring, action_indeterminates, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
@@ -157,7 +157,7 @@ end
 
 ###############################################################################
 #
-#  Iterator types 
+#  Iterator types
 #
 ###############################################################################
 
@@ -168,7 +168,7 @@ struct ActionPolyMonomials{PolyT<:ActionPolyRingElem} poly::PolyT end
 
 ###############################################################################
 #
-#  Rankings 
+#  Rankings
 #
 ###############################################################################
 
@@ -190,6 +190,6 @@ mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   function ActionPolyRingRanking{PolyT}(S::PolyT, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T, PolyT <: ActionPolyRing{T}}
     return new{PolyT}(S, partition, index_ordering_matrix)
   end
-  
+
 end
 

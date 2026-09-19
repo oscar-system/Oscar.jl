@@ -41,7 +41,7 @@ function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = t
   flag, GapG = has_GapObj_with_GapObj(G)
   flag || return matrix_group(base_ring(G), degree(G), gens)
   elems_in_GAP = GapObj(gens; recursive = true)
-  H = GAP.Globals.SubgroupNC(GapG, elems_in_GAP)::GapObj
+  H = GAPWrap.SubgroupNC(GapG, elems_in_GAP)
   return _as_subgroup(G, H)
 end
 
@@ -294,7 +294,7 @@ julia> centralizer(g, h)
 """
 function centralizer(G::GAPGroup, H::GAPGroup)
   _check_compatible(G, H)
-  return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(H)))
+  return _as_subgroup(G, GAPWrap.Centralizer(GapObj(G), GapObj(H)))
 end
 
 @doc raw"""
@@ -314,7 +314,7 @@ julia> centralizer(g, x)
 ```
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
-  return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(x)))
+  return _as_subgroup(G, GAPWrap.Centralizer(GapObj(G), GapObj(x)))
 end
 
 ################################################################################
@@ -1274,7 +1274,7 @@ end
 
 function intersect(V::AbstractVector{<:GAPGroup})
    L = GapObj(V; recursive = true)
-   K = GAP.Globals.Intersection(L)::GapObj
+   K = GAPWrap.Intersection(L)
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))

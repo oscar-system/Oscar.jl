@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Useful functions to generate context
 The functions in this section provide context for
 Drinfeld-Hecke algebras, for example if one wants to calculate

@@ -27,6 +27,14 @@
             @test nu(1+t)==one(T)
             @test nu(t+t^2)==(minOrMax==min ? T(1) : T(-1))
         end
+
+        @testset "puiseux polynomial valuation" begin
+            K,(t,) = puiseux_polynomial_ring(GF(2),["t"])
+            nu = tropical_semiring_map(K,t,minOrMax)
+            @test nu(K(0))==zero(T)
+            @test nu(1+t)==one(T)
+            @test nu(t+t^2)==(minOrMax==min ? T(1) : T(-1))
+        end
     end
 
 end

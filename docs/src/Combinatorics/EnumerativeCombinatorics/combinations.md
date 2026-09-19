@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Combinations
 
 A **combination** from a set $S$ is a selection $\lambda_1, \lambda_2 \dots \lambda_r$ of elements of $S$ taken without repetition; the order of the elements is considered not to matter. A $k$-combination is a combination consisting of $k$ elements.

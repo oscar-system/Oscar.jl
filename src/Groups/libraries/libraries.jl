@@ -77,6 +77,22 @@ function find_index_function(f, filter_attrs::Dict)
    throw(ArgumentError("Function not supported"))
 end
 
+# Evaluate the filters accepted by `translate_group_library_args` on a single
+# group, without consulting any GAP library. Used to decide whether a group
+# that is missing from a GAP library belongs into the result of `all_*_groups`.
+function _matches_group_library_filters(G::GAPGroup, args::Tuple)
+   for arg in args
+      if arg isa Pair
+         value = arg[1](G)
+         (arg[2] isa AbstractVector ? value in arg[2] : value == arg[2]) || return false
+      else
+         arg(G) || return false
+      end
+   end
+
+   return true
+end
+
 # check whether the input of all_small_group is valid (see below)
 function translate_group_library_args(args::Tuple; filter_attrs::Dict = _group_filter_attrs)
    gapargs = []

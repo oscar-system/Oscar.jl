@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Abstract varieties
 
 An *abstract variety* $X$ of dimension $n$ is determined by its (numerical) Chow ring
