@@ -8,6 +8,13 @@ using Oscar
  - conjugate to smallest field?
  - allow trivial stuff
 =#
+# Isomorphic modules have conjugate action matrices, so this is an isomorphism
+# invariant, and in dimension 1 a complete one. It only narrows the candidates
+# down; `is_isomorphic` still decides. `Kx` has to be one fixed ring: the
+# one-argument `charpoly` builds an uncached ring per call, and polynomials
+# from two of those do not even compare equal.
+_action_invariant(r::GModule, Kx) = [charpoly(Kx, matrix(action(r, g))) for g in gens(group(r))]
+
 """
 The state of the pc-chain walk inside `reps`: the chain of subgroups it used,
 the branches a `dim_bound` made it drop, and the representations it produced.
@@ -67,6 +74,7 @@ function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int),
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
+  Kx, _ = polynomial_ring(K, :x, cached = false)
   if is_empty(state.chain)
     state.chain = Vector{Any}(undef, length(gG))
     state.chain[end] = sub(G, [gG[end]])
@@ -99,6 +107,17 @@ function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int),
     @assert is_prime(p)
     new_R = []
     todo = trues(length(R)) # which entries in `R` have to be handled
+
+    #= The entries of `R` are pairwise non-isomorphic, so an `h`-conjugate of
+       one of them is isomorphic to at most one other entry. Indexing by an
+       invariant finds that one directly, instead of asking the MeatAxe about
+       every entry in turn - which is where this loop used to spend nearly all
+       of its time once `R` grew.
+    =#
+    by_invariant = Dict{Any, Vector{Int}}()
+    for (k, r) in enumerate(R)
+      push!(get!(Vector{Int}, by_invariant, _action_invariant(r, Kx)), k)
+    end
     #TODO: use extend below
     for pos in 1:length(R)
       if todo[pos]
@@ -195,7 +214,8 @@ function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int),
           # other conjugates.
           for j in 2:p
             Gj = gmodule(M, s, conjreps[j])
-            for k in (pos+1):length(R)
+            for k in get(by_invariant, _action_invariant(Gj, Kx), Int[])
+              k > pos || continue
               if is_isomorphic(Gj, R[k])
                 todo[k] = false
               end
