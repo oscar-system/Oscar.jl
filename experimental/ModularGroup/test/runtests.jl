@@ -93,7 +93,7 @@ end
 
   # membership must not be linear in the size of the matrix entries;
   # T^N lies in G iff N is a multiple of the length of the t-cycle of 1
-  N = ZZ(10)^12
+  N = ZZ(2)^100
   @test matrix(ZZ, [1 N; 0 1]) in G
   @test !(matrix(ZZ, [1 N + 1; 0 1]) in G)
 
