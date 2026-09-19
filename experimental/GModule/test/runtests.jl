@@ -155,6 +155,18 @@ end
   end
   @test_throws ArgumentError Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = 0)
 
+  # resuming a walk at a larger bound has to agree with starting over
+  st = Oscar.RepPc.RepsState()
+  for b in [1, 2, 3]
+    @test sort([dim(x) for x in Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = b, state = st)]) ==
+          sort([dim(x) for x in allr if dim(x) <= b])
+  end
+  @test sort([dim(x) for x in Oscar.RepPc.reps(GF(3, 6), Q23; state = st)]) ==
+        sort([dim(x) for x in allr])
+  # and going back down just filters
+  @test sort([dim(x) for x in Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = 1, state = st)]) ==
+        sort([dim(x) for x in allr if dim(x) <= 1])
+
   # cross-check against GAP's own solvable quotient algorithm
   bound = GAP.Obj((2*3*5*7)^6)
   for H in [G33, G27, S3]

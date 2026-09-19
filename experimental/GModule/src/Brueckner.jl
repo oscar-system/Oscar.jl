@@ -9,6 +9,26 @@ using Oscar
  - allow trivial stuff
 =#
 """
+The state of the pc-chain walk inside `reps`: the chain of subgroups it used,
+the branches a `dim_bound` made it drop, and the representations it produced.
+
+Handing the same state to a later call with a larger bound explores only the
+dropped branches. That is complete: everything below a dropped branch has
+dimension above the old bound, and everything already found has dimension at
+or below it, so the two sets never meet - in particular no representation of
+the one can be conjugate to one of the other, and the two walks need not see
+each other.
+"""
+mutable struct RepsState
+  chain::Vector{Any}    # (subgroup, embedding) per level of the pc chain
+  parked::Vector{Any}   # (level, module) dropped for exceeding the bound
+  found::Vector{Any}    # representations of the whole group, so far
+  bound::Int
+
+  RepsState() = new(Any[], Any[], Any[], 0)
+end
+
+"""
   For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
 
@@ -16,6 +36,9 @@ abs. irred. representations of G.
 dimension. Dimensions only grow along the pc chain, so a bound prunes whole
 branches rather than filtering at the end - which is the difference between
 answering and not answering for a large `G`.
+
+`state` carries the walk between calls, so raising `dim_bound` only costs the
+branches the smaller one dropped.
 
 Note: the reps are NOT necessarily over the smallest field.
 
@@ -27,7 +50,8 @@ Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
 
 Implements: Brueckner, Chap 1.2.3
 """
-function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int))
+function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int),
+                                   state::RepsState = RepsState())
   @req is_finite(G) "the group is not finite"
   @req dim_bound >= 1 "the dimension bound has to be positive"
   if order(G) == 1
@@ -36,24 +60,41 @@ function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int))
     return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
+  dim_bound <= state.bound && return [x for x in state.found if dim(x) <= dim_bound]
+
   pcgs = Oscar.GAPWrap.Pcgs(GapObj(G))
   @assert length(pcgs) == ngens(G)
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
-  s, ms = sub(G, [gG[end]])
-  o = Int(order(s))
-  @assert is_prime(o)
-  z = roots(K(1), o)
-  @assert characteristic(K) == o || length(z) == o
-  F = free_module(K, 1)
-  R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
-  @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
+  if is_empty(state.chain)
+    state.chain = Vector{Any}(undef, length(gG))
+    state.chain[end] = sub(G, [gG[end]])
+    s, ms = state.chain[end]
+    o = Int(order(s))
+    @assert is_prime(o)
+    z = roots(K(1), o)
+    @assert characteristic(K) == o || length(z) == o
+    F = free_module(K, 1)
+    R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
+    @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
+    i_start = length(gG)-1
+  else
+    # resume: the dropped branches re-enter at the level they were dropped at
+    R = []
+    i_start = is_empty(state.parked) ? 0 : maximum(x[1] for x in state.parked)
+    i_start > 0 && ((s, ms) = state.chain[i_start+1])
+  end
 
-  for i=length(gG)-1:-1:1
+  inject = state.parked
+  state.parked = Any[]
+
+  for i=i_start:-1:1
     h = gG[i]
-    ns, mns = sub(G, gG[i:end])
+    isassigned(state.chain, i) || (state.chain[i] = sub(G, gG[i:end]))
+    ns, mns = state.chain[i]
     @assert mns(ns[1]) == h
+    append!(R, [r for (j, r) in inject if j == i])
     p = Int(divexact(order(ns), order(s)))
     @assert is_prime(p)
     new_R = []
@@ -106,10 +147,14 @@ function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int))
         else #need to extend dim
           n = dim(r)
           # inducing multiplies the dimension by `p` and nothing further down
-          # the chain ever shrinks it, so this branch is out of range for good.
-          # The `h`-conjugates of `r` have the same dimension, so they drop out
-          # here too and need not be marked as done.
-          n*p > dim_bound && continue
+          # the chain ever shrinks it, so this branch is out of range for now.
+          # Park it for a later, larger bound; the `h`-conjugates of `r` have
+          # the same dimension, so they are parked here too and need not be
+          # marked as done.
+          if n*p > dim_bound
+            push!(state.parked, (i, r))
+            continue
+          end
 
           F = free_module(K, dim(r)*p)
 
@@ -165,7 +210,10 @@ function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int))
     s, ms = ns, mns
     R = new_R
   end
-  return [gmodule(x.M, G, x.ac) for x = R]
+
+  append!(state.found, [gmodule(x.M, G, x.ac) for x in R])
+  state.bound = dim_bound
+  return [x for x in state.found if dim(x) <= dim_bound]
 end
 
 
@@ -272,6 +320,8 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
 
   allR = []
+  # one walk per prime, resumed as the dimension bound grows
+  states = Dict{ZZRingElem, RepsState}()
 
   # collect lifts for the given primes, from modules of dimension in
   # `lo+1:hi`; `true` once `limit` of them are known
@@ -282,10 +332,11 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       f = j == 1 ? 1 : modord(p, j)
       @assert (p^f-1) % j == 0
       @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
+      st = get!(RepsState, states, p)
       if f == 1
-        @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q; dim_bound = hi)
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q; dim_bound = hi, state = st)
       else
-        @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q; dim_bound = hi)
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q; dim_bound = hi, state = st)
       end
       @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
 
