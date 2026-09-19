@@ -218,19 +218,23 @@ parent_type(::Type{MatGroupElem{S,T}}) where {S,T} = MatGroup{S,T}
 
 
 function Base.deepcopy_internal(x::MatGroupElem, dict::IdDict)
+  haskey(dict, x) && return dict[x]
   if isdefined(x, :X)
     X = Base.deepcopy_internal(x.X, dict)
     if isdefined(x, :elm)
       elm = Base.deepcopy_internal(matrix(x), dict)
-      return MatGroupElem(parent(x), elm, X)
+      xx = MatGroupElem(parent(x), elm, X)
     else
-      return MatGroupElem(parent(x), X)
+      xx = MatGroupElem(parent(x), X)
     end
   elseif isdefined(x, :elm)
     elm = Base.deepcopy_internal(matrix(x), dict)
-    return MatGroupElem(parent(x), elm)
+    xx = MatGroupElem(parent(x), elm)
+  else
+    error("$x has neither :X nor :elm")
   end
-  error("$x has neither :X nor :elm")
+  dict[x] = xx
+  return xx
 end
 
 change_base_ring(R::Ring, G::MatGroup) = map_entries(R, G)

@@ -49,6 +49,9 @@
     b = deepcopy(a)
     @test a !== b
     @test a == b
+
+    b = deepcopy([a, a])
+    @test b[1] === b[2]
   end
 
   @testset "Printing" begin
