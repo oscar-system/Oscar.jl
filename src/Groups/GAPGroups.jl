@@ -461,7 +461,7 @@ function Base.show(io::IO, x::FPGroupElem)
   print(io, s)
 end
 
-# Printing GAP groups
+# default one-line and terse printing for all GAP groups
 function Base.show(io::IO, G::GAPGroup)
   @show_name(io, G)
   @show_special(io, G)
@@ -477,6 +477,26 @@ function Base.show(io::IO, G::GAPGroup)
   end
 end
 
+# detailed printing for (sub)groups of finitely presented and of pc groups:
+# the one-line description, plus the generators on a continuation line.
+#
+# The line break is not just cosmetic: a `MIME"text/plain"` method whose output
+# contains no newline is also used for printing inside arrays, see the section
+# "Printing Details" of the developer documentation.
+function Base.show(io::IO, mime::MIME"text/plain", G::Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup})
+  @show_name(io, G)
+  @show_special(io, mime, G)
+
+  show(io, G)
+  has_gens(G) || return
+  io = pretty(io)
+  print(io, Indent())
+  _print_generators(io, G)
+  _print_relators(io, G)
+  print(io, Dedent())
+end
+
+# one-line and terse printing for FPGroup and SubFPGroup
 function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   @show_name(io, G)
   @show_special(io, G)
@@ -500,6 +520,7 @@ function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   end
 end
 
+# one-line and terse printing for PermGroup
 function Base.show(io::IO, G::PermGroup)
   @show_name(io, G)
   @show_special(io, G)
@@ -536,6 +557,7 @@ function Base.show(io::IO, G::PermGroup)
   end
 end
 
+# one-line and terse printing for PcGroup and SubPcGroup
 function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   @show_name(io, G)
   @show_special(io, G)
@@ -550,6 +572,46 @@ function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   end
 end
 
+# largest number of generators to list before eliding
+const _MAX_SHOWN_GENS = 5
+
+# Start a new line and list the generators of `G` on it. Assumes that `io` is
+# already indented and that `has_gens(G)` holds.
+function _print_generators(io::IO, G::GAPGroup)
+  n = ngens(G)
+  println(io)
+  print(io, "with ", ItemQuantity(n, "generator"))
+  n == 0 && return
+  print(io, " ")
+  if n > _MAX_SHOWN_GENS
+    for i in 1:_MAX_SHOWN_GENS-1
+      _print_generator(io, gen(G, i))
+      print(io, ", ")
+    end
+    print(io, "..., ")
+    _print_generator(io, gen(G, n))
+  else
+    for i in 1:n
+      i > 1 && print(io, ", ")
+      _print_generator(io, gen(G, i))
+    end
+  end
+end
+
+# GAP prints the identity of a pc or fp group as `<identity> of ...`, which is
+# confusing in a list of generators.
+_print_generator(io::IO, x::GAPGroupElem) = isone(x) ? print(io, "1") : print(io, x)
+
+# Only a finitely presented group reports its relators: those of a pc group are
+# implied by the pc presentation, and a subgroup has none of its own.
+_print_relators(io::IO, G::Union{SubFPGroup, PcGroup, SubPcGroup}) = nothing
+
+function _print_relators(io::IO, G::FPGroup)
+  rels = relators(G)
+  isempty(rels) && return
+  println(io)
+  print(io, "and ", ItemQuantity(length(rels), "relator"))
+end
 
 Base.isone(x::GAPGroupElem) = GAPWrap.IsOne(GapObj(x))
 
@@ -640,6 +702,7 @@ Return whether generators for the group `G` are known.
 ```jldoctest
 julia> F = free_group(2)
 Free group of rank 2
+  with 2 generators f1, f2
 
 julia> has_gens(F)
 true
@@ -1668,6 +1731,7 @@ julia> complement_classes(G, derived_subgroup(G)[1])
 
 julia> G = dihedral_group(8)
 Pc group of order 8
+  with 3 generators f1, f2, f3
 
 julia> complement_classes(G, center(G)[1])
 GAPGroupConjClass{PcGroup, SubPcGroup}[]
@@ -1961,6 +2025,7 @@ julia> rank(free_group(5))
 
 julia> G = pc_group(abelian_group(5,0))
 Pc group of infinite order
+  with 2 generators g1, g2
 
 julia> rank(G)
 2
@@ -2000,6 +2065,7 @@ Return whether `G` is a finitely generated group.
 ```jldoctest
 julia> F = free_group(2)
 Free group of rank 2
+  with 2 generators f1, f2
 
 julia> is_finitely_generated(F)
 true
@@ -2106,6 +2172,7 @@ of `G`.
 ```jldoctest
 julia> g = dihedral_group(8)
 Pc group of order 8
+  with 3 generators f1, f2, f3
 
 julia> relators(g)
 6-element Vector{FPGroupElem}:
@@ -2270,6 +2337,7 @@ See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
 ```jldoctest
 julia> G = dihedral_group(10)
 Pc group of order 10
+  with 2 generators f1, f2
 
 julia> x, y = gens(G);  g = x * y^4
 f1*f2^4
