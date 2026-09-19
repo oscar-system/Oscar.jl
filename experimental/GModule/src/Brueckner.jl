@@ -387,8 +387,12 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   function _search(lp::Vector{ZZRingElem})
     limit == typemax(Int) && return _extend_by(lp, 0, typemax(Int))
 
+    #= The walk is resumed rather than restarted, so the whole ladder costs
+       what its last rung costs: a fine one is nearly free, and worth having,
+       since layers of dimension 8 do occur.
+    =#
     lo = 0
-    for hi in (1, 2, 4)
+    for hi in (1, 2, 4, 8, 16)
       _extend_by(lp, lo, hi) && return true
       lo = hi
     end
