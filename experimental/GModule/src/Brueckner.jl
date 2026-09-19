@@ -391,13 +391,21 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
 
       for i in I
-        dim(i) > lo || continue     # already tried in an earlier round
-        @vprint :BruecknerSQ 1 "starting to process module\n"
         @vprint :BruecknerSQ 2 "... transfer over min. field\n"
         @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
-        @vprint :BruecknerSQ 2 "... lift...\n"
         #TODO: why do we need the module over GF(p)???
         iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
+
+        #= The layer this module contributes has order p^dim(iii), and the
+           extension to be built is that much bigger than `Q` - so this, and
+           not the dimension over the splitting field, is what the ladder has
+           to bound. Over GF(p, f) the two differ by a factor of up to f: a
+           bound of 16 over GF(2, 6) would otherwise reach modules of
+           dimension 96, and extensions of order |Q| * 2^96.
+        =#
+        lo < dim(iii) <= hi || continue
+        @vprint :BruecknerSQ 1 "starting to process module\n"
+        @vprint :BruecknerSQ 2 "... lift...\n"
         @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
         @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
         #TODO: in Plesken p119 has more comments what not to do
@@ -419,18 +427,24 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
 
     #= The walk is resumed rather than restarted, so the whole ladder costs
        what its last rung costs: a fine one is nearly free, and worth having,
-       since layers of dimension 8 do occur.
+       since layers of dimension 8 do occur. The complete set of modules is
+       not part of the ladder - it is the thing that stops being affordable
+       first, so every candidate prime gets a bounded look before any of them
+       gets an unbounded one.
     =#
     lo = 0
     for hi in (1, 2, 4, 8, 16)
       _extend_by(lp, lo, hi) && return true
       lo = hi
     end
-    return _extend_by(lp, lo, typemax(Int))
+    return false
   end
 
+  _complete(lp) = _extend_by(lp, 16, typemax(Int))
+
   if length(primes) > 0
-    _search(map(ZZRingElem, primes))
+    lp = map(ZZRingElem, primes)
+    _search(lp) || (limit == typemax(Int) || _complete(lp))
     return allR
   end
 
@@ -444,7 +458,12 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   _search(cheap) && return allR
 
   @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-  _search(setdiff(_admissible_primes(mQ), cheap))
+  rest = setdiff(_admissible_primes(mQ), cheap)
+  _search(rest) && return allR
+
+  limit == typemax(Int) && return allR
+  _complete(cheap) && return allR
+  _complete(rest)
   return allR
 end
 
