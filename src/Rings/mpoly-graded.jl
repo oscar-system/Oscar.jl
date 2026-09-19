@@ -1415,120 +1415,140 @@ function show_homo_comp(io::IO, M)
   end
 end
 
+
 @doc raw"""
-    monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
-
-Given a polynomial ring `R` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
-return the monomials of degree `g` in `R`.
-
-    monomial_basis(R::MPolyDecRing, W::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field and
-a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
-group of `R` and proceed as above.
-
+    monomial_basis(R::MPolyDecRing, d::FinGenAbGroupElem)
+    monomial_basis(R::MPolyDecRing, d::Vector{<:IntegerUnion})
     monomial_basis(R::MPolyDecRing, d::IntegerUnion)
 
-Given a $\mathbb  Z$-graded polynomial ring `R` over a field and
-an integer `d`, convert `d` into an element `g` of the grading
-group of `R` and proceed as above.
+Given a polynomial ring `R` over a field, graded by a finitely generated
+abelian group, return the monomials of the specified degree.
+
+The degree `d` may be given as an element of the grading group. If the grading
+group has torsion, this is mandatory. In addition, we support the following
+convenience methods:
+* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
+* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
 
 !!! note
-    If the component of the given degree is not finite dimensional, an error message will be thrown.
+    If the grading group has torsion, the computation first ignores torsion
+    and enumerates all monomials of the corresponding degree in the
+    torsion-free quotient. This set of monomials must be finite; otherwise,
+    an `InfiniteDimensionError` is thrown.
 
 # Examples
+
+The following example illustrates the $\mathbb{Z}$-graded case.
+
 ```jldoctest
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> G = grading_group(T)
-Z
+julia> L = monomial_basis(R, 2);
 
-julia> L = monomial_basis(T, 2)
-6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- z^2
- y*z
- y^2
- x*z
- x*y
- x^2
+julia> Set(L) == Set([z^2, y*z, y^2, x*z, x*y, x^2])
+true
+
+julia> monomial_basis(R, grading_group(R)([2])) == L
+true
+
+julia> monomial_basis(R, [2]) == L
+true
+```
+
+The following example illustrates a grading group with torsion:
+
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> monomial_basis(R, G([2, 1])) == [x*y]
+true
+
+julia> Set(monomial_basis(R, G([2, 0]))) == Set([x^2, y^2])
+true
 ```
 """
-function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      apparently it is possible to get the number of points faster than the points
-  #TODO: in the presence of torsion, this is wrong. The component
-  #      would be a module over the deg-0-sub ring.
-  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  D = W.D
-  is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), D, W.d)
-  fl, p = has_preimage_with_preimage(h, d)
-  R = base_ring(W)
-  B = elem_type(W)[]
-  if fl
-     k, im = kernel(h)
-     #need the positive elements in there...
-     #Ax = b, Cx >= 0
-     C = identity_matrix(ZZ, ngens(W))
-     A = reduce(vcat, [x.coeff for x = W.d])
+function monomial_basis(R::MPolyDecRing, d::FinGenAbGroupElem)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  return is_free(grading_group(R)) ? _monomial_basis_free(R, d) : _monomial_basis_with_torsion(R, d)
+end
 
-     k = try
-       solve_mixed(transpose(A), transpose(d.coeff), C)
-     catch e
-       if e isa ErrorException && e.msg == "Polyhedron not bounded"
-         rethrow(AbstractAlgebra.InfiniteDimensionError("The considered graded component is infinite-dimensional"))
-       else
-         rethrow(e)
-       end
-     end
+function monomial_basis(R::MPolyDecRing, d::Vector{<:IntegerUnion})
+  @req is_zm_graded(R) "The ring must be Z^m-graded"
+  return monomial_basis(R, grading_group(R)(d))
+end
 
-     for ee = 1:nrows(k)
-       e = k[ee, :]
-       a = MPolyBuildCtx(forget_decoration(W))
-       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
-       push!(B, W(finish(a)))
-     end
+function monomial_basis(R::MPolyDecRing, d::IntegerUnion)
+  @req is_z_graded(R) "The ring must be Z-graded"
+  return monomial_basis(R, grading_group(R)([d]))
+end
+
+function _monomial_basis_with_torsion(R::MPolyDecRing, d::FinGenAbGroupElem)
+  _, inj = torsion_subgroup(grading_group(R))
+  _, sur = cokernel(inj)
+  deg_F = sur.(R.d)
+  R_F, _ = grade(forget_grading(R), deg_F)
+  B_F = _monomial_basis_free(R_F, sur(d))
+  B = [R(forget_grading(p)) for p = B_F]
+  return filter!(p -> degree(p) == d, B)
+end
+
+function _monomial_basis_free(R::MPolyDecRing, d::FinGenAbGroupElem)
+  n = ngens(R)
+  degree_map = hom(free_abelian_group(n), grading_group(R), R.d)
+  has_preimage, _ = has_preimage_with_preimage(degree_map, d)
+  basis = elem_type(R)[]
+  has_preimage || return basis
+  degree_matrix = reduce(vcat, [w.coeff for w in R.d])
+  nonnegative = identity_matrix(ZZ, n)
+  exponent_vectors = try
+    solve_mixed(transpose(degree_matrix), transpose(d.coeff), nonnegative)
+  catch err
+    if err isa ErrorException && err.msg == "Polyhedron not bounded"
+      throw(AbstractAlgebra.InfiniteDimensionError("The considered graded component is infinite-dimensional"))
+    end
+    rethrow()
   end
-  return B
+  underlying_ring = forget_decoration(R)
+  coefficient_base = base_ring(R)
+  for i in 1:nrows(exponent_vectors)
+    builder = MPolyBuildCtx(underlying_ring)
+    push_term!(builder, coefficient_base(1), [Int(e) for e in exponent_vectors[i, :]])
+    push!(basis, R(finish(builder)))
+  end
+  return basis
 end
 
-
-function monomial_basis(R::MPolyDecRing, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(R)
-  return monomial_basis(R, grading_group(R)(g))
-end
-
-function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
-  @assert is_z_graded(R)
-  return monomial_basis(R, grading_group(R)([g]))
-end
 
 @doc raw"""
-    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
-
-Given a polynomial ring `R` over a field which is graded by a free
-group, and given an element `g` of that group,
-return the homogeneous component of `R` of degree `g` as a standard
-vector space. Additionally, return the map which sends an element
-of that vector space to the corresponding monomial in `R`.
-
-    homogeneous_component(R::MPolyDecRing, W::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field, and given
-a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
-group of `R` and proceed as above.
-
+    homogeneous_component(R::MPolyDecRing, d::FinGenAbGroupElem)
+    homogeneous_component(R::MPolyDecRing, d::Vector{<:IntegerUnion})
     homogeneous_component(R::MPolyDecRing, d::IntegerUnion)
 
-Given a $\mathbb  Z$-graded polynomial ring `R` over a field, and given
-an integer `d`, convert `d` into an element `g` of the grading group of `R`
-proceed as above.
+Given a polynomial ring `R` over a field `K`, graded by a finitely
+generated abelian group, return the homogeneous component of the
+specified degree as a `K`-vector space, together with its embedding
+into `R`.
+
+The degree `d` may be given as an element of the grading group. If the grading
+group has torsion, this is mandatory. In addition, we support the following
+convenience methods:
+* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
+* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
 
 !!! note
-    If the component is not finite dimensional, an error will be thrown.
+    If the grading group has torsion, the computation first ignores torsion
+    and enumerates all monomials of the corresponding degree in the
+    torsion-free quotient. This set of monomials must be finite; otherwise,
+    an `InfiniteDimensionError` is thrown.
 
 # Examples
+
+The following example illustrates a $\mathbb{Z}^2$-graded polynomial ring:
+
 ```jldoctest
 julia> W = [1 1 0 0 0; 0 0 1 1 1]
 2×5 Matrix{Int64}:
@@ -1560,28 +1580,42 @@ x[1]*y[3]
 x[1]*y[2]
 x[1]*y[1]
 ```
+
+The following example illustrates a grading group with torsion:
+
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> V, embedding = homogeneous_component(R, G([2, 0]));
+
+julia> dim(V)
+2
+
+julia> Set(embedding.(gens(V))) == Set([x^2, y^2])
+true
+```
 """
-function homogeneous_component(W::MPolyDecRing, d::FinGenAbGroupElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      apparently it is possible to get the number of points faster than the points
-  #TODO: in the presence of torsion, this is wrong. The component
-  #      would be a module over the deg-0-sub ring.
-  R = base_ring(W)
-  B = monomial_basis(W, d)
-  M, h = vector_space(R, B, target = W)
-  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
-  add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
-#  add_relshp(W, M, g)
-  return M, h
+function homogeneous_component(R::MPolyDecRing, d::FinGenAbGroupElem)
+  # TODO: Support components that are infinite-dimensional over the coefficient
+  # TODO: field but finitely generated over the degree-zero subring.
+  basis = monomial_basis(R, d)
+  component, embedding = vector_space(base_ring(R), basis; target = R)
+  set_attribute!(component, :show => show_homo_comp, :data => (R, d))
+  add_relshp(component, R, x -> embedding(x))
+  return component, embedding
 end
 
 function homogeneous_component(R::MPolyDecRing, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(R)
+  @req is_zm_graded(R) "The ring must be Z^m-graded"
   return homogeneous_component(R, grading_group(R)(g))
 end
 
 function homogeneous_component(R::MPolyDecRing, g::IntegerUnion)
-  @assert is_z_graded(R)
+  @req is_z_graded(R) "The ring must be Z-graded"
   return homogeneous_component(R, grading_group(R)([g]))
 end
 
