@@ -1424,11 +1424,10 @@ end
 Given a polynomial ring `R` over a field, graded by a finitely generated
 abelian group, return the monomials of the specified degree.
 
-The degree `d` may be given as an element of the grading group. If the grading
-group has torsion, this is mandatory. In addition, we support the following
-convenience methods:
-* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
-* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
     If the grading group has torsion, the computation first ignores torsion
@@ -1533,11 +1532,10 @@ generated abelian group, return the homogeneous component of the
 specified degree as a `K`-vector space, together with its embedding
 into `R`.
 
-The degree `d` may be given as an element of the grading group. If the grading
-group has torsion, this is mandatory. In addition, we support the following
-convenience methods:
-* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
-* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
     If the grading group has torsion, the computation first ignores torsion

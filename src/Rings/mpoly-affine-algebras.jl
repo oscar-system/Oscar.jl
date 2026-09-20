@@ -154,11 +154,10 @@ graded by a finitely generated abelian group, return monomials of `R`
 whose residue classes form a `K`-basis of the homogeneous component
 of `A` of the specified degree.
 
-The degree `d` may be given as an element of the grading group. If the grading
-group has torsion, this is mandatory. In addition, we support the following
-convenience methods:
-* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
-* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
     The computation first enumerates monomials in `R` of the requested
@@ -167,6 +166,10 @@ convenience methods:
     finite; otherwise, an `InfiniteDimensionError` is thrown. Note that
     this restriction applies even if the requested homogeneous component
     of `A` is finite-dimensional.
+
+!!! note
+    If `A` has Krull dimension zero, one may alternatively use
+    `monomial_basis(A)` to obtain a monomial basis of all of `A`.
 
 # Examples
 
@@ -215,7 +218,18 @@ true
 function monomial_basis(A::MPolyQuoRing, d::FinGenAbGroupElem)
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
-  basis = monomial_basis(R, d)
+  basis = try
+    monomial_basis(R, d)
+  catch err
+    if err isa AbstractAlgebra.InfiniteDimensionError
+      throw(
+        AbstractAlgebra.InfiniteDimensionError(
+          "The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional",
+        ),
+      )
+    end
+    rethrow()
+  end
   isempty(basis) && return basis
   leading = leading_ideal(A.I) # TODO: Check if a GB is already available?
   return filter!(m -> !(m in leading), basis)

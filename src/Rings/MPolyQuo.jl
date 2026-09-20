@@ -1439,11 +1439,10 @@ graded by a finitely generated abelian group, return the homogeneous
 component of `A` of the specified degree as a `K`-vector space,
 together with its embedding into `A`.
 
-The degree `d` may be given as an element of the grading group. If the grading
-group has torsion, this is mandatory. In addition, we support the following
-convenience methods:
-* For a $\mathbb{Z}^m$-grading, you may specify the degree by an integer vector.
-* For a $\mathbb{Z}$-grading, you may specify the degree by a single integer.
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
     The computation first enumerates monomials in the underlying polynomial
@@ -1526,7 +1525,18 @@ true
 function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   @req parent(d) == grading_group(A) "The degree must belong to the grading group"
   R = base_ring(A)
-  H, embedding = homogeneous_component(R, d)
+  H, embedding = try
+    homogeneous_component(R, d)
+  catch err
+    if err isa AbstractAlgebra.InfiniteDimensionError
+      throw(
+        AbstractAlgebra.InfiniteDimensionError(
+          "The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional",
+        ),
+      )
+    end
+    rethrow()
+  end
   leading_monomials = gens(leading_ideal(modulus(A)))
   cache = Dict{typeof(d), typeof(embedding)}()
   relations = Set{elem_type(H)}()
