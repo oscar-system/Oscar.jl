@@ -3780,45 +3780,46 @@ function _find_best_d_and_S(k::AbsSimpleNumField)
   ok = maximal_order(k)
   s = unique(vcat(ps, support(discriminant(ok))))
 
-  # (S3)
-  sf = subfields(k)
-  sf = [x[1] for x = sf if degree(x[1]) > 1]
-  @vprint :GaloisCohomology 1 "Need to check $(length(sf)) (non-trivial) subfields, now computing class groups...\n"
-  zf = map(maximal_order, sf)
-  cf = map(class_group, zf)
-  @vprint :GaloisCohomology 1 "class groups are $([x[1] for x = cf])\n"
-
-  cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
-
-  @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
-  for i=1:length(sf)
-    l = support(prod(s) * zf[i])
-    q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P in l])
-    cf[i] = (q, pseudo_inv(mq)*cf[i][2])
-  end
-  @vprint :GaloisCohomology 2 "after factoring by provided primes left with $([snf(x[1])[1] for x = cf])\n"
-
-  #think: does the quotient have to be trivial - or coprime to |G|?
-  #coprime should be enough
-
-  for p = primes_set(2, -1)
-    p in s && continue
-    all(x->order(x[1]) == 1, cf) && break
-    @vprint :GaloisCohomology 3 "trying $p\n"
-    new = false
-    for i=1:length(sf)
-      l = factor(p*zf[i])
-      q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
-      if order(q) != order(cf[i][1])
-        new = true
-      end
-      cf[i] = (q, pseudo_inv(mq)*cf[i][2])
-    end
-    if new
-      @vprint :GaloisCohomology 3 "now at $([x[1] for x = cf])\n"
-      push!(s, p)
-    end
-  end
+# Don't impose (S3), since we could always enlarge S, which cannot make d smaller if d was already minimal
+#   # (S3)
+#   sf = subfields(k)
+#   sf = [x[1] for x = sf if degree(x[1]) > 1]
+#   @vprint :GaloisCohomology 1 "Need to check $(length(sf)) (non-trivial) subfields, now computing class groups...\n"
+#   zf = map(maximal_order, sf)
+#   cf = map(class_group, zf)
+#   @vprint :GaloisCohomology 1 "class groups are $([x[1] for x = cf])\n"
+# 
+#   cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
+# 
+#   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
+#   for i=1:length(sf)
+#     l = support(prod(s) * zf[i])
+#     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P in l])
+#     cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+#   end
+#   @vprint :GaloisCohomology 2 "after factoring by provided primes left with $([snf(x[1])[1] for x = cf])\n"
+# 
+#   #think: does the quotient have to be trivial - or coprime to |G|?
+#   #coprime should be enough
+# 
+#   for p = primes_set(2, -1)
+#     p in s && continue
+#     all(x->order(x[1]) == 1, cf) && break
+#     @vprint :GaloisCohomology 3 "trying $p\n"
+#     new = false
+#     for i=1:length(sf)
+#       l = factor(p*zf[i])
+#       q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
+#       if order(q) != order(cf[i][1])
+#         new = true
+#       end
+#       cf[i] = (q, pseudo_inv(mq)*cf[i][2])
+#     end
+#     if new
+#       @vprint :GaloisCohomology 3 "now at $([x[1] for x = cf])\n"
+#       push!(s, p)
+#     end
+#   end
 
   S = collect(keys(factor(prod(s)*ok)))
 
