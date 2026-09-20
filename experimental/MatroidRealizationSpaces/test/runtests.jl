@@ -1,5 +1,3 @@
-using Test
-using Oscar
 @testset "matroid realization spaces" begin
 
     M1 = fano_matroid()
