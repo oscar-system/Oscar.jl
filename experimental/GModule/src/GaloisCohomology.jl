@@ -3839,9 +3839,12 @@ function _find_best_d_and_ps(k::AbsSimpleNumField)
   return bestd, bestps
 end
 
+Oscar.gmodule(I::IdeleParent) = I.data[1]
+
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
+
 export is_coboundary, 
        idele_class_gmodule,
        relative_brauer_group,
@@ -3852,4 +3855,3 @@ export is_coboundary,
        induce_hom,
        change_precision,
        add_prime
-
