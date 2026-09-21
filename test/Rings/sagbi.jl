@@ -6,11 +6,16 @@ include("../../src/Rings/sagbi.jl")
 @testset "Subduction modulo generators" begin
     
     R, (x,y) = polynomial_ring(ZZ, ['x', 'y'])
+
     B = [x^2 - x, y+1]
-    
     @test subduct(x^2*y + x*y - 1, B) == 2*x*y - 1 
     @test subduct(x^2*y-x*y-y, B) == 0
 
+    B = [x+y^2, x*y+y^3]
+    @test subduct(x*y, B) == x*y
+    @test subduct(x*y+y^3, B) == 0
+    @test subduct(x*y, B; ordering=lex(R)) == -y^3
+    @test subduct(x*y+y^3, B; ordering=lex(R)) == 0
 end
 
 @testset "Checking SAGBI bases" begin
@@ -39,6 +44,12 @@ end
 
     B = [p12, p13, p14, p23, p24, p34]
     @test is_sagbi([b for b in B]) === true
+
+    # An example which depends on the ordering:
+    R, (x,y) = polynomial_ring(QQ, ['x','y'])
+    B = [x+y^2, x*y+y^3]
+    @test is_sagbi(B, ordering=degrevlex(R)) == false
+    @test is_sagbi(B, ordering=lex(R)) == true
 end
 
 @testset "Computing SAGBI bases" begin
