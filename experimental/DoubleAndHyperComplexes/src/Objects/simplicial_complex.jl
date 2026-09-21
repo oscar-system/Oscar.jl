@@ -7,6 +7,7 @@
 struct SimplicialCochainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   R::Ring
   K::SimplicialComplex
+  #face_cache::Dict{Int, Vector{Set{Int}}}
 
   function SimplicialCochainFactory(R::Ring, K::SimplicialComplex)
     return new{FreeMod{elem_type(R)}}(R, K)
@@ -15,7 +16,7 @@ end
 
 ### Initializes the free modules over the ring of appropriate rank in the relevant degrees. 
 function (fac::SimplicialCochainFactory)(self::AbsHyperComplex, i::Tuple)
-  return FreeMod(fac.R, length(faces(fac.K, only(i))))
+  return FreeMod(fac.R, f_vector(fac.K)[only(i)+1])
 end
 
 ### The complex is only computable in at most the dimension of the simplicial complex
@@ -74,10 +75,11 @@ end
 function show_elem(io::IO, C::SimplicialCochainComplex, a::FreeModElem, p::Int)
   @req parent(a) === C[p] "parent mismatch"
   fst = true
+  f = faces(simplicial_complex(C), p)
   for (c, g) in coordinates(a)
     !fst && print(io, " + ")
     fst = false
-    print(io, g, "*", sort(collect(faces(simplicial_complex(C), p)[c])))
+    print(io, g, "*", sort(collect(f[c])))
   end
 end
 
@@ -86,11 +88,20 @@ underlying_complex(c::SimplicialCochainComplex) = c.internal_complex
 
 function face_to_index_map(c::SimplicialCochainComplex, p::Int)
   if !isdefined(c, :face_to_index_map)
-    c.face_to_index_map = Dict{Int, Dict{Set{Int}, Int}}()
+    c.face_to_index_map = Dict{Int, Dict}()
   end
   return get!(c.face_to_index_map, p) do
-    Dict{Set{Int}, Int}(s => i for (i,s) in enumerate(faces(simplicial_complex(c), p)))
+    Dict(s => i for (i,s) in enumerate(get_faces(c, p)))
   end
+end
+
+function get_faces(C::AbsHyperComplex, i::Int)
+  return get_faces(chain_factory(C), i)
+end
+
+# We return Polymake sets instead of Oscar Sets to avoid the expense of conversion.
+function get_faces(fac::SimplicialCochainFactory, i::Int)
+  return faces(fac.K, i)::Vector{Set{Int}}
 end
 
 # a dynamic table for faster multiplication
@@ -128,13 +139,16 @@ function mul_cochains(C::SimplicialCochainComplex, a::FreeModElem, p::Int, b::Fr
   cochain = zero(C[p+q])
   f = face_to_index_map(C, p+q)
   mdict = multiplication_dict(C)
+  pf = get_faces(C, p)
+  qf = get_faces(C, q)
   for (ga, ca) in coordinates(a), (gb, cb) in coordinates(b)
     res = get!(mdict, (ga, p, gb, q)) do
-      sa = faces(K, p)[ga]
-      sb = faces(K, q)[gb]
+      sa = pf[ga]
+      sb = qf[gb]
+      maximum(sa) == minimum(sb) || return zero(C[p+q])
       s = union(sa, sb)
-      maximum(sa) == minimum(sb) && s in keys(f) && return gen(C[p+q], f[s])
-      zero(C[p+q])
+      s in keys(f) || return zero(C[p+q])
+      return gen(C[p+q], f[s])
     end
     @assert parent(res) === C[p+q]
     if !iszero(res)

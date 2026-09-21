@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Polyhedral Fans
 
 ## Introduction
@@ -58,6 +52,7 @@ standard_coordinates(PF::PolyhedralFan, coords::AbstractVector{<:RationalUnion})
 n_maximal_cones(PF::PolyhedralFan)
 n_cones(PF::PolyhedralFan)
 n_rays(PF::PolyhedralFan)
+n_rays_modulo_lineality(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 rays_modulo_lineality(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)

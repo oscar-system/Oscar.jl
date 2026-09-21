@@ -19,7 +19,7 @@ julia> cc = cohomology_class(d)
 Cohomology class on a normal toric variety given by x1 + 2*x2 + 3*x3 + 4*e1 + 5*e2
 
 julia> toric_variety(cc)
-Normal, simplicial, complete toric variety
+Q-factorial normal complete toric variety
 ```
 """
 toric_variety(c::CohomologyClass) = c.v

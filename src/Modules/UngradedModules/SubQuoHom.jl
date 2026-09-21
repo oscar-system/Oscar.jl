@@ -757,6 +757,7 @@ Return the kernel of `a` as an object of type `SubquoModule`.
 Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `domain(a)`.
 """
 function kernel(h::SubQuoHom)
+  is_zero(codomain(h)) && return domain(h), identity_map(domain(h))
   D = domain(h)
   R = base_ring(D)
   is_graded(h) ? F = graded_free_module(R, degrees_of_generators(D)) : F = FreeMod(R, ngens(D))
@@ -917,7 +918,16 @@ Return the composition `b` $\circ$ `a`.
 """
 function *(h::OFPModuleHom{T1, T2, Nothing}, g::OFPModuleHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
-  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), check=false)
+  R = base_ring(domain(h))
+  img_gens_coords = sparse_row_type(R)[sparse_row(R) for _ in 1:ngens(domain(h))]
+  img_gens_g = images_of_generators(g)
+  for (k, v) in enumerate(images_of_generators(h))
+    for (i, c) in coordinates(v)
+      Hecke.add_scaled_row!(coordinates(img_gens_g[i]), img_gens_coords[k], c)
+    end
+  end
+  cod = codomain(g)
+  return hom(domain(h), cod, elem_type(cod)[cod(v) for v in img_gens_coords]; check=false)
 end
 
 function *(h::OFPModuleHom{T1, T2, <:Map}, g::OFPModuleHom{T2, T3, <:Map}) where {T1, T2, T3}

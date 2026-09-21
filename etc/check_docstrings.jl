@@ -40,6 +40,8 @@ function has_broken_doctest(md::Markdown.MD)
         if !(elem.category in admonition_types)
           return "Unknown admonition category: $(string(elem.category))"
         end
+      elseif elem isa Markdown.Code && elem.language == "jldoctests"
+        return "Invalid doctest `jldoctests` instead of `jldoctest`"
       end
     end
   end

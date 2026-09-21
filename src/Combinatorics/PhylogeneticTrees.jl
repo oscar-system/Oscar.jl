@@ -285,7 +285,7 @@ root(pt::PhylogeneticTree) = root(adjacency_tree(pt))
 function Base.show(io::IO, m::MIME"text/plain", ptree::PhylogeneticTree{T}) where T
   print(io, "Phylogenetic tree with $T type coefficients")
 end
-  
+
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
   print(io, "Phylogenetic tree with $T type coefficients")
 end
@@ -400,7 +400,7 @@ end
 Compute the tropical median consensus tree of the equidistant
 phylogenetic trees from the vector `arr`.  The output is then
 equidistant, too.  The method is robust (ie., the consensus tree
-dpends continuosuly on the input), and it is Pareto and co-Pareto on
+depends continuosuly on the input), and it is Pareto and co-Pareto on
 rooted triplets.
 
 The algorithm, based on tropical convexity and optimal transport, is

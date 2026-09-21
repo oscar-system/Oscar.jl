@@ -153,21 +153,22 @@ end
 # 2: Equality and hash
 ################################################
 
+function _hypersurface_class(m::AbstractFTheoryModel)
+  if !(m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel)
+    error(
+      "Can currently only determine the hypersurface class for Weierstrass, global Tate and hypersurface models"
+    )
+  end
+  cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
+  return cohomology_class(cl)
+end
+
 function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
   # G4-fluxes can only be equal if they are defined for identically the same model
   model(gf1) !== model(gf2) && return false
 
-  # Currently, can only decide equality for Weierstrass, global Tate and hypersurface models
-  m = model(gf1)
-  if (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) == false
-    error(
-      "Can currently only decide equality of G4-fluxes for Weierstrass, global Tate and hypersurface models"
-    )
-  end
-
   # Compute the cohomology class corresponding to the hypersurface equation
-  cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  cy = cohomology_class(cl)
+  cy = _hypersurface_class(model(gf1))
 
   # Now can return the result
   return cy * cohomology_class(gf1) == cy * cohomology_class(gf2)
@@ -175,8 +176,9 @@ end
 
 function Base.hash(gf::G4Flux, h::UInt)
   b = 0x92bd6ac4f87d834e % UInt
-  h = hash(model(gf), h)
-  h = hash(cohomology_class(gf), h)
+  m = model(gf)
+  h = hash(m, h)
+  h = hash(_hypersurface_class(m) * cohomology_class(gf), h)
   return xor(h, b)
 end
 

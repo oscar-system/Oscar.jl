@@ -2,6 +2,17 @@
    @test number_of_transitive_groups(4)==5
    @test number_of_transitive_groups(10)==45
 
+   # the trivial group is the unique transitive group of degree 1,
+   # even though GAP's library of transitive groups starts at degree 2
+   @test number_of_transitive_groups(1) == 1
+   @test transitive_group(1, 1) == symmetric_group(1)
+   @test transitive_group_identification(symmetric_group(1)) == (1, 1)
+   @test transitive_group_identification(trivial_subgroup(symmetric_group(4))[1]) == (1, 1)
+   @test all_transitive_groups(1) == [transitive_group(1, 1)]
+   @test all_transitive_groups(degree => 1, is_cyclic) == [transitive_group(1, 1)]
+   @test all_transitive_groups(degree => 1, !is_cyclic) == PermGroup[]
+   @test_throws ArgumentError transitive_group(1, 0)
+
    for i in 1:10
        @test number_of_transitive_groups(i) == length(all_transitive_groups(degree => i))
    end
@@ -293,23 +304,39 @@ end
 
 @testset "Groups with few conjugacy classes" begin
    @testset for n in 1:14
+      @test has_number_of_groups_with_class_number(n)
       @test has_groups_with_class_number(n)
+      @test has_groups_with_class_number_identification(n)
       grps = all_groups_with_class_number(n)
       @test length(grps) == number_of_groups_with_class_number(n)
    end
-   for n in [0, 15]
-      @test_throws ArgumentError number_of_groups_with_class_number(n)
-      @test_throws ArgumentError all_groups_with_class_number(n)
-   end
-   @test_throws ArgumentError has_groups_with_class_number(0)
-   @test_throws ArgumentError has_number_of_groups_with_class_number(0)
-   @test !has_groups_with_class_number(15)
-   @test !has_number_of_groups_with_class_number(15)
+
+   n = 50
+   @test !has_number_of_groups_with_class_number(n)
+   @test !has_groups_with_class_number(n)
+   @test !has_groups_with_class_number_identification(n)
+   @test_throws ArgumentError number_of_groups_with_class_number(n)
+   @test_throws GAP.GAPError all_groups_with_class_number(n)
+
+   n = 0
+   @test_throws ArgumentError has_number_of_groups_with_class_number(n)
+   @test_throws ArgumentError has_groups_with_class_number(n)
+   @test_throws ArgumentError has_groups_with_class_number_identification(n)
+   @test_throws ArgumentError number_of_groups_with_class_number(n)
+   @test length(all_groups_with_class_number(n)) == 0
 
    n = 8
    grps = all_groups_with_class_number(n)
    for i in 1:number_of_groups_with_class_number(n)
-     @test is_isomorphic(grps[i], group_with_class_number(n, i))
-     @test is_isomorphic(grps[i], group_with_class_number(PermGroup, n, i))
+     G = group_with_class_number(n, i)
+     @test is_isomorphic(grps[i], G)
+     @test group_with_class_number_identification(G) == (n, i)
+     G = group_with_class_number(PermGroup, n, i)
+     @test is_isomorphic(grps[i], G)
+     @test group_with_class_number_identification(G) == (n, i)
    end
+
+   l1 = map(order, all_groups_with_class_number(n, is_solvable))
+   l2 = map(order, all_groups_with_class_number(is_solvable => true, number_of_conjugacy_classes => n))
+   @test l1 == l2
 end

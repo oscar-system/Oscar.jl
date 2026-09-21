@@ -5,7 +5,7 @@
 ###############################################################################
 
 using Oscar.Serialization
-import Oscar.Serialization: load_object, save_object, type_params
+import Oscar.Serialization: load_object, save_object, type_and_params
 
 const lie_algebra_serialization_attributes = [
   :is_abelian, :is_nilpotent, :is_perfect, :is_semisimple, :is_simple, :is_solvable
@@ -18,11 +18,11 @@ const lie_algebra_serialization_attributes = [
 ]
 @register_serialization_type DirectSumLieAlgebra uses_id lie_algebra_serialization_attributes
 
-function type_params(L::T) where {T<:AbstractLieAlgebra}
-  TypeParams(
+function type_and_params(L::T) where {T<:AbstractLieAlgebra}
+  TypeAndParams(
     T,
     :base_ring => coefficient_ring(L),
-    type_params_for_root_system(L)...,
+    type_and_params_for_root_system(L)...,
   )
 end
 
@@ -43,11 +43,11 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
   return L
 end
 
-function type_params(L::T) where {T<:LinearLieAlgebra}
-  TypeParams(
+function type_and_params(L::T) where {T<:LinearLieAlgebra}
+  TypeAndParams(
     T,
     :base_ring => coefficient_ring(L),
-    type_params_for_root_system(L)...,
+    type_and_params_for_root_system(L)...,
   )
 end
 
@@ -72,12 +72,12 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   return L
 end
 
-function type_params(L::T) where {T<:DirectSumLieAlgebra}
-  TypeParams(
+function type_and_params(L::T) where {T<:DirectSumLieAlgebra}
+  TypeAndParams(
     T,
     :base_ring => coefficient_ring(L),
     :summands => Tuple(L.summands),
-    type_params_for_root_system(L)...,
+    type_and_params_for_root_system(L)...,
   )
 end
 
@@ -103,7 +103,7 @@ function save_root_system_data(s::SerializerState, L::LieAlgebra)
   end
 end
 
-function type_params_for_root_system(L::LieAlgebra)
+function type_and_params_for_root_system(L::LieAlgebra)
   if has_root_system(L)
     return (:root_system => root_system(L),)
   else
@@ -144,10 +144,10 @@ end
 
 @register_serialization_type LieAlgebraModule uses_id
 
-type_params(V::LieAlgebraModule) = TypeParams(
+type_and_params(V::LieAlgebraModule) = TypeAndParams(
   LieAlgebraModule,
   :lie_algebra => base_lie_algebra(V),
-  type_params_for_construction_data(V)...,
+  type_and_params_for_construction_data(V)...,
 )
 
 function save_object(s::SerializerState, V::LieAlgebraModule)
@@ -173,7 +173,7 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
   return V
 end
 
-function type_params_for_construction_data(V::LieAlgebraModule)
+function type_and_params_for_construction_data(V::LieAlgebraModule)
   if _is_standard_module(V)
     return (:_is_standard_module => true,)
   elseif ((fl, W) = _is_dual(V); fl)

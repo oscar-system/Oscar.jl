@@ -63,6 +63,33 @@ julia> coefficients(D)
 coefficients(td::ToricDivisor) = td.coeffs
 
 @doc raw"""
+    divisor_class(td::ToricDivisor)
+
+Return the element of the class group represented by the toric divisor `td`.
+"""
+function divisor_class(td::ToricDivisor)
+  to_class = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(td))
+  return to_class(domain(to_class)(coefficients(td)))
+end
+
+@doc raw"""
+    picard_class(td::ToricDivisor)
+
+Return the element of the Picard group represented by the Cartier toric divisor
+`td`. An error is raised if `td` is not Cartier.
+"""
+function picard_class(td::ToricDivisor)
+  @req is_cartier(td) "The toric divisor must be Cartier to define a Picard class"
+  v = toric_variety(td)
+  to_picard = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
+  to_weil = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(
+    v
+  )
+  weil_divisor = codomain(to_weil)(coefficients(td))
+  return to_picard(preimage(to_weil, weil_divisor))
+end
+
+@doc raw"""
     toric_variety(td::ToricDivisor)
 
 Return the toric variety of a torus-invariant Weil divisor.

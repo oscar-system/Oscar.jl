@@ -32,7 +32,7 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
 as a `K`-vector space, `false` otherwise.
 
-!!! note 
+!!! note
     `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
     less or equal to zero. This condition is checked by the function.
 
@@ -145,33 +145,36 @@ function monomial_basis(A::MPolyQuoRing)
 end
 
 @doc raw"""
-    monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
-
-Given an affine algebra `A` which is graded by a free group of type `FinGenAbGroup`, 
-and which is defined over a field `K`, say, and given an element `g` of the free group,
-return a vector of monomials of `R` such that the residue classes of
-these monomials form a `K`-basis of the graded component of `A` of degree `g`.
-
-    monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded affine algebra `A` over a field and
-a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
-group of `A` and proceed as above.
-
+    monomial_basis(A::MPolyQuoRing, d::FinGenAbGroupElem)
+    monomial_basis(A::MPolyQuoRing, d::Vector{<:IntegerUnion})
     monomial_basis(A::MPolyQuoRing, d::IntegerUnion)
 
-Given a $\mathbb  Z$-graded  affine algebra `A` over a field and
-an integer `d`, convert `d` into an element `g` of the grading
-group of `A` and proceed as above.
+Given a quotient `A = R/I` of a polynomial ring `R` over a field `K`,
+graded by a finitely generated abelian group, return monomials of `R`
+whose residue classes form a `K`-basis of the homogeneous component
+of `A` of the specified degree.
+
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
-    The function first computes a monomial basis of the `g`-graded component of `base_ring(A)`.
-    If this component is infinite dimensional, an error message will be thrown. This does not
-    neccessarily mean, however, that the `g`-graded component of `A` itself is infinite dimensional.
-    In the case where `A` has Krull dimension zero, you may alternatively enter `monomial_basis(A)`
-    to obtain a monomial basis for all of `A`.
+    The computation first enumerates monomials in `R` of the requested
+    degree. If the grading group has torsion, it ignores torsion during
+    this enumeration. The resulting set of monomial candidates must be
+    finite; otherwise, an `InfiniteDimensionError` is thrown. Note that
+    this restriction applies even if the requested homogeneous component
+    of `A` is finite-dimensional.
+
+!!! note
+    If `A` has Krull dimension zero, one may alternatively use
+    `monomial_basis(A)` to obtain a monomial basis of all of `A`.
 
 # Examples
+
+The following example illustrates the $\mathbb{Z}$-graded case.
+
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
@@ -186,36 +189,60 @@ julia> L = monomial_basis(A, 3)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  y^3
  x*y^2
+
+julia> monomial_basis(A, grading_group(A)([3])) == L
+true
+
+julia> monomial_basis(A, [3]) == L
+true
+```
+
+The following example illustrates a grading group with torsion:
+
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> A, _ = quo(R, ideal(R, [x^2]));
+
+julia> monomial_basis(A, G([2, 1])) == [x*y]
+true
+
+julia> monomial_basis(A, G([2, 0])) == [y^2]
+true
 ```
 """
-function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
-  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+function monomial_basis(A::MPolyQuoRing, d::FinGenAbGroupElem)
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
-  L = try
-    monomial_basis(R, g)
-  catch e
-    if e isa AbstractAlgebra.InfiniteDimensionError
-      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
-    else
-      rethrow(e)
+  basis = try
+    monomial_basis(R, d)
+  catch err
+    if err isa AbstractAlgebra.InfiniteDimensionError
+      throw(
+        AbstractAlgebra.InfiniteDimensionError(
+          "The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional",
+        ),
+      )
     end
+    rethrow()
   end
-  LI = leading_ideal(A.I)
-  ### TODO: Decide whether we should check whether a GB with respect
-    ### to whatever <ordering is already available
-  L = [x for x=L if !(x in LI)]
-    return L
+  isempty(basis) && return basis
+  leading = leading_ideal(A.I) # TODO: Check if a GB is already available?
+  return filter!(m -> !(m in leading), basis)
 end
 
-function monomial_basis(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(A)
-  return monomial_basis(A, grading_group(A)(g))
+function monomial_basis(A::MPolyQuoRing, d::Vector{<:IntegerUnion})
+  @req is_zm_graded(A) "The ring must be Z^m-graded"
+  return monomial_basis(A, grading_group(A)(d))
 end
 
-function monomial_basis(A::MPolyQuoRing, g::IntegerUnion)
-  @assert is_z_graded(A)
-  return monomial_basis(A, grading_group(A)([g]))
+function monomial_basis(A::MPolyQuoRing, d::IntegerUnion)
+  @req is_z_graded(A) "The ring must be Z-graded"
+  return monomial_basis(A, grading_group(A)([d]))
 end
 
 ##############################################################################
@@ -1829,7 +1856,7 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   BRtoR = hom(BR, R, ba[1:b])
   RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
   gs_lift = [BRtoR(g) for g in gs]
-  
+
   # compute the ideal J of the graph of F
   Rels = [ba[b+i]-BRtoR(m) for (i,m) in enumerate(M)]
   if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoR(g)) end end

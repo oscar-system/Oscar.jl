@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Monoid Algebras
 Monoid algebras are algebras over a field in which the ring multiplication
 follows a commutative noetherian monoid.  The elements of the monoid can

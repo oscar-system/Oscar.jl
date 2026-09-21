@@ -386,13 +386,13 @@ Matroid of rank 3 on 6 elements
 julia> selfprojecting_realization_space(m,B=[4,5,6])
 The selfprojecting realization space is
   [1    1    1   1   0   0]
-  [1   x1   x3   0   1   0]
-  [1   x2   x4   0   0   1]
+  [1   x1   x2   0   1   0]
+  [1   x3   x4   0   0   1]
 in the multivariate polynomial ring in 4 variables over QQ
 within the vanishing set of the ideal
 Ideal (x1*x2*x3 - x1*x2*x4 - x1*x3*x4 + x1*x4 + x2*x3*x4 - x2*x3)
 avoiding the zero loci of the polynomials
-RingElem[x1*x4 - x1 - x2*x3 + x2 + x3 - x4, -x1 + x2, -x2 + 1, x1 - 1, -x3 + x4, -x4 + 1, x3 - 1, x1*x4 - x2*x3, x2 - x4, -x1 + x3, x2, -x1, x4, -x3]
+RingElem[x1*x4 - x1 - x2*x3 + x2 + x3 - x4, -x1 + x3, -x3 + 1, x1 - 1, -x2 + x4, -x4 + 1, x2 - 1, x1*x4 - x2*x3, x3 - x4, -x1 + x2, x3, -x1, x4, -x2]
 ```
 """
 function selfprojecting_realization_space(m::Matroid;

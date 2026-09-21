@@ -33,6 +33,9 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
              # not a proper julia input file
              "specialized/fang-fourier-monomial-bases/sl7-cases.jlcon",
              "specialized/fang-fourier-monomial-bases/gap.jlcon",
+
+             # disabled temporarily due to polymake db downtime
+             "specialized/kuehne-schroeter-matroids/realization_space.jlcon",
             ]
 
   dispsize = (40, 130)

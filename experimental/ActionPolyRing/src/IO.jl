@@ -7,9 +7,9 @@
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", dpr::DifferencePolyRing)
   io = pretty(io)
-  n = n_elementary_symbols(dpr)
-  print(io, "Difference polynomial ring in $n elementary symbols ")
-  join(io, elementary_symbols(dpr), ", ")
+  n = n_action_indeterminates(dpr)
+  print(io, "Difference polynomial ring in $n action indeterminates ")
+  join(io, action_indeterminates(dpr), ", ")
   print(io, "\n")
   print(io, "with $(n_action_maps(dpr)) commuting endomorphisms\n")
   print(io, Indent())
@@ -22,7 +22,7 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
   if is_terse(io)
     print(io, "Difference polynomial ring")
   else
-    print(io, "Difference polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
+    print(io, "Difference polynomial ring in $(n_action_indeterminates(dpr)) action indeterminates over ")
     print(terse(io), Lowercase(), coefficient_ring(dpr))
   end
 end
@@ -30,9 +30,9 @@ end
 ### Difference ###
 function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   io = pretty(io)
-  n = n_elementary_symbols(dpr)
-  print(io, "Differential polynomial ring in $n elementary symbols ")
-  join(io, elementary_symbols(dpr), ", ")
+  n = n_action_indeterminates(dpr)
+  print(io, "Differential polynomial ring in $n action indeterminates ")
+  join(io, action_indeterminates(dpr), ", ")
   print(io, "\n")
   print(io, "with $(n_action_maps(dpr)) commuting derivations\n")
   print(io, Indent())
@@ -45,7 +45,7 @@ function Base.show(io::IO, dpr::DifferentialPolyRing)
   if is_terse(io)
     print(io, "Differential polynomial ring")
   else
-    print(io, "Differential polynomial ring in $(n_elementary_symbols(dpr)) elementary symbols over ")
+    print(io, "Differential polynomial ring in $(n_action_indeterminates(dpr)) action indeterminates over ")
     print(terse(io), Lowercase(), coefficient_ring(dpr))
   end
 end
@@ -82,7 +82,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
   end
 
   if ld_ind == 0 # a is an element of the base ring
-    return Expr(:call, :+, expressify(coeff(a, 1), context = context))  
+    return Expr(:call, :+, expressify(coeff(a, 1), context = context))
   end
 
   sum = Expr(:call, :+)
@@ -123,12 +123,12 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
   end
   push!(sum.args, coeff_ld_exp_prod)
 
-  return sum 
+  return sum
 end
 
 ###############################################################################
 #
-#  Iterators 
+#  Iterators
 #
 ###############################################################################
 
@@ -178,7 +178,7 @@ end
 
 ###############################################################################
 #
-#  Rankings 
+#  Rankings
 #
 ###############################################################################
 
@@ -187,7 +187,7 @@ function Base.show(io::IO, ::MIME"text/plain", ran::ActionPolyRingRanking)
   io = pretty(io)
   print(io, "Ranking of ", Lowercase(), parent(ran))
   print(io, "\n")
-  print(io, "with elementary symbols partitioned by\n")
+  print(io, "with action indeterminates partitioned by\n")
   print(io, Indent())
   print(io, partition(ran))
   print(io, Dedent())

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Difference polynomial rings](@id differencepolyring)
 
 A difference polynomial ring over the commutative ring ``R`` is an action polynomial ring ``A`` whose action maps are (injective) endomorphisms of ``A``, i.e. ``R``-linear maps that are also multiplicative.
@@ -11,7 +5,7 @@ A difference polynomial ring over the commutative ring ``R`` is an action polyno
 ## Construction
 
 ```@docs
-difference_polynomial_ring(R::Ring, n_elementary_symbols::Int, n_action_maps::Int; kwargs...)
+difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
 difference_polynomial_ring(R::Ring, x::Symbol, n_action_maps::Int; kwargs...)
 ```
 
@@ -23,7 +17,7 @@ The action maps of a difference polynomial ring over the commutative ring `R` ar
     be tracked afterwards.
 
 ```@docs
-diff_action(p::DifferencePolyRingElem, i::Int)
-diff_action(p::DifferencePolyRingElem, d::Vector{Int})
+apply_action(p::DifferencePolyRingElem, i::Int)
+apply_action(p::DifferencePolyRingElem, d::Vector{Int})
 ```
 

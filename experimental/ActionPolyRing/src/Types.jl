@@ -1,29 +1,29 @@
 ###############################################################################
 #
-#  Action polynomial rings 
+#  Action polynomial rings
 #
 ###############################################################################
 
 abstract type ActionPolyRing{T} <: Ring end
 abstract type ActionPolyRingElem{T} <: RingElem end
 
- # To be implemented by subtypes: 
+ # To be implemented by subtypes:
  # Mandatory:
  #  Getters:
  #   __are_perms_up_to_date(R::MyActionPolyRing) -> Bool
  #   __is_perm_up_to_date(x::MyActionPolyRing) -> Bool
  #   __jtu_idx(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, Int}
- #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}} 
+ #   __jtv(R::MyActionPolyRing) -> Dict{Tuple{Int, Vector{Int}}, MyActionPolyRingElem{T}}
  #   __perm_for_sort(R::MyActionPolyRing) -> Vector{Int}
  #   __perm_for_sort_poly(x::MyActionPolyRingElem) -> Vector{Int}
  #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
  #   base_ring(R::MyActionPolyRing) -> AbstractAlgebra.UniversalPolyRing{T}
  #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.UniversalPolyRingElem{T}
  #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
- #   elementary_symbols(R::MyActionPolyRing) -> Vector{Symbols}
+ #   action_indeterminates(R::MyActionPolyRing) -> Vector{Symbols}
  #   n_action_maps(R::MyActionPolyRing) -> Int
  #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
- #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T} 
+ #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T}
  #   ranking(R::MyActionPolyRing{T}) -> ActionPolyRingRanking{MyActionPolyRing{T}}
  #
  #  Setters:
@@ -64,7 +64,7 @@ abstract type ActionPolyRingElem{T} <: RingElem end
 ### Difference ###
 mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.UniversalPolyRing{T}
-  elementary_symbols::Vector{Symbol}
+  action_indeterminates::Vector{Symbol}
   n_action_maps::Int
   are_perms_up_to_date::Bool
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}
@@ -73,22 +73,22 @@ mutable struct DifferencePolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type ActionPolyRanking{T, DifferencePolyRing{T}}
   permutation::Vector{Int}
 
-  function DifferencePolyRing{T}(R::Ring, n_elementary_symbols::Int, n_action_maps::Int) where {T}
-    @req n_elementary_symbols >= 1 "The number of elementary symbols must be positive"
-    elementary_symbols = map(x -> Symbol('u', x), 1:n_elementary_symbols)
-    return DifferencePolyRing{T}(R, elementary_symbols, n_action_maps)
+  function DifferencePolyRing{T}(R::Ring, n_action_indeterminates::Int, n_action_maps::Int) where {T}
+    @req n_action_indeterminates >= 1 "The number of action indeterminates must be positive"
+    action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
+    return DifferencePolyRing{T}(R, action_indeterminates, n_action_maps)
   end
- 
-  function DifferencePolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, n_action_maps::Int) where {T}
-    @req !is_empty(elementary_symbols) "The number of elementary symbols must be positive"
+
+  function DifferencePolyRing{T}(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int) where {T}
+    @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req n_action_maps >= 1 "The number of endomorphisms must be positive"
     upoly_ring = universal_polynomial_ring(R; cached = false)
-    
+
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferencePolyRingElem{T}}()
     var_to_jet = Dict{DifferencePolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
-    return new{T}(upoly_ring, elementary_symbols, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
+
+    return new{T}(upoly_ring, action_indeterminates, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
 end
@@ -111,7 +111,7 @@ end
 ### Differential ###
 mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   upoly_ring::AbstractAlgebra.UniversalPolyRing{T}
-  elementary_symbols::Vector{Symbol}
+  action_indeterminates::Vector{Symbol}
   n_action_maps::Int
   are_perms_up_to_date::Bool
   jet_to_var::Any #Always of type Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}
@@ -120,22 +120,22 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
   ranking::Any #Alyways of type ActionPolyRanking{T, DifferentialPolyRing{T}}
   permutation::Vector{Int}
 
-  function DifferentialPolyRing{T}(R::Ring, n_elementary_symbols::Int, n_action_maps::Int) where {T}
-    @req n_elementary_symbols >= 1 "The number of elementary symbols must be positive"
-    elementary_symbols = map(x -> Symbol('u', x), 1:n_elementary_symbols)
-    return DifferentialPolyRing{T}(R, elementary_symbols, n_action_maps)
+  function DifferentialPolyRing{T}(R::Ring, n_action_indeterminates::Int, n_action_maps::Int) where {T}
+    @req n_action_indeterminates >= 1 "The number of action indeterminates must be positive"
+    action_indeterminates = map(x -> Symbol('u', x), 1:n_action_indeterminates)
+    return DifferentialPolyRing{T}(R, action_indeterminates, n_action_maps)
   end
- 
-  function DifferentialPolyRing{T}(R::Ring, elementary_symbols::Vector{Symbol}, n_action_maps::Int) where {T}
-    @req !is_empty(elementary_symbols) "The number of elementary symbols must be positive"
+
+  function DifferentialPolyRing{T}(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int) where {T}
+    @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req n_action_maps >= 1 "The number of endomorphisms must be nonnegative"
     upoly_ring = universal_polynomial_ring(R; cached = false)
-    
+
     jet_to_var = Dict{Tuple{Int, Vector{Int}}, DifferentialPolyRingElem{T}}()
     var_to_jet = Dict{DifferentialPolyRingElem{T}, Tuple{Int, Vector{Int}}}()
     jet_to_upoly_idx = Dict{Tuple{Int, Vector{Int}}, Int}()
-    
-    return new{T}(upoly_ring, elementary_symbols, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
+
+    return new{T}(upoly_ring, action_indeterminates, n_action_maps, false, jet_to_var, var_to_jet, jet_to_upoly_idx)
   end
 
 end
@@ -157,7 +157,7 @@ end
 
 ###############################################################################
 #
-#  Iterator types 
+#  Iterator types
 #
 ###############################################################################
 
@@ -168,12 +168,12 @@ struct ActionPolyMonomials{PolyT<:ActionPolyRingElem} poly::PolyT end
 
 ###############################################################################
 #
-#  Rankings 
+#  Rankings
 #
 ###############################################################################
 
 # For a ranking of jet variables, e.g. u1[123], u3[041], ... one needs:
-# - An ordering to compare the elementary symbols u_1, ..., u_n
+# - An ordering to compare the action indeterminates u_1, ..., u_n
 # - An ordering of the multiindices (this is like a monomial_ordering)
 # - A decision on which of the two has priority, e.g. position-over-term (pot)
 #   or term-over-position (top). Here, the position of the jet variable corresponding
@@ -190,6 +190,6 @@ mutable struct ActionPolyRingRanking{PolyT <: ActionPolyRing}
   function ActionPolyRingRanking{PolyT}(S::PolyT, partition::Vector{Vector{Int}}, index_ordering_matrix::ZZMatrix) where {T, PolyT <: ActionPolyRing{T}}
     return new{PolyT}(S, partition, index_ordering_matrix)
   end
-  
+
 end
 

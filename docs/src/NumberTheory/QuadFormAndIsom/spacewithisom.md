@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Quadratic spaces with isometry
 
 We call *quadratic space with isometry* any pair $(V, f)$ consisting of a

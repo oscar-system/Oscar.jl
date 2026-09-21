@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Design Decisions
 This document covers the ideas and design decisions behind OSCAR, as well as
 some pitfalls to avoid.

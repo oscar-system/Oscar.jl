@@ -257,40 +257,54 @@ end
 
 function Base.show(io::IO, v::NormalToricVarietyType)
   # initiate properties string
-  properties_string = ["Normal"]
+  properties_string = []
 
-  affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
+  if has_attribute(v, :is_smooth) && get_attribute(v, :is_smooth)
+    push!(properties_string, "Smooth")
+  else
+    if has_attribute(v, :is_orbifold) && get_attribute(v, :is_orbifold)
+      push!(properties_string, "Q-factorial")
+    end
 
-  simplicial_cb!(a, b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
-  push_attribute_if_exists!(
-    properties_string, v, :is_smooth, "smooth"; callback=(simplicial_cb!)
-  )
-
-  projective = nothing
-  if isnothing(affine) || !affine
-    complete_cb!(a, b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
-    projective = push_attribute_if_exists!(
-      properties_string, v, :is_projective, "projective"; callback=(complete_cb!)
+    if has_attribute(v, :is_gorenstein) && get_attribute(v, :is_gorenstein)
+      push!(properties_string, "Gorenstein")
+    elseif (
+      has_attribute(v, :is_q_gorenstein) && get_attribute(v, :is_q_gorenstein)
+      && (!has_attribute(v, :is_orbifold) || !get_attribute(v, :is_orbifold))
     )
+      push!(properties_string, "Q-Gorenstein")
+    end
+
+    if isempty(properties_string)
+      push!(properties_string, "Normal")
+    else
+      push!(properties_string, "normal")
+    end
   end
 
-  q_gor_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
-  gorenstein = push_attribute_if_exists!(
-    properties_string, v, :is_gorenstein, "gorenstein"; callback=(q_gor_cb!)
-  )
-
-  push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
+  if has_attribute(v, :is_affine) && get_attribute(v, :is_affine)
+    push!(properties_string, "affine")
+  elseif has_attribute(v, :is_fano) && get_attribute(v, :is_fano)
+    push!(properties_string, "Fano")
+  elseif has_attribute(v, :is_projective) && get_attribute(v, :is_projective)
+    push!(properties_string, "projective")
+  elseif has_attribute(v, :is_complete) && get_attribute(v, :is_complete)
+    push!(properties_string, "complete")
+  end
 
   if has_attribute(v, :dim)
     push!(properties_string, string(dim(v)) * "-dimensional")
   end
 
-  properties_string = [join(properties_string, ", ")]
   push!(properties_string, "toric variety")
 
-  push_attribute_if_exists!(
-    properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor"
-  )
+  if has_attribute(v, :has_torusfactor)
+    if get_attribute(v, :has_torusfactor)
+      push!(properties_string, "with a torusfactor")
+    else
+      push!(properties_string, "without torusfactors")
+    end
+  end
 
   join(io, properties_string, " ")
 end

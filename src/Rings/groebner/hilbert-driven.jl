@@ -218,7 +218,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
   Pol = polyhedron(-K,  zeros(Int, ncols))
   !is_feasible(Pol) && return zeros(Int, ncols)
-  pos_vec = zeros(Int, ncols)
+  pos_vec = [ZZ(0) for i in range(1,ncols)]
   for i in 1:ncols
     ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
@@ -229,7 +229,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
       L = linear_program(Pol_new, obj_func)
       v = optimal_vertex(L)
     end
-    pos_vec += K*(v.p)
+    pos_vec += ((v.p)*transpose(K))[1,:]
   end
   ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
   ret = (x -> div(x, gcd(ret))).(ret) 

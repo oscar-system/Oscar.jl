@@ -95,7 +95,7 @@ function _m_sigma(
   D::Union{ToricDivisor,ToricLineBundle},
 )
   ans = ray_vector(zeros(QQFieldElem, dim(sigma)))
-  coeff = coefficients(isa(D, ToricDivisor) ? D : toric_divisor(D))
+  coeff = coefficients(D)
 
   dual_ray = QQFieldElem[]
 

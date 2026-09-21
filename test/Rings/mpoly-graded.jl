@@ -210,6 +210,40 @@ end
   @test is_isomorphic(D, abelian_group([0]))
 end
 
+@testset "Monomial bases and homogeneous components with torsion" begin
+  S, (u, v) = graded_polynomial_ring(QQ, [:u, :v])
+  @test monomial_basis(S, 2) == [v^2, u * v, u^2]
+
+  # The relation matrix gives G = Z ⊕ Z/2, so the second generator is torsion.
+  G = abelian_group([0, 2])
+  g1, g2 = gens(G)
+  @test !is_free(G)
+  @test order(g2) == 2
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, G([1, 1])])
+  d = G([2, 1])
+
+  @test monomial_basis(R, d) == [x * y]
+  @test Set(monomial_basis(R, G([2, 0]))) == Set([x^2, y^2])
+  @test all(degree(p) == d for p in monomial_basis(R, d))
+
+  # Homogeneous components with torsion: a nonzero component.
+  V, embedding = homogeneous_component(R, G([2, 0]))
+  @test dim(V) == 2
+  @test Set(embedding.(gens(V))) == Set([x^2, y^2])
+
+  # A zero-dimensional component and its embedding.
+  V0, embedding0 = homogeneous_component(R, G([0, 1]))
+  @test dim(V0) == 0
+  @test embedding0(zero(V0)) == zero(R)
+  @test R(zero(V0)) == zero(R)
+
+  Q, _ = quo(R, ideal(R, [x^2]))
+  @test monomial_basis(Q, G([2, 0])) == [y^2]
+
+  R_infinite, _ = graded_polynomial_ring(QQ, [:z]; weights = [g2])
+  @test_throws InfiniteDimensionError monomial_basis(R_infinite, G([0, 0]))
+end
+
 @testset "Minimal generating set" begin
   R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y]; weights = [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
@@ -319,6 +353,8 @@ end
   @test custom == gcd == generator == cocoa == indeterminate
 end
 
+using Random
+
 @testset "Rand" begin
   for K in [ZZ, GF(3), QQ]
     R, = K[:x, :y, :z]
@@ -326,6 +362,14 @@ end
     for i in 1:100
       f = rand(R, 5:10, 1:10, 1:100)
       @test parent(f) === R
+
+      # a graded ring yields homogeneous polynomials, with or without an
+      # explicit rng
+      for g in (rand(S, 5:10, 1:10, 1:100),
+                rand(Random.default_rng(), S, 5:10, 1:10, 1:100))
+        @test parent(g) === S
+        @test is_homogeneous(g)
+      end
     end
   end
 end
@@ -604,4 +648,3 @@ end
   @test grading_group(S) === grading_group(S101)
   @test degree.(gens(S)) == degree.(gens(S101))
 end
-

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Sheaf Cohomology of Toric Line Bundles
 
 OSCAR provides functionality to compute the dimensions of sheaf cohomology

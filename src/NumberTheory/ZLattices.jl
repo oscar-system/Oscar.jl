@@ -71,7 +71,7 @@ function invariant_function_graph_hash(L::ZZLat; max_size = 6000)
   _v = zero_matrix(kk, 1, r)
   tmp = zero_matrix(kk, r, 1)
   tmp2 = zero_matrix(kk, 1, 1)
-  cv = characteristic_vectors(L)
+  cv = Hecke._characteristic_vectors(L)
   if length(cv) < max_size
     for v in cv
       n = n+1
@@ -147,67 +147,67 @@ function oscar_invariant_function(L::ZZLat)
 end
 
 
-# return all characteristic vectors up to sign
-# unfortunately still to many for a fast graph hash 
-# at least in higher rank
-# the idea follows https://arxiv.org/pdf/2004.14022
+_get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{Matrix{Int}}, canonical_ordering::Vector{Int}) = _get_canonical_form(A, [matrix(ZZ, v) for v in char_vectors_set], canonical_ordering)
+
+function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, canonical_ordering::Vector{Int})
+  p = length(char_vectors_set)
+  filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
+  can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
+  _, U = hnf_with_transform(can_char_vectors_set) 
+  U_inv = inv(U)
+  return transpose(U_inv)*A*U_inv
+end
+
+_get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _get_edge_labeled_graph(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
+
+function _get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
+  p = length(cv_set)
+  res_graph = graph(Undirected, p+2)
+  max_w = 0
+  label!(res_graph, Dict{Tuple{Int, Int}, Int,}(), nothing; name=:edge)
+  v_i = Matrix{Int}(undef, 1, number_of_columns(gram))
+  t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
+  w_i = Matrix{Int}(undef, 1, 1)
+  for i = 1:p 
+    v_i = AbstractAlgebra.LinearAlgebra.mul!(v_i, cv_set[i], gram)
+    for j = i+1:p
+      w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[j]))
+      w = w_i[1]
+      max_w = max(w, max_w)
+      add_edge!(res_graph, i, j)
+      res_graph.edge[i, j] = w
+    end
+    add_edge!(res_graph, i, p+1)
+    w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[i]))
+    w = w_i[1]
+    res_graph.edge[i, p+1] = w
+  end
+  a = 1+max_w 
+  b = a + 1
+  for i = 1:p 
+    add_edge!(res_graph, i, p+2)
+    res_graph.edge[i, p+2] = a
+  end
+  add_edge!(res_graph, p+1, p+2)
+  res_graph.edge[p+1, p+2] = b
+  return res_graph
+end
+
 """
-    characteristic_vectors(L::ZZLat) -> Vector{ZZMatrix}
-    
-Return a set of characteristic vectors of ``L`` up to sign.
+    canonical_form(L::ZZLat) -> ZZMatrix
+Return the canonical form of ``L``. The form is canonical in the sense, that two isomorphic latticies would have the same canonical form.
 
 We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
 
 !!! note
-    We do not give any guarantees that the characteristic vector set stays the same 
+    We do not give any guarantees that the canonical form stays the same 
     between different versions of Oscar.
 """
-function characteristic_vectors(L::ZZLat)
-  L = lattice(rational_span(L))
-  S1,P1, v1  = Hecke._shortest_vectors_sublattice(L; check=false)
-  cvL = v1
-  B = coordinates(basis_matrix(S1), P1)
-  A = abelian_group(ZZ.(B))
-  BS1 = ZZ.(basis_matrix(S1))
-  done = []
-  for a in A
-    -a in done && continue
-    iszero(a) && continue
-    push!(done,a)
-    v = coordinates(a.coeff*basis_matrix(P1), S1)[1,:]
-    tmp = [matrix(ZZ, 1, degree(S1), (v -  j)*basis_matrix(S1)) for j in Hecke._closest_vectors(S1, v)[2]]
-    append!(cvL, tmp)
-  end
-  if rank(S1) == rank(L)
-    @hassert :Lattice 1 isone(hnf(reduce(vcat, cvL))[1:rank(L),:])
-    return cvL
-  end
-  proj2 = orthogonal_projection(ambient_space(L), basis_matrix(P1))
-  L2 = proj2(L)
-  proj1 = orthogonal_projection(ambient_space(L), basis_matrix(L2))
-  P_Z = ZZ.(solve(basis_matrix(L2), proj2.matrix;side=:left))    
-  # recurse 
-  for a in characteristic_vectors(L2)
-    aL = a*basis_matrix(L2)
-    if a*basis_matrix(L2) in L
-      @assert rank(L) == ncols(aL)
-      push!(cvL, ZZ.(aL))
-      continue
-    end
-    # a vector in L projecting to a
-    vL = solve(P_Z, a; side=:left)
-    w_amb = vL * proj1.matrix
-    w_amb == w_amb * proj1.matrix
-    w = coordinates(w_amb[1,:], P1)
-    if all(isone, denominator.(w))
-      push!(cvL, w*basis_matrix(P1))
-      continue 
-    end
-    _, cv = Hecke._closest_vectors(P1, w)
-    tmp = [ZZ.(aL+matrix(QQ, 1, length(w), w - j) * basis_matrix(P1)) for j in cv]
-    append!(cvL, tmp)
-  end
-  @assert all(rank(L) == ncols(i) for i in cvL)
-  @hassert :Lattice 1 isone(hnf(reduce(vcat, cvL))[1:rank(L),:])
-  return cvL
+function canonical_form(L::ZZLat)
+  L = lll(L) # leaves canonical form unchanged and helps if the basis is badly conditioned
+  gram = matrix(ZZ, gram_matrix(L))
+  char_vectors_set = Hecke._reduced_characteristic_vectors(L)
+  graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
+  can_order = _canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
+  return _get_canonical_form(gram, char_vectors_set, can_order)
 end

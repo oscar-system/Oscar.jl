@@ -63,8 +63,8 @@ defined by ideal (x1 + x2 + x3, 2*x2 - x3)
 julia> rational_points(Vector,X)
 3-element Vector{QQFieldElem}:
  -3//2
- 1//2
- 1
+  1//2
+  1
 
 ```
 """

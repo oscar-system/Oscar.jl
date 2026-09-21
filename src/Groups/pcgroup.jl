@@ -15,23 +15,6 @@
 # we transfer changes in the Julia object to the GAP side
 # as soon as the GAP object exists.
 
-abstract type Collector{T} end
-
-mutable struct GAP_Collector{T} <: Collector{T}
-  ngens::Int
-  relorders::Vector{T}
-  powers::Vector{Vector{Pair{Int, T}}}
-  conjugates::Matrix{Vector{Pair{Int, T}}}
-  X::GapObj   # a collector in GAP, if defined
-  F::FPGroup  # the free group in Oscar that belongs to `X`, if defined
-
-  function GAP_Collector{T}(n::Int) where T <: IntegerUnion
-    return new(n, zeros(T, n), # relative orders undefined
-                  repeat([Pair{Int, T}[]], n), # default powers are identity
-                  Matrix{Vector{Pair{Int, T}}}(undef, n, n)) # conjugates undefined
-  end
-end
-
 """
     collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion
 
@@ -350,17 +333,24 @@ end
 
 # Create a collector independent of `c`.
 function Base.deepcopy_internal(c::GAP_Collector{T}, dict::IdDict) where T <: IntegerUnion
+  haskey(dict, c) && return dict[c]
+
   cc = GAP_Collector{T}(c.ngens,
-         deepcopy_internal(c.relorders, dict::IdDict),
-         deepcopy_internal(c.powers, dict::IdDict), 
-         deepcopy_internal(c.conjugates, dict::IdDict))
+         deepcopy_internal(c.relorders, dict),
+         deepcopy_internal(c.powers, dict),
+         deepcopy_internal(c.conjugates, dict))
+  dict[c] = cc
+
+  # The free group belongs to `c.X`, hence it fits also to the copy of `c.X`;
+  # it is not mutated, thus it need not be copied.
+  isdefined(c, :F) && (cc.F = c.F)
 
   # If the GAP collector has already been created then copy it.
   if isdefined(c, :X)
     if GAP.Globals.IsSingleCollectorRep(c.X)
       # For this type of collectors, `GAP.Globals.ShallowCopy`
       # returns an independent copy.
-      cc.X = GAP.Globals.ShallowCopy(c.X)::GapObj
+      cc.X = GAPWrap.ShallowCopy(c.X)
     elseif GAP.Globals.IsFromTheLeftCollectorRep(c.X)
       # Currently there is no `GAP.Globals.ShallowCopy` method for `c.X`.
       # Create the GAP object anew.
@@ -499,7 +489,7 @@ g1^-3*g2^2
 julia> exponent_vector(x)
 2-element Vector{ZZRingElem}:
  -3
- 2
+  2
 ```
 
 ```jldoctest
@@ -933,6 +923,12 @@ Return a `ZZRingElem` representing the polycyclic group `G`,
 using the same encoding as GAP's `CodePcGroup` and Magma's `SmallGroupEncoding`.
 Currently only defined for `PcGroup`, not `SubPcGroup`.
 
+For `n = order(G)` and `code = encode(G)`,
+`pc_group(n, code)` returns a `PcGroup` with the same defining presentation
+as `G`.
+
+The encoding is described in [BE99](@cite), Section 3.3.
+
 # Examples
 ```jldoctest
 julia> G = small_group(12, 2)
@@ -949,14 +945,17 @@ true
 ```
 """
 function encode(G::PcGroup)
-  return ZZ(GAP.Globals.CodePcGroup(GapObj(G))::GapInt)
+  return ZZ(GAPWrap.CodePcgs(GAPWrap.FamilyPcgs(GapObj(G))))
 end
 
 """
-    pc_group(order::IntegerUnion, code::IntegerUnion)
+    pc_group(n::IntegerUnion, code::IntegerUnion)
 
-Given an integer `order` and an integer `code`, return the polycyclic group it encodes.
-The accepted codes and resulting groups match those of GAP's `PcGroupCode` and Magma's `SmallGroupDecoding`.
+Return the polycyclic group encoded by `n` and `code`,
+in the sense of [`encode`](@ref).
+
+The accepted codes and resulting groups match those of GAP's `PcGroupCode`
+and Magma's `SmallGroupDecoding`.
 
 # Examples
 ```jldoctest

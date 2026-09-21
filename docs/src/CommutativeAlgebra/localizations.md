@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Localized Rings and Their Ideals
 
 We recall the definition of localization. All rings considered are commutative,  with multiplicative identity 1.

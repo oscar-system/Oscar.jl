@@ -29,6 +29,12 @@
   end
 end
 
+@testset "check invalidation" begin
+  @test validate(mrdi_schema, Dict("_ns" => Dict("Oscar" => ["https://github.com/oscar-system/Oscar.jl","1.8.0"]),
+                                     "_type" => Dict("name" => "Vector", "params" => "Base.Int"),
+                                     "data" => [Dict("_type" => "ZZRingElem", "data" => "3")])) !== nothing
+end
+
 @testset "saving and loading Gzip'ed filed" begin
   @testset "loading file format paper example (Gzip'ed)" begin
     F = GF(7, 2)
@@ -61,8 +67,62 @@ end
     save(filename, [[1, 2], [3, 4], [5, 6]]; pretty_print=true)
     str = read(filename, String)
     version_info = Oscar.Serialization.get_oscar_serialization_version()[:Oscar][2]
-    cmp_str = "{\n  \"_ns\":{\n    \"Oscar\":[\n      \"https://github.com/oscar-system/Oscar.jl\",\n      \"" * version_info * "\"\n    ]\n  },\n  \"_type\":{\n    \"name\":\"Vector\",\n    \"params\":{\n      \"name\":\"Vector\",\n      \"params\":\"Base.Int\"\n    }\n  },\n  \"data\":[\n    [\n      \"1\",\n      \"2\"\n    ],\n    [\n      \"3\",\n      \"4\"\n    ],\n    [\n      \"5\",\n      \"6\"\n    ]\n  ]\n}"
-
+    cmp_str = """
+{
+  "_ns":{
+    "Oscar":[
+      "https://github.com/oscar-system/Oscar.jl",
+      "$version_info"
+    ]
+  },
+  "_type":{
+    "name":"Vector",
+    "params":{
+      "name":"Vector",
+      "params":"Base.Int"
+    }
+  },
+  "data":[
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ]
+}"""
     @test str == cmp_str
+  end
+
+  @testset "MultiFileRefSerializer" begin
+    mktempdir() do path
+      Qx, x = QQ[:x]
+      F, a = number_field(x^2 + 1)
+      R, (y, z) = F[:y, :z]
+      p = a * y - z
+
+      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R) do loaded
+        @test loaded == p
+      end
+
+      prefix_path = joinpath(path, "original")
+      files = readdir(path)
+      @test "original.mrdi" in files
+      @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
+
+      # compression: main and ref files should be gzip compressed
+      save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+      gz_files = filter(f -> startswith(f, "original") && (endswith(f, ".mrdi") || endswith(f, ".mrdi.gz")), readdir(path))
+      @test "original.mrdi.gz" in gz_files
+      Oscar.Serialization.reset_global_serializer_state()
+      loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
+      @test loaded == p
+    end
   end
 end

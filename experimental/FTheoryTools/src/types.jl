@@ -205,3 +205,17 @@ const ResolutionGeneratingSectionsType = Vector{Vector{Vector{LineBundleSectionT
 const WeightedResolutionGeneratingSectionsType = Vector{
   Vector{Vector{LineBundleSectionType}}
 }
+
+const BlowupCenterType = Vector{String}
+const WeightedBlowupCenterType = Tuple{BlowupCenterType,Vector{Int64}}
+const ResolutionType = Tuple{Vector{BlowupCenterType},Vector{String}}
+const WeightedResolutionType = Tuple{Vector{WeightedBlowupCenterType},Vector{String}}
+const ResolutionsType = Vector{ResolutionType}
+const WeightedResolutionsType = Vector{WeightedResolutionType}
+
+const ResolutionSectionInputType = Vector{Vector{String}}
+const ResolutionGeneratingSectionInputType = Vector{ResolutionSectionInputType}
+
+const StringKeyedMapType = AbstractDict{String,V} where {V}
+const ConcreteModelDataType = StringKeyedMapType
+const TuningDataType = StringKeyedMapType
