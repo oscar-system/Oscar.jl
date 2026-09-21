@@ -3374,7 +3374,7 @@ function global_fundamental_class(A::IdeleParent)
                                          extension_of = emb)
       @hassert :GaloisCohomology 2 is_zero(map(hk, 2)(g))
       @vprint :GaloisCohomology 1 "adjusting support in small field\n"
-      @time new_g, _A, _hk = adjust_support(A, hk, g, [(ZZ(p), k) for (p, k) = conductor(B)])
+      @vtime :GaloisCohomology 1 new_g, _A, _hk = adjust_support(A, hk, g, [(ZZ(p), k) for (p, k) = conductor(B)])
       @vprint :GaloisCohomology 1 "embedding the idele class group\n"
       phi = induce_hom(_A, B, emb)
 #        @show conductor(_A)
