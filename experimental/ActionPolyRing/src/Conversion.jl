@@ -59,8 +59,8 @@ function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractV
   n = length(jet_vars)
   S, S_vars = polynomial_ring(coefficient_ring(apr), n)
 
-  fwd_images = zeros(S, ngens(R))
-  bwd_images = zeros(R, n)
+  fwd_images = fill(zero(S), ngens(R))
+  bwd_images = fill(zero(R), n)
 
   jtu = __jtu_idx(apr)
   vtj = __vtj(apr) 
