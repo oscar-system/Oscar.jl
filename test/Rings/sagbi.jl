@@ -5,7 +5,7 @@ include("../../src/Rings/sagbi.jl")
 
 @testset "Subduction modulo generators" begin
     
-    R, (x,y) = polynomial_ring(ZZ, ['x', 'y'])
+    R, (x,y) = polynomial_ring(QQ, ['x', 'y'])
 
     B = [x^2 - x, y+1]
     @test subduct(x^2*y + x*y - 1, B) == 2*x*y - 1 
