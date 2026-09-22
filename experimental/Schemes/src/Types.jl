@@ -2,7 +2,7 @@
 ##
 ##  Infrastructure for Maximal Contact and Hironaka's induction on
 ##  dimension of the ambient space in resolution of singularities
-##  This construction is fundamental in the approaches of 
+##  This construction is fundamental in the approaches of
 ##  Bierstone-Milman, Bravo-Encinas-Villamayor, Cossart-Jannsen-Saito
 ##  and many others making Hironaka's construction algorithmic.
 ##
