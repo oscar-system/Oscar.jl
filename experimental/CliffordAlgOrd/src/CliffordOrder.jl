@@ -207,7 +207,7 @@ function Base.in(x::CliffordAlgebraElem, C::CliffordOrder)
   for i in 1:rank(C)
     coe[i] in coeids[i] || return false
   end
-  return true 
+  return true
 end
 
 ### ZZ ###
@@ -217,7 +217,7 @@ function Base.in(x::CliffordAlgebraElem, C::ZZCliffordOrder)
   for i in 1:rank(C)
     is_integral(coe[i]) || return false
   end
-  return true 
+  return true
 end
 
 ################################################################################
@@ -360,7 +360,7 @@ pseudo_basis(C::CliffordOrder, i::Int) = (basis(ambient_algebra(C), i), coeffici
     pseudo_gen(C::CliffordOrder, i::Int) -> Tuple{CliffordAlgebraElem, NumFieldOrderFractionalIdeal}
 
 Return the `i`-th pseudo-element of the canonical algebra pseudo-generating set
-of the Clifford order `C`. The first coordinate is returned as an element of 
+of the Clifford order `C`. The first coordinate is returned as an element of
 `ambient_algebra(C)`.
 
 # Examples
@@ -448,7 +448,7 @@ julia> pseudo_gens(C)
  ([0, 0, 0, 0, 1, 0, 0, 0], <5>//1)
 ```
 """
-pseudo_gens(C::CliffordOrder) = map(i -> pseudo_gen(C, i), 1:ncols(gram_matrix(C))) 
+pseudo_gens(C::CliffordOrder) = map(i -> pseudo_gen(C, i), 1:ncols(gram_matrix(C)))
 
 @doc raw"""
     is_commutative(C::Union{CliffordOrder, ZZCliffordOrder}) -> Bool
@@ -478,7 +478,7 @@ of the Clifford order `C`.
 """
 function gen(C::ZZCliffordOrder, i::Int)
   coeffs = [zero(QQ) for _ in 1:rank(C)]
-  i > 0 || throw(BoundsError(coeffs, i)) 
+  i > 0 || throw(BoundsError(coeffs, i))
   coeffs[2^(i - 1) + 1] = QQ(1)
   return C(coeffs)
 end
@@ -613,11 +613,11 @@ end
     quadratic_discriminant(C::CliffordOrder) -> Tuple{NumFieldOrderFractionalIdeal, NumFieldElem}
 
 Return the quadratic discriminant of `C` as a tuple `(disq_ideal, alg_disq)` where:
-* `disq_ideal` is the discriminant ideal of the maximal orthogonal suborder of the centroid of `C`. 
-  Specifically, if this suborder is written as $R \cdot 1 \oplus \mathfrak{a} \cdot x$ 
-  (where $R$ is the base ring of `C` and $x$ is an orthogonal generator), then `disq_ideal` 
+* `disq_ideal` is the discriminant ideal of the maximal orthogonal suborder of the centroid of `C`.
+  Specifically, if this suborder is written as $R \cdot 1 \oplus \mathfrak{a} \cdot x$
+  (where $R$ is the base ring of `C` and $x$ is an orthogonal generator), then `disq_ideal`
   equals the fractional ideal $\mathfrak{a}^2 x^2$.
-* `alg_disq` is the quadratic discriminant of the ambient Clifford algebra. It lies in the 
+* `alg_disq` is the quadratic discriminant of the ambient Clifford algebra. It lies in the
   same $K$-square class as $x^2$ (rather the scalar coordinate $x^2[1]$), where $K$ is the base field.
 """
 function quadratic_discriminant(C::CliffordOrder)
@@ -636,7 +636,7 @@ disq(C::CliffordOrder) = quadratic_discriminant(C)
     pseudo_basis_of_center(C::CliffordOrder) -> Vector{Tuple{CliffordOrderElem, NumFieldOrderFractionalIdeal}}
 
 Return a pseudo-basis of the center of `C`. It equals `pseudo_basis_of_centroid(C)`, if and only if
-`rank(lattice(C))` is odd. Otherwise it is trivial. 
+`rank(lattice(C))` is odd. Otherwise it is trivial.
 
 # Examples
 
@@ -693,7 +693,7 @@ end
 
 Return a basis of the centroid of `C`. Unless `rank(lattice(C)) = 0`, it is always free of rank
 two, so it is returned as a vector containing the basis elements. The first one is the
-multiplicative identity of `C`. 
+multiplicative identity of `C`.
 
 # Examples
 
@@ -709,12 +709,12 @@ julia> basis_of_centroid(C)
  [1, 0, 0, 1]
 ```
 """
-function basis_of_centroid(C::ZZCliffordOrder) 
+function basis_of_centroid(C::ZZCliffordOrder)
   rank(lattice(C)) == 0 && return [one(C)]
   moe = _max_orth_elt(C)
   z_elt = 1//2*ambient_algebra(C)(1 + moe)
   z_elt in C && return [one(C), C(z_elt)]
-  return [one(C), moe] 
+  return [one(C), moe]
 end
 
 @doc raw"""
@@ -763,7 +763,7 @@ julia> quadratic_discriminant(C)
 -3
 ```
 """
-function quadratic_discriminant(C::ZZCliffordOrder) 
+function quadratic_discriminant(C::ZZCliffordOrder)
   !isdefined(C, :disq) && _max_orth_elt(C)
   return C.disq
 end
@@ -876,7 +876,7 @@ is_odd(x::Union{CliffordOrderElem, ZZCliffordOrderElem}) = (odd_part(x) == x)
 
 #############################################################
 #
-#  Promotion rules 
+#  Promotion rules
 #
 #############################################################
 
@@ -897,7 +897,7 @@ AbstractAlgebra.promote_rule(::Type{ZZCliffordOrderElem}, ::Type{ZZCliffordOrder
 
 #############################################################
 #
-#  Random generation 
+#  Random generation
 #
 #############################################################
 
@@ -919,7 +919,7 @@ rand(CO::ZZCliffordOrder, v...) = rand(Random.default_rng(), CO, v...)
 
 #############################################################
 #
-#  Conformance test element generation 
+#  Conformance test element generation
 #
 #############################################################
 
@@ -965,37 +965,37 @@ end
 
 function _compute_raw_orth_data!(C::CliffordOrder)
   isdefined(C, :_raw_orth_data) && return C._raw_orth_data::Tuple{elem_type(ambient_algebra(C)), Hecke.fractional_ideal_type(base_ring_type(C))}
-    
+
   ambalg = ambient_algebra(C)
   br = base_ring(C)
   n = rank(lattice(C))
-    
+
   if n == 0
     pb1 = pseudo_basis(C, 1)
     C.disq = tuple(pb1[2], disq(ambalg))
     C._raw_orth_data = pb1
     return C._raw_orth_data::Tuple{elem_type(ambalg), Hecke.fractional_ideal_type(base_ring_type(C))}
   end
-    
+
   z_elt = coefficients(basis_of_centroid(ambalg)[2])
   lambda_empt = z_elt[1]
-    
-  coeff_ideals = coefficient_ideals(C) 
+
+  coeff_ideals = coefficient_ideals(C)
   valid_ideals = ((z_elt[i])^(-1) * coeff_ideals[i] for i in 2:length(z_elt) if !is_zero(z_elt[i]))
   c_ideal = reduce((x, y) -> simplify(lcm(x, y)), valid_ideals)
-    
+
   if is_zero(lambda_empt)
     C.disq = tuple(disq(ambalg) * c_ideal^2, disq(ambalg))
     C._raw_orth_data = (ambalg(z_elt), c_ideal)
   else
     z_elt = (2 * lambda_empt)^(-1) .* z_elt
     c_ideal = c_ideal * (2 * lambda_empt)
-        
+
     b_ideal = simplify(lcm(fractional_ideal(br, br(2)), c_ideal))
     C.disq = tuple(simplify((2*lambda_empt)^(-2) * disq(ambalg) * b_ideal^2), disq(ambalg))
     C._raw_orth_data = (ambalg(z_elt), c_ideal)
   end
-    
+
   return C._raw_orth_data::Tuple{elem_type(ambalg), Hecke.fractional_ideal_type(base_ring_type(C))}
 end
 
@@ -1007,9 +1007,9 @@ function _max_orth_elt(C::ZZCliffordOrder)
     C.disq = ZZ(1)
     return C.max_orth_elt::ZZCliffordOrderElem
   end
-  
+
   T = orthogonal_basis(space(ambient_algebra(C)))
-  for i in 1:n 
+  for i in 1:n
     T[i,:] *= 1//gcd(T[i,:])
   end
 
