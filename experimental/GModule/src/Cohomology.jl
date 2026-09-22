@@ -1851,7 +1851,7 @@ function action(C::GModule, g::GroupAlgebraElem)
   ZG = parent(g)
   G = group(ZG)
   @assert G == group(C)
-  @assert base_ring(ZG) == base_ring(C)
+  @assert base_ring(ZG) == ZZ || base_ring(ZG) == base_ring(C)
   
   Z = zero_map(C.M, C.M)
   if Hecke._is_sparse(g)
@@ -1897,7 +1897,7 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
   ZG = base_ring(f[0])
   G = group(ZG)
   @assert G == group(C)
-  @assert base_ring(ZG) == base_ring(C)
+  @assert base_ring(ZG) == ZZ || base_ring(ZG) == base_ring(C)
 
   #TODO: do it lazy!!!
   #hom(ZG^a, C) = C^a
@@ -1987,7 +1987,7 @@ function Oscar.hom(m::Map{FinGenAbGroup, FinGenAbGroup})
   return FinGenAbGroupHom(m)
 end
 
-function cohomology_group(C::ComplexOfMorphisms{FinGenAbGroup}, i::Int; tate::Bool = false, no_kernel::Bool = false)
+function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractAlgebra.FPModule}}, i::Int; tate::Bool = false, no_kernel::Bool = false)
   c = get_attribute(C, :cohomology_group)
   can_cache = !no_kernel && (!tate || i != 0) 
   if !isnothing(c) && can_cache && haskey(c, i)
