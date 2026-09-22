@@ -48,8 +48,10 @@ end
 
 @everywhere using Test
 @everywhere using Oscar
-@everywhere Oscar.set_seed!($seed)
-@everywhere Oscar.randseed!($seed)
+
+# we now set seed before every test, if applicable, in every worker separately
+# in test_module()
+
 # setting the global julia seed does not work for distributed processes
 # the RNG is task-local and each '@everywhere' runs in a separate task...
 # to make sure we seed the main process we run this again
@@ -198,7 +200,7 @@ end
 # otherwise, is essentially a serial loop
 merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
                               println("Starting tests for $x")
-                              Oscar.test_module(x; new=false, timed=true, tempproject=false)
+                              Oscar.test_module(x; new=false, timed=true, tempproject=false, seed=seed)
                             end))
 
 
