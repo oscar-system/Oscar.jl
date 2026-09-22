@@ -171,21 +171,52 @@ function _support_sets(F::Vector{T}) where {T<:MPolyRingElem}
   return [matrix_space(ZZ, size(A)...)(A) for A in pre]
 end
 
-function discriminant_complex(f::MPolyRingElem)
-  P = parent(f)
-  list = [f]
-  for i in 1:ngens(P)
-    push!(list, derivative(f, i))
-  end
-  return a_resultant_complex(list)
+function _tautological_polynomial(A::Union{Matrix, MatrixElem})
+  P, x = polynomial_ring(ZZ, ncols(A))
+  R, a = polynomial_ring(ZZ, [Symbol("a_$i") for i in 1:nrows(A)])
+  PR, transf = change_base_ring(R, P)
+  f = sum(a*prod(v^A[i, k] for (k, v) in enumerate(gens(PR)); init=one(PR)) for (i, a) in enumerate(a); init=zero(PR))
+  return f
 end
 
-function discriminant(f::MPolyRingElem)
+function discriminant_complex(A::Union{Matrix, MatrixElem};
+    tautological_polynomial::MPolyRingElem=_tautological_polynomial(A), 
+    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(tautological_polynomial)),
+    twist::FinGenAbGroupElem=zero(grading_group(toric_variety))
+  )
+  return discriminant_complex(tautological_polynomial; toric_variety, twist)
+end
+
+function _support_sets(f::MPolyRingElem)
   P = parent(f)
   list = [f]
   for i in 1:ngens(P)
     push!(list, derivative(f, i))
   end
-  return det(a_resultant_complex(list); upper_bound=ngens(P))
+  return _support_sets(list)
+end
+
+function discriminant_complex(f::MPolyRingElem;
+    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(f)),
+    twist::FinGenAbGroupElem=zero(class_group(toric_variety))
+  )
+  P = parent(f)
+  list = [f]
+  for i in 1:ngens(P)
+    push!(list, derivative(f, i))
+  end
+  return a_resultant_complex(list; toric_variety, twist)
+end
+
+function discriminant(f::MPolyRingElem; 
+    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(f)),
+    twist::FinGenAbGroupElem=zero(class_group(toric_variety))
+  )
+  P = parent(f)
+  list = [f]
+  for i in 1:ngens(P)
+    push!(list, derivative(f, i))
+  end
+  return det(a_resultant_complex(list; toric_variety, twist); upper_bound=ngens(P))
 end
 
