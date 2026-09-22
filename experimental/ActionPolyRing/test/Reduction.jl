@@ -65,7 +65,7 @@
         # Iteration 2: Q2 = apply_action(q, [0,1]) = u_xy - 2*u*u_y
         # p2 = p1 - 2u*Q2 = 4*u^2*u_y + 2*u_x*u_y + u
         @test partially_reduce(p, q) == 4*u^2*u_y + 2*u_x*u_y + u
-        @test partially_reduce(u_y + u, q) == u_y + u 
+        @test partially_reduce(u_y + u, q) == u_y + u
 
         @test partially_reduce(p, dpr(5)) == zero(p)
         @test_throws ArgumentError partially_reduce(p, dpr(0))
@@ -81,7 +81,7 @@
         # p_fullred = 6*u^2*u_y + u^4 + u
 
         @test reduce(p, q) == 6*u^2*u_y + u^4 + u
-        @test reduce(u_y + u, q) == u_y + u 
+        @test reduce(u_y + u, q) == u_y + u
 
         @test reduce(p, dpr(5)) == zero(p)
         @test_throws ArgumentError reduce(p, dpr(0))
@@ -266,14 +266,14 @@
         @test partially_reduce(p2, q) == u_xy + u_x
         @test is_partially_reduced(u_xy + u_x, q)
 
-        p3 = u_xx^3 + u_0 
+        p3 = u_xx^3 + u_0
         @test !is_partially_reduced(p3, q)
         @test partially_reduce(p3, q) == u_xx * u_x + u_0
         @test is_partially_reduced(u_xx * u_x + u_0, q)
       end
       @testset "reduce" begin
         q = u_x^2 - u_0
-        
+
         p1 = u_x^3 + u_x
         @test !is_reduced(p1, q)
         @test reduce(p1, q) == u_x * u_0 + u_x
@@ -349,7 +349,7 @@
       end
     end # two diff indets
   end # Difference reduction methods
-  
+
   @testset "autoreduction" begin
     @testset "single differential indeterminate and single action map" begin
       dxr, x = difference_polynomial_ring(QQ, :x, 1)

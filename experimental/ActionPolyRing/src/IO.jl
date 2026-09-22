@@ -1,5 +1,105 @@
 ###############################################################################
 #
+#  Action Maps
+#
+###############################################################################
+
+### Trivial derivations ###
+function Base.show(io::IO, ::MIME"text/plain", m::TrivialActionDerivation)
+  io = pretty(io)
+  print(io, "Zero derivation on ", Lowercase(), domain(m))
+end
+
+function Base.show(io::IO, m::TrivialActionDerivation)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Zero derivation")
+  else
+    print(io, "Zero derivation on ")
+    print(terse(io), Lowercase(), domain(m))
+  end
+end
+
+### Nontrivial derivations ###
+function Base.show(io::IO, ::MIME"text/plain", m::NontrivialActionDerivation)
+  io = pretty(io)
+  R = domain(m)
+  print(io, "Derivation on ", Lowercase(), R)
+
+  if applicable(gens, R)
+    print(io, "\ndefined by")
+    print(io, Indent())
+    for g in gens(R)
+      print(io, "\n", g, " -> ", m(g))
+    end
+    print(io, Dedent())
+  else
+    print(io, "\ninduced by\n")
+    print(io, Indent())
+    show(io, MIME"text/plain"(), __underlying_map(m))
+    print(io, Dedent())
+  end
+end
+
+function Base.show(io::IO, m::NontrivialActionDerivation)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Derivation")
+  else
+    print(io, "Derivation on ")
+    print(terse(io), Lowercase(), domain(m))
+  end
+end
+
+### Trivial shifts ###
+function Base.show(io::IO, ::MIME"text/plain", m::TrivialActionShift)
+  io = pretty(io)
+  print(io, "Identity shift on ", Lowercase(), domain(m))
+end
+
+function Base.show(io::IO, m::TrivialActionShift)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Identity shift")
+  else
+    print(io, "Identity shift on ")
+    print(terse(io), Lowercase(), domain(m))
+  end
+end
+
+### Nontrivial shifts ###
+function Base.show(io::IO, ::MIME"text/plain", m::NontrivialActionShift)
+  io = pretty(io)
+  R = domain(m)
+  print(io, "Shift operator on ", Lowercase(), R)
+
+  if applicable(gens, R)
+    print(io, "\ndefined by")
+    print(io, Indent())
+    for g in gens(R)
+      print(io, "\n", g, " -> ", m(g))
+    end
+    print(io, Dedent())
+  else
+    print(io, "\ninduced by\n")
+    print(io, Indent())
+    show(io, MIME"text/plain"(), __underlying_map(m))
+    print(io, Dedent())
+  end
+end
+
+function Base.show(io::IO, m::NontrivialActionShift)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Shift operator")
+  else
+    print(io, "Shift operator on ")
+    print(terse(io), Lowercase(), domain(m))
+  end
+end
+
+###############################################################################
+#
 #  Action polynomial rings
 #
 ###############################################################################
@@ -27,7 +127,7 @@ function Base.show(io::IO, dpr::DifferencePolyRing)
   end
 end
 
-### Difference ###
+### Differential ###
 function Base.show(io::IO, ::MIME"text/plain", dpr::DifferentialPolyRing)
   io = pretty(io)
   n = n_action_indeterminates(dpr)
@@ -60,7 +160,7 @@ end
 
 function __expressify_coeff_monomial!(coeff_prod::Expr, x, e, ld_ind)
   @inbounds for i in (ld_ind + 1):length(e)
-    if e[i] > 1 
+    if e[i] > 1
       push!(coeff_prod.args, Expr(:call, :^, x[i], e[i]))
     elseif e[i] == 1
       push!(coeff_prod.args, x[i])
@@ -91,7 +191,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
   coeff_sum = Expr(:call, :+)
   for (c, e) in zip(coefficients(a), es)
     cur_exp = e[ld_ind]
-    coeff_prod = Expr(:call, :*) 
+    coeff_prod = Expr(:call, :*)
     push!(coeff_prod.args, expressify(c, context = context))
     __expressify_coeff_monomial!(coeff_prod, x, e, ld_ind)
 
@@ -99,7 +199,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
       push!(coeff_sum.args, coeff_prod)
       continue
     end
-      
+
     # At this point, coeff_prod is part of the new coeff_sum, so we push the old (with the old exponent) and reset afterwards
     coeff_ld_exp_prod = Expr(:call, :*, coeff_sum) # Multiply coefficient term and exponent of the leader
     if prev_exp > 1
@@ -112,7 +212,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
     # Reset
     prev_exp = cur_exp
     coeff_sum = Expr(:call, :+, coeff_prod)
-  end 
+  end
 
   # At this point, the last summand is not yet pushed, so we do it manually
   coeff_ld_exp_prod = Expr(:call, :*, coeff_sum) # Multiply coefficient term and exponent of the leader
