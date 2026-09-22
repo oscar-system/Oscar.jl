@@ -788,6 +788,9 @@ export hilbert_series_expanded
 export hilbert_series_reduced
 export hirsch_length
 export hirzebruch_surface
+export hodge_number
+export hodge_numbers
+export print_hodge_diamond
 export hom
 export hom_product
 export hom_tensor
