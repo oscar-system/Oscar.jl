@@ -113,7 +113,7 @@ function _max_contact_step(MC::MaxContactObject,I::AbsIdealSheaf,b::Int)
 
     RU = base_ring(OO(U))
     IUgens = lifted_numerator.(gens(I(U)))
-    JM = jacobian_matrix(max_contact_data[U], I(U))
+    JM = _jacobian_matrix(max_contact_data[U], I(U))
     i = 1
 
     ## find max number of independent max contact hypersurfaces from I(U)
@@ -199,7 +199,7 @@ _agnostic_complement_equation(X::AbsAffineScheme) =  one(base_ring(OO(X)))
 ########################################################
 ## jacobian matrix in chart in maximal contact setting
 ########################################################
-function jacobian_matrix(MCU::MaxContactChart, I::Ideal)
+function _jacobian_matrix(MCU::MaxContactChart, I::Ideal)
 
   JI = jacobian_matrix(lifted_numerator.(gens(I)))
   var_indices = dependent_variables(MCU)
@@ -245,7 +245,7 @@ function _delta_ideal_sheaf(MC::MaxContactObject,I_sheaf::AbsIdealSheaf)
     end
 
     MCU = maximal_contact_data[U]
-    result_mat = jacobian_matrix(MCU, I_simple(U))
+    result_mat = _jacobian_matrix(MCU, I_simple(U))
     Ivec = copy(gens(I))
     append!(Ivec, ambient_generators(MCU))
     append!(Ivec,[a for a in collect(result_mat)])
