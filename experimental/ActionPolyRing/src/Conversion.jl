@@ -39,7 +39,7 @@ function __extract_occ_vars(F::AbstractVector{<:ActionPolyRingElem{T}}) where {T
   end
 
   return collect(var_set)
-end  
+end
 
 ###############################################################################
 #
@@ -55,7 +55,7 @@ function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractV
     jet_vars = sort(jet_vars; rev=true)
   end
 
-  R = base_ring(base_ring(apr)) 
+  R = base_ring(base_ring(apr))
   n = length(jet_vars)
   S, S_vars = polynomial_ring(coefficient_ring(apr), n)
 
@@ -63,7 +63,7 @@ function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractV
   bwd_images = fill(zero(R), n)
 
   jtu = __jtu_idx(apr)
-  vtj = __vtj(apr) 
+  vtj = __vtj(apr)
 
   for (i, v) in enumerate(jet_vars)
     raw_idx = jtu[vtj[v]]
