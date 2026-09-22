@@ -34,20 +34,48 @@ function betti_number(v::NormalToricVarietyType, i::Int)
   end
 
   # extract vector of currently-known Betti numbers (or create it if necessary)
-  betti_numbers = get_attribute!(
-    () -> [ZZ(-1) for _ in 1:(d + 1)], v, :betti_number
+  cached_betti_numbers = get_attribute!(
+    () -> [ZZ(-1) for _ in 1:(d + 1)], v, :betti_numbers
   )::Vector{ZZRingElem}
 
   # compute the Betti number if needed
   k = i >> 1 # i is even, so divide by two and use that as index
-  if betti_numbers[k + 1] == -1
+  if cached_betti_numbers[k + 1] == -1
     f_vector::Vector{Int} = pm_object(v).F_VECTOR
     pushfirst!(f_vector, 1)
-    betti_numbers[k + 1] = ZZRingElem(
+    cached_betti_numbers[k + 1] = ZZRingElem(
       sum((-1)^(i - k) * binomial(i, k) * f_vector[d - i + 1] for i in k:d)
     )
   end
 
   # return result
-  return betti_numbers[k + 1]
+  return deepcopy(cached_betti_numbers[k + 1])
+end
+
+@doc raw"""
+    betti_numbers(v::NormalToricVarietyType) -> Vector{ZZRingElem}
+
+Return all ordinary rational Betti numbers of `v`, from ``b_0`` through
+``b_{2d}``, where ``d`` is the dimension of `v`. The returned vector includes
+the zero odd-degree entries.
+
+The variety `v` must be complete and simplicial, but it need not be smooth. Use
+[`betti_number`](@ref) to request a single degree.
+
+# Examples
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2);
+
+julia> betti_numbers(P2)
+5-element Vector{ZZRingElem}:
+ 1
+ 0
+ 1
+ 0
+ 1
+```
+"""
+function betti_numbers(v::NormalToricVarietyType)
+  @req is_complete(v) && is_simplicial(v) "Currently, the computation of Betti numbers is limited to complete and simplicial toric varieties"
+  return [betti_number(v, i) for i in 0:(2 * dim(v))]
 end
