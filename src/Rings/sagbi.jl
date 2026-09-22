@@ -8,19 +8,6 @@ mutable struct SAGBICandidate
     sagbi_degree::Integer
 end
 
-# function leading_monomial(
-#     f::MPolyRingElem
-# )
-#     R = f.parent
-#     lm = R(1)
-#     for m in monomials(f)
-#         if m > lm
-#             lm = m
-#         end
-#     end
-#     return lm
-# end
-
 function _initialize_sagbi_candidate(
     B::Vector{<:MPolyRingElem};
     ordering::MonomialOrdering = default_ordering(parent(B[1]))
@@ -133,12 +120,12 @@ end
 _exponent_matrix(B::SAGBICandidate) = _exponent_matrix(B.elements)
 
 """
-    toric_ideal_of_leading_monomials(B::Vector{<:MPolyRingElem}) -> ideal
+    _toric_ideal_of_leading_monomials(B::Vector{<:MPolyRingElem}) -> ideal
 
-The toric ideal `ker(ZZ[y₁,…,yₙ] → ZZ[x₁,…,xₘ])` of the monomial map
-`yᵢ ↦ leading_monomial(bᵢ)`.
+    The toric ideal `ker(ZZ[y₁,…,yₙ] → ZZ[x₁,…,xₘ])` of the monomial map
+    `yᵢ ↦ leading_monomial(bᵢ)`.
 """
-function toric_ideal_of_leading_monomials(
+function _toric_ideal_of_leading_monomials(
     B::Vector{<:MPolyRingElem};
     ordering::MonomialOrdering = default_ordering(parent(B[1]))
 )
@@ -149,19 +136,19 @@ function toric_ideal_of_leading_monomials(
     return kernel(hom(S, R, lms))
 end
 
-toric_ideal_of_leading_monomials(B::SAGBICandidate) =
-    toric_ideal_of_leading_monomials(B.elements)
+_toric_ideal_of_leading_monomials(B::SAGBICandidate) =
+    _toric_ideal_of_leading_monomials(B.elements)
 
-"""
-    tete_a_tetes(B)
+@doc raw"""
+    tete_a_tetes(
+        B::Vector{<:MPolyRingElem};
+        ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    ) -> Vector{NamedTuple}
 
-Translate each Gröbner basis binomial `y^α - y^β` of the toric ideal of
-`LM(B)` into the polynomial tête-à-tête `B^α - B^β` in the original ring.
-These are the relations that have to be tested by subduction.
-
-Returns a vector of named tuples `(polynomial, a, b)` where `polynomial`
-is the tête-à-tête `B^α - B^β`, and `a`/`b` are the exponent vectors
-`α`/`β` of length `length(B)`.
+    Returns a vector of named tuples `(polynomial, a, b)` where `polynomial`
+    is the tête-à-tête 
+    $\prod_{i=1}^{|B|}(b_i^\alpha_i) - prod_{i=1}^{|B|}(b_i^\beta_i)$,
+    and `a`/`b` are the exponent vectors $\alpha$/$\beta$ of length `length(B)`.
 """
 function tete_a_tetes(
     B::Vector{<:MPolyRingElem};
@@ -173,7 +160,7 @@ function tete_a_tetes(
         Vector{Int},
         Vector{Int}}
     }[]
-    I = toric_ideal_of_leading_monomials(B; ordering)
+    I = _toric_ideal_of_leading_monomials(B; ordering)
     R = parent(B[1])
     tetes = NamedTuple{
         (:polynomial, :a, :b),
@@ -199,9 +186,20 @@ function tete_a_tetes(
     return tetes
 end
 
+@doc raw"""
+    tete_a_tetes(
+        B::SAGBICandidate;
+        ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    ) -> Vector{NamedTuple}
+
+    Returns a vector of named tuples `(polynomial, a, b)` where `polynomial`
+    is the tête-à-tête 
+    $\prod_{i=1}^{|B|}(b_i^\alpha_i) - prod_{i=1}^{|B|}(b_i^\beta_i)$,
+    and `a`/`b` are the exponent vectors $\alpha$/$\beta$ of length `length(B)`.
+"""
 tete_a_tetes(
     B::SAGBICandidate;
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
 ) = tete_a_tetes(B.elements; ordering)
 
 @doc raw"""
@@ -212,7 +210,7 @@ tete_a_tetes(
 function subduct(
     f::MPolyRingElem,
     B::SAGBICandidate;
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
 )
     lms = collect(keys(B.leading_monomials))
     R = parent(f)
@@ -247,7 +245,7 @@ end
     
     #output
     2*x*y - 1
-    '''
+    ```
 """
 subduct(
     f::MPolyRingElem, B::Vector{<:MPolyRingElem};
@@ -255,14 +253,18 @@ subduct(
 ) =
     isempty(B) ? f : subduct(f, _initialize_sagbi_candidate(B; ordering); ordering)
 
-"""
-    is_sagbi(B::SAGBICandidate) -> Bool
+@doc raw"""
+    is_sagbi(
+        B::SAGBICandidate;
+        ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
+    ) -> Bool
 
-    Check if `B.elements` satisfies the SAGBI criterion.
+    Check if `B.elements` satisfies the SAGBI criterion with respect to
+    the monomial ordering `ordering`.
 """
 function is_sagbi(
     B::SAGBICandidate;
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
 )
     for t in tete_a_tetes(B; ordering)
         iszero(subduct(t.polynomial, B; ordering)) || return false
@@ -276,7 +278,7 @@ end
     Check if `B` satisfies the SAGBI criterion.
 
     # Examples
-    '''jldoctest    
+    ```jldoctest    
     Qx, x = QQ["x"];
     K, a = number_field(x^2-2, "a")
     R, (x,y,z) = polynomial_ring(K, ['x','y','z'])
@@ -290,6 +292,19 @@ end
     
     #output
     false
+
+    R, (x,y) = polynomial_ring(QQ, ['x','y'])
+    B = [x+y^2, x*y+y^3]
+    is_sagbi(B, ordering=degrevlex(R))
+    
+    #output
+    false
+
+    is_sagbi(B, ordering=lex(R))
+    
+    #output
+    true
+    ```
 """
 is_sagbi(
     B::Vector{<:MPolyRingElem};
@@ -305,15 +320,18 @@ function _monic_if_nonzero(f::MPolyRingElem)
     end
 end
 
-function _compute_all_subductions(F::Vector{<:MPolyRingElem})
+function _compute_all_subductions(
+    F::Vector{<:MPolyRingElem};
+    ordering=default_ordering(parent(F[1]))
+)
     R = parent(F[1])
     
-    binom_kernel = toric_ideal_of_leading_monomials(F)
+    binom_kernel = _toric_ideal_of_leading_monomials(F; ordering)
     S = base_ring(binom_kernel)
     phi = hom(S, R, F)
         
     r = [
-        subduct(phi(beta), F) for beta in gens(binom_kernel)
+        subduct(phi(beta), F; ordering) for beta in gens(binom_kernel)
     ]
     r = _monic_if_nonzero.(r)
 
@@ -333,11 +351,21 @@ end
     As SAGBI bases may be countably infinite, the algorithm will stop when
     all leading monomials of total degree < `degree_bound` are included in the
     SAGBI basis. 
+
+    # Examples
+    ```jldoctest
+    R, (x,y) = polynomial_ring(QQ, ['x','y'])
+    B = sagbi([x+y^2, x*y+y^3]; degree_bound=10)
+    B.elements
+
+    #output
+    [x+y^2, x*y+y^3, x^3 + 2*x^2*y^2 + x*y^4]
+    ```
 """
 function sagbi(
         generating_set::Vector{<:MPolyRingElem};
         degree_bound::Integer,
-        ordering::MonomialOrdering = default_ordering(parent(B[1]))
+        ordering::MonomialOrdering = default_ordering(parent(generating_set[1]))
 )
 
     F = generating_set
@@ -345,7 +373,7 @@ function sagbi(
     min_total_deg = 0
     sagbi_degree = 0
     while true
-        additional_terms = _compute_all_subductions(F)
+        additional_terms = _compute_all_subductions(F; ordering)
         
         if isempty(additional_terms)
             # F is a SAGBI basis
@@ -363,31 +391,30 @@ function sagbi(
         
         F = union(F, additional_terms)
     end
-    
-    leading_monomials = Dict{MPolyRingElem, Vector{<:MPolyRingElem}}()
-    for f in F
-        lm = leading_monomial(f; ordering)
-        push!(get!(leading_monomials, lm, MPolyRingElem[]), f)
-    end
-    
-    return SAGBICandidate(
-        R, F, leading_monomials, sagbi_degree 
-    )
+
+    B = _initialize_sagbi_candidate(F)
+    B.sagbi_degree = sagbi_degree
+    return B
 end
 
 @doc raw"""
-    compute_sagbi_degree!(B:SAGBICandidate)
-
+    compute_sagbi_degree!(
+        B::SAGBICandidate;
+        ordering=default_ordering(parent(B.elements[1]))
+    ) -> SAGBICandidate
     Computes the minimum $d$ for which all leading monomials of total degree
     < $d$ are in the subalgebra generated by the leading terms of $B$, and 
     updates `B.sagbi_degree` to equal $d$. 
     
     If `B` is a SAGBI basis, then `B.sagbi_degree` will be set to -1.
 """
-function compute_sagbi_degree!(B::SAGBICandidate)
+function compute_sagbi_degree!(
+    B::SAGBICandidate;
+    ordering=default_ordering(parent(B.elements[1]))
+)
     F = B.elements
     
-    additional_terms = _compute_all_subductions(F)
+    additional_terms = _compute_all_subductions(F; ordering)
     
     if isempty(additional_terms)
         # F is a SAGBI basis
@@ -401,4 +428,34 @@ function compute_sagbi_degree!(B::SAGBICandidate)
 
     B.sagbi_degree = sagbi_degree
     return B
+end
+
+@doc raw"""
+    compute_sagbi_degree(
+        B::Vector{<:MPolyRingElem};
+        ordering=default_ordering(parent(B[1]))
+    ) -> Integer
+    Computes the minimum $d$ for which all leading monomials of total degree
+    < $d$ are in the subalgebra generated by the leading terms of $B$, and 
+    updates `B.sagbi_degree` to equal $d$. 
+    
+    If `B` is a SAGBI basis, then `B.sagbi_degree` will be set to -1.
+
+    # Examples
+    R, (x,y) = polynomial_ring(QQ, ['x','y'])
+    B = [
+        x, x*y - y^2, x*y^2, x*y^3 - 1//2*y^4,
+        x*y^5 - 1//3*y^6,  x*y^4
+    ]
+    compute_sagbi_degree(B)
+
+    #output
+    6
+"""
+function compute_sagbi_degree(
+    B::Vector{<:MPolyRingElem};
+    ordering=default_ordering(parent(B[1]))
+)
+    sagbi_candidate = _initialize_sagbi_candidate(B; ordering)
+    return compute_sagbi_degree!(sagbi_candidate).sagbi_degree
 end

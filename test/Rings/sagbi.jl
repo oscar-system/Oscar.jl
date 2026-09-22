@@ -48,10 +48,29 @@ end
     # An example which depends on the ordering:
     R, (x,y) = polynomial_ring(QQ, ['x','y'])
     B = [x+y^2, x*y+y^3]
-    @test is_sagbi(B, ordering=degrevlex(R)) == false
-    @test is_sagbi(B, ordering=lex(R)) == true
+    @test is_sagbi(B, ordering=degrevlex(R)) === false
+    @test is_sagbi(B, ordering=lex(R)) === true
 end
 
 @testset "Computing SAGBI bases" begin
-    # todo
+    R, (x,y) = polynomial_ring(QQ, ['x','y'])
+    B = sagbi([x+y^2, x*y+y^3]; degree_bound=10)
+    @test B.elements == [x+y^2, x*y+y^3, x^3 + 2*x^2*y^2 + x*y^4]
+    @test B.sagbi_degree === -1
+    @test is_sagbi(B) === true
+
+    # QQ[x, xy-y^2, xy^2] has no finite SAGBI basis:
+    # see section 4.11 from Robbiano and Sweedler "Subalgebra bases" 
+    A = [x, x*y-y^2, x*y^2]
+    B = sagbi(A; degree_bound=5)
+    B_6 = [
+        x, x*y - y^2, x*y^2, x*y^3 - 1//2*y^4,
+        x*y^5 - 1//3*y^6,  x*y^4
+    ]
+    @test B.elements == B_6
+    @test B.sagbi_degree === 6
+
+    B = _initialize_sagbi_candidate(B_6)
+    compute_sagbi_degree!(B)
+    @test B.sagbi_degree === 6
 end
