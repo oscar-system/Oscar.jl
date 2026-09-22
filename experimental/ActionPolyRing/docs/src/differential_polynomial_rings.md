@@ -9,7 +9,7 @@ one wants to use differential polynomial rings with nontrivial derivations.
 
 ```@docs
 action_derivation(R::Ring)
-action_derivation(m::Map{D, D}; check::Bool=true) where {D <: Ring}
+action_derivation(m::Map{D, D}) where {D <: Ring}
 ```
 
 We provide the following constructors to create differential polynomial rings where all derivations are trivial,

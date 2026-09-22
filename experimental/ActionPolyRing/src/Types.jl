@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#  Action maps 
+#  Action maps
 #
 ###############################################################################
 
@@ -18,7 +18,7 @@ end
 
 struct NontrivialActionShift{D <: Ring} <: ActionShift{D}
   underlying_map::Map{D, D}
-    
+
   function NontrivialActionShift{D}(m::Map{D, D}) where {D <: Ring}
     @req domain(m) === codomain(m) "The domain and codomain of a shift operator must coincide"
     return new{D}(m)
@@ -37,7 +37,7 @@ end
 
 struct NontrivialActionDerivation{D <: Ring} <: ActionDerivation{D}
   underlying_map::Map{D, D}
-    
+
   function NontrivialActionDerivation{D}(m::Map{D, D}) where {D <: Ring}
     @req domain(m) === codomain(m) "The domain and codomain of a derivation must coincide"
     return new{D}(m)
@@ -65,10 +65,10 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #   __vtj(R::MyActionPolyRing) -> Dict{MyActionPolyRingElem{T}, Tuple{Int, Vector{Int}}}
  #   base_ring(R::MyActionPolyRing) -> AbstractAlgebra.UniversalPolyRing{T}
  #   data(x::MyActionPolyRingElem) -> AbstractAlgebra.UniversalPolyRingElem{T}
- #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T} 
+ #   elem_type(::Type{MyActionPolyRing{T}}) = MyActionPolyRingElem{T}
  #   action_indeterminates(R::MyActionPolyRing) -> Vector{Symbols}
  #   action_maps(R::MyActionPolyRing) -> Vector{ActionMap}
- #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T} 
+ #   parent(x::MyActionPolyRingElem{T}) -> MyActionPolyRing{T}
  #   parent_type(::Type{MyActionPolyRingElem{T}}) = MyActionPolyRing{T}
  #   ranking(R::MyActionPolyRing{T}) -> ActionPolyRingRanking{MyActionPolyRing{T}}
  #
@@ -98,8 +98,8 @@ abstract type ActionPolyRingElem{T} <: RingElem end
  #
  #     x.permutation = sortperm(exps; lt=__my_lt_for_vec(perm), rev=true)
  #     __set_is_perm_up_to_date!(x, true)
- #   end  
- #  
+ #   end
+ #
  #  Constructors:
  #    function (R::MyActionPolyRing{T})(x::MyActionPolyRingElem{T}) where {T}
  #      @req parent(x) === R "Wrong parent"
@@ -173,7 +173,7 @@ mutable struct DifferentialPolyRing{T} <: ActionPolyRing{T}
 
     return DifferentialPolyRing{T}(R, action_indeterminates, action_maps)
   end
- 
+
   function DifferentialPolyRing{T}(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}) where {D <: Ring, T}
     @req !is_empty(action_indeterminates) "The number of action indeterminates must be positive"
     @req !is_empty(action_maps) "The number of derivations must be positive"

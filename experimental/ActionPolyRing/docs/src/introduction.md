@@ -127,7 +127,7 @@ always equal to zero. The pseudo-quotient is ``p/c`` (with ``a = 0``) if ``p`` i
 #### [Notions of reducedness for action polynomials](@id notions_of_reducedness_for_action_polynomials)
 
 Let ``p, q \in S``, ``q \notin R`` and ``v = \operatorname{ld}(q)``. We have the following notions of reducedness for action polynomials:
-- ``p`` is *partially reduced* with respect to ``q``, if ``\operatorname{deg}_{w}(p) < \operatorname{deg}_{w}(\Theta(q))`` 
+- ``p`` is *partially reduced* with respect to ``q``, if ``\operatorname{deg}_{w}(p) < \operatorname{deg}_{w}(\Theta(q))``
     for all proper action transforms ``w = \Theta(v)``, ``1 \neq \Theta \in \operatorname{Mon}(\Delta)``
 - ``p`` is *reduced* with respect to ``q``, if ``\operatorname{deg}_{w}(p) < \operatorname{deg}_{w}(\Theta(q))``
     for all action transforms ``w = \Theta(v)``, ``\Theta \in \operatorname{Mon}(\Delta)``

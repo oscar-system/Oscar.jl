@@ -63,10 +63,10 @@
       @test_throws ArgumentError differential_polynomial_ring(ZZ, Symbol[], 1)
 
       S, x = polynomial_ring(QQ, :x)
-      non_comm_shifts = action_shift.([hom(S, S, -x), hom(S, S, x + 1)]) # ax + b and cx + d commute, iff d(a - 1) = b(c - 1)
-      non_comm_derivations = action_derivation.([map_from_func(S, S, p -> derivative(p)), map_from_func(S, S, p -> x * derivative(p))])
-      @test_throws MethodError difference_polynomial_ring(S, 1, non_comm_derivations)
-      @test_throws MethodError differential_polynomial_ring(S, 1, non_comm_shifts)
+      shifts = action_shift.([hom(S, S, -x), hom(S, S, x + 1)])
+      derivations = action_derivation.([map_from_func(S, S, p -> derivative(p)), map_from_func(S, S, p -> x * derivative(p))])
+      @test_throws MethodError difference_polynomial_ring(S, 1, derivations)
+      @test_throws MethodError differential_polynomial_ring(S, 1, shifts)
     end
 
     @testset "Constructions with keywords" begin
@@ -352,7 +352,7 @@
             end
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
-            @test total_degree(dpr(1)) == 0 
+            @test total_degree(dpr(1)) == 0
             @test degree(dpr(1), 3, [5,5,5]) == 0
 
             @test !is_unit(dpr(-2))
@@ -376,7 +376,7 @@
             end
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
-            @test total_degree(dpr(-2)) == 0 
+            @test total_degree(dpr(-2)) == 0
 
             @test dpr(-5) == -dpr(5)
             @test -1 * dpr(5) == dpr(-5)
@@ -436,7 +436,7 @@
             @test_throws ErrorException inv(f)
             @test trailing_coefficient(f) == ZZ(3)
             @test trailing_monomial(f) == u3_111
-            @test trailing_term(f) == 3*u3_111 
+            @test trailing_term(f) == 3*u3_111
             @test leading_coefficient(f) == ZZ(2)
             @test leading_monomial(f) == u2_100*u1_100
             @test leading_term(f) == 2*u2_100*u1_100
@@ -463,7 +463,7 @@
             @test f^2 == f * f
             @test dpr(data(f)^2) == f^2
             @test dpr(data(f) * data(g)) == f * g
-            @test_throws ErrorException f/g 
+            @test_throws ErrorException f/g
             @test_throws ErrorException divexact(f, g)
             @test is_one(f/f)
             @test is_one(divexact(f,f))
@@ -619,7 +619,7 @@
             end
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
-            @test total_degree(dpr(1)) == 0 
+            @test total_degree(dpr(1)) == 0
             @test degree(dpr(1), 3, [5,5,5]) == 0
             @test leader(dpr(1)) == dpr(1)
             @test initial(dpr(1)) == ZZ(1)
@@ -644,7 +644,7 @@
             end
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
-            @test total_degree(dpr(-2)) == 0 
+            @test total_degree(dpr(-2)) == 0
             @test leader(dpr(-2)) == dpr(1)
             @test initial(dpr(-2)) == ZZ(-2)
 
@@ -726,7 +726,7 @@
             @test f^2 == f * f
             @test dpr(data(f)^2) == f^2
             @test dpr(data(f) * data(g)) == f * g
-            @test_throws ErrorException f/g 
+            @test_throws ErrorException f/g
             @test_throws ErrorException divexact(f, g)
             @test is_one(f/f)
             @test is_one(divexact(f,f))
@@ -754,7 +754,7 @@
         end #End check change ranking
 
       end #End for loop
-      
+
     end #Construction with keywords
 
     @testset "Further constructions" begin
@@ -953,12 +953,12 @@
       end # End for loop
     end # End further constructions
   end # Construction and basic field access
-  
+
   @testset "Nontrivial action maps" begin
     S, (x, y) = polynomial_ring(QQ, [:x, :y])
     s1, s2 = action_shift.([hom(S, S, [x + y, y + 1]), hom(S, S, [x + 2*y, y + 2])])
     ddx, ddy = action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))])
-    
+
     dxr, (a, b) = difference_polynomial_ring(S, [:a, :b], [s1, s2])
     dpr, (c, d) = differential_polynomial_ring(S, [:c, :d], [ddx, ddy])
 
@@ -978,16 +978,16 @@
         @test apply_action(a, 2) == a[0, 1]
         @test apply_action(b[2, 3], 1) == b[3, 3]
         @test apply_action(b[2, 3], 2) == b[2, 4]
-      
+
         @test apply_action(a[4, 2], [1, 5]) == a[5, 7]
         @test apply_action(b[3, 1], [2, 0]) == b[5, 1]
-        
+
         @test apply_action(a + 2*b, [3, 4]) == a[3, 4] + 2*b[3, 4]
         @test apply_action(a * 2*b, [3, 4]) == 2*a[3, 4] * b[3, 4]
       end
       @testset "arbitrary polynomials" begin
         f = x * a + y^2 * b[1, 2]
-      
+
         @test apply_action(f, 1) == (x + y) * a[1, 0] + (y^2 + 2*y + 1) * b[2, 2]
         @test apply_action(f, 2) == (x + 2*y) * a[0, 1] + (y^2 + 4*y + 4) * b[1, 3]
         @test apply_action(f, [1, 1]) == (x + 3*y + 2) * a[1, 1] + (y^2 + 6*y + 9) * b[2, 3]
@@ -1009,25 +1009,25 @@
         @test apply_action(c, 2) == c[0, 1]
         @test apply_action(d[2, 3], 1) == d[3, 3]
         @test apply_action(d[2, 3], 2) == d[2, 4]
-        
+
         @test apply_action(c[4, 2], [1, 5]) == c[5, 7]
         @test apply_action(d[3, 1], [2, 0]) == d[5, 1]
 
         @test apply_action(c + 2*d, [3, 4]) == c[3, 4] + 2*d[3, 4]
-        
+
         @test apply_action(c * 2*d, 1) == c[1, 0] * 2*d + c * 2*d[1, 0]
         @test apply_action(c^2, 2) == 2 * c * c[0, 1]
       end
       @testset "arbitrary polynomials" begin
         f = x * c + y^2 * d[1, 2]
-        
+
         @test apply_action(f, 1) == c + x * c[1, 0] + y^2 * d[2, 2]
         @test apply_action(f, 2) == x * c[0, 1] + 2*y * d[1, 2] + y^2 * d[1, 3]
         @test apply_action(f, [1, 1]) == c[0, 1] + x * c[1, 1] + 2*y * d[2, 2] + y^2 * d[2, 3]
       end
     end
   end
-  
+
   @testset "Fixed bugs" begin
     @testset "apply_action for difference wiping data" begin
       R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)

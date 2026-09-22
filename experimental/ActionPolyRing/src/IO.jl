@@ -25,7 +25,7 @@ function Base.show(io::IO, ::MIME"text/plain", m::NontrivialActionDerivation)
   io = pretty(io)
   R = domain(m)
   print(io, "Derivation on ", Lowercase(), R)
-  
+
   if applicable(gens, R)
     print(io, "\ndefined by")
     print(io, Indent())
@@ -72,7 +72,7 @@ function Base.show(io::IO, ::MIME"text/plain", m::NontrivialActionShift)
   io = pretty(io)
   R = domain(m)
   print(io, "Shift operator on ", Lowercase(), R)
-  
+
   if applicable(gens, R)
     print(io, "\ndefined by")
     print(io, Indent())
@@ -160,7 +160,7 @@ end
 
 function __expressify_coeff_monomial!(coeff_prod::Expr, x, e, ld_ind)
   @inbounds for i in (ld_ind + 1):length(e)
-    if e[i] > 1 
+    if e[i] > 1
       push!(coeff_prod.args, Expr(:call, :^, x[i], e[i]))
     elseif e[i] == 1
       push!(coeff_prod.args, x[i])
@@ -191,7 +191,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
   coeff_sum = Expr(:call, :+)
   for (c, e) in zip(coefficients(a), es)
     cur_exp = e[ld_ind]
-    coeff_prod = Expr(:call, :*) 
+    coeff_prod = Expr(:call, :*)
     push!(coeff_prod.args, expressify(c, context = context))
     __expressify_coeff_monomial!(coeff_prod, x, e, ld_ind)
 
@@ -199,7 +199,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
       push!(coeff_sum.args, coeff_prod)
       continue
     end
-      
+
     # At this point, coeff_prod is part of the new coeff_sum, so we push the old (with the old exponent) and reset afterwards
     coeff_ld_exp_prod = Expr(:call, :*, coeff_sum) # Multiply coefficient term and exponent of the leader
     if prev_exp > 1
@@ -212,7 +212,7 @@ function expressify(a::ActionPolyRingElem, x = symbols(parent(a)); context = not
     # Reset
     prev_exp = cur_exp
     coeff_sum = Expr(:call, :+, coeff_prod)
-  end 
+  end
 
   # At this point, the last summand is not yet pushed, so we do it manually
   coeff_ld_exp_prod = Expr(:call, :*, coeff_sum) # Multiply coefficient term and exponent of the leader

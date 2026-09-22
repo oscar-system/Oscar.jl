@@ -98,7 +98,7 @@
   @testset "Quadratic number fields" begin
     for d in [-5, -3, -1, 2, 3, 5]
       K, a = quadratic_field(d)
-      
+
       true_trivial_galois = action_shift(K)
       trivial_galois = action_shift(hom(K, K, a))
       nontrivial_galois = action_shift(hom(K, K, -a))

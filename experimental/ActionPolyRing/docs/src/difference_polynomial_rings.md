@@ -9,7 +9,7 @@ one wants to use difference polynomial rings with nontrivial shift operators.
 
 ```@docs
 action_shift(R::Ring)
-action_shift(m::Map{D, D}; check::Bool=true) where {D <: Ring}
+action_shift(m::Map{D, D}) where {D <: Ring}
 ```
 
 We provide the following methods to create difference polynomial rings where all shift operators are trivial,

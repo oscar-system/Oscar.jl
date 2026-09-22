@@ -50,7 +50,7 @@ function pseudorem(p::PolyT, q::PolyT, i::Int, jet::Vector{Int}) where {PolyT <:
   deg_q = degree(q, i, jet)
   deg_q < 0 && throw(DivideError()) # By convention, (only) the zero polynomial has degree -1 in each jet variable
   @req deg_q > 0 "Cannot pseudo-divide by a polynomial with degree 0 in the specified division variable"
-  
+
   # positive degree ensures existence of the key
   return pseudorem(p, q, __jtv(parent(q))[(i, jet)])
 end
@@ -351,7 +351,7 @@ function __leader_shift_for_partial_reduction(p::PolyT, q::PolyT) where {PolyT <
 
       if is_derivative && var_idx != ld_idx
         if __is_proper_shift_reducible(p, q, var)
-          return var_idx .- ld_idx 
+          return var_idx .- ld_idx
         end
       end
     end
@@ -422,7 +422,7 @@ function is_autoreduced(S::Vector{PolyT}) where {PolyT <: ActionPolyRingElem}
       check_parent(p, S[i])
     end
   end
-  
+
   any(is_constant, S) && return (length(S) == 1 && !is_zero(only(S)))
   !issorted(S, lt=is_ritt_less) && return false
 
