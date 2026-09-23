@@ -24,6 +24,27 @@ so that we can add a proper OSCAR interface for it.
   whereas `!` is used in Julia.
   The operators `and` and `or` are `&&` and `||` in Julia.
 
+- The GAP object `fail` has no counterpart in Julia.
+  The idea behind `fail` is to indicate situations when an operation
+  could not be performed for the given arguments.
+  Such cases are handled differently in Julia.
+
+  - `nothing` can be used as a return value.
+    For example the Julia analogue of GAP's `Position( list, elm )` is
+    `findfirst(==(elm), list)`,
+    which returns `nothing` if `elm` does not occur in the list `list`.
+
+  - The Julia function in question may have two return values,
+    the first being a boolean that expresses whether the operation was
+    successful, and the second being the requested result if the first
+    return value is `true`.
+    For example, GAP's `PreImagesRepresentative( mapp, elm )` returns `fail`
+    if `elm` is in the image of the mapping `mapp`.
+    The corresponding OSCAR function `has_preimage_with_preimage(mapp, elm)`
+    returns `(true, pre)` if `elm` is in the image of `mapp`, and then `pre`
+    is one of the preimages; if `elm` has no preimages then `(false, obj)`
+    is returned, where `obj` is some element in `domain(mapp)`.
+
 - In GAP, object identity is checked with the function `IsIdenticalObj`,
   whereas the infix operator `===` (with negation `!==`)
   is used in Julia.
