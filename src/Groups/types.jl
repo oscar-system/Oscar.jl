@@ -1283,22 +1283,3 @@ mutable struct SchreierData{T, S, G<:GSet{T,S}}
 end
 
 # TODO function Base.show(io::IO, ::MIME"text/plain", D::SchreierData)
-
-function Oscar.gset(D::SchreierData)
-  return D.gset
-end
-function Oscar.gens(D::SchreierData)
-  return gens(acting_group(D.gset))
-end
-function Oscar.gen(D::SchreierData, i::Int)
-  return gen(acting_group(D.gset), i)
-end
-function invgens(D::SchreierData{T}) where T
-  return D.inverse_gens::Vector{eltype(T)}
-end
-function invgen(D::SchreierData{T}, i::Int) where T
-  return D.inverse_gens[i]::eltype(T)
-end
-function schreier_value(D::SchreierData{T,S}, u::S) where {T,S}
-  return D.schreier_dict[u]
-end
