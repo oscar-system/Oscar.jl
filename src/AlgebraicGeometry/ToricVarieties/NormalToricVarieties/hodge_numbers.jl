@@ -15,8 +15,15 @@ end
 @doc raw"""
     hodge_number(v::NormalToricVarietyType, p::Int, q::Int)
 
-For a complete and simplicial toric variety `v`, return the  rational Hodge
-number ``h^{p,q}`` of the variety.
+Return the rational Hodge number $h^{p,q}$ of a complete and simplicial
+toric variety `v`.
+
+By Theorem 9.3.2 of [CLS11](@cite), the Hodge numbers of such a variety
+vanish off the diagonal: $h^{p,q}(X_\Sigma) = 0$ for $p \neq q$. Consequently,
+the diagonal Hodge numbers agree with the even Betti numbers,
+\[
+h^{k,k}(X_\Sigma) = b_{2k}(X_\Sigma) \, .
+\]
 
 # Examples
 ```jldoctest
@@ -44,6 +51,14 @@ For a complete and simplicial toric variety `v`, return the matrix `H`
 of rational Hodge numbers of `v`. The entry `H[p + 1, q + 1]` is ``h^{p,q}``.
 
 Use [`print_hodge_diamond`](@ref) for diamond-shaped printing.
+
+Note that by Theorem 9.3.2 of [CLS11](@cite), the Hodge numbers of such a
+toric variety variety vanish off the diagonal: $h^{p,q}(X_\Sigma) = 0$ for
+$p \neq q$. Consequently, the diagonal Hodge numbers agree with the even
+Betti numbers,
+\[
+h^{k,k}(X_\Sigma) = b_{2k}(X_\Sigma) \, .
+\]
 
 # Examples
 ```jldoctest
@@ -76,7 +91,7 @@ end
     print_hodge_diamond(v::NormalToricVarietyType)
     print_hodge_diamond(io::IO, v::NormalToricVarietyType)
 
-Print the Hodge numbers of `v` in diamond form.
+Print the Hodge numbers of a toric variety in diamond shape.
 
 # Examples
 ```jldoctest
