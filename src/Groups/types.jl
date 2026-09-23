@@ -1261,3 +1261,44 @@ end
     return res
   end
 end
+
+################################################################################
+#
+#  Shreier Tree support
+#
+################################################################################
+
+# TODO : should `inverse_gens` be attached as a attribute to `acting_group(gset)`?
+#        and then we would just get invgens from there?
+mutable struct SchreierData{T, S, G<:GSet{T,S}}
+  gset::G
+  # group_gens::Vector
+  inverse_gens::Vector
+  schreier_dict::Dict{S, Int}
+
+  function SchreierData(Omega::GSet{T,S}, D::Dict{S,Int}) where {T,S}
+    data = new{T, S, typeof(Omega)}(Omega, [inv(g) for g in gens(acting_group(Omega))], D)
+    return data
+  end
+end
+
+# TODO function Base.show(io::IO, ::MIME"text/plain", D::SchreierData)
+
+function Oscar.gset(D::SchreierData)
+  return D.gset
+end
+function Oscar.gens(D::SchreierData)
+  return gens(acting_group(D.gset))
+end
+function Oscar.gen(D::SchreierData, i::Int)
+  return gen(acting_group(D.gset), i)
+end
+function invgens(D::SchreierData{T}) where T
+  return D.inverse_gens::Vector{eltype(T)}
+end
+function invgen(D::SchreierData{T}, i::Int) where T
+  return D.inverse_gens[i]::eltype(T)
+end
+function schreier_value(D::SchreierData{T,S}, u::S) where {T,S}
+  return D.schreier_dict[u]
+end
