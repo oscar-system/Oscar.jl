@@ -1816,3 +1816,38 @@ function orbits_with_schreier_data(Omega::GSet{T,S}) where {T,S}
   set_attribute!(Omega, :orbits => orbs)
   return orbs, SchreierData(Omega, schreier)
 end
+
+
+# We can compute stabilizers using the Schreier data
+# if it is already computed
+function orbit_representatives_and_stabilizers(Omega::GSet{T,S}, D::SchreierData{T,S}) where {T,S}
+  H = acting_group(Omega)
+  fun = action_function(Omega)
+  orbs = orbits(Omega)
+  stabs = T[]
+  sizehint!(stabs, length(orbs))
+
+  for o in orbs
+    r = representative(o)
+    stab_gens = eltype(T)[]
+    st = sub(H, stab_gens)[1]
+
+    target_order = divexact(order(H), length(o))
+    for u in o
+      tau_u = schreier_element(D, u)
+      for h in gens(D)
+        v = fun(u, h)::S
+        invtau_v = schreier_inverse(D, v)
+        elt = tau_u * h * invtau_v
+        elt in st && continue
+        push!(stab_gens, elt)
+        st = sub(H, stab_gens)[1]
+        order(st) == target_order && (@goto complete)
+      end
+    end
+    @label complete
+    push!(stabs, st)
+  end
+
+  return stabs
+end
