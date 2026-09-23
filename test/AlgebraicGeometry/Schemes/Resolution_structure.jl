@@ -22,6 +22,21 @@
   @test length(components(exceptional_locus(phi))) == 4
 end
 
+@testset "embedded desingularization of curves II" begin
+  ## same example as emb. desing curves, but different encoding of data
+  ## hence different signatures called -- only necessary test
+  R,(x,y,z) = polynomial_ring(QQ,3)
+  J = ideal(R,[z])
+  S,piS = quo(R,J)
+  W = AffineScheme(S)
+  I=ideal(S, [x^2-y^5])
+  IS = IdealSheaf(W,I)
+  WC = scheme(IS)
+  inc_X = Oscar.CoveredClosedEmbedding(WC,IS)
+  phi = embedded_desingularization(inc_X)
+  @test length(phi.ex_div) == 4
+end
+
 @testset "non-embedded desingularization of curves" begin
   R,(x,y) = polynomial_ring(QQ,2)
   I=ideal(R,[x^2-y^5])
