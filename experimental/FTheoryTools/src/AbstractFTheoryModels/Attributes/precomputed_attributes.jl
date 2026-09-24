@@ -153,18 +153,31 @@
   ```
   """, "See [Zero Section](@ref zero_section_data) for more details.")
 
-@define_model_attribute_getter((zero_section_class, CohomologyClass),
-  """
-  ```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
-  julia> using Random;
+@doc raw"""
+    zero_section_class(m::AbstractFTheoryModel)
 
-  julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
-  Hypersurface model over a concrete base
+Return the cohomology class of the zero section. If only its Cox ring generator
+is recorded, the class is computed lazily in the current toric ambient space.
 
-  julia> zero_section_class(qsm_model)
-  Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
-  ```
-  """, "See [Zero Section](@ref zero_section_data) for more details.")
+See [Zero Section](@ref zero_section_data) for more details.
+
+# Examples
+```jldoctest; setup = :(Oscar.ensure_qsmdb_installed())
+julia> using Random;
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4), rng = Random.Xoshiro(1234))
+Hypersurface model over a concrete base
+
+julia> zero_section_class(qsm_model)
+Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
+```
+"""
+@attr CohomologyClass function zero_section_class(m::AbstractFTheoryModel)
+  @req ambient_space(m) isa NormalToricVariety "Zero section classes are only supported for models with toric ambient space"
+  @req has_attribute(m, :zero_section_index) "No zero section class known for this model"
+  divisors = torusinvariant_prime_divisors(ambient_space(m))
+  return cohomology_class(divisors[zero_section_index(m)]; completeness_check=false)
+end
 
 @define_model_attribute_getter((zero_section_index, Int),
   """
@@ -375,9 +388,10 @@
 @doc raw"""
     exceptional_classes(m::AbstractFTheoryModel)
 
-Return the cohomology classes of the exceptional toric divisors of a model as a vector of cohomology classes in the toric ambient space.
-This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
-After a toric blow up this information is updated.
+Return the cohomology classes of the exceptional toric divisors of a model as a
+vector of cohomology classes in the toric ambient space. The classes are
+computed lazily from the recorded Cox ring generator indices and updated after
+a toric blowup.
 
 See [Exceptional Divisors](@ref exceptional_divisors) for more details.
 
@@ -402,18 +416,21 @@ julia> exceptional_classes(foah11_B3)
  Cohomology class on a normal toric variety given by e4
 ```
 """
-function exceptional_classes(m::AbstractFTheoryModel)
-  @req base_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models over a concrete base"
-  @req has_attribute(m, :exceptional_classes) "Required exceptional divisor data is missing; please inform the FTheoryTools authors"
-  return get_attribute(m, :exceptional_classes)::Vector{CohomologyClass}
+@attr Vector{CohomologyClass} function exceptional_classes(m::AbstractFTheoryModel)
+  @req ambient_space(m) isa NormalToricVariety "Exceptional divisor classes are only supported for models with toric ambient space"
+  divisors = torusinvariant_prime_divisors(ambient_space(m))
+  return [
+    cohomology_class(divisors[i]; completeness_check=false) for
+    i in exceptional_divisor_indices(m)
+  ]
 end
 
 @doc raw"""
     exceptional_divisor_indices(m::AbstractFTheoryModel)
 
-Return the indices of the generators of the Cox ring of the ambient space which correspond to exceptional divisors.
-This information is only supported for models over a concrete base that is a normal toric variety, but is always available in this case.
-After a toric blow up this information is updated.
+Return the indices of the Cox ring generators of the toric ambient space that
+correspond to exceptional divisors. This information is available only for
+models with a toric ambient space and is updated after a toric blowup.
 
 See [Exceptional Divisors](@ref exceptional_divisors) for more details.
 
@@ -439,7 +456,7 @@ julia> exceptional_divisor_indices(foah11_B3)
 ```
 """
 @attr Vector{Int} function exceptional_divisor_indices(m::AbstractFTheoryModel)
-  @req base_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models over a concrete base"
+  @req ambient_space(m) isa NormalToricVariety "Exceptional divisor indices are only supported for models with toric ambient space"
   @req has_attribute(m, :exceptional_divisor_indices) "Required exceptional divisor data is missing; please inform the FTheoryTools authors"
   return get_attribute(m, :exceptional_divisor_indices)::Vector{Int}
 end
