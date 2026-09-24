@@ -19,8 +19,9 @@ struct __AlgebraicConversionData{
   forward_map::F
   backward_map::B
   supported_vars::S
-  original_ring_size::Int
 end
+
+__is_data_up_to_date(conv::__AlgebraicConversionData) = base_ring(base_ring(conv.apr)) === domain(conv.forward_map)
 
 ###############################################################################
 #
@@ -28,9 +29,7 @@ end
 #
 ###############################################################################
 
-function __extract_occ_vars(F::AbstractVector{<:ActionPolyRingElem{T}}) where {T <: RingElement}
-  @req !isempty(F) "Cannot extract variables from an empty vector of action polynomials"
-  R = parent(first(F))
+function __extract_occ_vars(R::ActionPolyRing{T}, F::AbstractVector{<:ActionPolyRingElem{T}}) where {T <: RingElement}
   @req all(p -> parent(p) === R, F) "All polynomials must belong to the same ring"
 
   var_set = Set{elem_type(R)}()
@@ -47,11 +46,11 @@ end
 #
 ###############################################################################
 
-function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractVector{<:ActionPolyRingElem{T}}; revsorted::Bool=true) where {T <: RingElement}
+function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractVector{<:ActionPolyRingElem{T}}; revsort::Bool=true) where {T <: RingElement}
   @req all(is_gen(v) && parent(v) === apr for v in jet_vars) "Invalid jet variables or parent mismatch"
   @req allunique(jet_vars) "The provided vector of jet variables contains duplicates"
 
-  if revsorted
+  if revsort
     jet_vars = sort(jet_vars; rev=true)
   end
 
@@ -73,18 +72,16 @@ function __algebraic_conversion_data(apr::ActionPolyRing{T}, jet_vars::AbstractV
 
   fwd_map = hom(R, S, fwd_images)
   bwd_map = hom(S, R, bwd_images)
-
   supported_vars = Set(jet_vars)
-  current_size = length(__jtv(apr))
 
-  return __AlgebraicConversionData(apr, S, fwd_map, bwd_map, supported_vars, current_size)
+  return __AlgebraicConversionData(apr, S, fwd_map, bwd_map, supported_vars)
 end
 
 # A helper for constructing conversion data from a list of polynomials that need not be jet variables. The occurring jet variables
 # are sorted automatically, starting with the largest. It is intended to be used for vectors of equations and inequations in algebraic
 # systems.
 __algebraic_conversion_data_from_polys(apr::ActionPolyRing{T}, F::AbstractVector{<:ActionPolyRingElem{T}}) where {T <: RingElement} =
-  __algebraic_conversion_data(apr, __extract_occ_vars(F), revsorted=true)
+  __algebraic_conversion_data(apr, __extract_occ_vars(apr, F); revsort=true)
 
 ###############################################################################
 #
@@ -95,16 +92,16 @@ __algebraic_conversion_data_from_polys(apr::ActionPolyRing{T}, F::AbstractVector
 # Forward mapping: ActionPolyRingElem -> MPolyRingElem
 function (conv::__AlgebraicConversionData{T})(p::ActionPolyRingElem{T}) where {T <: RingElement}
   @req parent(p) === conv.apr "Parent mismatch: The polynomial does not belong to the action polynomial ring of the conversion data"
-  @req length(__jtv(conv.apr)) == conv.original_ring_size "The action polynomial ring has generated new jet variables, so the conversion data is outdated"
+  @req __is_data_up_to_date(conv) "The action polynomial ring has generated new jet variables, so the conversion data is outdated"
   @req all(v -> v in conv.supported_vars, vars(p; sorted=false)) "The action polynomial contains variables not present in the conversion data"
-  refresh_p = p + zero(parent(p))
-  return conv.forward_map(data(data(refresh_p)))
+  AbstractAlgebra.upgrade!(data(p))
+  return conv.forward_map(data(data(p)))
 end
 
 # Backward mapping: MPolyRingElem -> ActionPolyRingElem
 function (conv::__AlgebraicConversionData{T})(p::MPolyRingElem{T}) where {T <: RingElement}
   @req parent(p) === conv.mpr "Parent mismatch: The polynomial does not belong to the algebraic ring of the conversion data"
-  @req length(__jtv(conv.apr)) == conv.original_ring_size "The action polynomial ring has generated new jet variables, so the conversion data is outdated"
+  @req __is_data_up_to_date(conv) "The action polynomial ring has generated new jet variables, so the conversion data is outdated"
   return conv.apr(conv.backward_map(p))
 end
 
@@ -119,12 +116,11 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", conv::__AlgebraicConversionData)
   io = pretty(io)
-  is_valid = length(__jtv(conv.apr)) == conv.original_ring_size
 
-  if !is_valid
+  if !__is_data_up_to_date(conv)
     print(io, "Outdated conversion data for ", Lowercase(), conv.apr, "\n")
     print(io, Indent())
-    print(io, "Ring has mutated!")
+    print(io, "jet variables were added after construction")
     print(io, Dedent())
   else
     print(io, "Conversion data for ", Lowercase(), conv.apr, " involving variables:\n")
@@ -137,12 +133,11 @@ end
 
 function Base.show(io::IO, conv::__AlgebraicConversionData)
   io = pretty(io)
-  is_valid = length(__jtv(conv.apr)) == conv.original_ring_size
 
   if is_terse(io)
-    print(io, is_valid ? "Conversion data" : "Outdated conversion data")
+    print(io, __is_data_up_to_date(conv) ? "Conversion data" : "Outdated conversion data")
   else
-    print(io, is_valid ? "Conversion data for " : "Outdated conversion data for ")
+    print(io, __is_data_up_to_date(conv) ? "Conversion data for " : "Outdated conversion data for ")
     print(io, Lowercase(), conv.apr)
   end
 end
