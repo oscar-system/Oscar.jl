@@ -31,7 +31,7 @@ function _initialize_sagbi_candidate(
     for v in values(leading_monomials)
         # this is so that when subducting we default to using the polynomial
         # with the least terms for a given leading monomial
-        sort!(v, by = p -> nterms(p)) 
+        sort!(v, by = p -> length(p)) 
     end
     least_terms_cache = [
         leading_monomials[lm][1] for lm in keys(leading_monomials)
