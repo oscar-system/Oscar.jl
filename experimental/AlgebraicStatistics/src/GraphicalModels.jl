@@ -74,7 +74,7 @@ vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate) = generic_va
 function generic_vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :eliminate)
   phi = parametrization(GM)
   if algorithm == :kernel
-    invariants = kernel(phi)
+    return kernel(phi)
   else
     S = domain(phi)
     R = codomain(phi)
@@ -95,20 +95,30 @@ function generic_vanishing_ideal(GM::GraphicalModel; algorithm::Symbol = :elimin
       I = saturated_ideal(iota(I))
     end
 
+    project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
+    
     if algorithm == :eliminate
-      invariants = eliminate(I, elim_gens[1:ngens(R)])
+      invariants = generating_system(eliminate(I, elim_gens[1:ngens(R)]))
+      
+      return ideal(IdealGens(map(project_S, gens(invariants)), degrevlex(S);
+                             keep_ordering=invariants.keep_ordering,
+                             isGB=invariants.isGB))
     elseif algorithm == :f4
-      invariants = ideal(groebner_basis_f4(I, eliminate=ngens(R)))
-      return invariants
+      invariants = groebner_basis_f4(I, eliminate=ngens(R))
+      emb = hom(base_ring(invariants), S, gens(S))
+      
+      return ideal(IdealGens(map(emb, invariants), degrevlex(S);
+                             keep_ordering=invariants.keep_ordering,
+                             isGB=invariants.isGB))
     elseif algorithm == :markov
       o = lex(elim_ring)
       groebner_basis(I; ordering=o, algorithm=:markov)
       invariants = eliminate(I, o, ngens(R))
+      return ideal(IdealGens(map(project_S, generating_system(invariants)), lex(S);
+                             keep_ordering=true,
+                             isGB=true))
     else
       error("Didn't recognize  algorithm $algorithm")
     end
-    project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
-    invariants = project_S(invariants)
   end
-  return invariants
 end

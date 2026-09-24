@@ -8,6 +8,18 @@ export LeechPair
 export TransitiveSimplicialComplex
 export transitive_simplicial_complex
 
-export SmallTreeModel
-export small_tree_model
+export SmallGroupBasedModel
+export SmallPhylogeneticModel
+export small_group_based_model
+export small_phylogenetic_model
 export model_type
+export extended_model_id
+
+##
+export n_coordinates
+export level
+export n_cycles
+export dimension_singular_locus
+export degree_singular_locus
+export maximum_likelihood_degree
+export euclidean_distance_degree
