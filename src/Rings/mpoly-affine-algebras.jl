@@ -1788,12 +1788,12 @@ function present_finite_extension_ring(F::MPolyAnyMap)
   @req coefficient_ring(AR) isa Field "the coefficient ring must be a field"
   x, y = gens(AR), gens(BR)
   lx, ly = ngens(AR), ngens(BR)
-  gr_check = is_graded(AR) && is_graded(BR)
-  TR, yT, xT = _graph_ring(F, Val{is_graded(AR) && is_graded(BR)})
+  gr_check = is_graded(AR) || is_graded(BR)
+  TR, yT, xT = _graph_ring(F, Val{gr_check})
 
   ARtoTR = hom(AR, TR, xT)
   BRtoTR = hom(BR, TR, yT)
-  TRtoAR = hom(TR, AR, vcat(repeat([AR()], ly), x))
+  TRtoAR = hom(TR, AR, vcat(fill(zero(AR), ly), x))
 
   #####
   # compute the graph ideal Gamma of F in TR
@@ -1972,9 +1972,7 @@ function _graph_ring(F::MPolyAnyMap, ::Type{Val{true}}) # the graded case
   Wyx = vcat(Wy, Wx)
   @assert all(w>0 for w in Wyx)
   for (i, v) in enumerate(images_of_generators(F))
-    if !iszero(v)
-      @assert degree(Int, domain(F)[i]) == degree(Int, v)
-    end
+    iszero(v) || @assert degree(Int, domain(F)[i]) == degree(Int, v)
   end
 
   TR, yT, xT = graded_polynomial_ring(K, symbols(B), symbols(A), weights = Wyx)
