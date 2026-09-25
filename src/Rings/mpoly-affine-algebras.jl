@@ -1658,7 +1658,7 @@ end
 ##############################################################################
 
 @doc raw"""
-      present_finite_extension_ring(F::MPolyAnyMap)
+      present_finite_extension_ring(F::AffAlgHom)
 
 Given a finite homomorphism `F` $:$ `A` $\rightarrow$ `B`  of algebras of type `<: Union{MPolyRing, MPolyQuoRing}` over a field, return a presentation
 
@@ -1780,7 +1780,7 @@ Matrix{QQMPolyRingElem}[]
 
 ```
 """
-function present_finite_extension_ring(F::MPolyAnyMap)
+function present_finite_extension_ring(F::AffAlgHom)
   A, B = F.domain, F.codomain
   AR = A isa MPolyQuoRing ? base_ring(A) : A
   BR = B isa MPolyQuoRing ? base_ring(B) : B
