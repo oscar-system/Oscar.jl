@@ -107,8 +107,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       end
 
       h = hom(N, M,
-              elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
-                           for row in H]; check=false)
+              elem_type(M)[M(deepcopy(row)) for row in H]; check=false)
       if haskey(fac.maps_from_original, next)
         h = compose(fac.maps_from_original[next], h)
       end
@@ -122,7 +121,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     end
 
     # Create the maps to the old complex
-    img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
+    img_gens_dom = elem_type(M)[M(deepcopy(S[i])) for i in I]
     new_dom = _make_free_module(M, img_gens_dom)
     dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
@@ -135,7 +134,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     end
 
 
-    img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
+    img_gens_cod = elem_type(N)[N(deepcopy(T[j])) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
     cod_map = hom(new_cod, N, img_gens_cod; check=false)
 
@@ -245,8 +244,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       end
 
       h = hom(N, M,
-              elem_type(M)[sum(c*M[i] for (i, c) in row; init=zero(M)) 
-                           for row in H]; check=false)
+              elem_type(M)[M(deepcopy(row)) for row in H]; check=false)
       if haskey(fac.maps_from_original, i)
         h = compose(fac.maps_from_original[i], h)
       end
@@ -260,7 +258,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     end
 
     # Create the maps to the old complex
-    img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
+    img_gens_dom = elem_type(M)[M(deepcopy(S[i])) for i in I]
     new_dom = _make_free_module(M, img_gens_dom)
     dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
@@ -271,7 +269,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     end
 
 
-    img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
+    img_gens_cod = elem_type(N)[N(deepcopy(T[j])) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
     cod_map = hom(new_cod, N, img_gens_cod; check=false)
 
@@ -860,15 +858,15 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing
 end
 
 
-function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T}
+@attr function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T}
   V = domain(phi)
   W = codomain(phi)
   kk = base_ring(V)
   m = ngens(V)
   n = ngens(W)
   result = sparse_matrix(kk, m, n)
-  for i in 1:m
-    result[i] = coordinates(phi(V[i]))
+  for (i, v) in enumerate(images_of_generators(phi))
+    result[i] = deepcopy(coordinates(v))
   end
   return result
 end
