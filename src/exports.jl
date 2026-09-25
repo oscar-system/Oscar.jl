@@ -588,7 +588,6 @@ export double_cosets
 export double_dual
 export dst
 export dual
-export dual_bounding_body
 export dual_continued_fraction_hirzebruch_jung
 export dual_geometric_representation
 export dual_graph
@@ -1557,6 +1556,7 @@ export rand
 export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
+export rand_dual_bounding_body
 export rand_homogeneous
 export rand_metric
 export rand_metric_int

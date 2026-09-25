@@ -149,7 +149,6 @@ birkhoff_polytope
 cyclic_caratheodory_polytope
 cyclic_polytope
 del_pezzo_polytope
-dual_bounding_body
 dwarfed_cube
 dwarfed_product_polygons
 explicit_zonotope
@@ -177,6 +176,7 @@ pseudo_del_pezzo_polytope
 rand01_polytope
 rand_box_polytope
 rand_cyclic_polytope
+rand_dual_bounding_body
 rand_metric
 rand_metric_int
 rand_normal_polytope
