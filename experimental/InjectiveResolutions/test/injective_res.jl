@@ -44,6 +44,7 @@
     @test monoid_algebra(injective_modules(inj_res)[1]) == kQ
     E, lambda = injective_hull(M)
     @test length(indecomposable_injectives(E)) == 2
+    @test lambda == augmentation_map(injective_resolution(M, 0))
     @test irreducible_sums(irr_res) == irr_res.irr_sums
     @test_throws ArgumentError injective_resolution(M, 1; shift=:foo)
 
