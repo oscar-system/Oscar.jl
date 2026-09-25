@@ -2009,7 +2009,7 @@ function _interreduce(V::Vector, gr_check::Bool)
     fmo = invlex(F0)*degrevlex(R)
   end
 
-  element_in_F0(c) = sum((c[i]*gens(F0)[i] for i in 1:lVs); init = zero(F0))
+  element_in_F0(c) = sum((c[i]*gen(F0, i) for i in 1:lVs); init = zero(F0))
 
   ext_mon = Tuple{Vector{elem_type(R)}, elem_type(R), Int}[]
   for c in V
@@ -2018,9 +2018,7 @@ function _interreduce(V::Vector, gr_check::Bool)
       continue
     end
     lm = leading_monomial(g, ordering = fmo)
-    sparse_coords = coordinates(lm)
-    m = sparse_coords.values[1]
-    i = sparse_coords.pos[1]
+    (i, m) = first(coordinates(lm))
     push!(ext_mon, (c, m, i))
   end
   sort!(ext_mon, by = p -> total_degree(p[2]))
@@ -2042,3 +2040,4 @@ function _interreduce(V::Vector, gr_check::Bool)
   end
   return result
 end
+
