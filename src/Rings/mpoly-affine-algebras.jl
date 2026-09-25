@@ -1658,7 +1658,7 @@ end
 ##############################################################################
 
 @doc raw"""
-      present_finite_extension_ring(F::Oscar.AffAlgHom)
+      present_finite_extension_ring(F::MPolyAnyMap)
 
 Given a finite homomorphism `F` $:$ `A` $\rightarrow$ `B`  of algebras of type `<: Union{MPolyRing, MPolyQuoRing}` over a field, return a presentation
 
@@ -1780,40 +1780,16 @@ Matrix{QQMPolyRingElem}[]
 
 ```
 """
-function  present_finite_extension_ring(F::Oscar.AffAlgHom)
+function present_finite_extension_ring(F::MPolyAnyMap)
   A, B = F.domain, F.codomain
   AR = A isa MPolyQuoRing ? base_ring(A) : A
   BR = B isa MPolyQuoRing ? base_ring(B) : B
-  @assert base_ring(AR) == base_ring(BR)
-  @req base_ring(AR) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  K = base_ring(AR)
+  @assert coefficient_ring(AR::MPolyRing) === coefficient_ring(BR::MPolyRing)
+  @req coefficient_ring(AR) isa Field "the coefficient ring must be a field"
   x, y = gens(AR), gens(BR)
   lx, ly = ngens(AR), ngens(BR)
-  gr_check = is_graded(AR) || is_graded(BR)
-  if gr_check
-    @assert is_z_graded(AR) == is_z_graded(BR) == true
-    Wx = weights(Int, AR)
-    Wy = weights(Int, BR)
-    Wyx = vcat(Wy, Wx)
-    @assert all(w>0 for w in Wyx)
-    for  i = 1:lx
-      if !iszero(F(gens(A)[i]))
-        @assert degree(Int, gens(A)[i]) == degree(Int, F(gens(A)[i]))
-      end
-    end
-  end
-
-  #####
-  # setup a new polynomial ring with all variables
-  #####
-
-  if gr_check
-    TR, yT, xT = graded_polynomial_ring(K, symbols(BR), symbols(AR), weights = Wyx)
-    Oscar.set_default_ordering!(TR, wdegrevlex(yT, Wy)*wdegrevlex(xT, Wx))
-  else
-    TR, yT, xT = polynomial_ring(K, symbols(BR), symbols(AR))
-    Oscar.set_default_ordering!(TR, degrevlex(yT)*degrevlex(xT))
-  end
+  gr_check = is_graded(AR) && is_graded(BR)
+  TR, yT, xT = _graph_ring(F, Val{is_graded(AR) && is_graded(BR)})
 
   ARtoTR = hom(AR, TR, xT)
   BRtoTR = hom(BR, TR, yT)
@@ -1823,12 +1799,10 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   # compute the graph ideal Gamma of F in TR
   #####
 
-  M = B isa MPolyQuoRing ? [F(gens(A)[i]).f for i = 1:lx] :
-                           [F(gens(A)[i]) for i = 1:lx]
-  Rels = [xT[i]-BRtoTR(m) for (i,m) in enumerate(M)]
-  if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoTR(g)) end end
-  if isdefined(B, :I) for g in gens(B.I) push!(Rels, BRtoTR(g)) end end
-  Gamma = ideal(TR, Rels) # the ideal of the graph of F
+  gamma_gens = [xT[i] - BRtoTR(lifted_numerator(m)) for (i, m) in enumerate(images_of_generators(F))]
+  A isa MPolyQuoRing && append!(gamma_gens, [ARtoTR(g) for g in gens(modulus(A))])
+  B isa MPolyQuoRing && append!(gamma_gens, [BRtoTR(g) for g in gens(modulus(B))])
+  Gamma = ideal(TR, gamma_gens) # the ideal of the graph of F
   G = groebner_basis(Gamma, complete_reduction = true)
   Gpolys = gens(G)
 
@@ -1855,11 +1829,11 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
     end
   end
 
-  divides_exp(a, b) = all(a[i] <= b[i] for i in eachindex(a))
+  divides_exp(a, b) = all(aa <= bb for (aa, bb) in zip(a, b))
 
   # If 1 is in lead_y_Gpolys, Gamma = T and B is the zero module.
 
-  zero_module = any(e -> all(iszero, e), lead_y_Gpolys_exp)
+  zero_module = any(iszero, lead_y_Gpolys_exp)
 
   # We apply the integrality criterion for affine K-algebra homomorphisms:
   # F is finite (that is, B is integral over A) iff lead_y_Gpolys contains
@@ -1916,8 +1890,8 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   # The result is just a map, not necessarily an A-homomorphism.
   #####
 
-  y_staircase_index = Dict{Tuple, Int}(
-    Tuple(e) => i for (i, e) in enumerate(y_staircase_exponents))
+  y_staircase_index = Dict{Vector{Int}, Int}(
+    e => i for (i, e) in enumerate(y_staircase_exponents))
 
   # Convert a polynomial supported on the staircase
   # into its coefficient vector over AR.
@@ -1926,9 +1900,8 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
     result = [zero(AR) for _ in y_staircase_exponents]
     for (c, e) in zip(AbstractAlgebra.coefficients(t),
                       AbstractAlgebra.exponent_vectors(t))
-      j = get(y_staircase_index, Tuple(e[1:ly]), 0)
-      j != 0 || error("internal error:
-                       a non-staircase y-monomial survived reduction")
+      j = get(y_staircase_index, e[1:ly], 0)
+      j != 0 || error("internal error: a non-staircase y-monomial survived reduction")
       coefficient_monomial = AR(c)
       for i in 1:lx
         coefficient_monomial *= gen(AR, i)^e[ly + i]
@@ -1957,8 +1930,7 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
 
   relation_rows = Vector{Vector{elem_type(AR)}}()
   for (g, delta) in zip(other_Gpolys, other_Gpolys_exp_y)
-    haskey(y_staircase_index, Tuple(delta)) || error("internal error:
-       the reduced graph basis has a nonstandard relation leader")
+    haskey(y_staircase_index, delta) || error("internal error: the reduced graph basis has a nonstandard relation leader")
     for beta in y_staircase_exponents
       divides_exp(delta, beta) || continue
       multiplier_exp = beta - delta
@@ -1988,6 +1960,41 @@ end
 # helper function #
 ###################
 
+# Set up the ring with both sets of variables for the graph 
+# and return the various maps from and to the original rings.
+function _graph_ring(F::MPolyAnyMap, ::Type{Val{true}}) # the graded case
+  A = domain(F)
+  B = codomain(F)
+  K = coefficient_ring(A)
+  @assert is_z_graded(A) == is_z_graded(B) == true
+  Wx = weights(Int, A)
+  Wy = weights(Int, B)
+  Wyx = vcat(Wy, Wx)
+  @assert all(w>0 for w in Wyx)
+  for (i, v) in enumerate(images_of_generators(F))
+    if !iszero(v)
+      @assert degree(Int, domain(F)[i]) == degree(Int, v)
+    end
+  end
+
+  TR, yT, xT = graded_polynomial_ring(K, symbols(B), symbols(A), weights = Wyx)
+  set_default_ordering!(TR, wdegrevlex(yT, Wy)*wdegrevlex(xT, Wx))
+  return TR, yT, xT
+end
+
+weights(A::MPolyQuoRing{T}) where {T <: MPolyDecRingElem} = weights(base_ring(A))
+weights(::Type{Int}, A::MPolyQuoRing{T}) where {T <: MPolyDecRingElem} = weights(Int, base_ring(A))
+
+function _graph_ring(F::MPolyAnyMap, ::Type{Val{false}}) # the graded case
+  A = domain(F)
+  B = codomain(F)
+  TR, yT, xT = graded_polynomial_ring(K, symbols(B), symbols(A))
+  set_default_ordering!(TR, degrevlex(yT)*degrevlex(xT))
+  return TR, yT, xT
+end
+
+### end of functionality for the `_graph_ring`
+
 function _interreduce(V::Vector, gr_check::Bool)
   R = parent(V[1][1])
   lVs = length(V[1])
@@ -2008,32 +2015,32 @@ function _interreduce(V::Vector, gr_check::Bool)
 
   ext_mon = Tuple{Vector{elem_type(R)}, elem_type(R), Int}[]
   for c in V
-     g = element_in_F0(c)
-     if iszero(g)
-         continue
-     end
-     lm = leading_monomial(g, ordering = fmo)
-     sparse_coords = coordinates(lm)
-     m = sparse_coords.values[1]
-     i = sparse_coords.pos[1]
-     push!(ext_mon, (c, m, i))
+    g = element_in_F0(c)
+    if iszero(g)
+      continue
+    end
+    lm = leading_monomial(g, ordering = fmo)
+    sparse_coords = coordinates(lm)
+    m = sparse_coords.values[1]
+    i = sparse_coords.pos[1]
+    push!(ext_mon, (c, m, i))
   end
   sort!(ext_mon, by = p -> total_degree(p[2]))
 
   result = Vector{elem_type(R)}[]
   for i in 1:length(ext_mon)
-     m_i, pos_i = ext_mon[i][2:3]
-     redundant = false
-     for j in 1:i-1
-         m_j, pos_j = ext_mon[j][2:3]
-         if pos_i == pos_j && divides(m_i, m_j)[1]
-             redundant = true
-             break
-         end
-     end
-     if !redundant
-        push!(result, ext_mon[i][1])
-     end
+    m_i, pos_i = ext_mon[i][2:3]
+    redundant = false
+    for j in 1:i-1
+      m_j, pos_j = ext_mon[j][2:3]
+      if pos_i == pos_j && divides(m_i, m_j)[1]
+        redundant = true
+        break
+      end
+    end
+    if !redundant
+      push!(result, ext_mon[i][1])
+    end
   end
   return result
 end
