@@ -457,6 +457,25 @@
       end
     end
 
+    @testset "_canonical_perm with labels" begin
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>1, (4,5)=>1, (5,1)=>1,
+                                         (1,3)=>2, (3,5)=>2, (5,2)=>2, (2,4)=>2, (4,1)=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (2,3)=>2, (3,4)=>2, (4,5)=>2, (5,1)=>2,
+                                         (1,3)=>1, (3,5)=>1, (5,2)=>1, (2,4)=>1, (4,1)=>1))
+
+      p1 = Oscar._canonical_perm(G1; label=:label, edge_distinguishable=false, vertex_distinguishable=false)
+      p2 = Oscar._canonical_perm(G2; label=:label, edge_distinguishable=false, vertex_distinguishable=false)
+
+      @test on_graph(G1, inv(perm(symmetric_group(5), p2)) * perm(symmetric_group(5), p1)) == G2
+      
+      G1 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>5, (1,3)=>7, (3,4)=>9), Dict(1=>1, 2=>2, 3=>3, 4=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>3, (2,3)=>7, (1,3)=>5, (3,4)=>9), Dict(1=>2, 2=>1, 3=>3, 4=>2))
+      p1 = Oscar._canonical_perm(G1; label=:label)
+      p2 = Oscar._canonical_perm(G2; label=:label)
+
+      @test on_graph(G1, inv(perm(symmetric_group(4), p2)) * perm(symmetric_group(4), p1)) == G2
+    end
+
     @testset "on_graph" begin
       id = perm(3, [1, 2, 3])
 
