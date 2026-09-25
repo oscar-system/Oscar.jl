@@ -1221,17 +1221,19 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          edge_distinguishable::Bool=true)
   isnothing(label) && return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G)))
 
-  if vertex_distinguishable && edge_distinguishable
-    new_G = _edge_label_to_vertex_label(G, label;
-                                        edge_distinguishable=edge_distinguishable,
-                                        vertex_distinguishable=vertex_distinguishable)
-
-    perm = Polymake._canonical_perm(pm_object(new_G),
-                                    Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
-    # permutation is defined on vertex classes, see _edge_label_to_vertex_label
-    return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
+  G_map = getproperty(G, label)
+  if isnothing(G_map.edge_map)
+    return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)])))
   end
-  error("unimplemented for either indistinguishable vertex or edge labels")
+
+  new_G = _edge_label_to_vertex_label(G, label;
+                                      edge_distinguishable=edge_distinguishable,
+                                      vertex_distinguishable=vertex_distinguishable)
+
+  perm = Polymake._canonical_perm(pm_object(new_G),
+                                  Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
+  # permutation is defined on vertex classes, see _edge_label_to_vertex_label
+  return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
 end
 
 @doc raw"""
