@@ -1455,13 +1455,17 @@ exact rational arithmetic. For a `Polyhedron{Float64}` the directions are normal
 standard Gaussian vectors in `Float64`, and `precision` is ignored. This is inferior in
 two respects: the precision of the directions is fixed to that of `Float64`,
 and all subsequent computations are subject to rounding errors. In particular, the result
-may fail to contain $P$ for $l=1$, and its combinatorics may be wrong. Rational input
-should be preferred whenever possible.
+may fail to contain $P$ for $l=1$.
 
-For $l=1$ the result contains $P$. For $l>1$ each halfspace may cut off up to
-$l-1$ vertices of $P$; the resulting polyhedra are the (symmetrized) random polytope
-descriptors of [JKR20](@cite). The result is bounded if and only if the directions span
-$\mathbb{R}^d$, which happens almost surely for $m \geq d$.
+Rational input should be preferred if the polyhedral geometry matters.
+On the other hand side, `Float64` is much faster; this is desirable in
+a data analysis setting, where the actual geometry does not matter.
+
+For $l=1$ the result contains $P$ (at least for exact computations).
+For $l>1$ each halfspace may cut off up to $l-1$ vertices of $P$; the
+resulting polyhedra are the (symmetrized) random polytope descriptors
+of [JKR20](@cite). The result is bounded if and only if the directions
+span $\mathbb{R}^d$, which happens almost surely for $m \geq d$.
 
 # Keywords
 - `precision::Int64`:     Precision in bits during the floating point approximation
@@ -1487,12 +1491,12 @@ true
 function rand_dual_bounding_body(
   rng::AbstractRNG, P::Polyhedron{T}, m::Int, l::Int=1; precision=nothing
 ) where {T<:Union{QQFieldElem,Float64}}
-  @req m > 0 "number of directions must be positive"
+  d = ambient_dim(P)
+  @req m > d "number of directions must be larger than the dimension"
   @req is_bounded(P) "polyhedron must be bounded"
   V = vertices(P)
   n = length(V)
   @req 1 <= l <= n "l must be between 1 and the number of vertices"
-  d = ambient_dim(P)
   pts = [V[i][j] for i in 1:n, j in 1:d]
   U = _random_unit_vectors(T, rng, m, d, precision)
   A = vcat(U, -U)
@@ -1518,8 +1522,8 @@ function _random_unit_vectors(
 )
   # the unit sphere is {-1, 1}, and rand_dual_bounding_body uses both directions anyway
   d == 1 && return ones(QQFieldElem, m, 1)
-  # rand_spherical_polytope requires more than d points
-  S = rand_spherical_polytope(d, max(m, d + 1); precision, seed=rand(rng, Int64))
+  # rand_spherical_polytope requires more than d points (but that has been checked before)
+  S = rand_spherical_polytope(d, m; precision, seed=rand(rng, Int64))
   return Matrix{QQFieldElem}(pm_object(S).POINTS[1:m, 2:end])::Matrix{QQFieldElem}
 end
 
