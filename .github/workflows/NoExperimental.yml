@@ -80,18 +80,9 @@ jobs:
         run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
-      - name: "Setup package"
-        run: |
-          julia --project=docs --color=yes -e '
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()'
       - name: "Run doctests"
         run: |
           julia \
-            --project=docs --color=yes -e'
-              using Documenter
-              include("docs/documenter_helpers.jl")
+            --project=. --color=yes -e'
               using Oscar
-              DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar; doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())'
+              Oscar.@doctest'

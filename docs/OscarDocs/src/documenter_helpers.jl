@@ -1,28 +1,37 @@
-import DelimitedFiles
-import Oscar
-
+# Doctest timings, keyed by source location. Filled by our method of
+# `Documenter.eval_repl`, written out at exit by `setup_doctest_stats`.
 const docstats = Dict{String,NamedTuple}()
-if haskey(ENV, "GITHUB_ACTION") || haskey(ENV, "OSCAR_TEST_STATS")
+
+const stats_registered = Ref(false)
+
+# Statistics are only collected in CI or when explicitly requested.
+function setup_doctest_stats(Oscar::Module)
+  (haskey(ENV, "GITHUB_ACTION") || haskey(ENV, "OSCAR_TEST_STATS")) || return nothing
+  stats_registered[] && return nothing
+  stats_registered[] = true
+
   metadata = Oscar._test_stats_metadata()
-  timestamp = metadata.timestamp
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
-  commitHash = metadata.commit
-  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_doctests_$(commitHash).csv"
+  filename = "test-stats_$(metadata.timestamp)_$(platform)_$(juliaVersion)_doctests_$(metadata.commit).csv"
 
   Base.atexit() do
-    open(statsFileName, "a") do io
+    open(filename, "a") do io
       @static if VERSION > v"1.11.0"
         println(io, "path,time,ctime,rctime,gctime,alloc")
-        DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in docstats), ",")
+        for (k, v) in docstats
+          println(io, join((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc), ","))
+        end
       else
         println(io, "path,time,gctime,alloc")
-        DelimitedFiles.writedlm(io, ((k, v.time, v.gctime, v.alloc) for (k,v) in docstats), ",")
+        for (k, v) in docstats
+          println(io, join((k, v.time, v.gctime, v.alloc), ","))
+        end
       end
     end
   end
+  return nothing
 end
-
 
 # this function is slightly more specific than the one from documenter, print the corresponding code location
 # calls the original function via invoke and prints a timing for the doctest
