@@ -149,6 +149,7 @@ birkhoff_polytope
 cyclic_caratheodory_polytope
 cyclic_polytope
 del_pezzo_polytope
+dual_bounding_body
 dwarfed_cube
 dwarfed_product_polygons
 explicit_zonotope
