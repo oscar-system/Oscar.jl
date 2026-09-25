@@ -45,12 +45,13 @@ local cohomology of finitely generated modules over monoid algebras following
 
 ## Performance
 
-- The shift needed to move all Bass numbers into `Q` is computed from a
-  cheap over-approximation of their degrees read off a free resolution of
-  the residue field (`compute_shift_bound`, default `shift = :bound`),
-  instead of computing `Ext^j(k, M)` for every `j` (`shift = :helm_miller`).
-  A minimal shift from an integer linear program is available as `shift = :milp` and
-  `shift = :milp_bound`.
+- The shift that moves the summands of `J^0, ..., J^i` into `Q` is by
+  default a bound read off free resolutions of `k[Q]/P_F` up to `G_i` for
+  the proper faces `F` (`compute_shift_bound`, `shift = :bound`), instead
+  of the degrees of `Ext^j(k, M)` for `j <= i + dim Q`
+  (`shift = :helm_miller`). The shift of minimal coordinate sum from an
+  integer linear program is available for both (`shift = :milp_bound`,
+  `shift = :milp`).
 - `degrees_of_bass_numbers` builds the residue field resolution once.
 - Relevance checks for generators and relations in the coefficient
   computation precompute the polyhedra once per face, and semigroup membership
@@ -68,35 +69,18 @@ local cohomology of finitely generated modules over monoid algebras following
 
 ## Bug fixes
 
-- The shift before an irreducible resolution used the Bass numbers at the
-  maximal ideal up to cohomological degree `i + 1` only. By Lemma 4.5 of
-  [HM05] these control the summands of `J^j` at a face `F` only through
-  degree `j + dim Q - dim F`. For a Cohen-Macaulay ring of dimension 3 and
-  `i = 1` the exact strategies gave the zero shift and lost `J^1` entirely,
-  `injective_hull` had the same problem, and the MILP strategy crashed when
-  no Bass numbers were found. The exact strategies now use degrees up to
-  `i + dim Q`. The default bound instead controls the summands at every
-  face directly, from the generator degrees of the free modules
-  `G_0, ..., G_i` of a free resolution of `k[Q]/P_F`, which needs no deeper
-  resolution of the residue field.
+- The shift before an irreducible resolution was computed from the Bass
+  numbers at the maximal ideal up to cohomological degree `i + 1`. By
+  Lemma 4.5 of [HM05] these control the summands of `J^j` at a face `F`
+  only through degree `j + dim Q - dim F`, so for a Cohen-Macaulay ring of
+  dimension 3 and `i = 1` the shift was zero and `J^1` was lost. The exact
+  strategy now uses degrees up to `i + dim Q`.
 
 - `local_cohomology_all`: a destructuring shadowed the loop counter, the
   `SectorPartitionLC` constructor was called with the wrong arguments, and the
   ideal-argument method compared a nonexistent field.
 - `_compute_q_graded_part`: handles the empty case.
 - `compute_shift`: no longer overshoots by one multiple of the ray sum.
-
-## API cleanup
-
-- Explicit imports instead of importing every OSCAR name. Exports reduced to
-  the public API, internal helpers unexported and named with a leading
-  underscore.
-- `check` keyword on `irreducible_resolution` and `injective_resolution`
-  gates the internal exactness assertions.
-- Printing follows the OSCAR conventions (capitalized first word, terse
-  form for monoid algebras, ordinals in sector partition output).
-- Removed `old_*` reference implementations and an unused combinatorial
-  prototype.
 
 ## References
 
