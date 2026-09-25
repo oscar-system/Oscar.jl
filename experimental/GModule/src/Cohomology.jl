@@ -1874,7 +1874,7 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem, v)
   ZG = parent(g)
   G = group(ZG)
   @assert G == group(C)
-  @assert base_ring(ZG) == base_ring(C)
+  @assert base_ring(ZG) == ZZ || base_ring(ZG) == base_ring(C)
   
   Z = zero(parent(v))
   if Hecke._is_sparse(g)
@@ -2022,7 +2022,7 @@ function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractA
   mp = ms*pseudo_inv(mq)*mk
   #do not turn into hom!
   if i == 2
-    res  = (s, mp, map_from_func(s, AllCoChains{2, PermGroupElem, FinGenAbGroupElem}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
+    res  = (s, mp, map_from_func(s, AllCoChains{2, elem_type(G), elem_type(M.M)}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
   else
     res = (s, mp)
   end
@@ -2042,7 +2042,7 @@ end
 
 #TODO: from a -> A to index in hom-sequence?
 #      then do 1 and 2 chains? 3-chains?
-function two_chain(a::FinGenAbGroupElem)
+function two_chain(a::T) where T <: Union{FinGenAbGroupElem, <:AbstractAlgebra.FPModuleElem}
   A = parent(a)
   #need a map GxG -> M
   (zg, M) = get_attribute(A, :hom)
