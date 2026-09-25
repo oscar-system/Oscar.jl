@@ -122,6 +122,16 @@ function extension_of_scalars(M::GModule, phi::Map)
   return GModule(F, group(M), [hom(F, F, map_entries(phi, matrix(x))) for x in M.ac])
 end
 
+import Hecke.⊗
+function ⊗(M::GModule, phi::Map)
+  return extension_of_scalars(M, phi)
+end
+
+function ⊗(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{ZZRingElem}}, F::FinField)
+  return M ⊗ map_from_func(ZZ, F, x->F(x))
+end
+
+
 function extension_of_scalars(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, K::AbsSimpleNumField)
 
   d = dim(M)
@@ -2829,7 +2839,7 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
   return E, mE
 end
 
-Hecke.rank(M::AbstractAlgebra.FPModule{QQFieldElem}) = vector_space_dim(M)
+Hecke.rank(M::AbstractAlgebra.FPModule{<:FieldElem}) = ngens(M)
 
 
 function gmodule(K::AbsSimpleNumField, M::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
