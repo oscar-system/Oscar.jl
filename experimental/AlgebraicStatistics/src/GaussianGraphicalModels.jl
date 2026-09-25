@@ -657,14 +657,27 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
 end
 
 function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:MPolyRingElem};
-                               saturate::Bool=true, kwargs...)
+                               kwargs...)
+  R, _ = change_base_ring(base_ring(scv_matrix), base_ring(concentration_matrix(M)))
+  return score_equations_ideal(M, scv_matrix, R; kwargs...)
+end
+
+@doc raw"""
+    score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:MPolyRingElem}, R::MPolyRing; saturate::Bool=true, kwargs...)
+
+Compute the score equations ideal of `M` for the symbolic sample covariance matrix `scv_matrix`
+as an ideal of `R`. The ring `R` should be a polynomial ring over `base_ring(scv_matrix)` whose
+variables are in bijection with those of the `parameter_ring` of `M`, in the same order.
+"""
+function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv_matrix::MatElem{<:MPolyRingElem},
+                               R::MPolyRing; saturate::Bool=true, kwargs...)
   @req is_symmetric(scv_matrix) "The input sample covariance matrix must be symmetric"
   K = concentration_matrix(M)
   n = nrows(K)
   @req nrows(scv_matrix) == n "The input sample covariance matrix should be $n by $n matrix"
+  @req ngens(R) == ngens(base_ring(K)) "The ring must have one variable per model parameter"
 
-  R, emb = change_base_ring(base_ring(scv_matrix), base_ring(K))
-  K_mapped = map_entries(emb, K)
+  K_mapped = map_entries(hom(base_ring(K), R, gens(R)), K)
   phi = Oscar.flatten(R)
   phi_inv = inverse(phi)
   
