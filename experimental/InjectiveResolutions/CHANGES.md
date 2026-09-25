@@ -35,7 +35,8 @@ local cohomology of finitely generated modules over monoid algebras following
 - **Minimality.** `is_minimal(res)` checks a computed injective resolution
   against the graded Bass numbers, which are computed via `Ext`.
   `degrees_of_bass_numbers` returns the degrees of non-zero Bass numbers.
-- **Injective hulls.** `injective_hull(M)` returns `E(M)` with the embedding.
+- **Injective hulls.** `injective_hull(M)` returns `E(M)` with the scalar
+  matrix of the embedding, in the form `augmentation_map` uses for resolutions.
 - **Ideals.** `minimal_generating_set`, `number_of_generators`, `radical`,
   `intersect` of several ideals, `monoid_algebra_ideal` wrapper.
 - **Getters** replacing field access: `injective_modules`, `cochain_maps`,
@@ -75,8 +76,9 @@ local cohomology of finitely generated modules over monoid algebras following
   `injective_hull` had the same problem, and the MILP strategy crashed when
   no Bass numbers were found. The exact strategies now use degrees up to
   `i + dim Q`. The default bound instead controls the summands at every
-  face directly, from free resolutions of `k[Q]/P_F` up to length `i + 2`,
-  which needs no deeper resolution of the residue field.
+  face directly, from the generator degrees of the free modules
+  `G_0, ..., G_i` of a free resolution of `k[Q]/P_F`, which needs no deeper
+  resolution of the residue field.
 
 - `local_cohomology_all`: a destructuring shadowed the loop counter, the
   `SectorPartitionLC` constructor was called with the wrong arguments, and the
