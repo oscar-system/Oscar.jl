@@ -250,8 +250,19 @@ Base.hash(x::ModularGroupElem, h::UInt) = hash(matrix(x), h)
 @doc raw"""
     word_gens(G::ModularGroup)
 
-Return generators of `G` as words in the generators `S` and `T` of the
-finitely presented group returned by `Oscar._SL2Z_fp()`.
+Return generators of `G` as words in the generators `S` and `T` of
+``{\rm SL}_2(\mathbb{Z})``, see [`s_t_decomposition`](@ref).
+
+# Examples
+```jldoctest
+julia> G = modular_subgroup_via_right_action(cperm([2, 3]), cperm([1, 2]))
+modular subgroup of index 3
+
+julia> word_gens(G)
+2-element Vector{FPGroupElem}:
+ S
+ T^-2
+```
 """
 function word_gens(G::ModularGroup)
   P = _perm_group(G)
@@ -286,8 +297,13 @@ end
 @doc raw"""
     s_t_decomposition(M::ZZMatrix)
 
-Return the matrix `M` in ``{\rm SL}_2(\mathbb{Z})`` as a word in the generators `S` and `T`
-of the finitely presented group returned by `Oscar._SL2Z_fp()`.
+Return the matrix `M` in ``{\rm SL}_2(\mathbb{Z})`` as a word in the generators
+```math
+S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad T = \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}.
+```
+The word is an element of the finitely presented group
+``\langle S, T \mid S^4, (S^3 T)^3, S^2 T S^{-2} T^{-1} \rangle \cong {\rm SL}_2(\mathbb{Z})``,
+which is its `parent`. All words in `S` and `T` used by this package live in this group.
 
 # Examples
 ```jldoctest
@@ -382,8 +398,22 @@ end
 @doc raw"""
     is_word_element_of(w::FPGroupElem, G::ModularGroup)
 
-Return whether the word `w` in the generators `S` and `T` of the finitely
-presented group returned by `Oscar._SL2Z_fp()` represents an element of `G`.
+Return whether the word `w` in the generators `S` and `T` of
+``{\rm SL}_2(\mathbb{Z})`` represents an element of `G`, see [`s_t_decomposition`](@ref).
+
+# Examples
+```jldoctest
+julia> G = modular_subgroup_via_right_action(cperm([2, 3]), cperm([1, 2]))
+modular subgroup of index 3
+
+julia> S, T = gens(parent(s_t_decomposition(identity_matrix(ZZ, 2))));
+
+julia> is_word_element_of(T^2, G)
+true
+
+julia> is_word_element_of(T, G)
+false
+```
 """
 function is_word_element_of(w::FPGroupElem, G::ModularGroup)
   _check_compatible(parent(w), _SL2Z_fp())
