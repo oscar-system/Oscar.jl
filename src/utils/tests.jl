@@ -192,7 +192,7 @@ This only works for `new=false`.
 
 For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
-function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[])
+function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, seed=-1, ignore=[])
   with_unicode(false) do
     julia_exe = Base.julia_cmd()
     project_path = Base.active_project()
@@ -237,6 +237,13 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
 
       try
         for entry in testlist
+          if seed != -1
+            println("============DEBUG OUTPUT=============")
+            println("Setting seed to $(seed)")
+            println("=====================================")
+            Oscar.set_seed!(seed)
+            Oscar.randseed!(seed)
+          end
           dir = dirname(entry)
           if isfile(joinpath(dir, "setup_tests.jl"))
             Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))
