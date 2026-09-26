@@ -43,6 +43,42 @@ function _initialize_sagbi_candidate(
     )
 end
 
+const zsolve_cmd = Oscar.lib4ti2_jll.zsolve()
+function _4ti2_solve(A::ZZMatrix, b::ZZMatrix)
+    n, m = nrows(A), ncols(A)
+
+    # mktempdir with a do-block guarantees cleanup, even on errors
+    return mktempdir() do dir
+        proj = joinpath(dir, "zsolve")
+
+        open("$proj.mat", "w") do f
+            write(f, "$n $m\n")
+            for i in 1:n
+                write(f, join((string(A[i, j]) for j in 1:m), ' '), "\n")
+            end
+        end
+        
+        open("$proj.rhs", "w") do f
+            write(f, "1 $n\n", join((string(b[i, 1]) for i in 1:n), ' '), "\n")
+        end
+        
+        open("$proj.rel", "w") do f
+            write(f, "1 $n\n", join(("=" for _ in 1:n), ' '), "\n")
+        end
+        
+        open("$proj.sign", "w") do f
+            write(f, "1 $m\n", join(("1" for _ in 1:m), ' '), "\n")
+        end
+
+        success(`$zsolve_cmd -p gmp $proj`) ||
+            error("Error running 4ti2 zsolve")
+            
+        lines = readlines("$proj.zinhom")
+        nr = parse(Int, split(lines[1])[1])        
+        return nr == 0 ? nothing : parse.(Int, split(lines[2]))
+    end
+end
+
 @doc raw"""
     monoid_representation(
         m::MPolyRingElem, 
@@ -57,32 +93,55 @@ function monoid_representation(
     m::MPolyRingElem,
     generators::Vector{<:MPolyRingElem},
 )
-    isempty(generators) && return isone(m) ? Int[] : nothing
+    if isempty(generators)
+        return isone(m) ? Int[] : nothing
+    end 
 
     R = parent(m)
-    @req all(x -> parent(x) === R, generators) "All polynomials must belong to the same ring"
+    @req(all(x -> parent(x) === R, generators),
+    "All polynomials must belong to the same ring")
     @req is_monomial(m) "m must be a monomial."
     @req all(is_monomial, generators) "The monoid generators must be monomials."
 
     target = exponent_vector(m, 1)
+    if iszero(target)
+        return zeros(Int, length(generators))
+    end
+    if total_degree(m) < minimum(total_degree, generators)
+        return nothing
+    end
 
-    A = hcat(
-        [exponent_vector(g, 1) for g in generators]...
-    )
+    gen_exps = [exponent_vector(g, 1) for g in generators]
 
-    # solve_non_negative solves Ax = target with
-    # x ∈ Z_{\geq 0}^n.
+    gen_vars = Set{Int}()
+    for e in gen_exps
+        union!(gen_vars, findall(!iszero, e))
+    end
+    if !issubset(findall(!iszero, target), gen_vars)
+        return nothing # m has a variable that isn't in the generators
+    end
+
+    A = hcat(gen_exps...)
+
+    # We must solve A*x = target with x >= 0. 
+    # We will try just solving A*x = target first, but if the solution
+    # is negative then we need to do integer programming.
     Azz = ZZMatrix(A)
     bzz = ZZMatrix(reshape(target, :, 1))
+    H, U = hnf_with_transform(Azz)
+    solvable, x = can_solve_with_solution(H, U*bzz; side=:right)
+    if !solvable
+        # Not solvable over ZZ, hence not over Z_{>=0} either.
+        return nothing
+    end
+    if all(i -> x[i, 1] >= 0, 1:nrows(x))
+        # The HNF solution is already non-negative.
+        return [Int(x[i, 1]) for i in 1:nrows(x)]
+    end
 
-    solutions = solve_non_negative(Azz, bzz)
-
-    # No solution.
-    isempty(solutions) && return nothing
-
-    # `solve_non_negative` returns the solutions as rows.
-    # We only need one representation.
-    return Vector{Int}(solutions[1, :])
+    # Fall back to integer programming.
+    solution = _4ti2_solve(Azz, bzz)
+    return solution
 end
 
 @doc raw"""
