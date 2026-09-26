@@ -1349,3 +1349,23 @@ end
   @test all(!is_zero, degree.(gens(p1[0])))
   @test all(!is_zero, degree.(gens(p2[0])))
 end
+
+# `is_canonically_isomorphic` compares along the isomorphism matching the
+# degrees of the ambient generators; a repeated degree leaves a choice and
+# ambient modules of different rank leave nothing to compare along at all
+@testset "canonical isomorphisms of graded subquotients" begin
+  Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  F1 = graded_free_module(Rg, [0, 0, 1])
+  F2 = graded_free_module(Rg, [0, 1, 0])
+  M1 = image(F1, Rg[x x 1])
+  M2 = image(F2, Rg[x 1 x])
+  @test !is_canonically_isomorphic(M1, M2)
+
+  G = graded_free_module(Rg, [0, 0])
+  N = image(G, Rg[x x])
+  @test !is_canonically_isomorphic(M1, N)
+
+  iso, f = is_canonically_isomorphic_with_map(M1, N)
+  @test !iso
+  @test all(is_zero(f(v)) for v in gens(M1))
+end
