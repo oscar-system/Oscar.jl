@@ -288,15 +288,10 @@ function canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
   end
   @assert is_isomorphic(F, G)
   if is_graded(F) && is_graded(G)
-    b = get_multiset_bijection(F.d, G.d, true)
-    if length(b)==1
-      b1 = b[1]
-      return hom(F, G, [G[b1[i]] for i in 1:length(b1)])
-    else
-      error("there is no canonical isomorphism")
-    end
-    h = hom(F, G, [G[b[i]] for i in 1:length(b)])
-    return h
+    b = get_multiset_bijection(F.d, G.d)
+    # a degree occurring more than once leaves a choice, hence no canonical map
+    (b === nothing || !allunique(F.d)) && error("there is no canonical isomorphism")
+    return hom(F, G, [G[b[i]] for i in 1:length(b)])
   end
   if is_graded(F) != is_graded(G)
     error("there is no canonical isomorphism")

@@ -1369,3 +1369,29 @@ end
   @test !iso
   @test all(is_zero(f(v)) for v in gens(M1))
 end
+
+# isomorphisms of graded free modules are built from a bijection of the
+# generators which respects their degrees
+@testset "isomorphisms of graded free modules" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+
+  # pairwise distinct degrees leave only one bijection, hence a canonical choice
+  F = graded_free_module(S, [0, 1, 2])
+  H = graded_free_module(S, [2, 0, 1])
+  phi = canonical_isomorphism(F, H)
+  @test is_isomorphism(phi)
+  @test all(degree(phi(F[i])) == degree(F[i]) for i in 1:3)
+
+  # a repeated degree admits several bijections, so there is no canonical one
+  F = graded_free_module(S, [0, 0, 1])
+  H = graded_free_module(S, [0, 1, 0])
+  @test_throws ErrorException canonical_isomorphism(F, H)
+
+  # `isomorphism` settles for one of them
+  psi = isomorphism(F, H)
+  @test is_isomorphism(psi)
+  @test all(degree(psi(F[i])) == degree(F[i]) for i in 1:3)
+
+  # degree multisets which differ admit no bijection at all
+  @test Oscar.get_multiset_bijection([1, 2], [1, 3]) === nothing
+end
