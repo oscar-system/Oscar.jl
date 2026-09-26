@@ -270,6 +270,7 @@ mutable struct PushForwardCtx
   inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
   projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
   strands::Dict{Vector{Int}, Dict}
+  simplified_strands::IdDict{AbsHyperComplex, AbsHyperComplex}
   strand_inclusions::Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}
   strand_projections::Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}
   cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
@@ -277,6 +278,7 @@ mutable struct PushForwardCtx
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
   # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
+  fixed_exponent_vector::Vector{Int}
   S1::AbsHyperComplex
 
   function PushForwardCtx(S::MPolyRing)
@@ -294,6 +296,7 @@ mutable struct PushForwardCtx
                Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Vector{Int}, Dict}(),
+               IdDict{AbsHyperComplex, AbsHyperComplex}(),
                Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(),
                Dict{Tuple{Vector{Int}, Vector{Int}, FinGenAbGroupElem}, AbsHyperComplexMorphism}(), 
                Dict{FinGenAbGroupElem, AbsHyperComplex}(),
@@ -348,7 +351,8 @@ end
 
 function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
   get!(ctx.cohomology_models, d) do
-    simplify(ctx[_minimal_exponent_vector(ctx, d), d])
+    simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
+    #simplify(ctx[_minimal_exponent_vector(ctx, d), d])
   end
 end
 
@@ -369,6 +373,7 @@ end
 # return the minimal exponent vector `alpha` such that the whole 
 # cohomology in degree `d` is contained in the truncated ̌Cech-complex for `alpha`
 function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
+  isdefined(ctx, :fixed_exponent_vector) && return ctx.fixed_exponent_vector
   S = graded_ring(ctx)
   G = grading_group(S)
   @assert parent(d) === G
@@ -426,7 +431,7 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int}, d:
     end
   elseif all(a >= b for (a, b) in zip(alpha, beta))
     return get!(ctx.strand_projections, (alpha, beta, d)) do
-      SummandProjection(ctx[beta, alpha, d])
+      SummandProjection(ctx[beta, alpha, d]; check=false)
     end
   end
   error("neither sector is fully contained in the other")
@@ -440,6 +445,7 @@ mutable struct ToricCtx
   X::NormalToricVariety
   S::MPolyRing
   algorithm::Symbol
+  bound_strategy::Symbol
   truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
   inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
   projections::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
@@ -460,8 +466,8 @@ mutable struct ToricCtx
   fixed_exponent_vector::Vector{Int} # If this field is set, then it is used for all computations
   D::Dict # An auxiliary cache; see `_minimal_exponent_vector` for more info.
 
-  function ToricCtx(X::NormalToricVariety; algorithm::Symbol=:ext)
-    @req is_projective(X) && is_simplicial(X) "Currently only implemented for projective, simplicial toric varieties"
+  function ToricCtx(X::NormalToricVariety; algorithm::Symbol=:ext, bound_strategy::Symbol=:EisenbudMustataStillman)
+    @req is_projective(X) "Currently only implemented for projective toric varieties"
 
     # Check for some further potential inconsistencies
     # Generators of the irrelevant ideal + consistency check
@@ -470,7 +476,7 @@ mutable struct ToricCtx
 
     S = cox_ring(X)
     G = grading_group(S)
-    return new(X, S, algorithm,
+    return new(X, S, algorithm, bound_strategy,
                Dict{Vector{Int}, AbsHyperComplex}(),
                Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}(),
@@ -714,34 +720,43 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
   if ctx.algorithm == :cech
     error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
   end
-  # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
-  # but only part of the algorithm is executed and explicit lattice points are 
-  # calculated for each polyhedron.
   return get!(ctx.exp_vec_cache, m) do
+    # The method from Eisenbud, Mustata, Stillman (see below)
+    if ctx.bound_strategy == :EisenbudMustataStillman
+      X = toric_variety(ctx)
+      k = maximum([optimal_k(X, i, m) for i in 1:ngens(cox_ring(X))])
+      return Int[k for _ in 1:ngens(irrelevant_ideal(X))]
+    elseif ctx.bound_strategy == :ChamberCounting
+      # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
+      # but only part of the algorithm is executed and explicit lattice points are 
+      # calculated for each polyhedron.
 
-    # Identify all "true" rationoms, i.e. with denominator. If there are none, then we can already return
-    exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(toric_variety(ctx))
-    rationoms, _ = cohomology_support(toric_variety(ctx), Int[m[i] for i in 1:rank(parent(m))]; D=get_chamber_dict(ctx))
-    neg_rationoms = [r for r in rationoms if any(<(0), r)]
-    isempty(neg_rationoms) && return fill(1, length(exponent_vectors_irrelevant_ideal))
+      # Identify all "true" rationoms, i.e. with denominator. If there are none, then we can already return
+      exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(toric_variety(ctx))
+      rationoms, _ = cohomology_support(toric_variety(ctx), Int[m[i] for i in 1:rank(parent(m))]; D=get_chamber_dict(ctx))
+      neg_rationoms = [r for r in rationoms if any(<(0), r)]
+      isempty(neg_rationoms) && return fill(1, length(exponent_vectors_irrelevant_ideal))
 
-    # For each g: k_g = max over r of max_i ceildiv(-r[i], g[i]) with mask g[i]>0 && r[i]<0 (defaults to 1)
-    ks = [maximum(begin
-                        mask = (g .> 0) .& (r .< 0)
-                        any(mask) ? maximum(cld.(-r[mask], g[mask])) : 1
-                      end for r in neg_rationoms)
-              for g in exponent_vectors_irrelevant_ideal]
-    return ks
+      # For each g: k_g = max over r of max_i ceildiv(-r[i], g[i]) with mask g[i]>0 && r[i]<0 (defaults to 1)
+      ks = [maximum(begin
+                      mask = (g .> 0) .& (r .< 0)
+                      any(mask) ? maximum(cld.(-r[mask], g[mask])) : 1
+                    end for r in neg_rationoms)
+            for g in exponent_vectors_irrelevant_ideal]
+      return fill(maximum(ks), length(exponent_vectors_irrelevant_ideal))
+    elseif ctx.bound_strategy == :DummyFormula
+      # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
+      p, q = _proportionality_factors(ctx)
+      G = grading_group(graded_ring(ctx))
+      k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+      if !is_zero(rem)
+        k0 += 1
+      end
+      return Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
+    else
+      error("strategy for finding bounds not recognized")
+    end
   end
-  # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
-  # TODO: Remove this?
-  p, q = _proportionality_factors(ctx)
-  G = grading_group(graded_ring(ctx))
-  k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
-  if !is_zero(rem)
-    k0 += 1
-  end
-  return Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
 end
 
 function get_chamber_dict(ctx::ToricCtx)
@@ -820,7 +835,7 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGe
   elseif all(a >= b for (a, b) in zip(alpha, beta)) 
     if ctx.algorithm == :cech
       return get!(ctx.strand_projections, (alpha, beta, d)) do
-        SummandProjection(ctx[beta, alpha, d])
+        SummandProjection(ctx[beta, alpha, d]; check=false)
       end
     elseif ctx.algorithm == :ext
       return get!(ctx.strand_projections, (alpha, beta, d)) do
@@ -836,6 +851,85 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGe
   error("the given constellation of exponent vectors can not be handled with the chosen algorithm")
 end
 
+########################################################################
+# New attempt for the ToricCtx which samples from the fine grading
+########################################################################
+
+mutable struct NewToricCtx
+  fixed_exponent_vector::Union{Nothing, Int} # If this field is set, then it is used for all computations
+  X::NormalToricVariety
+  S::MPolyRing
+  all_monomial_cache::Dict{FinGenAbGroupElem, Vector{Vector{Int}}} # The exponent vectors of a given degree in `S`
+  all_monomial_inv_dicts::Dict{FinGenAbGroupElem, Dict{Vector{Int}, Int}} # The inverses of the above lists for faster mapping
+  truncated_cech_complexes::Dict{Int, AbsHyperComplex}
+  inclusions::Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}
+  projections::Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}
+  strands::Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}
+  simplified_strands::Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}
+  simplified_strand_homotopies::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
+  simplified_strand_inclusions::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
+  simplified_strand_projectionss::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
+  strand_inclusions::Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}
+  strand_projections::Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}
+  induced_cohomology_maps::Dict{Tuple{Int, Int, FinGenAbGroupElem, Int}, Map}
+  cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
+  cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}
+  cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}
+  # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
+  mult_map_cache::Dict{Tuple{Int, FinGenAbGroupElem, Int}, WeakKeyDict}
+  exp_vec_cache::Dict{FinGenAbGroupElem, Int} # Caching the _minimal_exponent_vector s
+  fine_strands::Dict{Int, AbsHyperComplex}
+  fine_strand_map_ranks::Dict{Tuple{Int, Int}, Int}
+  fine_strand_morphisms::Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}
+  simplified_fine_strands::Dict{Int, AbsHyperComplex}
+  support_sets::Dict{Int, Vector{Int}}
+  optimal_ks::Dict{Tuple{Int, FinGenAbGroupElem}, Int}
+  S1::AbsHyperComplex
+  cech_gens::Vector{<:MPolyRingElem}
+  fine_graded_ring::MPolyRing
+  sample_complex::AbsHyperComplex
+
+  function NewToricCtx(X::NormalToricVariety)
+    @req is_projective(X) "Currently only implemented for projective toric varieties"
+
+    # Check for some further potential inconsistencies
+    # Generators of the irrelevant ideal + consistency check
+    exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(X)
+    @req all(g -> any(!=(0), g) && all(>=(0), g), exponent_vectors_irrelevant_ideal) "Inconsistency encountered"
+
+    S = cox_ring(X)
+    G = grading_group(S)
+    return new(nothing, X, S, 
+               Dict{FinGenAbGroupElem, Vector{Vector{Int}}}(), 
+               Dict{FinGenAbGroupElem, Dict{Vector{Int}, Int}}(), 
+               Dict{Int, AbsHyperComplex}(),
+               Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}(),
+               Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}(),
+               Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}(),
+               Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}(),
+               Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}(),
+               Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}(), 
+               Dict{Tuple{Int, Int, FinGenAbGroupElem, Int}, Map}(), 
+               Dict{FinGenAbGroupElem, AbsHyperComplex}(),
+               Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}(),
+               Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}(),
+               # Dict{Tuple{Int, FinGenAbGroupElem, Int}, Dict}()
+               Dict{Tuple{Int, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
+               Dict{FinGenAbGroupElem, Int}(),
+               Dict{Int, AbsHyperComplex}(), 
+               Dict{Tuple{Int, Int}, Int}(),
+               Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}(),
+               Dict{Int, AbsHyperComplex}(),
+               Dict{Int, Vector{Int}}(),
+               Dict{Tuple{Int, FinGenAbGroupElem}, Int}()
+              )
+  end
+end
+
+# functionality implemented in `generic_direct_images.jl`
 
 ########################################################################
 # A context object for computing the spectral sequence associated 
@@ -860,7 +954,7 @@ end
 # transformation pattern. 
 ########################################################################
 mutable struct ToricCtxWithParams
-  pure_ctx::ToricCtx
+  pure_ctx::Union{ToricCtx, NewToricCtx}
   R::Ring
   truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
   inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
@@ -880,8 +974,10 @@ mutable struct ToricCtxWithParams
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
   transfer::Map
 
-  function ToricCtxWithParams(X::NormalToricVariety, transfer::Map; algorithm::Symbol=:ext)
-    pure_ctx = ToricCtx(X; algorithm)
+  function ToricCtxWithParams(pure_ctx::Union{ToricCtx, NewToricCtx}, 
+      transfer::Map
+    )
+    X = toric_variety(pure_ctx)
     @assert domain(transfer) === cox_ring(X)
     R = coefficient_ring(codomain(transfer))
     return new(pure_ctx, R, 
@@ -906,6 +1002,10 @@ mutable struct ToricCtxWithParams
   end
 end
 
+function ToricCtxWithParams(X::NormalToricVariety, transfer::Map; algorithm::Symbol=:ext, bound_strategy::Symbol=:EisenbudMustataStillman)
+  return ToricCtxWithParams(ToricCtx(X; algorithm, bound_strategy), transfer)
+end
+
 toric_variety(ctx::ToricCtxWithParams) = toric_variety(ctx.pure_ctx)
 graded_ring(ctx::ToricCtxWithParams) = codomain(ctx.transfer)
 
@@ -921,7 +1021,7 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, d::FinGenAbGroupE
     Dict{typeof(d), AbsHyperComplex}()
   end
   return get!(strands, d) do
-    res, tr = change_base_ring(ctx.R, ctx.pure_ctx[alpha, d])
+    res, tr = change_base_ring(coefficient_map(ctx.transfer), ctx.pure_ctx[alpha, d])
     res
   end
 end
@@ -931,7 +1031,7 @@ function simplified_strand(ctx::ToricCtxWithParams,
   )
   str = simplified_strand(ctx.pure_ctx, alpha, d)
   return get!(ctx.simplified_strands, str) do
-    change_base_ring(ctx.R, str)[1]
+    change_base_ring(coefficient_map(ctx.transfer), str)[1]
   end
 end
 
@@ -940,7 +1040,7 @@ function simplified_strand_homotopy(
   )
   h = simplified_strand_homotopy(ctx.pure_ctx, alpha, d, p)
   return get!(ctx.simplified_strands_homotopy, h) do
-    change_base_ring(ctx.R, h; 
+    change_base_ring(coefficient_map(ctx.transfer), h; 
                      domain=ctx[alpha, d][p], 
                      codomain=ctx[alpha, d][p+1]
                     )[1]
@@ -952,7 +1052,7 @@ function simplified_strand_inclusion(
   )
   inc = simplified_strand_inclusion(ctx.pure_ctx, alpha, d, p)
   res = get!(ctx.simplified_strands_to_orig, inc) do
-    change_base_ring(ctx.R, inc; 
+    change_base_ring(coefficient_map(ctx.transfer), inc; 
                      domain=simplified_strand(ctx, alpha, d)[p],
                      codomain=ctx[alpha, d][p]
                     )[1]
@@ -967,7 +1067,7 @@ function simplified_strand_projection(
   )
   h = simplified_strand_projection(ctx.pure_ctx, alpha, d, p)
   return get!(ctx.simplified_strands_from_orig, h) do
-    change_base_ring(ctx.R, h;
+    change_base_ring(coefficient_map(ctx.transfer), h;
                      domain=ctx[alpha, d][p],
                      codomain=simplified_strand(ctx, alpha, d)[p]
                     )[1]
@@ -980,7 +1080,7 @@ function induced_cohomology_map(
     i::Int
   )
   return get!(ctx.induced_cohomology_maps, (e0, e1, d, i)) do 
-    change_base_ring(ctx.R, 
+    change_base_ring(coefficient_map(ctx.transfer), 
                      induced_cohomology_map(ctx.pure_ctx, e0, e1, d, i);
                      domain=simplified_strand(ctx, e0, d)[i],
                      codomain=simplified_strand(ctx, e1, d)[i]
@@ -998,7 +1098,7 @@ function cohomology_model_inclusion(ctx::ToricCtxWithParams, d::FinGenAbGroupEle
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
   to_orig = map_to_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
-  res, _, _ = change_base_ring(ctx.R, to_orig; domain=h[i], codomain=c[i])
+  res, _, _ = change_base_ring(coefficient_map(ctx.transfer), to_orig; domain=h[i], codomain=c[i])
   return res
 end
 
@@ -1006,7 +1106,7 @@ function cohomology_model_projection(ctx::ToricCtxWithParams, d::FinGenAbGroupEl
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
   from_orig = map_from_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
-  res, _, _ = change_base_ring(ctx.R, from_orig; domain=c[i], codomain=h[i])
+  res, _, _ = change_base_ring(coefficient_map(ctx.transfer), from_orig; domain=c[i], codomain=h[i])
   return res
 end
 
@@ -1021,14 +1121,14 @@ end
 function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
   if all(a <= b for (a, b) in zip(alpha, beta))
     return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
-      res, _, _ = change_base_ring(ctx.R, ctx.pure_ctx[alpha, beta, d]; domain=ctx[alpha, d], codomain=ctx[beta, d])
+      res, _, _ = change_base_ring(coefficient_map(ctx.transfer), ctx.pure_ctx[alpha, beta, d]; domain=ctx[alpha, d], codomain=ctx[beta, d])
       res
     end
   elseif all(a >= b for (a, b) in zip(alpha, beta)) 
     # TODO: Make the stuff below work with base change, too.
     if ctx.pure_ctx.algorithm == :cech
       return get!(ctx.strand_projections, (alpha, beta, d)) do
-        SummandProjection(ctx[beta, alpha, d])
+        SummandProjection(ctx[beta, alpha, d]; check=false)
       end
     elseif ctx.pure_ctx.algorithm == :ext
       return get!(ctx.strand_projections, (alpha, beta, d)) do
@@ -1056,11 +1156,377 @@ function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing};
 end
 
 function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
+  if ctx.pure_ctx isa NewToricCtx
+    e = _minimal_exponent_vector(ctx.pure_ctx, m)
+    return Int[e for _ in 1:ngens(graded_ring(ctx.pure_ctx))]
+  end
   return _minimal_exponent_vector(ctx.pure_ctx, m)
 end
 
 # outer constructor
 @attr ToricCtx function local_cohomology_context_object(X::NormalToricVariety; algorithm::Symbol=:ext)
   return ToricCtx(X; algorithm)
+end
+
+function simplified_strand(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
+  str = ctx[alpha, d]
+  return get!(ctx.simplified_strands, str) do
+    simplify(str; with_homotopy_maps=true)
+  end
+end
+
+function simplified_strand_homotopy(
+    ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem, p::Int
+  )
+  return homotopy_map(simplified_strand(ctx, alpha, d), p)
+end
+
+function simplified_strand_inclusion(
+    ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem, p::Int
+  )
+  return map_to_original_complex(simplified_strand(ctx, alpha, d))[p]
+end
+
+function simplified_strand_projection(
+    ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem, p::Int
+  )
+  return map_from_original_complex(simplified_strand(ctx, alpha, d))[p]
+end
+
+function induced_cohomology_map(
+    ctx::PushForwardCtx, e0::Vector{Int},
+    e1::Vector{Int}, d::FinGenAbGroupElem,
+    i::Int
+  )
+  #return get!(ctx.induced_cohomology_maps, (e0, e1, d, i)) do 
+  dom_str = simplified_strand(ctx, e0, d)
+  cod_str = simplified_strand(ctx, e1, d)
+  dom = dom_str[i]
+  cod = cod_str[i]
+  if all(a <= b for (a, b) in zip(e0, e1))
+    m1 = map_to_original_complex(dom_str)[i]
+    m2 = ctx[e0, e1, d][i]
+    m3 = map_from_original_complex(cod_str)[i]
+    return MapFromFunc(dom, cod, x->m3(m2(m1(x))))
+  elseif all(a >= b for (a, b) in zip(e0, e1))
+    #return get!(ctx.induced_cohomology_maps, (e0, e1, d, i)) do 
+      #other = induced_cohomology_map(ctx, e1, e0, d, i)
+      #@show "yes"
+      #return inv(hom(cod, dom, elem_type(dom)[other(x) for x in gens(cod)]))
+    #end
+    dom_str_inc = map_to_original_complex(dom_str)[i]
+    cod_str_pr = map_from_original_complex(cod_str)[i]
+    lim_map_inv = (ctx[e0, e1, d]::SummandProjection)[i]
+    return MapFromFunc(dom, cod, x -> cod_str_pr(lim_map_inv(dom_str_inc(x))))
+  else
+    error("not implemented")
+  end
+  #end
+end
+
+function set_global_exponent_vector!(ctx::PushForwardCtx, v::Vector{Int})
+  ctx.fixed_exponent_vector = v
+end
+
+# New implementation for the "optimal k" along the description in 
+#   Eisenbud, Mustata, Stillman: 
+#   Cohomology on Toric Varieties and Local Cohomology with Monomial Supports, 
+#   arXiv:0001159.
+# This does not require the toric variety to be simplicial or the sheaves to 
+# be line bundles. 
+
+function alexander_dual(I::MPolyIdeal)
+  S = base_ring(I)
+  J = ideal(S, [x^2 for x in gens(S)])
+  return quotient(J, I)
+end
+
+@attr Dict{Int, Vector{Vector{Int}}} function support_sets_ext(X::NormalToricVariety)
+  S = cox_ring(X)
+  n = ngens(S)
+  B = irrelevant_ideal(X)
+  Sigma = Dict{Int, Vector{Vector{Int}}}() #[Vector{Int}[] for _ in 1:n] # the result
+  S_raw = forget_grading(S)
+  D = free_abelian_group(n)
+  S_fine, _ = grade(S_raw, gens(D))
+  B_fine = ideal(S_fine, [S_fine(forget_grading(g)) for g in gens(B)])
+  J = ideal(S_fine, elem_type(S_fine)[S_fine(forget_grading(x)) for x in gens(B)])
+  A, _ = quo(S_fine, J)
+  S_fine1 = graded_free_module(S_fine, [zero(D)])
+  res_A, _ = free_resolution(Oscar.SimpleFreeResolution, A)
+  hom_complex = hom(res_A, Oscar.ZeroDimensionalComplex(S_fine1))
+  for i in 0:n
+      #@show i
+    list = get!(Sigma, i) do
+      Vector{Int}[]
+    end
+    Hi, _ = homology(hom_complex, -i)
+    for (rr, g) in enumerate(gens(Hi))
+      #@show rr, ngens(Hi)
+      #@show is_zero(g)
+      pg = degree(g)
+      any(pg[j] > 0 for j in 1:rank(D)) && continue # can not give one of the required mons
+      J = Int[j for j in 1:n if pg[j] < 0]
+      mon0 = prod(S_fine[j]^(-pg[j]-1) for j in J; init=one(S_fine))
+      #@show is_zero(mon0)
+      q = degree(mon0*g)
+      #@show is_zero(q)
+      is_zero(q) && continue
+      @assert all(-1 <= q[j] <=0 for j in 1:n)
+      old_zero_combs = Vector{Int}[]
+      new_zero_combs = Vector{Int}[]
+      for q in 0:length(J)
+          #@show q, length(J), binomial(length(J), q)
+        for c in combinations(length(J), q)
+          zero_found = false
+          for k in 1:length(data(c))
+            cc = copy(data(c))
+            popat!(cc, k)
+            if cc in old_zero_combs
+              push!(new_zero_combs, data(c))
+              zero_found = true
+              break
+            end
+          end
+          zero_found && continue
+
+          v = mon0*prod(S_fine[j] for j in J[data(c)]; init=one(S_fine))*g
+          I = Int[j for j in 1:n if !is_zero(degree(v)[j])]
+          I in list && continue
+          if is_zero(v)
+            push!(new_zero_combs, data(c))
+            continue
+          end
+          push!(list, I)
+        end
+        old_zero_combs = new_zero_combs
+        #@show length(old_zero_combs)
+        new_zero_combs = Vector{Int}[]
+      end
+    end
+  end
+  return Sigma
+end
+
+@attr Dict{Int, Vector{Vector{Int}}} function support_sets(X::NormalToricVariety)
+  S = cox_ring(X)
+  n = ngens(S)
+  B = irrelevant_ideal(X)
+  Sigma = Dict{Int, Vector{Vector{Int}}}() #[Vector{Int}[] for _ in 1:n] # the result
+  S_raw = forget_grading(S)
+  D = free_abelian_group(n)
+  S_fine, _ = grade(S_raw, gens(D))
+  B_fine = ideal(S_fine, [S_fine(forget_grading(g)) for g in gens(B)])
+  J = alexander_dual(B_fine)
+  A, _ = quo(S_fine, J)
+  S_fine1 = graded_free_module(S_fine, [zero(D)])
+  kk, _ = quo(S_fine1, sub_object(S_fine1, [x*S_fine1[1] for x in gens(B_fine)]))
+  res_A, _ = free_resolution(Oscar.SimpleFreeResolution, A)
+  tor_complex = tensor_product(res_A, Oscar.ZeroDimensionalComplex(kk))
+  for j in 0:n
+    Hj, _ = homology(tor_complex, j)
+    #@show j
+    vec_base = Oscar._vector_space_basis(Hj)
+    #@show length(vec_base)
+    for mon in vec_base
+      p = degree(mon)
+      all(p[i] >= 0 for i in 1:rank(D)) || continue
+      all(p[i] <= 1 for i in 1:rank(D)) || continue
+      I = Int[i for i in 1:n if !is_zero(p[i])]
+      abs_p = length(I)
+      list = get!(Sigma, abs_p - j + 1) do
+        Vector{Int}[]
+      end
+      if !(I in list)
+        #@show mon
+        #@show p
+        #@show I
+        push!(list, I)
+      end
+    end
+  end
+  return Sigma
+end
+
+#=
+# This is already in Oscar in this branch
+function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
+  S = base_ring(M)
+  F = ambient_free_module(M)
+  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
+    pres = presentation(M)
+    MM = cokernel(map(pres, 1))
+    B = _vector_space_basis(MM)
+    aug = map(pres, 0)
+    return elem_type(pres[0])[repres(aug(pres[0](coordinates(v)))) for v in B]
+  end
+  # We may assume that M is presented
+  I = M.quo
+  lead_I = Oscar.leading_module(I)
+  result = elem_type(F)[]
+  for i in 1:ngens(F)
+    d = 0
+    done = false
+    while !done
+      found = false
+      for m in Oscar.AllMonomials(is_graded(S) ? forget_grading(S) : S, d)
+        mi = m*F[i] 
+        mi in lead_I && continue
+        push!(result, mi)
+        found = true
+      end
+      done = !found
+      d = d + 1
+    end
+  end
+  return result
+end
+=#
+
+function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
+  k = 1
+  S = cox_ring(X)
+  G = grading_group(S)
+  n = ngens(S)
+  @assert 0 < i <= n "index out of bounds"
+  @assert parent(alpha) === G "degree does not belong to the grading group"
+  Sigma = support_sets_ext(X)
+  alpha_vec = elem_type(ZZ)[alpha[i] for i in 1:rank(G)]
+  phi = map_from_torusinvariant_weil_divisor_group_to_class_group(X)
+  A = transpose(matrix(phi))
+  Sigma_i = get!(Sigma, i) do 
+    return Vector{Vector{Int}}()
+  end
+  for I in Sigma_i
+    #@show I
+    m = length(I)
+    L_I = zero_matrix(ZZ, n, n)
+    for j in 1:n
+      L_I[j, j] = j in I ? 1 : -1
+    end
+    D = vcat(L_I, A, -A)
+    #b = vcat(elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n], alpha_vec, -alpha_vec)
+    b = elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n]
+    #@show L_I
+    #@show b
+    #@show A
+    #@show alpha_vec
+    #P = polyhedron(QQ, D, b)
+    @assert nrows(A) == length(alpha_vec)
+    @assert ncols(L_I) == ncols(A)
+    #return L_I, b, A, alpha_vec
+    P = polyhedron((L_I, b), (A, alpha_vec))
+    #@show is_bounded(P)
+    #!is_bounded(P) && error("polyhedron not bounded")
+    #@show lattice_points(P)
+    for j in I
+      l = elem_type(ZZ)[i == j ? 1 : 0 for i in 1:n]
+      #lp = linear_program(P, l)
+      #v1, _ = solve_lp(lp)
+      lp = linear_program(P, -l)
+      v, _ = solve_lp(lp)
+      isnothing(v) && break # empty polyhedron
+      is_infinite(v) && error("polyhedron not bounded")
+      #@show j, v
+      if v > k
+        k = Int(floor(v))
+      end
+    end
+  end
+  return k::Int
+end
+
+function capture_support_sets(
+    AA::Vector{Matrix{Int}}; 
+    partition::Vector{Int}=[ncols(first(AA))]
+  )
+  rngs = UnitRange[]
+  k0 = 1
+  for i in partition
+    push!(rngs, k0:i)
+    k0 = i + 1
+  end
+  d = [[maximum(sum(A[i, rng]; init=0) for i in 1:nrows(A)) for rng in rngs] for A in AA]
+  X = prod(projective_space(NormalToricVariety, length(rng)) for rng in rngs)
+  S = cox_ring(X)
+  G = grading_group(S)
+  dg = elem_type(G)[G(d) for d in d]
+  exps = Vector{Vector{Int}}[collect(all_exponents(S, d)) for d in dg]
+  symbs = Vector{Symbol}[]
+  for (i, e) in enumerate(exps)
+    push!(symbs, [Symbol("a_{$i, $e}") for e in e])
+  end
+  R, a = polynomial_ring(QQ, reduce(vcat, symbs))
+  a_parts = Vector{elem_type(R)}[]
+  k0 = 1
+  for s in symbs
+    push!(a_parts, a[k0:k0+length(s)-1])
+    k0 += length(s)
+  end
+  SR, S_to_SR = change_base_ring(R, S)
+  subs_inds = Vector{Tuple{Int, Vector{Int}}}[]
+  for (A, es, d) in zip(AA, exps, d)
+    inner_res = Tuple{Int, Vector{Int}}[]
+    for i in 1:nrows(A)
+      ee = A[i, :] # affine exponent vector
+      e = Int[]
+      for (j, rng) in enumerate(rngs)
+        e = vcat(e, ee[rng])
+        push!(e, d[j] - sum(ee[rng]; init=0))
+      end
+      ind = findfirst(==(e), es)
+      isnothing(ind) && error("exponent vector not found")
+      push!(inner_res, (ind, e))
+    end
+    push!(subs_inds, inner_res)
+  end
+
+  b_symbs = Vector{Symbol}[]
+  for (i, A) in enumerate(AA)
+    push!(b_symbs, [Symbol("b_{$i, $(A[j, :])}") for j in 1:nrows(A)])
+  end
+  B, b = polynomial_ring(QQ, reduce(vcat, b_symbs))
+  b_parts = Vector{elem_type(B)}[]
+  k0 = 1
+  for s in b_symbs
+    push!(b_parts, b[k0:k0+length(s)-1])
+    k0 += length(s)
+  end
+  b_parts
+  img_gens = elem_type(B)[]
+  for (i, a_part) in enumerate(a_parts) 
+    b_part = b_parts[i]
+    A = AA[i]
+    es = exps[i]
+    for (j, a) in enumerate(a_part)
+      e = es[j] # homogenized exponent vector 
+      e0 = Int[] # the dehomogenized exponent vector
+      offset = 0
+      for rng in rngs
+        e0 = vcat(e0, e[first(rng)+offset:last(rng)+offset])
+        offset += 1
+      end
+      ind = findfirst(k->(A[k, :] == e0), 1:nrows(A))
+      if isnothing(ind)
+        push!(img_gens, zero(B))
+      else
+        push!(img_gens, b_part[ind])
+      end
+    end
+  end
+  subs_map = hom(R, B, img_gens)
+  SB, SR_to_SB = change_base_ring(subs_map, SR)
+
+  # build the tautological polynomials
+  F = elem_type(SR)[]
+  for (i, a_part) in enumerate(a_parts)
+    es = exps[i]
+    ctx = MPolyBuildCtx(SR)
+    for (a, e) in zip(a_part, es)
+      push_term!(ctx, a, e)
+    end
+    push!(F, finish(ctx))
+  end
+  return X, F, S_to_SR, SR_to_SB
 end
 

@@ -781,7 +781,7 @@ function vector_space_basis(M::SubquoModule{<:FieldElem}; cached::Bool=true, che
   end
   return result
 end
-
+ 
 function vector_space_basis(kk::Field, M::SubquoModule{<:FieldElem}; check::Bool=true)
   kk === base_ring(M) || error("not implemented for other fields than the `base_ring` of the module")
   # TODO: look up the existing implementations of rank and put the relevant things here.
@@ -1016,7 +1016,6 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
   return B
 end
 
-
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
   error("not implemented")
 end
@@ -1024,7 +1023,6 @@ end
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check::Bool=true)
   error("not implemented")
 end
-
 
 @doc raw"""
     _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
