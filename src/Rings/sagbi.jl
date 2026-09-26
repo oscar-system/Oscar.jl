@@ -4,17 +4,18 @@ mutable struct SAGBICandidate
     ring::MPolyRing
     elements::Vector{<:MPolyRingElem}
     leading_monomials::Dict{MPolyRingElem, Vector{<:MPolyRingElem}}
+    ordering::MonomialOrdering
     least_terms_cache::Vector{<:MPolyRingElem}
     sagbi_degree::Integer
 end
 
 function _initialize_sagbi_candidate(
-    B::Vector{<:MPolyRingElem};
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    generators::Vector{<:MPolyRingElem};
+    ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    ring = B[1].parent
+    ring = generators[1].parent
     @req all(
-        x -> parent(x) === ring, B
+        x -> parent(x) === ring, generators
     ) "All polynomials must belong to the same ring"
     @req(
         coefficient_ring(ring) isa AbstractAlgebra.Field,
@@ -23,7 +24,7 @@ function _initialize_sagbi_candidate(
 
     leading_monomials = Dict{MPolyRingElem, Vector{<:MPolyRingElem}}()
 
-    for b in B
+    for b in generators
         lm = leading_monomial(b; ordering)
         push!(get!(leading_monomials, lm, MPolyRingElem[]), b)
     end
@@ -38,7 +39,7 @@ function _initialize_sagbi_candidate(
     ]
 
     return SAGBICandidate(
-        ring, B, leading_monomials, least_terms_cache, 0
+        ring, generators, leading_monomials, ordering, least_terms_cache, 0
     )
 end
 
@@ -94,10 +95,7 @@ For a monomial $m$ and generators `B.elements={g_i}` find the exponent
 vector $v$ such that $m = LM(g_i)^{v_i}$.
 Return `nothing` if no such representation exists.
 """
-function monoid_representation(
-    m::MPolyRingElem,
-    B::SAGBICandidate,
-)
+function monoid_representation(m::MPolyRingElem, B::SAGBICandidate)
     generators = collect(keys(B.leading_monomials))
     return monoid_representation(m, generators)
 end
@@ -107,13 +105,13 @@ Columns of the returned `ZZMatrix` are the exponent vectors of the leading
 monomials of `B`.
 """
 function _exponent_matrix(
-    B::Vector{<:MPolyRingElem};
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    generators::Vector{<:MPolyRingElem};
+    ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    isempty(B) && return zero_matrix(ZZ, 0, 0)
-    n = ngens(parent(B[1]))
-    A = zero_matrix(ZZ, n, length(B))
-    for (j, b) in enumerate(B)
+    isempty(generators) && return zero_matrix(ZZ, 0, 0)
+    n = ngens(parent(generators[1]))
+    A = zero_matrix(ZZ, n, length(generators))
+    for (j, b) in enumerate(generators)
         v = exponent_vector(leading_monomial(b; ordering), 1)
         for i in 1:n
             A[i, j] = v[i]
@@ -125,20 +123,25 @@ end
 _exponent_matrix(B::SAGBICandidate) = _exponent_matrix(B.elements)
 
 """
-    _toric_ideal_of_leading_monomials(B::Vector{<:MPolyRingElem}) -> ideal
+    _toric_ideal_of_leading_monomials(
+        generators::Vector{<:MPolyRingElem}
+    ) -> ideal
 
 The toric ideal `ker(ZZ[y₁,…,yₙ] → ZZ[x₁,…,xₘ])` of the monomial map
 `yᵢ ↦ leading_monomial(bᵢ)`.
 """
 function _toric_ideal_of_leading_monomials(
-    B::Vector{<:MPolyRingElem};
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    generators::Vector{<:MPolyRingElem};
+    ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    isempty(B) && throw(ArgumentError("B must be non-empty"))
-    R = parent(B[1])
-    @req all(x -> parent(x) === R, B) "All polynomials must belong to the same ring"
-    lms = [leading_monomial(b; ordering) for b in B]
-    S, _ = polynomial_ring(base_ring(R), length(B))
+    isempty(generators) && throw(ArgumentError("B must be non-empty"))
+
+    R = parent(generators[1])
+    @req(all(x -> parent(x) === R, generators),
+    "All polynomials must belong to the same ring")
+
+    lms = [leading_monomial(b; ordering) for b in generators]
+    S, _ = polynomial_ring(base_ring(R), length(generators))
     return kernel(hom(S, R, lms))
 end
 
@@ -146,8 +149,41 @@ _toric_ideal_of_leading_monomials(B::SAGBICandidate) =
     _toric_ideal_of_leading_monomials(B.elements)
 
 @doc raw"""
+    _toric_ideal_lattice(B::SAGBICandidate)
+
+Compute a set of lattice generators for `ker(ZZ[y₁,…,yₙ] → ZZ[x₁,…,xₘ])` of
+the monomial map `yᵢ ↦ leading_monomial(bᵢ)`.
+"""
+function _toric_ideal_lattice(B::SAGBICandidate)
+    if isempty(B.elements)
+        return zero_matrix(ZZ, 0, 0)
+    end
+
+    A = ZZMatrix(hcat([
+            exponent_vector(leading_monomial(b; ordering=B.ordering), 1) 
+            for b in B.elements]...
+        ))
+
+    H, U = hnf_with_transform(transpose(A))
+
+    kernel_basis = Vector{Vector{Int}}()
+    for i in 1:nrows(H)
+        if is_zero_row(H, i)
+            push!(kernel_basis, Vector{Int}(U[i, :]))
+        end
+    end
+
+    if isempty(kernel_basis)
+        return zero_matrix(ZZ, 0, length(B.elements))
+    end
+    
+    return matrix(ZZ, kernel_basis)
+end
+    
+
+@doc raw"""
     tete_a_tetes(
-        B::Vector{<:MPolyRingElem};
+        generators::Vector{<:MPolyRingElem};
         ordering::MonomialOrdering = default_ordering(parent(B[1]))
     ) -> Vector{NamedTuple}
 
@@ -157,75 +193,84 @@ $\prod_{i=1}^{|B|}(b_i^\alpha_i) - prod_{i=1}^{|B|}(b_i^\beta_i)$,
 and `a`/`b` are the exponent vectors $\alpha$/$\beta$ of length `length(B)`.
 """
 function tete_a_tetes(
-    B::Vector{<:MPolyRingElem};
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    generators::Vector{<:MPolyRingElem};
+    ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    isempty(B) && return NamedTuple{
-        (:polynomial, :a, :b),
-        Tuple{MPolyRingElem,
-        Vector{Int},
-        Vector{Int}}
+    isempty(generators) && return NamedTuple{
+        (:polynomial, :a, :b), Tuple{MPolyRingElem, Vector{Int}, Vector{Int}}
     }[]
-    I = _toric_ideal_of_leading_monomials(B; ordering)
-    R = parent(B[1])
-    @req all(x -> parent(x) === R, B) "All polynomials must belong to the same ring"
+
+    R = parent(generators[1])
+    @req(all(x -> parent(x) === R, generators),
+    "All polynomials must belong to the same ring")
+    
+    B = _initialize_sagbi_candidate(generators; ordering)
+    L = _toric_ideal_lattice(B)
+    
+    if nrows(L) == 0
+        return NamedTuple{
+            (:polynomial, :a, :b),
+            Tuple{MPolyRingElem, Vector{Int}, Vector{Int}}
+        }[]
+    end
+    
+    # Each row r of the Markov basis matrix indexes a binomial generator
+    # (Π_i f_i^{a_i} - Π_i f_i^{b_i})
+    # where a_i = max(0, r_i) and b_i = max(0, -r_i)
+    M = Oscar.markov4ti2(L)
 
     tetes = NamedTuple{
-        (:polynomial, :a, :b),
-        Tuple{MPolyRingElem, Vector{Int},
-        Vector{Int}}
+        (:polynomial, :a, :b), Tuple{MPolyRingElem, Vector{Int}, Vector{Int}}
     }[]
-    for g in elements(groebner_basis(I))
-        T = zero(R)
-        exponents = Vector{Int}[]
-        for (c, term) in zip(coefficients(g), terms(g))
-            ev = Vector{Int}(exponent_vector(term, 1))
-            push!(exponents, ev)
-            u = one(R)
-            for (j, e) in enumerate(ev)
-                e > 0 && (u *= B[j]^e)
+    for i in 1:nrows(M)
+        v = Vector{Int}(M[i, :])
+        
+        # Split into positive and negative parts
+        a = [max(0, x) for x in v]
+        b = [max(0, -x) for x in v]
+        
+        # Construct the tête-à-tête polynomial
+        # ∏ B.elements[j]^a[j] - ∏ B.elements[j]^b[j]
+        term1 = one(R)
+        term2 = one(R)
+        for (j, (aj, bj)) in enumerate(zip(a, b))
+            if aj > 0
+                term1 *= B.elements[j]^aj
             end
-            T += c * u
+            if bj > 0
+                term2 *= B.elements[j]^bj
+            end
         end
-        a = length(exponents) >= 1 ? exponents[1] : Int[]
-        b = length(exponents) >= 2 ? exponents[2] : Int[]
-        push!(tetes, (polynomial=T, a=a, b=b))
+        
+        push!(tetes, (polynomial=term1 - term2, a=a, b=b))
     end
+    
     return tetes
 end
 
 @doc raw"""
-    tete_a_tetes(
-        B::SAGBICandidate;
-        ordering::MonomialOrdering = default_ordering(parent(B[1]))
-    ) -> Vector{NamedTuple}
+    tete_a_tetes(B::SAGBICandidate) -> Vector{NamedTuple}
 
 Returns a vector of named tuples `(polynomial, a, b)` where `polynomial`
 is the tête-à-tête 
 $\prod_{i=1}^{|B|}(b_i^\alpha_i) - prod_{i=1}^{|B|}(b_i^\beta_i)$,
 and `a`/`b` are the exponent vectors $\alpha$/$\beta$ of length `length(B)`.
 """
-tete_a_tetes(
-    B::SAGBICandidate;
-    ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
-) = tete_a_tetes(B.elements; ordering)
+tete_a_tetes(B::SAGBICandidate) = tete_a_tetes(B.elements; ordering=B.ordering)
 
 @doc raw"""
     subduct(f::MPolyRingElem, B::SAGBICandidate) -> MPolyRingElem
 
 Compute the remainder of `f` after subduction by `B.elements`.
 """
-function subduct(
-    f::MPolyRingElem,
-    B::SAGBICandidate;
-    ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
-)
+function subduct(f::MPolyRingElem, B::SAGBICandidate)
     lms = collect(keys(B.leading_monomials))
-    @req parent(f) === B.ring "The polynomial to subduct must be in the same ring as the basis."
+    @req(parent(f) === B.ring,
+    "The polynomial to subduct must be in the same ring as the basis.")
 
     least_terms = B.least_terms_cache
     while !iszero(f)
-        rep = monoid_representation(leading_monomial(f; ordering), lms)
+        rep = monoid_representation(leading_monomial(f; ordering=B.ordering), lms)
         # Leading monomial not in the monoid generated by LM(B): stuck.
         rep === nothing && break
         h = one(B.ring)
@@ -240,7 +285,9 @@ end
 
 
 @doc raw"""
-    subduct(f::MPolyRingElem, B::Vector{<:MPolyRingElem}) -> MPolyRingElem
+    subduct(
+        f::MPolyRingElem, generators::Vector{<:MPolyRingElem}
+    )-> MPolyRingElem
 
 Compute the remainder of `f` after subduction by `B`.
 
@@ -257,38 +304,36 @@ julia> subduct(f, B);
 ```
 """
 function subduct(
-    f::MPolyRingElem, B::Vector{<:MPolyRingElem};
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    f::MPolyRingElem, generators::Vector{<:MPolyRingElem};
+    ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    if isempty(B)
+    if isempty(generators)
         return f
     end
-    @req all(x -> parent(x) === parent(B[1]), B) "All polynomials must belong to the same ring"
-    return subduct(f, _initialize_sagbi_candidate(B; ordering); ordering)
+    @req(all(x -> parent(x) === parent(generators[1]), generators),
+    "All polynomials must belong to the same ring")
+
+    return subduct(f, _initialize_sagbi_candidate(generators; ordering))
 end
 
 @doc raw"""
-    is_sagbi(
-        B::SAGBICandidate;
-        ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
-    ) -> Bool
+    is_sagbi(B::SAGBICandidate) -> Bool
 
 Check if `B.elements` satisfies the SAGBI criterion with respect to
-the monomial ordering `ordering`.
+the monomial ordering `B.ordering`.
 """
 function is_sagbi(
-    B::SAGBICandidate;
-    ordering::MonomialOrdering = default_ordering(parent(B.elements[1]))
+    B::SAGBICandidate
 )
-    for t in tete_a_tetes(B; ordering)
-        iszero(subduct(t.polynomial, B; ordering)) || return false
+    for t in tete_a_tetes(B)
+        iszero(subduct(t.polynomial, B)) || return false
     end
     return true
 end
 
 """
     is_sagbi(
-        B::Vector{<:MPolyRingElem};
+        generators::Vector{<:MPolyRingElem};
         ordering::MonomialOrdering = default_ordering(parent(B[1]))
     ) -> Bool
 
@@ -320,14 +365,15 @@ true
 ```
 """
 function is_sagbi(
-    B::Vector{<:MPolyRingElem};
-    ordering::MonomialOrdering = default_ordering(parent(B[1]))
+    generators::Vector{<:MPolyRingElem};
+    ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    if isempty(B)
+    if isempty(generators)
         return true
     end
-    @req all(x -> parent(x) === parent(B[1]), B) "All polynomials must belong to the same ring"
-    return is_sagbi(_initialize_sagbi_candidate(B; ordering); ordering)
+    @req(all(x -> parent(x) === parent(generators[1]), generators),
+    "All polynomials must belong to the same ring")
+    return is_sagbi(_initialize_sagbi_candidate(generators; ordering))
 end
 
 function _monic_if_nonzero(f::MPolyRingElem)
@@ -339,17 +385,12 @@ function _monic_if_nonzero(f::MPolyRingElem)
 end
 
 function _compute_all_subductions(
-    F::Vector{<:MPolyRingElem};
-    ordering=default_ordering(parent(F[1]))
+    B::SAGBICandidate
 )
-    R = parent(F[1])
-    
-    binom_kernel = _toric_ideal_of_leading_monomials(F; ordering)
-    S = base_ring(binom_kernel)
-    phi = hom(S, R, F)
-        
+    tetes = tete_a_tetes(B)
+
     r = [
-        subduct(phi(beta), F; ordering) for beta in gens(binom_kernel)
+        subduct(t.polynomial, B) for t in tetes
     ]
     r = _monic_if_nonzero.(r)
 
@@ -393,13 +434,15 @@ function sagbi(
     @req all(
         x -> parent(x) === parent(generating_set[1]), generating_set
     ) "All polynomials must belong to the same ring"
-
+    
     F = generating_set
     
     min_total_deg = 0
     sagbi_degree = 0
     while true
-        additional_terms = _compute_all_subductions(F; ordering)
+        additional_terms = _compute_all_subductions(
+            _initialize_sagbi_candidate(F; ordering)
+        )
         
         if isempty(additional_terms)
             # F is a SAGBI basis
@@ -424,10 +467,7 @@ function sagbi(
 end
 
 @doc raw"""
-    compute_sagbi_degree!(
-        B::SAGBICandidate;
-        ordering=default_ordering(parent(B.elements[1]))
-    ) -> SAGBICandidate
+    compute_sagbi_degree!(B::SAGBICandidate) -> SAGBICandidate
 
 Computes the minimum $d$ for which all leading monomials of total degree
 < $d$ are in the subalgebra generated by the leading terms of $B$, and 
@@ -435,16 +475,11 @@ updates `B.sagbi_degree` to equal $d$.
 
 If `B` is a SAGBI basis, then `B.sagbi_degree` will be set to -1.
 """
-function compute_sagbi_degree!(
-    B::SAGBICandidate;
-    ordering=default_ordering(parent(B.elements[1]))
-)
-    F = B.elements
-    
-    additional_terms = _compute_all_subductions(F; ordering)
+function compute_sagbi_degree!(B::SAGBICandidate)
+    additional_terms = _compute_all_subductions(B)
     
     if isempty(additional_terms)
-        # F is a SAGBI basis
+        # B is a SAGBI basis
         sagbi_degree = -1
     else
         min_total_deg = minimum(
@@ -459,7 +494,7 @@ end
 
 @doc raw"""
     compute_sagbi_degree(
-        B::Vector{<:MPolyRingElem};
+        generators::Vector{<:MPolyRingElem};
         ordering=default_ordering(parent(B[1]))
     ) -> Integer
 
@@ -478,9 +513,9 @@ julia> compute_sagbi_degree(B)
     ```
 """
 function compute_sagbi_degree(
-    B::Vector{<:MPolyRingElem};
-    ordering=default_ordering(parent(B[1]))
+    generators::Vector{<:MPolyRingElem};
+    ordering=default_ordering(parent(generators[1]))
 )
-    sagbi_candidate = _initialize_sagbi_candidate(B; ordering)
+    sagbi_candidate = _initialize_sagbi_candidate(generators; ordering)
     return compute_sagbi_degree!(sagbi_candidate).sagbi_degree
 end
