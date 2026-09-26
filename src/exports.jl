@@ -72,9 +72,9 @@ export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
 export EnriquesBorcherdsCtx
-export FiniteRationalPointSet
 export FPGroup
 export FPGroupElem
+export FiniteRationalPointSet
 export FreeMod
 export FreeModElem
 export FreeModElem_dec
@@ -136,14 +136,14 @@ export MatGroupElem
 export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
-export OFPModule
-export OFPModuleElem
-export OFPModuleHom
 export ModuleOrdering
 export MonomialOrdering
 export Multipartition
 export Nemo
 export NormalToricVariety
+export OFPModule
+export OFPModuleElem
+export OFPModuleHom
 export OO
 export PBWAlgElem
 export PBWAlgQuo
@@ -201,12 +201,12 @@ export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
 export SubquoModuleElem
+export TorQuadModuleWithIsom
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
-export TorQuadModuleWithIsom
 export TropicalCurve, tropical_curve
 export TropicalHypersurface, tropical_hypersurface
 export TropicalLinearSpace, tropical_linear_space
@@ -412,9 +412,9 @@ export class_positions_of_kernel
 export class_positions_of_normal_subgroups
 export class_positions_of_pcore
 export class_positions_of_solvable_residuum
+export clebsch_graph
 export closed_subvariety_of_toric_variety
 export closure
-export clebsch_graph
 export cm_regularity
 export coatoms
 export cobases
@@ -464,6 +464,7 @@ export compose
 export composition
 export composition_series, has_composition_series, set_composition_series
 export compositions
+export compute_sagbi_degree!
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -1053,6 +1054,7 @@ export is_regular_sequence
 export is_right
 export is_root
 export is_root_with_index
+export is_sagbi
 export is_saturated_with_saturation
 export is_semiregular
 export is_semisimple
@@ -1454,8 +1456,8 @@ export permutation_character
 export permutation_group
 export permutation_matrix
 export permutation_of_terms
-export permuted
 export permute_nodes!
+export permuted
 export petersen_graph
 export phylogenetic_tree
 export picard_class
@@ -1537,8 +1539,8 @@ export prune
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pseudovertices
-export pullback
 export puiseux_expansion
+export pullback
 export pushforward_on_algebraic_lattices
 export pyramid
 export quadratic_form
@@ -1568,9 +1570,9 @@ export rank_action
 export rational_equivalence_class
 export rational_map
 export rational_point
+export rational_point_conic
 export rational_point_coordinates
 export rational_points
-export rational_point_conic
 export rational_solutions
 export rational_spinor_norm
 export rational_to_continued_fraction_hirzebruch_jung
@@ -1656,6 +1658,7 @@ export root_system_type_with_ordering
 export roots
 export row
 export rss_associahedron
+export sagbi
 export saturated_ideal
 export saturation
 export saturation_with_index
@@ -1775,6 +1778,7 @@ export sub
 export sub_object
 export subalgebra_membership
 export subalgebra_membership_homogeneous
+export subduct
 export subgroup
 export subgroup_classes
 export subquo_type
@@ -1804,6 +1808,7 @@ export tautological_bundle
 export taxa
 export tensor_product
 export terms
+export tete_a_tetes
 export tetrahedron
 export tighten_simulation
 export to_elementary_symmetric

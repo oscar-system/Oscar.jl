@@ -1,4 +1,3 @@
-using Oscar
 
 mutable struct SAGBICandidate
     ring::MPolyRing

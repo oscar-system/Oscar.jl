@@ -1,7 +1,6 @@
 # Tests for /src/rings/sagbi.jl
 using Test
 using Oscar
-include("../../src/Rings/sagbi.jl")
 
 @testset "Subduction modulo generators" begin
     
@@ -70,7 +69,7 @@ end
     @test B.elements == B_6
     @test B.sagbi_degree === 6
 
-    B = _initialize_sagbi_candidate(B_6)
+    B = Oscar._initialize_sagbi_candidate(B_6)
     compute_sagbi_degree!(B)
     @test B.sagbi_degree === 6
 end
