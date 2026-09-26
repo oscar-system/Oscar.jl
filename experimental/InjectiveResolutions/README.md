@@ -2,8 +2,17 @@
 
 ## Aims
 
-This experimental package provides tools to compute injective resolutions and local cohomology modules of finitely generated modules over monoid algebras. It implements the algorithms in [HM05](@cite). 
+This experimental package provides tools to compute injective resolutions and local cohomology modules of finitely generated modules over monoid algebras. It implements the algorithms in [HM05](@cite).
 
 ## Status
 
-We have implemented algorithms to compute injective resolutions and local cohomology for normal monoid algebras. 
+Implemented:
+
+- monoid algebras `k[Q]` of affine semigroups `Q`, with their
+  polyhedral data (cone, faces, hyperplanes).
+- irreducible decompositions of monomial ideals, irreducible and injective
+  resolutions of finitely generated `ZZ^d`-graded modules, injective hulls,
+  monomial matrices, and graded Bass numbers, for normal and for non-normal
+  monoid algebras.
+- sector partitions of local cohomology modules `H^i_I(M)`, for normal
+  monoid algebras only.
