@@ -1,5 +1,5 @@
 
-mutable struct SAGBICandidate
+mutable struct SubalgebraBasis
     ring::MPolyRing
     elements::Vector{<:MPolyRingElem}
     leading_monomials::Dict{MPolyRingElem, Vector{<:MPolyRingElem}}
@@ -37,7 +37,7 @@ function _initialize_sagbi_candidate(
         leading_monomials[lm][1] for lm in keys(leading_monomials)
     ]
 
-    return SAGBICandidate(
+    return SubalgebraBasis(
         ring, generators, leading_monomials, ordering, least_terms_cache, 0
     )
 end
@@ -84,9 +84,32 @@ end
         generators::Vector{<:MPolyRingElem}
     )-> Vector{Int}
 
-For a monomial $m$ and a generating set of monomials $\{g_i\}$, find the
-exponent vector $v$ such that $m = g_i^{v_i}$.
+For a monomial `m` and a vector `generators` of monomials $\{g_i\}$, find an
+exponent vector $v$ such that $m = \prod g_i^{v_i}$.
 Return `nothing` if no such representation exists.
+
+# Examples
+```jldoctest
+julia> R, x= polynomial_ring(QQ, :x=>(1:3, 1:4)); 
+
+julia> X = matrix(R,x); P = minors(X, 3);
+
+julia> leading_mons = [leading_monomial(p) for p in P];
+
+julia> m = leading_monomial(P[1]*P[2]^2);
+
+julia> monoid_representation(m, leading_mons)
+4-element Vector{Int64}:
+ 1
+ 2
+ 0
+ 0
+
+julia> m = x[1,1]*x[3,2]*x[2,3] # No solutions
+
+julia> monoid_representation(m, leading_mons) # Returns nothing
+
+```
 """
 function monoid_representation(
     m::MPolyRingElem,
@@ -146,14 +169,14 @@ end
 @doc raw"""
     monoid_representation(
         m::MPolyRingElem, 
-        B::SAGBICandidate,
+        B::SubalgebraBasis,
     )-> Vector{Int}
 
 For a monomial $m$ and generators `B.elements={g_i}` find the exponent 
-vector $v$ such that $m = LM(g_i)^{v_i}$.
+vector $v$ such that $m = \prod \text{LM}(g_i)^{v_i}$.
 Return `nothing` if no such representation exists.
 """
-function monoid_representation(m::MPolyRingElem, B::SAGBICandidate)
+function monoid_representation(m::MPolyRingElem, B::SubalgebraBasis)
     generators = collect(keys(B.leading_monomials))
     return monoid_representation(m, generators)
 end
@@ -178,7 +201,7 @@ function _exponent_matrix(
     return A
 end
 
-_exponent_matrix(B::SAGBICandidate) = _exponent_matrix(B.elements)
+_exponent_matrix(B::SubalgebraBasis) = _exponent_matrix(B.elements)
 
 """
     _toric_ideal_of_leading_monomials(
@@ -203,16 +226,16 @@ function _toric_ideal_of_leading_monomials(
     return kernel(hom(S, R, lms))
 end
 
-_toric_ideal_of_leading_monomials(B::SAGBICandidate) =
+_toric_ideal_of_leading_monomials(B::SubalgebraBasis) =
     _toric_ideal_of_leading_monomials(B.elements)
 
 @doc raw"""
-    _toric_ideal_lattice(B::SAGBICandidate)
+    _toric_ideal_lattice(B::SubalgebraBasis)
 
 Compute a set of lattice generators for `ker(ZZ[y₁,…,yₙ] → ZZ[x₁,…,xₘ])` of
 the monomial map `yᵢ ↦ leading_monomial(bᵢ)`.
 """
-function _toric_ideal_lattice(B::SAGBICandidate)
+function _toric_ideal_lattice(B::SubalgebraBasis)
     if isempty(B.elements)
         return zero_matrix(ZZ, 0, 0)
     end
@@ -247,8 +270,18 @@ end
 
 Returns a vector of named tuples `(polynomial, a, b)` where `polynomial`
 is the tête-à-tête 
-$\prod_{i=1}^{|B|}(b_i^\alpha_i) - prod_{i=1}^{|B|}(b_i^\beta_i)$,
+$\prod_{i\in I}(b_i^{\alpha_i} - b_i^{\beta_i})$
 and `a`/`b` are the exponent vectors $\alpha$/$\beta$ of length `length(B)`.
+
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, ['x','y']);
+
+julia> B = [x^2 - x, y+1, x+y];
+
+julia> tete_a_tetes(B)
+1-element Vector{@NamedTuple{polynomial::MPolyRingElem, a::Vector{Int64}, b::Vector{Int64}}}:
+@NamedTuple{polynomial::MPolyRingElem, a::Vector{Int64}, b::Vector{Int64}}((-2*x*y - x - y^2, [1, 0, 0], [0, 0, 2]))
+```
 """
 function tete_a_tetes(
     generators::Vector{<:MPolyRingElem};
@@ -307,21 +340,21 @@ function tete_a_tetes(
 end
 
 @doc raw"""
-    tete_a_tetes(B::SAGBICandidate) -> Vector{NamedTuple}
+    tete_a_tetes(B::SubalgebraBasis) -> Vector{NamedTuple}
 
 Returns a vector of named tuples `(polynomial, a, b)` where `polynomial`
 is the tête-à-tête 
 $\prod_{i=1}^{|B|}(b_i^\alpha_i) - prod_{i=1}^{|B|}(b_i^\beta_i)$,
 and `a`/`b` are the exponent vectors $\alpha$/$\beta$ of length `length(B)`.
 """
-tete_a_tetes(B::SAGBICandidate) = tete_a_tetes(B.elements; ordering=B.ordering)
+tete_a_tetes(B::SubalgebraBasis) = tete_a_tetes(B.elements; ordering=B.ordering)
 
 @doc raw"""
-    subduct(f::MPolyRingElem, B::SAGBICandidate) -> MPolyRingElem
+    subduct(f::MPolyRingElem, B::SubalgebraBasis) -> MPolyRingElem
 
-Compute the remainder of `f` after subduction by `B.elements`.
+Compute the remainder of `f` after subduction by `B`.
 """
-function subduct(f::MPolyRingElem, B::SAGBICandidate)
+function subduct(f::MPolyRingElem, B::SubalgebraBasis)
     lms = collect(keys(B.leading_monomials))
     @req(parent(f) === B.ring,
     "The polynomial to subduct must be in the same ring as the basis.")
@@ -344,7 +377,8 @@ end
 
 @doc raw"""
     subduct(
-        f::MPolyRingElem, generators::Vector{<:MPolyRingElem}
+        f::MPolyRingElem, generators::Vector{<:MPolyRingElem};
+        ordering::MonomialOrdering = default_ordering(parent(generators[1]))
     )-> MPolyRingElem
 
 Compute the remainder of `f` after subduction by `B`.
@@ -375,13 +409,13 @@ function subduct(
 end
 
 @doc raw"""
-    is_sagbi(B::SAGBICandidate) -> Bool
+    is_sagbi(B::SubalgebraBasis) -> Bool
 
 Check if `B.elements` satisfies the SAGBI criterion with respect to
 the monomial ordering `B.ordering`.
 """
 function is_sagbi(
-    B::SAGBICandidate
+    B::SubalgebraBasis
 )
     for t in tete_a_tetes(B)
         iszero(subduct(t.polynomial, B)) || return false
@@ -443,7 +477,7 @@ function _monic_if_nonzero(f::MPolyRingElem)
 end
 
 function _compute_all_subductions(
-    B::SAGBICandidate
+    B::SubalgebraBasis
 )
     tetes = tete_a_tetes(B)
 
@@ -461,16 +495,16 @@ end
 # https://doi.org/10.1016/j.jsc.2023.102237
 @doc raw"""
     sagbi(
-        generating_set::Vector{<:MPolyRingElem};
+        generators::Vector{<:MPolyRingElem};
         degree_bound::Integer,
-        ordering::MonomialOrdering = default_ordering(parent(generating_set[1]))
+        ordering::MonomialOrdering = default_ordering(parent(generators[1]))
     )
-    -> SAGBICandidate
+    -> SubalgebraBasis
 
-Given `generating_set` generating a subalgebra, return a SAGBICandidate that
+Given `generators` generating a subalgebra, return a SubalgebraBasis that
 completes the generating set to a SAGBI basis of the subalgebra.
 As SAGBI bases may be countably infinite, the algorithm will stop when
-all leading monomials of total degree < `degree_bound` are included in the
+all leading monomials of total degree <= `degree_bound` are included in the
 SAGBI basis. 
 
 # Examples
@@ -484,16 +518,16 @@ julia> B.elements
 ```
 """
 function sagbi(
-        generating_set::Vector{<:MPolyRingElem};
+        generators::Vector{<:MPolyRingElem};
         degree_bound::Integer,
-        ordering::MonomialOrdering = default_ordering(parent(generating_set[1]))
+        ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
-    @req !isempty(generating_set) "The empty subalgebra has no nonempty SAGBI basis."
+    @req !isempty(generators) "The empty subalgebra has no nonempty SAGBI basis."
     @req all(
-        x -> parent(x) === parent(generating_set[1]), generating_set
+        x -> parent(x) === parent(generators[1]), generators
     ) "All polynomials must belong to the same ring"
     
-    F = generating_set
+    F = generators
     
     min_total_deg = 0
     sagbi_degree = 0
@@ -525,7 +559,7 @@ function sagbi(
 end
 
 @doc raw"""
-    compute_sagbi_degree!(B::SAGBICandidate) -> SAGBICandidate
+    compute_sagbi_degree!(B::SubalgebraBasis) -> SubalgebraBasis
 
 Computes the minimum $d$ for which all leading monomials of total degree
 < $d$ are in the subalgebra generated by the leading terms of $B$, and 
@@ -533,7 +567,7 @@ updates `B.sagbi_degree` to equal $d$.
 
 If `B` is a SAGBI basis, then `B.sagbi_degree` will be set to -1.
 """
-function compute_sagbi_degree!(B::SAGBICandidate)
+function compute_sagbi_degree!(B::SubalgebraBasis)
     additional_terms = _compute_all_subductions(B)
     
     if isempty(additional_terms)
@@ -557,18 +591,19 @@ end
     ) -> Integer
 
 Computes the minimum $d$ for which all leading monomials of total degree
-< $d$ are in the subalgebra generated by the leading terms of $B$, and 
-updates `B.sagbi_degree` to equal $d$. 
+< $d$ are in the subalgebra generated by the leading terms of $B$.
 
-If `B` is a SAGBI basis, then `B.sagbi_degree` will be set to -1.
+If `B` is a SAGBI basis, then returns -1.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = polynomial_ring(QQ, ['x','y'])
-julia> B = [x, x*y - y^2, x*y^2, x*y^3 - 1//2*y^4, x*y^5 - 1//3*y^6,  x*y^4]
+julia> R, (x,y) = polynomial_ring(QQ, ['x','y']);
+
+julia> B = [x, x*y - y^2, x*y^2, x*y^3 - 1//2*y^4, x*y^5 - 1//3*y^6,  x*y^4];
+
 julia> compute_sagbi_degree(B)
 6
-    ```
+```
 """
 function compute_sagbi_degree(
     generators::Vector{<:MPolyRingElem};
