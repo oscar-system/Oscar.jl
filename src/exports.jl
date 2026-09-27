@@ -137,6 +137,7 @@ export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
 export ModuleOrdering
+export monoid_representation
 export MonomialOrdering
 export Multipartition
 export Nemo
@@ -464,7 +465,6 @@ export compose
 export composition
 export composition_series, has_composition_series, set_composition_series
 export compositions
-export compute_sagbi_degree!
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -1659,6 +1659,7 @@ export roots
 export row
 export rss_associahedron
 export sagbi
+export sagbi_degree
 export saturated_ideal
 export saturation
 export saturation_with_index

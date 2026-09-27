@@ -50,12 +50,14 @@ ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 
 ## Checking the SAGBI Criterion
 
-A *tête-à-tête* $t\in A$ for the generating set $B=\{b_i\}_{i\in I}$ is a polynomial of the form
+A *tête-à-tête* $t\in A$ for the generating set $B=\{b_i\}_{i\in I}$ is a
+polynomial of the form
 
 $t = \prod_{i\in I} \left(b_i^{\alpha_i} - b_i^{\beta_i}\right)$
 
 for some non-negative integer exponent vectors $\alpha$ and $\beta$ such that 
-$\text{LM}(\prod_{i\in I} b_i^{\alpha_i}) = \text{LM}(\prod_{i\in I} b_i^{\beta_i})$. A generating set $B$ is a SAGBI basis if and only if all its tête-à-têtes 
+$\text{LM}(\prod_{i\in I} b_i^{\alpha_i}) = \text{LM}(\prod_{i\in I} b_i^{\beta_i}).$ 
+A generating set $B$ is a SAGBI basis if and only if all its tête-à-têtes 
 subduct to 0.
 
 ```@docs
@@ -70,7 +72,7 @@ To check if a set of generators is a SAGBI basis, call `is_sagbi`:
 ```@docs
 is_sagbi(
 generators::Vector{<:MPolyRingElem};
-ordering::MonomialOrdering = default_ordering(parent(B[1]))
+ordering::MonomialOrdering = default_ordering(parent(generators[1]))
 )
 ```
 This function computes the subduction of all tête-à-têtes of `generators`, 
@@ -105,29 +107,41 @@ sagbi(
     ordering::MonomialOrdering = default_ordering(parent(generating_set[1]))
 )
 ```
-The return type of `sagbi` is `SubalgebraBasis`, which is defined as:
+The return type of `sagbi` is `SubalgebraBasis`. The elements of a
+SubalgebraBasis $B$ can be accessed with `elements`:
 
-```julia
-mutable struct SubalgebraBasis
-    ring::MPolyRing
-    elements::Vector{<:MPolyRingElem}
-    leading_monomials::Dict{MPolyRingElem, Vector{<:MPolyRingElem}}
-    ordering::MonomialOrdering
-    least_terms_cache::Vector{<:MPolyRingElem}
-    sagbi_degree::Integer
-end
+```@docs
+elements(
+B::SubalgebraBasis
+)
 ```
 
-The `elements` field contains the basis elements, and `sagbi_degree` records
-the SAGBI degree achieved by the basis. If a SubalgebraBasis $B$ is a SAGBI
-basis, then `B.sagbi_degree` will be $-1$. 
+A SubalgebraBasis $B$ can also be indexed like a vector: `B[i]` returns the
+`i`-th element, `length(B)` returns the number of elements, and iterating
+over $B$ yields its elements. The polynomial ring containing the elements of
+$B$ is available via `base_ring`:
+
+```@docs
+base_ring(
+B::SubalgebraBasis
+)
+```
+
+The SAGBI degree of the basis is recorded by `sagbi_degree`. If a
+SubalgebraBasis $B$ is a SAGBI basis, then `sagbi_degree(B)` is $-1$:
+
+```@docs
+sagbi_degree(
+B::SubalgebraBasis
+)
+```
 
 Given a generating set $B$, you may also compute its SAGBI degree without 
 adding new elements to $B$.
 
 ```@docs
-compute_sagbi_degree(
-    generators::Vector{<:MPolyRingElem};
-    ordering=default_ordering(parent(B[1]))
+sagbi_degree(
+generators::Vector{<:MPolyRingElem};
+ordering=default_ordering(parent(generators[1]))
 )
 ```
