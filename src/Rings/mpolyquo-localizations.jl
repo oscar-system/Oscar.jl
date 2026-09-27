@@ -807,20 +807,10 @@ end
 # * Division routines can be used for the ring R[S⁻¹] with subsequent
 #   conversion. 
 
-function Base.:(/)(a::Oscar.IntegerUnion, b::MPolyQuoLocRingElem)
-  success, c = divides(parent(b), b)
-  !success && error("$b does not divide $a")
-  return c
-end
-
 function Base.:(/)(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   success, c = divides(a, b)
   !success && error("$b does not divide $a")
   return c
-end
-
-function divexact(a::Oscar.IntegerUnion, b::MPolyQuoLocRingElem; check::Bool=true)
-  return a/b
 end
 
 function divexact(a::T, b::T; check::Bool=true) where {T<:MPolyQuoLocRingElem}
