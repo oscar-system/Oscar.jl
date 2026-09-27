@@ -36,9 +36,6 @@ julia> m = matrix(x)
 [0   1   0]
 [0   0   1]
 
-julia> m == x
-false
-
 julia> G(m) == x
 true
 
