@@ -238,9 +238,7 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
       try
         for entry in testlist
           if seed != -1
-            println("============DEBUG OUTPUT=============")
             println("Setting seed to $(seed)")
-            println("=====================================")
             Oscar.set_seed!(seed)
             Oscar.randseed!(seed)
           end
