@@ -71,11 +71,7 @@ oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_gener
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
-singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
-singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 singular_origin_ring_iso(Q::MPolyQuoRing) = _groebner_basis(Q) && _sing_iso(Q.I.gb[Q.ordering])
-oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
 default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 
@@ -902,17 +898,6 @@ end
 
 function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
-end
-
-function (Q::MPolyQuoRing)(a::Singular.spoly)
-  @assert singular_poly_ring(Q) == parent(a)
-  return MPolyQuoRingElem(base_ring(Q)(a), Q)
-end
-
-function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
-  Q = parent(a)
-  @assert singular_poly_ring(Q) == S
-  return S(a.f)
 end
 
 (Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
