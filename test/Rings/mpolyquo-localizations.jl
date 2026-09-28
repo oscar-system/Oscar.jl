@@ -144,6 +144,25 @@ end
   @test_throws ErrorException 2/L(x-1)
 end
 
+@testset "Ring interface for localized quotient rings" begin
+  # one non-reduced quotient, localized at each type of multiplicative set
+  kk = GF(7)
+  R, (x, y) = kk[:x, :y]
+  A, = quo(R, ideal(R, [x^2*y]))
+  ConformanceTests.test_Ring_interface_recursive(localization(A, powers_of_element(y))[1]; reps = 3)
+  ConformanceTests.test_Ring_interface_recursive(localization(A, complement_of_point_ideal(R, [kk(0), kk(0)]))[1]; reps = 3)
+  ConformanceTests.test_Ring_interface_recursive(localization(A, complement_of_prime_ideal(ideal(R, [x])))[1]; reps = 3)
+end
+
+@testset "is_nilpotent for localized quotient rings" begin
+  # x^2*y = 0, so x becomes nilpotent once y is inverted
+  R, (x, y) = QQ[:x, :y]
+  A, = quo(R, ideal(R, [x^2*y]))
+  L, = localization(A, powers_of_element(y))
+  @test is_nilpotent(L(x))
+  @test !is_nilpotent(L(y - 1))
+end
+
 @testset "associated primes (quo and localized)" begin
   # define the rings
   R,(x,y,z,w) = QQ[:x, :y, :z, :w]
