@@ -689,13 +689,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   I = ideal(reduce(vcat, l_eqs))
   !saturate && return phi_inv(I)
   
-  I_sat = saturation(I, ideal(detK))
-  Ko = monomial_ordering(gens(codomain(phi))[1:ngens(base_ring(K))], :degrevlex)
-  So = monomial_ordering(gens(codomain(phi))[ngens(base_ring(K)) + 1:end], :degrevlex)
-  o = Ko * So
-  gb = groebner_basis(I_sat; ordering=o, kwargs...)
-  mo = monomial_ordering(gens(base_ring(K)), :degrevlex)
-  return ideal(IdealGens([phi_inv(g) for g in gb], mo; isGB=true))
+  return phi_inv(saturation(I, ideal(detK)))
 end
 
 function score_equations_ideal(M::GaussianGraphicalModel{Graph{Directed}}, scv_matrix::MatElem{<:RingElem}; kwargs...)
