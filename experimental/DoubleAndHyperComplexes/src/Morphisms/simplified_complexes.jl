@@ -858,7 +858,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing
 end
 
 
-@attr function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T}
+@attr SMat{T} function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T}
   V = domain(phi)
   W = codomain(phi)
   kk = base_ring(V)
