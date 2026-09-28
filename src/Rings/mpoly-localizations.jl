@@ -2731,7 +2731,7 @@ julia> minimal_generating_set(I)
 
   # return result after shifting back and moving to the correct ring
   computed_min = IdealGens(base_ring(I_shift), I_shift_min, false)
-  I_min = L.(back_shift.(R.(gens(computed_min))))
+  I_min = L.(back_shift.(gens(computed_min)))
   return filter(!iszero, I_min)
 
 end

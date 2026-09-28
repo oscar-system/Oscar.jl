@@ -134,8 +134,7 @@ end
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
-  Sx::NCRing # Singular Poly Ring or Algebra, poss. with different ordering
-  f #= isomorphism Ox -> Sx =#
+  iso_ox_to_sx::Map #= isomorphism Ox -> Sx =#
   S::Singular.sideal
 
   function BiPolyArray(Ox::T) where {T <: NCRing}
@@ -157,7 +156,6 @@ mutable struct BiPolyArray{S}
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
     r = BiPolyArray(Ox)
-    r.Sx = base_ring(S)
     r.S = S
     return r
   end
@@ -317,21 +315,19 @@ end
 
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
   if !isdefined(B.gensBiPolyArray, :S)
-    g = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
-    B.gensBiPolyArray.Sx = codomain(g)
-    B.gensBiPolyArray.f = g
-    B.gensBiPolyArray.S = Singular.Ideal(B.gensBiPolyArray.Sx, elem_type(B.gensBiPolyArray.Sx)[g(x) for x in oscar_generators(B)])
+    g = _sing_iso(B)
+    B.gensBiPolyArray.S = Singular.Ideal(codomain(g), elem_type(codomain(g))[g(x) for x in oscar_generators(B)])
   end
-  if B.isGB && isdefined(B, :ord) && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gensBiPolyArray.Sx))
+  Sx = base_ring(B.gensBiPolyArray.S)
+  if B.isGB && isdefined(B, :ord) && B.ord == monomial_ordering(base_ring(B), internal_ordering(Sx))
     B.gensBiPolyArray.S.isGB = true
   end
 
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(base_ring(B), MPolyQuoRing) && return B.gensBiPolyArray.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gensBiPolyArray.S))) == B.ord && return B.gensBiPolyArray.S
-  g = iso_oscar_singular_poly_ring(base_ring(B), monorder)
-  SR = codomain(g)
-  f = Singular.AlgebraHomomorphism(B.gensBiPolyArray.Sx, SR, gens(SR))
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(Sx)) == B.ord && return B.gensBiPolyArray.S
+  SR = _create_singular_poly_ring(base_ring(Sx), base_ring(B), monorder)
+  f = Singular.AlgebraHomomorphism(Sx, SR, gens(SR))
   S = Singular.map_ideal(f, B.gensBiPolyArray.S)
   if isdefined(B, :ord) && B.ord == monorder
     S.isGB = B.isGB
@@ -606,6 +602,25 @@ function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
 end
 
+# iso from `base_ring(B)` onto the ring of `B`'s Singular generators, created on demand
+function _sing_iso(B::IdealGens)
+  BA = B.gensBiPolyArray
+  isdefined(BA, :iso_ox_to_sx) && return BA.iso_ox_to_sx
+  if isdefined(BA, :S)
+    BA.iso_ox_to_sx = _iso_onto(base_ring(B), base_ring(BA.S))
+  else
+    BA.iso_ox_to_sx = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
+  end
+  return BA.iso_ox_to_sx
+end
+
+_sing_iso(I::MPolyIdeal) = _sing_iso(I.gens)
+
+# iso onto the base ring of `singular_generators(B, ordering)`
+_sing_iso(B::IdealGens, Sx::Singular.PolyRing) = _iso_with_codomain(_sing_iso(B), Sx)
+
+_sing_iso(I::MPolyIdeal, Sx::Singular.PolyRing) = _sing_iso(I.gens, Sx)
+
 function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
   return singular_generators(generating_system(I), monorder)
 end
@@ -624,20 +639,20 @@ oscar_generators(IG::IdealGens) = oscar_generators(IG.gensBiPolyArray)
 
 function oscar_generators(B::BiPolyArray)
   if !isdefined(B, :O)
-    if B.Ox isa MPolyQuoRing
-      R = oscar_origin_ring(B.Ox)
-    else
-      R = B.Ox
+    if !isdefined(B, :iso_ox_to_sx)
+      B.iso_ox_to_sx = _iso_onto(B.Ox, base_ring(B.S))
     end
-    B.O = [R(x) for x in gens(B.S)]
+    O = [preimage(B.iso_ox_to_sx, x) for x in gens(B.S)]
+    B.O = B.Ox isa MPolyQuoRing ? map(lift, O) : O
   end
   return B.O
 end
 
-function map_entries(R, M::Singular.smatrix)
-  s = nrows(M), ncols(M)
-  S = parent(R(zero(base_ring(M))))
-  return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
+# the matrix over `domain(iso)` corresponding to `M` over a Singular ring
+function map_entries(iso::Map, M::Singular.smatrix)
+  iso = _iso_with_codomain(iso, base_ring(M))
+  r, c = nrows(M), ncols(M)
+  return matrix(domain(iso), r, c, [preimage(iso, M[i,j]) for i=1:r for j=1:c])
 end
 
 @doc raw"""

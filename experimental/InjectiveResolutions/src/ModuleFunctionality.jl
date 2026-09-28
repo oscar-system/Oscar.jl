@@ -6,9 +6,53 @@ singular_poly_ring(A::MonoidAlgebra; keep_ordering=nothing) = singular_poly_ring
 
 (S::Singular.PolyRing)(a::MonoidAlgebraElem) = S(underlying_element(a))
 
+#############################################################################
+#
+# Singular rings for monoid algebras
+#
+struct OscarSingularMonoidAlgebraMap{D<:MonoidAlgebra, C, W} <: Map{D, C, Any, Any}
+  R::D
+  fpoly::W
+end
+
+OscarSingularMonoidAlgebraMap(R::MonoidAlgebra, fpoly::Map) = OscarSingularMonoidAlgebraMap{typeof(R), typeof(codomain(fpoly)), typeof(fpoly)}(R, fpoly)
+
+domain(f::OscarSingularMonoidAlgebraMap) = f.R
+
+codomain(f::OscarSingularMonoidAlgebraMap) = codomain(f.fpoly)
+
+(f::OscarSingularMonoidAlgebraMap)(x) = image(f, x)
+
+function iso_oscar_singular_poly_ring(A::MonoidAlgebra, ord::Union{Singular.sordering, MonomialOrdering, Nothing} = nothing; keep_ordering=nothing)
+  # FIXME: `ord` and `keep_ordering` are ignored, so the Singular ring has a
+  # fixed ordering and e.g. `singular_module(F, o)`, and hence standard bases
+  # of modules w.r.t. `o`, silently use that ordering instead of `o`. For
+  # polynomial algebras, pass `ord` on; quotient algebras share the fixed
+  # ordering limitation of `MPolyQuoRing`.
+  iso1 = iso_oscar_singular_poly_ring(A.algebra)
+  return OscarSingularMonoidAlgebraMap(A, iso1)
+end
+
+function image(f::OscarSingularMonoidAlgebraMap, a)
+  parent(a) !== domain(f) && error("Element not in domain")
+  return image(f.fpoly, underlying_element(a))
+end
+
+function preimage(f::OscarSingularMonoidAlgebraMap, a; check::Bool = true)
+  check && (parent(a) === codomain(f) || error("Element not in codomain"))
+  g = preimage(f.fpoly, a; check)
+  return f.R(g)
+end
+
+_iso_onto(A::MonoidAlgebra, Sx::Singular.PolyRing) = OscarSingularMonoidAlgebraMap(A, _iso_onto(A.algebra, Sx))
+
+
+#############################################################################
+#
+#
 function singular_module(F::FreeMod{<:MonoidAlgebraElem}, ordering::ModuleOrdering)
   A = base_ring(F)
-  Sx = singular_poly_ring(A, induced_ring_ordering(ordering))
+  Sx = codomain(iso_oscar_singular_poly_ring(A, induced_ring_ordering(ordering)))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -118,7 +162,7 @@ function sparse_row(
     A::MonoidAlgebra{<:FieldElem, <:MPolyRing}, 
     svec::Singular.svector, rng::AbstractUnitRange
   )
-  pre_res = sparse_row(A.algebra, svec, rng)
+  pre_res = sparse_row(_iso_onto(A.algebra, base_ring(svec)), svec, rng)
   return map_entries(A, pre_res)
 end
 
@@ -126,7 +170,7 @@ function sparse_row(
     A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing}, 
     svec::Singular.svector, rng::AbstractUnitRange
   )
-  pre_res = sparse_row(base_ring(A.algebra), svec, rng)
+  pre_res = sparse_row(_iso_onto(base_ring(A.algebra), base_ring(svec)), svec, rng)
   return map_entries(A, pre_res)
 end
 
@@ -163,7 +207,8 @@ function annihilator(N::SubquoModule{T}) where T <: MonoidAlgebraElem
   B = N_quo
   SB = singular_generators(B.gens)
   res = Singular.quotient(SB, SA)
-  return ideal(R, [R(f) for f in gens(res)])
+  iso = _iso_onto(R, base_ring(res))
+  return ideal(R, [preimage(iso, f) for f in gens(res)])
 end
 
 function singular_generators(J::MonoidAlgebraIdeal)
