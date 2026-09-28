@@ -414,8 +414,9 @@ Multivariate polynomial ring in 2 variables yy, zz
 ```
 """
 function eliminate(I::MPolyIdeal{T}, l::Vector{T}) where T <: MPolyRingElem
-  S = singular_polynomial_ring(I)
-  s = Singular.eliminate(singular_generators(I), [S(x) for x = l]...)
+  SI = singular_generators(I)
+  iso = _sing_iso(I, base_ring(SI))
+  s = Singular.eliminate(SI, [iso(x) for x = l]...)
   return MPolyIdeal(base_ring(I), s)
 end
 function eliminate(I::MPolyIdeal, l::AbstractVector{Int})
@@ -1683,8 +1684,9 @@ false
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
   @req parent(f) === base_ring(I) "Polynomial `f` and ideal `I` do not belong to the same polynomial ring."
-  Sx = singular_polynomial_ring(I, ordering)
-  return Singular.iszero(Singular.reduce(Sx(f), singular_groebner_generators(I, ordering)))
+  GS = singular_groebner_generators(I, ordering)
+  iso = _sing_iso(I, base_ring(GS))
+  return Singular.iszero(Singular.reduce(iso(f), GS))
 end
 Base.:in(f::MPolyRingElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
@@ -1719,8 +1721,9 @@ false
 function radical_membership(f::T, I::MPolyIdeal{T}) where T
   @req parent(f) === base_ring(I) "Polynomial `f` and ideal `I` do not belong to the same polynomial ring."
   iszero(I) && return iszero(f)
-  Sx = singular_polynomial_ring(I)
-  return Singular.LibPolylib.rad_con(Sx(f), singular_generators(I)) == 1
+  SI = singular_generators(I)
+  iso = _sing_iso(I, base_ring(SI))
+  return Singular.LibPolylib.rad_con(iso(f), SI) == 1
 end
 inradical(f::MPolyRingElem, I::MPolyIdeal) = radical_membership(f,I)
 ################################################################################
@@ -2121,7 +2124,7 @@ function small_generating_set(
     # we do not have a notion of minimal generating set in this context!
     # If we are unlucky, mstd can even produce a larger generating set
     # than the original one!!!
-    return_value = filter(!iszero, (R).(gens(sing_min)))
+    return_value = filter(!iszero, gens(ideal(R, sing_min)))
 
     # The following is a common phenomenon which we can not fully explain yet. So far nothing but a
     # restart really seems to help, unfortunately.
