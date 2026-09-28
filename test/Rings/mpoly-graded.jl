@@ -648,3 +648,10 @@ end
   @test grading_group(S) === grading_group(S101)
   @test degree.(gens(S)) == degree.(gens(S101))
 end
+
+@testset "coercion in towers of graded rings" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  SS, S_to_SS = change_base_ring(S, S)
+  S_to_SS(x) # used to throw an error because of method ambiguity
+end
+

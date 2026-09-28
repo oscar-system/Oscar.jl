@@ -830,8 +830,8 @@ zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 ################################################################################
 
 for T in [:(+), :(-), :(*)]
-  @eval ($T)(a::MPolyDecRingElem,
-             b::MPolyDecRingElem) = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
+  @eval ($T)(a::TT,
+             b::TT) where {TT <: MPolyDecRingElem} = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
 end
 
 divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
