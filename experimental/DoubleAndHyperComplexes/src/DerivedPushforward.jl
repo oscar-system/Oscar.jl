@@ -278,7 +278,8 @@ mutable struct PushForwardCtx
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
   # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
-  fixed_exponent_vector::Vector{Int}
+  fixed_exponent_vector::Vector{Int} # If this field is set, then all computations are done with this vector 
+                                     # and not the variable one coming out of `_minimal_exponent_vector`.
   S1::AbsHyperComplex
 
   function PushForwardCtx(S::MPolyRing)
@@ -302,7 +303,6 @@ mutable struct PushForwardCtx
                Dict{FinGenAbGroupElem, AbsHyperComplex}(),
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
-               # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
                Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}()
               )
   end
@@ -316,6 +316,8 @@ number_of_factors(ctx::PushForwardCtx) = length(ctx.variable_groups)
 dimensions(ctx::PushForwardCtx) = ctx.dims
 dimension(ctx::PushForwardCtx, i::Int) = ctx.dims[i]
 
+# Return the graded ring as a zero dimensional complex over itself. 
+# This can, for instance, be used for dualizing. The result is cached.
 function ring_as_hypercomplex(ctx::PushForwardCtx)
   if !isdefined(ctx, :S1)
     S = graded_ring(ctx)
@@ -324,6 +326,8 @@ function ring_as_hypercomplex(ctx::PushForwardCtx)
   return ctx.S1
 end
 
+# Return the truncated Cech complex of modules over the graded 
+# ring for the exponent vector `alpha`. 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
   @assert all(>=(0), alpha)
   return get!(ctx.truncated_cech_complexes, alpha) do
@@ -336,6 +340,9 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
   end
 end
 
+# Return the strand of degree `d` of the truncated Cech complex 
+# for the exponent vector `alpha`. This is a complex of modules over the 
+# `coefficient_ring` of the graded ring. 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
   G = parent(d)
   S = graded_ring(ctx)
@@ -349,13 +356,19 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
   end
 end
 
+# Return the complex whose terms are isomorphic to the cohomology of 
+# the direct limit over the exponent vectors `alpha`. This representative 
+# is chosen by the `_minimal_exponent_vector` for the given degree `d`.
 function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
   get!(ctx.cohomology_models, d) do
     simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
-    #simplify(ctx[_minimal_exponent_vector(ctx, d), d])
   end
 end
 
+# The inclusion and projection to the cohomology models. 
+# Note that by construction the cohomology appears as a free direct 
+# summand of the terms, so that these maps exist. They depend on the various 
+# choices and allow us to reliably link our chosen representatives to one another. 
 function cohomology_model_inclusion(ctx::PushForwardCtx, d::FinGenAbGroupElem, i::Int)
   h = cohomology_model(ctx, d)
   to_orig = map_to_original_complex(h)[i]
@@ -389,6 +402,9 @@ function _minimal_exponent_vector(ctx::PushForwardCtx, d::FinGenAbGroupElem)
   return result
 end
 
+# Return the map in the direct limit of complexes for two exponent vectors 
+# `alpha <= beta`. This returns a morphism of complexes of modules over the
+# graded ring.
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
   @assert all(a <= b for (a, b) in zip(alpha, beta))
   return get!(ctx.inclusions, (alpha, beta)) do
@@ -424,6 +440,8 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
   end
 end
 
+# Same as above, but for the strand of a given degree `d`. This returns a morphism 
+# of complexes over the `coefficient_ring` of the graded ring. 
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int}, d::FinGenAbGroupElem)
   if all(a <= b for (a, b) in zip(alpha, beta))
     return get!(ctx.strand_inclusions, (alpha, beta, d)) do 
