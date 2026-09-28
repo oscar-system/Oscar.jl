@@ -1,3 +1,25 @@
+########################################################################
+# Compute direct images of complexes of coherent sheaves
+# 
+# This is the implementation from arXiv:2602.14657 by F. Groh and 
+# M. Zach, building on ideas of J. Weyman. 
+# 
+# Let `X` be a normal toric variety without torus factors, `S` its Cox 
+# ring, and `R` an arbitrary commutative ring. For a (bounded) complex 
+# `C*` of graded modules over the ring `S_R = S ⊗ R` one has the 
+# associated complex of coherent sheaves `~C*` on `X × Spec R`. For 
+# the projection `π : X × Spec R → Spec R` one can compute the direct 
+# image `R π_* (~C*) ∈ Dᵇ(R-mod)`. The object `DirectImageComplex` 
+# realizes the functor `𝕎 : Cᵇ(S_R-mod) → Cᵇ(R-mod)` which commutes 
+# with the sheafification functor `~` and the canonical map to 
+# `Dᵇ(R-mod)`. In other words, it makes the following diagram commute:
+# 
+#        Cᵇ(S_R-mod) ---𝕎-----> Cᵇ(R-mod)
+#            |                     |
+#            |~                    |
+#            V                     V
+#        Dᵇ(X×Spec R) --Rπ_*--> Dᵇ(R-mod)
+########################################################################
 include("generic_direct_images_types.jl")
 
 ### Production of the chains
