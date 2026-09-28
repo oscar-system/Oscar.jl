@@ -3,7 +3,7 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  cod_dict = get_mapping_dict(c, i)
+  cod_dict = strand_mapping_dict(c, i)
   fac.mapping_dicts[i] = cod_dict
   return FreeMod(kk, length(cod_dict))
 end
@@ -12,7 +12,8 @@ function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
   return can_compute_index(fac.orig, i)
 end
 
-function get_mapping_dict(c::AbsHyperComplex, i::Tuple)
+# Get the dictionary which enumerates the terms for the basis.
+function strand_mapping_dict(c::AbsHyperComplex, i::Tuple)
   fac = chain_factory(c)::StrandChainFactory
   M = fac.orig[i]
   return get!(fac.mapping_dicts, i) do

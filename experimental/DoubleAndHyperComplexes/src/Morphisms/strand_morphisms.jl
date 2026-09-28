@@ -38,7 +38,7 @@ function (fac::InducedStrandMorphismFactory)(self::AbsHyperComplexMorphism, I::T
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = get_mapping_dict(fac.codomain, J)
+  cod_dict = strand_mapping_dict(fac.codomain, J)
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)

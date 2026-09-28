@@ -133,7 +133,7 @@ function (fac::StrandProjectionMorphismFactory)(self::AbsHyperComplexMorphism, i
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = get_mapping_dict(strand, i) #Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(dom, degree(strand))))
+  cod_dict = strand_mapping_dict(strand, i) 
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   return MapFromFunc(dom, cod, 
                      function(v)
