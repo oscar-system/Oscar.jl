@@ -5,7 +5,7 @@ contributor/author: Kaleb Ruscitti (kaleb (dot) ruscitti (at) uwaterloo.ca)
 ## Aims
 
 This package aims to expose a Julia interface for working with SAGBI 
-(Subalgebra Analogue to Grobner Bases for Ideals) bases. The
+(Subalgebra Analogue to Gröbner Bases for Ideals) bases. The
 ['SubalgebraBases'](https://macaulay2.com/doc/Macaulay2/share/doc/Macaulay2/SubalgebraBases/html/index.html)
 package in Macaulay2 is an example of a fully-featured package for working 
 with SAGBI bases.
@@ -21,4 +21,6 @@ Though there are other SAGBI related features that could be useful, I think thes
 
 At time of writing all three main features are implemented. The main computational bottlenecks call to 4ti2.
 
-More detailed testing and documentation needs to be written, and the code hasn't been reviewed in detail by anyone other than the author.
+The public functions have jldoctest examples, and there is a 
+markdown documentation file. The test suite covers all the 
+functionality, but only on some small examples.

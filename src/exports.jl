@@ -137,7 +137,6 @@ export Matroid
 export Mixed
 export MixedIntegerLinearProgram, mixed_integer_linear_program
 export ModuleOrdering
-export monoid_representation
 export MonomialOrdering
 export Multipartition
 export Nemo
@@ -1266,6 +1265,7 @@ export modulus
 export moebius_kantor_matroid
 export moebius_mu
 export molien_series
+export monoid_representation
 export monomial_basis
 export monomial_ordering
 export monomials
