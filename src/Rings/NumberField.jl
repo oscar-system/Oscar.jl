@@ -421,7 +421,10 @@ divexact(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}; check::Bool=tru
 ################################################################################
 
 function Base.deepcopy_internal(a::NfNSGenElem, dict::IdDict)
-  return NfNSGenElem(Base.deepcopy_internal(a.f, dict), parent(a))
+  haskey(dict, a) && return dict[a]
+  aa = NfNSGenElem(Base.deepcopy_internal(a.f, dict), parent(a))
+  dict[a] = aa
+  return aa
 end
 
 ################################################################################

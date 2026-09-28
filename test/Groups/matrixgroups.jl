@@ -891,6 +891,8 @@ end
    @test isdefined(c, :X)
    @test ! isdefined(c, :elm)
    @test GapObj(c) == GapObj(m)
+   c = deepcopy([ m, m ])
+   @test c[1] === c[2]
 
    m = MatGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
    @test isdefined(m, :X)
