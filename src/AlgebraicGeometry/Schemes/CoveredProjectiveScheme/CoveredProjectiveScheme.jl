@@ -236,7 +236,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     R = base_ring(I)
     x = gens(R)
     kk = coefficient_ring(R)
-    A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]))
+    A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]), cached=false)
     t = last(x_ext)
     inc = hom(R, A, x_ext[1:end-1], check=false)
     phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
@@ -291,7 +291,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:RingType}, I::Ideal;
 
   # It follows the generic Proj construction
   R = OO(W)
-  T, (t,) = polynomial_ring(R, [:t])
+  T, (t,) = polynomial_ring(R, [:t], cached=false)
   S, s = graded_polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
@@ -384,7 +384,7 @@ end
 #
 #  # some internal function
 #  function _add_variables(R::RingType, v::Vector{Symbol}) where {RingType<:MPolyRing}
-#    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v))
+#    ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), v), cached=false)
 #    n = ngens(R)
 #    phi = AlgebraHomomorphism(R, ext_R, gens(ext_R)[1:n])
 #    return ext_R, phi, gens(ext_R)[(ngens(R)+1):ngens(ext_R)]
@@ -677,18 +677,28 @@ function _compute_gluing(gd::ProjectiveGluingData)
   # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}.
   P = gd.proj
   (A, B) = gluing_domains(C[U, V])
+  @assert ambient_coordinate_ring(A) === ambient_coordinate_ring(U)
+  @assert ambient_coordinate_ring(B) === ambient_coordinate_ring(V)
   (f, g) = gluing_morphisms(C[U, V])
   (UD, VD) = gluing_domains(P[U, V])
+  @assert coefficient_ring(homogeneous_coordinate_ring(UD)) === OO(A)
+  @assert coefficient_ring(homogeneous_coordinate_ring(VD)) === OO(B)
   (fup, gup) = gluing_morphisms(P[U, V])
   (incU, incV) = inclusion_maps(P[U, V])
+  @assert coefficient_ring(homogeneous_coordinate_ring(codomain(incU))) === OO(U)
+  @assert coefficient_ring(homogeneous_coordinate_ring(codomain(incV))) === OO(V)
   S = homogeneous_coordinate_ring(P[U])
   T = homogeneous_coordinate_ring(P[V])
   i = P[U][UW][2]
   j = P[V][VW][2]
   s_i = gen(S, i)
   t_j = gen(T, j)
-  AW = affine_charts(Oscar.covered_scheme(UD))[i]
-  BW = affine_charts(Oscar.covered_scheme(VD))[j]
+  AW = affine_charts(covered_scheme(UD))[i]
+  # Since caching of polynomial rings is set to `false` by default, 
+  # the following does not hold anymore:
+  #@assert ambient_coordinate_ring(AW) === ambient_coordinate_ring(UW)
+  # This leads to some unintuitive code below using `evaluate` instead of casting.
+  BW = affine_charts(covered_scheme(VD))[j]
   hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
   hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
@@ -712,17 +722,17 @@ function _compute_gluing(gd::ProjectiveGluingData)
   phi1 = pullback(ptbUD[AW])
   hhU = lifted_numerator(phi1(domain(phi1)(complement_equation(A), check=false)))
   hhU = hhU * lifted_numerator(hU)
-  AAW = PrincipalOpenSubset(UW, OO(UW)(hhU))
+  AAW = PrincipalOpenSubset(UW, evaluate(hhU, gens(OO(UW))))
   phi2 = pullback(ptbVD[BW])
   hhV = lifted_numerator(phi2(domain(phi2)(complement_equation(B), check=false)))
   hhV = hhV * lifted_numerator(hV)
-  BBW = PrincipalOpenSubset(VW, OO(VW)(hhV))
+  BBW = PrincipalOpenSubset(VW, evaluate(hhV, gens(OO(VW))))
 
   x = gens(ambient_coordinate_ring(AAW))
   y = gens(ambient_coordinate_ring(BBW))
 
-  xh = homogenization_map(UD, AW).(OO(AW).(x))
-  yh = homogenization_map(VD, BW).(OO(BW).(y))
+  xh = homogenization_map(UD, AW).([evaluate(x, gens(OO(AW))) for x in x])
+  yh = homogenization_map(VD, BW).([evaluate(y, gens(OO(BW))) for y in y])
 
   xhh = [(pullback(gup)(pp), pullback(gup)(qq)) for (pp, qq) in xh]
   yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]

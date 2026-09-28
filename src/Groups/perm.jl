@@ -4,14 +4,104 @@
 
 Base.isfinite(G::PermGroup) = true
 
-==(x::PermGroup, y::PermGroup) = x.deg == y.deg && GapObj(x) == GapObj(y)
+==(x::PermGroup, y::PermGroup) = (x === y) || (x.deg == y.deg && GapObj(x) == GapObj(y))
 
-==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && GapObj(x) == GapObj(y)
+==(x::PermGroupElem, y::PermGroupElem) = (x === y) || (degree(x) == degree(y) && GapObj(x) == GapObj(y))
+
+function Base.hash(x::PermGroupElem, h::UInt)
+  b = 0x9b3a9724eca6a9c5 % UInt
+  h = hash(degree(x), h)
+  modulus = Sys.WORD_SIZE == 32 ? 2^28 : 2^60 # GAP limitations on integer size for seed.
+  h = UInt(GAPWrap.HashPermutation(GapObj(x), GapInt(h % modulus)))
+  return xor(h, b)
+end
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
+
+################################################################################
+#
+#  Direct access to GAP's internal representation of permutations
+#
+#  A GAP permutation of degree `deg` is a bag that stores a pointer to its
+#  cached inverse, followed by the images of `1:deg` as zero-based entries of
+#  type `UInt16` (bag type `T_PERM2`) resp. `UInt32` (bag type `T_PERM4`):
+#
+#      +---------+----------+----------+-----+------------+
+#      | inverse | 1^x - 1  | 2^x - 1  | ... | deg^x - 1  |
+#      +---------+----------+----------+-----+------------+
+#
+#  Bypassing the GAP library here avoids converting Julia vectors to GAP lists
+#  and back, which dominates the runtime of the operations below.
+#
+################################################################################
+
+# Size of the leading pointer to the cached inverse.
+const _GAP_PERM_INVERSE_SIZE = sizeof(Ptr{Cvoid})
+
+# Largest degree GAP still stores as `T_PERM2` instead of `T_PERM4`.
+const _GAP_PERM2_MAX_DEGREE = 2^16
+
+# Largest degree representable at all, as `T_PERM4` uses `UInt32` entries.
+const _GAP_PERM_MAX_DEGREE = 2^32
+
+# Pointer to the image entries of the GAP permutation `x`; only valid as long
+# as `x` is protected from garbage collection.
+_gap_perm_images(::Type{T}, x::GapObj) where T = Ptr{T}(GAP.ADDR_OBJ(x) + _GAP_PERM_INVERSE_SIZE)
+
+# Image of the point `n` under the GAP permutation `x`; points beyond the
+# stored degree are fixed.
+@inline function _gap_perm_image(x::GapObj, n::Int)
+  GC.@preserve x begin
+    addr, tnum, bagsize = GAP.ADDR_TNUM_SIZE_OBJ(x)
+    images = addr + _GAP_PERM_INVERSE_SIZE
+    nbytes = bagsize - _GAP_PERM_INVERSE_SIZE
+    if tnum == GAP.T_PERM4
+      n > nbytes ÷ sizeof(UInt32) && return n
+      return Int(unsafe_load(Ptr{UInt32}(images), n)) + 1
+    end
+    n > nbytes ÷ sizeof(UInt16) && return n
+    return Int(unsafe_load(Ptr{UInt16}(images), n)) + 1
+  end
+end
+
+# Return the GAP permutation mapping `i` to `L[i]` for all `i` in `1:length(L)`.
+# Throw an `ArgumentError` if `L` is not a permutation of `1:length(L)`.
+function _make_gap_perm(L::AbstractVector{<:IntegerUnion})
+  deg = length(L)
+  @req deg <= _GAP_PERM_MAX_DEGREE "degree is $deg, must be at most $_GAP_PERM_MAX_DEGREE"
+  deg <= _GAP_PERM2_MAX_DEGREE && return _make_gap_perm(UInt16, L)
+  return _make_gap_perm(UInt32, L)
+end
+
+function _make_gap_perm(::Type{T}, L::AbstractVector{<:IntegerUnion}) where T <: Union{UInt16, UInt32}
+  deg = length(L)
+  x = if T === UInt16
+    @ccall GAP.libgap.NEW_PERM2(deg::UInt)::GapObj
+  else
+    @ccall GAP.libgap.NEW_PERM4(deg::UInt)::GapObj
+  end
+
+  # Reject non-bijective input, just as GAP's `PermList` does; without this the
+  # resulting bag would violate GAP's invariants and crash the GAP kernel.
+  # A `Vector{Bool}` beats a `BitVector` here by a factor of three.
+  seen = fill(false, deg)
+
+  GC.@preserve x begin
+    images = _gap_perm_images(T, x)
+    for (i, v) in enumerate(L)
+      @req 1 <= v <= deg "the list does not describe a permutation"
+      k = Int(v)
+      @req !(@inbounds seen[k]) "the list does not describe a permutation"
+      @inbounds seen[k] = true
+      unsafe_store!(images, T(k - 1), i)
+    end
+  end
+
+  return x
+end
 
 @doc raw"""
     degree(G::PermGroup) -> Int
@@ -84,6 +174,63 @@ function (G::PermGroup)(H::PermGroup)
   throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
 end
 
+@doc raw"""
+    smallest_moved_point(x::PermGroupElem) -> Union{Int, PosInf}
+
+Return the smallest positive integer which is not fixed by `x` if
+such an integer exists, and `inf` if `x` is the identity.
+
+    smallest_moved_point(G::PermGroup) -> Union{Int, PosInf}
+
+Return the smallest positive integer which is not fixed by `G` if
+such an integer exists, and `inf` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> smallest_moved_point(s)
+1
+
+julia> smallest_moved_point(gen(s, 1))
+1
+
+julia> smallest_moved_point(one(s))
+infinity
+```
+"""
+function smallest_moved_point(x::Union{PermGroupElem,PermGroup})
+  pt = GAPWrap.SmallestMovedPoint(GapObj(x))
+  pt isa Int && return pt
+  return inf
+end
+
+@doc raw"""
+    largest_moved_point(x::PermGroupElem) -> Int
+
+Return the largest positive integer which is not fixed by `x` if
+such an integer exists, and `0` if `x` is the identity.
+
+    largest_moved_point(G::PermGroup) -> Int
+
+Return the largest positive integer which is not fixed by `G` if
+such an integer exists, and `0` if `G` is trivial.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> largest_moved_point(s)
+3
+
+julia> largest_moved_point(gen(s, 1))
+3
+
+julia> largest_moved_point(one(s))
+0
+```
+"""
+largest_moved_point(x::Union{PermGroupElem,PermGroup}) = GAPWrap.LargestMovedPoint(GapObj(x))
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
@@ -104,6 +251,66 @@ julia> length(moved_points(gen(s, 1)))
 ```
 """
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(GapObj(x)))
+
+@doc """
+    fixed_points(x::PermGroupElem) -> Vector{Int}
+    fixed_points(G::PermGroup) -> Vector{Int}
+
+Return the vector of points in `1:degree(x)` or `1:degree(G)` that are
+fixed by all elements (for groups) or by `x` (for elements).
+
+# Examples
+
+```jldoctest
+julia> g = symmetric_group(4)
+Symmetric group of degree 4
+
+julia> s = sylow_subgroup(g, 3)[1];
+
+julia> fixed_points(s)
+1-element Vector{Int64}:
+ 4
+
+julia> fixed_points(one(s))
+4-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 4
+
+julia> x = g([1,2,4,3])
+(3,4)
+
+julia> fixed_points(x)
+2-element Vector{Int64}:
+ 1
+ 2
+```
+"""
+function fixed_points(G::Union{PermGroup, PermGroupElem})
+  points = 1:degree(G)
+  return setdiff(points, moved_points(G))
+end
+
+@doc raw"""
+    number_of_fixed_points(x::PermGroupElem) -> Int
+    number_of_fixed_points(G::PermGroup) -> Int
+
+Return the number of points in `1:degree(x)` or `1:degree(G)` that are
+fixed by all elements (for groups) or by `x` (for elements).
+  
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
+
+julia> number_of_fixed_points(s)
+1
+
+julia> number_of_fixed_points(one(s))
+4
+```
+"""
+number_of_fixed_points(x::Union{PermGroupElem, PermGroup}) = degree(x) - number_of_moved_points(x)
 
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int
@@ -127,14 +334,15 @@ julia> number_of_moved_points(gen(s, 1))
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
+    perm(n::Int, L::AbstractVector{<:IntegerUnion})
 
-Return the permutation $x$ which maps every $i$ from `1` to $n$` = length(L)`
-to `L`$[i]$.
+Return the permutation $x$ which maps every $i$ from `1` to `n` to `L`$[i]$.
+If `n` is not given then `n = length(L)` is used.
+
 The parent of $x$ is set to [`symmetric_group`](@ref)$(n)$.
-An exception is thrown if `L` does not contain every integer from 1 to $n$
-exactly once.
 
-The parent group of $x$ is set to [`symmetric_group`](@ref)$(n)$.
+An exception is thrown if `L` does not describe a valid permutation,
+or if its length exceeds `n`.
 
 # Examples
 ```jldoctest
@@ -142,11 +350,16 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Sym(6)
+Symmetric group of degree 6
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(_symmetric_group_cached(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
+  return perm(length(L), L)
+end
+
+function perm(n::Int, L::AbstractVector{<:IntegerUnion})
+  @req length(L) <= n "input vector exceeds given degree $n"
+  return PermGroupElem(_symmetric_group_cached(n), _make_gap_perm(L))
 end
 
 """
@@ -167,7 +380,7 @@ julia> rho = smaller_degree_permutation_representation(s)
 """
 function smaller_degree_permutation_representation(G::PermGroup)
   mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
-  img = PermGroup(GAP.Globals.Image(mp))
+  img = PermGroup(GAPWrap.Image(mp))
   return img, GAPGroupHomomorphism(G, img, mp)
 end
 
@@ -206,21 +419,13 @@ true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
-   @req x !== GAP.Globals.fail "the list does not describe a permutation"
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
+   @req length(L) <= degree(g) "the element does not embed in the group"
+   x = _make_gap_perm(L)
+   @req x in GapObj(g) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
-perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
-
-function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GapObj(L;recursive=true))
-   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
-   return PermGroupElem(g, x)
-end
-
-(g::PermGroup)(L::AbstractVector{<:ZZRingElem}) = g([Int(y) for y in L])
+(g::PermGroup)(L::AbstractVector{<:IntegerUnion}) = perm(g, L)
 
 # cperm stands for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
@@ -277,7 +482,7 @@ julia> x = cperm(G, [1,2,3]);
 julia> y = cperm(A, [1,2,3]);
 
 julia> z = cperm([1,2,3]); parent(z)
-Sym(3)
+Symmetric group of degree 3
 
 julia> x == y
 true
@@ -384,9 +589,16 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
 
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^GapObj(x))
+function ^(n::T, x::PermGroupElem) where T <: IntegerUnion
+  fits(Int, n) && return T(Int(n)^x)
+  @req n > 0 "permutations only act on positive integers"
+  return n  # points beyond the degree are fixed
+end
 
-^(n::Int, x::PermGroupElem) = (n^GapObj(x))::Int
+function ^(n::Int, x::PermGroupElem)
+  @req n > 0 "permutations only act on positive integers"
+  return _gap_perm_image(GapObj(x), n)
+end
 
 
 @doc raw"""
@@ -464,26 +676,6 @@ Base.iseven(n::PermGroup) = !isodd(n)
 ##
 # cycle types and support
 ##
-struct CycleType <: AbstractVector{Pair{Int64, Int64}}
-  # pairs 'cycle length => number of times it occurs'
-  # so 'n => 1' is a single n-cycle and  '1 => n' is the identity on n points
-  s::Vector{Pair{Int, Int}}
-
-  # take a vector of cycle lengths
-  function CycleType(c::Vector{Int})
-    s = Vector{Pair{Int, Int}}()
-    for i = c
-      _push_cycle!(s, i)
-    end
-    sort!(s; by=first)
-    return new(s)
-  end
-  function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
-    sorted && return new(v)
-    return new(sort(v; by=first))
-#TODO: check that each cycle length is specified at most once?
-  end
-end
 
 Base.iterate(C::CycleType) = iterate(C.s)
 Base.iterate(C::CycleType, x) = iterate(C.s, x)
@@ -492,8 +684,8 @@ Base.eltype(C::CycleType) = Pair{Int, Int}
 Base.getindex(C::CycleType, i::Int) = C.s[i]
 Base.size(C::CycleType) = size(C.s)
 
-function Base.hash(c::CycleType, u::UInt = UInt(121324))
-  return hash(c.s, u)
+function Base.hash(c::CycleType, h::UInt)
+  return hash(c.s, h)
 end
 
 function Base.show(io::IO, C::CycleType)
@@ -639,7 +831,7 @@ julia> cycle_structure(g)
 function cycle_structure(g::PermGroupElem)
     c = GAPWrap.CycleStructurePerm(GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
-    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
+    ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAPWrap.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))
     if s < degree(g)
       @assert length(c) == 0 || ct[1][1] > 1
@@ -817,7 +1009,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Sym(8)
+Symmetric group of degree 8
 
 julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
@@ -853,7 +1045,7 @@ julia> gens = @perm [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Sym(14)
+Symmetric group of degree 14
 ```
 """
 macro perm(expr)
@@ -970,8 +1162,110 @@ macro permutation_group(n, gens...)
     end
 
     return quote
-       let g = _symmetric_group_cached($n)
+       let g = _symmetric_group_cached($(esc(n)))
            sub(g, [cperm(g, pi...) for pi in [$(ores...)]], check = false)[1]
        end
     end
+end
+
+function print_perm(io::IO, perm::PermGroupElem, cycle_limit::Int = 100)
+  dom = BitSet()
+  l = largest_moved_point(perm)
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = smallest_moved_point(perm)
+  while length(dom) < cycle_limit && i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(io, ")")
+    end
+    i = i + 1
+  end
+  if i < l && any(j -> j^perm != j && !(j in dom), i:l)
+    # if there are any cycles left, indicate that
+    print(io, "(...)")
+  end
+  return nothing
+end
+
+function print_perm_with_limited_width(io::IO, perm::PermGroupElem, width::Int)
+  dom = BitSet()
+  l = largest_moved_point(perm)
+  if l == 0
+    print(io, "()")
+    return
+  end
+  i = smallest_moved_point(perm)
+
+  str_io = IOBuffer()
+  str = nothing
+  while i < l
+    p = i
+    if p^perm != p && !(p in dom)
+      c = false
+      while !(p in dom)
+        push!(dom, p)
+        print(str_io, c ? "," : "(", p)
+        p = p^perm
+        c = true
+      end
+      print(str_io, ")")
+      str = String(take!(str_io))
+      if length(str) <= width - 5
+        # TODO: handle the case where width-5 < length(str) <= width and this
+        # is the last cycle, so we don't need to abbreviate it
+        print(io, str)
+        width -= length(str)
+        str = nothing
+      else
+        break
+      end
+    end
+    i = i + 1
+  end
+
+  any_cycles_left = i < l && any(j -> j^perm != j && !(j in dom), i:l)
+  if str !== nothing
+    @assert length(str) >= width - 5
+    if any_cycles_left
+      width -= 5
+    end
+    # We would like to abbreviate the cycle printed in str by ending it with
+    # ",...)" so a comma followed by 5 characters. We thus only keep width-4
+    # characters, and then search for a comma.
+    pos = findprev(',', str, width - 4)
+
+    # If there is no comma within the first width character, e.g. if the
+    # cycle has large entries such as "(12345,12346,..." and we cut off before
+    # first comma, then don't print this cycle
+    if pos == nothing
+      any_cycles_left = true
+    else
+      print(io, str[1:pos], "...)")
+    end
+  end
+  if any_cycles_left
+    print(io, "(...)")
+  end
+  return nothing
+end
+
+
+function Base.show(io::IO, x::PermGroupElem)
+  if get(io, :limit, false)::Bool
+    screenheight, screenwidth = displaysize(io)::Tuple{Int,Int}
+    screenwidth -= 3 # leave some space for indentation
+    print_perm_with_limited_width(io, x, screenwidth)
+  else
+    print_perm(io, x)
+  end
 end

@@ -19,19 +19,11 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing)
-  return dim(modulus(A))
-end
+dim(A::MPolyQuoRing) = krull_dim(A)
 
-function dim(A::zzModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
+krull_dim(A::MPolyQuoRing) = krull_dim(modulus(A))
 
-function dim(A::ZZModRing)
-  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
-  return 0
-end
+is_noetherian(A::MPolyQuoRing) = is_noetherian(coefficient_ring(A)) || throw(NotImplementedError(:is_noetherian, A))
 
 @doc raw"""
     is_finite_dimensional_vector_space(A::MPolyQuoRing)
@@ -40,9 +32,9 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
 as a `K`-vector space, `false` otherwise.
 
-!!! note 
-    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension zero. This condition is checked by the function.
-    
+!!! note
+    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension
+    less or equal to zero. This condition is checked by the function.
 
 # Examples
 ```jldoctest
@@ -61,25 +53,17 @@ false
 """
 function is_finite_dimensional_vector_space(A::MPolyQuoRing)
   # We check '<=' because A might be the zero ring, so dim(A) == -1
-  return dim(A) <= 0
-end
-
-struct InfiniteDimensionError <: Exception
-end
-
-function Base.showerror(io::IO, err::InfiniteDimensionError)
-  println(io, "Infinite-dimensional vector space")
-  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
+  return krull_dim(A) <= 0
 end
 
 @doc raw"""
-    vector_space_dimension(A::MPolyQuoRing)
+    vector_space_dim(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -87,7 +71,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
 
-julia> vector_space_dimension(A)
+julia> vector_space_dim(A)
 6
 
 julia> I = modulus(A)
@@ -105,11 +89,11 @@ with respect to the ordering
   lex([x, y, z])
 ```
 """
-function vector_space_dimension(A::MPolyQuoRing)
+function vector_space_dim(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
-    error("vector_space_dimension requires a coefficient ring that is a field")
+    error("vector_space_dim requires a coefficient ring that is a field")
   end
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(AbstractAlgebra.InfiniteDimensionError(check_available = true))
   I = modulus(A)
   G = standard_basis(I)
   return Singular.vdim(singular_generators(G, G.ord))
@@ -124,7 +108,7 @@ such that the residue classes of these monomials form a basis of `A` as a `K`-ve
 space.
 
 !!! note
-    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
+    If `A` is infinite-dimensional as a `K`-vector space, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -150,7 +134,7 @@ julia> L = monomial_basis(A)
 """
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  is_finite_dimensional_vector_space(A) || throw(AbstractAlgebra.InfiniteDimensionError(check_available = true))
   if is_trivial(A)
     return elem_type(base_ring(A))[]
   end
@@ -161,29 +145,36 @@ function monomial_basis(A::MPolyQuoRing)
 end
 
 @doc raw"""
-    monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
-
-Given an affine algebra `A` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
-return a vector of monomials of `R` such that the residue classes of
-these monomials form a `K`-basis of the graded part of `A` of degree `g`.
-
-    monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded affine algebra `A` over a field and
-a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
-group of `A` and proceed as above.
-
+    monomial_basis(A::MPolyQuoRing, d::FinGenAbGroupElem)
+    monomial_basis(A::MPolyQuoRing, d::Vector{<:IntegerUnion})
     monomial_basis(A::MPolyQuoRing, d::IntegerUnion)
 
-Given a $\mathbb  Z$-graded  affine algebra `A` over a field and
-an integer `d`, convert `d` into an element `g` of the grading
-group of `A` and proceed as above.
+Given a quotient `A = R/I` of a polynomial ring `R` over a field `K`,
+graded by a finitely generated abelian group, return monomials of `R`
+whose residue classes form a `K`-basis of the homogeneous component
+of `A` of the specified degree.
+
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
-    If the component of the given degree is not finite dimensional, an error message will be thrown.
+    The computation first enumerates monomials in `R` of the requested
+    degree. If the grading group has torsion, it ignores torsion during
+    this enumeration. The resulting set of monomial candidates must be
+    finite; otherwise, an `InfiniteDimensionError` is thrown. Note that
+    this restriction applies even if the requested homogeneous component
+    of `A` is finite-dimensional.
+
+!!! note
+    If `A` has Krull dimension zero, one may alternatively use
+    `monomial_basis(A)` to obtain a monomial basis of all of `A`.
 
 # Examples
+
+The following example illustrates the $\mathbb{Z}$-graded case.
+
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
@@ -198,28 +189,60 @@ julia> L = monomial_basis(A, 3)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  y^3
  x*y^2
+
+julia> monomial_basis(A, grading_group(A)([3])) == L
+true
+
+julia> monomial_basis(A, [3]) == L
+true
+```
+
+The following example illustrates a grading group with torsion:
+
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> A, _ = quo(R, ideal(R, [x^2]));
+
+julia> monomial_basis(A, G([2, 1])) == [x*y]
+true
+
+julia> monomial_basis(A, G([2, 0])) == [y^2]
+true
 ```
 """
-function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
-  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+function monomial_basis(A::MPolyQuoRing, d::FinGenAbGroupElem)
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
-  L = monomial_basis(R, g)
-  LI = leading_ideal(A.I)
-  ### TODO: Decide whether we should check whether a GB with respect
-    ### to whatever <ordering is already available
-  L = [x for x=L if !(x in LI)]
-    return L
+  basis = try
+    monomial_basis(R, d)
+  catch err
+    if err isa AbstractAlgebra.InfiniteDimensionError
+      throw(
+        AbstractAlgebra.InfiniteDimensionError(
+          "The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional",
+        ),
+      )
+    end
+    rethrow()
+  end
+  isempty(basis) && return basis
+  leading = leading_ideal(A.I) # TODO: Check if a GB is already available?
+  return filter!(m -> !(m in leading), basis)
 end
 
-function monomial_basis(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(A)
-  return monomial_basis(A, grading_group(A)(g))
+function monomial_basis(A::MPolyQuoRing, d::Vector{<:IntegerUnion})
+  @req is_zm_graded(A) "The ring must be Z^m-graded"
+  return monomial_basis(A, grading_group(A)(d))
 end
 
-function monomial_basis(A::MPolyQuoRing, g::IntegerUnion)
-  @assert is_z_graded(A)
-  return monomial_basis(A, grading_group(A)([g]))
+function monomial_basis(A::MPolyQuoRing, d::IntegerUnion)
+  @req is_z_graded(A) "The ring must be Z-graded"
+  return monomial_basis(A, grading_group(A)([d]))
 end
 
 ##############################################################################
@@ -258,7 +281,7 @@ See also `hilbert_series_reduced`.
     ignored for certain backends.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -266,7 +289,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_series(A)
 (2*t^3 - 3*t^2 + 1, (-t + 1)^4)
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -290,10 +313,6 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
   return numer,denom
 end
 
-# TODO: The method below is missing. It should be made better and put to the correct place (AA).
-number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-
-
 @doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
@@ -306,7 +325,7 @@ $A$ as a rational function written in lowest terms.
 See also `hilbert_series`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
@@ -314,7 +333,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_series_reduced(A)
 (2*t + 1, t^2 - 2*t + 1)
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -349,7 +368,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_series_expanded(A, 7)
 1 + 4*t + 7*t^2 + 10*t^3 + 13*t^4 + 16*t^5 + 19*t^6 + 22*t^7 + O(t^8)
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -392,7 +411,7 @@ julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 julia> hilbert_function(A,7)
 22
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3]);
 
 julia> A, _ = quo(R, ideal(R, [x*y*z]));
 
@@ -529,10 +548,10 @@ Return the Hilbert series of the graded affine algebra `A`.
     see the code for details.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3; weights = W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -551,8 +570,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -561,7 +581,7 @@ Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -605,7 +625,7 @@ function multi_hilbert_series(
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:length(R.d)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached = false)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights = W, cached = false)
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)
@@ -633,7 +653,7 @@ function multi_hilbert_series(
   # @assert evaluate(fac_denom) == q
 
   # Shortcut for the trivial case
-  iszero(I) && return (one(HSRing), fac_denom), (G, identity_map(G))
+  iszero(I) && return (one(HSRing), fac_denom), (G, id_hom(G))
 
   # In general refer to internal methods for monomial ideals
   # TODO: Shouldn't the ordering be adapted to the grading in some sense?
@@ -647,12 +667,11 @@ function multi_hilbert_series(
   else
     error("backend ($(backend)) not found")
   end
-  return (numer, fac_denom), (G, identity_map(G))
+  return (numer, fac_denom), (G, id_hom(G))
 end
 
 
 ### TODO: original version of multi_hilbert_series based on moving things to the positive orthant
-
 #function multi_hilbert_series(A::MPolyQuoRing)
 #   R = base_ring(A)
 #   I = A.I
@@ -665,7 +684,7 @@ end
 #      isoinv = hom(G, H, V)
 #      W = R.d
 #      W = [isoinv(W[i]) for i = 1:length(W)]
-#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+#      S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights = W)
 #      change = hom(R, S, gens(S))
 #      I = change(A.I)
 #      R = S
@@ -690,7 +709,7 @@ end
 #   else
 #      VAR = ["t[$i]" for i = 1:m]
 #   end
-#   S, _ = polynomial_ring(ZZ, VAR)
+#   S, _ = polynomial_ring(ZZ, VAR, cached=false)
 #   q = one(S)
 #   for i = 1:n
 #      e = [Int(MI[i, :][j]) for j = 1:m]
@@ -703,7 +722,7 @@ end
 #   else
 #      LI = leading_ideal(I, ordering=degrevlex(gens(R)))
 #     if minMI<0
-#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), Matrix(transpose(MI)))
+#         RNEW, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights = Matrix(transpose(MI)))
 #         LI = ideal(RNEW, [RNEW(LI[i]) for i = 1:ngens(LI)])
 #      end
 #      p = _numerator_monomial_multi_hilbert_series(LI, S)
@@ -724,7 +743,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3; weights = W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -744,8 +763,9 @@ julia> H[2][1]
 Z^2
 
 julia> H[2][2]
-Identity map
-  of Z^2
+Map
+  from Z^2
+  to Z^2
 
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
@@ -754,7 +774,7 @@ Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -825,7 +845,7 @@ of $A$, and return the value $H(A, g)$ as above.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3; weights = W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -837,7 +857,7 @@ julia> multi_hilbert_function(A::MPolyQuoRing, [1, 0])
 ```
 
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], [-1, -1, -1, -1]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = [-1, -1, -1, -1]);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -852,7 +872,7 @@ julia> g = gen(G, 1);
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> A, _ = quo(R, ideal(R, [w*y-x^2, w*z-x*y, x*z-y^2]));
 
@@ -1106,7 +1126,7 @@ function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingEl
   GJ = _groebner_basis(J, d, ordering = o)
 
   S, _ = polynomial_ring(base_ring(R), "t#" => 1:length(v); cached=false)
-  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+  TtoS = hom(T, S, append!(Hecke.zeros_array(S, ngens(R)), gens(S)))
 
   return RtoT, TtoS, GJ
 end
@@ -1387,7 +1407,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
-      newOR, _ = polynomial_ring(br, symbols(newSR))
+      newOR, _ = polynomial_ring(br, symbols(newSR), cached=false)
       newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
       set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))
@@ -1665,7 +1685,7 @@ end
 ##############################################################################
 
 @doc raw"""
-      present_finite_extension_ring(F::Oscar.AffAlgHom)
+      present_finite_extension_ring(F::AffAlgHom)
 
 Given a finite homomorphism `F` $:$ `A` $\rightarrow$ `B`  of algebras of type `<: Union{MPolyRing, MPolyQuoRing}` over a field, return a presentation
 
@@ -1674,25 +1694,62 @@ $A^r \rightarrow A^s\rightarrow B \rightarrow 0$
 of `B` as an `A`-module.
 
 More precisely, return a tuple `(gs, PM, sect)`, say, where
-- `gs` is a vector of polynomials representing generators for `B` as an `A`-module,
+- `gs` is a vector of monomials representing generators for `B` as an `A`-module,
 - `PM` is an `r` $\times$ `s`-matrix of polynomials defining the map $A^r \rightarrow A^s$, and
-- `sect` is a function which gives rise to a section of the augmentation map $ A^s\rightarrow B$.
+- `sect` is a function which gives rise to a (not necessarily $A$-linear) section of the map $ A^s\rightarrow B$ (that is, the function allows one to rewrite each  $b \in B$ as a vector of $A$-coordinates).
 
 !!! note
     The finiteness condition on `F` is checked by the function.
 
 !!! note
-    The function is implemented so that the last element of `gs` is `one(B)`.
+    The function is implemented so that the last element of `gs` is the monomial 1.
+
+!!! note
+    The function works if both `A` and `B` are ungraded or if both `A` and `B`
+    are $\mathbb Z$-graded with positive weights and `F` respects degrees. In
+    other graded cases use `forget_grading` first.
 
 # Examples
+julia> A, (a,) = polynomial_ring(QQ, [:a]);
+
+julia> B, (b,) = polynomial_ring(QQ, [:b]);
+
+julia> B, _ = quo(B, ideal(B, [b^2]));
+
+julia> F = hom(A, B, [zero(B)])
+Ring homomorphism
+  from multivariate polynomial ring in 1 variable over QQ
+  to quotient of multivariate polynomial ring by ideal (b^2)
+defined by
+  a -> 0
+
+julia> gs, PM, sect = present_finite_extension_ring(F);
+
+julia> gs
+2-element Vector{QQMPolyRingElem}:
+ b
+ 1
+
+julia> PM
+2×2 Matrix{QQMPolyRingElem}:
+ a  0
+ 0  a
+
+julia> sect(one(B))
+2-element Vector{QQMPolyRingElem}:
+ 0
+ 1
+
+```
+
 ```jldoctest
-julia> RA, (h,) = polynomial_ring(QQ, [:h]);
+julia> AR, (h,) = graded_polynomial_ring(QQ, [:h]);
 
-julia> A, _ = quo(RA, ideal(RA, [h^9]));
+julia> A, _ = quo(AR, ideal(AR, [h^9]));
 
-julia> RB, (k, l) = polynomial_ring(QQ, [:k, :l]);
+julia> BR, (k, l) = graded_polynomial_ring(QQ, [:k, :l]);
 
-julia> B, _ = quo(RB, ideal(RB, [k^3, l^3]));
+julia> B, _ = quo(BR, ideal(BR, [k^3, l^3]));
 
 julia> F = hom(A, B, [k+l])
 Ring homomorphism
@@ -1704,19 +1761,19 @@ defined by
 julia> gs, PM, sect = present_finite_extension_ring(F);
 
 julia> gs
-3-element Vector{QQMPolyRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  l^2
  l
  1
 
 julia> PM
-3×3 Matrix{QQMPolyRingElem}:
- h^3     0       0
- -3*h^2  h^3     0
- 3*h     -3*h^2  h^3
+3×3 Matrix{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ 3*h  -3*h^2  h^3
+ 0    2*h^3   -h^4
+ 0    0       h^5
 
 julia> sect(k*l)
-3-element Vector{QQMPolyRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  -1
  h
  0
@@ -1724,152 +1781,290 @@ julia> sect(k*l)
 ```
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+julia> A, (u, v) = polynomial_ring(QQ, [:u, :v]);
 
-julia> I = ideal(R, [z^2-y^2*(y+1)]);
+julia> BR, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> A, _ = quo(R, I);
+julia> B, _ = quo(BR, ideal(BR, x^2 + y^2 + z^2));
 
-julia> B, (s,t) =  polynomial_ring(QQ, [:s, :t]);
-
-julia> F = hom(A,B, [s, t^2-1, t*(t^2-1)])
+julia> F = hom(A, B, B.([x, y]))
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (-y^3 - y^2 + z^2)
-  to multivariate polynomial ring in 2 variables over QQ
+  from multivariate polynomial ring in 2 variables over QQ
+  to quotient of multivariate polynomial ring by ideal (x^2 + y^2 + z^2)
 defined by
-  x -> s
-  y -> t^2 - 1
-  z -> t^3 - t
+  u -> x
+  v -> y
 
 julia> gs, PM, sect = present_finite_extension_ring(F);
 
 julia> gs
 2-element Vector{QQMPolyRingElem}:
- t
+ z
  1
 
 julia> PM
-2×2 Matrix{QQMPolyRingElem}:
- y   -z
- -z  y^2 + y
-
-julia> sect(t)
-2-element Vector{QQMPolyRingElem}:
- 1
- 0
-
-julia> sect(one(B))
-2-element Vector{QQMPolyRingElem}:
- 0
- 1
-
-julia> sect(s)
-2-element Vector{QQMPolyRingElem}:
- 0
- x
-
-```
-
-```jldoctest
-julia> A, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c]);
-
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> I = ideal(R, [x*y]);
-
-julia> B, _ = quo(R, I);
-
-julia> (x, y, z) = gens(B);
-
-julia> F = hom(A, B, [x^2+z, y^2-1, z^3])
-Ring homomorphism
-  from multivariate polynomial ring in 3 variables over QQ
-  to quotient of multivariate polynomial ring by ideal (x*y)
-defined by
-  a -> x^2 + z
-  b -> y^2 - 1
-  c -> z^3
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-2-element Vector{QQMPolyRingElem}:
- y
- 1
-
-julia> PM
-2×2 Matrix{QQMPolyRingElem}:
- a^3 - c  0
- 0        a^3*b + a^3 - b*c - c
-
-julia> sect(y)
-2-element Vector{QQMPolyRingElem}:
- 1
- 0
-
-julia> sect(one(B))
-2-element Vector{QQMPolyRingElem}:
- 0
- 1
+Matrix{QQMPolyRingElem}[]
 
 ```
 """
-function  present_finite_extension_ring(F::Oscar.AffAlgHom)
+function present_finite_extension_ring(F::AffAlgHom)
   A, B = F.domain, F.codomain
-  a, b = ngens(A), ngens(B)
-  
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
+  AR = A isa MPolyQuoRing ? base_ring(A) : A
+  BR = B isa MPolyQuoRing ? base_ring(B) : B
+  @assert coefficient_ring(AR::MPolyRing) === coefficient_ring(BR::MPolyRing)
+  @req coefficient_ring(AR) isa Field "the coefficient ring must be a field"
+  x, y = gens(AR), gens(BR)
+  lx, ly = ngens(AR), ngens(BR)
+  gr_check = is_graded(AR) || is_graded(BR)
+  TR, yT, xT = _graph_ring(F, Val{gr_check})
+
+  ARtoTR = hom(AR, TR, xT)
+  BRtoTR = hom(BR, TR, yT)
+  TRtoAR = hom(TR, AR, vcat(fill(zero(AR), ly), x))
+
+  #####
+  # compute the graph ideal Gamma of F in TR
+  #####
+
+  gamma_gens = [xT[i] - BRtoTR(lifted_numerator(m)) for (i, m) in enumerate(images_of_generators(F))]
+  A isa MPolyQuoRing && append!(gamma_gens, [ARtoTR(g) for g in gens(modulus(A))])
+  B isa MPolyQuoRing && append!(gamma_gens, [BRtoTR(g) for g in gens(modulus(B))])
+  Gamma = ideal(TR, gamma_gens) # the ideal of the graph of F
+  G = groebner_basis(Gamma, complete_reduction = true)
+  Gpolys = gens(G)
+
+  #####
+  # find monomials representing generators of B as an A-module.
+  #####
+
+  # From the elements in Gpolys collect those whose
+  # leading monomials depend on the y-variables only.
+
+  lead_y_Gpolys = elem_type(TR)[]
+  lead_y_Gpolys_exp = Vector{Vector{Int}}()
+  other_Gpolys = elem_type(TR)[]
+  other_Gpolys_exp_y = Vector{Vector{Int}}()
+
+  for g in Gpolys
+    e = leading_exponent(g)
+    if all(iszero, e[ly+1:end])
+      push!(lead_y_Gpolys, g)
+      push!(lead_y_Gpolys_exp, e[1:ly])
+    else
+      push!(other_Gpolys, g)
+      push!(other_Gpolys_exp_y, e[1:ly])
+    end
   end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i = 1:a]
-  else
-    BR = B
-    M = [F(gens(A)[i]) for i = 1:a]
+
+  divides_exp(a, b) = all(aa <= bb for (aa, bb) in zip(a, b))
+
+  # If 1 is in lead_y_Gpolys, Gamma = T and B is the zero module.
+
+  zero_module = any(iszero, lead_y_Gpolys_exp)
+
+  # We apply the integrality criterion for affine K-algebra homomorphisms:
+  # F is finite (that is, B is integral over A) iff lead_y_Gpolys contains
+  # a power of y[i] for each i. We collect the least such powers in the vector
+  # bounds. We then know that with respect to the given product ordering,
+  # there are only finitely many standard (or staircase) monomials which depend
+  # on the y-variables only. We collect these y-monomials in the vector gs_in_TR.
+  # Let gs be the corresponding vector of y-monomials in BR, and let lgs be its
+  # length. Then the elements of gs represent generators for B as an A-module.
+  # Indeed, under our assumptions, dividing a given y-polynomial in TR by the
+  # polynomials in Gpolys gives a remainder which is an AR-linear combination
+  # of the gs_in_TR[i]. We thus have an AR-algebra epimorphism
+  # pi: AR^lgs --> BR --> 0. A section of pi considered just as a map
+  # (and not as an A-linear homomorphism) associates to each b
+  # in BR a vector of AR-coordinates for b.
+
+  # exponents of standard monomials depending on y-variables only
+
+  y_staircase_exponents = Vector{Vector{Int}}()
+  if !zero_module
+    bounds = Int[]
+    for i in 1:ly
+      powers = Int[e[i] for e in lead_y_Gpolys_exp
+               if e[i] > 0 && all(j == i || iszero(e[j]) for j in 1:ly)]
+      isempty(powers) && throw(ArgumentError(
+        "the map is not finite: the pure_y initial ideal contains no power of $(y[i])"
+      ))
+      push!(bounds, minimum(powers))
+    end
+    exponent_tuples = ly == 0 ? ((),) : Iterators.product((0:d - 1 for d in bounds)...)
+    for exponent_tuple in exponent_tuples
+      e = Int[exponent_tuple...]
+      any(a -> divides_exp(a, e), lead_y_Gpolys_exp) && continue
+      push!(y_staircase_exponents, e)
+    end
   end
 
-  @assert base_ring(AR) == base_ring(BR)
+  y_monomial_in_TR(e) = prod((yT[i]^e[i] for i in 1:ly); init = one(TR))
+  y_monomial_in_BR(e) = prod((y[i]^e[i] for i in 1:ly); init = one(BR))
 
-  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
-  C, _ = quo(BR, I)
-  gs = monomial_basis(C) # monomials whose residue classes form a K-basis of B
-  @assert gs[end] == 1 # the last one should always be 1
-  g = length(gs)
+  # Sort the y_staircase_exponents in decreasing order with respect to
+  # default_ordering(TR); then the last monomial must be 1.
+  sort!(y_staircase_exponents;
+        lt=(a, b) -> cmp(default_ordering(TR), y_monomial_in_TR(a), y_monomial_in_TR(b)) > 0)
 
-  R, _ = tensor_product(BR, AR, use_product_ordering = true)
-  ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
-  RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
-  gs_lift = [BRtoR(g) for g in gs]
-  
-  # compute the ideal J of the graph of F
-  Rels = [ba[b+i]-BRtoR(m) for (i,m) in enumerate(M)]
-  if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoR(g)) end end
-  if isdefined(B, :I) for g in gens(B.I) push!(Rels, BRtoR(g)) end end
-  J = ideal(R, Rels) # the ideal of the graph of F
-  V = groebner_basis(J)
+  gs_in_TR = [y_monomial_in_TR(e) for e in y_staircase_exponents]
+  gs = [y_monomial_in_BR(e) for e in y_staircase_exponents]
+  gs[end] == one(BR) || error("internal error:
+                        the last generator should be 1")
+  lgs = length(gs)
 
-  sect = x -> (y = reduce(BRtoR(x), gens(V), complete_reduction=true);
-	      ans = elem_type(AR)[];
-	      for i in 1:g
-	        q = div(y, gs_lift[i])
-	        push!(ans, RtoAR(q))
-	        y -= q * gs_lift[i]
-	      end; ans)
+  #####
+  # Implement a section of pi: A^lgs --> B --> 0.
+  # The result is just a map, not necessarily an A-homomorphism.
+  #####
 
-  FM = free_module(R, g)
-  gB = elem_type(FM)[FM(push!([j == i ? R(1) : R() for j in 1:g-1], -gs_lift[i])) for i in 1:g-1]
-  gJ = elem_type(FM)[FM([j==i ? x : R() for j in 1:g]) for x in gens(V) for i in 1:g]
-  U  = vcat(gB, gJ)
-  S, _ = sub(FM, U)
-  P = groebner_basis(S, ordering = default_ordering(R)*lex(FM))
-  Rw, _ = grade(R, vcat(repeat([1], b), repeat([0], a)))
-  RtoRw = hom(R, Rw, gens(Rw))
-  inA = x -> x == zero(Rw) ?  true : (degree(Int, leading_term(RtoRw(x)))) <= 0
-  PM = vcat([(RtoAR.(transpose(Vector(P[i])))) for i in 1:ngens(P) if all(inA, Vector(P[i]))]...)
+  y_staircase_index = Dict{Vector{Int}, Int}(
+    e => i for (i, e) in enumerate(y_staircase_exponents))
+
+  # Convert a polynomial supported on the staircase
+  # into its coefficient vector over AR.
+
+  function coefficients_over_AR(t)
+    result = [zero(AR) for _ in y_staircase_exponents]
+    for (c, e) in zip(AbstractAlgebra.coefficients(t),
+                      AbstractAlgebra.exponent_vectors(t))
+      j = get(y_staircase_index, e[1:ly], 0)
+      j != 0 || error("internal error: a non-staircase y-monomial survived reduction")
+      coefficient_monomial = AR(c)
+      for i in 1:lx
+        coefficient_monomial *= gen(AR, i)^e[ly + i]
+      end
+      result[j] += coefficient_monomial
+    end
+    return result
+  end
+
+  sect = b -> (t = reduce(BRtoTR(b), Gpolys, complete_reduction = true);
+               ans = coefficients_over_AR(t))
+
+  #####
+  #find the presentation matrix
+  #####
+
+  # The Gröbner basis elements in G1 define relations on the elements in gs.
+  # Moreover, each such element, say with y-leading exponent delta, must be
+  # multiplied by every y^(beta-delta) for which beta is in the staircase and
+  # delta divides beta. The latter step is indeed necessary: for example, a relation
+  # x = 0 also implies x*y^beta = 0 for every module generator y^beta. Reduce
+  # only by the pure-y rewriting rules so that the result is again supported
+  # on the staircase. Note that the relation rows found in this way form a Gröbner
+  # basis for the free module AR^lgs w.r.t. the monomial ordering fmo chosen by
+  # the helper function _interreduce below.
+
+  relation_rows = Vector{Vector{elem_type(AR)}}()
+  for (g, delta) in zip(other_Gpolys, other_Gpolys_exp_y)
+    haskey(y_staircase_index, delta) || error("internal error: the reduced graph basis has a nonstandard relation leader")
+    for beta in y_staircase_exponents
+      divides_exp(delta, beta) || continue
+      multiplier_exp = beta - delta
+      raw_relation = y_monomial_in_TR(multiplier_exp) * g
+      y_staircase_relation = isempty(lead_y_Gpolys) ? raw_relation :
+        reduce(raw_relation, lead_y_Gpolys; complete_reduction = true)
+      iszero(y_staircase_relation) && continue
+      push!(relation_rows, coefficients_over_AR(y_staircase_relation))
+    end
+  end
+
+  if other_Gpolys == []
+    PM = Matrix{elem_type(AR)}[]
+  else
+     relation_rows = _interreduce(relation_rows, gr_check)
+     PM = Matrix{elem_type(AR)}(undef, length(relation_rows), lgs)
+     for i in axes(PM, 1), j in axes(PM, 2)
+        PM[i, j] = relation_rows[i][j]
+     end
+  end
+
   return gs, PM, sect
 end
+
+
+###################
+# helper function #
+###################
+
+# Set up the ring with both sets of variables for the graph 
+# and return the various maps from and to the original rings.
+function _graph_ring(F::MPolyAnyMap, ::Type{Val{true}}) # the graded case
+  A = domain(F)
+  B = codomain(F)
+  K = coefficient_ring(A)
+  @assert is_z_graded(A) == is_z_graded(B) == true
+  Wx = weights(Int, A)
+  Wy = weights(Int, B)
+  Wyx = vcat(Wy, Wx)
+  @assert all(w>0 for w in Wyx)
+  for (i, v) in enumerate(images_of_generators(F))
+    iszero(v) || @assert degree(Int, domain(F)[i]) == degree(Int, v)
+  end
+
+  TR, yT, xT = graded_polynomial_ring(K, symbols(B), symbols(A), weights = Wyx)
+  set_default_ordering!(TR, wdegrevlex(yT, Wy)*wdegrevlex(xT, Wx))
+  return TR, yT, xT
+end
+
+weights(A::MPolyQuoRing{T}) where {T <: MPolyDecRingElem} = weights(base_ring(A))
+weights(::Type{Int}, A::MPolyQuoRing{T}) where {T <: MPolyDecRingElem} = weights(Int, base_ring(A))
+
+function _graph_ring(F::MPolyAnyMap, ::Type{Val{false}}) # the graded case
+  A = domain(F)
+  B = codomain(F)
+  TR, yT, xT = graded_polynomial_ring(K, symbols(B), symbols(A))
+  set_default_ordering!(TR, degrevlex(yT)*degrevlex(xT))
+  return TR, yT, xT
+end
+
+### end of functionality for the `_graph_ring`
+
+function _interreduce(V::Vector, gr_check::Bool)
+  R = parent(V[1][1])
+  lVs = length(V[1])
+  if gr_check
+    @assert is_z_graded(R)
+    F0 = graded_free_module(R, lVs)
+    if !is_standard_graded(R)
+      fmo = invlex(F0)*wdegrevlex(R, weights(Int, R))
+    else
+      fmo = invlex(F0)*degrevlex(R)
+    end
+  else
+    F0 = free_module(R, lVs)
+    fmo = invlex(F0)*degrevlex(R)
+  end
+
+  element_in_F0(c) = sum((c[i]*gen(F0, i) for i in 1:lVs); init = zero(F0))
+
+  ext_mon = Tuple{Vector{elem_type(R)}, elem_type(R), Int}[]
+  for c in V
+    g = element_in_F0(c)
+    if iszero(g)
+      continue
+    end
+    lm = leading_monomial(g, ordering = fmo)
+    (i, m) = first(coordinates(lm))
+    push!(ext_mon, (c, m, i))
+  end
+  sort!(ext_mon, by = p -> total_degree(p[2]))
+
+  result = Vector{elem_type(R)}[]
+  for i in 1:length(ext_mon)
+    m_i, pos_i = ext_mon[i][2:3]
+    redundant = false
+    for j in 1:i-1
+      m_j, pos_j = ext_mon[j][2:3]
+      if pos_i == pos_j && divides(m_i, m_j)[1]
+        redundant = true
+        break
+      end
+    end
+    if !redundant
+      push!(result, ext_mon[i][1])
+    end
+  end
+  return result
+end
+

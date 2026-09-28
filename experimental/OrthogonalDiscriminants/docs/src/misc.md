@@ -1,15 +1,10 @@
-```@meta
-CurrentModule = Oscar.OrthogonalDiscriminants
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Miscellaneous functions
 
 ## Utilities
 
 ```@docs
 is_orthogonally_stable
-show_with_ODs
+Oscar.OrthogonalDiscriminants.show_with_ODs
 show_OD_info
 ```
 

@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Subdivisions of Points
 
 ## Introduction

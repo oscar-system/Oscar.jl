@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Root systems
 
 Root systems in this module are meant to be abstract root systems, i.e. they are represented by a set of roots (vectors in an euclidean space).
@@ -78,6 +73,7 @@ positive_root(::RootSystem, ::Int64)
 positive_roots(::RootSystem)
 negative_root(::RootSystem, ::Int64)
 negative_roots(::RootSystem)
+highest_root(::RootSystem)
 ```
 
 
@@ -111,6 +107,7 @@ RootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 RootSpaceElem(::RootSystem, ::QQMatrix)
 RootSpaceElem(::WeightLatticeElem)
 zero(::Type{RootSpaceElem}, ::RootSystem)
+dual(::DualRootSpaceElem)
 ```
 
 ```@docs
@@ -156,6 +153,7 @@ reflect!(::RootSpaceElem, ::RootSpaceElem)
 DualRootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 DualRootSpaceElem(::RootSystem, ::QQMatrix)
 zero(::Type{DualRootSpaceElem}, ::RootSystem)
+dual(::RootSpaceElem)
 ```
 
 ```@docs

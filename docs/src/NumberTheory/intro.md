@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # [Introduction](@id number_theory)
 
 The number theory part of OSCAR provides functionality for algebraic number theory.

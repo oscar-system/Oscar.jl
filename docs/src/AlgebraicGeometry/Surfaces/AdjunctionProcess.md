@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Adjunction Process for Surfaces
 
 A surface in this section is a smooth projective surface over $\mathbb C$.

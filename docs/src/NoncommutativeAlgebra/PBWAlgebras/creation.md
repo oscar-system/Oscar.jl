@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Creating PBW-Algebras
 
 ## Types

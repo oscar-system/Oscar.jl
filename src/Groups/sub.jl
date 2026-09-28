@@ -8,9 +8,10 @@ function _as_subgroup_bare(G::T, H::GapObj) where T <: GAPGroup
   return _oscar_subgroup(H, G)
 end
 
+# Note that `_as_subgroup` does *not* check whether `H` is a subset of `G`.
 function _as_subgroup(G::GAPGroup, H::GapObj)
   H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x -> group_element(G, GapObj(x)), x -> group_element(H1, GapObj(x)); is_known_to_be_bijective = false)
+  return H1, GAPGroupEmbedding(H1, G)
 end
 
 """
@@ -37,8 +38,10 @@ function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = t
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
+  flag, GapG = has_GapObj_with_GapObj(G)
+  flag || return matrix_group(base_ring(G), degree(G), gens)
   elems_in_GAP = GapObj(gens; recursive = true)
-  H = GAP.Globals.SubgroupNC(GapObj(G), elems_in_GAP)::GapObj
+  H = GAPWrap.SubgroupNC(GapG, elems_in_GAP)
   return _as_subgroup(G, H)
 end
 
@@ -71,24 +74,20 @@ function is_subset(H::GAPGroup, G::GAPGroup)
 end
 
 """
-    is_subgroup(H::GAPGroup, G::GAPGroup)
+    is_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
 
 Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding
 homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 
+If `check` is `false` then it is not checked whether `H` is a subset of `G`.
+
 If you do not need the embedding then better call
 [`is_subset(H::GAPGroup, G::GAPGroup)`](@ref).
 """
-function is_subgroup(H::GAPGroup, G::GAPGroup)
-   if !is_subset(H, G)
-      return (false, nothing)
-   else
-      # We do not call `_as_subgroup` because we want to store `H`.
-      return (true, hom(H, G,
-                        x -> group_element(G, GapObj(x)),
-                        x -> group_element(H, GapObj(x));
-                        is_known_to_be_bijective = false))
-   end
+function is_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
+   check && !is_subset(H, G) && return (false, nothing)
+   # We do not call `_as_subgroup` because we want to store `H`.
+   return (true, GAPGroupEmbedding(H, G))
 end
 
 """
@@ -174,8 +173,8 @@ Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 ```jldoctest
 julia> normal_subgroups(symmetric_group(5))
 3-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
+ Symmetric group of degree 5
+ Alternating group of degree 5
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
@@ -202,7 +201,7 @@ subgroups.
 ```jldoctest
 julia> maximal_normal_subgroups(symmetric_group(4))
 1-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{SubPcGroup}:
@@ -245,7 +244,7 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 ```jldoctest
 julia> characteristic_subgroups(symmetric_group(3))
 3-element Vector{PermGroup}:
- Sym(3)
+ Symmetric group of degree 3
  Permutation group of degree 3 and order 3
  Permutation group of degree 3 and order 1
 
@@ -295,7 +294,7 @@ julia> centralizer(g, h)
 """
 function centralizer(G::GAPGroup, H::GAPGroup)
   _check_compatible(G, H)
-  return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(H)))
+  return _as_subgroup(G, GAPWrap.Centralizer(GapObj(G), GapObj(H)))
 end
 
 @doc raw"""
@@ -315,7 +314,7 @@ julia> centralizer(g, x)
 ```
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
-  return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(x)))
+  return _as_subgroup(G, GAPWrap.Centralizer(GapObj(G), GapObj(x)))
 end
 
 ################################################################################
@@ -338,7 +337,7 @@ function returns an arbitrary one.
 ```jldoctest
 julia> chief_series(alternating_group(4))
 3-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
@@ -422,11 +421,11 @@ An exception is thrown if $p$ is not a prime.
 ```jldoctest
 julia> p_central_series(alternating_group(4), 2)
 1-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
 
 julia> p_central_series(alternating_group(4), 3)
 2-element Vector{PermGroup}:
- Alt(4)
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
 
 julia> p_central_series(alternating_group(4), 4)
@@ -468,8 +467,8 @@ julia> lower_central_series(dihedral_group(12))
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
- Sym(4)
- Alt(4)
+ Symmetric group of degree 4
+ Alternating group of degree 4
 ```
 """
 @gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(GapObj(G)))
@@ -757,10 +756,14 @@ false
 
 function quo(G::FPGroup, elements::Vector{FPGroupElem})
   elems_in_gap = GapObj(elements; recursive=true)
-  Q = FPGroup(GapObj(G)/elems_in_gap)
-  function proj(x::FPGroupElem)
-    return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
-             GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
+  Q = fp_group((GapObj(G)/elems_in_gap)::GapObj, free_group(G))
+  Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
+  Qgens = GAPWrap.GeneratorsOfGroup(GapObj(Q))
+  if length(Ggens) == 0
+    proj = x::FPGroupElem -> one(Q)
+  else
+    proj = x::FPGroupElem -> group_element(Q, GAPWrap.MappedWord(GapObj(x),
+                                                  Ggens, Qgens))
   end
   return Q, hom(G, Q, proj)
 end
@@ -818,7 +821,7 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> N = pcore(G, 2)[1];
 
@@ -859,7 +862,7 @@ function quo(::Type{Q}, G::GAPGroup, N::GAPGroup) where Q <: GAPGroup
 end
 
 """
-    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+    maximal_abelian_quotient([::Type{Q}, ]G::Group) where Q <: Union{GAPGroup, FinGenAbGroup}
 
 Return `F, epi` such that `F` is the largest abelian factor group of `G`
 and `epi` is an epimorphism from `G` to `F`.
@@ -895,10 +898,14 @@ PermGroup
 ```
 """
 function maximal_abelian_quotient(G::GAPGroup)
-  map = GAP.Globals.MaximalAbelianQuotient(GapObj(G))::GapObj
-  F = GAPWrap.Range(map)::GapObj
+  map = GAPWrap.MaximalAbelianQuotient(GapObj(G))
+  F = GAPWrap.Range(map)
   F = _oscar_group(F)
   return F, GAPGroupHomomorphism(G, F, map)
+end
+
+function maximal_abelian_quotient(G::FinGenAbGroup)
+  return G, id_hom(G)
 end
 
 function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
@@ -911,10 +918,82 @@ function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGr
   return F, epi
 end
 
+function maximal_abelian_quotient(::Type{Q}, G::FinGenAbGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+  G isa Q && return G, id_hom(G)
+  map = isomorphism(Q, G)
+  return codomain(map), map
+end
+
 has_maximal_abelian_quotient(G::GAPGroup) = GAPWrap.HasMaximalAbelianQuotient(GapObj(G))
 
 function set_maximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T}}) where T <: GAPGroup
   return GAPWrap.SetMaximalAbelianQuotient(GapObj(G), val[2].map)
+end
+
+
+"""
+    maximal_supersolvable_quotient([::Type{Q}, ]G::Group) where Q <: Union{GAPGroup, FinGenAbGroup}
+
+Return `F, epi` such that `F` is the largest supersolvable factor group of `G`
+and `epi` is an epimorphism from `G` to `F`.
+
+If `Q` is given then `F` has type `Q` if possible,
+and an exception is thrown if not.
+
+If `Q` is not given then the type of `F` is not determined by the type of `G`.
+- `F` may have the same type as `G`
+  (which is reasonable if `G` is supersolvable),
+- `F` may have type `PcGroup` or `PermGroup`.
+
+Currently we cannot handle infinite nonabelian groups `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> F, epi = maximal_supersolvable_quotient(G);
+
+julia> order(F)
+6
+
+julia> domain(epi) === G && codomain(epi) === F
+true
+
+julia> typeof(F)
+PcGroup
+
+julia> typeof(maximal_supersolvable_quotient(PermGroup, G)[1])
+PermGroup
+```
+"""
+function maximal_supersolvable_quotient(G::GAPGroup)
+  is_abelian(G) && return G, id_hom(G)
+  @req is_finite(G) "cannot handle infinite nonabelian groups"
+  R = GAPWrap.SupersolvableResiduum(GapObj(G))
+  map = GAPWrap.NaturalHomomorphismByNormalSubgroupNC(GapObj(G), R)
+  F = GAPWrap.Range(map)
+  F = _oscar_group(F)
+  return F, GAPGroupHomomorphism(G, F, map)
+end
+
+function maximal_supersolvable_quotient(G::FinGenAbGroup)
+  return G, id_hom(G)
+end
+
+function maximal_supersolvable_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+  F, epi = maximal_supersolvable_quotient(G)
+  if !(F isa Q)
+    map = isomorphism(Q, F)
+    F = codomain(map)
+    epi = compose(epi, map)
+  end
+  return F, epi
+end
+
+function maximal_supersolvable_quotient(::Type{Q}, G::FinGenAbGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
+  G isa Q && return G, id_hom(G)
+  map = isomorphism(Q, G)
+  return codomain(map), map
 end
 
 
@@ -924,11 +1003,16 @@ end
 """
     abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
-Return the sorted vector of abelian invariants of the commutator factor group
-of `G` (see [`maximal_abelian_quotient`](@ref)).
+Return the sorted vector `v` of abelian invariants of the commutator factor
+group `Q` of `G` (see [`maximal_abelian_quotient`](@ref)).
 The entries are prime powers or zeroes and have the type `T`.
 They describe the structure of the commutator factor group of `G`
 as a direct product of cyclic groups of prime power (or infinite) order.
+
+In order to convert between the formats defined for `abelian_invariants`
+and [`elementary_divisors(::FinGenAbGroup)`](@ref) for `Q`,
+one can apply [`elementary_divisors(::Vector)`](@ref) to `v`
+and [`abelian_invariants(::Vector{S}) where S <: Oscar.IntegerUnion`](@ref) to the result of that call.
 
 # Examples
 ```jldoctest
@@ -959,7 +1043,8 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
     abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants
-(see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
+(see [`abelian_invariants(::Union{GAPGroup, FinGenAbGroup})`](@ref))
+of the Schur multiplier of `G`.
 The entries are prime powers or zeroes and have the type `T`.
 They describe the structure of the Schur multiplier of `G`
 as a direct product of cyclic groups of prime power (or infinite) order.
@@ -1014,7 +1099,7 @@ Z/1
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup}) = schur_multiplier(FinGenAbGroup, G)
 
 function schur_multiplier(::Type{T}, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
-  eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
+  eldiv = elementary_divisors(ZZRingElem, abelian_invariants_schur_multiplier(G))
   M = abelian_group(eldiv)
   (M isa T) && return M
   return codomain(isomorphism(T, M))
@@ -1078,7 +1163,7 @@ julia> G = symmetric_group(4);
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
   from free group of rank 2
-  to Sym(4)
+  to symmetric group of degree 4
 
 julia> pi = G([2,4,3,1])
 (1,2,4)
@@ -1112,7 +1197,7 @@ together with an embedding `G'` into `G`.
 # Examples
 ```jldoctest
 julia> derived_subgroup(symmetric_group(5))
-(Alt(5), Hom: Alt(5) -> Sym(5))
+(Alternating group of degree 5, Hom: Alt(5) -> Sym(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
@@ -1129,15 +1214,15 @@ See also [`derived_length`](@ref).
 ```jldoctest
 julia> G = derived_series(symmetric_group(4))
 4-element Vector{PermGroup}:
- Sym(4)
- Alt(4)
+ Symmetric group of degree 4
+ Alternating group of degree 4
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
 julia> derived_series(symmetric_group(5))
 2-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
+ Symmetric group of degree 5
+ Alternating group of degree 5
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{SubPcGroup}:
@@ -1189,7 +1274,7 @@ end
 
 function intersect(V::AbstractVector{<:GAPGroup})
    L = GapObj(V; recursive = true)
-   K = GAP.Globals.Intersection(L)::GapObj
+   K = GAPWrap.Intersection(L)
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]
    Arr = Tuple(vcat([K],Embds))

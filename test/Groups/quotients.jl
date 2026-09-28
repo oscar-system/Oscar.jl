@@ -1,10 +1,11 @@
 @testset "quo for trivial kernel" begin
 #  @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
-   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
+   @testset for G in [free_group(0), symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(SubPcGroup, [2, 3, 4])]
       subgens = elem_type(G)[]
       F, epi = quo(G, subgens)
       if is_finite(G)
         @test order(F) == order(G)
+        @test epi(one(G)) == one(F)
       else
         @test ! is_finite(F)
       end
@@ -37,7 +38,7 @@ end
    end
    N = trivial_subgroup(G)[1]
    for subgens in [N, gens(N)]
-      @test quo(G, subgens)[1] isa MatrixGroup
+      @test quo(G, subgens)[1] isa MatGroup
       @test quo(PermGroup, G, subgens)[1] isa PermGroup
       @test_throws ArgumentError quo(PcGroup, G, subgens)
    end
@@ -55,10 +56,17 @@ end
    #    return a group of this type if possible
 #  for T in [ PermGroup, PcGroup ]
 #TODO: support `abelian_group(PcGroup, [2, 3, 4])`, using GAP's PcpGroup
-   for T in [ PermGroup, SubPcGroup ]
-      G = abelian_group(T, [2, 3, 4])
-      @test maximal_abelian_quotient(G)[1] isa T
-      @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
+   types = [ PermGroup, SubPcGroup, FinGenAbGroup, FPGroup ]
+   for T1 in types
+     G = abelian_group(T1, [2, 3, 4])
+     for T2 in types
+       Q, map = maximal_abelian_quotient(T2, G)
+       @test isa(Q, T2)
+       @test is_abelian(Q)
+       @test order(Q) == order(G)
+#TODO: better check `is_isomorphic` or equality of `abelian_invariants`
+#      as soon as https://github.com/gap-system/gap/pull/6246 is available
+     end
    end
    T = FPGroup
    G = abelian_group(T, [2, 3, 4])
@@ -80,11 +88,58 @@ end
    @test maximal_abelian_quotient(G)[1] isa FPGroup
    @test maximal_abelian_quotient(FPGroup, G)[1] isa FPGroup
    @test_throws MethodError quo(PcGroup, G)
+   G = abelian_group([2, 3, 4])
+   @test maximal_abelian_quotient(G)[1] isa FinGenAbGroup
 
    # `abelian_invariants`
    @test abelian_invariants(free_group(2)) == [0, 0]
    @test abelian_invariants(alternating_group(5)) == []
    @test abelian_invariants(small_group(8, 5)) == [2, 2, 2]
+
+   # `maximal_supersolvable_quotient`
+   G = symmetric_group(4)
+   @test_throws ArgumentError maximal_supersolvable_quotient(FinGenAbGroup, G)
+   grps = [(G, PcGroup),
+           (codomain(isomorphism(FPGroup, G)), PermGroup),
+           (dihedral_group(PermGroup, 8), PermGroup),
+           (codomain(isomorphism(PcGroup, G)), PcGroup),
+           (abelian_group([2, 3, 4]), FinGenAbGroup)]
+   for (G, T) in grps
+     @test maximal_supersolvable_quotient(G)[1] isa T
+     @test maximal_supersolvable_quotient(PermGroup, G)[1] isa PermGroup
+   end
+   @test maximal_supersolvable_quotient(free_group(1))[1] isa FPGroup
+
+   # Switching to `PcGroup` must yield a *full* pc group, also when GAP
+   # returns the quotient on noncanonical pc generators (see above) and the
+   # image has fewer generators than the pc sequence, as for cyclic groups
+   # of order p*q^2.
+   F = free_group(2)
+   x, y = gens(F)
+   for (G, n) in [(quo(F, [x^7, y^9, comm(x, y)])[1], 63),
+                  (quo(F, [x^4, y^3, comm(x, y)])[1], 12),
+                  (abelian_group(FPGroup, [63]), 63),
+                  (codomain(isomorphism(FPGroup, small_group(24, 1))), 8)]
+     Q, epi = maximal_abelian_quotient(PcGroup, G)
+     @test Q isa PcGroup
+     @test Oscar._is_full_pc_group(GapObj(Q))
+     @test order(Q) == n
+     @test abelian_invariants(Q) == abelian_invariants(G)
+     @test domain(epi) === G && codomain(epi) === Q
+     @test is_surjective(epi)
+   end
+
+   H = maximal_abelian_quotient(abelian_group(FPGroup, [63]))[1]
+   @test H isa SubPcGroup
+   for Q in [codomain(isomorphism(PcGroup, H)),
+             maximal_abelian_quotient(PcGroup, H)[1],
+             maximal_supersolvable_quotient(PcGroup, H)[1],
+             quo(PcGroup, H, trivial_subgroup(H)[1])[1]]
+     @test Q isa PcGroup
+     @test Oscar._is_full_pc_group(GapObj(Q))
+     @test order(Q) == 63
+   end
+
 end
 
 @testset "Relators" begin
@@ -161,6 +216,11 @@ end
    @test G([1 => 2, 2 => -3]) == G[1]^2 * G[2]^-3
    @test_throws MethodError S([1 => 2])
 
+   # quotient of non-free FPGroup by list of relators
+   rels = [gen(G, 1)^2]
+   G2, f2 = quo(G, rels)
+   @test free_group(G2) === free_group(G)
+
    S = symmetric_group(4)
    G,f = quo(S, [cperm(S,[1,3,2])])
    @test order(G) == 2
@@ -173,8 +233,10 @@ end
    S = matrix(K, [0 0 1; 1 0 0; 0 1 0])
    T = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
    H3 = matrix_group(S, T)
-   C, iC = center(H3);
+   Z = matrix(K, [-a-1 0 0; 0 -a-1 0; 0 0 -a-1])
+   C = sub(H3, [H3(Z; check = false)]; check = false)[1]
    @test !has_is_finite(C)
    Q, pQ = quo(H3, C);
    @test has_is_finite(C)
+   @test C == center(H3)[1]
 end

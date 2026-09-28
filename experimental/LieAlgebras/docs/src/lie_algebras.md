@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lie algebras
 
 Lie algebras in OSCAR are currently always finite dimensional, and represented by two different types,

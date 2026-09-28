@@ -72,6 +72,11 @@ end
 function preimage(f::OscarSingularCoefficientRingMapGeneric, a::Singular.n_unknown)
   parent(a) !== codomain(f) && error("Element not in codomain")
   b = Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))
+  if b isa Singular.FieldElemWrapper || b isa Singular.RingElemWrapper
+    # handle immutable ring elements (such as QQAbFieldElem) which are
+    # put in a wrapper on the Singular side
+    return b.data::elem_type(domain(f))
+  end
   return b::elem_type(domain(f))
 end
 
@@ -286,18 +291,6 @@ function iso_oscar_singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{<:MP
   return OscarSingularCoefficientRingMapFractionField(F, S, g, Sx)
 end
 
-# helper
-function _map_oscar_singular_multivariate(Rx, g, f::Singular.spoly)
-  O = base_ring(Rx)
-  Sx = parent(f)
-  @assert ngens(Sx) == ngens(Ox)
-  g = MPolyBuildCtx(Rx)
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-    push_term!(g, preimage(g, c), e)
-  end
-  return finish(g)
-end
-
 function image(f::OscarSingularCoefficientRingMapFractionField{<:AbstractAlgebra.Generic.FracField{<:MPolyRingElem}}, a)
   parent(a) !== domain(f) && error("Element not in domain")
   x = Singular.transcendence_basis(codomain(f))
@@ -427,7 +420,7 @@ function image(f::OscarSingularPolyRingMap, a)
   return finish(g)
 end
 
-function preimage(f::OscarSingularPolyRingMap, a; check = true)
+function preimage(f::OscarSingularPolyRingMap, a; check::Bool = true)
   check && (parent(a) === codomain(f) || error("Element not in codomain"))
   g = MPolyBuildCtx(domain(f))
   for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))

@@ -502,7 +502,8 @@ projective_scheme_type(::Type{T}) where {T<:AbsAffineScheme} = projective_scheme
 ########################################################################
 
 @attr Union{Int, NegInf} function dim(P::AbsProjectiveScheme{<:Field})
-  return dim(defining_ideal(P))-1
+  d = dim(defining_ideal(P))
+  return d > 0 ? d - 1 : -inf
 end
 
 @attr Union{Int, NegInf} function codim(P::AbsProjectiveScheme{<:Field})
@@ -529,7 +530,7 @@ function relative_euler_sequence(X::AbsProjectiveScheme{<:Ring, <:MPolyRing})
   W, inc = kernel(theta)
   Z = graded_free_module(S, 0)
   inc_Z = hom(Z, W, elem_type(W)[]; check=false)
-  comp = ComplexOfMorphisms(ModuleFP, [inc_Z, inc, theta], typ=:cochain, seed = -1)
+  comp = ComplexOfMorphisms(OFPModule, [inc_Z, inc, theta], typ=:cochain, seed = -1)
   return comp
 end
 
@@ -574,7 +575,7 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
   jac_res = _change_base_ring_and_preserve_gradings(phi, jac, codomain_change = res_Omega1)
   img_gens = [preimage(inc_W1X, jac_res(x)) for x in gens(domain(jac_res))]
   psi = hom(domain(jac_res), W1X, img_gens; check=false)
-  return cokernel(psi)
+  return first(cokernel(psi))
 end
 
 @doc raw"""

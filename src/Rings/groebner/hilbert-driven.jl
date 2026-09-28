@@ -102,16 +102,15 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   if isnothing(hilbert_numerator)
     if isempty(I.gb)
       J = iszero(characteristic(base_ring(I))) ? _mod_rand_prime(I) : I
-      G = groebner_assure(J, wdegrevlex(base_ring(J), weights))
+      G = standard_basis(J, ordering=wdegrevlex(base_ring(J), weights))
     else
-      G = groebner_assure(I)
+      G = standard_basis(I)
     end
 
     if characteristic(base_ring(I)) > 0 && ordering == wdegrevlex(base_ring(I), weights)
       return G
     end
-    singular_assure(G)
-    h = Singular.hilbert_series(G.S, weights)
+    h = Singular.hilbert_series(singular_generators(G, G.ord), weights)
 
   else
     # Quoting from the documentation of Singular.hilbert_series:
@@ -125,11 +124,11 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
   J = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
   i  = Singular.std_hilbert(J, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
-  GB = IdealGens(I.gens.Ox, i, complete_reduction)
+  GB = IdealGens(base_ring(I), i, complete_reduction)
   GB.isGB = true
   GB.ord = ordering
-  if isdefined(GB, :S)
-    GB.S.isGB  = true
+  if isdefined(GB.gensBiPolyArray, :S)
+    GB.gensBiPolyArray.S.isGB  = true
   end
   I.gb[destination_ordering] = GB
   return GB
@@ -219,7 +218,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   # https://mathoverflow.net/questions/363181/intersection-of-a-vector-subspace-with-a-cone
   Pol = polyhedron(-K,  zeros(Int, ncols))
   !is_feasible(Pol) && return zeros(Int, ncols)
-  pos_vec = zeros(Int, ncols)
+  pos_vec = [ZZ(0) for i in range(1,ncols)]
   for i in 1:ncols
     ei = [j == i ? one(QQ) : zero(QQ) for j in 1:ncols]
     obj_func = ei * K
@@ -230,7 +229,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
       L = linear_program(Pol_new, obj_func)
       v = optimal_vertex(L)
     end
-    pos_vec += K*(v.p)
+    pos_vec += ((v.p)*transpose(K))[1,:]
   end
   ret = (Int).(lcm((denominator).(pos_vec)) .* pos_vec)
   ret = (x -> div(x, gcd(ret))).(ret) 

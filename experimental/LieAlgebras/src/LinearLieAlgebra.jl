@@ -12,7 +12,7 @@ parent(x::LinearLieAlgebraElem) = x.parent
 
 coefficient_ring(L::LinearLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
-dim(L::LinearLieAlgebra) = L.dim
+vector_space_dim(L::LinearLieAlgebra) = L.dim
 
 @doc raw"""
     matrix_repr_basis(L::LinearLieAlgebra{C}) -> Vector{MatElem{C}}
@@ -158,7 +158,7 @@ end
 
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
-function Generic.matrix_repr(x::LinearLieAlgebraElem)
+function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:FieldElem}
   L = parent(x)
   mat = zero_matrix(coefficient_ring(L), L.n, L.n)
   tmp = zero(mat)

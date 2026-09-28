@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Caching Parent Objects
 
 Many functions in OSCAR that construct parent objects (such as rings, modules,
@@ -93,7 +88,7 @@ parent constructor functions
 
 For convenience, `Hecke` also defines these "standard rings" for use in functions
 like `cyclotomic_polynomial`
-```
+```julia
 module Globals
   using Hecke
   const Qx, _ = polynomial_ring(QQ, :x, cached = false)

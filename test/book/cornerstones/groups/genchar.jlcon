@@ -6,7 +6,7 @@ Generic character table SL3.n1
   with parameters (a, b, m, n)
 
 julia> T[4,4]
-(q + 1)*exp(2π𝑖((a*n)//(q - 1))) + exp(2π𝑖((-2*a*n)//(q - 1)))
+(q + 1)*E(q - 1)^(a*n) + E(q - 1)^(-2*a*n)
 
 julia> h = T[2] * T[2];
 
@@ -30,16 +30,12 @@ With exceptions:
   2*m1 - n1 ∈ (q - 1)ℤ
   m1 - 2*n1 ∈ (q - 1)ℤ
   m1 + n1 ∈ (q - 1)ℤ
-  m1 ∈ (q - 1)ℤ
-  m1 - n1 ∈ (q - 1)ℤ
-  n1 ∈ (q - 1)ℤ
 <7, h> = 0
 With exceptions:
   n1 ∈ (q - 1)ℤ
 <8, h> = 0
 With exceptions:
   q*n1 ∈ (q^2 + q + 1)ℤ
-  n1 ∈ (q^2 + q + 1)ℤ
   q*n1 + n1 ∈ (q^2 + q + 1)ℤ
 
 julia> degree(linear_combination([1,2,2],[T[1],T[2],T[3]]))

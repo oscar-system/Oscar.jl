@@ -54,36 +54,36 @@ end
 #
 ################################################################################
 
-function invariant_ring(M::Vector{<:MatrixElem})
+function invariant_ring(M::Vector{<:MatElem})
   return invariant_ring(base_ring(M[1]), M)
 end
 
-function invariant_ring(R::MPolyDecRing, M::Vector{<:MatrixElem})
+function invariant_ring(R::MPolyDecRing, M::Vector{<:MatElem})
   K = coefficient_ring(R)
   return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-function invariant_ring(m::MatrixElem{T}, ms::MatrixElem{T}...) where {T}
+function invariant_ring(m::MatElem{T}, ms::MatElem{T}...) where {T}
   return invariant_ring([m, ms...])
 end
 
-function invariant_ring(R::MPolyDecRing, m::MatrixElem{T}, ms::MatrixElem{T}...) where {T}
+function invariant_ring(R::MPolyDecRing, m::MatElem{T}, ms::MatElem{T}...) where {T}
   return invariant_ring(R, [m, ms...])
 end
 
-function invariant_ring(K::Field, M::Vector{<:MatrixElem})
+function invariant_ring(K::Field, M::Vector{<:MatElem})
   return invariant_ring(matrix_group([change_base_ring(K, g) for g in M]))
 end
 
 @doc raw"""
-    invariant_ring(G::MatrixGroup)
+    invariant_ring(G::MatGroup)
     invariant_ring(K::Field = QQ, G::PermGroup)
-    invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+    invariant_ring(R::MPolyDecRing, G::MatGroup)
     invariant_ring(R::MPolyDecRing, G::PermGroup)
 
 Return the invariant ring of the finite matrix group or permutation group `G`.
 
-In the latter case, use the specified field `K` as the coefficient field. 
+In the latter case, use the specified field `K` as the coefficient field.
 The default value for `K` is `QQ`.
 
 The polynomial ring `R` on which `G` acts can be supplied as a first argument,
@@ -108,18 +108,18 @@ Invariant ring
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring
-  of Sym(3)
+  of symmetric group of degree 3
 
 julia> coefficient_ring(IRp)
 Rational field
 ```
 """
-function invariant_ring(G::MatrixGroup)
+function invariant_ring(G::MatGroup)
   action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action)
 end
 
-function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
+function invariant_ring(R::MPolyDecRing, G::MatGroup)
   action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action, R)
 end
@@ -148,7 +148,7 @@ function Base.show(io::IO, RG::FinGroupInvarRing)
 end
 
 # Return a map performing the right action of M on the ring R.
-function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
+function right_action(R::MPolyRing{T}, M::MatElem{T}) where {T}
   @assert nvars(R) == ncols(M)
   @assert nrows(M) == ncols(M)
   n = nvars(R)
@@ -160,7 +160,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   #   gen(R, i)^M = (0 ... 0 1 0 ... 0)*M = (M[i, 1] ... M[i, n])
   #               = M[i, 1]*gen(R, 1) + ... + M[i, n]*gen(R, n)
   # We now compute these actions of M on the variables of R.
-  vars = zeros(R, n)
+  vars = Hecke.zeros_array(R, n)
   x = gens(R)
   for i in 1:n
     for j in 1:n
@@ -178,10 +178,10 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   return MapFromFunc(R, R, right_action_by_M)
 end
 
-right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, matrix(M))
-right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
+right_action(R::MPolyRing{T}, M::MatGroupElem{T}) where {T} = right_action(R, matrix(M))
+right_action(f::MPolyRingElem{T}, M::MatElem{T}) where {T} =
   right_action(parent(f), M)(f)
-right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} =
+right_action(f::MPolyRingElem{T}, M::MatGroupElem{T}) where {T} =
   right_action(f, matrix(M))
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where {T}
@@ -207,7 +207,7 @@ function reynolds_operator(
   @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
-    return nothing
+    return IR.reynolds_operator
   end
 
   actions = [right_action(polynomial_ring(IR), g) for g in group(IR)]
@@ -314,10 +314,7 @@ function reynolds_operator(
   @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
-  if !isdefined(IR, :reynolds_operator)
-    reynolds_operator(IR)
-  end
-  return IR.reynolds_operator(f)
+  return reynolds_operator(IR)(f)
 end
 
 function reynolds_operator(IR::FinGroupInvarRing, f::MPolyRingElem)
@@ -434,6 +431,7 @@ Given an invariant ring `IR` and an integer `d`, return a basis for the invarian
 The optional argument `algorithm` specifies the algorithm to be used.
 If `algorithm = :reynolds`, the Reynolds operator is utilized (this method is only available in the non-modular case).
 Setting `algorithm = :linear_algebra` means that plain linear algebra is used.
+With `algorithm = :orbit_sums`, the invariants are constructed as sums of orbits of monomials; this is only possible if the underlying group is of type `PermGroup`.
 The default option `algorithm = :default` asks to select the heuristically best algorithm.
 
 See also [`iterate_basis`](@ref).
@@ -578,7 +576,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   res = zero(fraction_field(Kt))
   for c in C
     g = representative(c)
-    if g isa MatrixGroupElem
+    if g isa MatGroupElem
       f = charpoly(Kt, matrix(g))
     elseif g isa PermGroupElem
       f = charpoly(Kt, permutation_matrix(K, g))
@@ -598,14 +596,14 @@ function _molien_series_nonmodular_via_gap(
 )
   @assert !is_modular(I)
   G = group(I)
-  @assert G isa MatrixGroup || G isa PermGroup
-  t = GAP.Globals.CharacterTable(GapObj(G))
-  if G isa MatrixGroup
+  @assert G isa MatGroup || G isa PermGroup
+  t = GAPWrap.CharacterTable(GapObj(G))
+  if G isa MatGroup
     if is_zero(characteristic(coefficient_ring(I)))
       psi = GapObj(natural_character(G))
     else
       psi = [
-        GAP.Globals.BrauerCharacterValue(GAPWrap.Representative(c)) for
+        GAPWrap.BrauerCharacterValue(GAPWrap.Representative(c)) for
         c in GAPWrap.ConjugacyClasses(t)
       ]
     end
@@ -625,12 +623,12 @@ function _molien_series_nonmodular_via_gap(
   end
   num = S(
     Vector{ZZRingElem}(
-      GAP.Globals.CoefficientsOfUnivariatePolynomial(info.numer)
+      GAPWrap.CoefficientsOfUnivariatePolynomial(info.numer)
     )::Vector{ZZRingElem},
   )
   den = S(
     Vector{ZZRingElem}(
-      GAP.Globals.CoefficientsOfUnivariatePolynomial(info.denom)
+      GAPWrap.CoefficientsOfUnivariatePolynomial(info.denom)
     )::Vector{ZZRingElem},
   )
   return num//den
@@ -639,7 +637,9 @@ end
 @doc raw"""
     molien_series([S::PolyRing], I::FinGroupInvarRing, [chi::GAPGroupClassFunction])
 
-In the non-modular case, return the Molien series of `I` as a rational function.
+Return the Molien series of `I` as a rational function.
+This function is implemented in the non-modular case or, if no `chi` is given,
+if `group(I)` is of type `PermGroup`.
 
 If a univariate polynomial ring with rational coefficients is specified by the
 optional argument `S::PolyRing`, then return the Molien series as an element
@@ -704,6 +704,10 @@ function molien_series(
 
   if characteristic(coefficient_ring(I)) == 0 && chi === nothing
     return _molien_series_char0(S, I)
+  elseif group(I) isa PermGroup && chi === nothing
+    # For a group permuting a basis, we can just pretend we are in characteristic 0
+    I0 = invariant_ring(QQ, group(I))
+    return _molien_series_char0(S, I0)
   else
     if !is_modular(I)
       return _molien_series_nonmodular_via_gap(S, I, chi)
@@ -730,8 +734,8 @@ end
 
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
-# And maybe some day we can also compute Molien series in some modular cases.
 is_molien_series_implemented(I::FinGroupInvarRing) = !is_modular(I)
+is_molien_series_implemented(I::FinGroupInvarRing{<:Any,<:PermGroup}) = true
 
 ################################################################################
 #

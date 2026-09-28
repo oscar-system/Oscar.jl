@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Tables of Marks
 
 The concept of a *Table of Marks* was introduced by W. Burnside in his book
@@ -23,7 +18,7 @@ can be derived.
 For small groups the table of marks of ``G`` can be constructed directly
 by first computing the entire subgroup lattice of ``G``,
 see [`table_of_marks(G::Union{GAPGroup, FinGenAbGroup})`](@ref).
-Besides that, the Table of Marks library [MNP24](@cite) provides access to
+Besides that, the Table of Marks library [TomLib](@cite) provides access to
 several hundred tables of marks of simple groups and maximal subgroups
 of simple groups.
 These tables of marks can be fetched via the names of these groups,
@@ -38,7 +33,6 @@ of all those available tables of marks that have certain properties.
 ## Construct tables of marks
 
 ```@docs
-GAPGroupTableOfMarks
 table_of_marks(G::Union{GAPGroup, FinGenAbGroup})
 table_of_marks(id::String)
 Base.show(io::IO, ::MIME"text/plain", tom::GAPGroupTableOfMarks)
@@ -101,4 +95,10 @@ restrict(chi::GAPGroupMarksVector, tbl::GAPGroupCharacterTable)
 ```@docs
 character_table(tom::GAPGroupTableOfMarks)
 table_of_marks(tbl::GAPGroupCharacterTable)
+```
+
+## Technicalities
+
+```@docs
+GAPGroupTableOfMarks
 ```

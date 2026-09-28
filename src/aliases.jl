@@ -1,8 +1,6 @@
-# make some Julia names compatible with our naming conventions
-@alias is_subset issubset
-@alias is_valid isvalid
-
 # predeclare some functions to allow defining aliases
+function n_atoms end
+function n_coatoms end
 function n_cones end
 function n_connected_components end
 function n_edges end
@@ -12,6 +10,7 @@ function n_maximal_cones end
 function n_maximal_polyhedra end
 function n_points end
 function n_polyhedra end
+function n_pseudovertices end
 function n_rays end
 function n_vertices end
 function dual_graph end
@@ -19,6 +18,7 @@ function is_equidistant end
 function vertex_edge_graph end
 
 function number_of_compositions end
+function number_of_leaves end
 function number_of_partitions end
 function number_of_patches end
 function number_of_positive_roots end
@@ -33,6 +33,8 @@ function primitive_generator end
 @alias nv n_vertices
 
 # aliases should (in general) also follow the usual snake case style
+@alias number_of_atoms n_atoms
+@alias number_of_coatoms n_coatoms
 @alias number_of_cones n_cones
 @alias number_of_connected_components n_connected_components
 @alias number_of_edges n_edges
@@ -46,6 +48,7 @@ function primitive_generator end
 @alias number_of_vertices n_vertices
 
 @alias n_compositions number_of_compositions
+@alias n_leaves number_of_leaves
 @alias n_partitions number_of_partitions
 @alias n_patches number_of_patches
 @alias n_positive_roots number_of_positive_roots
@@ -67,3 +70,4 @@ function primitive_generator end
 
 # Polyhedral geometry
 @alias minimal_generator primitive_generator
+@alias number_of_pseudovertices n_pseudovertices

@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 The Lie theory part of OSCAR provides functionality for handling

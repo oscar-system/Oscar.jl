@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Elliptic Surfaces
 See [SS19](@cite) for the theory of elliptic surfaces.
 

@@ -10,7 +10,9 @@ import Oscar: pretty, Lowercase, Indent, Dedent, terse
 
 export is_coboundary, idele_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
-export local_index, units_mod_ideal
+export local_index, units_mod_ideal, brauer_group
+
+import AbstractAlgebra: @show_name, @show_special, extra_name
 
 
 _can_cache_aut(::PadicField) = nothing
@@ -82,6 +84,8 @@ function units_mod_ideal(I::AbsSimpleNumFieldOrderIdeal; n_quo::Int = 0)
 end
 
 """
+    gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, Hecke.nf(order(codomain((mR)))))[2])
+
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
@@ -94,6 +98,8 @@ function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group
 end
 
 """
+    gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2]; check::Bool = true)
+
 The natural `ZZ[G]` module where `G`, the
   automorphism group, acts on the ideal group defining the class field.
 """
@@ -114,6 +120,8 @@ function Oscar.gmodule(R::ClassField, mG = automorphism_group(PermGroup, base_fi
 end
 
 """
+    gmodule(H::PermGroup, R::ClassField, mG = automorphism_group(PermGroup, k))
+
 The natural `ZZ[H]` module where `H`, a subgroup of the 
   automorphism group, acts on the ideal group defining the class field.
 """
@@ -191,7 +199,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldO
       if i == 1
         o = _o
       else
-        o = vcat([collect(values(factor(x))) for x = _o]...)
+        o = vcat([collect(keys(factor(x))) for x = _o]...)
       end
       M = abelian_group([0 for x = o])
       h = MapFromFunc(c.C.M, M, x->M([valuation(x.data, y) for y = o]))
@@ -268,7 +276,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldE
   cp = coprime_base(vcat([numerator(norm(x.data*denominator(x.data))) for x = values(c.d)],
                          map(x->denominator(x.data), values(c.d))))
   @vprint :GaloisCohomology 2 ".. coprime done, now factoring ..\n"
-  s = Set(reduce(vcat, [collect(keys(factor(x).fac)) for x = cp], init = [1]))
+  s = Set(reduce(vcat, [prime_divisors(x) for x = cp], init = [1]))
   while 1 in s
     pop!(s, 1)
   end
@@ -312,7 +320,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldE
   @vprint :GaloisCohomology 2 ".. map to abstract chain ..\n"
   cc = CoChain{2,PermGroupElem,FinGenAbGroupElem}(C, Dict((h, preimage(mu, FacElem(v.data))) for (h,v) = c.d))
   @vprint :GaloisCohomology 2 ".. test for boundary ..\n"
-  fl, d = z(cc)
+  fl, d = z(cc; reduce = true)
   if !fl
     @vprint :GaloisCohomology 2 ".. no boundary\n"
     return fl, d
@@ -731,7 +739,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AbsSimpleNumFie
 
   #want a map: L-> codomain(m)
   function to(a::FacElem{AbsSimpleNumFieldElem})
-    return prod(m(k)^v for (k,v) = a.fac)
+    return prod(m(k)^v for (k,v) in a)
   end
   function from(a::Hecke.LocalFieldElem)
     return FacElem(preimage(m, a))
@@ -748,7 +756,7 @@ function Hecke.extend_easy(m::Hecke.CompletionMap, mu::Map, L::FacElemMon{AbsSim
   #want a map: L-> codomain(m) -> domain(mu)
   function to(a::FacElem{AbsSimpleNumFieldElem})
     s = domain(mu)[0]
-    for (k,v) = a.fac
+    for (k,v) = a
       if haskey(cache, k)
         s += v*cache[k]
       else
@@ -832,7 +840,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   cf = Tuple{FinGenAbGroup, <:Map}[x for x = cf]
 
   @vprint :GaloisCohomology 2 " .. gathering primes ..\n"
-  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(keys(factor(discriminant(zk)).fac))...)
+  s = push!(Set{ZZRingElem}(s), Set{ZZRingElem}(prime_divisors(discriminant(zk)))...)
   for i=1:length(sf)
     l = factor(prod(s)*zf[i])
     q, mq = quo(cf[i][1], [preimage(cf[i][2], P) for P = keys(l)])
@@ -1109,7 +1117,7 @@ Determine the Galois group (over `QQ`) of the extension parametrized by `A`.
 `A` needs to be normal over `QQ`.
 
 # Examples
-```jldoctest; setup = :(using Oscar)
+```jldoctest; setup = :(using Oscar), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> QQx, x = QQ[:x];
 
 julia> k, a = number_field(x^4 - 12*x^3 + 36*x^2 - 36*x + 9);
@@ -1142,7 +1150,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   zk = order(m0)
   @req order(automorphism_group(Hecke.nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
-    s, ms = split_extension(gmodule(A))
+    s, ms = split_extension(FPGroup, gmodule(A))
     return permutation_group(s), ms
   end
   if idele_parent === nothing
@@ -1281,6 +1289,14 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   @assert domain(mL) == codomain(mkK)
   l = codomain(ml)
   L = codomain(mL)
+  #to make sure domain/codomain have the same precision...
+  #otherwise, we'll get cool errors if the data does not 
+  #define a homomorphism - due to not enough prec.
+  rel_e = divexact(absolute_ramification_index(L), absolute_ramification_index(l))
+  pr_ml = ml.precision
+  pr_mL = mL.precision
+  setprecision!(ml, max(pr_ml*rel_e, pr_mL))
+  setprecision!(mL, max(pr_ml*rel_e, pr_mL))
   im_data = mL(mkK(preimage(ml, gen(l))))
   #CompletionMap is always Eisenstein/Unram
   #so need embedding of the unram parts:
@@ -1294,6 +1310,8 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   rt = coeff(mL(mkK(preimage(ml, l(preimage(mrl, gen(rl)))))), 0)
   f = map_coefficients(x->preimage(mrL, rL(x)), defining_polynomial(rl))
   rt = Hecke.refine_roots1(f, [rt])[1]
+#  setprecision!(ml, pr_ml)
+#  setprecision!(mL, pr_mL)
   return hom(l, L, hom(bl, bL, rt), im_data)
 end
 
@@ -1360,8 +1378,8 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g^i, g^j) => i+j<order(q) ? zero(parent(x)) : x for i=0:order(q)-1 for j=0:order(q)-1))
       else
         l, ml = completion(B.k, pp)
+        setprecision!(ml, precision(codomain(mL)))
         mlL = induce_hom(ml, mL, B.mkK)
-#        @show :serre, minimum(P)
         s = Hecke.Hecke.local_fundamental_class_serre(mlL)
         can = CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, Dict{NTuple{2, PermGroupElem}, FinGenAbGroupElem}((g, h) => preimage(mU, s(mGp(_m(g)), mGp(_m(h)))) for g = domain(_m) for h = domain(_m)))
       end
@@ -1384,7 +1402,8 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
   if !isone(cn)
     cn = invmod(cn, order(q))
   end
-  return [Hecke.QmodnZ()(preimage(mq, cn * preimage(c[2], x))[1]//order(q)) for x = D]
+  vals = [preimage(mq, cn * preimage(c[2], x)) for x = D]
+  return [Hecke.QmodnZ()(iszero(x) ? 0 : x[1]//order(q)) for x = vals]
 end
 
 """
@@ -1395,7 +1414,7 @@ return a container for the relative Brauer group parametrizing central
 simple algebras with center `k` that are split by `K` (thus can be realized
 as a 2-cochain with values in `K`)
 """
-mutable struct RelativeBrauerGroup
+@attributes mutable struct RelativeBrauerGroup
   K::AbsSimpleNumField
   k::Union{AbsSimpleNumField, QQField}
   mG::Map #PermGroup -> Aut(K/k)
@@ -1425,7 +1444,18 @@ mutable struct RelativeBrauerGroup
   end
 end
 
+function extra_name(B::RelativeBrauerGroup)
+  sK = get_name(B.K)
+  sk = get_name(B.k)
+  if sK !== nothing && sk !== nothing
+    return "Br($sK, $sk)"
+  end
+  return nothing
+end
+
 function Base.show(io::IO, B::RelativeBrauerGroup)
+  @show_name(io, B)
+  @show_special(io, B)
   io = pretty(io)
   print(io, "Relative Brauer group for ", Lowercase(), B.K, " over ", Lowercase(), B.k)
 end
@@ -1450,14 +1480,71 @@ mutable struct RelativeBrauerGroupElem
   end
 end
 
+
+#TODO:
+# - maps between Br(k) and Br(K) for k -> K
+# - tensor with field extensions?
+# - map into the relative/ lift into the non-relative?
+# - convert to cyclic case (easier cocycle) (Thomas Preu?)
+#   Cent. Eur. J. Math. • 11(12) • 2013 • 2138-2149
+#   DOI: 10.2478/s11533-013-0319-4
+#   sum(c(al^j, al) for j=0:2) G = <al>, sum os over 0:order-1
+#   should be the generator as a cyclic algebra.
+#   as G is abelian (cyclic) I think right and left cocycles are the same
+"""
+  The Brauer group of k. The map translates between 2-cycles in extensions
+  of k and the local data used to represent elements.
+"""
+@attributes mutable struct BrauerGroup
+  k::AbsSimpleNumField
+  map::Map
+  function BrauerGroup(k::AbsSimpleNumField)
+    B = new()
+    B.k = k
+    return B
+  end
+end
+
+function extra_name(B::BrauerGroup)
+  sK = get_name(B.k)
+  if sK !== nothing 
+    return "Br($sK)"
+  end
+  return nothing
+end
+
+
+function Base.show(io::IO, B::BrauerGroup)
+  @show_name(io, B)
+  @show_special(io, B)
+  io = pretty(io)
+  print(io, "Brauer group for ", Lowercase(), B.k)
+end
+
+mutable struct BrauerGroupElem
+  parent :: BrauerGroup
+  data :: Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}
+  chain:: Oscar.GrpCoh.CoChain{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}} # values in K
+  function BrauerGroupElem(B::BrauerGroup, d::Dict)
+    r = new()
+    r.parent = B
+    r.data = d
+    return r
+  end
+end
+
 Oscar.elem_type(::Type{RelativeBrauerGroup}) = RelativeBrauerGroupElem
 Oscar.parent_type(::Type{RelativeBrauerGroupElem}) = RelativeBrauerGroup
-
 Oscar.parent(a::RelativeBrauerGroupElem) = a.parent
 
-(B::RelativeBrauerGroup)(d::Dict{Union{AbsNumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}) = RelativeBrauerGroupElem(B, d)
+Oscar.elem_type(::Type{BrauerGroup}) = BrauerGroupElem
+Oscar.parent_type(::Type{BrauerGroupElem}) = BrauerGroup
+Oscar.parent(a::BrauerGroupElem) = a.parent
 
-function Base.:+(a::RelativeBrauerGroupElem, b::RelativeBrauerGroupElem)
+(B::RelativeBrauerGroup)(d::Dict{Union{AbsNumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}) = RelativeBrauerGroupElem(B, d)
+(B::BrauerGroup)(d::Dict{Union{AbsNumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}) = BrauerGroupElem(B, d)
+
+function Base.:+(a::T, b::T) where T <: Union{BrauerGroupElem, RelativeBrauerGroupElem}
   @assert parent(a) == parent(b)
   d = copy(a.data)
   for (k,v) = b.data
@@ -1467,10 +1554,10 @@ function Base.:+(a::RelativeBrauerGroupElem, b::RelativeBrauerGroupElem)
       d[k] = v
     end
   end
-  return RelativeBrauerGroupElem(parent(a), d)
+  return T(parent(a), d)
 end
 
-function Base.:-(a::RelativeBrauerGroupElem, b::RelativeBrauerGroupElem)
+function Base.:-(a::T, b::T) where T <: Union{BrauerGroupElem, RelativeBrauerGroupElem}
   @assert parent(a) == parent(b)
   d = copy(a.data)
   for (k,v) = b.data
@@ -1480,15 +1567,15 @@ function Base.:-(a::RelativeBrauerGroupElem, b::RelativeBrauerGroupElem)
       d[k] = -v
     end
   end
-  return RelativeBrauerGroupElem(parent(a), d)
+  return T(parent(a), d)
 end
 
-function Base.:*(a::Union{Integer, ZZRingElem}, b::RelativeBrauerGroupElem)
+function Base.:*(a::Union{Integer, ZZRingElem}, b::T)  where T <: Union{BrauerGroupElem, RelativeBrauerGroupElem}
   d = copy(b.data)
   for (k,v) = d
     d[k] = a*v
   end
-  return RelativeBrauerGroupElem(parent(b), d)
+  return T(parent(b), d)
 end
 
 function Base.show(io::IO, a::RelativeBrauerGroupElem)
@@ -1517,9 +1604,29 @@ function Oscar.order(b::RelativeBrauerGroupElem)
   return lcm([order(v) for v = values(b.data)]...)
 end
 
-function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem})
+function (B::RelativeBrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem}; check::Bool = true)
   d = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
+  if check
+    for (k,v) = d  
+      if isa(k, NumFieldOrderIdeal)
+        P = B.mkK(k)
+        lP = factor(P) #K/k should be normal or Galois Coho does not work...
+                       #so any prime will do
+        P = first(keys(lP))               
+        loc_deg = divexact(ramification_index(P)*inertia_degree(P), ramification_index(k)*inertia_degree(k))
+        @req loc_deg % order(v) == 0 "wrong index at $k - will not be split by larger field"
+      else
+        #need places above ...
+      end
+    end
+  end
   return RelativeBrauerGroupElem(B, d)
+end
+
+
+function (B::BrauerGroup)(d::Dict{<:Any, Hecke.QmodnZElem})
+  d = Dict{Union{NumFieldOrderIdeal, Hecke.NumFieldEmb}, Hecke.QmodnZElem}((k,v) for (k,v) = d)
+  return BrauerGroupElem(B, d)
 end
 
 """
@@ -1626,9 +1733,9 @@ Relative Brauer group for cyclotomic field of order 5 over number field of degre
 
 julia> b = B(S)
 Element of relative Brauer group of number field of degree 1 over QQ
-  <2, 2> -> 1//2 + Z
-  <5, 5> -> 0 + Z
-  Complex embedding of number field -> 1//2 + Z
+  <2> -> 1//2 + Z
+  <5> -> 0 + Z
+  Real embedding of number field -> 1//2 + Z
 ```
 """
 function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimpleNumField} = QQ)
@@ -1648,8 +1755,9 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
 
   function elem_to_cocycle(b::RelativeBrauerGroupElem)
     B = parent(b)
-    lp = Set([minimum(p) for p = keys(b.data) if isa(p, NumFieldOrderIdeal)])
     K = B.K
+    lp = Set([minimum(p) for p = keys(b.data) if isa(p, NumFieldOrderIdeal)])
+    lp = union!(lp, Set(ramified_primes(maximal_order(K))))
     ZK = maximal_order(K)
     C, mC = class_group(ZK)
     lP = vcat([collect(keys(factor(p*ZK))) for p = lp]...)
@@ -1729,6 +1837,65 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
   return B, B.map
 end
 
+"""
+    brauer_group(K::AbsSimpleNumField)
+
+The Brauer group as
+an infinite direct sum of the local Brauer groups.
+
+The second return value is a map translating between the local data
+and explicit 2-cochains.
+
+# EXAMPLES
+
+```jldoctest
+julia> k = rationals_as_number_field()[1];
+
+julia> lp = collect(keys(factor(30*maximal_order(k))));
+
+julia> qz = Hecke.QmodnZ();
+
+julia> B, mB = brauer_group(k);
+
+julia> b = B(Dict(lp[1]=>qz(1//3), lp[2]=>qz(2//3)));
+
+julia> c = mB(b);
+
+julia> C = structure_constant_algebra(c);
+
+julia> Hecke.local_schur_indices(C);
+
+julia> c = mB(b+b);
+
+```
+
+"""
+function brauer_group(K::AbsSimpleNumField)
+  B = BrauerGroup(K)
+
+  function elem_to_cocycle(b::BrauerGroupElem)
+    L = number_field(grunwald_wang(b)) # a splitting field
+        # TODO: cache splitting fields or relative_brauer_groups?
+    L, _ = simple_extension(L)
+    La, mpLa_L = absolute_simple_field(L)
+    _ = lll(maximal_order(La))
+    C, mC = relative_brauer_group(La, K)
+    return mC(C(b.data))
+  end
+
+  function cocycle_to_elem(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}})
+    L = C.C.M.data
+    D, mD = relative_brauer_group(L, K)
+    b = D(C)
+    return B(b.data)
+  end
+
+  B.map =  MapFromFunc(B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}(),
+                       elem_to_cocycle, 
+                       cocycle_to_elem)
+  return B, B.map
+end
+
 function (B::RelativeBrauerGroup)(M::GModule{<:Group, AbstractAlgebra.Generic.FreeModule{AbsSimpleNumFieldElem}})
   @assert B.K == base_ring(M)
   c = factor_set(M, B.mG)
@@ -1777,14 +1944,16 @@ function Oscar.can_solve_with_solution(A::Vector{RelativeBrauerGroupElem}, b::Re
 end  
 
 """
+    structure_constant_algebra(a::RelativeBrauerGroupElem)
+
 Compute an explicit matrix algebra with the local invariants given
 by the element
 """
-function Hecke.StructureConstantAlgebra(a::RelativeBrauerGroupElem)
-  return A = StructureConstantAlgebra(parent(a).map(a), parent(a).mG, parent(a).mkK)
+function Hecke.structure_constant_algebra(a::RelativeBrauerGroupElem)
+  return A = structure_constant_algebra(parent(a).map(a), parent(a).mG, parent(a).mkK)
 end
 
-function Hecke.grunwald_wang(b::RelativeBrauerGroupElem)
+function Hecke.grunwald_wang(b::Union{BrauerGroupElem, RelativeBrauerGroupElem})
   d1 = Dict((x=>Int(order(y))) for (x,y) = b.data if isa(x, NumFieldOrderIdeal))
   d2 = Dict((x=>Int(order(y))) for (x,y) = b.data if !isa(x, NumFieldOrderIdeal))
 
@@ -1812,10 +1981,12 @@ function local_index(C::GModule{<:Oscar.GAPGroup, Generic.FreeModule{AbsSimpleNu
 end
 
 """
+    structure_constant_algebra(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, CC.C.M.data)[2], mkK::Union{<:Map, Nothing} = nothing)
+
 Return the cross-product algebra defined by the factor system given
 as a 2-cochain.
 """
-function Hecke.StructureConstantAlgebra(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, CC.C.M.data), mkK::Union{<:Map, Nothing} = nothing)
+function Hecke.structure_constant_algebra(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, CC.C.M.data)[2], mkK::Union{<:Map, Nothing} = nothing)
 
   k = CC.C.M.data
   G = domain(mG)
@@ -1826,20 +1997,21 @@ function Hecke.StructureConstantAlgebra(CC::GrpCoh.CoChain{2, PermGroupElem, Grp
   else
     mp = id_hom(k)
   end
-  M = zeros(base_field(k), n*n, n*n, n*n)
+  M = Hecke.zeros_array(base_field(k), n*n, n*n, n*n)
   #basis is prod. basis of basis(k) and e_sigma sigma in G
   # e_sigma * e_tau is via cocycle
   # bas * bas is direct
   # e_sigma * bas = bas^sigma * e_sigma
   # bas * e_sigma = bas * e_sigma
   B = [(b, s) for b = basis(k) for s = all_G]
+  one = elem_type(k)[ isone(b[1]) && isone(b[2]) ? Base.one(k) : zero(k) for b = B]
   function mul(a::Tuple, b::Tuple)
     # a*A * b * B
     # -> a* b^A * A*B
     # -> a*b^A * (sigma(A, B)*AB)
     c = a[1] * preimage(mp, mG(a[2])(mp(b[1]))) * preimage(mp, CC(a[2], b[2]).data)
     C = a[2]*b[2]
-    z = zeros(base_field(k), n*n)
+    z = Hecke.zeros_array(base_field(k), n*n)
     bk = basis(k)
     for i=1:length(bk)
       p = findfirst(isequal((bk[i], C)), B)
@@ -1852,7 +2024,7 @@ function Hecke.StructureConstantAlgebra(CC::GrpCoh.CoChain{2, PermGroupElem, Grp
       M[i, j, : ] = mul(B[i], B[j])
     end
   end
-  return Hecke.StructureConstantAlgebra(base_field(k), M)
+  return Hecke.structure_constant_algebra(base_field(k), M; check = false, one = one)
 end
 
 function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
@@ -2050,5 +2222,9 @@ end
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
-export is_coboundary, idele_class_gmodule, relative_brauer_group, units_mod_ideal
+export is_coboundary, 
+       idele_class_gmodule,
+       relative_brauer_group,
+       units_mod_ideal,
+       brauer_group
 

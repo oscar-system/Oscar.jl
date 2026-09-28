@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lie algebra homomorphisms
 
 Homomorphisms of Lie algebras in Oscar are represented by the type
@@ -16,7 +11,7 @@ the images of the basis elements of $L_1$ or a $\dim L_1 \times \dim L_2$ matrix
 ```@docs
 hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::Vector{<:LieAlgebraElem{C}}; check::Bool=true) where {C<:FieldElem}
 hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::MatElem{C}; check::Bool=true) where {C<:FieldElem}
-identity_map(::LieAlgebra)
+id_hom(::LieAlgebra)
 zero_map(::LieAlgebra{C}, ::LieAlgebra{C}) where {C<:FieldElem}
 ```
 

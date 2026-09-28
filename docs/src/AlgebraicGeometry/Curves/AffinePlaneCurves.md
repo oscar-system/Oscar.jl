@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Affine plane curves
 
 ```@docs

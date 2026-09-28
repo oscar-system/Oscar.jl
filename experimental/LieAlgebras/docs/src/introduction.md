@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 This project aims to provide functionality for Lie algebras and their representations.

@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 
 # Projective schemes
 

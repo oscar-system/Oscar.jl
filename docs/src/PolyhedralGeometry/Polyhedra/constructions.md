@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Constructions
 
 The standard way to define a polyhedron is by either giving a
@@ -206,6 +201,7 @@ a new polyhedron.
 *(::Polyhedron{T}, ::Polyhedron{U})  where {T<:scalar_types, U<:scalar_types}
 bipyramid
 intersect(::Polyhedron...)
+prism
 pyramid
 vertex_figure
 ```

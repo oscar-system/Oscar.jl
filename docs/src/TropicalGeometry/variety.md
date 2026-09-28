@@ -37,6 +37,7 @@ is_pure(TropV::TropicalVariety)
 is_simplicial(TropV::TropicalVariety)
 rays(TropV::TropicalVariety)
 rays_modulo_lineality(TropV::TropicalVariety)
+stable_intersection(::TropicalVarietySupertype{minOrMax, true}, ::TropicalVarietySupertype{minOrMax, true}) where {minOrMax<:Union{typeof(max), typeof(min)}}
 tropical_prevariety
 vertices_and_rays(TropV::TropicalVariety)
 vertices(TropV::TropicalVariety)

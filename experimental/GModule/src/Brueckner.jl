@@ -30,7 +30,7 @@ function reps(K, G::Oscar.PcGroup)
     return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
-  pcgs = GAP.Globals.Pcgs(GapObj(G))
+  pcgs = Oscar.GAPWrap.Pcgs(GapObj(G))
   @assert length(pcgs) == ngens(G)
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
@@ -180,7 +180,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     #  expensive find minimal field step can be omitted.
     I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
   end
-  lp = Set(collect(keys(factor(order(Q)).fac)))
+  lp = Set(prime_divisors(order(Q)))
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
     ia = gmodule(FinGenAbGroup, ib)
@@ -217,7 +217,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
 #    q = quo(kernel(da)[1], image(db)[1])[1]
     t = torsion_subgroup(q)[1]
     if order(t) > 1
-      push!(lp, collect(keys(factor(order(t)).fac))...)
+      push!(lp, prime_divisors(order(t))...)
     end
   end
   return lp
@@ -332,7 +332,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
   function _process(mu; is_trivial::Bool = false, limit::Int)
-    allG = typeof(mp)[]
+    res = typeof(mp)[]
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
     @assert isa(GG, PcGroup)
 
@@ -351,18 +351,18 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     end
     if !fl
 #      @show :no_sol
-      return allG
+      return res
     end
     k, mk = kernel(s)
     for x = k
       hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
       if is_surjective(hm)
-        push!(allG, hm)
+        push!(res, hm)
       else
 #        @show :not_sur
       end
     end
-    return allG
+    return res
   end
 
 
@@ -400,14 +400,14 @@ end
 function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothing} = nothing)
   if index !== nothing
     lf = factor(ZZRingElem(index))
-    primes = collect(keys(lf.fac))
+    primes = prime_divisors(ZZ(index))
     while length(primes) > 0
       @time nw = brueckner(mp; limit = 1, primes)
       if length(nw) == 0 
         return mp
       end
       mp = nw[1]
-      for (p, k) = lf.fac
+      for (p, k) = lf
         if p in primes && valuation(order(codomain(mp)), p) >= k
           deleteat!(primes, findfirst(isequal(p), primes))
 #          @show :removing, p

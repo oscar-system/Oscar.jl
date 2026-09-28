@@ -59,7 +59,7 @@
 
   function create_knapsack_ch(d, b)
     k = create_knapsack_lp(d, b)
-    points = Oscar.homogenize(Oscar.matrix_for_polymake(lattice_points(k)))
+    points = Oscar.homogenize(QQ, Oscar.matrix_for_polymake(lattice_points(k)))
     #p = convex_hull(points)
     #for prop in ["BOUNDED", "POINTED", "FEASIBLE"]
     #   Polymake.give(Oscar.pm_polytope(p), prop)

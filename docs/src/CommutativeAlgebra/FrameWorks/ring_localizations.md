@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # A Framework for Localizing Rings
 
 For the convenience of the developer, we outline a general framework for creating concrete instances of localized rings in OSCAR,

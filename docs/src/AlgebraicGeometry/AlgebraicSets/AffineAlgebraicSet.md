@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Affine Algebraic Sets
 
 ## Introduction
@@ -41,8 +36,8 @@ without taking any field extensions.
 The second step involves methods from number theory (if $k$ is a number field)
 or from real algebraic geometry (if $k = \mathbb{R}$).
 
-Algebraic sets in Oscar are designed for the first step.
-Most of their properfties should be interpreted as properties
+Algebraic sets in OSCAR are designed for the first step.
+Most of their properties should be interpreted as properties
 of the set $X(K)$ of their $K$-points over an algebraic closure $K$.
 
 ## Relation to Schemes

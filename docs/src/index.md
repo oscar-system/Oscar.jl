@@ -29,6 +29,9 @@ in OSCAR. While they offer a glimpse into OSCAR's powerful features, they only s
 For a deeper understanding, explore the detailed documentation you are reading now. Do not forget
 to use the search field (top left corner) to quickly find information on the features you need.
 
+If you already have experience with other computer algebra systems, have a look at our
+[notes for users of other computer algebra systems](@ref "Notes for users of other computer algebra systems").
+
 We would love your feedback on our tutorials! Whether it is suggestions for improving existing
 ones or ideas for new topics, your input helps us grow.
 
@@ -41,7 +44,9 @@ our [Introduction for new developers](@ref).
 
 ## How to cite?
 
-If you have used OSCAR in the preparation of a paper, please cite it as described [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
+If you have used OSCAR in the preparation of a paper please cite it as described
+on [our website](https://www.oscar-system.org/credits/Citing-OSCAR/).
+
 
 ## Acknowledgements
 

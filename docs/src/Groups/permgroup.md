@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Permutation groups
 
 ## Constructing permutation groups
@@ -10,8 +5,6 @@ DocTestSetup = Oscar.doctestsetup()
 Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.
 
 ```@docs
-PermGroup
-PermGroupElem
 symmetric_group
 alternating_group
 permutation_group
@@ -27,6 +20,10 @@ projective_special_orthogonal_group
 projective_omega_group
 projective_unitary_group
 projective_special_unitary_group
+```
+
+```@docs
+mathieu_group
 ```
 
 ## Operations for permutation groups
@@ -108,6 +105,15 @@ julia> x(6)
 6
 ```
 
+## Moved points of permutations and permutation groups
+```@docs
+smallest_moved_point
+largest_moved_point
+moved_points
+number_of_moved_points
+fixed_points
+number_of_fixed_points
+```
 
 ## Cycle structures
 
@@ -124,4 +130,11 @@ sign(::CycleType)
 
 ```@docs
 cycle_structures(G::PermGroup)
+```
+
+## Technicalities
+
+```@docs
+PermGroup
+PermGroupElem
 ```

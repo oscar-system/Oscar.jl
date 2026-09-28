@@ -890,6 +890,59 @@ algebraic lattice (with quadratic form rescaled by ``-1``).
   return mwl
 end
 
+function ample_class(::Type{QQMatrix}, X::EllipticSurface)
+  NS = algebraic_lattice(X)[3]
+  G = gram_matrix(ambient_space(NS))
+  t = length(trivial_lattice(X)[1])
+  n = rank(NS)
+  r = zero_matrix(QQ, 1, n)
+  r[1:1, 3:t] = matrix(QQ,1,t-2, ones(Int,t-2))*inv(G[3:t,3:t])
+  r = r*denominator(r)
+  # a nef and big class, pullback of an ample class of the weierstrass model
+  h = zero_matrix(QQ, 1, n)
+  h[1,1] = 3
+  h[1,2] = 1
+  v = 5*h + r
+  while (inner_product(ambient_space(NS), v, v)[1,1]<=0
+         || !isempty(short_vectors_iterator(orthogonal_submodule(NS, v), 2))
+         || length(separating_hyperplanes(NS, h, v, -2)) != 0
+        )
+    add!(v, h)
+  end
+  return v
+end 
+  
+  
+"""
+    is_nef(X::EllipticSurface, f::QQMatrix)
+    
+Return if `f` is nef. 
+  
+# Arguments
+- `f::QQMatrix` -- a vector given with respect to the ambient space of the algebraic lattice of ``X``
+"""
+function is_nef(X::EllipticSurface, f::QQMatrix)
+  # We do not need to know generators of the Mordell-Weil group for this.s
+  NS = algebraic_lattice(X)[3]
+  V = ambient_space(NS)
+  f_sq = inner_product(V, f, f)[1,1]
+  f_sq >= 0 || return false 
+  a = ample_class(QQMatrix, X) 
+  fa = inner_product(V, f, a)[1,1]
+  fa > 0 || return false  # not in the positive cone
+  if f_sq == 0 
+    # https://arxiv.org/abs/2210.01328
+    # Shimada: Mordell-Weil groups and automorphism groups of elliptic K3 surfaces
+    # Proposition 3.3 
+    af = a + fa*f
+  else 
+    af = f
+  end
+  return length(separating_hyperplanes(NS, a, af, -2))==0
+end
+
+is_nef(X::EllipticSurface, v::Vector{QQFieldElem}) = is_nef(X, matrix(QQ, 1, length(v), v))
+
 @doc raw"""
     mordell_weil_torsion(X::EllipticSurface) -> Vector{EllipticCurvePoint}
 
@@ -1181,7 +1234,7 @@ function standardize_fiber(X::EllipticSurface, f::Vector{<:AbsWeilDivisor})
   b, I = _is_equal_up_to_permutation_with_permutation(G, -gram_matrix(R))
   @assert b
   gensF = vcat([f0], f[I])
-  Gext, v = extended_ade(rt[1],rt[2])
+  Gext, v = Hecke.extended_ade(rt[1],rt[2])
   Fdiv = sum(v[i]*gensF[i] for i in 1:length(gensF))
   return rt, Fdiv, gensF, Gext
 end

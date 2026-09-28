@@ -445,7 +445,7 @@ end
 
 @attr Int function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
-  return vector_space_dimension(OO(X))
+  return vector_space_dim(OO(X))
 end
 
 @doc raw"""
@@ -557,7 +557,7 @@ end
 end
 
 ## to make reduced_scheme agnostic for quotient ring
-@attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
+@attr Tuple{T,ClosedEmbedding} function reduced_scheme(X::T) where {T<:AbsAffineScheme{<:Field, <:MPAnyNonQuoRing}}
   return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 
@@ -717,8 +717,7 @@ end
 
 # internal workhorse, not user-facing
 function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
-  empty = AbsAffineScheme[]
-  result = empty
+  result = AbsAffineScheme[]
   is_zero(ngens(OO(X))) && return result # Shortcut needed to avoid creating polynomial rings with zero variables
   I = saturated_ideal(modulus(OO(X)))
 
@@ -744,7 +743,7 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
-    one(OO(X)) in JX && return empty
+    one(OO(X)) in JX && return AbsAffineScheme[]
     return [subscheme(X, J)]
   else
 # if reducible, determine pairwise intersection loci
@@ -759,9 +758,9 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     end
 # and singular loci of components
     for Y in components
-      result = vcat(result, singular_locus(Y)[1])
+      push!(result, singular_locus(Y)[1])
     end
-  #one(OO(X)) in result && return empty
+  #one(OO(X)) in result && return AbsAffineScheme[]
   end
   return result
 end

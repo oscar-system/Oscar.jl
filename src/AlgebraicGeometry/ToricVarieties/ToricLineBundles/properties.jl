@@ -1,6 +1,5 @@
 is_trivial(l::ToricLineBundle) = is_principal(toric_divisor(l))
 
-
 @doc raw"""
     is_basepoint_free(l::ToricLineBundle)
 
@@ -16,7 +15,6 @@ true
 ```
 """
 is_basepoint_free(l::ToricLineBundle) = is_basepoint_free(toric_divisor(l))
-
 
 @doc raw"""
     is_ample(l::ToricLineBundle)
@@ -34,7 +32,6 @@ false
 """
 is_ample(l::ToricLineBundle) = is_ample(toric_divisor(l))
 
-
 @doc raw"""
     is_very_ample(l::ToricLineBundle)
 
@@ -50,7 +47,6 @@ false
 ```
 """
 is_very_ample(l::ToricLineBundle) = is_very_ample(toric_divisor(l))
-
 
 @doc raw"""
     is_immaculate(l::ToricLineBundle)
@@ -68,11 +64,11 @@ Toric line bundle on a normal toric variety
 julia> is_immaculate(toric_line_bundle(F4, [1,0]))
 false
 
-julia> all_cohomologies(l)
+julia> sheaf_cohomology(l)
 3-element Vector{ZZRingElem}:
  2
  0
  0
 ```
 """
-@attr Bool is_immaculate(l::ToricLineBundle) = all(is_zero, all_cohomologies(l))
+@attr Bool is_immaculate(l::ToricLineBundle) = all(is_zero, sheaf_cohomology(l))

@@ -732,8 +732,8 @@ function _pullback(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromCha
   U = affine_charts(X)
 
   cod_patches = AbsAffineScheme[V0]
-  cod_patches = vcat(cod_patches, [U for U in keys(object_cache(I)) if any(x->x===U, affine_charts(Y))])
-  cod_patches = vcat(cod_patches, [U for U in affine_charts(Y) if !any(x->x===U, cod_patches)])
+  append!(cod_patches, [U for U in keys(object_cache(I)) if any(x->x===U, affine_charts(Y))])
+  append!(cod_patches, [U for U in affine_charts(Y) if !any(x->x===U, cod_patches)])
   for U0 in U
     I_undef = ideal(OO(U0), elem_type(OO(U0))[])
     random_realizations = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()

@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # The Chow ring
 
 Algebraic cycles are formal linear sum of irreducible

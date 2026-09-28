@@ -2,6 +2,17 @@
    @test number_of_transitive_groups(4)==5
    @test number_of_transitive_groups(10)==45
 
+   # the trivial group is the unique transitive group of degree 1,
+   # even though GAP's library of transitive groups starts at degree 2
+   @test number_of_transitive_groups(1) == 1
+   @test transitive_group(1, 1) == symmetric_group(1)
+   @test transitive_group_identification(symmetric_group(1)) == (1, 1)
+   @test transitive_group_identification(trivial_subgroup(symmetric_group(4))[1]) == (1, 1)
+   @test all_transitive_groups(1) == [transitive_group(1, 1)]
+   @test all_transitive_groups(degree => 1, is_cyclic) == [transitive_group(1, 1)]
+   @test all_transitive_groups(degree => 1, !is_cyclic) == PermGroup[]
+   @test_throws ArgumentError transitive_group(1, 0)
+
    for i in 1:10
        @test number_of_transitive_groups(i) == length(all_transitive_groups(degree => i))
    end
@@ -100,7 +111,7 @@ end
    @test perfect_group(120,1) isa PermGroup
    @test perfect_group(PermGroup,120,1) isa PermGroup
    @test perfect_group(FPGroup,120,1) isa FPGroup
-   @test_throws ArgumentError perfect_group(MatrixGroup,120,1)
+   @test_throws ArgumentError perfect_group(MatGroup,120,1)
 
    @test_throws ArgumentError perfect_group(17, 0)
    @test_throws ArgumentError perfect_group(17, 1)
@@ -158,6 +169,7 @@ end
    @test length(all_small_groups(order => 16, !is_abelian))==9
    @test number_of_small_groups(16)==14
    @test number_of_small_groups(17)==1
+   @test small_group_identification(small_group(512, 1)) == (512, 1)
 
    @test_throws ArgumentError small_group(1, 2)
 end
@@ -178,7 +190,7 @@ end
 @testset "Atlas groups" begin
    # `atlas_group` for type and group name
    @test order(atlas_group(PermGroup, "A5")) == 60
-   @test order(atlas_group(MatrixGroup, "A5")) == 60
+   @test order(atlas_group(MatGroup, "A5")) == 60
    @test_throws ArgumentError atlas_group(PermGroup, "B")
 
    # prescribe permutation degree
@@ -257,7 +269,7 @@ end
    # `atlas_subgroup` for type, group name, and position
    H, emb = atlas_subgroup(PermGroup, "M11", 1)
    @test order(H) == 720
-   H, emb = atlas_subgroup(MatrixGroup, "M11", 1)
+   H, emb = atlas_subgroup(MatGroup, "M11", 1)
    @test order(H) == 720
    # no representation of the group
    @test_throws ArgumentError atlas_subgroup(PermGroup, "B", 1)
@@ -292,23 +304,39 @@ end
 
 @testset "Groups with few conjugacy classes" begin
    @testset for n in 1:14
+      @test has_number_of_groups_with_class_number(n)
       @test has_groups_with_class_number(n)
+      @test has_groups_with_class_number_identification(n)
       grps = all_groups_with_class_number(n)
       @test length(grps) == number_of_groups_with_class_number(n)
    end
-   for n in [0, 15]
-      @test_throws ArgumentError number_of_groups_with_class_number(n)
-      @test_throws ArgumentError all_groups_with_class_number(n)
-   end
-   @test_throws ArgumentError has_groups_with_class_number(0)
-   @test_throws ArgumentError has_number_of_groups_with_class_number(0)
-   @test !has_groups_with_class_number(15)
-   @test !has_number_of_groups_with_class_number(15)
+
+   n = 50
+   @test !has_number_of_groups_with_class_number(n)
+   @test !has_groups_with_class_number(n)
+   @test !has_groups_with_class_number_identification(n)
+   @test_throws ArgumentError number_of_groups_with_class_number(n)
+   @test_throws GAP.GAPError all_groups_with_class_number(n)
+
+   n = 0
+   @test_throws ArgumentError has_number_of_groups_with_class_number(n)
+   @test_throws ArgumentError has_groups_with_class_number(n)
+   @test_throws ArgumentError has_groups_with_class_number_identification(n)
+   @test_throws ArgumentError number_of_groups_with_class_number(n)
+   @test length(all_groups_with_class_number(n)) == 0
 
    n = 8
    grps = all_groups_with_class_number(n)
    for i in 1:number_of_groups_with_class_number(n)
-     @test is_isomorphic(grps[i], group_with_class_number(n, i))
-     @test is_isomorphic(grps[i], group_with_class_number(PermGroup, n, i))
+     G = group_with_class_number(n, i)
+     @test is_isomorphic(grps[i], G)
+     @test group_with_class_number_identification(G) == (n, i)
+     G = group_with_class_number(PermGroup, n, i)
+     @test is_isomorphic(grps[i], G)
+     @test group_with_class_number_identification(G) == (n, i)
    end
+
+   l1 = map(order, all_groups_with_class_number(n, is_solvable))
+   l2 = map(order, all_groups_with_class_number(is_solvable => true, number_of_conjugacy_classes => n))
+   @test l1 == l2
 end

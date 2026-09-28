@@ -4,29 +4,35 @@
   D::FinGenAbGroup
   d::Vector{FinGenAbGroupElem}
   lt::Any
+  is_fine_graded::Bool
   hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
+    @req !(R isa MPolyDecRing) "cannot grade polynomial ring which is already decorated"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
     r.d = d
+    r.is_fine_graded = is_free(parent(d[1])) && (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
     return r
   end
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
+    @req !(R isa MPolyDecRing) "cannot filter polynomial ring which is already decorated"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
     r.D = parent(d[1])
     r.d = d
     r.lt = lt
+    r.is_fine_graded = is_free(parent(d[1])) &&  (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
     return r
   end
 end
 
 generator_degrees(S::MPolyDecRing) = S.d
+is_fine_graded(S::MPolyDecRing) = S.is_fine_graded
 
 @doc raw"""
     grading_group(R::MPolyDecRing)
@@ -35,7 +41,7 @@ If `R` is, say, `G`-graded, then return `G`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> G = grading_group(R)
@@ -135,7 +141,7 @@ of `R`, and return the new ring, together with the vector of variables.
 As above, where the grading is the standard $\mathbb Z$-grading on `R`.
 
 # Examples
-```jldoctest
+```jldoctest grade-ex
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -156,8 +162,16 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
   y -> [1]
   z -> [1]
-
 ```
+
+Grading an already graded polynomial ring is not supported.
+```jldoctest grade-ex
+julia> grade(S)
+ERROR: ArgumentError: cannot grade polynomial ring which is already decorated
+[...]
+```
+To produce a new ring with different grading, you need to first
+call `forget_grading` and then `grade` the result.
 """
 function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)
@@ -266,7 +280,7 @@ julia> weights(R)
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:4, W);
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:4; weights = W);
 
 julia> weights(R)
 4-element Vector{FinGenAbGroupElem}:
@@ -399,7 +413,7 @@ Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z], W);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]; weights = W);
 
 julia> R
 Multivariate polynomial ring in 4 variables over QQ graded by
@@ -483,7 +497,7 @@ false
   try
     homogeneous_component(R, zero(G))
   catch e
-    if e isa ArgumentError && e.msg == "Polyhedron not bounded"
+    if e isa AbstractAlgebra.InfiniteDimensionError
       return false
     else
       rethrow(e)
@@ -521,7 +535,7 @@ Finitely generated abelian group
 
 julia> W1 = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
  
-julia> R1, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3, W1);
+julia> R1, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3; weights = W1);
 
 julia> R1
 Multivariate polynomial ring in 5 variables over QQ graded by
@@ -971,8 +985,17 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
-MPolyCoeffs(f::MPolyDecRingElem) = MPolyCoeffs(forget_decoration(f))
-MPolyExponentVectors(f::MPolyDecRingElem) = MPolyExponentVectors(forget_decoration(f))
+function AbstractAlgebra.coefficients(f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.coefficients(forget_decoration(f), inplace=inplace)
+end
+
+function AbstractAlgebra.exponent_vectors(f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.exponent_vectors(forget_decoration(f), inplace=inplace)
+end
+
+function AbstractAlgebra.exponent_vectors(v, f::MPolyDecRingElem; inplace::Bool=false)
+  return AbstractAlgebra.exponent_vectors(v, forget_decoration(f), inplace=inplace)
+end
 
 function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
   if iszero(c)
@@ -1096,7 +1119,7 @@ function degree(a::MPolyDecRingElem; check::Bool=true)
   w = W.D[0]
   first = true
   d = W.d
-  for c = MPolyExponentVectors(forget_decoration(a))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(a))
     u = W.D[0]
     for i=1:length(c)
       u += c[i]*d[i]
@@ -1170,7 +1193,7 @@ function is_homogeneous(F::MPolyDecRingElem)
   d = parent(F).d
   S = nothing
   u = zero(D)
-  for c = MPolyExponentVectors(forget_decoration(F))
+  for c in AbstractAlgebra.exponent_vectors(forget_decoration(F))
     u = zero!(u)
     for i=1:length(c)
       u = addmul_delayed_reduction!(u, d[i], c[i])
@@ -1185,13 +1208,68 @@ function is_homogeneous(F::MPolyDecRingElem)
   return true
 end
 
+# Return a dictionary with the homogeneous components of a corresponding to the
+# degrees in degs. If degs === nothing, all homogeneous components of a are
+# computed. degs may contain degrees for which the homogeneous component is 0.
+function _homogeneous_components(a::MPolyDecRingElem{T, S}, degs::Union{Nothing, Vector{<:FinGenAbGroupElem}}) where {T, S}
+  W = parent(a)
+  R = forget_decoration(W)
+  D = grading_group(W)
+  d = generator_degrees(W)
+
+  # First assemble the homogeneous components into the build contexts.
+  # Afterwards compute the polynomials.
+  h = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
+  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
+  tmat = zero_matrix(ZZ, 1, nvars(R))
+  res_mat = zero_matrix(ZZ, 1, ncols(dmat))
+  aa = forget_decoration(a)
+
+  if !isnothing(degs)
+    # We are asked for specific degrees
+    for u in degs
+      h[u] = MPolyBuildCtx(R)
+    end
+  end
+
+  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(aa, inplace = true), AbstractAlgebra.exponent_vectors(aa, inplace = true))
+    # this is non-allocating
+    for i in 1:length(e)
+      tmat[1, i] = e[i]
+    end
+    mul!(res_mat, tmat, dmat)
+    u = FinGenAbGroupElem(D, res_mat)
+    if haskey(h, u)
+      ctx = h[u]
+      push_term!(ctx, deepcopy(c), deepcopy(e))
+    else
+      # If we are only asked for the degrees in degs, we don't add any others
+      !isnothing(degs) && continue
+
+      # We put u in the dictionary
+      # Make a fresh res_mat, which can be used the for the next u
+      res_mat = deepcopy(res_mat)
+      ctx = MPolyBuildCtx(R)
+      push_term!(ctx, deepcopy(c), deepcopy(e))
+      h[u] = ctx
+    end
+  end
+
+  hh = Dict{elem_type(D), typeof(a)}()
+  for (u, C) in h
+    hh[u] = W(finish(C))
+  end
+
+  return hh
+end
+
 @doc raw"""
     homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 
 Given an element `f` of a graded multivariate ring, return the homogeneous components of `f`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
@@ -1226,42 +1304,7 @@ Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 e
 ```
 """
 function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
-  D = parent(a).D
-  d = parent(a).d
-  h = Dict{elem_type(D), typeof(a)}()
-  W = parent(a)
-  R = forget_decoration(W)
-  # First assemble the homogeneous components into the build contexts.
-  # Afterwards compute the polynomials.
-  hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
-  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
-  tmat = zero_matrix(ZZ, 1, nvars(R))
-  res_mat = zero_matrix(ZZ, 1, ncols(dmat))
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(forget_decoration(a)), AbstractAlgebra.exponent_vectors(forget_decoration(a)))
-    # this is non-allocating
-    for i in 1:length(e)
-      tmat[1, i] = e[i]
-    end
-    mul!(res_mat, tmat, dmat)
-    u = FinGenAbGroupElem(D, res_mat)
-    if haskey(hh, u)
-      ctx = hh[u]
-      push_term!(ctx, c, e)
-    else
-      # We put u in the dictionary
-      # Make a fresh res_mat, which can be used the for the next u
-      res_mat = deepcopy(res_mat)
-      ctx = MPolyBuildCtx(R)
-      push_term!(ctx, c, e)
-      hh[u] = ctx
-    end
-  end
-  hhh = Dict{elem_type(D), typeof(a)}()
-  for (u, C) in hh
-    hhh[u] = W(finish(C))
-  end
-
-  return hhh
+  return _homogeneous_components(a, nothing)
 end
 
 @doc raw"""
@@ -1339,20 +1382,8 @@ z
 ```
 """
 function homogeneous_component(a::MPolyDecRingElem, g::FinGenAbGroupElem)
-  R = forget_decoration(parent(a))
-  r = R(0)
-  d = parent(a).d
-  for (c, m) = Base.Iterators.zip(MPolyCoeffs(forget_decoration(a)), Generic.MPolyMonomials(forget_decoration(a)))
-    e = exponent_vector(m, 1)
-    u = parent(a).D[0]
-    for i=1:length(e)
-      u += e[i]*d[i]
-    end
-    if u == g
-      r += c*m
-    end
-  end
-  return parent(a)(r)
+  comp_dict = _homogeneous_components(a, [g])
+  return comp_dict[g]
 end
 
 function homogeneous_component(a::MPolyDecRingElem, g::IntegerUnion)
@@ -1370,6 +1401,7 @@ base_ring_type(::Type{MPolyDecRing{T, S}}) where {T, S} = base_ring_type(S)
 number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
+is_gen(a::MPolyDecRingElem) = is_gen(forget_grading(a))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
@@ -1383,110 +1415,138 @@ function show_homo_comp(io::IO, M)
   end
 end
 
+
 @doc raw"""
-    monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
-
-Given a polynomial ring `R` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
-return the monomials of degree `g` in `R`.
-
-    monomial_basis(R::MPolyDecRing, W::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field and
-a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
-group of `R` and proceed as above.
-
+    monomial_basis(R::MPolyDecRing, d::FinGenAbGroupElem)
+    monomial_basis(R::MPolyDecRing, d::Vector{<:IntegerUnion})
     monomial_basis(R::MPolyDecRing, d::IntegerUnion)
 
-Given a $\mathbb  Z$-graded polynomial ring `R` over a field and
-an integer `d`, convert `d` into an element `g` of the grading
-group of `R` and proceed as above.
+Given a polynomial ring `R` over a field, graded by a finitely generated
+abelian group, return the monomials of the specified degree.
+
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
-    If the component of the given degree is not finite dimensional, an error message will be thrown.
+    If the grading group has torsion, the computation first ignores torsion
+    and enumerates all monomials of the corresponding degree in the
+    torsion-free quotient. This set of monomials must be finite; otherwise,
+    an `InfiniteDimensionError` is thrown.
 
 # Examples
+
+The following example illustrates the $\mathbb{Z}$-graded case.
+
 ```jldoctest
-julia> T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> G = grading_group(T)
-Z
+julia> L = monomial_basis(R, 2);
 
-julia> L = monomial_basis(T, 2)
-6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
- z^2
- y*z
- y^2
- x*z
- x*y
- x^2
+julia> Set(L) == Set([z^2, y*z, y^2, x*z, x*y, x^2])
+true
+
+julia> monomial_basis(R, grading_group(R)([2])) == L
+true
+
+julia> monomial_basis(R, [2]) == L
+true
+```
+
+The following example illustrates a grading group with torsion:
+
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> monomial_basis(R, G([2, 1])) == [x*y]
+true
+
+julia> Set(monomial_basis(R, G([2, 0]))) == Set([x^2, y^2])
+true
 ```
 """
-function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      apparently it is possible to get the number of points faster than the points
-  #TODO: in the presence of torsion, this is wrong. The component
-  #      would be a module over the deg-0-sub ring.
-  @req coefficient_ring(W) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  D = W.D
-  is_free(D) || error("Grading group must be free")
-  h = hom(free_abelian_group(ngens(W)), W.d)
-  fl, p = has_preimage_with_preimage(h, d)
-  R = base_ring(W)
-  B = elem_type(W)[]
-  if fl
-     k, im = kernel(h)
-     #need the positive elements in there...
-     #Ax = b, Cx >= 0
-     C = identity_matrix(ZZ, ngens(W))
-     A = reduce(vcat, [x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)
-     for ee = 1:nrows(k)
-       e = k[ee, :]
-       a = MPolyBuildCtx(forget_decoration(W))
-       push_term!(a, R(1), [Int(e[i]) for i in 1:length(e)])
-       push!(B, W(finish(a)))
-     end
+function monomial_basis(R::MPolyDecRing, d::FinGenAbGroupElem)
+  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  return is_free(grading_group(R)) ? _monomial_basis_free(R, d) : _monomial_basis_with_torsion(R, d)
+end
+
+function monomial_basis(R::MPolyDecRing, d::Vector{<:IntegerUnion})
+  @req is_zm_graded(R) "The ring must be Z^m-graded"
+  return monomial_basis(R, grading_group(R)(d))
+end
+
+function monomial_basis(R::MPolyDecRing, d::IntegerUnion)
+  @req is_z_graded(R) "The ring must be Z-graded"
+  return monomial_basis(R, grading_group(R)([d]))
+end
+
+function _monomial_basis_with_torsion(R::MPolyDecRing, d::FinGenAbGroupElem)
+  _, inj = torsion_subgroup(grading_group(R))
+  _, sur = cokernel(inj)
+  deg_F = sur.(R.d)
+  R_F, _ = grade(forget_grading(R), deg_F)
+  B_F = _monomial_basis_free(R_F, sur(d))
+  B = [R(forget_grading(p)) for p = B_F]
+  return filter!(p -> degree(p) == d, B)
+end
+
+function _monomial_basis_free(R::MPolyDecRing, d::FinGenAbGroupElem)
+  n = ngens(R)
+  degree_map = hom(free_abelian_group(n), grading_group(R), R.d)
+  has_preimage, _ = has_preimage_with_preimage(degree_map, d)
+  basis = elem_type(R)[]
+  has_preimage || return basis
+  degree_matrix = reduce(vcat, [w.coeff for w in R.d])
+  nonnegative = identity_matrix(ZZ, n)
+  exponent_vectors = try
+    solve_mixed(transpose(degree_matrix), transpose(d.coeff), nonnegative)
+  catch err
+    if err isa ErrorException && err.msg == "Polyhedron not bounded"
+      throw(AbstractAlgebra.InfiniteDimensionError("The considered graded component is infinite-dimensional"))
+    end
+    rethrow()
   end
-  return B
+  underlying_ring = forget_decoration(R)
+  coefficient_base = base_ring(R)
+  for i in 1:nrows(exponent_vectors)
+    builder = MPolyBuildCtx(underlying_ring)
+    push_term!(builder, coefficient_base(1), [Int(e) for e in exponent_vectors[i, :]])
+    push!(basis, R(finish(builder)))
+  end
+  return basis
 end
 
-
-function monomial_basis(R::MPolyDecRing, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(R)
-  return monomial_basis(R, grading_group(R)(g))
-end
-
-function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
-  @assert is_z_graded(R)
-  return monomial_basis(R, grading_group(R)([g]))
-end
 
 @doc raw"""
-    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
-
-Given a polynomial ring `R` over a field which is graded by a free
-group, and given an element `g` of that group,
-return the homogeneous component of `R` of degree `g` as a standard
-vector space. Additionally, return the map which sends an element
-of that vector space to the corresponding monomial in `R`.
-
-    homogeneous_component(R::MPolyDecRing, W::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded polynomial ring `R` over a field, and given
-a vector `W` of $m$ integers, convert `W` into an element `g` of the grading
-group of `R` and proceed as above.
-
+    homogeneous_component(R::MPolyDecRing, d::FinGenAbGroupElem)
+    homogeneous_component(R::MPolyDecRing, d::Vector{<:IntegerUnion})
     homogeneous_component(R::MPolyDecRing, d::IntegerUnion)
 
-Given a $\mathbb  Z$-graded polynomial ring `R` over a field, and given
-an integer `d`, convert `d` into an element `g` of the grading group of `R`
-proceed as above.
+Given a polynomial ring `R` over a field `K`, graded by a finitely
+generated abelian group, return the homogeneous component of the
+specified degree as a `K`-vector space, together with its embedding
+into `R`.
+
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
-    If the component is not finite dimensional, an error will be thrown.
+    If the grading group has torsion, the computation first ignores torsion
+    and enumerates all monomials of the corresponding degree in the
+    torsion-free quotient. This set of monomials must be finite; otherwise,
+    an `InfiniteDimensionError` is thrown.
 
 # Examples
+
+The following example illustrates a $\mathbb{Z}^2$-graded polynomial ring:
+
 ```jldoctest
 julia> W = [1 1 0 0 0; 0 0 1 1 1]
 2×5 Matrix{Int64}:
@@ -1518,28 +1578,42 @@ x[1]*y[3]
 x[1]*y[2]
 x[1]*y[1]
 ```
+
+The following example illustrates a grading group with torsion:
+
+```jldoctest
+julia> G = abelian_group([0, 2]);
+
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> V, embedding = homogeneous_component(R, G([2, 0]));
+
+julia> dim(V)
+2
+
+julia> Set(embedding.(gens(V))) == Set([x^2, y^2])
+true
+```
 """
-function homogeneous_component(W::MPolyDecRing, d::FinGenAbGroupElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      apparently it is possible to get the number of points faster than the points
-  #TODO: in the presence of torsion, this is wrong. The component
-  #      would be a module over the deg-0-sub ring.
-  R = base_ring(W)
-  B = monomial_basis(W, d)
-  M, h = vector_space(R, B, target = W)
-  set_attribute!(M, :show => show_homo_comp, :data => (W, d))
-  add_relshp(M, W, x -> sum(x[i] * B[i] for i=1:length(B)))
-#  add_relshp(W, M, g)
-  return M, h
+function homogeneous_component(R::MPolyDecRing, d::FinGenAbGroupElem)
+  # TODO: Support components that are infinite-dimensional over the coefficient
+  # TODO: field but finitely generated over the degree-zero subring.
+  basis = monomial_basis(R, d)
+  component, embedding = vector_space(base_ring(R), basis; target = R)
+  set_attribute!(component, :show => show_homo_comp, :data => (R, d))
+  add_relshp(component, R, x -> embedding(x))
+  return component, embedding
 end
 
 function homogeneous_component(R::MPolyDecRing, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(R)
+  @req is_zm_graded(R) "The ring must be Z^m-graded"
   return homogeneous_component(R, grading_group(R)(g))
 end
 
 function homogeneous_component(R::MPolyDecRing, g::IntegerUnion)
-  @assert is_z_graded(R)
+  @req is_z_graded(R) "The ring must be Z-graded"
   return homogeneous_component(R, grading_group(R)([g]))
 end
 
@@ -2304,16 +2378,6 @@ function _dehomogenization(F::MPolyDecRingElem, R::MPolyRing, pos::Int, m::Int)
   return finish(B)
 end
 
-
-
-################################################################################
-#
-#  Evaluation
-#
-################################################################################
-
-(f::MPolyDecRingElem)(x...) = evaluate(f, collect(x))
-
 ################################################################################
 #
 #  Promote rule
@@ -2341,22 +2405,23 @@ end
 #create homogeneous polynomials in graded rings
 #TODO: make this work for non-standard gradings
 @doc raw"""
-    rand(S::MPolyDecRing, term_range, deg_range, v...)
+    rand([rng::Random.AbstractRNG,] S::MPolyDecRing, term_range::UnitRange{Int}, deg_range::UnitRange{Int}, v...)
 
 Create a random homogeneous polynomial with a random number of
 terms (`rand(term_range)`) and of random degree (`rand(deg_range)`)
 and random coefficients via `v...`.
 """
-function rand(S::MPolyDecRing, term_range, deg_range, v...)
+function rand(rng::Random.AbstractRNG, S::MPolyDecRing,
+              term_range::UnitRange{Int}, deg_range::UnitRange{Int}, v...)
   f = zero(forget_decoration(S))
-  d = rand(deg_range)
-  for i=1:rand(term_range)
-    t = forget_decoration(S)(rand(base_ring(S), v...))
+  d = rand(rng, deg_range)
+  for i=1:rand(rng, term_range)
+    t = forget_decoration(S)(rand(rng, base_ring(S), v...))
     if iszero(t)
       continue
     end
     for j=1:ngens(forget_decoration(S))-1
-      t *= gen(forget_decoration(S), j)^rand(0:(d-total_degree(t)))
+      t *= gen(forget_decoration(S), j)^rand(rng, 0:(d-total_degree(t)))
     end
     #the last exponent is deterministic...
     t *= gen(forget_decoration(S), ngens(forget_decoration(S)))^(d-total_degree(t))
@@ -2364,6 +2429,9 @@ function rand(S::MPolyDecRing, term_range, deg_range, v...)
   end
   return S(f)
 end
+
+rand(S::MPolyDecRing, term_range::UnitRange{Int}, deg_range::UnitRange{Int}, v...) =
+  rand(Random.default_rng(), S, term_range, deg_range, v...)
 
 ################################################################################
 #
@@ -2566,12 +2634,11 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # make sure to not recompute a GB from scratch on the singular
     # side if we have one
     G = first(values(I.gb))
-    G.gens.S.isGB = true
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
     return filter(!iszero, (R).(gens(sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
-    ring = I.gens.Ox
+    ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
     return filter(!iszero, (R).(gens(sing_min)))

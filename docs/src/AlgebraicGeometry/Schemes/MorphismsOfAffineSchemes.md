@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 
 # Morphisms of affine schemes
 

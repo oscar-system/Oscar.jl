@@ -8,4 +8,9 @@
         @test issetequal(coefficients(tropf),tropical_semiring(nu).([0,1,2]))
         @test issetequal(exponents(tropf),[[1,0],[0,1],[0,0]])
     end
+
+    @testset "roots(::PolyRingElem{<:TropicalSemiringElem}) edge cases" begin
+        R, t = polynomial_ring(tropical_semiring(), "t")
+        @test isempty(roots(t))
+    end
 end

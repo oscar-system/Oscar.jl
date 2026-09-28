@@ -240,9 +240,9 @@ function hom(
 end
 
 @doc raw"""
-    identity_map(V::LieAlgebraModule) -> LieAlgebraModuleHom
+    id_hom(V::LieAlgebraModule) -> LieAlgebraModuleHom
 
-Construct the identity map on `V`.
+Construct the identity morphism on `V`.
 
 # Examples
 ```jldoctest
@@ -253,13 +253,13 @@ Standard module
   of dimension 3
 over special linear Lie algebra of degree 3 over QQ
 
-julia> identity_map(V)
+julia> id_hom(V)
 Lie algebra module morphism
   from standard module of dimension 3 over L
   to standard module of dimension 3 over L
 ```
 """
-function identity_map(V::LieAlgebraModule)
+function id_hom(V::LieAlgebraModule)
   return hom(V, V, basis(V); check=false)
 end
 
@@ -470,27 +470,6 @@ function hom_tensor(
   return hom(V, W, mat; check=false)
 end
 
-@doc raw"""
-    hom(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
-
-Given modules `V` and `W` which are exterior/symmetric/tensor powers of the same kind with the same exponent,
-say, e.g., $V = S^k V'$, $W = S^k W'$, and given a homomorphism $h : V' \to W'$, return
-$S^k h: V \to W$ (analogous for other types of powers).
-"""
-function hom(
-  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
-) where {C<:FieldElem}
-  if ((fl, _, k) = _is_exterior_power(V); fl)
-    return induced_map_on_exterior_power(h, k; domain=V, codomain=W)
-  elseif ((fl, _, k) = _is_symmetric_power(V); fl)
-    return induced_map_on_symmetric_power(h, k; domain=V, codomain=W)
-  elseif ((fl, _, k) = _is_tensor_power(V); fl)
-    return induced_map_on_tensor_power(h, k; domain=V, codomain=W)
-  else
-    throw(ArgumentError("First module must be a power module"))
-  end
-end
-
 function _induced_map_on_power(
   D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
 )
@@ -517,7 +496,15 @@ function _induced_map_on_power(
   end
 end
 
-function induced_map_on_exterior_power(
+@doc raw"""
+    exterior_power(h::LieAlgebraModuleHom, k::Int; domain::LieAlgebraModule, codomain::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Lift the homomorphism `h` to the exterior power of exponent `k`.
+
+If `domain` or `codomain` are not provided, they are constructed as the `k`-th exterior powers
+of the domain and codomain of `h`, respectively.
+"""
+function exterior_power(
   h::LieAlgebraModuleHom,
   k::Int;
   domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(h), k)[1],
@@ -533,7 +520,15 @@ function induced_map_on_exterior_power(
   return _induced_map_on_power(domain, codomain, h, k, :ext)
 end
 
-function induced_map_on_symmetric_power(
+@doc raw"""
+    symmetric_power(h::LieAlgebraModuleHom, k::Int; domain::LieAlgebraModule, codomain::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Lift the homomorphism `h` to the symmetric power of exponent `k`.
+
+If `domain` or `codomain` are not provided, they are constructed as the `k`-th symmetric powers
+of the domain and codomain of `h`, respectively.
+"""
+function symmetric_power(
   h::LieAlgebraModuleHom,
   k::Int;
   domain::LieAlgebraModule{C}=symmetric_power(Oscar.domain(h), k)[1],
@@ -549,7 +544,15 @@ function induced_map_on_symmetric_power(
   return _induced_map_on_power(domain, codomain, h, k, :sym)
 end
 
-function induced_map_on_tensor_power(
+@doc raw"""
+    tensor_power(h::LieAlgebraModuleHom, k::Int; domain::LieAlgebraModule, codomain::LieAlgebraModule) -> LieAlgebraModuleHom
+
+Lift the homomorphism `h` to the tensor power of exponent `k`.
+
+If `domain` or `codomain` are not provided, they are constructed as the `k`-th tensor powers
+of the domain and codomain of `h`, respectively.
+"""
+function tensor_power(
   h::LieAlgebraModuleHom,
   k::Int;
   domain::LieAlgebraModule{C}=tensor_power(Oscar.domain(h), k)[1],

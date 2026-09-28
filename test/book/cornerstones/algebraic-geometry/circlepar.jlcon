@@ -10,7 +10,7 @@ with respect to the ordering
   lex([y, x, t])
 
 julia> factor(Gy[1])
-1 * (x*t^2 + x + 2*t) * x
+(x*t^2 + x + 2*t) * x
 
 julia> Gx = groebner_basis(I, ordering = lex([x, y, t]), complete_reduction=true)
 Gröbner basis with elements
@@ -22,4 +22,4 @@ with respect to the ordering
   lex([x, y, t])
 
 julia> factor(Gx[1])
-1 * (y - 1) * (y*t^2 + y + t^2 - 1)
+(y - 1) * (y*t^2 + y + t^2 - 1)

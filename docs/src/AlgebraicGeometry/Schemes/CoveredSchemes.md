@@ -1,10 +1,6 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Covered schemes
 
-Oscar supports modeling abstract schemes by means of a covering by affine charts.
+OSCAR supports modeling abstract schemes by means of a covering by affine charts.
 
 ## Types
 The abstract type for these is:

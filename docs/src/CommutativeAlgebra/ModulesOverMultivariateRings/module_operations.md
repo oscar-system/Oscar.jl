@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Operations on Modules
 
 ## Subquotients Related to Homomorphisms
@@ -9,35 +5,41 @@ CurrentModule = Oscar
 ### Kernel
 
 ```@docs
-kernel(a::ModuleFPHom)
+kernel(a::OFPModuleHom)
 ```
 
 ### Image
 
 ```@docs
-image(a::ModuleFPHom)
+image(a::OFPModuleHom)
 ```
 
 ### Cokernel
 
 ```@docs
-cokernel(a::ModuleFPHom)
+cokernel(a::OFPModuleHom)
 ```
 
 ## Direct Sums and Products
 
 ```@docs
-direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
+direct_sum(M::OFPModule{T}, Ms::OFPModule{T}...; task::Symbol = :sum) where T
 ```
 
 ```@docs
-direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+direct_product(M::OFPModule{T}, Ms::OFPModule{T}...; task::Symbol = :prod) where T
+```
+
+## Annihilator
+
+```@docs
+annihilator(N::OFPModule{T}) where T
 ```
 
 ## Truncation
 
 ```@docs
-truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
+truncate(M::OFPModule, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 ```
 
 ## Twists
@@ -45,5 +47,5 @@ truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 In the graded case, we have:
 
 ```@docs
-twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
+twist(M::OFPModule{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
 ```

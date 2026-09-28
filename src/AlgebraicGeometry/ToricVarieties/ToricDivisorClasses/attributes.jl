@@ -8,7 +8,9 @@ Return the element of the class group corresponding to the toric divisor class `
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 
 julia> divisor_class(tdc)
@@ -17,6 +19,25 @@ Abelian group element [1]
 """
 divisor_class(tdc::ToricDivisorClass) = tdc.class
 
+@doc raw"""
+    coefficients(tdc::ToricDivisorClass)
+
+Return the coefficients of the chosen toric divisor representative of `tdc`.
+"""
+coefficients(tdc::ToricDivisorClass) = coefficients(toric_divisor(tdc))
+
+@doc raw"""
+    picard_class(tdc::ToricDivisorClass)
+
+Return the element of the Picard group represented by the Cartier divisor class
+`tdc`. An error is raised if `tdc` is not Cartier.
+"""
+function picard_class(tdc::ToricDivisorClass)
+  picard_to_class = map_from_picard_group_to_class_group(toric_variety(tdc))
+  has_picard_class, class = has_preimage_with_preimage(picard_to_class, divisor_class(tdc))
+  @req has_picard_class "The toric divisor class must be Cartier to define a Picard class"
+  return class
+end
 
 @doc raw"""
     toric_variety(tdc::ToricDivisorClass)
@@ -28,7 +49,9 @@ Return the toric variety on which the toric divisor class `tdc` is defined.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 
 julia> toric_variety(tdc)
@@ -36,7 +59,6 @@ Normal toric variety
 ```
 """
 toric_variety(tdc::ToricDivisorClass) = tdc.toric_variety
-
 
 @doc raw"""
     toric_divisor(tdc::ToricDivisorClass)
@@ -48,7 +70,9 @@ Construct a toric divisor corresponding to the toric divisor class  `tdc`.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
+julia> cl = class_group_with_map(P2)[1];
+
+julia> tdc = toric_divisor_class(P2, cl([1]))
 Divisor class on a normal toric variety
 
 julia> toric_divisor(tdc)
@@ -56,7 +80,7 @@ Torus-invariant, prime divisor on a normal toric variety
 ```
 """
 @attr ToricDivisor function toric_divisor(tdc::ToricDivisorClass)
-    f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
-    coeffs = vec([ZZRingElem(x) for x in preimage(f, divisor_class(tdc)).coeff])
-    return toric_divisor(toric_variety(tdc), coeffs)
+  f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(tdc))
+  coeffs = vec([ZZRingElem(x) for x in preimage(f, divisor_class(tdc)).coeff])
+  return toric_divisor(toric_variety(tdc), coeffs)
 end

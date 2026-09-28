@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Free Associative Algebras
 
 ## Two-sided ideals

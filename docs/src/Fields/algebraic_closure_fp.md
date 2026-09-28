@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Algebraic closure of finite prime fields
 
 It is sometimes useful to consider various finite fields in a fixed

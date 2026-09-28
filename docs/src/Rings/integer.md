@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Integers
 
 An important design decision in Oscar.jl is to use Julia as the user language
@@ -212,9 +207,9 @@ operators `==`, `!=`, `<`, `<=`, `>`, `>=`, including mixed operations between
 Julia and OSCAR integers. It also provides division and powering as described
 below.
 
-### Division in OSCAR
+### [Division](@id division_of_integers_in_OSCAR)
 
-OSCAR distinguishes a number of different kinds of division:
+OSCAR distinguishes a number of different kinds of division for integers:
 
 * [Exact division](@ref integer_exact_division) (`divexact`)
 * [Euclidean division](@ref integer_euclidean_division) (`div`, `rem`, `divrem` and `mod`)
@@ -228,6 +223,8 @@ These choices have been made for maximum parsimony with the Julia language.
     It is a common error to enter `1/2` for the fraction 'one half' in Julia.
     This expression is reserved for floating point division. Instead, the
     double slash operator `//` should be used for fractions.
+
+We provide more details on the subtle but important [distinction between `/` and `//`.](@ref subtle_distinction_for_rings).
 
 ### [Exact Division](@id integer_exact_division)
 
@@ -347,7 +344,7 @@ sign of ``r`` is the same as the sign of ``b``. Thus, if ``b > 0`` then
 modulus ``b`` is zero. This is summarised in the following table.
 
 remainder | division   | sign             | rounding
-----------|------------|------------------|---------------------
+:---------|:-----------|:-----------------|:--------------------
 rem       | div/divrem | same as dividend | towards zero
 mod       |            | same as divisor  | towards ``-\infty``
 
@@ -563,9 +560,9 @@ false
 Return a factorisation of the given integer. The return value is a special
 factorisation struct which can be manipulated using the functions below.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> factor(ZZ(-6000361807272228723606))
--1 * 2 * 229^3 * 43669^3 * 3
+-1 * 2 * 3 * 229^3 * 43669^3
 
 julia> factor(ZZ(0))
 ERROR: ArgumentError: Argument is not non-zero
@@ -575,7 +572,7 @@ ERROR: ArgumentError: Argument is not non-zero
 
 * `unit(F::Fac) -> ZZRingElem`
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-12))
 -1 * 2^2 * 3
 
@@ -588,14 +585,14 @@ julia> unit(F)
 
 Once created, a factorisation is iterable:
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
--1 * 5 * 2^2 * 3
+-1 * 2^2 * 3 * 5
 
 julia> for (p, e) in F; println("$p^$e"); end
-5^1
 2^2
 3^1
+5^1
 
 ```
 
@@ -603,15 +600,15 @@ The pairs `(p, e)` in a factorisation represent the prime power factors
 ``p^e`` of the non-unit part of the factorisation. They can be placed in an
 array using `collect`:
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
--1 * 5 * 2^2 * 3
+-1 * 2^2 * 3 * 5
 
 julia> collect(F)
 3-element Vector{Pair{ZZRingElem, Int64}}:
- 5 => 1
  2 => 2
  3 => 1
+ 5 => 1
 
 ```
 
@@ -624,9 +621,9 @@ is not in a factorisation is requested, an exception is raised.
 For convenience, a `Int` can be used instead of an OSCAR integer for this
 functionality.
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> F = factor(ZZ(-60))
--1 * 5 * 2^2 * 3
+-1 * 2^2 * 3 * 5
 
 julia> 5 in F
 true
@@ -641,7 +638,7 @@ julia> F[3]
 1
 
 julia> F[ZZ(7)]
-ERROR: 7 is not a factor of -1 * 5 * 2^2 * 3
+ERROR: 7 is not a factor of -1 * 2^2 * 3 * 5
 [...]
 
 ```

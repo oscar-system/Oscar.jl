@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Introduction
 The tropical geometry part of OSCAR provides functionality for
 - tropical min-plus and max-plus semirings,

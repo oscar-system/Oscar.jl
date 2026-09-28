@@ -1,13 +1,8 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Introduction
 
 ## Content
 
-The schemes part of OSCAR comprises algorithms addressing affine schemes. More functionality
-(e.g. for general covered schemes and toric schemes) exists in experimental state.
+The schemes part of OSCAR comprises algorithms addressing schemes.
 
 
 ## Status

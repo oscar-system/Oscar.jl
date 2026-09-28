@@ -18,12 +18,14 @@ object in the system.
 The simplest example is the creation of a polynomial ring. If we mutate the
 array of symbols used for printing, we have effectively changed the ring.
 
-```
-julia> v = [:x, :y, :z]; R = polynomial_ring(QQ, v)[1]
-Multivariate Polynomial Ring in x, y, z over Rational Field
+```jldoctest
+julia> v = [:x, :y, :z]; R = polynomial_ring(QQ, v; cached=false)[1]
+Multivariate polynomial ring in 3 variables x, y, z
+  over rational field
 
 julia> v[3] = :w; R
-Multivariate Polynomial Ring in x, y, w over Rational Field
+Multivariate polynomial ring in 3 variables x, y, w
+  over rational field
 ```
 
 In this example, the modification of `v` is unexpected and may in fact corrupt
@@ -59,7 +61,7 @@ Ramifications:
 In this example we construct the factored element `x = 2^3` and then change the
 `2` to a `1`. The GOP says this modification of `a` on line 3 is illegal.
 
-```julia
+```jldoctest
 julia> a = ZZRingElem(2)
 2
 
@@ -76,7 +78,7 @@ julia> evaluate(x)  # x has been changed and possibly corrupted
 In the previous example, the link between the object `x` and the object `a` can
 be broken by passing a `deepcopy` of `a` to the `FacElem` function.
 
-```julia
+```jldoctest
 julia> a = ZZRingElem(2)
 2
 
@@ -100,7 +102,7 @@ mutations turn out to be legal currently, while they are illegal if
 `K = quadratic_field(-1)[1]`. Only with special knowledge of the types can the
 GOP be safely ignored.
 
-```
+```julia
 R = polynomial_ring(K, [:x, :y])[1]
 a = one(K)
 p = R([a], [[0,0]])
@@ -109,7 +111,7 @@ a = add!(a, a, a)       # legal? (does a += a in-place)
 @show p
 ```
 
-```
+```julia
 R = polynomial_ring(K, :x)[1]
 a = [one(K), one(K)]
 p = R(a)
@@ -128,18 +130,17 @@ return values that can arise in certain interfaces.
 
 First, we create the Gaussian rationals and the two primes above `5`.
 
-```julia
+```jldoctest ex_ownership
 julia> K, i = quadratic_field(-1)
 (Imaginary quadratic field defined by x^2 + 1, sqrt(-1))
 
-julia> m = Hecke.modular_init(K, 5)
-modular environment for p=5, using 2 ideals
+julia> m = Hecke.modular_init(K, 5);
 ```
 
 The function `modular_project` returns the projection of an element of `K` into
 each of the residue fields.
 
-```julia
+```jldoctest ex_ownership
 julia> a = Hecke.modular_proj(1+2*i, m)
 2-element Vector{fqPolyRepFieldElem}:
  2
@@ -149,7 +150,7 @@ julia> a = Hecke.modular_proj(1+2*i, m)
 While the function has produced the correct answer, if we run it again on a
 different input, we will find that `a` has changed.
 
-```julia
+```jldoctest ex_ownership
 julia> b = Hecke.modular_proj(2+3*i, m)
 2-element Vector{fqPolyRepFieldElem}:
  1
@@ -167,9 +168,11 @@ circumstances, the following `deepcopy`s may be necessary for your code to
 function correctly.
 
 
-```julia
+```jldoctest ex_ownership
 julia> a = deepcopy(Hecke.modular_proj(1+2*i, m));
+
 julia> b = deepcopy(Hecke.modular_proj(2+3*i, m));
+
 julia> (a, b)
 (fqPolyRepFieldElem[2, 0], fqPolyRepFieldElem[1, 3])
 ```
@@ -185,7 +188,7 @@ Instead of writing `x = a + b` to compute a sum, one writes `x = add!(x, a, b)`
 with the idea that the object to which `x` is pointing is modified instead of
 having `x` point to a newly allocated object. In order for this to work, `x`
 must point to a *fully independent* object, that is, an object whose
-modification through the interface [Unsafe operators](@ref) will not change
+modification through the interface [Unsafe ring operators](@ref) will not change
 the values of other existing objects.
 The actual definition of "fully independent" is left to the implementation of
 the ring element type. For example, there is no distinction for immutables.

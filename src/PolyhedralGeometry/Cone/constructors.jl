@@ -154,11 +154,11 @@ function cone_from_inequalities(
   non_redundant::Bool=false,
 )
   parent_field, scalar_type = _determine_parent_and_scalar(f, I, E)
-  IM = -linear_matrix_for_polymake(I)
+  IM = -linear_matrix_for_polymake(parent_field, I)
   EM = if isnothing(E) || isempty(E)
     Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(IM, 2))
   else
-    linear_matrix_for_polymake(E)
+    linear_matrix_for_polymake(parent_field, E)
   end
 
   if non_redundant
@@ -209,7 +209,7 @@ function cone_from_equations(
   non_redundant::Bool=false,
 )
   parent_field, scalar_type = _determine_parent_and_scalar(f, E)
-  EM = linear_matrix_for_polymake(E)
+  EM = linear_matrix_for_polymake(parent_field, E)
   IM = Polymake.Matrix{_scalar_type_to_polymake(scalar_type)}(undef, 0, size(EM, 2))
   return cone_from_inequalities(f, IM, EM; non_redundant=non_redundant)
 end

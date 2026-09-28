@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 Algebraic Statistics uses tools from algebra, geometry, and combinatorics to solve problems in statistics. In particular, since many parametric statistical models are parametrized by rational functions of their parameters, they can be viewed as algebraic varieties. This part of OSCAR provides functionality for working with the following commonly used models:
@@ -33,3 +28,4 @@ Please direct questions about this part of OSCAR to the following people:
 - [Benjamin Hollering](https://sites.google.com/view/benhollering)
 - [Marina Garrote López](https://sites.google.com/view/marinagarrotelopez)
 - [Tobias Boege](https://taboege.de/)
+- [Antony Della Vecchia](https://antonydellavecchia.github.io)

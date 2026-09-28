@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 
 # `Polyhedron` and `polymake`'s `Polytope`
 

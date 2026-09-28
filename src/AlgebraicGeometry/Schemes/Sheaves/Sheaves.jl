@@ -182,9 +182,9 @@ morphism ``ρ : F(U) → F(V)``, this method stores the map `rho` in the interna
 the restriction map for `F` from `U` to `V`.
 """
 function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
-    U::OpenType,
-    M::OutputType,
-    rho::RestrictionType
+    U::AbsAffineScheme,
+    M::Any,
+    rho::Any
   ) where {OpenType, OutputType, RestrictionType}
   # First, look up the incoming restriction maps for F(V).
   # This will create the dictionary, if necessary.
@@ -210,15 +210,12 @@ The values of the dictionary are precisely those restriction maps for the respec
 """
 function incoming_restrictions(
     F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
-    M::OutputType
+    M::Any
   ) where {OpenType, OutputType, RestrictionType}
   hasfield(typeof(M), :__attrs) || return nothing # M has to be attributable to allow for caching!
-  if !has_attribute(M, :incoming_restrictions)
-    D = IdDict{OpenType, RestrictionType}()
-    set_attribute!(M, :incoming_restrictions, D)
-    return D
-  end
-  return get_attribute(M, :incoming_restrictions)::IdDict{OpenType, RestrictionType}
+  return get_attribute!(M, :incoming_restrictions) do
+    IdDict{OpenType, RestrictionType}()
+  end::IdDict{OpenType, RestrictionType}
 end
 
 ########################################################################

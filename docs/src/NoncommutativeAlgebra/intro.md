@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Introduction
 
 Working over a field $K$, our focus in this chapter is on noncommutative Gröbner bases and their application

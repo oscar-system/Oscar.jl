@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Morphisms of projective schemes
 
 Let ``Q = B[y_0, \dots, y_n]/J`` and ``P = A[x_0,\dots,x_m]/I`` be 

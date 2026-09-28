@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Ideals and Lie subalgebras
 
 Ideals and Lie subalgebras are represented by the types `LieAlgebraIdeal` and

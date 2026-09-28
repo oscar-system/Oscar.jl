@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Ideals and Quotient Rings as Modules
 
 ## Ideals as Modules

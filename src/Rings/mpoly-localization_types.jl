@@ -144,7 +144,7 @@ end
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 
 !!! note 
-The coefficient ring is required to be a field.
+    The coefficient ring is required to be a field.
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
@@ -351,7 +351,7 @@ end
 
 Elements of localizations of polynomial rings.
 """
-mutable struct MPolyLocRingElem{
+struct MPolyLocRingElem{
     BaseRingType, 
     BaseRingElemType,
     RingType,
@@ -438,10 +438,7 @@ Ideals in localizations of polynomial rings.
       parent(f) == W || error("generator is not an element of the given ring")
     end
 
-    I = new{typeof(W), LocRingElemType}()
-    I.gens = gens
-    I.W = W
-    I.map_from_base_ring = map_from_base_ring
+    I = new{typeof(W), LocRingElemType}(gens, W, map_from_base_ring)
     I.is_saturated=false
     return I
   end

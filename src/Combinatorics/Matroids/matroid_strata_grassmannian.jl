@@ -170,7 +170,7 @@ end
 
 
 # M and N have same number of rows, and M has #B columns, both have entries in ring R
-function interlace_columns(M::MatrixElem{T}, N::MatrixElem{T}, B::Vector{Int},
+function interlace_columns(M::MatElem{T}, N::MatElem{T}, B::Vector{Int},
                            R::MPolyRing, x::Vector{T}) where T <: MPolyRingElem 
     
     M_nrows, M_ncols = size(M)
@@ -203,7 +203,7 @@ end
 # This function returns all d x d determinants of the matrix X from above
 # of all collections of d-columns coming from the bases of the matroid.
 
-function bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
+function bases_determinants(X::MatElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 
@@ -380,7 +380,7 @@ end
 
 
 
-function realization_bases_determinants(X::MatrixElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
+function realization_bases_determinants(X::MatElem{T}, Bs::Vector{Vector{Int}}) where {T<:MPolyRingElem}
     return unique!([det(X[:, b]) for b in Bs ])
 end
 

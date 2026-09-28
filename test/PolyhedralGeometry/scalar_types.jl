@@ -15,11 +15,12 @@
   Qx, x = QQ[:x]
   K, r = number_field(x^3 - 3x^2 - 4x + 8, "r")
   Ky, y = K[:y]
-  L, = number_field(y^2 - (2 - r^2)//2, "q")
+  L, lq = number_field(y^2 - (2 - r^2)//2, "q")
   Lz, z = L[:z]
-  E, q = Hecke.embedded_field(L, real_embeddings(L)[2])
-  pq1 = E(roots(z^2 - (3 + 2r - r^2))[2])
-  pq2 = E(roots(z^2 - (3 - r^2))[1])
+  emb = only(filter(Base.Fix1(is_positive, lq), real_embeddings(L)))
+  E, q = Hecke.embedded_field(L, emb)
+  pq1 = only(filter(is_positive, E.(roots(z^2 - (3 + 2r - r^2)))))
+  pq2 = only(filter(is_positive, E.(roots(z^2 - (3 - r^2)))))
   p = (pq1 + pq2)//2
   r = E(r)
 
@@ -97,9 +98,9 @@
       @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
     end
     let ng = n_gon(5)
-      (A,b) = halfspace_matrix_pair(facets(ng))
-      @test typeof(polyhedron(A,b)) == typeof(ng)
-      @test coefficient_field(polyhedron(A,b)) == coefficient_field((ng))
+      (A, b) = halfspace_matrix_pair(facets(ng))
+      @test typeof(polyhedron(A, b)) == typeof(ng)
+      @test coefficient_field(polyhedron(A, b)) == coefficient_field((ng))
     end
   end
 
@@ -188,8 +189,8 @@
       @test volume(p) == 379 * sre2//36 + 1349//108
     end
 
-    cc = positive_hull(ENF, Oscar.homogenized_matrix(vertices(c), 1))
-    dc = positive_hull(Oscar.homogenized_matrix(vertices(d), 1))
+    cc = positive_hull(ENF, Oscar.homogenized_matrix(ENF, vertices(c), 1))
+    dc = positive_hull(Oscar.homogenized_matrix(ENF, vertices(d), 1))
     @test intersect(cc, dc) isa Cone{T}
     let p = intersect(cc, dc)
       @test f_vector(p) == f_vector(c)
@@ -254,5 +255,99 @@
       end
       l = f[1]
     end
+  end
+
+  @testset "coefficient field coercion" begin
+    d = dodecahedron()
+    qqb = algebraic_closure(QQ)
+    dqqb = polyhedron(qqb, d)
+    @test dqqb isa Polyhedron{QQBarFieldElem}
+    @test volume(dqqb) isa QQBarFieldElem
+    @test volume(dqqb) == qqb(volume(d))
+
+    df = polyhedron(Float64, d)
+    @test df isa Polyhedron{Float64}
+    @test Oscar.pm_object(df).VOLUME isa Float64
+
+    dqf = polyhedron(Float64, dqqb)
+    @test dqf isa Polyhedron{Float64}
+    @test Oscar.pm_object(dqf).VOLUME isa Float64
+
+    @test isapprox(volume(dqf), volume(df); rtol=0.00001)
+
+    js9 = johnson_solid(qqb, 9)
+    @test Oscar.pm_object(js9).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js9).VOLUME) isa QQBarFieldElem
+
+    js18 = johnson_solid(qqb, 18)
+    @test js18 isa Polyhedron{QQBarFieldElem}
+    @test Oscar.pm_object(js18).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js18).VOLUME) isa QQBarFieldElem
+
+    js22 = johnson_solid(qqb, 22)
+    @test Oscar.pm_object(js22).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js22).VOLUME) isa QQBarFieldElem
+
+    cs = catalan_solid(qqb, "pentagonal_icositetrahedron")
+    @test Oscar.pm_object(cs).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(cs).VOLUME) isa QQBarFieldElem
+  end
+end
+
+@testset "_guess_fieldelem_type" begin
+  guess = Oscar._guess_fieldelem_type
+
+  NF, sr2 = quadratic_field(2)
+  E, e2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
+  ENFElem = elem_type(E)
+  qb = sqrt(QQBar(2))
+
+  # integers and rationals in any shape default to the rationals
+  @test guess([0 0; 1 0; 1 1]) == QQFieldElem
+  @test guess([1, 2, 3]) == QQFieldElem
+  @test guess(matrix(ZZ, [1 2; 3 4])) == QQFieldElem
+  @test guess(matrix(QQ, [1 2; 3 4])) == QQFieldElem
+  @test guess(sparse_matrix(QQ, [1 2; 3 4])) == QQFieldElem
+  @test guess(Polymake.Matrix{Polymake.Rational}(2, 2)) == QQFieldElem
+  @test guess(Polymake.Integer(2)) == QQFieldElem
+  @test guess([[1, 2], [3, 4]]) == QQFieldElem
+
+  # no input at all, or input without any type information
+  @test guess() == QQFieldElem
+  @test guess(nothing) == QQFieldElem
+  @test guess(Int[]) == QQFieldElem
+  @test guess(Any[]) == QQFieldElem
+
+  # a larger field wins over the rationals, independently of the argument order
+  @test guess(QQBarFieldElem[1 2; 3 qb]) == QQBarFieldElem
+  @test guess(QQBarFieldElem[1 qb], [1 2]) == QQBarFieldElem
+  @test guess([1 2], QQBarFieldElem[1 qb]) == QQBarFieldElem
+  @test guess(QQBarFieldElem[1 qb], matrix(QQ, [1 2])) == QQBarFieldElem
+  @test guess(QQBarFieldElem[1 qb], matrix(ZZ, [1 2])) == QQBarFieldElem
+  @test guess(matrix(E, [1 2; 3 4])) == ENFElem
+  @test guess([e2, E(1)], [1, 2]) == ENFElem
+
+  # containers without a useful element type are inspected entry by entry
+  @test guess(Any[qb, QQ(1)]) == QQBarFieldElem
+  @test guess(Any[QQ(1), qb]) == QQBarFieldElem
+  @test guess(Vector{Any}[[1, qb], [3, 4]]) == QQBarFieldElem
+  @test guess(([1, 2], [qb, 3])) == QQBarFieldElem
+
+  # inexact input wins over everything else
+  @test guess([1.0 2.0]) == Float64
+  @test guess([1.0], [qb]) == Float64
+  @test guess([qb], [1.0]) == Float64
+
+  # polyhedral objects carry their coefficient field
+  @test guess(vertices(cube(3))) == QQFieldElem
+  @test guess(point_vector(QQ, [1, 2])) == QQFieldElem
+  @test guess(halfspace([1, 2], 3)) == QQFieldElem
+  @test guess(halfspace(E, [e2, 2], 3)) == ENFElem
+  @test guess(vertices(convex_hull(E, [0 0; 1 0; e2 1]))) == ENFElem
+
+  # the common cases are decided by the compiler, without touching any entry
+  let a = [0 0; 1 0; 1 1; 0 1]
+    @test @inferred(guess(a, a, a)) == QQFieldElem
+    @test @allocated(guess(a, a, a)) == 0
   end
 end

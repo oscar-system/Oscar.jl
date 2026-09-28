@@ -6,6 +6,7 @@ using Oscar:
   _root_system_type_string,
   _vec,
   GAPWrap,
+  GSetByElements,
   IntegerUnion,
   MapHeader,
   set_root_system_type!
@@ -24,6 +25,7 @@ import ..Oscar:
   _is_tensor_product,
   _iso_oscar_gap,
   action,
+  action_homomorphism,
   basis_matrix,
   basis,
   canonical_injection,
@@ -51,13 +53,13 @@ import ..Oscar:
   exterior_power,
   gen,
   gens,
+  gset_by_type,
   hom,
   hom_direct_sum,
   hom_tensor,
   ideal,
-  identity_map,
+  id_hom,
   image,
-  induced_map_on_exterior_power,
   inner_direct_product,
   inv,
   is_abelian,
@@ -72,6 +74,7 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
+  natural_gset,
   normalizer,
   number_of_generators,
   ngens,
@@ -83,11 +86,11 @@ import ..Oscar:
   symbols,
   symmetric_power,
   tensor_product,
+  torsion_subgroup,
+  vector_space_dim,
   zero_map,
   ⊕,
   ⊗
-
-Oscar.@import_all_serialization_functions
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 

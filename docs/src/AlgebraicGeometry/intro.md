@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Introduction
 
 The algebraic geometry part of OSCAR provides functionality for dealing with

@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 We start our discussion of PBW-algebras by recalling their definition.

@@ -53,7 +53,7 @@ end
     F = FreeMod(R, 1)
     FF = FreeMod(Q, 1)
     f = hom(F, FF, gens(FF), phi)
-    @test matrix(f) isa MatrixElem
+    @test matrix(f) isa MatElem
 end
 
 @testset "Issues in #1806 part 3" begin
@@ -125,3 +125,13 @@ end
   @test (f*F2[1]) in K
   @test (f*F2[2]) in K
 end
+
+@testset "issue 5143" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
+  S, _ = quo(R, ideal(R, [y]));
+  F = free_module(S, 0)
+  f = identity_map(F);
+  K, _ = kernel(f)
+  @test is_zero(K)
+end
+

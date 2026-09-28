@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # General schemes
 
 Arbitrary schemes over a commutative base ring ``\mathbb k`` with unit 
@@ -12,6 +8,11 @@ Scheme{BaseRingType<:Ring}
 Morphisms of schemes shall be derived from the abstract type
 ```@docs
 SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
+```
+
+## Irreducible components
+```@docs
+irreducible_components(X::Scheme)
 ```
 
 ## Change of base

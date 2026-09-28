@@ -53,7 +53,7 @@ function surface(n::String)
   S = base_ring(I)
   R = grade(S)[1]
   #return proj(R, ideal(R, map(R, gens(I))))
-  return variety(ideal(R, map(R, gens(I))), check = false, is_radical = false,)
+  return variety(ideal(R, map(R, gens(I))), check = false, is_radical = true)
 end
 
 ###############################
@@ -250,7 +250,7 @@ Return a smooth ruled surface in $\mathbb P^4$ with degree `5` and sectional gen
 
 The returned surface is defined over a prime field of characteristic 31991.
 """
- quintic_elliptic_scroll() = surface(" quintic_elliptic_scroll")
+quintic_elliptic_scroll() = surface("quintic_elliptic_scroll")
 
 
 

@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Rational Parametrizations of Rational Plane Curves
 
 !!! note

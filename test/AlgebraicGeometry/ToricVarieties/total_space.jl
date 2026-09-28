@@ -1,5 +1,5 @@
+# Test canonical bundles of total spaces without using a rank-dependent scalar degree.
 @testset "Total space of direct sum of line bundles on toric space" begin
-
   @testset "Test that some vector bundles on P1 are Calabi-Yau" begin
     P1 = projective_space(NormalToricVariety, 1)
     for a in 0:5, b in 0:5
@@ -9,7 +9,7 @@
       @test is_smooth(X) == true
       @test !is_fano(X)
       @test !is_complete(X)
-      @test torsion_free_rank(picard_group(X)) == 1
+      @test torsion_free_rank(picard_group_with_map(X)[1]) == 1
       @test dim(X) == 3
       @test (degree(canonical_bundle(X)) == 0) == (a - b == -2)
     end
@@ -23,9 +23,10 @@
         @test is_smooth(X) == true
         @test !is_fano(X)
         @test !is_complete(X)
-        @test torsion_free_rank(picard_group(X)) == torsion_free_rank(picard_group(S))
+        @test torsion_free_rank(picard_group_with_map(X)[1]) ==
+          torsion_free_rank(picard_group_with_map(S)[1])
         @test dim(X) == 3
-        @test degree(canonical_bundle(X)) == 0
+        @test is_trivial(canonical_bundle(X))
       end
     end
 
@@ -35,11 +36,11 @@
         X = total_space(canonical_divisor(S))
         @test is_smooth(X) == true
         @test !is_fano(X)
-        @test torsion_free_rank(picard_group(X)) == torsion_free_rank(picard_group(S))
+        @test torsion_free_rank(picard_group_with_map(X)[1]) ==
+          torsion_free_rank(picard_group_with_map(S)[1])
         @test dim(X) == 3
-        @test degree(canonical_bundle(X)) == 0
+        @test is_trivial(canonical_bundle(X))
       end
     end
   end
-
 end

@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Borcherds' method for Enriques surfaces
 
 An Enriques surface is a smooth, proper surface $Y$ over a field $k$ 

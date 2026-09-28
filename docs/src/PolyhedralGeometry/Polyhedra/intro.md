@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Introduction
 
 Let $\mathbb{F}$ be an ordered field; the default is that

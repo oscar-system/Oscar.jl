@@ -42,9 +42,14 @@ function GaloisCtx(f::PolyRingElem{AbsSimpleNumFieldElem}, P::AbsSimpleNumFieldO
   C.C = V
   if Hecke.is_maximal_order_known(k)
     den = k(1)
+  elseif is_defining_polynomial_nice(k)
+    den = k(derivative(defining_polynomial(k))(gen(k)))
   else
-    den = derivative(defining_polynomial(k))(gen(k))
+    den = k(discriminant(zk))
   end
+  den *= reduce(lcm, [denominator(coeff(f, i), zk) for i=0:degree(f)])
+  #should ensure that all (scaled) roots are in zk...
+
   C.data = [mC, 1, mCD, Hecke.norm_change_const(zk), den, Dict{Int, recoCtx}()]
   #data:
   # [1] map into the completion. Careful, currently Q_p is returned and used as a deg-1 extension (ie. Qq)
@@ -60,7 +65,7 @@ function GaloisCtx(f::PolyRingElem{AbsSimpleNumFieldElem}, P::AbsSimpleNumFieldO
   #     integral elements in isinteger
   # [6] Dict: mapping precision to reco data
 
-  C.B = add_ring()(maximum([iroot(ceil(ZZRingElem, length(x)), 2)+1 for x = coefficients(f)]))
+  C.B = add_ring()(maximum([iroot(ceil(ZZRingElem, length(x*den)), 2)+1 for x = coefficients(f)]))
   return C
 end
 
@@ -153,6 +158,7 @@ function galois_group(K::Hecke.SimpleNumField{AbsSimpleNumFieldElem}; prime::Any
   end
 
   G, F, si = starting_group(C, K)
+  
   return descent(C, G, F, si)
 end
 
@@ -170,7 +176,6 @@ function Base.show(io::IO, C::GaloisCtx{Hecke.vanHoeijCtx})
 end
 
 function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = false)
-  #TODO: deal with raw and denominators.
   if pr > C.data[2]
     setprecision!(codomain(C.data[1]), pr)
     setprecision!(codomain(C.data[3]), pr)
@@ -180,14 +185,14 @@ function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = f
     C.data[2] = pr
   end
   if pr < 0.8*C.data[2]
-    if false && !isone(C.data[5]) && !raw
+    if !isone(C.data[5]) && !raw
       d = setprecision(coeff(C.data[1](C.data[5]), 0), pr)
       return [d*setprecision(x, pr) for x = roots(C.C)]
     else
       return [setprecision(x, pr) for x = roots(C.C)]
     end
   end
-  if false && !isone(C.data[5]) && !raw
+  if !isone(C.data[5]) && !raw
     d = coeff(C.data[1](C.data[5]), 0)
     return [d*x for x = roots(C.C)]
   else
@@ -210,8 +215,9 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}
   P = C.C.P
   zk = order(P)
 
-  x *= map_coeff(C, C.data[5]) #the den of any in max order
-  pr = precision(x)
+  #x *= map_coeff(C, C.data[5]) #the den of any in max order
+#  x *= (C.data[5]) #the den of any in max order
+  pr = precision(x) 
   if !haskey(C.data[6], pr)
     #copied from grow_prec! in Hecke
     # I think the preinvn is not used
@@ -225,8 +231,9 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}
   end
 
   r = C.data[6][pr]
+
   a = Hecke.nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), r.Ml, r.pMr))
-  a = a*inv(C.data[5])
+#  a = a//(C.data[5])
   if ceil(ZZRingElem, length(a)) <= value(y)^2
     @hassert :GaloisGroup 2 is_integral(a)
     return true, a
@@ -237,6 +244,9 @@ end
 
 #TODO: maybe add precision argument, see comment in main file.
 function map_coeff(C::GaloisCtx{Hecke.vanHoeijCtx}, x)
+  if isa(x, ZZRingElem)
+    return codomain(C.data[1])(x)
+  end
   return coeff(C.data[1](x), 0)
 end
 
@@ -244,7 +254,8 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZ
   #the bound is a bound on the sqrt(T_2(x)). This needs to be used with the norm_change stuff
   #and possible denominators and such. Possibly using Kronecker...
   c1, c2 = C.data[4] # the norm-change-const
-  v = value(y) + iroot(ceil(ZZRingElem, length(C.data[5])), 2)+1 #correct for den
+#  v = value(y) + iroot(ceil(ZZRingElem, length(C.data[5])), 2)+1 #correct for den
+  v = value(y) #* C.data[5]
   #want to be able to detect x in Z_k of T_2(x) <= v^2
   #if zk = order(C.C.P) is (known to be) maximal, 2-norm of coeff. vector squared < c2*v^2
   #otherwise, we need tpo multiply by f'(alpha) (increasing the size), revover and divide

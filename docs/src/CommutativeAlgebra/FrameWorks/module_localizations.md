@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Localizations of modules over computable rings
 
 For localizations of modules, there exists a generic implementation of 

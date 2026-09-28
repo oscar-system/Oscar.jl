@@ -35,7 +35,6 @@ function affine_normal_toric_variety(C::Cone)
   return variety
 end
 
-
 @doc raw"""
     normal_toric_variety(C::Cone)
 
@@ -61,7 +60,6 @@ function normal_toric_variety(C::Cone)
   return variety
 end
 
-
 @doc raw"""
     normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
 
@@ -83,10 +81,10 @@ julia> ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
 
 julia> max_cones = incidence_matrix([[1, 2], [2, 3], [3, 4], [4, 1]])
 4×4 IncidenceMatrix
-[1, 2]
-[2, 3]
-[3, 4]
-[1, 4]
+ [1, 2]
+ [2, 3]
+ [3, 4]
+ [1, 4]
 
 julia> normal_toric_variety(max_cones, ray_generators)
 Normal toric variety
@@ -95,12 +93,19 @@ julia> normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
 ```
 """
-normal_toric_variety(max_cones::Vector{Vector{Int64}}, rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = normal_toric_variety(IncidenceMatrix(max_cones), rays; non_redundant)
-function normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
+normal_toric_variety(
+  max_cones::Vector{Vector{Int64}},
+  rays::AbstractCollection[RayVector];
+  non_redundant::Bool=false,
+) = normal_toric_variety(
+  IncidenceMatrix(max_cones), rays; non_redundant
+)
+function normal_toric_variety(
+  max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool=false
+)
   fan = polyhedral_fan(max_cones, rays; non_redundant)
   return normal_toric_variety(fan)
 end
-
 
 @doc raw"""
     normal_toric_variety(PF::PolyhedralFan)
@@ -125,7 +130,6 @@ function normal_toric_variety(PF::PolyhedralFan)
   pmntv = Polymake.fulton.NormalToricVariety(fan)
   return NormalToricVariety(pmntv)
 end
-
 
 @doc raw"""
     normal_toric_variety(P::Polyhedron)
@@ -152,7 +156,6 @@ function normal_toric_variety(P::Polyhedron)
   return variety
 end
 
-
 @doc raw"""
     affine_normal_toric_variety(v::NormalToricVariety)
 
@@ -174,8 +177,6 @@ function affine_normal_toric_variety(v::NormalToricVariety)
   is_affine(v) || error("Cannot construct affine toric variety from non-affine input")
   return AffineNormalToricVariety(pm_object(v))
 end
-
-
 
 ######################
 # Equality
@@ -256,33 +257,55 @@ end
 
 function Base.show(io::IO, v::NormalToricVarietyType)
   # initiate properties string
-  properties_string = ["Normal"]
-  
-  affine = push_attribute_if_exists!(properties_string, v, :is_affine, "affine")
-  
-  simplicial_cb!(a, b) = push_attribute_if_exists!(a, b, :is_orbifold, "simplicial")
-  push_attribute_if_exists!(properties_string, v, :is_smooth, "smooth"; callback=simplicial_cb!)
-  
-  projective = nothing
-  if isnothing(affine) || !affine
-    complete_cb!(a, b) = push_attribute_if_exists!(a, b, :is_complete, "complete")
-    projective = push_attribute_if_exists!(properties_string, v, :is_projective, "projective"; callback=complete_cb!)
+  properties_string = []
+
+  if has_attribute(v, :is_smooth) && get_attribute(v, :is_smooth)
+    push!(properties_string, "Smooth")
+  else
+    if has_attribute(v, :is_orbifold) && get_attribute(v, :is_orbifold)
+      push!(properties_string, "Q-factorial")
+    end
+
+    if has_attribute(v, :is_gorenstein) && get_attribute(v, :is_gorenstein)
+      push!(properties_string, "Gorenstein")
+    elseif (
+      has_attribute(v, :is_q_gorenstein) && get_attribute(v, :is_q_gorenstein)
+      && (!has_attribute(v, :is_orbifold) || !get_attribute(v, :is_orbifold))
+    )
+      push!(properties_string, "Q-Gorenstein")
+    end
+
+    if isempty(properties_string)
+      push!(properties_string, "Normal")
+    else
+      push!(properties_string, "normal")
+    end
   end
-  
-  q_gor_cb!(a, b) = push_attribute_if_exists!(a, b, :is_q_gorenstein, "q-gorenstein")
-  gorenstein = push_attribute_if_exists!(properties_string, v, :is_gorenstein, "gorenstein"; callback=q_gor_cb!)
-  
-  push_attribute_if_exists!(properties_string, v, :is_fano, "fano")
-  
+
+  if has_attribute(v, :is_affine) && get_attribute(v, :is_affine)
+    push!(properties_string, "affine")
+  elseif has_attribute(v, :is_fano) && get_attribute(v, :is_fano)
+    push!(properties_string, "Fano")
+  elseif has_attribute(v, :is_projective) && get_attribute(v, :is_projective)
+    push!(properties_string, "projective")
+  elseif has_attribute(v, :is_complete) && get_attribute(v, :is_complete)
+    push!(properties_string, "complete")
+  end
+
   if has_attribute(v, :dim)
-    push!(properties_string, string(dim(v))*"-dimensional")
+    push!(properties_string, string(dim(v)) * "-dimensional")
   end
-  
-  properties_string = [join(properties_string, ", ")]
+
   push!(properties_string, "toric variety")
-  
-  push_attribute_if_exists!(properties_string, v, :has_torusfactor, "with torusfactor", "without torusfactor")
-  
+
+  if has_attribute(v, :has_torusfactor)
+    if get_attribute(v, :has_torusfactor)
+      push!(properties_string, "with a torusfactor")
+    else
+      push!(properties_string, "without torusfactors")
+    end
+  end
+
   join(io, properties_string, " ")
 end
 

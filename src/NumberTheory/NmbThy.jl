@@ -87,7 +87,7 @@ function norm_equation_fac_elem(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = 
   end
   lp = factor(k)
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{ZZMatrix}}[]
-  for (p, k) = lp.fac
+  for (p, k) in lp
     P = prime_decomposition(R, p)
     s = solve_non_negative(matrix(ZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(ZZ, 1, 1, [k]))
     push!(S, (P, ZZMatrix[view(s, i:i, 1:ncols(s)) for i=1:nrows(s)]))
@@ -192,7 +192,7 @@ function is_irreducible(a::AbsSimpleNumFieldOrderElem)
   I = identity_matrix(ZZ, length(S))
   A = hcat(I, I)
   #so A*(x|y) = x+y = sol is the  1. condition
-  C = cat(V, V, dims=(1,2))
+  C = cat(transpose(V), transpose(V), dims=(1,2))
   # C(x|y) >=0 iff Cx >=0 and Cy >=0
   #Cx <> 0 iff (1,..1)*Cx >= 1
   one = matrix(ZZ, 1, length(S), [1 for p = S])
@@ -315,28 +315,4 @@ function factorizations(a::AbsSimpleNumFieldOrderElem)
     push!(res, Fac(y, x))
   end
   return res
-end
-
-
-################################################################################
-#
-#   disc_log   TODO: move to Hecke
-#
-@doc raw"""
-    disc_log(b::T, x::T) where {T <: FinFieldElem}
-
-Return an integer `s` such that $b^s = x$.
-If no such `x` exists, an exception is thrown.
-
-# Examples
-```jldoctest
-julia> F = GF(3,4); a = gen(F)^21;
-
-julia> disc_log(gen(F), a)
-21
-```
-"""
-function disc_log(b::T, x::T) where {T <: FinFieldElem}
-  @assert parent(b) === parent(x)
-  return Hecke.disc_log_bs_gs(b, x, order(parent(b)))
 end

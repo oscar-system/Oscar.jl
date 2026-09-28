@@ -1,4 +1,9 @@
 @testset "loading" begin
+  @testset "Test Default Finite Field" begin
+    a = load(joinpath(@__DIR__, "finite-field-default.mrdi"))
+    @test a isa FqFieldElem
+  end
+
   @testset "loading file format paper example" begin
     F = GF(7, 2)
     o = gen(F)
@@ -21,5 +26,103 @@
     @test objective_function(loaded[2]) == objective_function(v[2])
     @test optimal_value(loaded[1]) == optimal_value(v[1])
     @test optimal_value(loaded[2]) == optimal_value(v[2])
+  end
+end
+
+@testset "check invalidation" begin
+  @test validate(mrdi_schema, Dict("_ns" => Dict("Oscar" => ["https://github.com/oscar-system/Oscar.jl","1.8.0"]),
+                                     "_type" => Dict("name" => "Vector", "params" => "Base.Int"),
+                                     "data" => [Dict("_type" => "ZZRingElem", "data" => "3")])) !== nothing
+end
+
+@testset "saving and loading Gzip'ed filed" begin
+  @testset "loading file format paper example (Gzip'ed)" begin
+    F = GF(7, 2)
+    o = gen(F)
+    Fyz, (y, z) = F[:x, :y]
+    load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"))
+    loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi.gz"); params=Fyz)
+    @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
+  end
+
+  @testset "saving and loading Gzip'ed file" begin
+    R, x = polynomial_ring(QQ, :x)
+    f = x^3 + 2x + 1
+    g = x^2 + 3
+    mktempdir() do path
+      filename = joinpath(path, "poly.mrdi.gz")
+      save(filename, [f,g]; compression=:gzip)
+      loaded = load(filename)
+      @test loaded == [f,g]
+      Oscar.reset_global_serializer_state()
+      loaded = load(filename; params=R)
+      @test loaded == [f,g]
+    end
+  end
+end
+
+@testset "pretty printing" begin
+  mktempdir() do path
+    filename = joinpath(path, "pretty.mrdi")
+    save(filename, [[1, 2], [3, 4], [5, 6]]; pretty_print=true)
+    str = read(filename, String)
+    version_info = Oscar.Serialization.get_oscar_serialization_version()[:Oscar][2]
+    cmp_str = """
+{
+  "_ns":{
+    "Oscar":[
+      "https://github.com/oscar-system/Oscar.jl",
+      "$version_info"
+    ]
+  },
+  "_type":{
+    "name":"Vector",
+    "params":{
+      "name":"Vector",
+      "params":"Base.Int"
+    }
+  },
+  "data":[
+    [
+      "1",
+      "2"
+    ],
+    [
+      "3",
+      "4"
+    ],
+    [
+      "5",
+      "6"
+    ]
+  ]
+}"""
+    @test str == cmp_str
+  end
+
+  @testset "MultiFileRefSerializer" begin
+    mktempdir() do path
+      Qx, x = QQ[:x]
+      F, a = number_field(x^2 + 1)
+      R, (y, z) = F[:y, :z]
+      p = a * y - z
+
+      test_save_load_roundtrip(path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R) do loaded
+        @test loaded == p
+      end
+
+      prefix_path = joinpath(path, "original")
+      files = readdir(path)
+      @test "original.mrdi" in files
+      @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
+
+      # compression: main and ref files should be gzip compressed
+      save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer(), compression=:gzip)
+      gz_files = filter(f -> startswith(f, "original") && (endswith(f, ".mrdi") || endswith(f, ".mrdi.gz")), readdir(path))
+      @test "original.mrdi.gz" in gz_files
+      Oscar.Serialization.reset_global_serializer_state()
+      loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
+      @test loaded == p
+    end
   end
 end

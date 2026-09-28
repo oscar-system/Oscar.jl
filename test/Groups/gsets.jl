@@ -2,7 +2,7 @@
 
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(6)
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "G-set"
   @test isa(Omega, GSet)
   @test (@inferred length(Omega)) == 6
@@ -60,7 +60,7 @@
 
   # larger examples
   G = symmetric_group(100)
-  Omega = gset(G)
+  Omega = natural_gset(G)
   S1, _ = stabilizer(Omega, [1, 2, 3, 4, 5])
   @test order(S1) == factorial(big(95))
   S2, _ = stabilizer(Omega, (1, 2, 3, 4, 5))
@@ -135,7 +135,7 @@
   @test unwrap(x) == omega
   @test unwrap(omega) == omega
   @test x^g == Omega(permuted(omega, g))  # action via `^` is defined for `x`
-  @test_throws ErrorException omega^g  # ... but not for the unwrapped object
+  @test_throws ArgumentError omega^g  # ... but not for the unwrapped object
   orb = orbit(x)
   @test length(orb) == 6
   @test isa(orb, GSet)
@@ -155,20 +155,24 @@
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   orb = orbit(Omega, [0,1,0,1,0,1])
   @test length(orb) == length(Oscar.orbit_via_Julia(Omega, [0,1,0,1,0,1]))
-  @test orbits(orb) == [orb]
+  orbs = orbits(orb)
+  @test (length(orbs) == 1) && (orbs[1] === orb)
 
   # permutation
-  G = symmetric_group(6)
+  G = alternating_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
+  @test_throws ArgumentError permutation(Omega, cperm([2,1]))
 
   # action homomorphism
   G = symmetric_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   acthom = action_homomorphism(Omega)
+  g = gen(G, 1)
+  pi = permutation(Omega, g)
   @test pi == g^acthom
   @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
@@ -255,9 +259,9 @@ end
 
   # transitivity
   @test transitivity(G8) == 1
-  @test transitivity(gset(G8)) == 1
+  @test transitivity(natural_gset(G8)) == 1
   @test transitivity(S4) == 4
-  @test transitivity(gset(S4)) == 4
+  @test transitivity(natural_gset(S4)) == 4
   @test_throws ArgumentError transitivity(S4, 1:3)
   @test transitivity(S4, 1:4) == 4
   @test transitivity(S4, 1:5) == 0
@@ -270,7 +274,7 @@ end
   G = general_linear_group(2, 3)
   V = free_module(base_ring(G), degree(G))
   v = gen(V, 1)
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @test isa(Omega, GSet)
   @test length(Omega) == 9
   @test order(stabilizer(Omega, v)[1]) * length(orbit(Omega, v)) == order(G)
@@ -308,31 +312,31 @@ end
   @test is_semiregular(Omega)
 
   # orbit
-  Omega = gset(G)
+  Omega = natural_gset(G)
   v = gen(V, 1)
   @test length(orbit(Omega, v)) == length(Oscar.orbit_via_Julia(Omega, v))
 
   # permutation
-  Omega = gset(G)
+  Omega = natural_gset(G)
   g = gen(G, 1)
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
 
   # action homomorphism
-  Omega = gset(G)
+  Omega = natural_gset(G)
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
   @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 48
 
   # is_conjugate
-  Omega = gset(G)
+  Omega = natural_gset(G)
   @test is_conjugate(Omega, gen(V, 1), gen(V, 2))
   @test ! is_conjugate(Omega, zero(V), gen(V, 1))
 
   # is_conjugate_with_data
-  Omega = gset(G)
+  Omega = natural_gset(G)
   rep = is_conjugate_with_data(Omega, gens(V)...)
   @test rep[1]
   @test gen(V, 1) * rep[2] == gen(V, 2)
@@ -341,14 +345,54 @@ end
 
 end
 
+@testset "G-sets of other matrix groups" begin
+  Z4, _ = residue_ring(ZZ, 4)
+  G = matrix_group(Z4[0 1; 1 0], Z4[0 1; -1 -1])
+
+  # action via (Julia vector) * (matrix group element)
+  v = [Z4(0), Z4(1)]
+  w = [Z4(1), Z4(1)]
+  Omega = orbit(G, v)
+  @test isa(Omega, GSet)
+  @test length(Omega) == 3
+  @test !(w in Omega)
+  C = collect(Omega)
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_conjugate(Omega, v, w)
+  conj, M = is_conjugate_with_data(Omega, v, -w)
+  @test conj
+  @test v * M == -w
+  g = gen(G, 1)
+  pi = permutation(Omega, g)
+  @test order(pi) == order(g)
+  @test degree(parent(pi)) == length(Omega)
+  acthom = action_homomorphism(Omega)
+  @test pi == g^acthom
+end
+
+@testset "subspaces iterator" begin
+
+  @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
+    V = vector_space(F, n)
+    for k in 0:n
+      itr = @inferred Oscar.bases_of_subspaces(V, k)
+      @test length(itr) == length(@inferred collect(itr))
+    end
+    @test_throws ArgumentError Oscar.bases_of_subspaces(V, n+1)
+  end
+
+end
+
 @testset "orbits of matrix groups over finite fields" begin
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
     q = order(F)
     V = vector_space(F, n)
-    GL = general_linear_group(n, F)
-    S = sylow_subgroup(GL, 2)[1]
-    for G in [GL, S]
+    gl = general_linear_group(n, F)
+    S = sylow_subgroup(gl, 2)[1]
+    for G in [gl, S]
       for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
@@ -393,7 +437,7 @@ end
 
 @testset "G-sets by right transversals" begin
   G = symmetric_group(5)
-  H = sylow_subgroup(G, 2)[1]
+  H, emb = sylow_subgroup(G, 2)
   Omega = right_cosets(G, H)
   @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Right cosets of groups"
   @test isa(Omega, GSet)
@@ -455,7 +499,40 @@ end
   @test rep[1]
   @test x * rep[2] == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
+
+  # restrict to a subgroup (creates G-sets of a different type)
+  rest = induce(Omega, emb)
+  @test sort!(map(length, orbits(rest))) == [1, 2, 4, 8]
+
+  # a "natural" way to restrict to a subgroup (less general than `induce`,
+  # internally represented in a different way than the `induce` result)
+  rest2 = gset(H, Omega)
+  @test sort!(map(length, orbits(rest2))) == [1, 2, 4, 8]
+  @test_throws ArgumentError gset(symmetric_group(6), Omega)
 end
+
+@testset "General G-set action" begin
+  gen_up    = @perm 48 ( 1, 3, 8, 6)( 2, 5, 7, 4)( 9,33,25,17)(10,34,26,18)(11,35,27,19);
+  gen_left  = @perm 48 ( 9,11,16,14)(10,13,15,12)( 1,17,41,40)( 4,20,44,37)( 6,22,46,35);
+  gen_front = @perm 48 (17,19,24,22)(18,21,23,20)( 6,25,43,16)( 7,28,42,13)( 8,30,41,11);
+  gen_right = @perm 48 (25,27,32,30)(26,29,31,28)( 3,38,43,19)( 5,36,45,21)( 8,33,48,24);
+  gen_back  = @perm 48 (33,35,40,38)(34,37,39,36)( 3, 9,46,32)( 2,12,47,29)( 1,14,48,27);
+  gen_down  = @perm 48 (41,43,48,46)(42,45,47,44)(14,22,30,38)(15,23,31,39)(16,24,32,40);
+  cube = permutation_group(48, [gen_up, gen_left, gen_front, gen_right, gen_back, gen_down]);
+
+  orbs = orbits(cube);
+  @test length(orbs) == 2
+  @test length(orbs[1]) == length(orbs[2]) == 24
+
+  bl = blocks(orbs[1]);
+  @test length(bl) == 8
+
+  h = action_homomorphism(bl);
+  @test order(domain(h)) == 43252003274489856000
+  @test order(image(h)[1]) == 40320
+end
+
+
 
 @testset "G-sets by left transversals" begin
   G = symmetric_group(5)
@@ -551,5 +628,50 @@ end
   @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
   @test all(o -> conductor(sum(collect(o))) == 1, orbs)
   o = orbs[findfirst(o -> length(o) == 3, orbs)]
-  @test [order(permutation(o, x)) for x in gens(u)] == [1, 3]
+  acthom = action_homomorphism(o)
+  @test describe(image(acthom)[1]) == "C3"
+  @test all(x -> permutation(o, x) == acthom(x), gens(u))
+end
+
+@testset "inducing G-sets" begin
+  G = symmetric_group(4)
+  Omega = gset(G, permuted, [[1,1,2,3]])
+  H = permutation_group(8, [cperm([1,3], [2,4]), cperm([1,5], [2,6], [3,7], [4,8])])
+  phi = hom(H, G, [cperm([1,2]), cperm([1,3], [2,4])])
+
+  # This check is a bit surprising that it works, but it does.
+  # We just need that the two functions are same as mathematical functions, not as objects.
+  @test induced_action_function(Omega, phi) == induced_action(action_function(Omega), phi)
+
+  orb = orbit(H, induced_action_function(Omega, phi), [1,1,2,3])
+  @test acting_group(orb) == H
+  @test length(orb) == 4
+  stab = stabilizer(orb)[1]
+  @test order(stab) == 2
+  @test cperm([1,3], [2,4]) in stab
+
+  Omega2 = induce(Omega, phi)
+  @test acting_group(Omega2) == H
+  @test elements(Omega2) == elements(Omega)
+  @test length(orbits(Omega2)) == 2
+  @test issetequal(length.(orbits(Omega2)), [4, 8])
+  stab2 = stabilizer(Omega2)[1]
+  @test order(stab2) == 2
+  @test cperm([1,3], [2,4]) in stab2
+end
+
+@testset "required methods for a G-set type" begin
+  # declare a new type of G-sets
+  @attributes mutable struct GSetForTests{T,S} <: GSet{T,S}
+    group::T
+    action_function::Function
+    data::S
+  end
+
+  Omega = GSetForTests(symmetric_group(2), on_tuples, [1, 2], Dict{Symbol, Any}());
+  @test_throws NotImplementedError acting_group(Omega)
+  @test_throws NotImplementedError action_function(Omega)
+  @test_throws NotImplementedError action_homomorphism(Omega)
+  @test_throws NotImplementedError orbit(Omega, 1)
+  @test_throws NotImplementedError Omega == Omega
 end

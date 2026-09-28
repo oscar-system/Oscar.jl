@@ -26,6 +26,14 @@
     R = @polynomial_ring(T, [:x, :y])
     I = ideal(R, [x^2+y,y*x-1])
     @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:modular)
+    # algorithm = :signature_based option
+    R = @polynomial_ring(GF(32003), [:x, :y])
+    I = ideal(R, [x^2+y,y*x-1])
+    # uses f4 in siggb/AlgebraicSolving
+    @test_throws ErrorException groebner_basis(I, signature_ordering=:DPOT, algorithm=:signature_based)
+    @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:signature_based)
+    groebner_basis(I, ordering=degrevlex(R), algorithm=:signature_based)
+    @test gens(I.gb[degrevlex(R)]) == FqMPolyRingElem[x + y^2, x*y + 32002, x^2 + y]
 
     # issue 3665
     kt,t = polynomial_ring(GF(2),:t)
@@ -139,9 +147,10 @@
 
     R, (x, y) = polynomial_ring(QQ, [:x, :y])
     I = ideal(R,[x^2+x*y+y,x+y^2])
-    standard_basis(I, ordering=lex(R), complete_reduction=true)
-    G = Oscar.groebner_assure(I, true, true)
+    G = standard_basis(I, ordering=lex(R), complete_reduction=true)
     @test G.ord == lex(R)
+    SG = Oscar.singular_generators(G, G.ord)
+    @test SG.isGB
 end
 
 @testset "normal form graded" begin
@@ -212,6 +221,21 @@ end
   @test ideal_membership(x^4, I, ordering=u)
 end
 
+@testset "signature based" begin
+  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
+  I = ideal(R,[x1+2*x2+2*x3+2*x4-1, x1^2+2*x2^2+2*x3^2+2*x4^2-x1, 2*x1*x2+2*x2*x3+2*x3*x4-x2, x2^2+2*x1*x3+2*x2*x4-x3])
+  @test_throws ErrorException groebner_basis_signature_based(I, signature_ordering=:DPOT)
+  H = groebner_basis_signature_based(I);
+  G = [x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
+         2*x2*x4 + 115043768*x2 + x3^2 + 76695850*x3*x4 + 191739613*x3 + 115043772*x4^2 + 230087535*x4
+         x2*x3 + 107374184*x2*x4 + 241591913*x2 + 53687093*x3^2 + 53687094*x3*x4 + 161061275*x3 + 53687093*x4^2 + 161061275*x4
+         x2^2 + 178956974*x2*x3 + 178956974*x2*x4 + 89478486*x2 + x3^2 + 178956974*x3*x4 + 89478486*x3 + x4^2 + 89478486*x4
+         14913081*x2*x4 + 263464432*x2 + x3*x4^2 + 56338306*x3*x4 + 260150414*x3 + 238609298*x4^3 + 129246702*x4^2 + 258493405*x4
+         x2*x4^2 + 29826162*x2*x4 + 141674270*x2 + 263464432*x3*x4 + 9942054*x3 + 89478486*x4^3 + 238609297*x4^2
+         232885084*x2*x4 + 191484965*x2 + 251179133*x3*x4 + 85955250*x3 + x4^4 + 35851649*x4^3 + 231479137*x4^2 + 167408122*x4
+        ]
+    @test elements(H) == G
+end
 @testset "f4" begin
   R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), [:x1, :x2, :x3, :x4])
   I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
@@ -226,16 +250,33 @@ end
                 x3*x4^2 + 238609298*x4^3 + 14913081*x2*x4 + 56338306*x3*x4 + 129246702*x4^2 + 263464432*x2 + 260150414*x3 + 258493405*x4
                 x2*x4^2 + 89478486*x4^3 + 29826162*x2*x4 + 263464432*x3*x4 + 238609297*x4^2 + 141674270*x2 + 9942054*x3
                 x4^4 + 35851649*x4^3 + 232885084*x2*x4 + 251179133*x3*x4 + 231479137*x4^2 + 191484965*x2 + 85955250*x3 + 167408122*x4]
+
   @test elements(H) == G
   @test isdefined(I, :gb)
-  @test I.gb[degrevlex(gens(base_ring(I)))].O == G
+  @test Oscar.oscar_generators(I.gb[degrevlex(gens(base_ring(I)))]) == G
+  @test length(I.gb) == 1
   H = groebner_basis_f4(I, eliminate=2);
   G = [x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                 x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]
-  @test elements(H) == G
-  @test I.gb[degrevlex(gens(base_ring(I))[3:end])].O == G
+
+  emb = hom(R, base_ring(H), [[zero(base_ring(H)) for _ in 1:2]; gens(base_ring(H))])
+
+  @test elements(H) == map(emb, G)
+  @test length(I.gb) == 1
+  # issue 5216
+  R, (a,b,c,d,x,y,z,w) = polynomial_ring(QQ, ["a", "b", "c", "d", "x", "y", "z", "w"])
+  I = ideal(R, [x - a*c, y - a*c*d, z - a*c^2 - b, w - a*c^2*d - b*d])
+  H = groebner_basis_f4(I; eliminate=4);
+  G = [-x * w + y * z]
+  emb = hom(R, base_ring(H), [[zero(base_ring(H)) for _ in 1:4]; gens(base_ring(H))])
+  @test elements(H) == map(emb, G)
+  @test parent(first(gens(H))) == base_ring(H)
+
+  I = ideal(R, [zero(R)])
+  H = groebner_basis_f4(I; eliminate=4);
+  @test parent(first(gens(H))) == base_ring(H)
 end
 
 @testset "fglm" begin
@@ -282,6 +323,13 @@ end
   gb = standard_basis(I, ordering = lex(R), algorithm = :hilbert)
   @test is_groebner_basis(gb, ordering = lex(R))
   @test haskey(I.gb, lex(R))
+  # Issue 6064
+  R, (a, b, c, x, y, z) = graded_polynomial_ring(QQ, [:a, :b, :c, :x, :y, :z], [2,2,2,1,1,1])
+  V = [x*y-a, x*z-b, y*z-c]
+  I = ideal(R,V)
+  G = groebner_basis(I, ordering=lex(R), algorithm=:hilbert)
+  @test is_groebner_basis(G, ordering=lex(R))
+  @test gens(G) == MPolyDecRingElem[c-y*z, b -x*z, a-x*y]
 end
 
 @testset "groebner basis modular" begin
@@ -291,6 +339,8 @@ end
   @test is_groebner_basis(I.gb[degrevlex(R)], ordering = degrevlex(R))
   @test all(iszero, Oscar.reduce(groebner_basis(I), gb))
   @test all(iszero, Oscar.reduce(gb, groebner_basis(I)))
+  gb = Oscar.groebner_basis_modular(I, ordering = lex(R))
+  @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^3, x*y + 32771*y^2, x^2]
   J = ideal(R, [x+y^2, x*y+y^3])
   J.gb[degrevlex(R)] = Oscar.IdealGens(R, [x^3])
   @test Oscar._certify_modular_groebner_basis(J, degrevlex(R)) == false
@@ -303,7 +353,7 @@ end
   I = ideal(R, x)
   # A priori we expect nothing to be known
   @test !Oscar.is_known(is_one, I)
-  @test !Oscar.is_known(dim, I)
+  @test !Oscar.is_known(krull_dim, I)
   @test !Oscar.is_known(groebner_basis, I)
   # ...except things which are really easy to check.
   @test Oscar.is_known(is_zero, I)
@@ -317,3 +367,36 @@ end
   @test !Oscar.is_known(groebner_basis, I; ordering=lex(gens(R)))
 end
 
+@testset "factoring standard resp. groebner bases" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  I = ideal(R,[x*y])
+  L = factoring_standard_basis(I)
+  @test gens(L[1]) == QQMPolyRingElem[y]
+  @test gens(L[2]) == QQMPolyRingElem[x]
+  @test L[1].isGB == true
+  @test L[2].isGB == true
+
+  R, (x, y, z) = polynomial_ring(GF(32003), [:x, :y, :z])
+  I = ideal(R,[x*y*z,y*z+x])
+
+  L = factoring_standard_basis(I)
+
+  @test length(L) == 1
+  @test gens(L[1]) == FqMPolyRingElem[x, y*z+x]
+
+  L = factoring_standard_basis(I, ordering=lex(R))
+
+  @test length(L) == 2
+  @test gens(L[1]) == FqMPolyRingElem[z, x + y*z]
+  @test gens(L[2]) == FqMPolyRingElem[y, x + y*z]
+
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  I = ideal(R,[x*y])
+  L = factoring_groebner_basis(I)
+  @test gens(L[1]) == QQMPolyRingElem[y]
+  @test gens(L[2]) == QQMPolyRingElem[x]
+  @test L[1].isGB == true
+  @test L[2].isGB == true
+
+  @test_throws ErrorException L = factoring_groebner_basis(I, ordering=neglex(R))
+end

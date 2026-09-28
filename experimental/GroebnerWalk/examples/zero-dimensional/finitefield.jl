@@ -13,5 +13,3 @@ J = ideal(R, [
 
 t_s = @elapsed Gs = groebner_walk(J, lex(R), algorithm=:standard) #4.11
 t_g = @elapsed Gg = groebner_walk(J, lex(R), algorithm=:generic) #0.8s
-t_p = @elapsed Gp = groebner_walk(J, lex(R), algorithm=:perturbed) #0.33s
-

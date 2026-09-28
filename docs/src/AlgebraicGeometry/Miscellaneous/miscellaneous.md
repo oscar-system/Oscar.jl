@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Some Special Ideals
 
 This page is still in its development stage. Currently, it only contains the function below:

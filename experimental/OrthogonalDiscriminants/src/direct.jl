@@ -14,7 +14,7 @@
 # `embG` is the embedding of `base_ring(G)` into the abelian closure of `QQ`
 # and `embF` is the embedding of the character field of `G` into the abelian
 # closure of `QQ`.
-function od_from_generators(G::MatrixGroup, embG = nothing, embF = nothing)
+function od_from_generators(G::MatGroup, embG = nothing, embF = nothing)
   FG = base_ring(G)
   p = characteristic(FG)
   if p != 2
@@ -199,8 +199,8 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
       else
         GG = GapObj(G)
       end
-      M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(GG),
-                                    GAP.Globals.FieldOfMatrixGroup(GG))
+      M = GAP.Globals.GModuleByMats(Oscar.GAPWrap.GeneratorsOfGroup(GG),
+                                    Oscar.GAPWrap.FieldOfMatrixGroup(GG))
       GAP.Globals.MTX.IsAbsolutelyIrreducible(M) || continue
     end
 

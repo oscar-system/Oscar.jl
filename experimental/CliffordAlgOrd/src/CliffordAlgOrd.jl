@@ -1,2 +1,6 @@
+include("exports.jl")
+include("Types.jl")
+include("Operators.jl")
 include("CliffordAlgebra.jl")
 include("CliffordOrder.jl")
+include("IO.jl")

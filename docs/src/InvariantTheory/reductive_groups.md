@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Invariants of Linearly Reductive Groups
 
 In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter,

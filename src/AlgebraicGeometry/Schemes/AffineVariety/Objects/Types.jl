@@ -5,13 +5,13 @@
     if check
       S <:QQField || error("varieties must be geometrically integral, but we test this only over QQ at the moment, disable this check if you know the variety is geometrically integral or proceed at your own risk")
       is_geometrically_integral(X) || error("varieties must be geometrically integral")
-    else
-      set_attribute!(X, :is_geometrically_integral => true)
-      set_attribute!(X, :is_integral => true)
-      set_attribute!(X, :is_geometrically_reduced => true)
-      set_attribute!(X, :is_reduced => true)
     end
-    new{typeof(base_ring(X)), typeof(OO(X))}(X)
+    Y = new{S,T}(X)
+    set_attribute!(Y, :is_geometrically_integral => true)
+    set_attribute!(Y, :is_integral => true)
+    set_attribute!(Y, :is_geometrically_reduced => true)
+    set_attribute!(Y, :is_reduced => true)
+    return Y
   end
 
 end

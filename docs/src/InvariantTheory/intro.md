@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # [Introduction](@id invariant_theory)
 
 The invariant theory part of OSCAR provides functionality for computing polynomial invariants

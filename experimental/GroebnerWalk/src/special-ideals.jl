@@ -1,10 +1,12 @@
 
 @doc raw"""
-    newell_patch(k::Union{QQField, QQBarFieldElem}, n::Int=1)
+    newell_patch(k::QQField, n::Int=1)
+    newell_patch(k::QQBarFieldElem, n::Int=1)
 
-Let $n$ be an integer between 1 and 32. Returns the ideal corresponding to 
-the implicitization of the $n$-th bi-cubic patch describing
-the Newell's teapot as a parametric surface.
+Return the ideal corresponding to the implicitization of the $n$-th bi-cubic
+patch describing the Newell's teapot as a parametric surface.
+
+Here $n$ must be an integer between 1 and 32.
 
 The specific generators for each patch have been taken from [Tra04](@cite).
 """
@@ -15,9 +17,10 @@ end
 @doc raw"""
     newell_patch(k::Field, n::Int=1)
 
-Let $n$ be an integer between 1 and 32. Returns the ideal corresponding to 
-the implicitization of the $n$-th bi-cubic patch describing
-the Newell's teapot as a parametric surface.
+Return the ideal corresponding to the implicitization of the $n$-th bi-cubic
+patch describing the Newell's teapot as a parametric surface.
+
+Here $n$ must be an integer between 1 and 32.
 
 The specific generators for each patch have been taken from [Tra04](@cite).
 
@@ -42,10 +45,12 @@ end
 @doc raw"""
     newell_patch_with_orderings(k::Field, n::Int=1)
 
-Let $n$ be an integer between 1 and 32. Returns the ideal corresponding to 
-the implicitization of the $n$-th bi-cubic patch describing
-the Newell's teapot as a parametric surface.
-Additionally returns suitable start and target orderings, e.g. for use with the Gröbner walk.
+Return the ideal corresponding to the implicitization of the $n$-th bi-cubic
+patch describing the Newell's teapot as a parametric surface.
+
+Here $n$ must be an integer between 1 and 32.
+
+Additionally return suitable start and target orderings, e.g. for use with the Gröbner walk.
 
 The specific generators for each patch have been taken from [Tra04](@cite).
 

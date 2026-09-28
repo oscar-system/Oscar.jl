@@ -1,0 +1,426 @@
+###############################################################################
+#
+#  Basic types
+#
+###############################################################################
+
+@doc raw"""
+    QuadSpaceWithIsom
+
+A type for pairs $(V, f)$ consisting of a rational quadratic space
+$V$ of type `QuadSpace` and an isometry $f$ given as a `QQMatrix`
+representing the action on the standard basis of $V$.
+
+We store the order of $f$ too, which can finite or infinite.
+
+To construct an object of type `QuadSpaceWithIsom`, see the set of functions
+called [`quadratic_space_with_isometry`](@ref)
+
+# Examples
+```jldoctest
+julia> V = quadratic_space(QQ, 4);
+
+julia> quadratic_space_with_isometry(V; neg=true)
+Quadratic space of dimension 4
+  with isometry of finite order 2
+  given by
+  [-1    0    0    0]
+  [ 0   -1    0    0]
+  [ 0    0   -1    0]
+  [ 0    0    0   -1]
+
+julia> L = root_lattice(:E, 6);
+
+julia> V = ambient_space(L);
+
+julia> f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
+                             -1 -2 -2 -2 -1 -1;
+                              0  1  0  0  0  0;
+                              1  0  0  0  0  0;
+                             -1 -1 -1  0  0 -1;
+                              0  0  1  1  0  1]);
+
+julia> Vf = quadratic_space_with_isometry(V, f)
+Quadratic space of dimension 6
+  with isometry of finite order 8
+  given by
+  [ 1    2    3    2    1    1]
+  [-1   -2   -2   -2   -1   -1]
+  [ 0    1    0    0    0    0]
+  [ 1    0    0    0    0    0]
+  [-1   -1   -1    0    0   -1]
+  [ 0    0    1    1    0    1]
+```
+"""
+@attributes mutable struct QuadSpaceWithIsom
+  V::Hecke.QuadSpace
+  f::QQMatrix
+  n::IntExt
+
+  function QuadSpaceWithIsom(
+      V::Hecke.QuadSpace,
+      f::QQMatrix,
+      n::IntExt
+    )
+    return new(V, f, n)
+  end
+end
+
+@doc raw"""
+    ZZLatWithIsom
+
+A type for pairs $(L, f)$ consisting of an integer lattice $L$ of
+type `ZZLat` and an isometry $f$ given as a `QQMatrix` representing
+the action on the basis matrix of $L$.
+
+We store the ambient space $V$ of $L$ together with an isometry $f_a$
+inducing $f$ on $L$ seen as a pair $(V, f_a)$ of type
+[`QuadSpaceWithIsom`](@ref). We moreover store the order $n$ of $f$, which can
+be finite or infinite.
+
+To construct an object of type `ZZLatWithIsom`, see the following examples:
+
+# Examples
+
+One first way to construct such object, is by entering directly the lattice
+with an isometry. The isometry can be a honnest isometry of the lattice, or
+it can be an isometry of the ambient space preserving the lattice. Depending on
+this choice, one should enter the appropriate boolean value
+*ambient_representation*. This direct construction is done through the
+constructors [`integer_lattice_with_isometry`](@ref).
+
+```jldoctest
+julia> L = root_lattice(:E, 6);
+
+julia> f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
+                             -1 -2 -2 -2 -1 -1;                                                
+                              0  1  0  0  0  0;      
+                              1  0  0  0  0  0;
+                             -1 -1 -1  0  0 -1;
+                              0  0  1  1  0  1]);
+
+julia> Lf = integer_lattice_with_isometry(L, f; ambient_representation=false)
+Integer lattice of rank 6 and degree 6
+  with isometry of finite order 8
+  given by
+  [ 1    2    3    2    1    1]
+  [-1   -2   -2   -2   -1   -1]
+  [ 0    1    0    0    0    0]
+  [ 1    0    0    0    0    0]
+  [-1   -1   -1    0    0   -1]
+  [ 0    0    1    1    0    1]
+
+julia> B = matrix(QQ,1,6, [1   2   3   1   -1   3]);
+
+julia> I = lattice_in_same_ambient_space(L, B); # This is the invariant sublattice L^f
+
+julia> If = integer_lattice_with_isometry(I, ambient_isometry(Lf))
+Integer lattice of rank 1 and degree 6
+  with isometry of finite order 1
+  given by
+  [1]
+
+julia> integer_lattice_with_isometry(I; neg=true)
+Integer lattice of rank 1 and degree 6
+  with isometry of finite order 2
+  given by
+  [-1]
+```
+
+Another way to construct such objects is to see them as sub-objects of their
+ambient space, of type [`QuadSpaceWithIsom`](@ref). Through the constructors
+[`lattice(::QuadSpaceWithIsom)`](@ref) and
+[`lattice_in_same_ambient_space(::ZZLatWithIsom, ::MatElem)`](@ref), one can
+then construct lattices with isometry for free, in a given space, as long as
+the module they define is preserved by the fixed isometry of the ambient space.
+
+# Examples
+```jldoctest
+julia> G = matrix(QQ, 6, 6 , [ 3 1 -1 1 0 0;
+                               1 3  1 1 1 1;
+                              -1 1  3 0 0 1;
+                               1 1  0 4 2 2;
+                               0 1  0 2 4 2;
+                               0 1  1 2 2 4]);
+
+julia> V = quadratic_space(QQ, G);
+
+julia> f = matrix(QQ, 6, 6, [ 1 0  0 0 0  0
+                              0 0 -1 0 0  0
+                             -1 1 -1 0 0  0
+                              0 0  0 1 0 -1
+                              0 0  0 0 0 -1
+                              0 0  0 0 1 -1]);
+
+julia> Vf = quadratic_space_with_isometry(V, f);
+
+julia> Lf = lattice(Vf)
+Integer lattice of rank 6 and degree 6
+  with isometry of finite order 3
+  given by
+  [ 1   0    0   0   0    0]
+  [ 0   0   -1   0   0    0]
+  [-1   1   -1   0   0    0]
+  [ 0   0    0   1   0   -1]
+  [ 0   0    0   0   0   -1]
+  [ 0   0    0   0   1   -1]
+
+julia> B = matrix(QQ, 4, 6, [1 0 3 0 0 0;
+                             0 1 1 0 0 0;
+                             0 0 0 0 1 0;
+                             0 0 0 0 0 1]);
+
+julia> Cf = lattice(Vf, B)  # coinvariant sublattice L_f
+Integer lattice of rank 4 and degree 6
+  with isometry of finite order 3
+  given by
+  [-2   3   0    0]
+  [-1   1   0    0]
+  [ 0   0   0   -1]
+  [ 0   0   1   -1]
+
+julia> Cf2 = lattice_in_same_ambient_space(Lf, B)
+Integer lattice of rank 4 and degree 6
+  with isometry of finite order 3
+  given by
+  [-2   3   0    0]
+  [-1   1   0    0]
+  [ 0   0   0   -1]
+  [ 0   0   1   -1]
+
+julia> Cf == Cf2
+true
+```
+
+The last equality of the last example shows why we care about
+*ambient context*: the two pairs of lattice with isometry `Cf` and `Cf2` are
+basically the same mathematical objects. Indeed, they lie in the same space,
+defines the same module and their respective isometries are induced by the same
+isometry of the ambient space. As for regular `ZZLat`, as soon as the lattices
+are in the same ambient space, we can compare them as $\mathbb Z$-modules,
+endowed with an isometry.
+"""
+@attributes mutable struct ZZLatWithIsom
+  Vf::QuadSpaceWithIsom
+  Lb::ZZLat
+  f::QQMatrix
+  n::IntExt
+
+  function ZZLatWithIsom(
+      Vf::QuadSpaceWithIsom,
+      Lb::ZZLat,
+      f::QQMatrix,
+      n::IntExt
+    )
+    return new(Vf, Lb, f, n)
+  end
+end
+
+@doc raw"""
+    TorQuadModuleWithIsom
+
+A type for pairs $(T, f)$ consisting of a torsion quadratic module
+$T$ of type `TorQuadModule` and an isometry $f$ given as a `TorQuadModuleMap`.
+
+To construct an object of type `TorQuadModuleWithIsom`, see the set of functions
+called [`torsion_quadratic_module_with_isometry`](@ref)
+
+# Examples
+```jldoctest
+julia> Tf = torsion_quadratic_module_with_isometry(QQ[-1//60;], ZZ[11;])
+Finite quadratic module of order 60
+  with 1 generator
+  with isometry given by
+  [11]
+
+julia> E6 = root_lattice(:E, 6)
+Integer lattice of rank 6 and degree 6
+with gram matrix
+[ 2   -1    0    0    0    0]
+[-1    2   -1    0    0    0]
+[ 0   -1    2   -1    0   -1]
+[ 0    0   -1    2   -1    0]
+[ 0    0    0   -1    2    0]
+[ 0    0   -1    0    0    2]
+
+julia> q = discriminant_group(E6)
+Finite quadratic module
+  over integer ring
+Abelian group: Z/3
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form:
+[4//3]
+
+julia> torsion_quadratic_module_with_isometry(q)
+Finite quadratic module of order 3
+  with 1 generator
+  with isometry given by
+  [1]
+```
+"""
+@attributes mutable struct TorQuadModuleWithIsom
+  T::TorQuadModule
+  f::TorQuadModuleMap
+
+  function TorQuadModuleWithIsom(
+      T::TorQuadModule,
+      f::TorQuadModuleMap,
+    )
+    return new(T, f)
+  end
+end
+
+#####################################################################
+#
+#  Enumeration context
+#
+#####################################################################
+
+mutable struct ZZLatWithIsomEnumCtX
+  # what we want now
+  power::Int
+  discriminant_action::Union{Nothing,TorQuadModuleWithIsom}
+  discriminant_annihilator_lb::MPolyIdeal{ZZMPolyRingElem}
+  discriminant_annihilator_ub::MPolyIdeal{ZZMPolyRingElem}
+  eigenlattice_conditions::Vector{Dict{Int,Vector{Int}}}
+  fix_root::Int
+  # what we want in the end
+  orig_fix_root::Int
+  orig_discriminant_action::TorQuadModuleWithIsom
+  orig_discriminant_annihilator_lb::MPolyIdeal{ZZMPolyRingElem}
+  orig_discriminant_annihilator_ub::MPolyIdeal{ZZMPolyRingElem}
+  orig_eigenlattice_conditions::Vector{Dict{Int,Vector{Int}}}
+
+  # global settings
+  _local::Bool
+  root_test::Bool
+  info_depth::Int
+  genusDB
+  update_genusDB::Bool
+  
+  function ZZLatWithIsomEnumCtX()
+    return new()
+  end
+end
+
+###############################################################################
+#
+#  Gluing factory
+#
+###############################################################################
+
+@doc raw"""
+    ZZLatGluingCtx
+
+A context object which stores the results of some orbits and stabilizers
+computations for some ``p``-subgroups of a given type.
+
+It should be used in the following way: ``q`` is a fixed `TorQuadModule` and
+``V`` is a submodule given by conditions which are fixed in the context (i.e.
+``V`` is a given torsion part of the kernel of a fixed endomorphism of ``q``).
+
+The pair ``(q, V)`` is represented by an index `i::Int`. Then, for every prime
+number `p` and every non-increasing vector of positive integers `subtype`, the
+dictionary `orb_and_stab` records the result of the computations of orbits
+representatives and stabilizers for the $p$-subgroups of ``V`` of $p$-type
+`subtype` under the action of
+- the orthogonal group of the quadratic form on `q` -> key `(i, true, p, subtype)`,
+- the orthogonal group of the bilinear form on `q` -> key `(i, false, p, subtype)`.
+
+In large computations, an object of type `ZZLatGluingCtx` should be used with a
+tuple of integers `vi` indicating the index `i` to use for each of the two
+given `TorQuadModule` (with the condition module ``V`` fixed by the context).
+
+!!! warning
+    To avoid caching too much data, it is important that the condition module
+    ``V`` is fixed by the context. If it changes, it is better not to use
+    such context object since the overall procedure might miss some cases and
+    thus return the wrong output.
+"""
+struct ZZLatGluingCtx
+  orb_and_stab::Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
+
+  function ZZLatGluingCtx()
+    orb_and_stab = Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
+    return new(orb_and_stab)
+  end
+end
+
+@doc raw"""
+    ZZLatGluing
+
+Type for a representative of a double coset of glue maps between two
+discriminant forms ``q_1`` and ``q_2``, under the action some groups
+``G_1 \subset GL(q_1)`` and ``G_2 \subset GL(q_2)``. It consists of:
+- a glue map ``\gamma\colon H_1\to H_2``,
+- the inverse glue map of ``H_2\to H_1``,
+- the embedding ``H_1 \to q_1``,
+- the embedding of the ``G_1``-stabilizer of ``H_1`` inside ``G_1``,
+- the embedding ``H_2 \to q_2``,
+- the embedding of the ``G_2``-stabilizer of ``H_2`` inside ``G_2``.
+"""
+struct ZZLatGluing
+  glue_map::TorQuadModuleMap
+  inv_glue_map::TorQuadModuleMap
+  glue_group_left::TorQuadModuleMap
+  stabilizer_left::GAPGroupHomomorphism
+  glue_group_right::TorQuadModuleMap
+  stabilizer_right::GAPGroupHomomorphism
+
+  function ZZLatGluing(x...)
+    return new(x...)
+  end
+end
+
+@doc raw"""
+    ZZLatGluingFactory
+
+A factory object for computations of glue maps. It stores two `TorQuadModule`
+and a subgroup of their orthogonal group (as finite bilinear module). A context
+object `ZZLatGluingCtx` can be added to it to avoid some redundant computations
+on large scale project.
+"""
+mutable struct ZZLatGluingFactory
+  # Necessary input
+  ambient_modules::NTuple{2, TorQuadModule} # Discriminant forms of the lattices to glue
+  local_classifying_groups::NTuple{2, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
+
+  # Context
+  Ctx::ZZLatGluingCtx
+  vertex_identification::NTuple{2, Int}
+  par::Symbol # :even, :odd or :both
+
+  # Edge conditions
+  glue_order::Set{ZZRingElem} # Possible orders of a glue group
+  glue_elementary_divisors::Set{Vector{ZZRingElem}} # Possible elementary divisors of a glue groups
+  genus_over::Set{ZZGenus} # Possible genus of an overlattice
+  form_over::Set{QQMatrix} # Possible Gram matrix normal form of discriminant group overlattice
+
+  # Internal preparation
+  conditions_modules::NTuple{2, TorQuadModuleMap} # Where the glue groups should be taken
+  glue_group_parent_snf::Vector{ZZRingElem} # Glue groups are isomorphic to a subgroup of an abelian group with such elementary divisors
+  primes_of_interest::Set{ZZRingElem} # Only primes which could divide the order of a glue group
+  local_gluings_primary::Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}} # Intermediate storage for local gluings at some prime, and glue group of certain type
+
+  function ZZLatGluingFactory(
+    module_left::TorQuadModule,
+    module_right::TorQuadModule,
+  )
+    z = new((module_left, module_right))
+    return z
+  end
+end
+
+struct ZZLatGluingAmbient
+  D::TorQuadModule
+  j1::TorQuadModuleMap
+  j2::TorQuadModuleMap
+  OD::AutomorphismGroup{TorQuadModule}
+  k1::GAPGroupHomomorphism
+  k2::GAPGroupHomomorphism
+
+  function ZZLatGluingAmbient(x...)
+    return new(x...)
+  end
+end

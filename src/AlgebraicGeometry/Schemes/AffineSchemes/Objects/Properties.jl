@@ -572,14 +572,11 @@ false
 """
 ## equidimensional decomposition only available for schemes over a field
 @attr Bool function is_equidimensional(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
-  I = modulus(OO(X))
-  if has_attribute(I, :is_equidimensional)
-    return is_equidimensional(I)
+  if has_attribute(X, :is_irreducible) && is_irreducible(X)
+    return true
   end
-
-  P = equidimensional_decomposition_radical(saturated_ideal(I))
-  length(P) < 2 && return true
-  return false
+  I = modulus(OO(X))
+  return is_equidimensional(I)
 end
 
 # make is_equidimensional agnostic to quotient
@@ -695,25 +692,11 @@ true
 ```
 """
 @attr Bool function is_smooth(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
-  R = base_ring(OO(X))
-  L = localized_ring(OO(X))
-  I = modulus(OO(X))
-  f = gens(saturated_ideal(I))
-  is_empty(f) && return true
-  Df = jacobian_matrix(f)
-  A = map_entries(OO(X), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
-  return success
+  return is_one(ideal_sheaf_of_singular_locus(covered_scheme(X)))
 end
 
 @attr Bool function is_smooth(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
-  R = base_ring(OO(X))
-  I = modulus(OO(X))
-  f = gens(I)
-  Df = jacobian_matrix(f)
-  A = map_entries(OO(X), Df)
-  success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
-  return success
+  return is_one(ideal_sheaf_of_singular_locus(covered_scheme(X)))
 end
 
 ## make is_smooth agnostic to quotient ring

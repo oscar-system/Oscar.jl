@@ -1,4 +1,8 @@
-# this can be run from the command line with:
+# This script checks for missing jldoctest end markers and unknown admonitions.
+#
+# It is run as part of the OSCAR CI tests, but it can also be run manually
+#
+# It can be run from the command line with:
 # > julia --project=. -e 'using Oscar; include("etc/check_docstrings.jl")'
 #
 # it is also possible to test more packages at once (as long as Main.X exists)
@@ -27,11 +31,17 @@ function has_broken_doctest(md::Markdown.MD)
           if contains(string(block),"```jldoctest")
             return "Unterminated jldoctest: $(string(block))"
           end
+          if contains(string(block), r"^!!!")
+            # if an admonition appears in a Paragraph it failed parsing
+            return "Broken admonition header, must be '!!! admonition_type \"Optional title\"' and have indented lines below: $(string(block))"
+          end
         end
       elseif elem isa Markdown.Admonition
         if !(elem.category in admonition_types)
           return "Unknown admonition category: $(string(elem.category))"
         end
+      elseif elem isa Markdown.Code && elem.language == "jldoctests"
+        return "Invalid doctest `jldoctests` instead of `jldoctest`"
       end
     end
   end
@@ -99,8 +109,7 @@ function (@main)(args)
   locs = reduce(vcat, get_broken_docstrings.(mod))
   isempty(locs) && exit(0)
   for (mod, file, line, msg) in locs
-    dir = joinpath(pkgdir(mod),"") # add trailing /
-    relfile = replace(file, dir => "")
+    relfile = relpath(file, pkgdir(mod))
     println("::error file=$relfile,line=$line,title=$(string(mod))::$msg")
   end
   exit(-1)

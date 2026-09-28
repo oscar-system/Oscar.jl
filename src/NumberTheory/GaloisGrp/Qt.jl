@@ -87,7 +87,7 @@ for analysis of the denominator and the infinite valuations
 
 function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   f = defining_polynomial(F)
-  @assert is_monic(f)
+  @req is_monic(f) "the defining polynomial needs to be monic (in x) and integral, i.e. in ZZ[t][x]"
   Zxy, (x, y) = polynomial_ring(ZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
@@ -95,7 +95,7 @@ function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
 
   dd = lcm(map(denominator, coefficients(d)))
   dd = lcm(dd, lcm(map(x->reduce(lcm, map(denominator, coefficients(numerator(x))), init=ZZRingElem(1)), coefficients(df))))
-  @assert isone(dd) #needs fixing....
+  @req isone(dd) "the defining polynomial needs to be monic (in x) and integral, i.e. in ZZ[t][x]"
   df *= dd
 
   for i=0:degree(f)
@@ -140,7 +140,7 @@ function _subfields(FF::Generic.FunctionField, f::ZZMPolyRingElem; tStart::Int =
   @vprint :Subfields 2 "now looking for a nice prime...\n"
   p, _ = find_prime(defining_polynomial(K), pStart = 200)
 
-  d = lcm(map(degree, collect(keys(factor(GF(p), g).fac))))
+  d = lcm(map(degree, first.(collect(factor(GF(p), g)))))
 
   @assert evaluate(evaluate(f, [X, T+t]), [gen(Zx), zero(Zx)]) == g
 
@@ -177,8 +177,8 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
 
     #need to map the ordering of the roots in C to the one in S
     #the roots in C should be power-series over the field used in S
-    rC = roots(C, (1,1))
-    rS = roots(S, 1)
+    rC = roots(C, (1,1), raw = true)
+    rS = roots(S, 1, raw = true)
 
     F, mF = residue_field(parent(rC[1]))
     G, mG = residue_field(F)
@@ -681,7 +681,7 @@ function Hecke.newton_polygon(f::Generic.Poly{<:Generic.RationalFunctionFieldEle
 end
 
 function valuations_of_roots(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}) where {T}
-  return [(slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
+  return [(-slope(l), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
 Hecke.lines(P::Hecke.Polygon) = P.lines
@@ -691,7 +691,7 @@ function valuation_of_roots(f::ZZPolyRingElem, p::ZZRingElem)
   @assert is_prime(p)
   x = gen(parent(f))
   N = Hecke.newton_polygon(f, x, p)
-  return [(slope(l), length(l)) for l = Hecke.lines(N)]
+  return [(-slope(l), length(l)) for l = Hecke.lines(N)]
 end
 
 function valuation_of_roots(f::ZZPolyRingElem, p::Integer)
@@ -721,7 +721,7 @@ end
 
 function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{QadicFieldElem, PadicFieldElem, Hecke.LocalFieldElem}
   d = degree(base_ring(f))
-  return [(QQFieldElem(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
+  return [(QQFieldElem(-slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end
 
 

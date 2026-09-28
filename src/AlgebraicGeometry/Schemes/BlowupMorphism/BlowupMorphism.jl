@@ -19,7 +19,9 @@
 Return a `CartierDivisor` on the `domain` of `f` which is the
 preimage of the vanishing locus of the `center` of `f`.
 
-!!! note If `f` is not a classical blowup, but, for instance, a small contraction, then the exceptional locus need not be a divisor. See `exceptional_locus` for such cases.
+!!! note
+    If `f` is not a classical blowup, but, for instance, a small contraction, then the
+    exceptional locus need not be a divisor. See `exceptional_locus` for such cases.
 """
 function exceptional_divisor(f::AbsBlowupMorphism)
   error("not implemented")
@@ -44,7 +46,9 @@ of the vanishing locus of that ideal sheaf `f` is an isomorphism.
 The support of the `exceptional_locus` of `f` coincides with the vanishing
 locus of the pullback of the `center`.
 
-!!! note For classical blowup constructions this will be the center which has been blown up. For more exotic blowups, however, this might be more special.
+!!! note
+    For classical blowup constructions this will be the center which has been blown up.
+    For more exotic blowups, however, this might be more special.
 """
 function center(f::AbsBlowupMorphism)
   error("not implemented")

@@ -1,21 +1,16 @@
-```@meta
-CurrentModule = Oscar.OrthogonalDiscriminants
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Criteria for computing orthogonal discriminants
 
 ## Direct methods
 
 ```@docs
-od_from_atlas_group
+Oscar.OrthogonalDiscriminants.od_from_atlas_group
 ```
 
 ## Character-theoretical criteria
 
 ```@docs
-od_from_order
-od_from_eigenvalues
-od_for_specht_module
-od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int)
+Oscar.OrthogonalDiscriminants.od_from_order
+Oscar.OrthogonalDiscriminants.od_from_eigenvalues
+Oscar.OrthogonalDiscriminants.od_for_specht_module
+Oscar.OrthogonalDiscriminants.od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int)
 ```

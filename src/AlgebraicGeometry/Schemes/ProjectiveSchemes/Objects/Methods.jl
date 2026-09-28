@@ -290,7 +290,7 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRi
   v = copy(gens(S))
   # prepare a vector of elements on which to evaluate the lifts
   popat!(v, i)
-  v = vcat(v, S.(gens(B)))
+  append!(v, S.(gens(B)))
   function my_dehom(a::RingElem)
     parent(a) === OO(U) || error("element does not belong to the correct ring")
     p = lifted_numerator(a)
@@ -335,7 +335,7 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
   v = copy(gens(S))
   # prepare a vector of elements on which to evaluate the lifts
   popat!(v, i)
-  v = vcat(v, S.(gens(B)))
+  append!(v, S.(gens(B)))
   function my_dehom(a::RingElem)
     parent(a) === OO(U) || error("element does not belong to the correct ring")
     p = lifted_numerator(a)
@@ -350,8 +350,8 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
     qq = evaluate(q, v)
 
     # homogenize numerator and denominator
-    pp = sum([c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(lift(pp)), monomials(lift(pp)))])
-    qq = sum([c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(lift(qq)), monomials(lift(qq)))])
+    pp = sum(c*m*ss^(deg_p - total_degree(m)) for (c, m) in zip(coefficients(lift(pp)), monomials(lift(pp))); init=zero(S))
+    qq = sum(c*m*ss^(deg_q - total_degree(m)) for (c, m) in zip(coefficients(lift(qq)), monomials(lift(qq))); init=zero(S))
 
     if deg_a > 0
       return (pp, qq*ss^deg_a)

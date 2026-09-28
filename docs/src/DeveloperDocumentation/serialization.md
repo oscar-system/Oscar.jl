@@ -5,22 +5,22 @@ is the process of reading and writing data. There are many reasons for this
 feature in OSCAR, but the main reason is communication on mathematics by
 mathematicians.
 
-We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification described [here](https://arxiv.org/abs/2309.00465).
-Which means we use a JSON extension to serialize data.
+We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification developed by Della Vecchia, Joswig and Lorenz [D-VJL24*1](@cite).
+In particular, we use a JSON extension to serialize data.
 
 
 ## How it works
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
-```
+```julia-repl
 julia> save("/tmp/fourtitwo.mrdi", 42);
 
 julia> load("/tmp/fourtitwo.mrdi")
 42
 
 ```
-The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
-```
+The filename hints to the MaRDI file format [D-VJL24*1](@cite), which employs JSON.  The file looks as follows:
+```json
 {
   "_ns": {
     "Oscar": [
@@ -59,7 +59,7 @@ The nested structure of the coefficient will depend on the description of the fi
 extension.
 
 
-```
+```json
 {
   "_ns": {
     "Oscar": [
@@ -109,7 +109,7 @@ evaluation.
 There are three pairs of saving and loading functions that are used
 during serialization:
 1. `save_typed_object`, `load_typed_object`
-2. `save_type_params`, `load_type_params`
+2. `save_type_and_params`, `load_type_and_params`
 3. `save_object`, `load_object`
 
 
@@ -121,7 +121,7 @@ type information as well as its data. The data and type nodes are
 set in `save_typed_object` resulting in a "data branch" and "type branch".
 
 
-#### `save_type_params` / `load_type_params`
+#### `save_type_and_params` / `load_type_and_params`
 
 The serialization mechanism stores data in the format of a tree, with the
 exception that some nodes may point to a shared reference. The "data branch"
@@ -129,12 +129,12 @@ is anything that is a child node of a data node, whereas the "type branch" is
 any information that is stored in a node that is a child of a type node.
 
 These functions should also not be touched, however they expect an implementation
-of `type_params` whenever saving a type `T`. By default `type_params` will return
-`nothing`. The `type_params` function does a shallow pass through an `obj` of type
+of `type_and_params` whenever saving a type `T`. By default `type_and_params` will return
+`nothing`. The `type_and_params` function does a shallow pass through an `obj` of type
 `T` gathering the necessary parameters for serializing `obj`.
 In most cases these parameters are the parameters of the `obj` that uses references.
-For example if `obj` is of type `RingElem` than it is expected that `type_params`
-should contain at least 
+For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
+should contain at least `parent(obj)`.
 
 #### `save_object` / `load_object`
 
@@ -150,7 +150,7 @@ should be called with a key that can be passed as the second parameter.
 ##### Examples
 
 ###### Example 1
-```
+```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_array(s) do
     save_object(s, obj.1)
@@ -164,7 +164,7 @@ end
 ```
 
 This will result in a data format that looks like this.
-```
+```json
 [
   obj.1,
   obj.2,
@@ -177,7 +177,7 @@ This will result in a data format that looks like this.
 
 With the corresponding loading function similar to this.
 
-```
+```julia
 function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do (i, entry)
     if entry isa JSON3.Object
@@ -197,7 +197,7 @@ end
 ```
 
 ##### Example 2
-```
+```julia
 function save_object(s::SerializerState, obj::NewType)
   save_data_dict(s) do
     save_object(s, obj.1, :key1)
@@ -210,7 +210,7 @@ end
 ```
 This will result in a data format that looks like this.
 
-```
+```json
 {
   "key1": obj.1,
   "key2":[
@@ -224,7 +224,7 @@ This will result in a data format that looks like this.
 ```
 
 The corresponding loading function would look something like this.
-```
+```julia
 function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
    obj1 = load_object(s, Obj1Type, params[1], :key1)
 
@@ -240,21 +240,21 @@ function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
 ```
 
 This is ok
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1)
 end
 ```
 
 While this will throw an error
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1, :key)
 end
 ```
 
 If you insist on having a key you should use a `save_data_dict`.
-```
+```julia
 function save_object(s::SerializerState, obj:NewType)
   save_data_dict(s) do
     save_object(s, obj.1, :key)
@@ -277,48 +277,120 @@ end
 Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
 `save_data_dict`. Otherwise you will get a key override error.
 
-### Import helper
-
-When implementing the serialization of a new type in a module that is not
-`Oscar` (e.g. in a submodule of `Oscar`) it is necessary to import the
-a lot of helper functions (see the examples above).
-To ease this process, the `@import_all_serialization_functions` macro can be used.
-```@docs
-Oscar.@import_all_serialization_functions
-```
-
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
-`serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writing to a file. Currently
-the only other serializer is the `IPCSerializer` which at the moment is
-quite similar to the `JSONSerializer` except that it does not store the refs of
-any types that are registered with the `uses_id` flag. When using the `IPCSerializer`
-it is left up to the user to guarantee that any refs required by a process are sent
-prior.
+`serializers.jl` file. The abstract type hierarchy is:
+
+```
+OscarSerializer
+├── JSONSerializer        # default; single JSON file with inline _refs
+├── IPCSerializer         # inter-process communication; no refs written
+└── MultiFileSerializer
+    ├── LPSerializer      # LinearProgram + external .lp file
+    └── MultiFileRefSerializer  # one file per ref object, prefix-based naming
+```
+
+#### JSONSerializer
+
+The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
+(parent rings, coefficient fields, etc.) are inlined under the `_refs` key and
+resolved by UUID during load.
+
+```julia
+JSONSerializer()                         # serialize_refs=true (default)
+JSONSerializer(serialize_refs=false)     # omit _refs; caller must pre-load them
+```
+
+When `serialize_refs = false` it is the caller's responsibility to ensure that
+any UUID references in the file are already in `global_serializer_state` before
+calling `load`. This is useful for storing many objects that share a large parent
+without duplicating it: serialize the parent once (with its id), then serialize
+the children with `serialize_refs=false`.
+
+#### IPCSerializer
+
+Equivalent to `JSONSerializer(serialize_refs=false)` at present. Reserved for
+future optimised representation for inter-process communication (IPC).
+
+#### LPSerializer
+
+Handles `LinearProgram{QQFieldElem}` by writing the LP data to an external file
+in the standard LP file format (`.lp`) and storing only the filename in the
+`.mrdi` JSON. The `basepath` field is used as the filename prefix for the `.lp`
+file.
+
+```julia
+LPSerializer(basepath::String)
+```
+
+The `.mrdi` and `.lp` files are separate; both must be kept together and the
+same `LPSerializer(basepath)` must be passed to both `save` and `load`.
+
+```julia
+ser = Oscar.Serialization.LPSerializer("/data/project/lp")
+save("/data/project/lp.mrdi", lp; serializer=ser)
+load("/data/project/lp.mrdi"; serializer=ser)
+# also creates: /data/project/lp-<objectid>.lp
+```
+
+#### MultiFileRefSerializer
+
+Writes `<prefix>.mrdi` for the root object and one `<prefix>_<UUID>.mrdi` (or
+`<prefix>_<UUID>.mrdi.gz` with `compression=:gzip`) file per referenced object,
+all flat in the same directory. The path argument is used as a prefix verbatim
+(no extension stripping): `save("my_data", obj; serializer=MultiFileRefSerializer())`
+creates `my_data.mrdi` and `my_data_<UUID>.mrdi`.
+
+```julia
+MultiFileRefSerializer()                    # basepath resolved at save time
+MultiFileRefSerializer(basepath::String)    # explicit stem path
+MultiFileRefSerializer(basepath, compression)  # with compression (internal use)
+```
+
+`_ref_files` in the main file lists ref basenames in leaf-first (dependency) order
+so `deserializer_open` can load them in the correct sequence without requiring a
+separate topological sort.
+
+On load, `deserializer_open` opens each ref file before deserializing the main file.
+Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
+
 
 ### Upgrades
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
 The mechanics of upgrading are found in the `main.jl` file where the
-[`Oscar.upgrade`](@ref) function provides the core functionality. Upgrading
+[`Oscar.Serialization.upgrade`](@ref) function provides the core functionality. Upgrading
 is triggered during [`load`](@ref) when the version of the file format
-to be loaded is older than the current Oscar version.
+to be loaded is older than the current OSCAR version.
 
 ```@docs
-Oscar.upgrade
-Oscar.upgrade_data
+Oscar.Serialization.upgrade
+Oscar.Serialization.upgrade_data
 ```
 
 #### Upgrade Scripts
 
 All upgrade scripts should be contained in a file named after the version
-they upgrade to. For example a script that upgrades to Oscar version 0.13.0
-should be named `0.13.0.jl`.
+they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
+should be named `0.13.0.jl`. 
+There is also the possibility to have multiple upgrade scripts per version, this is to accommodate file serialized with DEV versions.
+In this case the upgrades should be named `1.6.0-n.jl` where `n` is the `n`th upgrade in the sequence of upgrades that will upgrade a file to the `1.6.0` version.
+To guarantee that upgrades occur in the correct order it is important that they are included (`include("/path/to/upgrade")`) in the correct order in `src/Serialization/Upgrades/main.jl`.
+
+Test examples for each upgrade script should be added to the repository
+<https://github.com/oscar-system/serialization-upgrade-tests>.
+For each type whose serialization format has changed in the current OSCAR
+version, add a file obtained by serializing an object of this type with the
+*previous* OSCAR version, such that the upgrade script for the current version
+has to modify the contents in order to load the object.
+
+In order to achieve that the new test examples get included in the CI tests,
+update the variable `commit_hash` in the file
+`test/Serialization/upgrades/setup_tests.jl` of the OSCAR repository.
 
 ```@docs
-Oscar.UpgradeScript
+Oscar.Serialization.UpgradeScript
 ```
 
 ## Challenges
@@ -371,18 +443,18 @@ that has been manipulated by hand is still valid and should be validated against
 the schema. In the same way we cannot guarantee that any files created externally
 are valid in terms of the mathematics either, these will not lead to a parse error
 but instead will be handle as though the incorrect input has been passed to one
-of the Oscar functions.
+of the OSCAR functions.
 
-External implementations should not be expected to read or write all possible Oscar types.
+External implementations should not be expected to read or write all possible OSCAR types.
 It is perfectly valid for external implementations to throw parse errors when a certain
-file format is unexpected. For example Oscar will parse a `QQFieldElem` that has data value
+file format is unexpected. For example, OSCAR will parse a `QQFieldElem` that has data value
 "0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
 we should not restrict users when deserializing to formats that may have issues deserializing
 the same format externally.
 
 Allowing extensions to JSON is not recommended, this is to keep the scope
 of possible software that can parse the given JSON as large as possible.
-For example some JSON extensions allow comments in the files, Oscar cannot
+For example some JSON extensions allow comments in the files, OSCAR cannot
 parse such JSONs and we recommend that any comments should be placed in the
 meta field.
 

@@ -1,8 +1,3 @@
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Usage
 
 The Gröbner walk is an approach to reduce the computational complexity of Gröbner basis computations as proposed by [AGK97](@cite).
@@ -16,7 +11,6 @@ The implemented algorithms may be accessed using the following function.
       I::MPolyIdeal, 
       target::MonomialOrdering = lex(base_ring(I)),
       start::MonomialOrdering = default_ordering(base_ring(I));
-      perturbation_degree = ngens(base_ring(I)),
       algorithm::Symbol = :standard
     )
 ```
