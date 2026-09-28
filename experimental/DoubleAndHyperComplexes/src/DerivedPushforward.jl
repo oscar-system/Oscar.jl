@@ -873,6 +873,13 @@ end
 
 ########################################################################
 # New attempt for the ToricCtx which samples from the fine grading
+# 
+# This came out of the overhaul of arXiv:2602.14657 where we realized 
+# that we only need one single complex over the rationals for each 
+# sector and the rest can be compiled as directs sums of those. 
+# 
+# Again, this implements the whole interface for `PushForwardCtx` and 
+# `ToricCtx`, with possibly more functionality. 
 ########################################################################
 
 mutable struct NewToricCtx
@@ -953,7 +960,8 @@ end
 
 ########################################################################
 # A context object for computing the spectral sequence associated 
-# to a the ̌Cech double complex on a toric variety with parameters
+# to a the ̌Cech double complex on a toric variety with parameters; 
+# can also be used for Weyman complexes.
 #
 # Let X be a toric variety with (multi-)graded Cox Ring S over ℚ. 
 # For a ℚ-algebra R, say R = ℚ[a₁,…, aₙ], one can form the ring 
@@ -1164,17 +1172,6 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}
   error("the given constellation of exponent vectors can not be handled with the chosen algorithm")
 end
 
-function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing}; 
-    domain::OFPModule=change_base_ring(bc, Oscar.domain(f))[1],
-    codomain::OFPModule=change_base_ring(bc, Oscar.codomain(f))[1]
-  ) where {DT, CT}
-  img_gens = elem_type(codomain)
-  bc_dom = hom(Oscar.domain(f), domain, gens(domain), bc)
-  bc_cod = hom(Oscar.codomain(f), codomain, gens(codomain), bc)
-  res = hom(domain, codomain, bc_cod.(images_of_generators(f)))
-  return res, bc_dom, bc_cod
-end
-
 function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
   if ctx.pure_ctx isa NewToricCtx
     e = _minimal_exponent_vector(ctx.pure_ctx, m)
@@ -1183,11 +1180,14 @@ function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
   return _minimal_exponent_vector(ctx.pure_ctx, m)
 end
 
-# outer constructor
+# outer constructors for caching objects associated to 
+# normal toric varieties
 @attr ToricCtx function local_cohomology_context_object(X::NormalToricVariety; algorithm::Symbol=:ext)
   return ToricCtx(X; algorithm)
 end
 
+# Additional functionality for `PushForwardCtx` so that it can also be used 
+# for Weyman complexes and not only for spectral sequences. 
 function simplified_strand(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
   str = ctx[alpha, d]
   return get!(ctx.simplified_strands, str) do
@@ -1255,17 +1255,11 @@ end
 # This does not require the toric variety to be simplicial or the sheaves to 
 # be line bundles. 
 
-function alexander_dual(I::MPolyIdeal)
-  S = base_ring(I)
-  J = ideal(S, [x^2 for x in gens(S)])
-  return quotient(J, I)
-end
-
 @attr Dict{Int, Vector{Vector{Int}}} function support_sets_ext(X::NormalToricVariety)
   S = cox_ring(X)
   n = ngens(S)
   B = irrelevant_ideal(X)
-  Sigma = Dict{Int, Vector{Vector{Int}}}() #[Vector{Int}[] for _ in 1:n] # the result
+  Sigma = Dict{Int, Vector{Vector{Int}}}() # the result
   S_raw = forget_grading(S)
   D = free_abelian_group(n)
   S_fine, _ = grade(S_raw, gens(D))
@@ -1276,27 +1270,21 @@ end
   res_A, _ = free_resolution(Oscar.SimpleFreeResolution, A)
   hom_complex = hom(res_A, Oscar.ZeroDimensionalComplex(S_fine1))
   for i in 0:n
-      #@show i
     list = get!(Sigma, i) do
       Vector{Int}[]
     end
     Hi, _ = homology(hom_complex, -i)
     for (rr, g) in enumerate(gens(Hi))
-      #@show rr, ngens(Hi)
-      #@show is_zero(g)
       pg = degree(g)
       any(pg[j] > 0 for j in 1:rank(D)) && continue # can not give one of the required mons
       J = Int[j for j in 1:n if pg[j] < 0]
       mon0 = prod(S_fine[j]^(-pg[j]-1) for j in J; init=one(S_fine))
-      #@show is_zero(mon0)
       q = degree(mon0*g)
-      #@show is_zero(q)
       is_zero(q) && continue
-      @assert all(-1 <= q[j] <=0 for j in 1:n)
+      @assert all(-1 <= q[j] <= 0 for j in 1:n)
       old_zero_combs = Vector{Int}[]
       new_zero_combs = Vector{Int}[]
       for q in 0:length(J)
-          #@show q, length(J), binomial(length(J), q)
         for c in combinations(length(J), q)
           zero_found = false
           for k in 1:length(data(c))
@@ -1320,88 +1308,12 @@ end
           push!(list, I)
         end
         old_zero_combs = new_zero_combs
-        #@show length(old_zero_combs)
         new_zero_combs = Vector{Int}[]
       end
     end
   end
   return Sigma
 end
-
-@attr Dict{Int, Vector{Vector{Int}}} function support_sets(X::NormalToricVariety)
-  S = cox_ring(X)
-  n = ngens(S)
-  B = irrelevant_ideal(X)
-  Sigma = Dict{Int, Vector{Vector{Int}}}() #[Vector{Int}[] for _ in 1:n] # the result
-  S_raw = forget_grading(S)
-  D = free_abelian_group(n)
-  S_fine, _ = grade(S_raw, gens(D))
-  B_fine = ideal(S_fine, [S_fine(forget_grading(g)) for g in gens(B)])
-  J = alexander_dual(B_fine)
-  A, _ = quo(S_fine, J)
-  S_fine1 = graded_free_module(S_fine, [zero(D)])
-  kk, _ = quo(S_fine1, sub_object(S_fine1, [x*S_fine1[1] for x in gens(B_fine)]))
-  res_A, _ = free_resolution(Oscar.SimpleFreeResolution, A)
-  tor_complex = tensor_product(res_A, Oscar.ZeroDimensionalComplex(kk))
-  for j in 0:n
-    Hj, _ = homology(tor_complex, j)
-    #@show j
-    vec_base = Oscar._vector_space_basis(Hj)
-    #@show length(vec_base)
-    for mon in vec_base
-      p = degree(mon)
-      all(p[i] >= 0 for i in 1:rank(D)) || continue
-      all(p[i] <= 1 for i in 1:rank(D)) || continue
-      I = Int[i for i in 1:n if !is_zero(p[i])]
-      abs_p = length(I)
-      list = get!(Sigma, abs_p - j + 1) do
-        Vector{Int}[]
-      end
-      if !(I in list)
-        #@show mon
-        #@show p
-        #@show I
-        push!(list, I)
-      end
-    end
-  end
-  return Sigma
-end
-
-#=
-# This is already in Oscar in this branch
-function _vector_space_basis(M::SubquoModule{T}) where {T<:MPolyRingElem{<:FieldElem}}
-  S = base_ring(M)
-  F = ambient_free_module(M)
-  if !((ngens(M) == ngens(F)) && all(repres(v) == e for (v, e) in zip(gens(M), gens(F))))
-    pres = presentation(M)
-    MM = cokernel(map(pres, 1))
-    B = _vector_space_basis(MM)
-    aug = map(pres, 0)
-    return elem_type(pres[0])[repres(aug(pres[0](coordinates(v)))) for v in B]
-  end
-  # We may assume that M is presented
-  I = M.quo
-  lead_I = Oscar.leading_module(I)
-  result = elem_type(F)[]
-  for i in 1:ngens(F)
-    d = 0
-    done = false
-    while !done
-      found = false
-      for m in Oscar.AllMonomials(is_graded(S) ? forget_grading(S) : S, d)
-        mi = m*F[i] 
-        mi in lead_I && continue
-        push!(result, mi)
-        found = true
-      end
-      done = !found
-      d = d + 1
-    end
-  end
-  return result
-end
-=#
 
 function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
   k = 1
@@ -1418,135 +1330,27 @@ function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
     return Vector{Vector{Int}}()
   end
   for I in Sigma_i
-    #@show I
     m = length(I)
     L_I = zero_matrix(ZZ, n, n)
     for j in 1:n
       L_I[j, j] = j in I ? 1 : -1
     end
     D = vcat(L_I, A, -A)
-    #b = vcat(elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n], alpha_vec, -alpha_vec)
     b = elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n]
-    #@show L_I
-    #@show b
-    #@show A
-    #@show alpha_vec
-    #P = polyhedron(QQ, D, b)
     @assert nrows(A) == length(alpha_vec)
     @assert ncols(L_I) == ncols(A)
-    #return L_I, b, A, alpha_vec
     P = polyhedron((L_I, b), (A, alpha_vec))
-    #@show is_bounded(P)
-    #!is_bounded(P) && error("polyhedron not bounded")
-    #@show lattice_points(P)
     for j in I
       l = elem_type(ZZ)[i == j ? 1 : 0 for i in 1:n]
-      #lp = linear_program(P, l)
-      #v1, _ = solve_lp(lp)
       lp = linear_program(P, -l)
       v, _ = solve_lp(lp)
       isnothing(v) && break # empty polyhedron
       is_infinite(v) && error("polyhedron not bounded")
-      #@show j, v
       if v > k
         k = Int(floor(v))
       end
     end
   end
   return k::Int
-end
-
-function capture_support_sets(
-    AA::Vector{Matrix{Int}}; 
-    partition::Vector{Int}=[ncols(first(AA))]
-  )
-  rngs = UnitRange[]
-  k0 = 1
-  for i in partition
-    push!(rngs, k0:i)
-    k0 = i + 1
-  end
-  d = [[maximum(sum(A[i, rng]; init=0) for i in 1:nrows(A)) for rng in rngs] for A in AA]
-  X = prod(projective_space(NormalToricVariety, length(rng)) for rng in rngs)
-  S = cox_ring(X)
-  G = grading_group(S)
-  dg = elem_type(G)[G(d) for d in d]
-  exps = Vector{Vector{Int}}[collect(all_exponents(S, d)) for d in dg]
-  symbs = Vector{Symbol}[]
-  for (i, e) in enumerate(exps)
-    push!(symbs, [Symbol("a_{$i, $e}") for e in e])
-  end
-  R, a = polynomial_ring(QQ, reduce(vcat, symbs))
-  a_parts = Vector{elem_type(R)}[]
-  k0 = 1
-  for s in symbs
-    push!(a_parts, a[k0:k0+length(s)-1])
-    k0 += length(s)
-  end
-  SR, S_to_SR = change_base_ring(R, S)
-  subs_inds = Vector{Tuple{Int, Vector{Int}}}[]
-  for (A, es, d) in zip(AA, exps, d)
-    inner_res = Tuple{Int, Vector{Int}}[]
-    for i in 1:nrows(A)
-      ee = A[i, :] # affine exponent vector
-      e = Int[]
-      for (j, rng) in enumerate(rngs)
-        e = vcat(e, ee[rng])
-        push!(e, d[j] - sum(ee[rng]; init=0))
-      end
-      ind = findfirst(==(e), es)
-      isnothing(ind) && error("exponent vector not found")
-      push!(inner_res, (ind, e))
-    end
-    push!(subs_inds, inner_res)
-  end
-
-  b_symbs = Vector{Symbol}[]
-  for (i, A) in enumerate(AA)
-    push!(b_symbs, [Symbol("b_{$i, $(A[j, :])}") for j in 1:nrows(A)])
-  end
-  B, b = polynomial_ring(QQ, reduce(vcat, b_symbs))
-  b_parts = Vector{elem_type(B)}[]
-  k0 = 1
-  for s in b_symbs
-    push!(b_parts, b[k0:k0+length(s)-1])
-    k0 += length(s)
-  end
-  b_parts
-  img_gens = elem_type(B)[]
-  for (i, a_part) in enumerate(a_parts) 
-    b_part = b_parts[i]
-    A = AA[i]
-    es = exps[i]
-    for (j, a) in enumerate(a_part)
-      e = es[j] # homogenized exponent vector 
-      e0 = Int[] # the dehomogenized exponent vector
-      offset = 0
-      for rng in rngs
-        e0 = vcat(e0, e[first(rng)+offset:last(rng)+offset])
-        offset += 1
-      end
-      ind = findfirst(k->(A[k, :] == e0), 1:nrows(A))
-      if isnothing(ind)
-        push!(img_gens, zero(B))
-      else
-        push!(img_gens, b_part[ind])
-      end
-    end
-  end
-  subs_map = hom(R, B, img_gens)
-  SB, SR_to_SB = change_base_ring(subs_map, SR)
-
-  # build the tautological polynomials
-  F = elem_type(SR)[]
-  for (i, a_part) in enumerate(a_parts)
-    es = exps[i]
-    ctx = MPolyBuildCtx(SR)
-    for (a, e) in zip(a_part, es)
-      push_term!(ctx, a, e)
-    end
-    push!(F, finish(ctx))
-  end
-  return X, F, S_to_SR, SR_to_SB
 end
 
