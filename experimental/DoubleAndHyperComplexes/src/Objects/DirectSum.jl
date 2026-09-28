@@ -1,3 +1,16 @@
+########################################################################
+# Direct sums of complexes
+#
+# This realizes direct sums of complexes of modules over a common ring 
+# `R` in a lazy way. The anticipated use case are strands of complexes 
+# which are composed from monomial bases for the 'fine grading'. There 
+# a single strand for a coarse degree `alpha` consists of a whole 
+# bunch of direct sums of strands for the fine grading for fine degrees 
+# `d` with coarse degree `alpha`. Such direct sums are huge and usually 
+# not all terms in a complex are needed. Moreover, it is crucial that 
+# the functoriality is accessible in an economic way. 
+########################################################################
+
 ### Production of the chains
 struct DirectSumChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   R::Ring
@@ -36,6 +49,14 @@ function (::DirectSumMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
   return _direct_sum(fac.R, [map(s, p, i) for s in fac.summands]; domain=dom, codomain=cod)
 end
 
+# We use the internal function `_direct_sum` instead of `direct_sum`. By default it 
+# just deflects to `direct_sum`. But since we can not guarantee the latter to be streamlined 
+# in its behavior for different types of modules and coefficient rings, this deviation allows 
+# us to wrap any existing functionality so that it will adhere to the interface used here. 
+# Note that, in particular, we need to pass the common ring `R` as an additional argument 
+# to be able to catch the edge cases where zero modules/morphisms are provided. 
+
+# Direct sums of morphisms. Keyword arguments allow to specify domain and codomain. 
 function _direct_sum(R::Ring, phis::Vector{T}; 
     domain=_direct_sum(R, [domain(phi) for phi in phis]), 
     codomain=_direct_sum(R, [codomain(phi) for phi in phis])
@@ -43,6 +64,9 @@ function _direct_sum(R::Ring, phis::Vector{T};
   return direct_sum(phis; domain, codomain)
 end
 
+# By default we use `OFPModule`s here. In case no summands are provided, these internal 
+# functions create the zero module according to the type of the ring. If you want this 
+# to behave differently for your application, overwrite this for your type of rings. 
 _zero_module(R::Ring) = FreeMod(R, 0)
 _zero_module(R::MPolyDecRing) = graded_free_module(R, elem_type(grading_group(R))[])
 
@@ -51,26 +75,11 @@ function _direct_sum(R::Ring, summands::Vector{T}) where {T <: OFPModule}
   return direct_sum(summands; task=:none)
 end
 
+# In case the type of modules is not recognized by the input vector, throw an 
+# error. The programmer should take care that their code is sufficiently type stable.
 function _direct_sum(R::Ring, summands::Vector)
   @assert is_empty(summands) "non-empty list with no useful type detected"
   return _zero_module(R)
-end
-
-function direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
-    domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
-    codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1]
-  )
-  img_gens = elem_type(codomain)[]
-  for (k, phi) in enumerate(phis)
-    pr_dom = canonical_projection(domain, k)
-    @assert Oscar.codomain(pr_dom) === Oscar.domain(phi)
-    inc_cod = canonical_injection(codomain, k)
-    @assert Oscar.domain(inc_cod) === Oscar.codomain(phi)
-    ig2 = images_of_generators(phi)
-    ig3 = [inc_cod(v) for v in ig2]
-    img_gens = vcat(img_gens, ig3)
-  end
-  return hom(domain, codomain, img_gens)
 end
 
 function _direct_sum(R::Ring, phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
@@ -98,6 +107,13 @@ function can_compute(::DirectSumMapFactory, self::AbsHyperComplex, p::Int, i::Tu
 end
 
 ### The concrete struct
+@doc raw"""
+    DirectSumComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
+    
+Direct sum of complexes of `OFPModule`s over a common ring `R`. In particular, this realizes
+the induced morphisms. In order to be able to catch edge cases for terms with an empty list 
+of summands, the ring itself needs to be provided to the constructor. 
+"""
 @attributes mutable struct DirectSumComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
 
