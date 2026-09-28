@@ -99,6 +99,7 @@ function _presentation_graded(SQ::SubquoModule)
   R = base_ring(SQ)
 
   F = ambient_free_module(SQ)
+  #=
   if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
     rels = filter(!is_zero, relations(SQ))
     W = [degree(r) for r in rels]
@@ -114,6 +115,7 @@ function _presentation_graded(SQ::SubquoModule)
     set_attribute!(M, :show => Hecke.pres_show)
     return M
   end
+  =#
 
   # Create the free module for the presentation
   #
