@@ -1009,7 +1009,7 @@ function project_to_weyman_complex!(vs::Vector{MacroVec}; check::Bool=false)
   p, q = index(first(vs))
   @check all(sum(index(v)) == p+q for v in vs) "not an element in a single cohomological degree"
   wctx = weyman_ctx(first(vs))
-  ctx = pushforward_ctx(wctx)::ToricCtxWithParams
+  ctx = pushforward_ctx(wctx)
 
   if ctx isa ToricCtxWithParams && ctx.pure_ctx isa NewToricCtx # In this case homotopies are compatible with direct limits
     part = MacroVec[]
