@@ -415,4 +415,33 @@
     end
   end
 
+  @testset "unified framework" begin
+    __ld = Oscar.__leader
+    __ulc = Oscar.__univariate_leading_coefficient
+    __init = Oscar.__initial
+    __disc = Oscar.__discriminant
+    __irl = Oscar.__is_ritt_less
+
+    dpr, (u, v) = differential_polynomial_ring(QQ, [:u, :v], 1)
+    conv = Oscar.__algebraic_conversion_data(dpr, [u[1], u, v])
+    (x, y, z) = gens(conv.mpr)
+    @test u[1] > u > v
+    @test conv(u[1]) == x
+    @test conv(u) == y
+    @test conv(v) == z
+    @test x > y > z
+
+    f = u[1]^2*u*v -2*u[1]*v + u^2*v
+    @test conv(__ld(f)) == __ld(conv(f))
+    @test conv(__ulc(f, v)) == __ulc(conv(f), conv(v))
+    @test conv(__init(f)) == __init(conv(f))
+    @test conv(__disc(f)) == __disc(conv(f))
+    @test !__irl(f, u[1])
+    @test !__irl(f, u[1]^2)
+    @test __irl(f, u[1]^3)
+    @test !__irl(conv(f), conv(u[1]))
+    @test !__irl(conv(f), conv(u[1]^2))
+    @test __irl(conv(f), conv(u[1]^3))
+  end
+
 end # all tests
