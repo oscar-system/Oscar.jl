@@ -317,8 +317,8 @@ function preimage(f::OscarSingularCoefficientRingMapFractionField, a::Singular.n
   F = domain(f)
   R = base_ring(F)
   n, d = Singular.n_transExt_to_spoly.([numerator(a), denominator(a)]; cached = false)
-  return divexact(map_coefficients(x -> preimage(f.g, x), n; parent = R),
-                  map_coefficients(x -> preimage(f.g, x), d; parent = R))
+  return F(map_coefficients(x -> preimage(f.g, x), n; parent = R),
+           map_coefficients(x -> preimage(f.g, x), d; parent = R))
 end
 
 # rational function field
