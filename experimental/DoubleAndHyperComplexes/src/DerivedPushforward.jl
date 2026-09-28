@@ -351,7 +351,6 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
     Dict{typeof(d), AbsHyperComplex}()
   end
   return get!(strands, d) do
-    #offset = sum(a*degree(x) for (x, a) in zip(gens(S), alpha); init=zero(G))
     strand(ctx[alpha], d)[1]
   end
 end
@@ -458,6 +457,16 @@ end
 ########################################################################
 # A context object for computing the spectral sequence associated 
 # to a the ̌Cech double complex on a toric variety
+#
+# This implements the same interface as the `PushForwardCtx` above, 
+# but even more, since it has more structure and works for more than 
+# just products of projective spaces. 
+#
+# Note that the direct limit is taken over the Frobenius powers for 
+# the monomial generators of the `irrelevant_ideal`, which is a 
+# different index set than the one used in the product of Cech 
+# complexes in the `PushForwardCtx`. Hence, it can still be more 
+# beneficial to use that instead of `ToricCtx` in special applications.
 ########################################################################
 mutable struct ToricCtx
   X::NormalToricVariety
@@ -475,7 +484,6 @@ mutable struct ToricCtx
   cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
   cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}
-  # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
   proportionality_factors::Union{Tuple{Int, Int}, Nothing}
   exp_vec_cache::Dict{FinGenAbGroupElem, Vector{Int}} # Caching the _minimal_exponent_vector s
@@ -506,7 +514,6 @@ mutable struct ToricCtx
                Dict{FinGenAbGroupElem, AbsHyperComplex}(),
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
                Dict{Tuple{FinGenAbGroupElem, Vector{Int}}, AbsHyperComplexMorphism}(),
-               # Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}()
                Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
                nothing,
                Dict{FinGenAbGroupElem, Vector{Int}}()
@@ -594,6 +601,12 @@ function induced_cohomology_map(
     end
   end
 end
+
+# Every strand can be simplified up to homotopy to a complex with zero maps whose 
+# terms are isomorphic to the cohomology. This is, because we are working with vector 
+# spaces over a field. For the Weyman complex we need not only the cohomology, but 
+# also the homotopy maps for the original complex. To this end we extend the interface 
+# for our context objects here. 
 function simplified_strand_homotopy(
     ctx::ToricCtx, alpha::Vector{Int}, d::FinGenAbGroupElem, p::Int
   )
@@ -635,6 +648,9 @@ function cohomology_model_projection(ctx::ToricCtx, d::FinGenAbGroupElem, i::Int
   return from_orig[i]
 end
 
+### Helper functions to compute the `_minimal_exponent_vector` in the 
+# style of "chamber counting" for toric varieties. This part of the code is 
+# due to @emikelsons and @HereAround. 
 function get_lattice_points(A::Any, Q::BitVector, m::Vector{Int}, n::Int)
   minus_indices = findall(x -> x != 0, Q)
   W = copy(A); W[:, minus_indices] = -W[:,minus_indices]
@@ -720,6 +736,18 @@ function cohomology_support(v::NormalToricVariety, m::Vector{Int}; D = Dict())#r
   return collect(Iterators.flatten(values(list))), D
 end
 
+function get_chamber_dict(ctx::ToricCtx)
+  if !isdefined(ctx, :D)
+    ctx.D = Dict()
+  end
+  return ctx.D
+end
+
+### end of helper functions to compute the `_minimal_exponent_vector`
+
+# Using these functions, one can shortwire the computation of `_minimal_exponent_vector`s
+# for `ToricCtx`s. If this is used, all computations will be done with the Frobenius power
+# of the `irrelevant_ideal` with these exponents.
 function set_global_exponent_vector!(ctx::ToricCtx, v::Vector{Int})
   @assert length(v) == length(cech_complex_generators(ctx)) "exponent vector needs to have the same length as the generators for the `irrelevant_ideal`"
   ctx.fixed_exponent_vector = v
@@ -736,7 +764,7 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
     return ctx.fixed_exponent_vector
   end
   if ctx.algorithm == :cech
-    error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology")
+    error("dynamic computation of the minimal exponent vector is not implemented for cech cohomology; use `set_global_exponent_vector!` instead")
   end
   return get!(ctx.exp_vec_cache, m) do
     # The method from Eisenbud, Mustata, Stillman (see below)
@@ -747,7 +775,7 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
     elseif ctx.bound_strategy == :ChamberCounting
       # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
       # but only part of the algorithm is executed and explicit lattice points are 
-      # calculated for each polyhedron.
+      # calculated for each polyhedron. This part of the code is due to @emikelsons and @HereAround. 
 
       # Identify all "true" rationoms, i.e. with denominator. If there are none, then we can already return
       exponent_vectors_irrelevant_ideal = _irrelevant_ideal_monomials(toric_variety(ctx))
@@ -775,32 +803,6 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
       error("strategy for finding bounds not recognized")
     end
   end
-end
-
-function get_chamber_dict(ctx::ToricCtx)
-  if !isdefined(ctx, :D)
-    ctx.D = Dict()
-  end
-  return ctx.D
-end
-
-# See [CLS11](@cite), Theorem 9.5.10
-# TODO: Remove this?
-function _proportionality_factors(ctx::ToricCtx)
-  if isnothing(ctx.proportionality_factors)
-    S = graded_ring(ctx)
-    G = grading_group(S)
-    X = toric_variety(ctx)
-    A = matrix(ZZ, rays(X))
-    n = ncols(A)
-    q_n = minimum([abs(a) for a in minors(A, n) if !is_zero(a)])
-    Q_1 = maximum([abs(a) for a in A])
-    Q_n1 = maximum([abs(a) for a in minors(A, n-1)])
-    p = n^2*Q_1*Q_n1
-    q = q_n
-    ctx.proportionality_factors = (Int(p), Int(q))
-  end
-  return ctx.proportionality_factors::Tuple{Int, Int}
 end
 
 function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
