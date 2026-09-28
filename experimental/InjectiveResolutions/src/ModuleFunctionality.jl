@@ -1,11 +1,5 @@
 default_ordering(A::MonoidAlgebra) = MonomialOrdering(A, Orderings.SymbOrdering(:degrevlex, collect(1:ngens(A))))
 
-singular_poly_ring(A::MonoidAlgebra, ord::Singular.sordering; keep_ordering=nothing) = singular_poly_ring(A.algebra) # ignores the ordering for now
-singular_poly_ring(A::MonoidAlgebra, ord::MonomialOrdering; keep_ordering=nothing) = singular_poly_ring(A.algebra) 
-singular_poly_ring(A::MonoidAlgebra; keep_ordering=nothing) = singular_poly_ring(A.algebra) 
-
-(S::Singular.PolyRing)(a::MonoidAlgebraElem) = S(underlying_element(a))
-
 #############################################################################
 #
 # Singular rings for monoid algebras
