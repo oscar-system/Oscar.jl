@@ -88,8 +88,6 @@ function _direct_sum(R::Ring, phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModu
   )
   img_gens = sizehint!(Vector{elem_type(codomain)}[], length(phis))
   for (k, phi) in enumerate(phis)
-    #pr_dom = canonical_projection(domain, k)
-    #@assert Oscar.codomain(pr_dom) === Oscar.domain(phi)
     inc_cod = canonical_injection(codomain, k)
     @assert Oscar.domain(inc_cod) === Oscar.codomain(phi)
     ig2 = images_of_generators(phi)

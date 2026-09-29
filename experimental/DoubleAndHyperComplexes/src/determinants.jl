@@ -69,7 +69,7 @@ end
 function _generic_reduction_map(R::MPolyRing{QQFieldElem})
   p = next_prime(2^50 + rand(0:2^10))
   kk = GF(p)
-  pt = elem_type(kk)[rand(kk, -100:100) for _ in 1:ngens(R)]
+  pt = elem_type(kk)[rand(kk) for _ in 1:ngens(R)]
   return hom(R, kk, f->kk(numerator(f))*inv(kk(denominator(f))), pt)
 end
 

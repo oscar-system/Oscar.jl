@@ -1085,7 +1085,6 @@ function _build_weyman_projection(wctx::WeymanCtx, p::Int, q::Int, j::Int, e::In
   for k in 1:ngens(dom_ee) #(k, v) in enumerate(gens(dom_ee))
     mic_vec = MicroVec(mac_mod, j, ee, k; check)
     mac_vec = MacroVec(mic_vec; check)
-    #interm = MacroVec[]
     interm = [mac_vec]
     img = MacroVec[]
     p, q = index(mac_mod)
@@ -1097,11 +1096,7 @@ function _build_weyman_projection(wctx::WeymanCtx, p::Int, q::Int, j::Int, e::In
       top_vec = only(v for v in interm if index(v) == (pp, qq))
       res = MacroVec(macro_module(top_vec); check)
       for (beta, v) in sort_by_degree(top_vec)
-        #@assert all(degree(vv) == beta for (_, vv) in micro_vectors(v))
         LH_inv = induced_cohomology_map(pushforward_ctx(wctx), ee, d, beta, -qq)
-        #phi = hom(domain(LH_inv), codomain(LH_inv), LH_inv.(gens(domain(LH_inv))))
-        #@show phi
-        #@assert is_isomorphism(phi)
         vv = MacroVec(macro_module(top_vec); check)
         vv.micro_vecs = [(j, MicroVec(macro_module(top_vec), j, d, LH_inv(value(ww)); check)) for (j, ww) in micro_vectors(v)]
         res = add!(res, vv)

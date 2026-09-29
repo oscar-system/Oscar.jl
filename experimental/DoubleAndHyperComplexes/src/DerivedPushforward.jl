@@ -902,7 +902,6 @@ mutable struct NewToricCtx
   cohomology_models::Dict{FinGenAbGroupElem, AbsHyperComplex}
   cohomology_inclusions::Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}
   cohomology_projections::Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}
-  # mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, Dict}
   mult_map_cache::Dict{Tuple{Int, FinGenAbGroupElem, Int}, WeakKeyDict}
   exp_vec_cache::Dict{FinGenAbGroupElem, Int} # Caching the _minimal_exponent_vector s
   fine_strands::Dict{Int, AbsHyperComplex}
@@ -943,7 +942,6 @@ mutable struct NewToricCtx
                Dict{FinGenAbGroupElem, AbsHyperComplex}(),
                Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}(),
                Dict{Tuple{FinGenAbGroupElem, Int}, AbsHyperComplexMorphism}(),
-               # Dict{Tuple{Int, FinGenAbGroupElem, Int}, Dict}()
                Dict{Tuple{Int, FinGenAbGroupElem, Int}, WeakKeyDict}(), 
                Dict{FinGenAbGroupElem, Int}(),
                Dict{Int, AbsHyperComplex}(), 
@@ -1218,7 +1216,6 @@ function induced_cohomology_map(
     e1::Vector{Int}, d::FinGenAbGroupElem,
     i::Int
   )
-  #return get!(ctx.induced_cohomology_maps, (e0, e1, d, i)) do 
   dom_str = simplified_strand(ctx, e0, d)
   cod_str = simplified_strand(ctx, e1, d)
   dom = dom_str[i]
@@ -1229,11 +1226,6 @@ function induced_cohomology_map(
     m3 = map_from_original_complex(cod_str)[i]
     return MapFromFunc(dom, cod, x->m3(m2(m1(x))))
   elseif all(a >= b for (a, b) in zip(e0, e1))
-    #return get!(ctx.induced_cohomology_maps, (e0, e1, d, i)) do 
-      #other = induced_cohomology_map(ctx, e1, e0, d, i)
-      #@show "yes"
-      #return inv(hom(cod, dom, elem_type(dom)[other(x) for x in gens(cod)]))
-    #end
     dom_str_inc = map_to_original_complex(dom_str)[i]
     cod_str_pr = map_from_original_complex(cod_str)[i]
     lim_map_inv = (ctx[e0, e1, d]::SummandProjection)[i]
@@ -1241,7 +1233,6 @@ function induced_cohomology_map(
   else
     error("not implemented")
   end
-  #end
 end
 
 function set_global_exponent_vector!(ctx::PushForwardCtx, v::Vector{Int})
@@ -1636,7 +1627,6 @@ end
 
 function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.strand_inclusions, (e0, e1, alpha)) do
-    # TODO: This is not lazy!
     @assert e0 <= e1
     S = graded_ring(ctx)
     G = grading_group(S)

@@ -143,7 +143,6 @@ function (fac::StrandProjectionMorphismFactory)(self::AbsHyperComplexMorphism, i
                        for (i, p) in coordinates(v)
                          for (c, e) in zip(AbstractAlgebra.coefficients(p), 
                                            AbstractAlgebra.exponent_vectors(p))
-                           #pre_res = Hecke.add_scaled_row!(coordinates(get(cod_dict, (e, i), zero(cod))), pre_res, c)
                            idx = get(cod_dict, (e, i), nothing)
                            isnothing(idx) && continue
                            pre_res = Hecke.add_scaled_row!(sparse_row(R, idx::Int, c), pre_res, one_R)
