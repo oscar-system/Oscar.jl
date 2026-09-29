@@ -130,368 +130,57 @@ function (::DirectImageMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   fac = chain_factory(self)
   wctx = fac.wctx
   img_gens_blocks = Vector{Vector{MacroVec}}()
-  if true # switch between old and new version
-    ni = -i
-    ranges = fac.ranges[i]
-    img_gens = elem_type(cod)[]
-    running_ind = 0
-    gc = graded_complex(wctx)
-    rel_d = relative_dimension(pushforward_ctx(wctx))
-    for (k, macro_range) in enumerate(ranges)
-      p0 = ni - k + 1
-      q0 = k - 1
-      if !can_compute_index(gc, p0)
-        # Domain is zero for this macro block. 
-        # This means no generators and hence no images 
-        # of generators to be added. We can just skip it.
-        continue
-      end
-      pr_k = canonical_projection(dom, k)
-      inj_k = canonical_injection(dom, k)
-      block_k = codomain(pr_k)
-      mac_mod = get_macro_block!(wctx, p0, q0, :cohomology)
-      for (j, micro_range) in enumerate(macro_range)
-        pr_j = canonical_projection(block_k, j)
-        inj_j = canonical_injection(block_k, j)
-        for (l, g) in enumerate(gens(domain(inj_j)))
-          running_ind += 1
-          #@show k, j, running_ind
-          mic_v = MicroVec(mac_mod, j, g; check=true)
-          mic_v2 = MicroVec(mac_mod, j, l)
-          @assert value(mic_v) == value(mic_v2)
-          v = MacroVec(mac_mod, j, g)
-          v2 = MacroVec(mic_v) 
-          @assert v == v2
-          w = apply_weyman_differential(v)
-          result = zero(cod)
-          if is_empty(w)
-            push!(img_gens, result)
-            continue
-          end
-          p_cod, q_cod = index(first(w))
-          for (kk, mac_vec) in enumerate(w)
-            inj_kk = canonical_injection(cod, kk + q_cod)
-            cod_kk = domain(inj_kk)
-            for (jj, mic_vec) in micro_vectors(mac_vec)
-              inj_jj = canonical_injection(cod_kk, jj)
-              result += inj_kk(inj_jj(mic_vec.c))
-            end
-          end
-          push!(img_gens, result)
-        end
-      end
-    end
-    return hom(dom, cod, img_gens) #elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
-  end
-  ctx = pushforward_ctx(wctx)
-  d = relative_dimension(ctx)
-  R = target_ring(ctx)
-  T = elem_type(R)
-  gr_comp = fac.K
-  macro_block_lifts = Dict{Tuple{Int, Int}, Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}}()
-  macro_block_proj = Dict{Tuple{Int, Int}, Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}}()
-  macro_blocks = Dict{Tuple{Int, Int}, Vector{FreeModElem{T}}}()
-  macro_img_gens = Dict{Tuple{Int, Int}, Vector{Vector{Tuple{Int, FreeModElem{T}}}}}()
+  ni = -i
   ranges = fac.ranges[i]
-  for (k, macro_range) in enumerate(ranges) # iterating through the domains
-    @vprint :DirectImages 2 "  macro block row $k\n"
-    #k == 5 && @show "5-th macro-block"
-    if !can_compute_index(gr_comp, i+k-1)
-      #skip
-      continue
-    end
-    if !can_compute_index(gr_comp, i+k-2)
-      #skip
-      continue
-    end
-    mat_col = k
-    mat_row = k 
-    graded_dom = gr_comp[i+k-1]
-    domain_macro_summand = domain(canonical_injection(self[i], k))
-
-    # Every generator of `graded_dom` leads to a monomial basis for the 
-    # homogeneous elements in that degree. We map these through the 
-    # double complex.
-    #                   # of generator
-    #                     |      sparse format for its block form
-    #                     |       |
-    #                     V       V
-    micro_block_inter = Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}()
-    # We first lift all elements of the basis for cohomology to 
-    # monomials in their respective strands. The result will be stored 
-    # in `micro_block_inter`. 
-    @vprint :DirectImages 2 "  lifting generators...\n"
-    for (l, micro_range) in enumerate(macro_range)
-      #k == 5 && l == 5 && @show "5-th micro block"
-      domain_micro_summand = domain(canonical_injection(domain_macro_summand, l))
-      @vprint :DirectImages 2 "    micro block row $l\n"
-      dd = -degree(gen(graded_dom, l); check=false)
-      min_exp = _minimal_exponent_vector(ctx, dd)
-      #k == 5 && l == 5 && @show dd, min_exp
-      str = ctx[min_exp, dd]
-      str_simp = simplified_strand(ctx, min_exp, dd)
-      micro_dom = str_simp[-k+1]
-      @assert micro_dom === domain_micro_summand
-      from = simplified_strand_inclusion(ctx, min_exp, dd, -k+1)
-      @assert codomain(from) === ctx[min_exp, dd][-k+1]
-      @vprint :DirectImages 2 "      $(ngens(micro_dom)) generators\n"
-      #k == 5 && l == 5 && @show length(micro_block_inter)
-      micro_block_inter = vcat(micro_block_inter, [(min_exp, [(l, from(g))]) for g in gens(micro_dom)])
-      #k == 5 && l == 5 && @show length(micro_block_inter)
-     #for (gen_ind, (e, list)) in enumerate(micro_block_inter)
-     #  @vprint :DirectImages 4 "      generator $(gen_ind) with exponent vector $e\n"
-     #  for (l, v) in list
-     #    str_simp = simplified_strand(ctx, e, dd)
-     #    to = simplified_strand_inclusion(ctx, e, dd, -k+1)
-     #    @vprint :DirectImages 4 "        $l: $(v)\n"
-     #  end
-     #end
-    end
-    macro_block_lifts[k, k+1] = micro_block_inter
-
-    # Now we need to map them forward along the first induced 
-    # map from the graded complex. The result will be stored 
-    # in `micro_blocks_lift` and then written to `macro_blocks_lift[k, k]`.
-    micro_block_lifts = Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}()
-    micro_img_gens = Vector{Vector{Tuple{Int, FreeModElem{T}}}}()
-    graded_dom = gr_comp[i+k-1]
-    graded_cod = gr_comp[i+k-2]
-    graded_mor = map(gr_comp, i+k-1)
-    graded_matrix = sparse_matrix(graded_mor)
-    @vprint :DirectImages 2 "  mapping generators...\n"
-    for (gen_ind, (e, w)) in enumerate(micro_block_inter)
-      @vprint :DirectImages 4 "    generator $gen_ind with exponent vector $e:\n"
-      for (l, v) in w
-        @vprint :DirectImages 4 "      $l: $v\n"
-      end
-      u_dict = Dict{Int, FreeModElem{T}}()
-      for (l, ww) in w
-        dd = -degree(graded_dom[l]; check=false)
-        @assert parent(ww) === ctx[e, dd][-k+1]
-        mat_row = graded_matrix[l]
-        for (kk, p) in mat_row
-          ee = -degree(graded_cod[kk]; check=false)
-          strand = ctx[e, ee]
-          pp = multiplication_map(ctx, p, e, dd, -k+1)
-          @assert -degree(p; check=false) == dd - ee
-          @assert domain(pp) === parent(ww)
-          www = _sign * pp(ww)
-          @assert parent(www) === ctx[e, ee][-k+1]
-          is_zero(www) && continue
-          if haskey(u_dict, kk)
-            www += u_dict[kk]
-            if is_zero(www) 
-              delete!(u_dict, kk)
-            else
-              u_dict[kk] = www
-            end
-          else
-            u_dict[kk] = www
-          end
-        end
-      end
-      u = [(i, v) for (i, v) in u_dict]
-      #@vprint :DirectImages 4 "      -> $u\n"
-      @vprint :DirectImages 4 "    mapping to:\n"
-      push!(micro_block_lifts, (e, u))
-      for (l, v) in u
-        dd = -degree(graded_cod[l]; check=false)
-        str_simp = simplified_strand(ctx, e, dd)
-        to = simplified_strand_inclusion(ctx, e, dd, -k+1)
-        @vprint :DirectImages 4 "      $l: $(v)\n"
-      end
-    end
-    macro_block_lifts[k, k] = micro_block_lifts
-    #macro_img_gens[k, k] = micro_img_gens
-
-    # Compute the blocks to the left. 
-    # That means going up the staircase.
-    for j in k-1:-1:0 # go through the blocks on the left
-      _inner_sign = is_even(k-j) ? 1 : -1
-      @vprint :DirectImages 2 "    column macro block $j\n"
-      if !can_compute_index(gr_comp, i + j - 1)
-        # skip
-        continue
-      end
-    # if all(isempty, fac.ranges[i-1][1:j])
-    #   break
-    # end
-      graded_dom = gr_comp[i+j-1]
-      micro_block_lifts_dom = macro_block_lifts[k, j+1]
-      micro_block_lifts_inter = Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}() # lifted one step up
-      micro_block_lifts_cod = Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}() # mapped to the left
-      micro_block_proj = Vector{Tuple{Vector{Int}, Vector{Tuple{Int, FreeModElem{T}}}}}() # projections of the `micro_block_lifts_dom`
-      micro_img_gens = Vector{Vector{Tuple{Int, FreeModElem{T}}}}()
-
-      # go up the stair
-      for (gen_ind, (e, v)) in enumerate(micro_block_lifts_dom)
-        @vprint :DirectImages 4 "      generator $gen_ind with exponent vector $e:\n"
-        for (l, v) in v
-          @vprint :DirectImages 4 "        $l: $v\n"
-        end
-        w = Vector{Tuple{Int, FreeModElem{T}}}()
-        #v_rem = Vector{Tuple{Int, FreeModElem{T}}}()
-        v_rem = Dict{Int, FreeModElem{T}}()
-        for (l, vv) in v
-          ee = -degree(gen(graded_dom, l); check=false)
-          #cech_complex = simplified_strand(ctx, e, ee)
-          strand = ctx[e, ee]
-          dom = strand[-j]
-          #v0 = deepcopy(vv)
-          if can_compute_map(strand, -j+1) && can_compute_map(gr_comp, i+j-1)
-            @assert dom === parent(vv)
-            cod = strand[-j+1]
-            h = simplified_strand_homotopy(ctx, e, ee, -j)
-            cech_map = map(strand, -j+1)
-            @assert dom === domain(h)
-            @assert cod === codomain(h)
-            #= a test whether the homotopies work with the correct signs
-            test = id_hom(dom)
-            test = test - compose(simplified_strand_projection(ctx, e, ee, -j),
-                                  simplified_strand_inclusion(ctx, e, ee, -j))
-            test = test - compose(h, cech_map)
-            if can_compute_index(strand, -j-1)
-              hh = simplified_strand_homotopy(ctx, e, ee, -j-1)
-              cc = map(strand, -j)
-              test = test - compose(cc, hh)
-            end
-            @assert is_zero(test)
-            =#
-            ww = h(vv)
-            #v0 = v0 - cech_map(ww)
-            !is_zero(ww) && push!(w, (l, ww))
-          end
-          #=
-          if can_compute_map(strand, -j)
-            cech_map = map(strand, -j)
-            h = simplified_strand_homotopy(ctx, e, ee, -j-1)
-            v0 = v0 - h(cech_map(vv))
-            @assert is_zero(map(strand, -j)(v0))
-          end
-          =#
-          is_zero(cohomology_model(ctx, ee)[-j]) && continue
-          k0 = _minimal_exponent_vector(ctx, ee)
-          coh_inv = induced_cohomology_map(ctx, e, k0, ee, -j)
-          pr_v0 = coh_inv(simplified_strand_projection(ctx, e, ee, -j)(vv))
-          #!is_zero(pr_v0) && push!(v_rem, (l, pr_v0))
-          if !is_zero(pr_v0)
-            if haskey(v_rem, l)
-              vvv = vrem[l] + pr_v0
-              if is_zero(vvv)
-                delete!(v_rem, l)
-              else
-                v_rem[l] = vvv
-              end
-            else
-              v_rem[l] = pr_v0
-            end
-          end
-        end
-        push!(micro_block_lifts_inter, (e, w))
-        #@vprint :DirectImages 4 "        -> $w\n"
-        @vprint :DirectImages 4 "      mapping to:\n"
-        for (l, v) in w
-          @vprint :DirectImages 4 "        $l: $v\n"
-        end
-        push!(micro_img_gens, [(i, v) for (i, v) in v_rem])
-        #@vprint :DirectImages 4 "         + $(last(micro_img_gens))\n"
-      end
-      macro_img_gens[k, j+1] = micro_img_gens
-
-      if !can_compute_index(gr_comp, i + j - 2)
-        # skip
-        continue
-      end
-      
-      graded_cod = gr_comp[i+j-2]
-      graded_mor = map(gr_comp, i+j-1)
-      graded_matrix = sparse_matrix(graded_mor)
-
-      # move one step forward on that level
-      @vprint :DirectImages 2 "    moving forward...\n      "
-      for (gen_ind, (e, w)) in enumerate(micro_block_lifts_inter)
-        #@vprint :DirectImages 3 "$gen_ind ($(sum(sum(length(c) for (_, c) in coordinates(v); init=0) for (_, v) in w; init=0))) "
-        #@vprint :DirectImages 4 "      $e : $w\n"
-        @vprint :DirectImages 4 "      generator $gen_ind with exponent vector $e:\n"
-        for (l, v) in w
-          @vprint :DirectImages 4 "        $l: $v\n"
-        end
-        u_dict = Dict{Int, FreeModElem{T}}()
-        for (l, ww) in w
-          mat_row = graded_matrix[l]
-          dd = -degree(graded_dom[l]; check=false) # still the correct degree, because the homotopy map does not change this.
-          for (k, p) in mat_row
-            pp = multiplication_map(ctx, p, e, dd, -j+1)
-            www = _sign * pp(ww)
-            is_zero(www) && continue
-            if haskey(u_dict, k)
-              www = parent(www)(Hecke.add_scaled_row!(coordinates(u_dict[k]), coordinates(www), one(base_ring(parent(www)))))
-              if is_zero(www) 
-                delete!(u_dict, k)
-              else
-                u_dict[k] = www
-              end
-            else
-              u_dict[k] = www
-            end
-          end
-        end
-        u = [(i, _inner_sign*v) for (i, v) in u_dict]
-        #@vprint :DirectImages 4 "        -> $u\n"
-        @vprint :DirectImages 4 "      mapping to:\n"
-        for (l, v) in u
-          @vprint :DirectImages 4 "        $l: $v\n"
-        end
-        push!(micro_block_lifts_cod, (e, u))
-      end
-      @vprint :DirectImages 3 "\n"
-      macro_block_lifts[k, j] = micro_block_lifts_cod
-      #macro_img_gens[k, j] = micro_img_gens
-    end # filling up the blocks to the left
-  end # going through the domain blocks
-  dom = self[i]
-  cod = self[i-1]
   img_gens = elem_type(cod)[]
-  for (macro_row_ind, macro_pr) in enumerate(canonical_projections(dom))
-    macro_dom = codomain(macro_pr)
-    #for (micro_row_ind, micro_pr) in enumerate(canonical_projections(macro_dom))
-      #micro_row_offset = 0
-      #micro_dom = codomain(micro_pr)
-      for (macro_gen_ind, v) in enumerate(gens(macro_dom))
-        macro_img_gen = zero(cod) # initialize the result for this generator
-        for (macro_col_ind, macro_inc) in enumerate(canonical_injections(cod))
-          macro_cod = domain(macro_inc)
-          micro_img_gen = zero(macro_cod)
-          !haskey(macro_img_gens, (macro_row_ind, macro_col_ind)) && continue
-          micro_img_gens = macro_img_gens[macro_row_ind, macro_col_ind]
-          block_img_gen = micro_img_gens[macro_gen_ind]
-          for (ind, v) in block_img_gen
-            micro_img_gen += canonical_injection(macro_cod, ind)(v)
-          end
-          macro_img_gen += macro_inc(micro_img_gen)
+  running_ind = 0
+  gc = graded_complex(wctx)
+  rel_d = relative_dimension(pushforward_ctx(wctx))
+  for (k, macro_range) in enumerate(ranges)
+    p0 = ni - k + 1
+    q0 = k - 1
+    if !can_compute_index(gc, p0)
+      # Domain is zero for this macro block. 
+      # This means no generators and hence no images 
+      # of generators to be added. We can just skip it.
+      continue
+    end
+    pr_k = canonical_projection(dom, k)
+    inj_k = canonical_injection(dom, k)
+    block_k = codomain(pr_k)
+    mac_mod = get_macro_block!(wctx, p0, q0, :cohomology)
+    for (j, micro_range) in enumerate(macro_range)
+      pr_j = canonical_projection(block_k, j)
+      inj_j = canonical_injection(block_k, j)
+      for (l, g) in enumerate(gens(domain(inj_j)))
+        running_ind += 1
+        mic_v = MicroVec(mac_mod, j, g; check=true)
+        mic_v2 = MicroVec(mac_mod, j, l)
+        @assert value(mic_v) == value(mic_v2)
+        v = MacroVec(mac_mod, j, g)
+        v2 = MacroVec(mic_v) 
+        @assert v == v2
+        w = apply_weyman_differential(v)
+        result = zero(cod)
+        if is_empty(w)
+          push!(img_gens, result)
+          continue
         end
-        push!(img_gens, macro_img_gen)
+        p_cod, q_cod = index(first(w))
+        for (kk, mac_vec) in enumerate(w)
+          inj_kk = canonical_injection(cod, kk + q_cod)
+          cod_kk = domain(inj_kk)
+          for (jj, mic_vec) in micro_vectors(mac_vec)
+            inj_jj = canonical_injection(cod_kk, jj)
+            result += inj_kk(inj_jj(mic_vec.c))
+          end
+        end
+        push!(img_gens, result)
       end
-      #micro_row_offset += ngens(micro_dom)
-    #end
+    end
   end
-  global dummy_var0 = macro_block_lifts
-# list = []
-# for (k, c) in macro_block_lifts
-#   @show k
-#   save("/tmp/dummy.mrdi", Tuple([(a, Tuple(b)) for (a, b) in c]))
-#   #push!(list, (k, Tuple([(a, Tuple(b)) for (a, b) in c])))
-# end
-  #save("/tmp/my_dict.mrdi", Tuple(list))
-
-# kk = collect(keys(macro_block_lifts))
-# vv = Tuple([Tuple([(a, Tuple(b)) for (a, b) in c]) for c in values(macro_block_lifts)])
-# save("/tmp/indices.mrdi", kk)
-# save("/tmp/macro_block_lifts", vv)
   return hom(dom, cod, img_gens)
 end
-
-dummy_var0 = 0
 
 function can_compute(fac::DirectImageMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
   return true
