@@ -1,3 +1,16 @@
+########################################################################
+# Context object for computation of the Weyman complex
+# 
+# See arXiv:2602.14657 for details. The required data is a context 
+# object to model the direct images of the twisting sheaves and their 
+# maps in the direct limit and the complex of graded modules which 
+# sheafifies to the complex of coherent sheaves whose direct image we 
+# wish to compute. 
+#   In the case that the cohomologies of the twisting sheaves form no 
+# natural direct limit (i.e. unless the `NewToricCtx` is used), we need 
+# to hold data for computing this direct limit artificially over the 
+# natural numbers. Hence the last two fields in the data structure. 
+########################################################################
 mutable struct WeymanCtx
   pfctx::Union{PushForwardCtx, ToricCtx, NewToricCtx, ToricCtxWithParams}
   cplx::AbsHyperComplex
@@ -18,6 +31,10 @@ end
 pushforward_ctx(W::WeymanCtx) = W.pfctx
 graded_complex(W::WeymanCtx) = W.cplx
 
+# A parent-like object for `MacroVec`s used in the implementation for 
+# the 𝕎-functor. It knows its position in the Cech double complex 
+# and whether it holds a vector in cohomology, or in the big original 
+# Cech complex. See `generic_direct_images.jl` for more information.
 mutable struct MacroMod
   weyman_ctx::WeymanCtx
   p::Int
@@ -29,6 +46,7 @@ mutable struct MacroMod
   end
 end
 
+# `MacroMod`s need to be created using this method from the given context.
 function get_macro_block!(wctx::WeymanCtx, p::Int, q::Int, typ::Symbol)
   @assert q >= 0
   if !isdefined(wctx, :macro_modules)
@@ -39,6 +57,8 @@ function get_macro_block!(wctx::WeymanCtx, p::Int, q::Int, typ::Symbol)
   end
 end
 
+# Elements of `MacroMod`s. This is a sparse data format and the `micro_vec`s are 
+# again sparse. 
 mutable struct MacroVec
   macro_mod::MacroMod
   micro_vecs::Vector
@@ -48,6 +68,9 @@ mutable struct MacroVec
   end
 end
 
+# A `MicroVec` knows which `MacroMod` it belongs to and what is its position 
+# within the inner block structure. Moreover, it needs to know its index in 
+# the direct limit for the exhaustion of the Cech complex. 
 mutable struct MicroVec
   macro_mod::MacroMod
   j::Int
