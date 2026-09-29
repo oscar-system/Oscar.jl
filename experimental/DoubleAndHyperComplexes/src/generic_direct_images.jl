@@ -20,27 +20,50 @@
 #            V                     V
 #        Dᵇ(X×Spec R) --Rπ_*--> Dᵇ(R-mod)
 ########################################################################
+
 include("generic_direct_images_types.jl")
 
 ### Production of the chains
+# This samples from a context object which provides raw (truncated) direct images 
+# for the twisting sheaves, together with their simplifications up to homotopy
+# and the induced maps in the direct limit exhausting the Cech complexes. 
+#   We aim at using three different types of context objects in parallel so that 
+# the user can decide which one to use depending on their particular application.
 struct DirectImageChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   wctx::WeymanCtx
   K::AbsHyperComplex
   ranges::Dict{Int, Vector{Vector{UnitRange{Int64}}}}
 
   function DirectImageChainFactory(pfctx::Union{ToricCtxWithParams, NewToricCtx, PushForwardCtx}, K::AbsHyperComplex)
-    T = pfctx isa NewToricCtx ? elem_type(coefficient_ring(cox_ring(toric_variety(pfctx)))) : elem_type(target_ring(pfctx))
+    T = elem_type(target_ring(pfctx))
     ranges = Dict{Int, Vector{Vector{UnitRange{Int64}}}}()
     wctx = WeymanCtx(pfctx, Oscar.ReflectedComplex(K))
     return new{FreeMod{T}}(wctx, K, ranges)
   end
 end
 
+# Some additional getters to make unification easier. 
 relative_dimension(ctx::ToricCtxWithParams) = dim(toric_variety(ctx))
 relative_dimension(ctx::PushForwardCtx) = ngens(ctx.S) - rank(grading_group(ctx.S))
 target_ring(ctx::ToricCtxWithParams) = ctx.R
 target_ring(ctx::PushForwardCtx) = coefficient_ring(ctx.S)
+target_ring(ctx::NewToricCtx) = coefficient_ring(cox_ring(toric_variety(ctx)))
 
+# The terms of the direct image complex are (higher) direct images of the 
+# twisting sheaves. More precisely, if the complex of graded modules for 
+# the input is of the form 
+#
+#     Kᵖ = ⨁ ᵢS[-αₚᵢ], 
+#
+# then the direct image complex has terms 
+# 
+#     Cʳ = ⨁ ₚ₊ₛ₌ᵣ Rˢπ_* Kᵖ = ⨁ ₚ₊ₛ₌ᵣ ⨁ ᵢRˢπ_* 𝒪(-αₚᵢ)
+#
+# for the projection `π : X × Spec R → R`. 
+#   The outer direct sum is for the "macro blocks", the inner one for the 
+# "micro blocks". We keep track of the respective ranges, i.e. which range 
+# of the indices is covered by which block, to enable fast mapping and 
+# projection to the respective summands. 
 function (fac::DirectImageChainFactory{ChainType})(self::AbsHyperComplex, I::Tuple) where {T, ChainType <: FreeMod{T}}
   i = first(I)
   wctx = fac.wctx
@@ -87,6 +110,15 @@ end
 ### Production of the morphisms 
 struct DirectImageMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType} end
 
+#   The real difficulty lies in computing the maps for the direct image. 
+# The algorithm is described in our paper arXiv:2602.14657 and it proceeds 
+# in a "sparse block format". To this end, we introduce data structures for 
+# macro and micro blocks, which can then be assembled to sparse vectors of 
+# blocks. This is not user facing and only used within this particular context. 
+# Therefore, we do not care to adhere to the usual `parent`-convention in 
+# Oscar. However, there are `parent`-like objects which let every block 
+# know about its context and its position within the Cech double complex 
+# underlying Weyman's construction. 
 function (::DirectImageMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   i = first(I)
   _sign = is_even(i) ? -1 : 1
