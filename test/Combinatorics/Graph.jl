@@ -424,6 +424,21 @@
       G3 = graph_from_labeled_edges(Dict((4,5)=>3, (5,6)=>5, (6,4)=>8), Dict(4=>1, 5=>2, 6=>4))
       @test Oscar._canonical_hash(G1; label=:label) == Oscar._canonical_hash(G2; label=:label)
       @test Oscar._canonical_hash(G1; label=:label) != Oscar._canonical_hash(G3; label=:label)
+
+      # 4-edge-colorings of K5 whose _canonical_hash collides (seed 42) although
+      # they are not isomorphic, even up to renaming colors
+      G1 = graph_from_labeled_edges(Dict((1,4)=>1, (3,4)=>1, (4,5)=>2, (1,2)=>3, (1,3)=>3, (2,3)=>3,
+                                         (1,5)=>4, (2,4)=>4, (2,5)=>4, (3,5)=>4))
+      G2 = graph_from_labeled_edges(Dict((1,4)=>1, (1,5)=>1, (2,5)=>1, (3,5)=>1, (2,4)=>2,
+                                         (1,2)=>3, (1,3)=>3, (2,3)=>3, (3,4)=>4, (4,5)=>4))
+      @test !is_isomorphic(G1, G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+
+      # isomorphic after permuting vertices and renaming edge colors
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (1,3)=>2, (1,4)=>3, (1,5)=>2, (2,3)=>3,
+                                         (2,4)=>2, (2,5)=>2, (3,4)=>1, (3,5)=>1, (4,5)=>1))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (1,3)=>2, (1,4)=>3, (1,5)=>3, (2,3)=>3,
+                                         (2,4)=>1, (2,5)=>2, (3,4)=>2, (3,5)=>1, (4,5)=>3))
+      @test is_isomorphic(G1, G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
     end
 
     @testset "on_graph" begin
