@@ -439,6 +439,26 @@
       G2 = graph_from_labeled_edges(Dict((1,2)=>2, (1,3)=>2, (1,4)=>3, (1,5)=>3, (2,3)=>3,
                                          (2,4)=>1, (2,5)=>2, (3,4)=>2, (3,5)=>1, (4,5)=>3))
       @test is_isomorphic(G1, G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+
+      # vertex labels only
+      G1 = graph_from_edges([[1,2], [2,3]])
+      G2 = graph_from_edges([[1,2], [2,3]])
+      label!(G1, nothing, Dict(1=>1, 2=>2, 3=>1))
+      label!(G2, nothing, Dict(1=>2, 2=>1, 3=>2))
+      @test !is_isomorphic(G1, G2; label=:label)
+
+      # edge labels
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>1, (3,4)=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (2,3)=>2, (3,4)=>1))
+      @test !is_isomorphic(G1, G2; label=:label)
+      @test is_isomorphic(G1, G2; label=:label, edge_distinguishable=false)
+
+      # vertex and edge labels
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (2,3)=>2), Dict(1=>1, 2=>1, 3=>2))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>5, (2,3)=>7), Dict(1=>4, 2=>4, 3=>9))
+      @test !is_isomorphic(G1, G2; label=:label)
+      @test !is_isomorphic(G1, G2; label=:label, edge_distinguishable=false)
+      @test is_isomorphic(G1, G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
     end
 
     @testset "on_graph" begin
