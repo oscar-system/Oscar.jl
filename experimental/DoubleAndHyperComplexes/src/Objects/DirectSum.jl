@@ -137,3 +137,13 @@ end
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::DirectSumComplex) = c.internal_complex
 
+# dirty catch of the edge case with an empty list of summands 
+# where the type parameter of the `summands` vector might not be specified
+function DirectSumComplex(
+    R::Ring, dirs::Vector{Symbol}, summands::Vector
+  )
+  @assert isempty(summands) "non-empty list of summands but no useful type of the entries of that list; try preparing your list in a type-stable way"
+  ET = elem_type(R)
+  return DirectSumComplex(R, dirs, AbsHyperComplex{OFPModule{ET}, OFPModuleHom}[])
+end
+

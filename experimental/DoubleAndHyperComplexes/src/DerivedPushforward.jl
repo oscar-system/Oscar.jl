@@ -1356,10 +1356,11 @@ end
 
 ########################################################################
 # Functionality for NewToricCtx
+# 
+# This implements the usual interface for `PushForwardCtx` and friends.
 ########################################################################
 toric_variety(ctx::NewToricCtx) = ctx.X
 graded_ring(ctx::NewToricCtx) = ctx.S
-
 
 function ring_as_hypercomplex(ctx::NewToricCtx)
   if !isdefined(ctx, :S1)
@@ -1369,12 +1370,21 @@ function ring_as_hypercomplex(ctx::NewToricCtx)
   return ctx.S1
 end
 
+# internal method for the generators of the irrelevant ideal
 function cech_complex_generators(ctx::NewToricCtx)
   if !isdefined(ctx, :cech_gens)
     ctx.cech_gens = gens(irrelevant_ideal(toric_variety(ctx)))
   end
   return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
 end
+
+# The idea underlying the `NewToricCtx` is to model each strand from 
+# its components in the fine grading of the Cech complex. See the paper 
+# by Eisenbud, Mustata, and Stillman from '00. 
+#   The fine grading is the grading by the exponent vectors of the 
+# monomials. There is only one isomorphism class of fine graded pieces 
+# of the Cech complex for each orthant. We label them by a single 
+# integer using its binary digits. 
 
 # obtain all monomials of a given degree in the Cox ring. 
 function all_monomials(ctx::NewToricCtx, alpha::FinGenAbGroupElem)
@@ -1469,15 +1479,6 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   end
 end
 
-# dirty catch of the edge case with an empty list of summands
-function DirectSumComplex(
-    R::Ring, dirs::Vector{Symbol}, summands::Vector
-  )
-  @assert isempty(summands) "non-empty list of summands but no useful type of the entries of that list; try preparing your list in a type-stable way"
-  ET = elem_type(R)
-  return DirectSumComplex(R, dirs, AbsHyperComplex{OFPModule{ET}, OFPModuleHom}[])
-end
-
 function simplified_strand(ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
   return simplified_strand(ctx, first(e), alpha)
 end
@@ -1523,9 +1524,7 @@ function induced_cohomology_map(
       index_mapping = Int[all_mons_cod_inv[ee.+(e1 - e0)] for ee in all_mons_dom]
       img_gens = elem_type(cod)[]
       for (i, k) in enumerate(index_mapping)
-        #pr = canonical_projection(dom, i)
         inc = canonical_injection(cod, k)
-        #@assert codomain(pr) === domain(inc)
         img_gens = vcat(img_gens, images_of_generators(inc))
       end
       return hom(dom, cod, img_gens)
@@ -1558,10 +1557,6 @@ function simplified_strand_homotopy(
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = [homotopy_map(simplified_fine_strand(ctx, ee.-e), p) for ee in all_mons]
-    #for (k, phi) in enumerate(maps)
-      #@assert domain(phi) === codomain(canonical_projection(dom, k))
-      #@assert codomain(phi) === codomain(canonical_projection(cod, k))
-    #end
     return _direct_sum(kk, maps; domain=dom, codomain=cod)
   end
 end
@@ -1584,10 +1579,6 @@ function simplified_strand_inclusion(
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = FreeModuleHom{FreeMod{elem_type(kk)}, FreeMod{elem_type(kk)}, Nothing}[map_to_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
-    #for (k, phi) in enumerate(maps)
-      #@assert domain(phi) === codomain(canonical_projection(dom, k))
-      #@assert codomain(phi) === codomain(canonical_projection(cod, k))
-    #end
     return _direct_sum(kk, maps; domain=dom, codomain=cod)
   end
 end
@@ -1610,10 +1601,6 @@ function simplified_strand_projection(
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = [map_from_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
-    #for (k, phi) in enumerate(maps)
-      #@assert domain(phi) === codomain(canonical_projection(dom, k))
-      #@assert codomain(phi) === codomain(canonical_projection(cod, k))
-    #end
     return _direct_sum(kk, maps; domain=dom, codomain=cod)
   end
 end
@@ -1633,7 +1620,7 @@ function cohomology_model_projection(ctx::NewToricCtx, d::FinGenAbGroupElem, i::
 end
 
 # return the minimal exponent `e`  such that the whole 
-# cohomology in degree `m` is contained in the truncated ̌complex for `e`.
+# cohomology in degree `m` is contained in the truncated complex for `e`.
 function _minimal_exponent_vector(ctx::NewToricCtx, m::FinGenAbGroupElem)
   # TODO: Make this use the already build cache for the support sets! 
   !isnothing(ctx.fixed_exponent_vector) && return ctx.fixed_exponent_vector::Int
@@ -1665,9 +1652,7 @@ function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
     while p >= -dim(toric_variety(ctx)) && can_compute_index(dom, p) && can_compute_index(cod, p)
       img_gens = elem_type(cod[p])[]
       for (k, i) in enumerate(index_mapping)
-        #pr = canonical_projection(dom[p], k)
         inc = canonical_injection(cod[p], i)
-        #@assert codomain(pr) === domain(inc)
         img_gens = vcat(img_gens, images_of_generators(inc))
       end
       map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
@@ -1677,6 +1662,9 @@ function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
   end
 end
 
+# Multiplication by a monomial depends only on the transition 
+# of sectors that it realizes. Again, this can be encoded in 
+# a pair of integers, for which we draw from a dictionary. 
 function sample_multiplication(ctx::NewToricCtx, e0::Vector{Int}, e1::Vector{Int})
   @assert all(i <= j for (i, j) in zip(e0, e1))
   return sample_multiplication(ctx, sum((i < 0) << (k-1) for (k, i) in enumerate(e0); init=0),
@@ -1690,13 +1678,8 @@ function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
     cod = fine_strand(ctx, e1)
     delta = e0 - e1
     S = fine_graded_ring(ctx)
-    #ee0 = Int[-(e0 >> (k-1))%2 for k in 1:ngens(S)]
-    #ee1 = Int[-(e1 >> (k-1))%2 for k in 1:ngens(S)]
-    #@show ee0, ee1
     delta_exp = Int[-(delta >> (k-1))%2 for k in 1:ngens(S)]
-    #@show delta_exp
     mon = prod(x^(-k) for (k, x) in zip(delta_exp, gens(S)); init=one(S))
-    #@show mon
     p = 0
     map_dict = Dict{Tuple{Int}, OFPModuleHom}()
     while p >= -dim(toric_variety(ctx)) && can_compute_index(dom, p) && can_compute_index(cod, p)
@@ -1745,21 +1728,15 @@ function multiplication_map(
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons_dom = all_monomials(ctx, alpha + e0*delta)
     all_mons_cod_inv = all_monomials_inv(ctx, beta + e0*delta)
-    #img_gens = elem_type(cod)[zero(cod) for _ in 1:ngens(dom)]
-    # TODO: Make this efficient by building the morphism directly 
-    # from inplace operations on SRows.
     kk = coefficient_ring(S)
     img_gens = sparse_matrix(kk, 0, ngens(cod))
     for _ in 1:ngens(dom)
       push!(img_gens, sparse_row(kk))
     end
-    #result = hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
     for (k, ee) in enumerate(all_mons_dom)
-      #pr = canonical_projection(dom, k)
       inc_dom = canonical_injection(dom, k)
       for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
         sample = sample_multiplication(ctx, ee.-e0, (ee + eee).-e0)[j]
-        #@assert codomain(pr) === domain(sample)
         inc = canonical_injection(cod, all_mons_cod_inv[ee+eee])
         psi = compose(sample, inc)
         psi_imgs = images_of_generators(psi)
@@ -1768,15 +1745,19 @@ function multiplication_map(
           Hecke.add_scaled_row!(coordinates(psi_imgs[ii]), img_gens[jj], c)
         end
         @assert codomain(sample) === domain(inc)
-        #result += compose(pr, c*compose(sample, inc))
       end
     end
-    res = hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens])
-    #@assert res == result
-    res
+    hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens])
   end
 end
 
+# The "support set" is the set of cohomological degrees 
+# for the sector labeled by `p`, for which the fine strand 
+# has non-trivial cohomology. This is usually computed by 
+# other means (see e.g. Eisenbud, Mustata, Stillman '00 or 
+# Smith MacLaghan), but since we will need the fine graded 
+# strands anyway, we compute the support set directly and 
+# cache the data obtained on the fly. 
 function support_set(ctx::NewToricCtx, p::Int)
   return get!(ctx.support_sets, p) do 
     X = toric_variety(ctx)
@@ -1797,13 +1778,15 @@ function support_set(ctx::NewToricCtx, p::Int)
         end
       end
       !is_zero(r) && push!(result, i)
-      # s = simplified_fine_strand(ctx, i)
-      # !is_zero(s[-p]) && push!(result, i)
     end
     result
   end
 end
 
+# Here we might have some potential for optimization: The returned 
+# vector is so that the cohomology is contained in a shifted orthant 
+# whose shift vector has all the same components. Maybe we can flexibilize 
+# this? However, this has not shown to be the bottleneck in applications, yet.
 function optimal_k(ctx::NewToricCtx, i::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.optimal_ks, (i, alpha)) do
     X = toric_variety(ctx)
@@ -1818,36 +1801,22 @@ function optimal_k(ctx::NewToricCtx, i::Int, alpha::FinGenAbGroupElem)
     phi = map_from_torusinvariant_weil_divisor_group_to_class_group(X)
     A = transpose(matrix(phi))
     for I in Sigma_i
-      #expanded = [(I >> j)%2 for j in 0:n-1]
       L_I = zero_matrix(ZZ, n, n)
       for j in 1:n
         L_I[j, j] = is_zero((I >> (j-1))%2) ? -1 : 1
       end
       D = vcat(L_I, A, -A)
-      #b = vcat(elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n], alpha_vec, -alpha_vec)
       b = elem_type(ZZ)[is_zero((I >> (j-1))%2) ? 0 : -1 for j in 1:n]
-      #@show L_I
-      #@show b
-      #@show A
-      #@show alpha_vec
-      #P = polyhedron(QQ, D, b)
       @assert nrows(A) == length(alpha_vec)
       @assert ncols(L_I) == ncols(A)
-      #return L_I, b, A, alpha_vec
       P = polyhedron((L_I, b), (A, alpha_vec))
-      #@show is_bounded(P)
-      #!is_bounded(P) && error("polyhedron not bounded")
-      #@show lattice_points(P)
       for j in 1:n
         is_zero((I >> (j-1))%2) && continue
         l = elem_type(ZZ)[i == j ? 1 : 0 for i in 1:n]
-        #lp = linear_program(P, l)
-        #v1, _ = solve_lp(lp)
         lp = linear_program(P, -l)
         v, _ = solve_lp(lp)
         isnothing(v) && break # empty polyhedron
         is_infinite(v) && error("polyhedron not bounded")
-        #@show j, v
         if v > k
           k = Int(floor(v))
         end
