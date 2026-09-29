@@ -37,67 +37,123 @@ mutable struct ResultantCtx
   function ResultantCtx(f::Vector{T}) where {T<:MPolyRingElem}
     @assert !is_empty(f) "resultants of empty collections are not allowed"
     @assert all(parent(ff) === parent(first(f)) for ff in f) "all polynomials need to have the same parent"
+    @assert ngens(parent(first(f))) + 1 == length(f) "exactly one more equation than number of variables must be provided"
     A = _support_sets(f)
-    return new(A, f)
+    return new(A, f, coefficient_ring(first(f)))
   end
 end
 
+support_sets(ctx::ResultantCtx) = ctx.A
+
+function tautological_polynomials(ctx::ResultantCtx)
+  if !isdefined(ctx, :f)
+    error("tautological polynomials have not been defined")
+  end
+  return ctx.f
+end
+
+function homogeneous_tautological_polynomials(ctx::ResultantCtx)
+  if !isdefined(ctx, :F)
+    S_ext = extended_cox_ring(ctx)
+    R = coefficient_ring(ctx)
+    supps = support_sets(ctx)
+    var_groups = Vector{elem_type(R)}[]
+
+    if !isdefined(ctx, :f)
+      # If these polynomials are not defined, then we need the `coefficient_ring` 
+      # to be a polynomial ring with the coefficients as variables. 
+      @assert R isa MPolyRing "incompatible ring"
+      offset = 0
+      for A in supps
+        push!(var_groups, gens(R)[offset+1:offset+nrows(A)])
+        offset += nrows(A)
+      end
+    else
+      var_groups = [collect(coefficients(f)) for f in ctx.f]
+    end
+    
+    X = toric_variety(ctx)
+
+    # Coordinates of Cartier divisors in X of the system's Newton polytopes
+    div_coords = [map(u -> -minimum( grad*primitive_generator(u) ), rays(X)) for grad in supps];
+    U = primitive_generator.(rays(X))
+
+    ctx.F = elem_type(S_ext)[
+      sum(c[j]*prod(S_ext[i]^(dot(A[j,:], U[i]) + dc[i]) for i in 1:n_rays(X); 
+                    init=one(S_ext)) 
+          for j in 1:size(A, 1); init=zero(S_ext)) 
+      for (A, c, dc) in zip(supps, var_groups, div_coords)];
+  end
+  return ctx.F
+end
+
+function toric_variety(ctx::ResultantCtx) 
+  if !isdefined(ctx, :X)
+    ctx.X = _get_toric_variety(support_sets(ctx))
+  end
+  return ctx.X::NormalToricVariety
+end
+
+function coefficient_ring(ctx::ResultantCtx)
+  if !isdefined(ctx, :R)
+    ctx.R = _parent_for_resultant(support_sets(ctx))
+  end
+  return ctx.R
+end
+
+function cox_ring(ctx::ResultantCtx)
+  return cox_ring(toric_variety(ctx))
+end
+
+function extended_cox_ring(ctx::ResultantCtx)
+  return graded_ring(outer_ctx(ctx))
+end
+
+function inner_ctx(ctx::ResultantCtx)
+  if !isdefined(ctx, :inner_ctx)
+    ctx.inner_ctx = NewToricCtx(toric_variety(ctx))
+  end
+  return ctx.inner_ctx
+end
+
+function outer_ctx(ctx::ResultantCtx)
+  if !isdefined(ctx, :outer_ctx)
+    ctx.outer_ctx = _get_outer_toric_ctx(inner_ctx(ctx), coefficient_ring(ctx))
+  end
+  return ctx.outer_ctx
+end
+
+grading_group(ctx::ResultantCtx) = grading_group(cox_ring(ctx))
+
+
 @doc raw"""
     a_resultant_complex(support_sets::Vector{T};
-        toric_variety::NormalToricVariety=_get_toric_variety(support_sets),
-        inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
-        parent::Ring=_parent_for_resultant(support_sets),
-        outer_toric_ctx_object::ToricCtxWithParams=_get_outer_toric_ctx(inner_toric_ctx_object, parent),
-        twist::FinGenAbGroupElem=zero(grading_group(cox_ring(toric_variety)))
-      ) where {T}
+        ctx::ResultantCtx=ResultantCtx(support_sets),
+        twist::FinGenAbGroupElem=zero(grading_group(ctx))
+      ) where {T <: Union{Matrix, MatrixElem}}
 
 Given a collection of ``n+1`` support sets ``Aᵢ ∈ ℤʳˣⁿ``, i.e. a matrix whose ``r = r(i)`` rows are exponent vectors 
 of Laurent polynomials, compute a complex ``C*`` of free modules over the ring ``R = ℤ[aᵢᵥ : i = 1,…,n+1, ν ∈ 1,…,r(i)]`` 
 of coefficients ``aᵢᵥ`` of those polynomials such that ``det(C*)`` is a (possibly non-reduced) equation for the 
 resultant ``Δ``. See [GZ26](@cite) for more details.
 """
-function a_resultant_complex(support_sets::Vector{T};
-    toric_variety::NormalToricVariety=_get_toric_variety(support_sets),
-    inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
-    parent::Ring=_parent_for_resultant(support_sets),
-    outer_toric_ctx_object::ToricCtxWithParams=_get_outer_toric_ctx(inner_toric_ctx_object, parent),
-    twist::FinGenAbGroupElem=zero(grading_group(cox_ring(toric_variety)))
+function a_resultant_complex(support_sets::Vector{T}; 
+    ctx::ResultantCtx=ResultantCtx(support_sets),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
   ) where {T <: Union{Matrix, MatrixElem}}
 
   n = ncols(first(support_sets))
   @assert all(ncols(A) == n for A in support_sets) "the number of columns (variables) must coincide"
   @assert length(support_sets) == n+1 "wrong number of support sets"
 
-  # partition the generators of `parent` to match the rows of the matrices 
-  # in `support_sets`
-  coef = Vector{elem_type(parent)}[]
-  a = gens(parent)
-  offset = 0
-  for A in support_sets
-    push!(coef, a[offset+1:offset+nrows(A)])
-    offset += nrows(A)
-  end
-
-  S_ext = graded_ring(outer_toric_ctx_object)
-  @assert parent === coefficient_ring(S_ext) "incompatible coefficient ring"
-  x = gens(S_ext)
-
-  # Ray generators in fan of toric variety
-  U = map(primitive_generator, rays(toric_variety));
-
-  # Coordinates of Cartier divisors in X of the system's Newton polytopes
-  div_coords = [map(u -> -minimum( grad*primitive_generator(u) ), rays(toric_variety)) for grad in support_sets];
-
-  # Homogeneous polynomials specified by characters in supports
-  f = elem_type(S_ext)[sum(c[j]*prod(x[i]^(dot(A[j,:], U[i]) + dc[i]) for i in 1:n_rays(toric_variety); init=one(S_ext)) 
-           for j in 1:size(A, 1); init=zero(S_ext)) for (A, c, dc) in zip(support_sets, coef, div_coords)];
-  K = Oscar.HomogKoszulComplex(S_ext, f)
+  S_ext = extended_cox_ring(ctx)
+  K = Oscar.HomogKoszulComplex(S_ext, homogeneous_tautological_polynomials(ctx))
   t = Oscar.ZeroDimensionalComplex(graded_free_module(S_ext, [-twist]))
   Kt = tensor_product(K, t)
-  return DirectImageComplex(outer_toric_ctx_object, Kt)
+  return DirectImageComplex(outer_ctx(ctx), Kt)
 end
 
-### helper functions for the above kwargs
+### helper functions for filling the `ResultantCtx`
 function _parent_for_resultant(support_sets::Vector{T}) where {T}
   # create a polynomial ring for the generic coefficients of the support matrices
   R, a = polynomial_ring(ZZ, vcat([[Symbol("a_$(k)_$(i)") for i in 1:nrows(A)] for (k, A) in enumerate(support_sets)]...))
@@ -132,13 +188,10 @@ function _get_outer_toric_ctx(inner_ctx::NewToricCtx, R::Ring)
 end
 
 function a_resultant(support_sets::Vector{T};
-    toric_variety::NormalToricVariety=_get_toric_variety(support_sets),
-    inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
-    parent::Ring=_parent_for_resultant(support_sets),
-    outer_toric_ctx_object::ToricCtxWithParams=_get_outer_toric_ctx(inner_toric_ctx_object, parent),
-    twist::FinGenAbGroupElem=zero(grading_group(cox_ring(toric_variety)))
-  ) where {T}
-  return det(a_resultant_complex(support_sets; toric_variety, inner_toric_ctx_object, parent, outer_toric_ctx_object, twist); upper_bound=length(support_sets))
+    ctx::ResultantCtx=ResultantCtx(support_sets),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
+  ) where {T <: Union{Matrix, MatrixElem}}
+  return det(a_resultant_complex(support_sets; ctx, twist); upper_bound=length(support_sets))
 end
 
 @doc raw"""
@@ -154,32 +207,11 @@ compute a complex of ``R``-modules ``C*``, such that ``det(C*) = 0`` describes t
 i.e. the locus ``Δ ⊂ Spec R`` over which a solution to the system ``F = 0`` exists. 
 """
 function a_resultant_complex(F::Vector{T};
-    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(F)),
-    inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
-    outer_toric_ctx_object::ToricCtxWithParams=_get_outer_toric_ctx(inner_toric_ctx_object, coefficient_ring(parent(first(F)))),
-    twist::FinGenAbGroupElem=zero(grading_group(cox_ring(toric_variety))),
-    check::Bool=true
+    ctx::ResultantCtx=ResultantCtx(F),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
   ) where {T<:MPolyRingElem}
-  @check !has_torusfactor(toric_variety) "toric variety has a torus factor"
-  @check dim(toric_variety) == ngens(parent(first(F))) "toric variety has the wrong dimension"
-  # TODO: More assertions
-  S_ext = graded_ring(outer_toric_ctx_object)
-  @assert coefficient_ring(parent(first(F))) === coefficient_ring(S_ext) "incompatible coefficient ring"
-  x = gens(S_ext)
-
-  support_sets = _support_sets(F)
-  coef = [collect(AbstractAlgebra.coefficients(f)) for f in F]
-
-  # Ray generators in fan of toric variety
-  U = map(primitive_generator, rays(toric_variety));
-
-  # Coordinates of Cartier divisors in X of the system's Newton polytopes
-  div_coords = [map(u -> -minimum( grad*primitive_generator(u) ), rays(toric_variety)) for grad in support_sets];
-
-  # Homogeneous polynomials specified by characters in supports
-  f = elem_type(S_ext)[sum(c[j]*prod(x[i]^(dot(A[j,:], U[i]) + dc[i]) for i in 1:n_rays(toric_variety); init=one(S_ext)) 
-           for j in 1:size(A, 1); init=zero(S_ext)) for (A, c, dc) in zip(support_sets, coef, div_coords)];
-  K = Oscar.HomogKoszulComplex(S_ext, f)
+  S_ext = extended_cox_ring(ctx)
+  K = Oscar.HomogKoszulComplex(S_ext, homogeneous_tautological_polynomials(ctx))
   t = Oscar.ZeroDimensionalComplex(graded_free_module(S_ext, [-twist]))
   Kt = tensor_product(K, t)
   return DirectImageComplex(outer_toric_ctx_object, Kt)
@@ -198,44 +230,36 @@ function _tautological_polynomial(A::Union{Matrix, MatrixElem})
   return f
 end
 
+### Discriminants of a single polynomial `f`
+# In this case the additional equations are given by the partial derivatives 
+# and we have the corresponding specialization to the coefficients of `f`. 
 function discriminant_complex(A::Union{Matrix, MatrixElem};
     tautological_polynomial::MPolyRingElem=_tautological_polynomial(A), 
-    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(tautological_polynomial)),
-    twist::FinGenAbGroupElem=zero(grading_group(toric_variety))
+    ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(tautological_polynomial, i) for i in 1:ncols(A)], tautological_polynomial)),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
   )
-  return discriminant_complex(tautological_polynomial; toric_variety, twist)
+  return discriminant_complex(tautological_polynomial; ctx, twist)
 end
 
-function _support_sets(f::MPolyRingElem)
-  P = parent(f)
-  list = [f]
-  for i in 1:ngens(P)
-    push!(list, derivative(f, i))
-  end
-  return _support_sets(list)
+function discriminant(A::Union{Matrix, MatrixElem};
+    tautological_polynomial::MPolyRingElem=_tautological_polynomial(A), 
+    ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(tautological_polynomial, i) for i in 1:ncols(A)], tautological_polynomial)),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
+  )
+  return det(discriminant_complex(tautological_polynomial; ctx, twist); upper_bound=ncols(A))
 end
 
 function discriminant_complex(f::MPolyRingElem;
-    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(f)),
-    twist::FinGenAbGroupElem=zero(class_group(toric_variety))
+    ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(f, i) for i in 1:ngens(parent(f))], f)),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
   )
-  P = parent(f)
-  list = [f]
-  for i in 1:ngens(P)
-    push!(list, derivative(f, i))
-  end
-  return a_resultant_complex(list; toric_variety, twist)
+  return a_resultant_complex(support_sets(ctx); ctx, twist)
 end
 
 function discriminant(f::MPolyRingElem; 
-    toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(f)),
-    twist::FinGenAbGroupElem=zero(class_group(toric_variety))
+    ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(f, i) for i in 1:ngens(parent(f))], f)),
+    twist::FinGenAbGroupElem=zero(grading_group(ctx))
   )
-  P = parent(f)
-  list = [f]
-  for i in 1:ngens(P)
-    push!(list, derivative(f, i))
-  end
-  return det(a_resultant_complex(list; toric_variety, twist); upper_bound=ngens(P))
+  return det(discriminant_complex(f; ctx, twist); upper_bound=ngens(parent(f)))
 end
 
