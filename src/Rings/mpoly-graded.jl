@@ -1017,6 +1017,11 @@ function setcoeff!(f::MPolyDecRingElem, i::Int, c)
   return f
 end
 
+function setcoeff!(f::MPolyDecRingElem, exps::Vector{Int}, c)
+  f.f = setcoeff!(forget_decoration(f), exps, c)
+  return f
+end
+
 function sort_terms!(f::MPolyDecRingElem)
   f.f = sort_terms!(forget_decoration(f))
   return f
