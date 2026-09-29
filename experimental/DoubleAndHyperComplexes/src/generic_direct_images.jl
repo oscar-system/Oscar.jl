@@ -129,13 +129,19 @@ function (::DirectImageMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   (is_zero(dom) || is_zero(cod)) && return hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
   fac = chain_factory(self)
   wctx = fac.wctx
-  img_gens_blocks = Vector{Vector{MacroVec}}()
+  img_gens_blocks = Vector{Vector{MacroVec}}() # A dense vector of macro blocks for 
+                                               # the resulting map. These blocks might
+                                               # be empty, so that the data structure stays 
+                                               # effectively sparse. The macro block with 
+                                               # the `R⁰π_*`-terms is the first one and it 
+                                               # ends with the `Rᵈπ_*`-terms for `d = dim X`.
   ni = -i
   ranges = fac.ranges[i]
   img_gens = elem_type(cod)[]
   running_ind = 0
   gc = graded_complex(wctx)
   rel_d = relative_dimension(pushforward_ctx(wctx))
+  # Iterating through the outer direct sum
   for (k, macro_range) in enumerate(ranges)
     p0 = ni - k + 1
     q0 = k - 1
@@ -149,24 +155,22 @@ function (::DirectImageMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
     inj_k = canonical_injection(dom, k)
     block_k = codomain(pr_k)
     mac_mod = get_macro_block!(wctx, p0, q0, :cohomology)
+    # Iterate through the inner direct sum
     for (j, micro_range) in enumerate(macro_range)
       pr_j = canonical_projection(block_k, j)
       inj_j = canonical_injection(block_k, j)
+      # Iterate over the generators of the micro block
       for (l, g) in enumerate(gens(domain(inj_j)))
         running_ind += 1
-        mic_v = MicroVec(mac_mod, j, g; check=true)
-        mic_v2 = MicroVec(mac_mod, j, l)
-        @assert value(mic_v) == value(mic_v2)
-        v = MacroVec(mac_mod, j, g)
-        v2 = MacroVec(mic_v) 
-        @assert v == v2
-        w = apply_weyman_differential(v)
+        v = MacroVec(mac_mod, j, g) # the generator to be mapped
+        w = apply_weyman_differential(v) # all the heavy lifting is done here
         result = zero(cod)
-        if is_empty(w)
+        if is_empty(w) # `w` is a `Vector` of `MacroVec`s
           push!(img_gens, result)
           continue
         end
-        p_cod, q_cod = index(first(w))
+        p_cod, q_cod = index(first(w)) # every `MacroVec` knows its cohomological 
+                                       # position in the Cech double complex
         for (kk, mac_vec) in enumerate(w)
           inj_kk = canonical_injection(cod, kk + q_cod)
           cod_kk = domain(inj_kk)
@@ -179,7 +183,7 @@ function (::DirectImageMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
       end
     end
   end
-  return hom(dom, cod, img_gens)
+  return hom(dom, cod, img_gens; check=false)
 end
 
 function can_compute(fac::DirectImageMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
