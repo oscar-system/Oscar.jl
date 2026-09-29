@@ -1,12 +1,31 @@
+# When computing resultants with the Weyman complex via 
+# 
+#   Δ = det Rπ_*(K* ⊗ 𝒪(-α))
+# 
+# on some toric variety `X` for the projection `π : X × Spec R → R` 
+# there are a lot of objects which need to first be constructed 
+# from the input (e.g. monomial support sets) and should then 
+# probably be kept. For instance, one has the degree of freedom to
+# chose an arbitrary twist `α`. This can be used to obtain simpler 
+# complexes for which the determinant is easier to compute. Also, 
+# one maybe wants to recycle context objects from toric geometry 
+# throughout multiple computations of resultants, etc. 
+#   To this end we provide yet another context object. Without it
+# it would be very difficult to pass a twist `α` for the computation,
+# because it needs to live in the very specific grading group of 
+# the cox ring of the toric variety which is being used. With this 
+# infrastructure, the user can first create the context object 
+# from their input data and then derive all other information from 
+# that. 
 mutable struct ResultantCtx
-  A::Vector{<:Union{Matrix, MatrixElem}}
-  f::Vector{<:MPolyRingElem}
-  R::Ring
-  X::NormalToricVariety
-  F::Vector{<:MPolyRingElem}
-  inner_ctx::NewToricCtx
+  A::Vector{<:Union{Matrix, MatrixElem}} # the monomial support sets
+  f::Vector{<:MPolyRingElem} # the tautological polynomials (which might already have specialized coefficients)
+  R::Ring # the parameter ring (the coefficient ring of the `parent` of the `f`s)
+  X::NormalToricVariety # the toric variety which comes out of the support sets
+  F::Vector{<:MPolyRingElem} # the homogenizations of the `f` in the Cox ring
+  inner_ctx::NewToricCtx # inner and outer context objects for the direct image
   outer_ctx::ToricCtxWithParams
-  complexes::Dict{FinGenAbGroupElem, <:AbsHyperComplex}
+  complexes::Dict{FinGenAbGroupElem, <:AbsHyperComplex} # results for different twists
 
   function ResultantCtx(A::Vector{<:Union{Matrix, MatrixElem}})
     @assert !is_empty(A) "resultants of empty support sets are not allowed"
