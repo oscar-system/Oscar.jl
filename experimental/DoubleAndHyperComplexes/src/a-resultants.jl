@@ -1,3 +1,5 @@
+export a_resultant, a_resultant_complex, discriminant_complex
+
 # When computing resultants with the Weyman complex via 
 # 
 #   Δ = det Rπ_*(K* ⊗ 𝒪(-α))
@@ -187,6 +189,48 @@ function _get_outer_toric_ctx(inner_ctx::NewToricCtx, R::Ring)
   return ToricCtxWithParams(inner_ctx, phi)
 end
 
+@doc raw"""
+    a_resultant(support_sets::Vector{T};
+        ctx::ResultantCtx=ResultantCtx(support_sets),
+        twist::FinGenAbGroupElem=zero(grading_group(ctx))
+      ) where {T <: Union{Matrix, MatrixElem}}
+
+Compute the ``A``-resultant using the Weyman complex as outlined 
+in [GelfandKapranovZelevinsky94](@cite). The input `support_sets` 
+is a list of integer matrices, whose rows stand for the exponent 
+vectors of the monomial support sets. The output is a polynomial
+in the coefficients `a_i_j` associated to the `j`-th row of the 
+`i`-th support set. 
+
+One can use different twists to compute the resultant and the 
+determinant of a specific complex. This twist can be specified 
+with the respective keyword argument. The `ResultantCtx` is a 
+context object which maintains data required for the computation 
+of the resultant. In particular it can be used to obtain the 
+correct parent for the twist and other information on intermediate 
+data.
+
+# Examples
+```jldoctest
+julia> supps = [[0 0; 0 1; 1 0], [0 0; 2 0; 1 1; 0 2], [0 0; 1 0; 0 1]]
+3-element Vector{Matrix{Int64}}:
+ [0 0; 0 1; 1 0]
+ [0 0; 2 0; 1 1; 0 2]
+ [0 0; 1 0; 0 1]
+
+julia> delta = a_resultant(supps)
+a_1_1^2*a_2_2*a_3_3^2 - a_1_1^2*a_2_3*a_3_2*a_3_3 + a_1_1^2*a_2_4*a_3_2^2 - 2*a_1_1*a_1_2*a_2_2*a_3_1*a_3_3 + a_1_1*a_1_2*a_2_3*a_3_1*a_3_2 + a_1_1*a_1_3*a_2_3*a_3_1*a_3_3 - 2*a_1_1*a_1_3*a_2_4*a_3_1*a_3_2 + a_1_2^2*a_2_1*a_3_2^2 + a_1_2^2*a_2_2*a_3_1^2 - 2*a_1_2*a_1_3*a_2_1*a_3_2*a_3_3 - a_1_2*a_1_3*a_2_3*a_3_1^2 + a_1_3^2*a_2_1*a_3_3^2 + a_1_3^2*a_2_4*a_3_1^2
+
+julia> ctx = Oscar.ResultantCtx(supps);
+
+julia> G = grading_group(ctx)
+Z
+
+julia> is_associated(delta, Oscar.a_resultant(supps; ctx, twist=G[1]))
+true
+
+```
+"""
 function a_resultant(support_sets::Vector{T};
     ctx::ResultantCtx=ResultantCtx(support_sets),
     twist::FinGenAbGroupElem=zero(grading_group(ctx))
@@ -195,16 +239,32 @@ function a_resultant(support_sets::Vector{T};
 end
 
 @doc raw"""
-    a_resultant_complex(F::Vector{MPolyRingElem{T}};
-        toric_variety::NormalToricVariety=_get_toric_variety(_support_sets(F)),
-        inner_toric_ctx_object::NewToricCtx=NewToricCtx(toric_variety),
-        outer_toric_ctx_object::ToricCtxWithParams=_get_outer_toric_ctx(inner_toric_ctx_object, coefficient_ring(parent(first(F)))),
-        twist::FinGenAbGroupElem=zero(grading_group(cox_ring(toric_variety)))
-      ) where {T}
+    a_resultant_complex(F::Vector{T};
+        ctx::ResultantCtx=ResultantCtx(F),
+        twist::FinGenAbGroupElem=zero(grading_group(ctx))
+      ) where {T<:MPolyRingElem}
 
-Given a system of ``n+1`` polynomials ``F = (f₀,…,fₙ)`` in ``n` variables over a ring ``R``, 
-compute a complex of ``R``-modules ``C*``, such that ``det(C*) = 0`` describes the resultant, 
+Given a system of ``n+1`` polynomials ``F = (f₀,…,fₙ)`` in ``n`` variables over a ring ``R``, 
+compute a complex of ``R``-modules ``C``, such that ``det(C) = 0`` is the resultant, 
 i.e. the locus ``Δ ⊂ Spec R`` over which a solution to the system ``F = 0`` exists. 
+See [GelfandKapranovZelevinsky94](@cite) for more details. 
+
+# Examples
+```jldoctest
+julia> supps = [[0 0; 0 1; 1 0], [0 0; 2 0; 1 1; 0 2], [0 0; 1 0; 0 1]]
+3-element Vector{Matrix{Int64}}:
+ [0 0; 0 1; 1 0]
+ [0 0; 2 0; 1 1; 0 2]
+ [0 0; 1 0; 0 1]
+
+julia> cplx = a_resultant_complex(supps);
+
+julia> matrix(map(cplx, 1))
+[                                        -a_1_2*a_2_1*a_3_2 + a_1_3*a_2_1*a_3_3   -a_3_1   -a_1_1]
+[                                         a_1_1*a_2_4*a_3_2 - a_1_3*a_2_4*a_3_1   -a_3_3   -a_1_2]
+[-a_1_1*a_2_2*a_3_3 + a_1_1*a_2_3*a_3_2 + a_1_2*a_2_2*a_3_1 - a_1_3*a_2_3*a_3_1   -a_3_2   -a_1_3]
+
+```
 """
 function a_resultant_complex(F::Vector{T};
     ctx::ResultantCtx=ResultantCtx(F),
@@ -233,6 +293,16 @@ end
 ### Discriminants of a single polynomial `f`
 # In this case the additional equations are given by the partial derivatives 
 # and we have the corresponding specialization to the coefficients of `f`. 
+@doc raw"""
+    discriminant_complex(A::Union{Matrix, MatrixElem};
+        tautological_polynomial::MPolyRingElem=_tautological_polynomial(A), 
+        ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(tautological_polynomial, i) for i in 1:ncols(A)], tautological_polynomial)),
+        twist::FinGenAbGroupElem=zero(grading_group(ctx))
+      )
+
+Compute the discriminant for the monomial support set, whose exponent vectors 
+are given by the rows of `A`; cf. [GelfandKapranovZelevinsky94](@cite).
+"""
 function discriminant_complex(A::Union{Matrix, MatrixElem};
     tautological_polynomial::MPolyRingElem=_tautological_polynomial(A), 
     ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(tautological_polynomial, i) for i in 1:ncols(A)], tautological_polynomial)),
@@ -256,6 +326,30 @@ function discriminant_complex(f::MPolyRingElem;
   return a_resultant_complex(support_sets(ctx); ctx, twist)
 end
 
+@doc raw"""
+    discriminant(f::MPolyRingElem; 
+        ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(f, i) for i in 1:ngens(parent(f))], f)),
+        twist::FinGenAbGroupElem=zero(grading_group(ctx))
+      )
+
+Compute the discriminant of `f` as in [GelfandKapranovZelevinsky94](@cite).
+Note that the coefficients of `f` need not be in a field. 
+
+# Examples
+```jldoctest
+julia> supp = [0; 1; 2;;]
+3×1 Matrix{Int64}:
+ 0
+ 1
+ 2
+
+julia> f = Oscar._tautological_polynomial(supp)
+a_3*x1^2 + a_2*x1 + a_1
+
+julia> discriminant(f)
+-4*a_1*a_3^2 + a_2^2*a_3
+```
+"""
 function discriminant(f::MPolyRingElem; 
     ctx::ResultantCtx=ResultantCtx(pushfirst!([derivative(f, i) for i in 1:ngens(parent(f))], f)),
     twist::FinGenAbGroupElem=zero(grading_group(ctx))
