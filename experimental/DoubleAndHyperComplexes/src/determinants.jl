@@ -113,7 +113,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}},
     A = transpose(matrix(map(c, ind+1)))
     J, p = _find_minor(A[I, :], reduction_map)
     # update variables
-    result = is_odd(ind) ? result*p : result//p
+    result = is_even(ind) ? result*p : result//p
     I = Int[i for i in 1:ncols(A) if !(i in J)]
     r = ncols(A) - r
     ind += 1
@@ -136,7 +136,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}},
     A = matrix(map(c, ind))
     J, p = _find_minor(A[I, :], reduction_map)
     # update variables
-    result = is_even(ind) ? result*p : result//p
+    result = is_odd(ind) ? result*p : result//p
     I = Int[i for i in 1:ncols(A) if !(i in J)]
     r = ncols(A) - r
     ind -= 1
