@@ -1354,3 +1354,506 @@ function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
   return k::Int
 end
 
+########################################################################
+# Functionality for NewToricCtx
+########################################################################
+toric_variety(ctx::NewToricCtx) = ctx.X
+graded_ring(ctx::NewToricCtx) = ctx.S
+
+
+function ring_as_hypercomplex(ctx::NewToricCtx)
+  if !isdefined(ctx, :S1)
+    S = graded_ring(ctx)
+    ctx.S1 = ZeroDimensionalComplex(graded_free_module(S, [zero(grading_group(S))]))
+  end
+  return ctx.S1
+end
+
+function cech_complex_generators(ctx::NewToricCtx)
+  if !isdefined(ctx, :cech_gens)
+    ctx.cech_gens = gens(irrelevant_ideal(toric_variety(ctx)))
+  end
+  return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
+end
+
+# obtain all monomials of a given degree in the Cox ring. 
+function all_monomials(ctx::NewToricCtx, alpha::FinGenAbGroupElem)
+  return get!(ctx.all_monomial_cache, alpha) do
+    S = graded_ring(ctx)
+    collect(all_exponents(S, alpha))
+  end::Vector{Vector{Int}}
+end
+
+# obtain a dictionary for the inverse mapping of the above
+function all_monomials_inv(ctx::NewToricCtx, alpha::FinGenAbGroupElem)
+  return get!(ctx.all_monomial_inv_dicts, alpha) do
+    Dict{Vector{Int}, Int}(e=>i for (i, e) in enumerate(all_monomials(ctx, alpha)))
+  end
+end
+
+# get the Cox ring with its fine grading
+function fine_graded_ring(ctx::NewToricCtx)
+  if !isdefined(ctx, :fine_graded_ring)
+    S = graded_ring(ctx)
+    P = forget_grading(S)
+    F = free_abelian_group(ngens(P))
+    FS, _ = grade(P, gens(F))
+    ctx.fine_graded_ring = FS
+  end
+  return ctx.fine_graded_ring::MPolyDecRing
+end
+
+# get the sample complex Hom(P*, S) for the resolution P* of the `irrelevant_ideal`. 
+function sample_complex(ctx::NewToricCtx)
+  if !isdefined(ctx, :sample_complex)
+    S = fine_graded_ring(ctx)
+    X = toric_variety(ctx)
+    I = ideal(S, elem_type(S)[S(forget_grading(g)) for g in gens(irrelevant_ideal(X))])
+    res, _ = free_resolution(SimpleFreeResolution, I)
+    FG = grading_group(S)
+    ctx.sample_complex = hom(res, ZeroDimensionalComplex(graded_free_module(S, [zero(FG)])))
+  end
+  return ctx.sample_complex
+end
+
+# selects directly the sector for this degree
+function fine_strand(ctx::NewToricCtx, e::FinGenAbGroupElem)
+  return fine_strand(ctx, Int[Int(e[i]) for i in 1:ngens(parent(e))])
+end
+
+function fine_strand(ctx::NewToricCtx, e::Vector{Int})
+  k = sum(((c<0) << (k-1)) for (k, c) in enumerate(e); init=0)
+  return fine_strand(ctx, k)
+end
+
+# p is considered as a binary vector with its i-th digit ==1 if 
+# and only if the imagined exponent vector has its i-th component < 0.
+function fine_strand(ctx::NewToricCtx, p::Int)
+  return get!(ctx.fine_strands, p) do
+    FS = fine_graded_ring(ctx)
+    FG = grading_group(FS)
+    deg = sum(-((p >> (k-1))%2)*g for (k, g) in enumerate(gens(FG)); init=zero(FG))
+    res, _ = strand(sample_complex(ctx), deg; check=false)
+    return res
+  end
+end
+
+function simplified_fine_strand(ctx::NewToricCtx, p::Int)
+  return get!(ctx.simplified_fine_strands, p) do
+    simplify(fine_strand(ctx, p); with_homotopy_maps=true)
+  end
+end
+
+function simplified_fine_strand(ctx::NewToricCtx, e::FinGenAbGroupElem)
+  return simplified_fine_strand(ctx, Int[e[i] for i in 1:ngens(parent(e))])
+end
+
+function simplified_fine_strand(ctx::NewToricCtx, e::Vector{Int})
+  k = sum(((c<0) << (k-1)) for (k, c) in enumerate(e); init=0)
+  return simplified_fine_strand(ctx, k)
+end
+
+function getindex(ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
+  return getindex(ctx, first(e), alpha)
+end
+
+function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
+  G = parent(alpha)
+  S = graded_ring(ctx)
+  kk = coefficient_ring(S)
+  @assert G === grading_group(S)
+  return get!(ctx.strands, (e, alpha)) do
+    beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons = all_monomials(ctx, alpha+beta)
+    return DirectSumComplex(kk, [:chain], [fine_strand(ctx, ee.-e) for ee in all_mons])
+  end
+end
+
+# dirty catch of the edge case with an empty list of summands
+function DirectSumComplex(
+    R::Ring, dirs::Vector{Symbol}, summands::Vector
+  )
+  @assert isempty(summands) "non-empty list of summands but no useful type of the entries of that list; try preparing your list in a type-stable way"
+  ET = elem_type(R)
+  return DirectSumComplex(R, dirs, AbsHyperComplex{OFPModule{ET}, OFPModuleHom}[])
+end
+
+function simplified_strand(ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
+  return simplified_strand(ctx, first(e), alpha)
+end
+
+function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
+  return get!(ctx.simplified_strands, (e, alpha)) do
+    G = parent(alpha)
+    S = graded_ring(ctx)
+    kk = coefficient_ring(S)
+    @assert G === grading_group(S)
+    beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons = all_monomials(ctx, alpha+beta)
+    summands = [simplified_fine_strand(ctx, ee .- e ) for ee in all_mons]
+    @assert length(all_mons) == length(summands)
+    return DirectSumComplex(kk, [:chain], summands)
+  end
+end
+
+function induced_cohomology_map(
+    ctx::NewToricCtx, e0::Vector{Int},
+    e1::Vector{Int}, alpha::FinGenAbGroupElem,
+    i::Int
+  )
+  return induced_cohomology_map(ctx, first(e0), first(e1), alpha, i)
+end
+
+function induced_cohomology_map(
+    ctx::NewToricCtx, e0::Int,
+    e1::Int, alpha::FinGenAbGroupElem,
+    i::Int
+  )
+  return get!(ctx.induced_cohomology_maps, (e0, e1, alpha, i)) do 
+    dom = simplified_strand(ctx, e0, alpha)[i]
+    e0 == e1 && return identity_map(dom)
+    cod_str = simplified_strand(ctx, e1, alpha)
+    cod = cod_str[i]
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    if e0 <= e1
+      all_mons_dom = all_monomials(ctx, alpha + e0*delta)
+      all_mons_cod_inv = all_monomials_inv(ctx, alpha + e1*delta)
+      index_mapping = Int[all_mons_cod_inv[ee.+(e1 - e0)] for ee in all_mons_dom]
+      img_gens = elem_type(cod)[]
+      for (i, k) in enumerate(index_mapping)
+        #pr = canonical_projection(dom, i)
+        inc = canonical_injection(cod, k)
+        #@assert codomain(pr) === domain(inc)
+        img_gens = vcat(img_gens, images_of_generators(inc))
+      end
+      return hom(dom, cod, img_gens)
+    elseif e0 > e1
+      @assert e1 >= _minimal_exponent_vector(ctx, alpha)
+      orig = induced_cohomology_map(ctx, e1, e0, alpha, i)
+      @assert ngens(domain(orig)) == ngens(codomain(orig))
+      return inv(induced_cohomology_map(ctx, e1, e0, alpha, i))
+    else
+      error("not implemented")
+    end
+  end
+end
+
+function simplified_strand_homotopy(
+    ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
+  )
+  return simplified_strand_homotopy(ctx, first(e), alpha, p)
+end
+
+function simplified_strand_homotopy(
+    ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
+  )
+  return get!(ctx.simplified_strand_homotopies, (e, alpha, p)) do
+    dom = ctx[e, alpha][p]
+    cod = ctx[e, alpha][p+1]
+    S = graded_ring(ctx)
+    kk = coefficient_ring(S)
+    G = grading_group(S)
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons = all_monomials(ctx, alpha+e*delta)
+    maps = [homotopy_map(simplified_fine_strand(ctx, ee.-e), p) for ee in all_mons]
+    #for (k, phi) in enumerate(maps)
+      #@assert domain(phi) === codomain(canonical_projection(dom, k))
+      #@assert codomain(phi) === codomain(canonical_projection(cod, k))
+    #end
+    return _direct_sum(kk, maps; domain=dom, codomain=cod)
+  end
+end
+
+function simplified_strand_inclusion(
+    ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
+  )
+  return simplified_strand_inclusion(ctx, first(e), alpha, p)
+end
+
+function simplified_strand_inclusion(
+    ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
+  )
+  return get!(ctx.simplified_strand_inclusions, (e, alpha, p)) do
+    dom = simplified_strand(ctx, e, alpha)[p]
+    cod = ctx[e, alpha][p]
+    S = graded_ring(ctx)
+    kk = coefficient_ring(S)
+    G = grading_group(S)
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons = all_monomials(ctx, alpha+e*delta)
+    maps = FreeModuleHom{FreeMod{elem_type(kk)}, FreeMod{elem_type(kk)}, Nothing}[map_to_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
+    #for (k, phi) in enumerate(maps)
+      #@assert domain(phi) === codomain(canonical_projection(dom, k))
+      #@assert codomain(phi) === codomain(canonical_projection(cod, k))
+    #end
+    return _direct_sum(kk, maps; domain=dom, codomain=cod)
+  end
+end
+
+function simplified_strand_projection(
+    ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
+  )
+  return simplified_strand_projection(ctx, first(e), alpha, p)
+end
+
+function simplified_strand_projection(
+    ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
+  )
+  return get!(ctx.simplified_strand_projectionss, (e, alpha, p)) do
+    cod = simplified_strand(ctx, e, alpha)[p]
+    dom = ctx[e, alpha][p]
+    S = graded_ring(ctx)
+    kk = coefficient_ring(S)
+    G = grading_group(S)
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons = all_monomials(ctx, alpha+e*delta)
+    maps = [map_from_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
+    #for (k, phi) in enumerate(maps)
+      #@assert domain(phi) === codomain(canonical_projection(dom, k))
+      #@assert codomain(phi) === codomain(canonical_projection(cod, k))
+    #end
+    return _direct_sum(kk, maps; domain=dom, codomain=cod)
+  end
+end
+
+function cohomology_model(ctx::NewToricCtx, d::FinGenAbGroupElem)
+  get!(ctx.cohomology_models, d) do
+    simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
+  end
+end
+
+function cohomology_model_inclusion(ctx::NewToricCtx, d::FinGenAbGroupElem, i::Int)
+  return simplified_strand_inclusion(ctx, _minimal_exponent_vector(ctx, d), i)
+end
+
+function cohomology_model_projection(ctx::NewToricCtx, d::FinGenAbGroupElem, i::Int)
+  return simplified_strand_projection(ctx, _minimal_exponent_vector(ctx, d), i)
+end
+
+# return the minimal exponent `e`  such that the whole 
+# cohomology in degree `m` is contained in the truncated ̌complex for `e`.
+function _minimal_exponent_vector(ctx::NewToricCtx, m::FinGenAbGroupElem)
+  # TODO: Make this use the already build cache for the support sets! 
+  !isnothing(ctx.fixed_exponent_vector) && return ctx.fixed_exponent_vector::Int
+  return get!(ctx.exp_vec_cache, m) do
+    X = toric_variety(ctx)
+    return maximum([optimal_k(ctx, i, m) for i in 0:dim(X)])
+  end
+end
+
+function getindex(ctx::NewToricCtx, e0::Vector{Int}, e1::Vector{Int}, alpha::FinGenAbGroupElem)
+  return getindex(ctx, first(e0), first(e1), alpha)
+end
+
+function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
+  return get!(ctx.strand_inclusions, (e0, e1, alpha)) do
+    # TODO: This is not lazy!
+    @assert e0 <= e1
+    S = graded_ring(ctx)
+    G = grading_group(S)
+    @assert G === parent(alpha)
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons_dom = all_monomials(ctx, alpha + e0*delta)
+    all_mons_cod_inv = all_monomials_inv(ctx, alpha + e1*delta)
+    index_mapping = Int[all_mons_cod_inv[ee.+(e1 - e0)] for ee in all_mons_dom]
+    dom = ctx[e0, alpha]
+    cod = ctx[e1, alpha]
+    p = 0
+    map_dict = Dict{Tuple{Int}, FreeModuleHom}()
+    while p >= -dim(toric_variety(ctx)) && can_compute_index(dom, p) && can_compute_index(cod, p)
+      img_gens = elem_type(cod[p])[]
+      for (k, i) in enumerate(index_mapping)
+        #pr = canonical_projection(dom[p], k)
+        inc = canonical_injection(cod[p], i)
+        #@assert codomain(pr) === domain(inc)
+        img_gens = vcat(img_gens, images_of_generators(inc))
+      end
+      map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
+      p -= 1
+    end
+    return MorphismFromDict(dom, cod, map_dict)
+  end
+end
+
+function sample_multiplication(ctx::NewToricCtx, e0::Vector{Int}, e1::Vector{Int})
+  @assert all(i <= j for (i, j) in zip(e0, e1))
+  return sample_multiplication(ctx, sum((i < 0) << (k-1) for (k, i) in enumerate(e0); init=0),
+                               sum((i < 0) << (k-1) for (k, i) in enumerate(e1); init=0)
+                              )
+end
+
+function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
+  return get!(ctx.fine_strand_morphisms, (e0, e1)) do
+    dom = fine_strand(ctx, e0)
+    cod = fine_strand(ctx, e1)
+    delta = e0 - e1
+    S = fine_graded_ring(ctx)
+    #ee0 = Int[-(e0 >> (k-1))%2 for k in 1:ngens(S)]
+    #ee1 = Int[-(e1 >> (k-1))%2 for k in 1:ngens(S)]
+    #@show ee0, ee1
+    delta_exp = Int[-(delta >> (k-1))%2 for k in 1:ngens(S)]
+    #@show delta_exp
+    mon = prod(x^(-k) for (k, x) in zip(delta_exp, gens(S)); init=one(S))
+    #@show mon
+    p = 0
+    map_dict = Dict{Tuple{Int}, OFPModuleHom}()
+    while p >= -dim(toric_variety(ctx)) && can_compute_index(dom, p) && can_compute_index(cod, p)
+      inc = inclusion_map(dom)[p]
+      pr = projection_map(cod)[p]
+      imgs = [mon*inc(v) for v in gens(dom[p])]
+      @assert all(degree(v; check=false) == degree(cod) for v in imgs)
+      img_gens = elem_type(cod[p])[pr(v) for v in imgs]
+      !is_zero(dom[p]) && @assert !is_zero(img_gens)
+      map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
+      p -= 1
+    end
+    return MorphismFromDict(dom, cod, map_dict)
+  end
+end
+
+function multiplication_map(
+    ctx::NewToricCtx, 
+    p::MPolyDecRingElem,
+    e0::Vector{Int}, alpha::FinGenAbGroupElem, 
+    j::Int
+  )
+  return multiplication_map(ctx, p, first(e0), alpha, j)
+end
+
+function multiplication_map(
+    ctx::NewToricCtx, 
+    p::MPolyDecRingElem,
+    e0::Int, alpha::FinGenAbGroupElem, 
+    j::Int
+  )
+  cache = get!(ctx.mult_map_cache, (e0, alpha, j)) do
+    WeakKeyDict{typeof(p), Map}()
+  end
+  neg_res = get(cache, -p, nothing)
+  !isnothing(neg_res) && return MapFromFunc(domain(neg_res), codomain(neg_res), v->-neg_res(v))
+  return get!(cache, p) do
+    beta = alpha + degree(p; check=false)
+    dom_cplx = ctx[e0, alpha]
+    cod_cplx = ctx[e0, beta]
+    dom = dom_cplx[j]
+    cod = cod_cplx[j]
+    S = graded_ring(ctx)
+    @assert S === parent(p)
+    G = grading_group(S)
+    delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
+    all_mons_dom = all_monomials(ctx, alpha + e0*delta)
+    all_mons_cod_inv = all_monomials_inv(ctx, beta + e0*delta)
+    #img_gens = elem_type(cod)[zero(cod) for _ in 1:ngens(dom)]
+    # TODO: Make this efficient by building the morphism directly 
+    # from inplace operations on SRows.
+    kk = coefficient_ring(S)
+    img_gens = sparse_matrix(kk, 0, ngens(cod))
+    for _ in 1:ngens(dom)
+      push!(img_gens, sparse_row(kk))
+    end
+    #result = hom(dom, cod, elem_type(cod)[zero(cod) for _ in 1:ngens(dom)])
+    for (k, ee) in enumerate(all_mons_dom)
+      #pr = canonical_projection(dom, k)
+      inc_dom = canonical_injection(dom, k)
+      for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
+        sample = sample_multiplication(ctx, ee.-e0, (ee + eee).-e0)[j]
+        #@assert codomain(pr) === domain(sample)
+        inc = canonical_injection(cod, all_mons_cod_inv[ee+eee])
+        psi = compose(sample, inc)
+        psi_imgs = images_of_generators(psi)
+        for (ii, v) in enumerate(images_of_generators(inc_dom))
+          jj, _ = only(coordinates(v))
+          Hecke.add_scaled_row!(coordinates(psi_imgs[ii]), img_gens[jj], c)
+        end
+        @assert codomain(sample) === domain(inc)
+        #result += compose(pr, c*compose(sample, inc))
+      end
+    end
+    res = hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens])
+    #@assert res == result
+    res
+  end
+end
+
+function support_set(ctx::NewToricCtx, p::Int)
+  return get!(ctx.support_sets, p) do 
+    X = toric_variety(ctx)
+    S = graded_ring(ctx)
+    n = ngens(S)
+    result = Int[]
+    for i in 0:2^n-1
+      s = fine_strand(ctx, i)
+      r = ngens(s[-p])
+      if !is_zero(p)
+        r -= get!(ctx.fine_strand_map_ranks, (i, -p+1)) do
+          rank(matrix(map(s, -p+1)))
+        end
+      end
+      if p != dim(X)
+        r -= get!(ctx.fine_strand_map_ranks, (i, -p)) do
+          rank(matrix(map(s, -p)))
+        end
+      end
+      !is_zero(r) && push!(result, i)
+      # s = simplified_fine_strand(ctx, i)
+      # !is_zero(s[-p]) && push!(result, i)
+    end
+    result
+  end
+end
+
+function optimal_k(ctx::NewToricCtx, i::Int, alpha::FinGenAbGroupElem)
+  return get!(ctx.optimal_ks, (i, alpha)) do
+    X = toric_variety(ctx)
+    k = 0
+    S = cox_ring(X)
+    G = grading_group(S)
+    n = ngens(S)
+    @assert 0 <= i <= dim(X) "index out of bounds"
+    @assert parent(alpha) === G "degree does not belong to the grading group"
+    Sigma_i = support_set(ctx, i)
+    alpha_vec = elem_type(ZZ)[alpha[i] for i in 1:rank(G)]
+    phi = map_from_torusinvariant_weil_divisor_group_to_class_group(X)
+    A = transpose(matrix(phi))
+    for I in Sigma_i
+      #expanded = [(I >> j)%2 for j in 0:n-1]
+      L_I = zero_matrix(ZZ, n, n)
+      for j in 1:n
+        L_I[j, j] = is_zero((I >> (j-1))%2) ? -1 : 1
+      end
+      D = vcat(L_I, A, -A)
+      #b = vcat(elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n], alpha_vec, -alpha_vec)
+      b = elem_type(ZZ)[is_zero((I >> (j-1))%2) ? 0 : -1 for j in 1:n]
+      #@show L_I
+      #@show b
+      #@show A
+      #@show alpha_vec
+      #P = polyhedron(QQ, D, b)
+      @assert nrows(A) == length(alpha_vec)
+      @assert ncols(L_I) == ncols(A)
+      #return L_I, b, A, alpha_vec
+      P = polyhedron((L_I, b), (A, alpha_vec))
+      #@show is_bounded(P)
+      #!is_bounded(P) && error("polyhedron not bounded")
+      #@show lattice_points(P)
+      for j in 1:n
+        is_zero((I >> (j-1))%2) && continue
+        l = elem_type(ZZ)[i == j ? 1 : 0 for i in 1:n]
+        #lp = linear_program(P, l)
+        #v1, _ = solve_lp(lp)
+        lp = linear_program(P, -l)
+        v, _ = solve_lp(lp)
+        isnothing(v) && break # empty polyhedron
+        is_infinite(v) && error("polyhedron not bounded")
+        #@show j, v
+        if v > k
+          k = Int(floor(v))
+        end
+      end
+    end
+    return k
+  end::Int
+end
+
