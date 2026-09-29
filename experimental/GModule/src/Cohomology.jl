@@ -1454,13 +1454,13 @@ end
 Compute a free resolution of the group algebra as left modules.
 The resolution can be extended.
 """
-function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cached::Bool = true)
+function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cached::Bool = true, one_only::Bool = false)
   G = group(ZG)
 
   @assert side in [:right, :left]
   is_left = side == :left
 
-  if cached 
+  if cached  && !one_only
     a = get_attribute(ZG, :free_res)
     if isnothing(a) 
       a = Dict{Symbol, Any}()
@@ -1472,38 +1472,46 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
     end
   end
 
-  if !force_rws && (isa(G, PcGroup) || is_solvable(G))
-    @vprint :GroupCohomology 2 "using pc-presentation ...\n"
-    FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
-    use_pc = true
+  if one_only
+    FF = G
+    mFF = identity_map(G)
+    R = [[word(x[1]), word(x[2])] for x = relations(G)]
+    n = length(R)
+    pos = collect(1:n)
   else
-    @vprint :GroupCohomology 2 "using generic rws ...\n"
-    FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
-    use_pc = false
-  end
-  #TODO add case for GrpExt
-  #     need to make CollectCtx accessible
-  c = CollectCtx(R)
-
-  #rules with length(LHS) == 1 and rules of the form
-  # [a a^-1] -> [], [a^-1 a] -> [] do not get tails
-  pos = Vector{Int}()
-  n = 0
-  for i = 1:length(R)
-    r = R[i]
-    if length(r[1]) == 1
-      push!(pos, 0)
-      continue
+    if !force_rws && (isa(G, PcGroup) || is_solvable(G))
+      @vprint :GroupCohomology 2 "using pc-presentation ...\n"
+      FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
+      use_pc = true
+    else
+      @vprint :GroupCohomology 2 "using generic rws ...\n"
+      FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
+      use_pc = false
     end
-    if length(r[1]) == 2 && length(r[2]) == 0 && r[1][1] == -r[1][2]
-      push!(pos, 0)
-      continue
-    end
-    n += 1
-    push!(pos, n)
-  end
+    #TODO add case for GrpExt
+    #     need to make CollectCtx accessible
+    c = CollectCtx(R)
 
-  @vprint :GroupCohomology 1 "will need $n equations for H^2\n"
+    #rules with length(LHS) == 1 and rules of the form
+    # [a a^-1] -> [], [a^-1 a] -> [] do not get tails
+    pos = Vector{Int}()
+    n = 0
+    for i = 1:length(R)
+      r = R[i]
+      if length(r[1]) == 1
+        push!(pos, 0)
+        continue
+      end
+      if length(r[1]) == 2 && length(r[2]) == 0 && r[1][1] == -r[1][2]
+        push!(pos, 0)
+        continue
+      end
+      n += 1
+      push!(pos, n)
+    end
+
+    @vprint :GroupCohomology 1 "will need $n equations for H^2\n"
+  end
 
   #the free-res should be
   #     A       B       C
@@ -1529,6 +1537,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
   end
  
   function fill(::ComplexOfMorphisms, idx::Int)
+    @assert !one_only || idx < 3
     if idx == 2
       local to_1chain::Function
       for i=1:length(R)
@@ -1840,8 +1849,10 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
   #          (allows to do group operations in group extension)
   #         from this H^2 <-> 2-Chain (in bar-complex)
   # does this even make sense on the ZG-level?
-  set_attribute!(Cpx, :collect => (mFF, c))
-  if cached
+  if !one_only
+    set_attribute!(Cpx, :collect => (mFF, c))
+  end
+  if cached && !one_only
     get_attribute(ZG, :free_res)[side] = Cpx
   end
   return Cpx
