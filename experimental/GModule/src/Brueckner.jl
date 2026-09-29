@@ -166,8 +166,16 @@ Given
 Find a set of primes such that if there is any irreducible F_p module M
 s.th. there is an epimorphism of G onto the extension of Q by M,
 the p is in the set.
+
+If `easy` is set to false, then only the primes coming from the maximal abelian quotient are returned. This is faster - but not alwasy enough.
 """
-function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
+function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup}; easy::Bool = false)
+  if easy
+    inv = abelian_invariants(kernel(mp)[1])
+    #TODO: is this a good idea? kernel might be expensive...
+    @req !(0 in inv) "the kernel has infinite abelianization, so every prime is admissible; pass `primes`"
+    return sort!(unique!(reduce(vcat, (prime_divisors(x) for x in inv), init = ZZRingElem[])))
+  end
   G = domain(mp)
   Q = codomain(mp)
   if order(Q) == 1
@@ -181,7 +189,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
   end
   lp = Set(prime_divisors(order(Q)))
-  ZG = free_res(group_algebra(ZZ, G); side = :right)
+  ZG = free_res(group_algebra(ZZ, G); side = :right, one_only = true)
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
     ia = gmodule(FinGenAbGroup, ib)
@@ -217,7 +225,9 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     TODO: this is not (yet) implemented this way
     =#
     q = cokernel(b)[1]
-#    q = quo(kernel(da)[1], image(db)[1])[1]
+    #careful: if the rank of the image is < then the rank of the (free bit)
+    #of the kernel, then there are infinite extension possible, i.e. all primes
+    #Lemma 1, p27
     t = torsion_subgroup(q)[1]
     if order(t) > 1
       push!(lp, prime_divisors(order(t))...)
@@ -241,13 +251,13 @@ Implements the SQ-Algorithm by Brueckner, Chap 1.3
 
 If necessary, the prime(s) p that can be used are computed as well.
 """
-function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit::Int = typemax(Int))
+function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit::Int = typemax(Int), easy::Bool = false)
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
   if length(primes) == 0
     @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-    lp = find_primes(mQ) 
+    lp = find_primes(mQ; easy) 
   else
     lp = map(ZZRingElem, primes)
   end
@@ -303,7 +313,6 @@ end
 function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
-  global last_lift = (C, mp)
 
   G = domain(mp)
   N = group(C)
@@ -329,9 +338,28 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
    this needs to be "collected"
   =#
 
-  D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
-  K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
+  #@assert ngens(G) > 0 && length(R) > 0
+  if ngens(G) == 0
+    D = sub(M, [zero(M)])[1]
+    pro = [zero_map(D, M)]
+    inj = [zero_map(M, D)]
+  else
+    D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
+  end
+  #hopefully, if ngens(G) == 0, then the group is trivial and hopefully
+  #we're not getting here...
+  if length(R) == 0
+    K = free_module(base_ring(M), 0)
+    pK = [zero_map(K, M)]
+    iK = [zero_map(M, K)]
+  else
+    K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
+  end
+  #if ngens(G) > 0 and length(R) == 0 the group is infinite
+  #and we should not get here...
   S = relators(N)
+  # length(S) == 0 can happen in the very 1st step: we might start
+  # by G ->> trivial pc group
   if length(S) != 0
     X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
@@ -350,8 +378,8 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     end
     #this is not linear... suppose R = (gh), then with tails:
     # ((g,x)(h,y)) -> (gh, x^h+y+sigma(g,h)) "=" (1, x^h+y+sigma(g,h))
-
     s = hom(D, K, im)
+
 #    s = hom(D, K, [sum([iK[i](map_word(R[i], [GG(mp(G[j]), pro[j](h)) for j=1:ngens(G)]).m) for i=1:length(R)]) for h = gens(D)])
 
     # G -> GG  g -> (mp(g), n), rel(G)() -> (1, 0) 
@@ -374,19 +402,20 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     end
     k, mk = kernel(s)
     for x = k
-      im = [(GG(mp(G[i]), pro[i](mk(x)+pe))) for i=1:ngens(G)]
-#      @show [map_word(R[i], im) for i=1:length(R)]
+      im = [(GG(mp(G[i]), pro[i](mk(x)-pe))) for i=1:ngens(G)]
+      #@show [map_word(R[i], im) for i=1:length(R)]
       im = map(mGG_PC, im)
-#      @show [map_word(R[i], im) for i=1:length(R)]
+      #@show [map_word(R[i], im) for i=1:length(R)]
       hm = hom(G, codomain(mGG_PC), im)
       if !split || is_surjective(hm)
         push!(allG, hm)
+        length(allG) >= limit && return allG
       else
         @assert split
 #        @show :not_sur
       end
     end
-    return res
+    return allG
   end
 
 
@@ -417,6 +446,19 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
 end
 
 function solvable_quotient(G::Oscar.GAPGroup)
+  A, _ = maximal_abelian_quotient(G)
+  if is_finite(A)
+    # not `maximal_abelian_quotient(PcGroup, G)`: GAP hands back a pc group on
+    # a non-canonical pcgs for some inputs, and `isomorphism(PcGroup, .)`
+    # refuses those. Going through `FinGenAbGroup` always gives a full pc
+    # group, which `reps` needs.
+    B, mB = maximal_abelian_quotient(FinGenAbGroup, G)
+    iso = isomorphism(PcGroup, B)
+    return hom(G, codomain(iso), [iso(mB(x)) for x in gens(G)])
+  else
+#    error("group must be finite - this one has an infinite maximal abelian quotient")
+  end
+  #the old version: start deliberately with the trivial quotient
   q = cyclic_group(1)
   mp = hom(G, q, [one(q) for g in gens(G)])
 end
@@ -426,7 +468,7 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
     lf = factor(ZZRingElem(index))
     primes = prime_divisors(ZZ(index))
     while length(primes) > 0
-      @time nw = brueckner(mp; limit = 1, primes)
+      @vtime :BruecknerSQ 2 nw = brueckner(mp; limit = 1, primes)
       if length(nw) == 0 
         return mp
       end
@@ -441,11 +483,19 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
     return mp
   end
   while true
-    nw = brueckner(mp; limit = 1, primes)
+    nw = brueckner(mp; limit = 1, primes, easy = true)
+    #easy == true means use primes from the max. ab. quotient only
+    #as this is not enough, we need to try harder
+    #TODO: fix the logic so that ONLY the new primes are actually tested
+    if length(nw) == 0 && length(primes) == 0
+      primes = setdiff(find_primes(mp; easy = false), find_primes(mp; easy = true))
+      nw = brueckner(mp; limit = 1, easy = false)
+    end
     if length(nw) == 0
       return mp
     end
     mp = nw[1]
+    @vprint :BruecknerSQ 2 "found quotient of order $(order(codomain(mp)))\n"
   end
 end
 

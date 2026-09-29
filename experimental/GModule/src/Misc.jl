@@ -413,7 +413,7 @@ end
 import Base:*
 *(a::ZZRingElem, phi::AbstractAlgebra.Generic.ModuleHomomorphism{ZZRingElem}) = hom(domain(phi), codomain(phi), a*matrix(phi))
 
-*(c::ZZRingElem, v::AbstractAlgebra.FPModuleElem{T}) where T<:RingElement = base_ring(parent(v))(c)*v
+*(c::ZZRingElem, v::AbstractAlgebra.FPModuleElem{T}) where T<:FinFieldElem = base_ring(parent(v))(c)*v
 
 end # module
 using .Misc
