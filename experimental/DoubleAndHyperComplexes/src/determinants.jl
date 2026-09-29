@@ -83,7 +83,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}},
   end
   c[ind]::FreeMod
   R = base_ring(c[ind])
-  result = one(R)
+  result = one(fraction_field(R))
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
   while can_compute_map(c, ind) && !is_zero(map(c, ind))
@@ -106,7 +106,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_left_to_right}},
     ind += 1
   end
   R = base_ring(c[ind])
-  result = one(R)
+  result = one(fraction_field(R))
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
   while can_compute_map(c, ind+1) && !is_zero(map(c, ind+1))
@@ -129,7 +129,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}},
     ind -= 1
   end
   R = base_ring(c[ind])
-  result = one(R)
+  result = one(fraction_field(R))
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
   while can_compute_map(c, ind) && !is_zero(map(c, ind))
@@ -152,7 +152,7 @@ function _det(c::AbsHyperComplex, ::Type{Val{:from_right_to_left}},
     ind -= 1
   end
   R = base_ring(c[ind])
-  result = one(R)
+  result = one(fraction_field(R))
   r = ngens(c[ind]) # the rank of the current map
   I = collect(1:r)
   while can_compute_map(c, ind-1) && !is_zero(map(c, ind-1))
