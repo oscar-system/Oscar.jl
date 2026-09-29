@@ -90,7 +90,7 @@ function (fac::DirectImageChainFactory{ChainType})(self::AbsHyperComplex, I::Tup
       dd = degree(g; check=false)
       coh_mod = cohomology_model(ctx, -dd)
       str = coh_mod[-k]
-push!(micro_summands, str)
+      push!(micro_summands, str)
       push!(micro_ranges, macro_offset+micro_offset+1:macro_offset+micro_offset+ngens(str))
       micro_offset += ngens(str)
     end
