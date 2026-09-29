@@ -33,7 +33,7 @@ function _derived_pushforward(M::FreeMod)
   d = sum((d[i] < 0 ? 0 : d[i])*G[i] for i in 1:r; init=zero(G))
 
   g = vcat([[x^(Int(d[i])) for x in v] for (i, v) in enumerate(variables)]...)
-  kosz = [shift(Oscar.HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[1:length(v)], 1) for (i, v) in enumerate(variables)]
+  kosz = [shift(HomogKoszulComplex(S, [x^(Int(d[i])) for x in v])[1:length(v)], 1) for (i, v) in enumerate(variables)]
   K = simplify(total_complex(tensor_product(kosz)))
 
   KoM = hom(K, M)
@@ -66,17 +66,17 @@ function _derived_pushforward(M::FreeMod{T}, seq::Vector{T}) where {T <: RingEle
 end
 
 function _derived_pushforward(M::SubquoModule{T}, seq::Vector{T}) where {T <: RingElem}
-  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  res, _ = free_resolution(SimpleFreeResolution, M)
   return _derived_pushforward(res, seq)
   S = base_ring(M)
   @assert all(parent(x) === S for x in seq)
   n = length(seq)
   Sd = graded_free_module(S, [0 for i in 1:n])
   v = sum(seq[i]*Sd[i] for i in 1:n; init=zero(Sd))
-  kosz = koszul_complex(Oscar.KoszulComplex, v)
-  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+  kosz = koszul_complex(KoszulComplex, v)
+  K = shift(DegreeZeroComplex(kosz)[1:n+1], 1)
 
-  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  res, _ = free_resolution(SimpleFreeResolution, M)
   KoM = hom(K, res)
   tot = total_complex(KoM)
   tot_simp = simplify(tot)
@@ -94,8 +94,8 @@ function _derived_pushforward(comp::AbsHyperComplex, seq::Vector{T}) where {T <:
   n = length(seq)
   Sd = graded_free_module(S, [0 for i in 1:n])
   v = sum(seq[i]*Sd[i] for i in 1:n; init=zero(Sd))
-  kosz = koszul_complex(Oscar.KoszulComplex, v)
-  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+  kosz = koszul_complex(KoszulComplex, v)
+  K = shift(DegreeZeroComplex(kosz)[1:n+1], 1)
 
   KoM = hom(K, comp)
   tot = total_complex(KoM)
@@ -114,10 +114,10 @@ function _derived_pushforward(M::SubquoModule, bound::Int)
 
   Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
   v = sum(x^bound*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
-  kosz = koszul_complex(Oscar.KoszulComplex, v)
-  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+  kosz = koszul_complex(KoszulComplex, v)
+  K = shift(DegreeZeroComplex(kosz)[1:n+1], 1)
 
-  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  res, _ = free_resolution(SimpleFreeResolution, M)
   KoM = hom(K, res)
   tot = total_complex(KoM)
   tot_simp = simplify(tot)
@@ -142,8 +142,8 @@ function _derived_pushforward(M::SubquoModule{T}) where {T <:MPolyRingElem{<:Fie
 
   Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
   v = sum(x^d*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
-  kosz = koszul_complex(Oscar.KoszulComplex, v)
-  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+  kosz = koszul_complex(KoszulComplex, v)
+  K = shift(DegreeZeroComplex(kosz)[1:n+1], 1)
 
   pres = presentation(M)
   N, _ = cokernel(map(pres, 1))
@@ -334,7 +334,7 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int})
     S = graded_ring(ctx)
     G = grading_group(S)
     cod = ring_as_hypercomplex(ctx)
-    kosz = [shift(hom(Oscar.HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)]), cod)[-dimension(ctx, j)-1:-1], -1) for j in 1:number_of_factors(ctx)]
+    kosz = [shift(hom(HomogKoszulComplex(S, elem_type(S)[S[i]^alpha[i] for i in variable_group_indices(ctx, j)]), cod)[-dimension(ctx, j)-1:-1], -1) for j in 1:number_of_factors(ctx)]
     K = total_complex(tensor_product(kosz))
     return K
   end
@@ -427,7 +427,7 @@ function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, beta::Vector{Int})
       for (i, p, q) in zip(1:d+1, a_seq, b_seq)
         push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
       end
-      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
+      ind_kosz = InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
       ind_hom = hom(ind_kosz, codomain(a_fac_untrunc); domain=a_fac_untrunc, codomain=b_fac_untrunc)
       ind_trunc = ind_hom[-d-1:-1, domain=a_fac_unshift, codomain=b_fac_unshift]
       ind_shift = shift(ind_trunc, [-1]; domain=a_fac, codomain=b_fac)
@@ -837,7 +837,7 @@ function getindex(ctx::ToricCtx, alpha::Vector{Int}, beta::Vector{Int})
       for (i, (p, q)) in enumerate(zip(a_seq, b_seq))
         push!(trans_mat, sparse_row(S, [(i, divexact(q, p))]))
       end
-      ind_kosz = Oscar.InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
+      ind_kosz = InducedKoszulMorphism(b_kosz, a_kosz; transition_matrix=trans_mat)
       ind_kosz_trunc = ind_kosz[1:n, domain=b_unshift, codomain=a_unshift]
       ind_kosz_shift = shift(ind_kosz_trunc, [1]; domain=b_dom, codomain=a_dom)
       hom(ind_kosz_shift, codomain(c_alpha); domain=c_alpha, codomain=c_beta)
@@ -1258,8 +1258,8 @@ end
   J = ideal(S_fine, elem_type(S_fine)[S_fine(forget_grading(x)) for x in gens(B)])
   A, _ = quo(S_fine, J)
   S_fine1 = graded_free_module(S_fine, [zero(D)])
-  res_A, _ = free_resolution(Oscar.SimpleFreeResolution, A)
-  hom_complex = hom(res_A, Oscar.ZeroDimensionalComplex(S_fine1))
+  res_A, _ = free_resolution(SimpleFreeResolution, A)
+  hom_complex = hom(res_A, ZeroDimensionalComplex(S_fine1))
   for i in 0:n
     list = get!(Sigma, i) do
       Vector{Int}[]

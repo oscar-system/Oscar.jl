@@ -149,8 +149,8 @@ function a_resultant_complex(support_sets::Vector{T};
   @assert length(support_sets) == n+1 "wrong number of support sets"
 
   S_ext = extended_cox_ring(ctx)
-  K = Oscar.HomogKoszulComplex(S_ext, homogeneous_tautological_polynomials(ctx))
-  t = Oscar.ZeroDimensionalComplex(graded_free_module(S_ext, [-twist]))
+  K = HomogKoszulComplex(S_ext, homogeneous_tautological_polynomials(ctx))
+  t = ZeroDimensionalComplex(graded_free_module(S_ext, [-twist]))
   Kt = tensor_product(K, t)
   return DirectImageComplex(outer_ctx(ctx), Kt)
 end
@@ -226,7 +226,7 @@ julia> ctx = Oscar.ResultantCtx(supps);
 julia> G = grading_group(ctx)
 Z
 
-julia> is_associated(delta, Oscar.a_resultant(supps; ctx, twist=G[1]))
+julia> is_associated(delta, a_resultant(supps; ctx, twist=G[1]))
 true
 
 ```
@@ -271,8 +271,8 @@ function a_resultant_complex(F::Vector{T};
     twist::FinGenAbGroupElem=zero(grading_group(ctx))
   ) where {T<:MPolyRingElem}
   S_ext = extended_cox_ring(ctx)
-  K = Oscar.HomogKoszulComplex(S_ext, homogeneous_tautological_polynomials(ctx))
-  t = Oscar.ZeroDimensionalComplex(graded_free_module(S_ext, [-twist]))
+  K = HomogKoszulComplex(S_ext, homogeneous_tautological_polynomials(ctx))
+  t = ZeroDimensionalComplex(graded_free_module(S_ext, [-twist]))
   Kt = tensor_product(K, t)
   return DirectImageComplex(outer_toric_ctx_object, Kt)
 end
