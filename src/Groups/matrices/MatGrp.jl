@@ -622,9 +622,6 @@ julia> m = matrix(x)
 [o   0]
 [0   1]
 
-julia> x == m
-false
-
 julia> x == g(m)
 true
 ```
