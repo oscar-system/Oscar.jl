@@ -1103,6 +1103,7 @@ end
 function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      vertex_distinguishable::Bool=true,
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
+  
   G_map = getproperty(G, label)
   label_type = typeof(G_map[first(edges(G))])
   vertices_by_label = !isnothing(G_map.vertex_map) ?
@@ -1217,7 +1218,7 @@ function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          seed::Int=42)
   isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
   G_map = getproperty(G, label)
-  isnothing(G_map.edge_map) && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
+  isnothing(G_map.edge_map) && vertex_distinguishable && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
   new_G = _edge_label_to_vertex_label(G, label;
                                       edge_distinguishable=edge_distinguishable,
                                       vertex_distinguishable=vertex_distinguishable)
@@ -1232,7 +1233,7 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
   isnothing(label) && return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G)))
 
   G_map = getproperty(G, label)
-  if isnothing(G_map.edge_map)
+  if isnothing(G_map.edge_map) && vertex_distinguishable
     return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)])))
   end
 
@@ -1659,9 +1660,23 @@ function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}
   isnothing(G_map1.edge_map) == isnothing(G_map2.edge_map) || return false
   isnothing(G_map1.vertex_map) == isnothing(G_map2.vertex_map) || return false
 
-  canon_g1 = _canonical_form(g1; label=label, vertex_distinguishable=vertex_distinguishable, edge_distinguishable=edge_distinguishable)
-  canon_g2 = _canonical_form(g2; label=label, vertex_distinguishable=vertex_distinguishable, edge_distinguishable=edge_distinguishable)
-  return canon_g1 == canon_g2
+  isnothing(G_map1.edge_map) && vertex_distinguishable && return _canonical_form(g1; label=label) == _canonical_form(g2; label=label)
+
+  # the vertex labels of the gadget graph only encode the position of a label in
+  # the sorted list of labels, so distinguishable labels also need to agree as sets
+  if vertex_distinguishable && !isnothing(G_map1.vertex_map)
+    Set(G_map1[v] for v in 1:n_vertices(g1)) == Set(G_map2[v] for v in 1:n_vertices(g2)) || return false
+  end
+  if edge_distinguishable && !isnothing(G_map1.edge_map)
+    Set(G_map1[e] for e in edges(g1)) == Set(G_map2[e] for e in edges(g2)) || return false
+  end
+
+  # compare the canonical forms of the gadget graphs, the canonical forms of g1 and g2
+  # keep the original label values and so are not invariant under renaming labels
+  new_g1 = _edge_label_to_vertex_label(g1, label; vertex_distinguishable, edge_distinguishable)
+  new_g2 = _edge_label_to_vertex_label(g2, label; vertex_distinguishable, edge_distinguishable)
+  n_vertices(new_g1) == n_vertices(new_g2) || return false
+  return _canonical_form(new_g1; label=:edge_to_vertex) == _canonical_form(new_g2; label=:edge_to_vertex)
 end
 
 @doc raw"""
