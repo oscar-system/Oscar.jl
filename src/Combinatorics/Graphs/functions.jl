@@ -1298,7 +1298,7 @@ function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwa
   isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
 
   p = _canonical_perm(G; label=label, kwargs...)
-  return _permute_nodes_and_label(G, p, [label])
+  return _permute_nodes_and_labels(G, p, [label])
 end
 
 
@@ -1649,17 +1649,19 @@ julia> is_isomorphic(vertex_edge_graph(cube(3)), dual_graph(cube(3)))
 false
 ```
 """
-function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing,
+                       vertex_distinguishable::Bool=true, edge_distinguishable::Bool=true) where {T <: Union{Directed, Undirected}}
   isnothing(label) && return Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
 
-  if isnothing(Oscar._graph_maps(g1)[label].edge_map)
-    !isnothing(Oscar._graph_maps(g2)[label].edge_map) && return false
-  end
-  if isnothing(Oscar._graph_maps(g1)[label].vertex_map)
-    !isnothing(Oscar._graph_maps(g2)[label].vertex_map) && return false
-  end
+  n_vertices(g1) == n_vertices(g2) && n_edges(g1) == n_edges(g2) || return false
+  G_map1 = Oscar._graph_maps(g1)[label]
+  G_map2 = Oscar._graph_maps(g2)[label]
+  isnothing(G_map1.edge_map) == isnothing(G_map2.edge_map) || return false
+  isnothing(G_map1.vertex_map) == isnothing(G_map2.vertex_map) || return false
 
-  error("Not implemented yet")
+  canon_g1 = _canonical_form(g1; label=label, vertex_distinguishable=vertex_distinguishable, edge_distinguishable=edge_distinguishable)
+  canon_g2 = _canonical_form(g2; label=label, vertex_distinguishable=vertex_distinguishable, edge_distinguishable=edge_distinguishable)
+  return canon_g1 == canon_g2
 end
 
 @doc raw"""

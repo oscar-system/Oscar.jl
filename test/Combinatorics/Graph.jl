@@ -474,6 +474,21 @@
       p2 = Oscar._canonical_perm(G2; label=:label)
 
       @test on_graph(G1, inv(perm(symmetric_group(4), p2)) * perm(symmetric_group(4), p1)) == G2
+
+      # 4-edge-colorings of K5 whose _canonical_hash collides (seed 42) although
+      # they are not isomorphic, even up to renaming colors
+      G1 = graph_from_labeled_edges(Dict((1,4)=>1, (3,4)=>1, (4,5)=>2, (1,2)=>3, (1,3)=>3, (2,3)=>3,
+                                         (1,5)=>4, (2,4)=>4, (2,5)=>4, (3,5)=>4))
+      G2 = graph_from_labeled_edges(Dict((1,4)=>1, (1,5)=>1, (2,5)=>1, (3,5)=>1, (2,4)=>2,
+                                         (1,2)=>3, (1,3)=>3, (2,3)=>3, (3,4)=>4, (4,5)=>4))
+      @test !is_isomorphic(G1, G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
+
+      # isomorphic after permuting vertices and renaming edge colors
+      G1 = graph_from_labeled_edges(Dict((1,2)=>1, (1,3)=>2, (1,4)=>3, (1,5)=>2, (2,3)=>3,
+                                         (2,4)=>2, (2,5)=>2, (3,4)=>1, (3,5)=>1, (4,5)=>1))
+      G2 = graph_from_labeled_edges(Dict((1,2)=>2, (1,3)=>2, (1,4)=>3, (1,5)=>3, (2,3)=>3,
+                                         (2,4)=>1, (2,5)=>2, (3,4)=>2, (3,5)=>1, (4,5)=>3))
+      @test is_isomorphic(G1, G2; label=:label, vertex_distinguishable=false, edge_distinguishable=false)
     end
 
     @testset "on_graph" begin
