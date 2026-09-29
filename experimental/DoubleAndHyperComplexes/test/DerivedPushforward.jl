@@ -317,21 +317,6 @@ end
     phiv = Oscar.apply_weyman_differential(mv)
     @test is_zero(first(phiv))
   end
-
-# F = res[-5]
-# for k in 1:ngens(F)
-#   # k = 26
-#   mv = Oscar.MacroVec(wctx, -5, 4, :cohomology);
-#   alpha = -degree(F[k])
-#   e = Oscar._minimal_exponent_vector(ctx, alpha)
-#   h4 = Oscar.simplified_strand(ctx, e, alpha)[-4]
-#   for w in gens(h4)
-#     # w = h4[23]
-#     v = Oscar.MicroVec(mv, k, e, w);
-#     a = Oscar.apply_weyman_differential(Oscar.MacroVec(v))
-#   end
-# end
-
 end
 
 @testset "new weyman complexes" begin
@@ -363,8 +348,6 @@ end
   @assert w3 == w3_alt
   w3_aa = Oscar.apply_weyman_differential(w0)
   @assert w3 == w3_aa
-  
-  #[Oscar.project_to_weyman_complex!([Oscar.MacroVec(deepcopy(v))]) for (_, v) in Oscar.micro_vectors(w3[end])]
   
   w4 = Oscar.project_to_weyman_complex!(deepcopy(w3))
   w4_alt = Oscar.apply_weyman_differential(w0)
@@ -437,3 +420,4 @@ end
   @test Oscar.optimal_k(ctx, 2, -3*g) == 1
   @test Oscar.optimal_k(ctx, 2, -4*g) == 2
 end
+
