@@ -119,6 +119,25 @@ struct DirectImageMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismTyp
 # Oscar. However, there are `parent`-like objects which let every block 
 # know about its context and its position within the Cech double complex 
 # underlying Weyman's construction. 
+#
+#   Everything happens in the following Cech double complex
+#                   φ          φ
+#    … → ̌Cᵖ⁺¹(Kⁿ⁺¹) → ̌Cᵖ⁺¹(Kⁿ) → ̌Cᵖ⁺¹(Kⁿ⁻¹) → …
+#            ↑∂     φ    ↑∂     φ    ↑
+#    … →  ̌Cᵖ(Kⁿ⁺¹)  →  ̌Cᵖ(Kⁿ)  →  ̌Cᵖ(Kⁿ⁻¹)  → …
+#            ↑∂     φ    ↑∂     φ    ↑
+#    … → ̌Cᵖ⁻¹(Kⁿ⁺¹) → ̌Cᵖ⁻¹(Kⁿ) → ̌Cᵖ⁻¹(Kⁿ⁻¹) → …
+#            ↑           ↑           ↑
+# The Cech terms are infinitely generated modules over the ring `S_R` and 
+# hence modeled as a direct limit of finitely generated modules over this 
+# ring. The index set for these direct limit is some form of `ℕᵏ`, somehow 
+# tied to the exponent vectors for the denominators in the Cech complex. 
+#   Moreover, every strand of a Cech term comes with a structure of a 
+# double direct sum, i.e. with an outer and an inner block structure. 
+# We wish to keep the index in the direct limit individual to the summands. 
+# Hence, every macro block knows its position in the above double complex
+# and every micro block knows its macro block and its index in the direct 
+# limit. 
 function (::DirectImageMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
   i = first(I)
   _sign = is_even(i) ? -1 : 1
@@ -198,7 +217,7 @@ end
       pfctx::Union{PushForwardCtx, NewToricCtx, ToricCtxWithParams}, 
       K::AbsHyperComplex
     )
-    T = pfctx isa NewToricCtx ? elem_type(coefficient_ring(cox_ring(toric_variety(pfctx)))) : elem_type(target_ring(pfctx))
+    T = elem_type(target_ring(pfctx))
     chain_fac = DirectImageChainFactory(pfctx, K)
     map_fac = DirectImageMapFactory{FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}}()
 
@@ -230,8 +249,10 @@ function *(a, v::MacroVec)
   return result
 end
 
-
 function addmul!(v::MicroVec, w::MicroVec, a; check::Bool=false)
+  # When adding two `MicroVec`s one needs to bring everything to a 
+  # common denominator; in other words: to a common index in the direct 
+  # limit. This is supposed to happen on the fly. 
   @check macro_module(v) === macro_module(w)
   @check index(v) == index(v)
   d = direct_limit_index(v) 
@@ -309,11 +330,17 @@ function addmul!(mv::MacroVec, v::MicroVec, a; check::Bool=false)
   return mv
 end
 
+# Depending on the type of the context object, there are different index 
+# sets for the direct limit. In each case we want a method to get the 
+# zero index. This is provided here. 
 _zero_denominator(ctx::PushForwardCtx) = Int[0 for _ in 1:ngens(graded_ring(ctx))]
 _zero_denominator(ctx::ToricCtx) = Int[0 for _ in 1:length(cech_complex_generators(ctx))]
 _zero_denominator(ctx::NewToricCtx) = Int[0 for _ in 1:ngens(graded_ring(ctx))]
 _zero_denominator(ctx::ToricCtxWithParams) = _zero_denominator(ctx.pure_ctx)
 
+# Given a `MacroVec` `v`, its `MicroVec`s may have different denominators
+# (i.e. indices in the direct limit). This method computes a common index 
+# into which all `MicroVec`s can be casted. 
 function _common_denominator(v::MacroVec)
   e = _zero_denominator(pushforward_ctx(v))
   is_zero(v) && return e
@@ -335,6 +362,8 @@ function _common_denominator(vs::Vector{MacroVec})
   return e
 end
 
+# Brings all `MicroVec`s of a given `MacroVec` to the 
+# same index in the direct limit for the Cech double complex.
 function bring_to_common_denominator!(
     v::MacroVec, e::Vector{Int}=_common_denominator(v);
     check::Bool=false
@@ -346,11 +375,9 @@ function bring_to_common_denominator!(
     e == d && continue
     @check all(e >= d for (e, d) in zip(e, d)) "exponent vector too small"
     @check typ(v) == :cochain "common denominators for single macro blocks are only supported for cochains"
-    # L = typ(v) == :cochain ? ctx[d, e, degree(w)][q] : induced_cohomology_map(ctx, d, e, degree(w), q)
     L = ctx[d, e, degree(w)][-q] 
     w.e = e
     w.c = L(w.c)
-    #MicroVec(macro_module(v), j, e, w.c)
   end
   return v
 end
@@ -371,16 +398,18 @@ function bring_to_common_denominator(
       continue
     end
     @check all(e >= d for (e, d) in zip(e, d)) "exponent vector too small"
-    #@assert typ(v) == :cochain "common denominators for single macro blocks are only supported for cochains"
     L = typ(v) == :cochain ? ctx[d, e, degree(w)][-q] : induced_cohomology_map(ctx, d, e, degree(w), -q)
-    #L = ctx[d, e, degree(w)][-q] 
-    #@assert ngens(domain(L)) < ngens(codomain(L))
     push!(result.micro_vecs, (j, MicroVec(macro_module(v), j, e, L(w.c); check)))
   end
   return result
 end
 
-
+# In the Cech double complex there are two maps, the horizontal ones 
+# induced from those in the input complex `K`, and the vertical ones 
+# in the Cech complexes. In addition, there are homotopy maps in the 
+# vertical direction which are opposite to the Cech differentials. 
+# We realize all these maps on the macro and micro blocks with their 
+# individual positions and indices in the direct limit. 
 function apply_phi(v::MacroVec; check::Bool=false)
   @assert typ(v) == :cochain "can not apply phi on cohomology"
   ctx = pushforward_ctx(v)
@@ -399,7 +428,6 @@ function apply_phi(v::MacroVec; check::Bool=false)
     e = direct_limit_index(w)
     alpha = degree(w)
     for (j, a) in A[i]
-      #beta = alpha + degree(a)
       mm = multiplication_map(ctx, a, e, alpha, -q)
       ww = MicroVec(res_mod, j, e, mm(w.c); check)
       add!(result, ww; check)
@@ -502,6 +530,8 @@ function _has_common_denominator(v::MacroVec)
   return all(e == direct_limit_index(w) for (_, w) in micro_vectors(v))
 end
 
+# Given a `MacroVec`, it can be desirable to split it according to the 
+# denominators (indices in the direct limit) used for its `MicroVec`s. 
 function _split_by_denominators(v::MacroVec)
   result = Dict{Vector{Int}, MacroVec}()
   is_zero(v) && return result
@@ -523,17 +553,10 @@ function apply_I(v::MacroVec; check::Bool=false)
   sgn = (-1)^(p+q)
   res = Vector{MacroVec}[]
   is_zero(v) && return MacroVec[]
-# if !_has_common_denominator(v)
-#   for (e, vv) in _split_by_denominators(v)
-#     res = apply_I(vv)
-#     result = is_empty(result) ? res : MacroVec[add!(a, b) for (a, b) in zip(result, res)]
-#   end
-# end
 
   for (alpha, vh) in sort_by_degree(v)
     # we can assume all `MicroVec`s to have the same exponent vector
     vv = apply_cohomology_inclusion(vh)
-    #@assert v == apply_cohomology_projection(vv)
     result = [vv]
     for k in q:-1:0
       vv = apply_phi(vv)
@@ -544,12 +567,13 @@ function apply_I(v::MacroVec; check::Bool=false)
     end
     push!(res, reverse(result))
   end
-  # the following three lines would be a safety check
-  #rr = sum(res)#; init=MacroVec[])
-  #e = _common_denominator(rr)
-  #w = apply_P([bring_to_common_denominator(v, e) for v in rr])
-  #@assert is_zero(addmul(v, w[end], -1))
-  #@assert all(is_zero(w[1:end-1]))
+  @check begin
+    rr = sum(res)
+    e = _common_denominator(rr)
+    w = apply_P([bring_to_common_denominator(v, e) for v in rr])
+    @assert is_zero(addmul(v, w[end], -1))
+    all(is_zero(w[1:end-1]))
+  end
   return sum(res)
 end
 
@@ -568,11 +592,14 @@ function apply_cohomology_projection(v::MacroVec; check::Bool=false)
   return result
 end
 
+# The maps `I` and `P` are the inclusions and projections to and from 
+# cohomology of the twisting sheaves. These occur for every index 
+# in the direct limit of the Cech complex.
 function apply_P(v::MacroVec; check::Bool=false)
   @assert typ(v) == :cochain "can not apply P to cohomology"
   p, q = index(v)
   sgn = (-1)^(p+q)
-  @assert _has_common_denominator(v) "only elements with common denominators allowed"
+  @check _has_common_denominator(v) "only elements with common denominators allowed"
 
   # we can assume all `MicroVec`s to have the same exponent vector
   vv = v
@@ -587,7 +614,7 @@ function apply_P(v::MacroVec; check::Bool=false)
 end
 
 function apply_P(vs::Vector{MacroVec}; check::Bool=false)
-  @check all(typ(v) == :cochain for v in vs) "can not apply P to cohomology"
+  @assert all(typ(v) == :cochain for v in vs) "can not apply P to cohomology"
   is_empty(vs) && return MacroVec[]
   p, q = index(first(vs))
   sgn = (-1)^(p+q)
@@ -631,6 +658,7 @@ function apply_P(vs::Vector{MacroVec}; check::Bool=false)
   return MacroVec[apply_cohomology_projection(w) for w in reverse(inter)]
 end
 
+# Functionality for the convenience of debugging. The user will probably never see this.
 function Base.show(io::IO, mv::MacroVec)
   println(io, "macro vector of type $(typ(mv)) with index $(index(mv)) and components")
   for (_, v) in micro_vectors(mv)
@@ -647,6 +675,7 @@ function deepcopy_internal(v::MicroVec, d::IdDict)
                   deepcopy_internal(v.e, d), deepcopy_internal(v.c, d))
 end
 
+# Auxillary further implementations
 function deepcopy_internal(v::MacroVec, d::IdDict) 
   result = MacroVec(v.macro_mod)
   mic_vecs = deepcopy_internal(micro_vectors(v), d)
@@ -678,6 +707,102 @@ function +(v::MacroVec, w::MacroVec)
   return addmul!(deepcopy(v), w, 1)
 end
 
+function add!(a::Vector{MacroVec}, b::Vector{MacroVec}; check::Bool=false)  
+  return addmul!(a, b, 1; check)
+end
+
+function addmul!(a::Vector{MacroVec}, b::Vector{MacroVec}, c; check::Bool=false)
+  is_empty(a) && return c*b                      
+  is_empty(b) && return a                                
+  @check begin
+    v0 = first(a)                                          
+    w0 = first(b)                                          
+    @assert weyman_ctx(v0) === weyman_ctx(w0)              
+    @assert all(weyman_ctx(v) === weyman_ctx(v0) for v in   a)
+    @assert all(weyman_ctx(w) === weyman_ctx(w0) for w in   b)
+    deg = sum(index(v0))                                   
+    @assert deg == sum(index(w0))                          
+    @assert all(deg == sum(index(v)) for v in a)           
+    @assert all(deg == sum(index(v)) for v in b)
+  end
+  for mv in b
+    ind = findfirst(index(mv) == index(mw) for mw in a)
+    if isnothing(ind) 
+      push!(a, c*mv)
+      continue
+    end
+    a[ind] = addmul!(a[ind], mv, c)
+  end
+  return sort!(a; by=v->index(v)[2])
+end
+
+function MacroVec(v::MicroVec; check::Bool=false)
+  result = MacroVec(macro_module(v); check)
+  result.micro_vecs = [(index(v), v)]
+  return result
+end
+
+function MicroVec(mb::MacroMod, j::Int, c::FreeModElem; check::Bool=false)
+  gc = graded_complex(mb)
+  p, q = index(mb)
+  alpha = -degrees_of_generators(gc[p])[j]
+  e = _minimal_exponent_vector(pushforward_ctx(mb), alpha)
+  return MicroVec(mb, j, e, c; check)
+end
+
+function MicroVec(mb::MacroMod, j::Int; check::Bool=false)
+  gc = graded_complex(mb)
+  p, q = index(mb)
+  alpha = -degrees_of_generators(gc[p])[j]
+  e = _minimal_exponent_vector(pushforward_ctx(mb), alpha)
+  return MicroVec(mb, j, e; check)
+end
+
+function MicroVec(mb::MacroMod, j::Int, k::Int; check::Bool=false)
+  gc = graded_complex(mb)
+  p, q = index(mb)
+  alpha = -degrees_of_generators(gc[p])[j]
+  e = _minimal_exponent_vector(pushforward_ctx(mb), alpha)
+  return MicroVec(mb, j, e, k; check)
+end
+
+function MacroVec(mb::MacroMod, j::Int, c::FreeModElem; check::Bool=false)
+  return MacroVec(MicroVec(mb, j, c); check)
+end
+
+function MacroVec(mb::MacroMod, j::Int, e::Vector{Int}, c::FreeModElem; check::Bool=false)
+  return MacroVec(MicroVec(mb, j, e, c; check); check)
+end
+
+function is_zero(mb::MacroMod)
+  p, q = index(mb)
+  ctx = pushforward_ctx(mb)
+  gc = graded_complex(mb)
+  gm = gc[p]
+  for (i, v) in enumerate(gens(gm))
+    alpha = -degree(v; check=false)
+    coh = cohomology_model(ctx, alpha)[-q]
+    !is_zero(coh) && return false
+  end
+  return true
+end
+
+function ==(v::MacroVec, w::MacroVec)
+  weyman_ctx(v) === weyman_ctx(w) || error("incompatible macro vectors")
+  index(v) == index(w) || return false
+  return is_zero(addmul(v, w, -1))
+end
+
+# The heavy lifting for the differentials in the Weyman complex.
+# 
+# The procedure is to "go down the staircase" by mapping any 
+# generator first by `φ`, then by the homotopy map `h`, 
+# then by `φ` again, and so on. On each step of the staircase 
+# we collect the intermediate result (with an appropriate sign) 
+# and then combine these in a direct sum for the image. 
+# Thanks to the individual steps being wrapped in the above 
+# functions, it is now relatively easy to write down this 
+# procedure.
 function apply_weyman_differential(v::MacroVec; check::Bool=false)
   p, q = index(v)
   sgn = (-1)^(p+q)
@@ -732,6 +857,10 @@ function apply_weyman_differential(v::MacroVec; check::Bool=false)
   return project_to_weyman_complex!(reverse(result); check)
 end
 
+# The components of a `MacroVec` might live in different 
+# strands, which require different treatment each. This 
+# decomposes a given `MacroVec` into its homogeneous 
+# components. 
 function sort_by_degree(mv::MacroVec; check::Bool=false)
   ctx = pushforward_ctx(mv)
   G = grading_group(graded_ring(ctx))
@@ -744,11 +873,19 @@ function sort_by_degree(mv::MacroVec; check::Bool=false)
     end
     # things come in the correct order here
     push!(micro_vectors(bucket), (j, v))
-    #bucket = add!(bucket, v)
   end
   return result
 end
 
+# The Weyman complex has as its terms the cohomology of direct 
+# sums of twisting sheaves. The models for this cohomology depend
+# on the twist, i.e. we need to choose the index in the direct limit
+# depending on the twist. Consequently, we need to project an element 
+# from the Cech double complex to the correct cohomology model. 
+#   When the `NewToricCtx` is used, this is easy, because the cohomology 
+# models form a direct limit over the same index set. If not, then we 
+# need to use the artificially constructed direct limit over `ℕ` which 
+# is described in our paper. 
 function project_to_weyman_complex!(vs::Vector{MacroVec}; check::Bool=false)
   #vsc = deepcopy(vs)
   @check all(typ(v) == :cohomology for v in vs) "can not apply P to cohomology"
@@ -839,91 +976,12 @@ function project_to_weyman_complex!(vs::Vector{MacroVec}; check::Bool=false)
   return reverse(result)
 end
 
-function add!(a::Vector{MacroVec}, b::Vector{MacroVec}; check::Bool=false)  
-  return addmul!(a, b, 1; check)
-end
-
-function addmul!(a::Vector{MacroVec}, b::Vector{MacroVec}, c; check::Bool=false)
-  is_empty(a) && return c*b                      
-  is_empty(b) && return a                                
-  @check begin
-    v0 = first(a)                                          
-    w0 = first(b)                                          
-    @assert weyman_ctx(v0) === weyman_ctx(w0)              
-    @assert all(weyman_ctx(v) === weyman_ctx(v0) for v in   a)
-    @assert all(weyman_ctx(w) === weyman_ctx(w0) for w in   b)
-    deg = sum(index(v0))                                   
-    @assert deg == sum(index(w0))                          
-    @assert all(deg == sum(index(v)) for v in a)           
-    @assert all(deg == sum(index(v)) for v in b)
-  end
-  for mv in b
-    ind = findfirst(index(mv) == index(mw) for mw in a)
-    if isnothing(ind) 
-      push!(a, c*mv)
-      continue
-    end
-    a[ind] = addmul!(a[ind], mv, c)
-  end
-  return sort!(a; by=v->index(v)[2])
-end
-
-function MacroVec(v::MicroVec; check::Bool=false)
-  result = MacroVec(macro_module(v); check)
-  result.micro_vecs = [(index(v), v)]
-  return result
-end
-
-function MicroVec(mb::MacroMod, j::Int, c::FreeModElem; check::Bool=false)
-  gc = graded_complex(mb)
-  p, q = index(mb)
-  alpha = -degrees_of_generators(gc[p])[j]
-  e = _minimal_exponent_vector(pushforward_ctx(mb), alpha)
-  return MicroVec(mb, j, e, c; check)
-end
-
-function MicroVec(mb::MacroMod, j::Int; check::Bool=false)
-  gc = graded_complex(mb)
-  p, q = index(mb)
-  alpha = -degrees_of_generators(gc[p])[j]
-  e = _minimal_exponent_vector(pushforward_ctx(mb), alpha)
-  return MicroVec(mb, j, e; check)
-end
-
-function MicroVec(mb::MacroMod, j::Int, k::Int; check::Bool=false)
-  gc = graded_complex(mb)
-  p, q = index(mb)
-  alpha = -degrees_of_generators(gc[p])[j]
-  e = _minimal_exponent_vector(pushforward_ctx(mb), alpha)
-  return MicroVec(mb, j, e, k; check)
-end
-
-function MacroVec(mb::MacroMod, j::Int, c::FreeModElem; check::Bool=false)
-  return MacroVec(MicroVec(mb, j, c); check)
-end
-
-function MacroVec(mb::MacroMod, j::Int, e::Vector{Int}, c::FreeModElem; check::Bool=false)
-  return MacroVec(MicroVec(mb, j, e, c; check); check)
-end
-
-function is_zero(mb::MacroMod)
-  p, q = index(mb)
-  ctx = pushforward_ctx(mb)
-  gc = graded_complex(mb)
-  gm = gc[p]
-  for (i, v) in enumerate(gens(gm))
-    alpha = -degree(v; check=false)
-    coh = cohomology_model(ctx, alpha)[-q]
-    !is_zero(coh) && return false
-  end
-  return true
-end
-
-function ==(v::MacroVec, w::MacroVec)
-  weyman_ctx(v) === weyman_ctx(w) || error("incompatible macro vectors")
-  index(v) == index(w) || return false
-  return is_zero(addmul(v, w, -1))
-end
+# When the cohomology models for the twisting sheaves form no natural 
+# direct limit, we need to construct an artificial direct limit over 
+# `ℕ` where the map `lₖᵏ⁺ⁿ` from index `k` to `k+n` is realized as the 
+# composition `lₖ₊ₙ₋₁ᵏ⁺ⁿ∘…∘lₖ₊₁ᵏ⁺² ∘lₖᵏ⁺¹`. This is, of course, expensive 
+# and a lot of these constructions should again be cached. The code below 
+# is for that. 
 
 ### Inclusions and projections to the Weyman complex
 function _weyman_inc_dict(wctx::WeymanCtx)
