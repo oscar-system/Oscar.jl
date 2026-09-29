@@ -5,6 +5,28 @@ function pm_object(G::Graph{T}) where {T <: Union{Directed, Undirected}}
   return G.pm_graph
 end
 
+function _copy_labels(G::Graph{T}, G_copy::Graph{T}, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
+  for label in labels
+    graph_map = _graph_maps(G)[label]
+    new_vertex_labels = nothing
+    new_edge_labels = nothing
+    if !isnothing(graph_map.vertex_map)
+      new_vertex_labels = Dict(v => graph_map.vertex_map[v] for v in 1:n_vertices(G))
+    end
+
+    if !isnothing(graph_map.edge_map)
+      new_edge_labels = Dict((src(e), dst(e)) => graph_map.edge_map[e] for e in edges(G))
+    end
+    label!(G_copy, new_edge_labels, new_vertex_labels; name=label)
+  end
+end
+
+function copy(G::Graph{T}) where {T <: Union{Directed, Undirected}}
+  copyG = Graph{T}(copy(pm_object(G)))
+  !isempty(labelings(G)) && _copy_labels(G, copyG, labelings(G))
+  return copyG
+end
+
 _directed_component(G::MixedGraph) = G.directed_component
 @doc raw"""
     directed_component(G::MixedGraph)
@@ -938,7 +960,7 @@ end
 @doc raw"""
     signed_incidence_matrix(g::Graph)
 
-Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targest will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
+Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targets will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
 
 # Examples
 ```jldoctest
@@ -1083,13 +1105,11 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
   
   G_map = getproperty(G, label)
+  label_type = typeof(G_map[first(edges(G))])
   vertices_by_label = !isnothing(G_map.vertex_map) ?
-                      _group_by_label(Dict{typeof(G_map[1]), Vector{Int}}(), 1:n_vertices(G), G_map) :
+                      _group_by_label(Dict{label_type, Vector{Int}}(), 1:n_vertices(G), G_map) :
                       [:vertices => collect(1:n_vertices(G))]
-  # without edge labels all edges form a single class
-  edges_by_label = !isnothing(G_map.edge_map) ?
-                   _group_by_label(Dict{typeof(G_map[first(edges(G))]), Vector{Edge}}(), edges(G), G_map) :
-                   [:edges => collect(edges(G))]
+  edges_by_label = _group_by_label(Dict{label_type, Vector{Edge}}(), edges(G), G_map)
   new_vertex_labels = Dict{Int, Int}()
   if edge_distinguishable
     # an edge of a given coloring appears in the nth layer if there is a one in
@@ -1225,6 +1245,34 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
                                   Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
   # permutation is defined on vertex classes, see _edge_label_to_vertex_label
   return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
+end
+
+@doc raw"""
+    permute_nodes!(G::Graph{T}, p::PermGroupElem) where T <: Union{Directed, Undirected}
+
+Permute the nodes of `G` in place according to the permutation `p`
+
+```jldoctest
+julia> G = graph_from_labeled_edges(Directed, Dict((1, 2) => 1, (2, 3) => 4); name=:color)
+Directed graph with 3 nodes and the following labeling(s):
+label: color
+(1, 2) -> 1
+(2, 3) -> 4
+
+julia> p = perm(3, [2, 1, 3])
+(1,2)
+
+julia> permute_nodes!(G, p)
+
+julia> G
+Directed graph with 3 nodes and the following labeling(s):
+label: color
+(1, 3) -> 4
+(2, 1) -> 1
+```
+"""
+function permute_nodes!(G::Graph{T}, p::PermGroupElem) where T <: Union{Directed, Undirected}
+  Polymake._permute_nodes!(pm_object(G), Polymake.Array{Int}(Polymake.to_zero_based_indexing(Vector(p))))
 end
 
 function _permute_nodes_and_labels(G::Graph{T}, p::Vector{Int}, labels::Vector{Symbol}) where T <: Union{Directed, Undirected}
@@ -1819,6 +1867,28 @@ function complete_bipartite_graph(n::Int64, m::Int64)
 end
 
 
+@doc raw"""
+    cycle_graph(n::Int)
+
+Return the graph consisting of a single `n`-cycle.
+
+# Examples
+```jldoctest
+julia> g = cycle_graph(4);
+
+julia> collect(edges(g))
+4-element Vector{Edge}:
+ Edge(2, 1)
+ Edge(3, 2)
+ Edge(4, 1)
+ Edge(4, 3)
+```
+"""
+function cycle_graph(n::Int)
+    bigobj = Polymake.graph.cycle_graph(n)
+    return Graph{Undirected}(bigobj.ADJACENCY)
+end
+
 
 @doc raw"""
     visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
@@ -2003,10 +2073,17 @@ end
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
+    graph_from_edges(p::Polyhedron)
+    graph_from_edges(::Type{Undirected}, p::Polyhedron)
 
 
-Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
-ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
+Create a graph from a vector of edges or from the edges of a polyhedron.
+
+For vector of edges, there is an optional input for number of vertices,
+`graph_from_edges` will ignore any negative integers and throw an error when the
+input is less than the maximum vertex index in edges.
+
+For polyhedron, the return is the same as [`vertex_edge_graph`](@ref).
 
 # Examples
 ```jldoctest
@@ -2039,6 +2116,11 @@ Directed edges:
 (1, 2)(3, 4)
 Undirected edges:
 (3, 2)(4, 1)
+
+julia> graph_from_edges(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+
 ```
 """
 function graph_from_edges(::Type{T},
@@ -2088,6 +2170,16 @@ function graph_from_edges(::Type{Mixed},
                           undirected_edges::EdgeIterator,
                           n_vertices::Int=-1)
   return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
+end
+
+function graph_from_edges(::Type{Undirected},
+                          p::Polyhedron;
+                          modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
+end
+
+function graph_from_edges(p::Polyhedron; modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
 end
 
 @doc raw"""
@@ -2594,6 +2686,8 @@ result. Any labelings on `g` are carried along accordingly.
 
 The permutation `p` must be an element of the symmetric group on
 `n_vertices(g)` letters.
+
+See [`permute_nodes!`](@ref) for an in place alternative.
 
 # Examples
 ```jldoctest
