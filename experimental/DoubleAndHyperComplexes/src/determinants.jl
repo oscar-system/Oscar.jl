@@ -29,10 +29,10 @@ function det(
   # for the latter. 
   if direction == :from_left_to_right
     @assert !isnothing(lower_bound) "lower bound needs to be provided"
-    return _det(c, Val{direction}, Val{direction(c, 1)}, lower_bound::Int; reduction_map)
+    return _det(c, Val{direction}, Val{Oscar.direction(c, 1)}, lower_bound::Int; reduction_map)
   elseif direction == :from_right_to_left
     @assert !isnothing(upper_bound) "upper bound needs to be provided"
-    return _det(c, Val{direction}, Val{direction(c, 1)}, upper_bound::Int; reduction_map)
+    return _det(c, Val{direction}, Val{Oscar.direction(c, 1)}, upper_bound::Int; reduction_map)
   end
 end
 
