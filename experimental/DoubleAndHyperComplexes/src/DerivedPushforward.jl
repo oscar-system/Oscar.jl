@@ -1044,17 +1044,6 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}
   error("the given constellation of exponent vectors can not be handled with the chosen algorithm")
 end
 
-function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing}; 
-    domain::OFPModule=change_base_ring(bc, Oscar.domain(f))[1],
-    codomain::OFPModule=change_base_ring(bc, Oscar.codomain(f))[1]
-  ) where {DT, CT}
-  img_gens = elem_type(codomain)
-  bc_dom = hom(Oscar.domain(f), domain, gens(domain), bc)
-  bc_cod = hom(Oscar.codomain(f), codomain, gens(codomain), bc)
-  res = hom(domain, codomain, bc_cod.(images_of_generators(f)))
-  return res, bc_dom, bc_cod
-end
-
 function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
   return _minimal_exponent_vector(ctx.pure_ctx, m)
 end
