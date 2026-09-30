@@ -791,7 +791,9 @@ function multiplication_map(
 
     S = cox_ring(toric_variety(ctx))
     R = base_ring(cod)
+
     mult_cache = Dict{Int, sparse_row_type(R)}() # store the image of the `i`-th generator
+    mult_map_cache = Dict{Vector{Int}, Map}()
     return MapFromFunc(dom, cod, function(v)
                          res_coords = sparse_row(R)
                          for (i, q) in coordinates(v)
@@ -803,12 +805,14 @@ function multiplication_map(
                                # While the coefficient `c` is in `R`, the multiplication
                                # map ϕₑfor the monomial for `e` is determined in the ring 
                                # `S` over `kk`. We need to construct ϕₑ ⊗ R.
-                               mon = S([one(QQ)], [e])
-                               mon_mult = multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+                               mon_mult = get!(mult_map_cache, e) do
+                                 mon = S([one(QQ)], [e])
+                                 multiplication_map(ctx.pure_ctx, mon, e0, d0, j)
+                               end
                                # `domain(mon_mult)` and `dom` have generating sets so that 
                                # `dom[i] = domain(mon_mult)[i] ⊗ R`. 
                                mon_gen = domain(mon_mult)[i]
-                               row = map_entries(R, coordinates(mon_mult(mon_gen)))
+                               row = map_entries(coefficient_map(ctx.transfer), coordinates(mon_mult(mon_gen)))
                                new_row = Hecke.add_scaled_row!(row, new_row, c)
                              end
                              new_row
