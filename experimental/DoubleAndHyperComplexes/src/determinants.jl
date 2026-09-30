@@ -6,7 +6,7 @@
       direction::Symbol, reduction_map
     ) where {T<:OFPModule}
 
-Compute the determinant of a one-dimensional complex as outlined for instance in [GelfandKapranovZelevinsky94](@cite). The keyword `direction` can be set to either `:from_left_to_right` to start from an upper bound on the non-zero modules, or `:from_right_to_left` to start from a lower bound. All modules in the complex need to be free and defined over an integral domain for which the field of fractions exists. 
+Compute the determinant of a one-dimensional complex as outlined for instance in [GKZ08](@cite). The keyword `direction` can be set to either `:from_left_to_right` to start from an upper bound on the non-zero modules, or `:from_right_to_left` to start from a lower bound. All modules in the complex need to be free and defined over an integral domain for which the field of fractions exists. 
 
 The user may specify a `reduction_map` which is used to find suitable minors for the computation of the determinant. In the case of a polynomial 
 ring this can, for instance, be the evaluation of the matrices at a random point and/or reduction modulo primes. 
