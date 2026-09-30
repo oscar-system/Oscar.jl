@@ -985,6 +985,11 @@ function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
+function iso_oscar_singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
+  keep_ordering && return iso_oscar_singular_poly_ring(R, internal_ordering(R))
+  return iso_oscar_singular_poly_ring(R, default_ordering(R))
+end
+
 function AbstractAlgebra.coefficients(f::MPolyDecRingElem; inplace::Bool=false)
   return AbstractAlgebra.coefficients(forget_decoration(f), inplace=inplace)
 end
