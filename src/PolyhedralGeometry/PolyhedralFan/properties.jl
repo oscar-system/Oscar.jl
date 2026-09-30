@@ -337,7 +337,9 @@ function primitive_generator_with_scaling_factor(
   r::AbstractVector{T}
 ) where {T<:RationalUnion}
   first_scaling_factor = ZZ(lcm(denominator.(r)))
-  result = ZZ.(first_scaling_factor * r)
+  # The dispatch of `gcd` onto `RayVector` has a bug when the vector is `[-1]`.
+  # I couldn't reproduce it, because I did not find the constructor for a `RayVector`.
+  result = elem_type(ZZ)[ZZ(a) for a in first_scaling_factor * r]
   g = gcd(result)
   @req g > 0 "The vector `r` cannot be a zero vector"
   scaling_factor = QQ(first_scaling_factor, g)
