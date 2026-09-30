@@ -438,6 +438,20 @@ function change_base_ring(phi::Any, f::OFPModuleHom;
   return hom(new_dom, new_cod, codomain_base_change.(f.(gens(domain(f)))))
 end
 
+# TODO: Decide on one of the two instances. Do we want to pass the maps for 
+# domain and codomain, or is it sufficient to give the modules? The latter 
+# assumes that the generators are mapped 1:1, which is likely to be the case.
+function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing}; 
+    domain::OFPModule=change_base_ring(bc, Oscar.domain(f))[1],
+    codomain::OFPModule=change_base_ring(bc, Oscar.codomain(f))[1]
+  ) where {DT, CT}
+  img_gens = elem_type(codomain)
+  bc_dom = hom(Oscar.domain(f), domain, gens(domain), bc)
+  bc_cod = hom(Oscar.codomain(f), codomain, gens(codomain), bc)
+  res = hom(domain, codomain, bc_cod.(images_of_generators(f)))
+  return res, bc_dom, bc_cod
+end
+
 
 ### Duals of modules
 @doc raw"""
@@ -781,7 +795,7 @@ function vector_space_basis(M::SubquoModule{<:FieldElem}; cached::Bool=true, che
   end
   return result
 end
-
+ 
 function vector_space_basis(kk::Field, M::SubquoModule{<:FieldElem}; check::Bool=true)
   kk === base_ring(M) || error("not implemented for other fields than the `base_ring` of the module")
   # TODO: look up the existing implementations of rank and put the relevant things here.
@@ -1016,7 +1030,6 @@ function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPo
   return B
 end
 
-
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
   error("not implemented")
 end
@@ -1024,7 +1037,6 @@ end
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check::Bool=true)
   error("not implemented")
 end
-
 
 @doc raw"""
     _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
