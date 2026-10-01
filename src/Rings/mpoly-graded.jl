@@ -1017,6 +1017,11 @@ function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
   return f
 end
 
+function setcoeff!(f::MPolyDecRingElem, exps::Vector{Int}, c)
+  f.f = setcoeff!(forget_decoration(f), exps, c)
+  return f
+end
+
 function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   f = sort_terms!(M.poly.f)
   f = combine_like_terms!(M.poly.f)
@@ -1571,7 +1576,7 @@ S_[1 1] of dim 6
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
-Map defined by a julia-function with inverse
+Map defined by a Julia function with inverse
   from S_[1 1] of dim 6
   to graded multivariate polynomial ring in 5 variables over QQ
 
