@@ -3756,13 +3756,13 @@ function _find_auxilliary_extension(k::AbsSimpleNumField)
     return d, Int[]
   end
 
-  @info "Target degree is $d"
   # do something stupid
   bnd = d * ZZ(discriminant(maximal_order(k)))
   while true
     for _A in abelian_groups(Int(d))
       el = Int.(elementary_divisors(_A))
-      for N in abelian_normal_extensions(k, el, bnd)
+      fldss = abelian_normal_extensions(k, el, bnd)
+      for (i, N) in enumerate(fldss)
         gg = _gcd_of_indice_for_N(N, S)
         @assert gg % d == 0
         if gg == d
@@ -3774,9 +3774,64 @@ function _find_auxilliary_extension(k::AbsSimpleNumField)
   end
 end
 
+function _find_auxilliary_extension_claus(k)
+  d, S = _find_best_d_and_S(k)
+  Zk = maximal_order(k)
+  for (p, k) = factor(degree(k))
+    p_done = false
+    local good_P
+    for P in S
+      if valuation(ramification_index(P) * inertia_degree(P), p) == k
+        #can use this prime to normalize g at p
+        K = number_field(Zk)
+        emb = hom(K, K, gen(K))
+        good_P = P
+        p_done = true
+        break
+      elseif valuation(ramification_index(P) * inertia_degree(P), p) == valuation(d, p)
+        good_P = P #at least we're as maximal here as possible
+      end
+    end
+    if !p_done
+      found = false
+      mis = k - valuation(d, p) 
+      for P in S
+        @vprint :GaloisCohomology 1 "building extension at $P - looking for lokal degree $(p^k)\n"
+        R = ray_class_field(p^(mis+1)*minimum(P)*Zk; n_quo = Int(p^mis))
+        @vprint :GaloisCohomology 1 R
+        @vprint :GaloisCohomology 1 "looking for normal subfields of degree $(p^mis)\n"
+        #TODO: this are sometimes many, even a lot. Try smaller fields
+        #      or an iterator - we need only ONE useful field.
+        n = subfields(R; degree = Int(p^mis), is_normal)
+        for i = n
+          #test this for all p in A.S (where the local degree was maximal before)
+          #as the local degree could only have increased by p^mis
+          a = Hecke.absolute_prime_decomposition_type(i, minimum(good_P))
+          if a[1][1]*a[1][2] % p^k == 0
+            @vprint :GaloisCohomology 1 "found useful field $i, computing data\n"
+            @vprint :GaloisCohomology 2 "of conductor $(conductor(i))\n"
+            found = true
+            K = number_field(i)
+            gg = _gcd_of_indice_for_N(i, S)
+            @assert gg == d
+            return i, K
+            error("asds")
+            emb_K = K(gen(number_field(Zk)))
+            K, emb = absolute_simple_field(K)
+            emb = hom(number_field(Zk), K, preimage(emb, emb_K))
+            new_field = true
+            break
+          end
+        end
+        found && break
+      end
+    end
+  end
+end
+
+
 function _find_best_d_and_S(k::AbsSimpleNumField)
   d, ps = _find_best_d_and_ps(k)
-  @info d
   ok = maximal_order(k)
   s = unique(vcat(ps, support(discriminant(ok))))
 
@@ -3830,12 +3885,14 @@ function _find_best_d_and_ps(k::AbsSimpleNumField)
   locgal = local_galois_groups(k)
   n = degree(k)
   inds = [divexact(n, order(H)) for (H, _) in locgal]
-  if any(is_one, inds)
-    i = findfirst(is_one, inds)
-    return 1, locgal[i][2]
-  end
+  #if any(is_one, inds)
+  #  i = findfirst(is_one, inds)
+  #  return 1, locgal[i][2]
+  #end
   bestd, coeffs = gcdx(inds)
-  bestps = [locgal[i][2] for i in findall(!is_zero, coeffs)]
+  #bestps = [locgal[i][2] for i in findall(!is_zero, coeffs)]
+  bestps = [locgal[i][2] for i in 1:length(coeffs)] # just take all p's
+  # more primes are better if one just searches for N
   return bestd, bestps
 end
 
