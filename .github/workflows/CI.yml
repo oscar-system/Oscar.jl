@@ -267,21 +267,12 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
-      - name: "Setup package"
-        run: |
-          julia --project=docs --color=yes -e '
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()'
       - name: "Run doctests"
         run: |
           julia ${{ matrix.julia-version == '1.10' && '--code-coverage' || '' }} \
-            --project=docs --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
-              using Documenter
-              include("docs/documenter_helpers.jl")
+            --project=. --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
               using Oscar
-              DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar; doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())'
+              Oscar.@doctest'
       - name: Archive stats
         if: matrix.depwarn == ''
         uses: actions/upload-artifact@v7

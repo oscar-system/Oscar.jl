@@ -1,15 +1,17 @@
-[deps]
-DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
-JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+# The environment `Oscar.docs_env` stacks on top of the user's own project.
+#
+# It must contain no OSCAR package: `Oscar` and everything below it is loaded
+# from the project the user works in. Only Documenter and its dependencies
+# belong here, which is what keeps this manifest independent of OSCAR's
+# dependency graph.
+#
+# `Documenter` is listed so that `docs/make.jl` can call `deploydocs`. The
+# version bounds live in `docs/OscarDocs/Project.toml`, next to the code using
+# them.
 
-[compat]
-DelimitedFiles = "1.9.1"
-Documenter = "1.19.0"
-DocumenterCitations = "~1.4"
-JSON = "1.0.1"
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+OscarDocs = "39b4aa4e-cfe7-45c1-b576-a6789dd0b603"
 
 [sources]
-Oscar = {path = ".."}
+OscarDocs = {path = "OscarDocs"}
