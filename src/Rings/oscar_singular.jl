@@ -115,10 +115,6 @@ function iso_oscar_singular_coeff_ring(R::AbsSimpleNumField)
   return OscarSingularCoefficientRingMapGeneric(R, SK)
 end
 
-# Conversion from GF(p, n), small p, to Singular.N_AlgExtField,
-# the code for the conversion is present in Singular.jl/src/number/n_algExt.jl
-# via parent object call overloading, so we wrap it here anyway.
-
 # GF(p, n), small p
 function iso_oscar_singular_coeff_ring(F::fqPolyRepField) 
   # TODO: the Fp(Int(char)) can throw
@@ -134,6 +130,44 @@ function iso_oscar_singular_coeff_ring(F::fqPolyRepField)
   end
   SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
   return OscarSingularCoefficientRingMapGeneric(F, SF)
+end
+
+# Conversion between an Oscar finite field `K` and a Singular algebraic
+# extension `SK` of F_p, both presented by the same minimal polynomial.
+# `c(i)` returns the i-th coordinate in the power basis as an integer.
+function _singular_algext_elem(SK::Singular.N_AlgExtField, c, d::Int)
+  Sa = gen(SK)
+  res = SK(c(0))
+  var = one(SK)
+  for i in 1:d-1
+    var = mul!(var, Sa)
+    res = addmul!(res, SK(c(i)), var)
+  end
+  return res
+end
+
+function _oscar_finite_field_elem(K::Field, a::Singular.n_algExt)
+  SF = parent(Singular.modulus(parent(a)))
+  SFa = SF(a)
+  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
+  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  @assert isone(denSa)
+  res = zero(K)
+  Ka = gen(K)
+  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
+    res += K(Int(c))*Ka^e[1]
+  end
+  return res
+end
+
+function image(f::OscarSingularCoefficientRingMapGeneric{fqPolyRepField}, a::fqPolyRepFieldElem)
+  parent(a) !== domain(f) && error("Element not in domain")
+  return _singular_algext_elem(codomain(f), i -> coeff(a, i), degree(domain(f)))
+end
+
+function preimage(f::OscarSingularCoefficientRingMapGeneric{fqPolyRepField}, a::Singular.n_algExt)
+  parent(a) !== codomain(f) && error("Element not in codomain")
+  return _oscar_finite_field_elem(domain(f), a)
 end
 
 #############################################################################
@@ -205,14 +239,8 @@ function image(f::OscarSingularCoefficientRingMapFqField, a::FqFieldElem)
     return codomain(f)(a)
   end
 
-  #Here we apply the (SF::Singular.N_AlgExtField)(a::FqFieldElem) conversion from mpoly.jl
-  if isdefined(f, :iso)
-    b = codomain(f)(preimage(f.iso, a))
-  else
-    b = codomain(f)(a)
-  end
-  @assert parent(b) == codomain(f)
-  return b
+  b = isdefined(f, :iso) ? preimage(f.iso, a) : a
+  return _singular_algext_elem(codomain(f), i -> lift(ZZ, coeff(b, i)), degree(parent(b)))
 end
 
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_FieldElem)
@@ -228,14 +256,8 @@ end
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_algExt)
   parent(a) !== codomain(f) && error("Element not in codomain")
 
-  #Here we apply the (K::FqField)(a::Singular.n_algExt) conversion from mpoly.jl
-  if isdefined(f, :iso)
-    b = image(f.iso, domain(f.iso)(a))
-  else
-    b = domain(f)(a)
-  end
-  @assert parent(b) == domain(f)
-  return b
+  isdefined(f, :iso) || return _oscar_finite_field_elem(domain(f), a)
+  return image(f.iso, _oscar_finite_field_elem(domain(f.iso), a))
 end
 
 #############################################################################
