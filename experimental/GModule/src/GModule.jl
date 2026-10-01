@@ -2320,7 +2320,7 @@ function Oscar.hom(C::S, D::T) where S <: GModule{<:Any, <:AbstractAlgebra.FPMod
   H, mH = hom(C.M, D.M)
   s, ms = sub(H, [preimage(mH, hom(C.M, D.M, x)) for x = b])
 #    s, ms = sub(H, [H(vec(collect(x))) for x = b])
-  E = GModule(group(C), [hom(s, s, identity_matrix(QQ, dim(s))) for i=1:ngens(group(C))])
+  E = GModule(group(C), [hom(s, s, identity_matrix(base_ring(C), dim(s))) for i=1:ngens(group(C))])
   mE = ms*mH
   set_attribute!(E, :is_trivial => true)
   return E, mE
