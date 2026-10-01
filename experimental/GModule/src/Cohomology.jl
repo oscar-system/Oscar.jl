@@ -2170,7 +2170,7 @@ z = z1 - ans
 
 #this is/ should be a special case for the hom(Complex, Complex, Map) in Hecke
 #ONLY for hom(FreeRes, GModule) and identical groups and resolutions
-function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorphisms{FinGenAbGroup}, mNM::Map)
+function change_module(fN::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractAlgebra.FPModule{<:RingElem}}}, fM::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractAlgebra.FPModule{<:RingElem}}}, mNM::Map)
   mp = Dict{Int, Map}()
   map = Hecke.ComplexOfMorphismsMap(fN, fM, mp)
   function fill(A::Hecke.ComplexOfMorphismsMap, i::Int)
@@ -2182,7 +2182,7 @@ function change_module(fN::ComplexOfMorphisms{FinGenAbGroup}, fM::ComplexOfMorph
         x -> sum(canonical_injection(fM[i], j)(mNM(canonical_projection(fN[i], j)(x))) for j=1:d), 
         y-> sum(canonical_injection(fN[i], j)(preimage(mNM, canonical_projection(fM[i], j)(y))) for j=1:d))
     else
-      mp[i] = FinGenAbGroupHom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
+      mp[i] = hom(sum(canonical_projection(fN[i], j)*mNM*canonical_injection(fM[i], j) for j=1:d)) 
     end
     return mp[i]
   end
