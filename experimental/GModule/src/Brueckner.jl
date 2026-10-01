@@ -182,11 +182,16 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup}; easy::Bool = false)
     F = free_module(ZZ, 1)
     I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x in gens(Q)])]
   else #TODO: repsn, reps offer choice
-#    I = irreducible_modules(ZZ, Q)
-    I = reps(abelian_closure(QQ)[1], Q)
-    #Brueckner, p35: irreducible here is not necessary, so the
-    #  expensive find minimal field step can be omitted.
-    I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
+    if is_abelian(Q) #much faster, new Breuer method
+      I = irreducible_modules(ZZ, Q)
+    else
+      I = reps(abelian_closure(QQ)[1], Q)
+      #Brueckner, p35: irreducible here is not necessary, so the
+      #  expensive find minimal field step can be omitted.
+      #also: we need only one per Galois-orbit as conjugate ones will
+      #coincide after restriction
+      I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
+    end
   end
   lp = Set(prime_divisors(order(Q)))
   ZG = free_res(group_algebra(ZZ, G); side = :right, one_only = true)
@@ -194,6 +199,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup}; easy::Bool = false)
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
     ia = gmodule(FinGenAbGroup, ib)
     X = hom(ZG, ia)
+    a = map(X, 0)
     b = map(X, 1)
 #    a, b = H_one_maps(ia)    
 #    da = Oscar.dual(a)
@@ -224,13 +230,17 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup}; easy::Bool = false)
     are correct...)
     TODO: this is not (yet) implemented this way
     =#
-    q = cokernel(b)[1]
-    #careful: if the rank of the image is < then the rank of the (free bit)
+    sb = snf(matrix(b))
+    sa = snf(matrix(a))
+    ra = length([i for i=1:nrows(sa) if !is_zero_row(sa, i)])
+    rb = length([i for i=1:nrows(sb) if is_zero_row(sb, i)])
+    @req ra == rb "group must be finite"
+    t = prod([sb[i,i] for i=1:min(nrows(sb), ncols(sb)) if !is_zero_entry(sb, i, i)]; init = ZZ(1))
+    #careful: if the rank of the image is < than the rank of the (free bit)
     #of the kernel, then there are infinite extension possible, i.e. all primes
     #Lemma 1, p27
-    t = torsion_subgroup(q)[1]
-    if order(t) > 1
-      push!(lp, prime_divisors(order(t))...)
+    if t > 1
+      push!(lp, prime_divisors(t)...)
     end
   end
   return lp
@@ -433,9 +443,13 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
   H2, _, z = cohomology_group(hom(ZN, C), 2)
+  Ends = Oscar.GModuleFromGap.hom_base(C, C)
 
+  seen = [zero(H2)]
   for h = H2
+    h in seen && continue
     is_zero(h) && continue
+
     append!(allG, _process(z(h); is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
       return allG
