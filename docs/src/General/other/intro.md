@@ -7,6 +7,7 @@ This page collects differences that affect users of all such systems.
 Notes for users of specific systems follow on separate pages:
 
 - [Notes for GAP users](@ref)
+- [Notes for Macaulay2 users](@ref)
 - [Notes for Magma users](@ref)
 - [Notes for SageMath users](@ref)
 - [Notes for Singular users](@ref)
