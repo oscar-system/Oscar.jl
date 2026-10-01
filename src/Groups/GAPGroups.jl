@@ -2140,7 +2140,6 @@ function _relators_by_generators(G::GAPGroup)
   return relators(FPGroup(GAPWrap.Image(f)))
 end
 
-
 @doc raw"""
     map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
@@ -2244,6 +2243,23 @@ function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimg
     # Here we take the available syllable representation.
     l = GAPWrap.ExtRepOfObj(gX)
     ll = Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+  elseif GAP.Globals.IsStraightLineProgElm(gX)
+    # Compute the images of the seeds of the straight line program,
+    # by mapping the group generators to `genimgs`.
+    seeds = GAP.getbangindex(gX, 1).seeds::GapObj
+    slp = GAP.getbangindex(gX, 2)::GapObj
+    F = GAP.getbangproperty(GAPWrap.FamilyObj(GapObj(g)), :freeGroup)::GapObj
+    ggens = GAPWrap.GeneratorsOfGroup(F)::GapObj
+    if isa(genimgs[1], Map)
+      res = GAP.Globals.ResultOfStraightLineProgram(slp, ggens)
+      @assert GAPWrap.IsLetterAssocWordRep(res)
+      ll = Vector{Int}(GAPWrap.LetterRepAssocWord(gX))
+      return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
+    end
+
+    imgs = GapObj(map(i -> GAP.Globals.MappedWord(i, ggens, GapObj(genimgs)), seeds))
+    # Evaluate the straight line program.
+    return GAP.Globals.ResultOfStraightLineProgram(slp, imgs)
   else
     error("do not know the type of the element $gX")
   end
