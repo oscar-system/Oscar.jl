@@ -590,7 +590,7 @@ function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoRingEle
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
-is_nilpotent(f::MPolyQuoLocRingElem) = in_radical(lifted_numerator(f), saturated_ideal(modulus(parent(f)))
+is_nilpotent(f::MPolyQuoLocRingElem) = in_radical(lifted_numerator(f), saturated_ideal(modulus(parent(f))))
 
 function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
   iszero(f) && return true
