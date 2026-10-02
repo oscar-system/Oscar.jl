@@ -232,6 +232,10 @@ function image(f::OscarSingularCoefficientRingMapFqField, a::FqFieldElem)
     return codomain(f)(lift(ZZ, a))
   end
 
+  if codomain(f) isa Singular.N_ZnRing
+    return codomain(f)(a)
+  end
+
   if codomain(f) isa Singular.N_UnknownSingularCoefficientRing
     absolute_degree(domain(f)) == 1 || error("Cannot convert non-prime finite field element to unknown Singular coefficient ring")
     return codomain(f)(BigInt(lift(ZZ, a)))
@@ -253,6 +257,11 @@ end
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_Zp)
   parent(a) !== codomain(f) && error("Element not in codomain")
   return domain(f)(Int(a))
+end
+
+function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_Zn)
+  parent(a) !== codomain(f) && error("Element not in codomain")
+  return domain(f)(a)
 end
 
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_unknownsingularcoefficient)
