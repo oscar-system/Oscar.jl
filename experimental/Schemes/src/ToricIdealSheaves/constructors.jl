@@ -17,7 +17,7 @@ Torus-invariant, prime divisor on a normal toric variety
 
 julia> ideal_sheaf(td)
 Sheaf of ideals
-  on normal, smooth toric variety
+  on smooth toric variety
 with restrictions
   1: Ideal (x_2_1)
   2: Ideal (x_2_2)

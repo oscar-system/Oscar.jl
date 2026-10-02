@@ -1181,10 +1181,19 @@ true
 ```
 """
 function is_isomorphic(M1::Matroid, M2::Matroid)
-    if length(M1) != length(M2)
+    B1 = bases(Int, M1)
+    B2 = bases(Int, M2)
+    b1 = length(B1)
+    b2 = length(B2)
+    n1 = length(M1)
+    n2 = length(M2)
+    if b1 != b2 || n1 != n2
         return false
+    else
+        I1 = incidence_matrix(b1,n1,B1)
+        I2 = incidence_matrix(b2,n2,B2)
+        return !isnothing(Polymake.graph.find_row_col_permutation(I1,I2))
     end
-    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)::Bool
 end
 
 @doc raw"""

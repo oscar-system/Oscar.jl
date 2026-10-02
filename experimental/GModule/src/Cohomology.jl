@@ -2205,12 +2205,12 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   fM, mfM = pc_group_with_isomorphism(M)
 
   N = free_group(ngens(G) + ngens(fM))
-  Gp = GAP.Globals.Pcgs(GapObj(G))
+  Gp = GAPWrap.Pcgs(GapObj(G))
   @assert length(Gp) == ngens(G)
 #  @assert all(x->Gp[x] == GapObj(gen(G, x)), 1:ngens(G))
   Go = GAP.Globals.RelativeOrders(Gp)
 
-  Mp = GAP.Globals.Pcgs(GapObj(fM))
+  Mp = GAPWrap.Pcgs(GapObj(fM))
   @assert length(Mp) == ngens(fM) == ngens(M)
 #  @assert all(x->Mp[x] == GapObj(gen(fM, x)), 1:ngens(M))
   #problem/ TODO: Z/100Z has a useful GAP-pc-group has 4 gens (of

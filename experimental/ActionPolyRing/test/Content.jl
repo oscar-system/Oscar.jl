@@ -1,7 +1,5 @@
-using Test
+@testset "all tests - Content.jl" verbose = true begin
 
-@testset "ActionPolyRing - all tests" verbose = true begin
-   
   __jtv = Oscar.__jtv
   __jtu_idx = Oscar.__jtu_idx
   __vtj = Oscar.__vtj
@@ -10,25 +8,32 @@ using Test
   __perm_for_sort_poly = Oscar.__perm_for_sort_poly
   __is_valid_jet = Oscar.__is_valid_jet
   __is_valid_partition = Oscar.__is_valid_partition
-  
+
   @testset "Conformance tests - Ring interface" begin
-    
+    tRi = ConformanceTests.test_Ring_interface
+
     @testset "DifferencePolyRing - conformance tests" begin
-      ConformanceTests.test_Ring_interface(difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
-      ConformanceTests.test_Ring_interface(difference_polynomial_ring(ZZ, 5, 8)[1])
-      ConformanceTests.test_Ring_interface(difference_polynomial_ring(ZZ, :x, 2)[1])
+      tRi(difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
+      tRi(difference_polynomial_ring(ZZ, 5, 8)[1])
+      tRi(difference_polynomial_ring(ZZ, :x, 2)[1])
+
+      S, x = polynomial_ring(QQ, :x)
+      tRi(difference_polynomial_ring(S, 2, action_shift.([hom(S, S, x + 1), hom(S, S, x + 2)]))[1])
     end
-    
+
     @testset "DifferentialPolyRing - conformance tests" begin
-      ConformanceTests.test_Ring_interface(differential_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
-      ConformanceTests.test_Ring_interface(differential_polynomial_ring(ZZ, 5, 8)[1])
-      ConformanceTests.test_Ring_interface(differential_polynomial_ring(ZZ, :x, 2)[1])
+      tRi(differential_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
+      tRi(differential_polynomial_ring(ZZ, 5, 8)[1])
+      tRi(differential_polynomial_ring(ZZ, :x, 2)[1])
+
+      S, (x, y) = polynomial_ring(QQ, [:x, :y])
+      tRi(differential_polynomial_ring(S, 2, action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))]))[1])
     end
 
   end
-  
+
   @testset "Check types" begin
-    
+
     @test coefficient_ring_type(DifferencePolyRing{QQFieldElem}) == QQField
     @test elem_type(DifferencePolyRing{QQFieldElem}) == DifferencePolyRingElem{QQFieldElem}
     @test parent_type(DifferencePolyRingElem{QQFieldElem}) == DifferencePolyRing{QQFieldElem}
@@ -44,7 +49,7 @@ using Test
   end
 
   @testset "Check content" begin
-    
+
     @testset "Failing constructions" begin
       for nelemsym in [-5, 0]
         @test_throws ArgumentError difference_polynomial_ring(ZZ, nelemsym, 1)
@@ -56,6 +61,12 @@ using Test
       end
       @test_throws ArgumentError difference_polynomial_ring(ZZ, Symbol[], 1)
       @test_throws ArgumentError differential_polynomial_ring(ZZ, Symbol[], 1)
+
+      S, x = polynomial_ring(QQ, :x)
+      shifts = action_shift.([hom(S, S, -x), hom(S, S, x + 1)])
+      derivations = action_derivation.([map_from_func(S, S, p -> derivative(p)), map_from_func(S, S, p -> x * derivative(p))])
+      @test_throws MethodError difference_polynomial_ring(S, 1, derivations)
+      @test_throws MethodError differential_polynomial_ring(S, 1, shifts)
     end
 
     @testset "Constructions with keywords" begin
@@ -63,13 +74,13 @@ using Test
       dpr1, vars1 = difference_polynomial_ring(ZZ, [:u1, :u2, :u3], 3; index_ordering_name = :invlex, partition_name = :pot)
       dpr2, vars2 = differential_polynomial_ring(ZZ, 3, 3; index_ordering_name = :invlex, partition_name = :pot)
       dpr3, vars3 = differential_polynomial_ring(ZZ, [:u1, :u2, :u3], 3; index_ordering_name = :invlex, partition_name = :pot)
-      
+
       @testset "Check types" begin
         @test dpr0 isa DifferencePolyRing
         @test dpr1 isa DifferencePolyRing
         @test dpr2 isa DifferentialPolyRing
         @test dpr3 isa DifferentialPolyRing
-        
+
         @test all(var -> var isa DifferencePolyRingElem, vars0)
         @test all(var -> var isa DifferencePolyRingElem, vars1)
         @test all(var -> var isa DifferentialPolyRingElem, vars2)
@@ -99,7 +110,7 @@ using Test
           @test parent(u2p) === upr
           @test parent(u3p) === upr
           @test gens(upr) == [u1p, u2p, u3p]
-          
+
           #Dictionaries
           jtu = __jtu_idx(dpr)
           jtv = __jtv(dpr)
@@ -114,7 +125,7 @@ using Test
           @test Set(keys(vtj)) == Set([u1, u2, u3])
           @test keys(jtu) == keys(jtv)
           @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3
-          
+
           @test u1 == jtv[(1, [0,0,0])]
           @test u2 == jtv[(2, [0,0,0])]
           @test u3 == jtv[(3, [0,0,0])]
@@ -131,7 +142,7 @@ using Test
           @test u1 > u2 > u3
           @test __perm_for_sort(dpr) == [1,2,3]
         end
-        
+
         @testset "Check other" begin
           @test !is_univariate(dpr)
           @test all(var -> is_univariate(var), vars)
@@ -140,20 +151,20 @@ using Test
           R, univ_var = polynomial_ring(ZZ; cached = false)
           @test to_univariate(R, u1^2 - u1) == univ_var^2 - univ_var
           @test parent(to_univariate(R, u1^2 - u1)) === R
-          
+
           @test all(var -> is_irreducible(var), vars)
           @test !is_irreducible(u1^2)
           @test !is_irreducible(u1*u2)
           @test !is_irreducible(zero(dpr))
           @test !is_irreducible(one(dpr))
-          
+
           @test all(var -> is_monomial(var), vars)
           @test all(var -> is_term(var), vars)
           @test all(var -> !is_monomial(3*var), vars)
           @test all(var -> is_term(3*var), vars)
           @test all(var -> !is_monomial(3*var+1), vars)
           @test all(var -> !is_term(3*var+1), vars)
-          
+
           f = 2 * (u1 - 1) * (u1 + 1)
           g = -5*u1^3 * u2^2
           factf, factg = factor(f), factor(g)
@@ -167,13 +178,13 @@ using Test
           @test Set(factg) == Set([Pair(dpr(5), 1), Pair(u1, 3), Pair(u2, 2)])
           @test Set(factsg) == Set([Pair(dpr(5), 1), Pair(u1, 3), Pair(u2, 2)])
         end
-        
+
         @testset "Check public fields at construction" begin
           @test coefficient_ring(dpr) == ZZ
           @test all(var -> coefficient_ring(var) == ZZ, vars)
-          @test elementary_symbols(dpr) == [:u1, :u2, :u3]
+          @test action_indeterminates(dpr) == [:u1, :u2, :u3]
           @test n_action_maps(dpr) == 3
-          @test n_elementary_symbols(dpr) == 3
+          @test n_action_indeterminates(dpr) == 3
           @test all(var -> parent(var) === dpr, vars)
 
           ran = ranking(dpr)
@@ -187,7 +198,7 @@ using Test
           @test index_ordering_matrix(ran) == ZZ[0 0 1; 0 1 0; 1 0 0]
           @test riquier_matrix(ran) == ZZ[1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 0 0 0 1; 0 0 0 0 1 0; 0 0 0 1 0 0]
         end
-        
+
         # Let's add some variables
         @testset "Check adding variables" begin
           for i in [1,2,3]
@@ -231,12 +242,12 @@ using Test
           @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
           @test gens(dpr) == [u1_010, u1_100, u1, u2_100, u2, u3_111, u3]
           @test all(var -> is_gen(var), gens(dpr))
-            
+
           #Permutations
           @test !__are_perms_up_to_date(dpr)
           @test __perm_for_sort(dpr) == [5,4,1,6,2,7,3]
           @test __are_perms_up_to_date(dpr)
-          
+
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
@@ -248,14 +259,14 @@ using Test
           Rtmp1 = parent(to_univariate(dpr(1)))
           @test gen(Rtmp0) == gen(Rtmp1)
           @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
-        
+
           @testset "Check internals after adding variables" begin
             upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
-          
+
             #Dictionaries
             jtu = __jtu_idx(dpr)
-            jtv = __jtv(dpr) 
+            jtv = __jtv(dpr)
             vtj = __vtj(dpr)
 
             for key in keys(jtv)
@@ -268,15 +279,15 @@ using Test
             @test Set(keys(vtj)) == Set([u1, u2, u3, u1_010, u1_100, u2_100, u3_111])
             @test keys(jtu) == keys(jtv)
             @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3 && jtu[(1, [0,1,0])] == 5 && jtu[(1, [1,0,0])] == 4 && jtu[(2, [1,0,0])] == 6 && jtu[(3, [1,1,1])] == 7
-          
+
           end
-        
+
           @testset "Check public fields after adding variables" begin
             @test coefficient_ring(dpr) == ZZ
             @test all(var -> coefficient_ring(var) == ZZ, vars)
-            @test elementary_symbols(dpr) == [:u1, :u2, :u3]
+            @test action_indeterminates(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
-            @test n_elementary_symbols(dpr) == 3
+            @test n_action_indeterminates(dpr) == 3
 
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
@@ -341,7 +352,7 @@ using Test
             end
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
-            @test total_degree(dpr(1)) == 0 
+            @test total_degree(dpr(1)) == 0
             @test degree(dpr(1), 3, [5,5,5]) == 0
 
             @test !is_unit(dpr(-2))
@@ -365,7 +376,7 @@ using Test
             end
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
-            @test total_degree(dpr(-2)) == 0 
+            @test total_degree(dpr(-2)) == 0
 
             @test dpr(-5) == -dpr(5)
             @test -1 * dpr(5) == dpr(-5)
@@ -386,10 +397,18 @@ using Test
           @testset "Non-constant polynomials" begin
             #Recall that u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3:
             @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
+            @test is_ritt_less(u3, u3_111)
+            @test is_ritt_less(u1, u1_100)
+            @test is_ritt_less(u2, u1_010)
+            @test is_ritt_less(dpr(1), u1)
+            @test !is_ritt_less(dpr(1), dpr(5))
+            @test is_ritt_less(dpr(0), dpr(1))
+            @test !is_ritt_less(dpr(0), dpr(0))
             @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [1,3,6]
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
             g = (u1_010 - 2) * (u1 - u1_100 + 3)
-            
+
+            @test is_ritt_less(f, g)
             @test f == 2*u2_100*u1_100 - u3_111*u1_100 - 2*u2_100*u1 + u3_111*u1 - 6*u2_100 + 3*u3_111
             @test length(f) == 6
             @test __perm_for_sort_poly(f) == [3,4,1,2,5,6]
@@ -402,12 +421,12 @@ using Test
             @test typeof(ef) == Vector{Vector{Int}}
             @test typeof(mf) == Vector{typeof(f)}
             @test typeof(tf) == Vector{typeof(f)}
-            
+
             @test cf == ZZRingElem[2,-1,-2,1,-6,3]
             @test ef == [[0,1,0,1,0,0,0],[0,1,0,0,0,1,0],[0,0,1,1,0,0,0],[0,0,1,0,0,1,0],[0,0,0,1,0,0,0],[0,0,0,0,0,1,0]]
             @test mf == [u2_100*u1_100, u3_111*u1_100, u2_100*u1, u3_111*u1, u2_100, u3_111]
             @test tf == [2*u2_100*u1_100, -u3_111*u1_100, -2*u2_100*u1, u3_111*u1, -6*u2_100, 3*u3_111]
-          
+
             @test !is_zero(f)
             @test !is_unit(f)
             @test !is_constant(dpr(f))
@@ -417,7 +436,7 @@ using Test
             @test_throws ErrorException inv(f)
             @test trailing_coefficient(f) == ZZ(3)
             @test trailing_monomial(f) == u3_111
-            @test trailing_term(f) == 3*u3_111 
+            @test trailing_term(f) == 3*u3_111
             @test leading_coefficient(f) == ZZ(2)
             @test leading_monomial(f) == u2_100*u1_100
             @test leading_term(f) == 2*u2_100*u1_100
@@ -433,7 +452,7 @@ using Test
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
             @test total_degree(f) == 2
-            
+
             @test leader(f) == u1_100
             @test degree(f, leader(f)) == 1
             @test initial(f) == 2*u2_100 - u3_111
@@ -444,7 +463,7 @@ using Test
             @test f^2 == f * f
             @test dpr(data(f)^2) == f^2
             @test dpr(data(f) * data(g)) == f * g
-            @test_throws ErrorException f/g 
+            @test_throws ErrorException f/g
             @test_throws ErrorException divexact(f, g)
             @test is_one(f/f)
             @test is_one(divexact(f,f))
@@ -457,23 +476,23 @@ using Test
             eg = collect(exponents(g))
             mg = collect(monomials(g))
             tg = collect(terms(g))
-           
+
             @test cg == ZZRingElem[-1,1,3,2,-2,-6]
             @test eg == [[1,1,0,0,0,0,0],[1,0,1,0,0,0,0],[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,0,0,0,0]]
             @test mg == [u1_010*u1_100, u1_010*u1, u1_010, u1_100, u1, dpr(1)]
             @test tg == [-1*u1_010*u1_100, u1_010*u1, 3*u1_010, 2*u1_100, -2*u1, -6*dpr(1)]
-            
+
             @test leader(g) == u1_010
             @test degree(g, leader(g)) == 1
             @test initial(g) == -u1_100 + u1 + 3
 
           end
-        
+
         end #End check adding variables
 
         @testset "Check change ranking" begin
           set_ranking!(dpr; partition = [[0,1,1], [1,0,0]], index_ordering_name = :degrevlex)
-         
+
           @test ngens(dpr) == 7
           @test nvars(dpr) == 7
           u1_100 = dpr[1, [1,0,0]]
@@ -482,18 +501,18 @@ using Test
           u3_111 = dpr[3, [1,1,1]]
           @test ngens(dpr) == 7
           @test nvars(dpr) == 7
-          
+
           # u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #previously
           @test u3_111 > u2_100 > u2 > u3 > u1_100 > u1_010 > u1
-          @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [6,7,1]       
+          @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [6,7,1]
           @test gens(dpr) == [u3_111, u2_100, u2, u3, u1_100, u1_010, u1]
           @test all(var -> is_gen(var), gens(dpr))
-            
+
           #Permutations
           @test !__are_perms_up_to_date(dpr)
           @test __perm_for_sort(dpr) == [7,6,2,3,4,5,1]
           @test __are_perms_up_to_date(dpr)
-            
+
           for i in 1:ngens(dpr)
             @test gen(dpr, i) == gens(dpr)[i]
             @test __jtv(dpr)[__vtj(dpr)[gen(dpr, i)]] !== gen(dpr, i)
@@ -506,14 +525,13 @@ using Test
           @test gen(Rtmp0) == gen(Rtmp1)
           @test gen(Rtmp0) == to_univariate(gen(dpr, 1))
 
-          
           @testset "Check internals after changing ranking" begin
             upr = base_ring(dpr)
             @test all(var -> parent(data(var)) === upr, gens(dpr))
-          
+
             #Dictionaries
             jtu = __jtu_idx(dpr)
-            jtv = __jtv(dpr) 
+            jtv = __jtv(dpr)
             vtj = __vtj(dpr)
 
             for key in keys(jtv)
@@ -526,16 +544,16 @@ using Test
             @test Set(keys(vtj)) == Set([u1, u2, u3, u1_010, u1_100, u2_100, u3_111])
             @test keys(jtu) == keys(jtv)
             @test jtu[(1, [0,0,0])] == 1 && jtu[(2, [0,0,0])] == 2 && jtu[(3, [0,0,0])] == 3 && jtu[(1, [0,1,0])] == 5 && jtu[(1, [1,0,0])] == 4 && jtu[(2, [1,0,0])] == 6 && jtu[(3, [1,1,1])] == 7
-          
+
           end
-        
+
           @testset "Check public fields after changing ranking" begin
             @test coefficient_ring(dpr) == ZZ
             @test all(var -> coefficient_ring(var) == ZZ, vars)
-            @test elementary_symbols(dpr) == [:u1, :u2, :u3]
+            @test action_indeterminates(dpr) == [:u1, :u2, :u3]
             @test n_action_maps(dpr) == 3
-            @test n_elementary_symbols(dpr) == 3
-          
+            @test n_action_indeterminates(dpr) == 3
+
             ran = ranking(dpr)
             if dpr isa DifferencePolyRing
               @test ran isa ActionPolyRingRanking{DifferencePolyRing{ZZRingElem}}
@@ -577,7 +595,7 @@ using Test
             @test total_degree(dpr()) == -1
             @test degree(dpr(), 3, [5,5,5]) == -1
             @test_throws ArgumentError leader(dpr())
-            @test initial(dpr()) == ZZ()
+            @test_throws ArgumentError initial(dpr())
 
             @test dpr(1) == one(dpr)
             @test dpr(1) == ZZ(1)
@@ -601,9 +619,9 @@ using Test
             end
             @test_throws BoundsError degree(dpr(1), 0)
             @test_throws BoundsError degree(dpr(1), nvars(dpr) + 1)
-            @test total_degree(dpr(1)) == 0 
+            @test total_degree(dpr(1)) == 0
             @test degree(dpr(1), 3, [5,5,5]) == 0
-            @test_throws ArgumentError leader(dpr(1))
+            @test leader(dpr(1)) == dpr(1)
             @test initial(dpr(1)) == ZZ(1)
 
             @test dpr(-2) == ZZ(-2)
@@ -626,8 +644,8 @@ using Test
             end
             @test_throws BoundsError degree(dpr(-2), 0)
             @test_throws BoundsError degree(dpr(-2), nvars(dpr) + 1)
-            @test total_degree(dpr(-2)) == 0 
-            @test_throws ArgumentError leader(dpr(-2))
+            @test total_degree(dpr(-2)) == 0
+            @test leader(dpr(-2)) == dpr(1)
             @test initial(dpr(-2)) == ZZ(-2)
 
             @test dpr(-5) == -dpr(5)
@@ -645,7 +663,7 @@ using Test
             @test_throws ErrorException divexact(dpr(5), ZZ(2))
             @test_throws ErrorException divexact(dpr(5), dpr(2))
           end
-          
+
           @testset "Non-constant polynomials" begin
             #Recall that u3_111 > u2_100 > u2 > u3 > u1_100 > u1_010 > u1
             f = (u3_111 - 2 * u2_100) * (u1 - u1_100 + 3)
@@ -669,12 +687,12 @@ using Test
             @test typeof(ef) == Vector{Vector{Int}}
             @test typeof(mf) == Vector{typeof(f)}
             @test typeof(tf) == Vector{typeof(f)}
-            
+
             @test cf == ZZRingElem[-1,1,3,2,-2,-6]
             @test ef == [[1,0,0,0,1,0,0],[1,0,0,0,0,0,1],[1,0,0,0,0,0,0],[0,1,0,0,1,0,0],[0,1,0,0,0,0,1],[0,1,0,0,0,0,0]]
             @test mf == [u3_111*u1_100, u3_111*u1, u3_111, u2_100*u1_100, u2_100*u1, u2_100]
             @test tf == [-u3_111*u1_100, u3_111*u1, 3*u3_111, 2*u2_100*u1_100, -2*u2_100*u1, -6*u2_100]
-            
+
             @test !is_zero(f)
             @test !is_unit(f)
             @test !is_constant(dpr(f))
@@ -697,10 +715,10 @@ using Test
             @test_throws BoundsError degree(f, 0)
             @test_throws BoundsError degree(f, nvars(dpr) + 1)
             @test total_degree(f) == 2
-            
+
             @test leader(f) == u3_111
             @test degree(f, leader(f)) == 1
-            @test initial(f) == -u1_100 + u1 + 3 
+            @test initial(f) == -u1_100 + u1 + 3
 
             @test dpr(data(f) + data(g)) == f + g
             @test dpr(-data(f)) == -f
@@ -708,7 +726,7 @@ using Test
             @test f^2 == f * f
             @test dpr(data(f)^2) == f^2
             @test dpr(data(f) * data(g)) == f * g
-            @test_throws ErrorException f/g 
+            @test_throws ErrorException f/g
             @test_throws ErrorException divexact(f, g)
             @test is_one(f/f)
             @test is_one(divexact(f,f))
@@ -721,11 +739,11 @@ using Test
             eg = collect(exponents(g))
             mg = collect(monomials(g))
             tg = collect(terms(g))
-            
+
             @test leader(g) == u1_100
             @test degree(g, leader(g)) == 1
             @test initial(g) == -u1_010 + 2
-            
+
             @test cg == ZZRingElem[-1,2,1,3,-2,-6]
             @test eg == [[0,0,0,0,1,1,0],[0,0,0,0,1,0,0],[0,0,0,0,0,1,1],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1],[0,0,0,0,0,0,0]]
             @test mg == [u1_010*u1_100, u1_100, u1_010*u1, u1_010, u1, dpr(1)]
@@ -736,15 +754,15 @@ using Test
         end #End check change ranking
 
       end #End for loop
-      
+
     end #Construction with keywords
 
-    @testset "Further construction" begin
+    @testset "Further constructions" begin
       dpr0, vars0 = difference_polynomial_ring(QQ, 3, 3)
       dpr1, vars1 = difference_polynomial_ring(QQ, [:u1, :u2, :u3], 3)
       dpr2, vars2 = differential_polynomial_ring(QQ, 3, 3)
       dpr3, vars3 = differential_polynomial_ring(QQ, [:u1, :u2, :u3], 3)
-      
+
       for (dpr, vars) in [(dpr0, vars0), (dpr1, vars1), (dpr2, vars2), (dpr3, vars3)]
         u1, u2, u3 = vars[1], vars[2], vars[3]
 
@@ -775,7 +793,7 @@ using Test
         @testset "resultant" begin
           @test resultant(f, f, (1, [0,0,0])) == 0
           @test resultant(f, f, (2, [0,0,0])) == 0
-          @test resultant(f, f, (3, [0,0,0])) == 1 
+          @test resultant(f, f, (3, [0,0,0])) == 1
           @test resultant(f, f, (1, [1,1,1])) == 1
 
           @test resultant(f, g, 1) == 4*u2^3
@@ -800,17 +818,17 @@ using Test
         @testset "discriminant" begin
           # degree -1
           @test discriminant(zero(dpr)) == 0
-          
+
           # degree 0
-          @test discriminant(one(dpr)) == 0
-          @test discriminant(dpr(-17)) == 0
-          
+          @test discriminant(one(dpr)) == 1
+          @test discriminant(dpr(-17)) == 1
+
           # degree 1
           @test discriminant(f) == 1
           @test discriminant(u1) == 1
           @test discriminant(u1*u2*u3) == 1
           @test discriminant(-47*u2 + 45*u3 - 2) == 1
-          
+
           # degree 2
           @test discriminant(g) == 48*u2*u3
           @test discriminant(4*u1^2*u2^2*u3 - 6*u1*u2*u3 + 9*u3) == -108*u2^2*u3^2
@@ -863,86 +881,183 @@ using Test
 
         @testset "diff action" begin
           if dpr isa DifferencePolyRing
-            @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
-            @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
-            @test diff_action(dpr(-2), 1) == dpr(-2)
-            @test diff_action(dpr(-2), [0,0,0]) == dpr(-2)
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,-1,1]) 
-            
+            @test is_zero(apply_action(dpr(), 1))
+            @test is_zero(apply_action(dpr(), n_action_maps(dpr)))
+            @test_throws ArgumentError apply_action(dpr(), 0)
+            @test_throws ArgumentError apply_action(dpr(), n_action_maps(dpr) + 1)
+            @test apply_action(dpr(-2), 1) == dpr(-2)
+            @test apply_action(dpr(-2), [0,0,0]) == dpr(-2)
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1,1,1])
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1])
+            @test_throws ArgumentError apply_action(dpr(-2), [1,-1,1])
+
             @test ngens(dpr) == 3
-            @test diff_action(f, 1) == dpr[1, [1,0,0]] * dpr[2, [1,0,0]]
+            @test apply_action(f, 1) == dpr[1, [1,0,0]] * dpr[2, [1,0,0]]
             @test ngens(dpr) == 5
-            @test diff_action(f, 2) == dpr[1, [0,1,0]] * dpr[2, [0,1,0]]
+            @test apply_action(f, 2) == dpr[1, [0,1,0]] * dpr[2, [0,1,0]]
             @test ngens(dpr) == 7
-            @test diff_action(f, 3) == dpr[1, [0,0,1]] * dpr[2, [0,0,1]]
+            @test apply_action(f, 3) == dpr[1, [0,0,1]] * dpr[2, [0,0,1]]
             @test ngens(dpr) == 9
 
-            @test diff_action(g, 1) == -3*dpr[1, [1,0,0]]^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
+            @test apply_action(g, 1) == -3*dpr[1, [1,0,0]]^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
             @test ngens(dpr) == 10
-            @test diff_action(g, 2) == -3*dpr[1, [0,1,0]]^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
+            @test apply_action(g, 2) == -3*dpr[1, [0,1,0]]^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
             @test ngens(dpr) == 11
-            @test diff_action(g, 3) == -3*dpr[1, [0,0,1]]^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
+            @test apply_action(g, 3) == -3*dpr[1, [0,0,1]]^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
             @test ngens(dpr) == 12
 
-            @test diff_action(f, [4,5,6]) == dpr[1, [4,5,6]] * dpr[2, [4,5,6]]
+            @test apply_action(f, [4,5,6]) == dpr[1, [4,5,6]] * dpr[2, [4,5,6]]
             @test ngens(dpr) == 14
-            @test diff_action(g, [4,5,6]) == -3*dpr[1, [4,5,6]]^2 * dpr[3, [4,5,6]] + 4*dpr[2, [4,5,6]]
+            @test apply_action(g, [4,5,6]) == -3*dpr[1, [4,5,6]]^2 * dpr[3, [4,5,6]] + 4*dpr[2, [4,5,6]]
             @test ngens(dpr) == 15
           end
           if dpr isa DifferentialPolyRing
-            @test is_zero(diff_action(dpr(), 1))
-            @test is_zero(diff_action(dpr(), n_action_maps(dpr)))
-            @test_throws ArgumentError diff_action(dpr(), 0)
-            @test_throws ArgumentError diff_action(dpr(), n_action_maps(dpr) + 1)
-            @test is_zero(diff_action(dpr(-2), 1))
-            @test diff_action(dpr(-2), [0,0,0]) == -2
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1,1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,1]) 
-            @test_throws ArgumentError diff_action(dpr(-2), [1,-1,1]) 
-            
+            @test is_zero(apply_action(dpr(), 1))
+            @test is_zero(apply_action(dpr(), n_action_maps(dpr)))
+            @test_throws ArgumentError apply_action(dpr(), 0)
+            @test_throws ArgumentError apply_action(dpr(), n_action_maps(dpr) + 1)
+            @test is_zero(apply_action(dpr(-2), 1))
+            @test apply_action(dpr(-2), [0,0,0]) == -2
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1,1,1])
+            @test_throws ArgumentError apply_action(dpr(-2), [1,1])
+            @test_throws ArgumentError apply_action(dpr(-2), [1,-1,1])
+
             @test ngens(dpr) == 3
-            @test diff_action(f, 1) == dpr[1, [1,0,0]] * u2 + u1 * dpr[2, [1,0,0]]
+            @test apply_action(f, 1) == dpr[1, [1,0,0]] * u2 + u1 * dpr[2, [1,0,0]]
             @test ngens(dpr) == 5
-            @test diff_action(f, 2) == dpr[1, [0,1,0]] * u2 + u1 * dpr[2, [0,1,0]]
+            @test apply_action(f, 2) == dpr[1, [0,1,0]] * u2 + u1 * dpr[2, [0,1,0]]
             @test ngens(dpr) == 7
-            @test diff_action(f, 3) == dpr[1, [0,0,1]] * u2 + u1 * dpr[2, [0,0,1]]
+            @test apply_action(f, 3) == dpr[1, [0,0,1]] * u2 + u1 * dpr[2, [0,0,1]]
             @test ngens(dpr) == 9
 
-            @test diff_action(g, 1) == -6*dpr[1, [1,0,0]] * u1 * u3 - 3*u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
+            @test apply_action(g, 1) == -6*dpr[1, [1,0,0]] * u1 * u3 - 3*u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]]
             @test ngens(dpr) == 10
-            @test diff_action(g, 2) == -6*dpr[1, [0,1,0]] * u1 * u3 - 3*u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
+            @test apply_action(g, 2) == -6*dpr[1, [0,1,0]] * u1 * u3 - 3*u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]]
             @test ngens(dpr) == 11
-            @test diff_action(g, 3) == -6*dpr[1, [0,0,1]] * u1 * u3 - 3*u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
+            @test apply_action(g, 3) == -6*dpr[1, [0,0,1]] * u1 * u3 - 3*u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]]
             @test ngens(dpr) == 12
 
-            @test diff_action(f, [2,0,0]) == dpr[1, [2,0,0]] * u2 + 2*dpr[1, [1,0,0]] * dpr[2, [1,0,0]] + u1 * dpr[2, [2,0,0]]
+            @test apply_action(f, [2,0,0]) == dpr[1, [2,0,0]] * u2 + 2*dpr[1, [1,0,0]] * dpr[2, [1,0,0]] + u1 * dpr[2, [2,0,0]]
             @test ngens(dpr) == 14
-            @test diff_action(f, [0,2,0]) == dpr[1, [0,2,0]] * u2 + 2*dpr[1, [0,1,0]] * dpr[2, [0,1,0]] + u1 * dpr[2, [0,2,0]]
+            @test apply_action(f, [0,2,0]) == dpr[1, [0,2,0]] * u2 + 2*dpr[1, [0,1,0]] * dpr[2, [0,1,0]] + u1 * dpr[2, [0,2,0]]
             @test ngens(dpr) == 16
-            @test diff_action(f, [0,0,2]) == dpr[1, [0,0,2]] * u2 + 2*dpr[1, [0,0,1]] * dpr[2, [0,0,1]] + u1 * dpr[2, [0,0,2]]
+            @test apply_action(f, [0,0,2]) == dpr[1, [0,0,2]] * u2 + 2*dpr[1, [0,0,1]] * dpr[2, [0,0,1]] + u1 * dpr[2, [0,0,2]]
             @test ngens(dpr) == 18
 
-            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [0,0,1]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]], [1,1,0])
-            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [0,1,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]], [1,0,1])
-            @test diff_action(g, [1,1,1]) == diff_action(-6*dpr[1, [1,0,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]], [0,1,1])
-            @test ngens(dpr) == 29  
+            @test apply_action(g, [1,1,1]) == apply_action(-6*dpr[1, [0,0,1]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,0,1]] + 4*dpr[2, [0,0,1]], [1,1,0])
+            @test apply_action(g, [1,1,1]) == apply_action(-6*dpr[1, [0,1,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [0,1,0]] + 4*dpr[2, [0,1,0]], [1,0,1])
+            @test apply_action(g, [1,1,1]) == apply_action(-6*dpr[1, [1,0,0]] * u1 * u3 - 3 * u1^2 * dpr[3, [1,0,0]] + 4*dpr[2, [1,0,0]], [0,1,1])
+            @test ngens(dpr) == 29
           end
         end
-      end #End for loop
-    end #End further constructions
-  end #Construction and basic field access
+      end # End for loop
+    end # End further constructions
+  end # Construction and basic field access
+
+  @testset "Nontrivial action maps" begin
+    S, (x, y) = polynomial_ring(QQ, [:x, :y])
+    s1, s2 = action_shift.([hom(S, S, [x + y, y + 1]), hom(S, S, [x + 2*y, y + 2])])
+    ddx, ddy = action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))])
+
+    dxr, (a, b) = difference_polynomial_ring(S, [:a, :b], [s1, s2])
+    dpr, (c, d) = differential_polynomial_ring(S, [:c, :d], [ddx, ddy])
+
+    @testset "Difference apply_action" begin
+      @testset "coefficient ring" begin
+        @test apply_action(dxr(x), 1) == x + y
+        @test apply_action(dxr(y), 1) == y + 1
+        @test apply_action(dxr(x), 2) == x + 2*y
+        @test apply_action(dxr(y), 2) == y + 2
+
+        @test apply_action(dxr(y^2), 1) == y^2 + 2*y + 1
+        @test apply_action(dxr(x + y), 2) == x + 3*y + 2
+        @test apply_action(dxr(x), [1, 1]) == x + 3*y + 2
+      end
+      @testset "jet variables" begin
+        @test apply_action(a, 1) == a[1, 0]
+        @test apply_action(a, 2) == a[0, 1]
+        @test apply_action(b[2, 3], 1) == b[3, 3]
+        @test apply_action(b[2, 3], 2) == b[2, 4]
+
+        @test apply_action(a[4, 2], [1, 5]) == a[5, 7]
+        @test apply_action(b[3, 1], [2, 0]) == b[5, 1]
+
+        @test apply_action(a + 2*b, [3, 4]) == a[3, 4] + 2*b[3, 4]
+        @test apply_action(a * 2*b, [3, 4]) == 2*a[3, 4] * b[3, 4]
+      end
+      @testset "arbitrary polynomials" begin
+        f = x * a + y^2 * b[1, 2]
+
+        @test apply_action(f, 1) == (x + y) * a[1, 0] + (y^2 + 2*y + 1) * b[2, 2]
+        @test apply_action(f, 2) == (x + 2*y) * a[0, 1] + (y^2 + 4*y + 4) * b[1, 3]
+        @test apply_action(f, [1, 1]) == (x + 3*y + 2) * a[1, 1] + (y^2 + 6*y + 9) * b[2, 3]
+      end
+    end
+    @testset "Differential apply_action" begin
+      @testset "coefficient ring" begin
+        @test apply_action(dpr(x), 1) == 1
+        @test apply_action(dpr(y), 1) == 0
+        @test apply_action(dpr(x), 2) == 0
+        @test apply_action(dpr(y), 2) == 1
+
+        @test apply_action(dpr(y^2), 1) == 0
+        @test apply_action(dpr(x + y^2), 2) == 2*y
+        @test apply_action(dpr(x^2 * y^2), [1, 1]) == 4*x*y
+      end
+      @testset "jet variables" begin
+        @test apply_action(c, 1) == c[1, 0]
+        @test apply_action(c, 2) == c[0, 1]
+        @test apply_action(d[2, 3], 1) == d[3, 3]
+        @test apply_action(d[2, 3], 2) == d[2, 4]
+
+        @test apply_action(c[4, 2], [1, 5]) == c[5, 7]
+        @test apply_action(d[3, 1], [2, 0]) == d[5, 1]
+
+        @test apply_action(c + 2*d, [3, 4]) == c[3, 4] + 2*d[3, 4]
+
+        @test apply_action(c * 2*d, 1) == c[1, 0] * 2*d + c * 2*d[1, 0]
+        @test apply_action(c^2, 2) == 2 * c * c[0, 1]
+      end
+      @testset "arbitrary polynomials" begin
+        f = x * c + y^2 * d[1, 2]
+
+        @test apply_action(f, 1) == c + x * c[1, 0] + y^2 * d[2, 2]
+        @test apply_action(f, 2) == x * c[0, 1] + 2*y * d[1, 2] + y^2 * d[1, 3]
+        @test apply_action(f, [1, 1]) == c[0, 1] + x * c[1, 1] + 2*y * d[2, 2] + y^2 * d[2, 3]
+      end
+    end
+  end
 
   @testset "Fixed bugs" begin
-    @testset "diff_action for difference wiping data" begin
+    @testset "apply_action for difference wiping data" begin
       R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
-      p = y_1^2 * diff_action(y_1, [0, 1]) - 1
-      @test diff_action(p, 2) == diff_action(p, [0, 1])
-      @test diff_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
+      p = y_1^2 * apply_action(y_1, [0, 1]) - 1
+      @test apply_action(p, 2) == apply_action(p, [0, 1])
+      @test apply_action(p, 2) == R[2,[0,1]]^2*R[2,[0,2]] - 1
+    end
+    @testset "wrong length for exponent vector" begin
+      R, (y_2, y_1) = difference_polynomial_ring(QQ, [:y2, :y1], 2; partition = [[1,1]], index_ordering_name=:degrevlex)
+      f_1 = y_2[0,1]^3 + y_2
+      f_2 = y_1^2 * y_2[1,0] + y_1[0,1] - 1
+      f_3 = y_1[1,0]^4 + y_1[0,1]*y_2^2
+      f_4 = y_1[0,2] * y_2[1,1] + y_1[0,1] + 1
+      F = [f_1, f_2, f_3, f_4]
+      @test initial(F[2]) == y_1^2 # This was zero at some point
+    end
+    @testset "flawed constructor for mpolys" begin
+      R1, a = polynomial_ring(QQ, :a)
+      Rd, vs = differential_polynomial_ring(R1, :f, 2)
+      @test apply_action(vs, 1) == vs[1, 0]
+      Re, us = difference_polynomial_ring(R1, :g, 2)
+      @test apply_action(us, 1) == us[1, 0]
+
+      R2, (a, b) = polynomial_ring(QQ, [:a, :b])
+      Rd, vs = differential_polynomial_ring(R2, :f, 2)
+      @test apply_action(vs, 1) == vs[1, 0]
+      Re, us = difference_polynomial_ring(R2, :g, 2)
+      @test apply_action(us, 1) == us[1, 0]
     end
   end
 
 end #All tests
+

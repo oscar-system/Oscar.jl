@@ -108,3 +108,37 @@ function dehomogenize_post_tropicalization(TropV::TropicalVarietySupertype)
     return TropVDehom
 
 end
+
+
+@doc raw"""
+    homogenize_pre_tropicalization(ord::MonomialOrdering, Rh::MPolyRing)
+
+Given monomial ordering `ord` on polynomial ring `R` with variables x1, ..., xn,
+and polynomial ring `Rh` with variables xh, x1, ..., xn, return an extended
+monomial ordering on `Rh` such that:
+- named monomial orderings are preserved (e.g. `lex(R))` becomes `lex(Rh)`),
+- matrix and weight orderings are extended by prepending a zero column or
+  entry for the new variable `Rh`.
+"""
+homogenize_pre_tropicalization(ord::MonomialOrdering, Rh::MPolyRing) = homogenize_pre_tropicalization(ord.o, Rh)
+
+function homogenize_pre_tropicalization(o::Orderings.ProdOrdering, Rh::MPolyRing)
+    return homogenize_pre_tropicalization(o.a, Rh) * homogenize_pre_tropicalization(o.b, Rh)
+end
+
+function homogenize_pre_tropicalization(o::Orderings.SymbOrdering, Rh::MPolyRing)
+    oldSymbol = typeof(o).parameters[1]
+    return monomial_ordering(Rh, oldSymbol)
+end
+
+function homogenize_pre_tropicalization(o::Orderings.MatrixOrdering, Rh::MPolyRing)
+    newWeights = zero_matrix(ZZ, nrows(o.matrix), nvars(Rh))
+    newWeights[:, 2:end] = o.matrix
+    return matrix_ordering(Rh, newWeights; check=false)
+end
+
+function homogenize_pre_tropicalization(o::Orderings.WSymbOrdering, Rh::MPolyRing)
+    oldSymbol = typeof(o).parameters[1]
+    newWeights = vcat([0], o.weights)
+    return MonomialOrdering(Rh, Orderings.WSymbOrdering(oldSymbol, collect(1:nvars(Rh)), newWeights))
+end

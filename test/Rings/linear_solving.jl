@@ -97,4 +97,29 @@
     fl, y, K = @inferred can_solve_with_solution_and_kernel(A, b)
     @test fl && y * A == b && is_zero(K * A)
   end
+
+  # Solve contexts support polynomial rings on both sides and provide kernels
+  let
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
+    A = R[x 0; 0 y]
+    C = solve_init(A)
+    b = R.([x, y])
+    @test @inferred(solve(C, b; side = :right)) == R.([1, 1])
+    @test @inferred(solve(C, 2 .* b; side = :right)) == R.([2, 2])
+
+    @test @inferred(solve(C, b; side = :left)) == R.([1, 1])
+    K = @inferred kernel(C; side = :right)
+    @test A * K == zero(A, 2, ncols(K))
+    @test @inferred(kernel(A; side = :right)) == K
+
+    L, (u, v) = laurent_polynomial_ring(QQ, [:u, :v])
+    AL = L[u 0; 0 v]
+    CL = solve_init(AL)
+    bL = L.([u, v])
+    @test @inferred(solve(CL, bL; side = :right)) == L.([1, 1])
+    @test @inferred(solve(CL, 2 .* bL; side = :right)) == L.([2, 2])
+    KL = @inferred kernel(CL; side = :right)
+    @test AL * KL == zero(AL, 2, ncols(KL))
+    @test @inferred(kernel(AL; side = :right)) == KL
+  end
 end

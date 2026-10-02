@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Group actions
 
 A *group action* of a group $G$ on a set $\Omega$ (from the right) is defined by

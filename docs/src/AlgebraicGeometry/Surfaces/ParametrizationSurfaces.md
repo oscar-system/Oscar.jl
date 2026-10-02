@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Rational Parametrization of Rational Surfaces
 
 What we present here relies on the function `adjunction_process` discussed in the previous section.

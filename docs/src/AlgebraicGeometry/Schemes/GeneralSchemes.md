@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # General schemes
 
 Arbitrary schemes over a commutative base ring ``\mathbb k`` with unit 

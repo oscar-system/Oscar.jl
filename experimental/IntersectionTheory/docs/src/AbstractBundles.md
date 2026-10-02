@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Abstract bundles
 
 An *abstract bundle* on an abstract variety $X$ is determined by its Chern character (or, equivalently, by its rank and total Chern class).
