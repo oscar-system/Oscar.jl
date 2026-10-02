@@ -922,7 +922,8 @@ end
 
 Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
-Return `false` if the ambient free modules are not isomorphic.
+Return `false` if there is no canonical isomorphism between the ambient free
+modules, see `has_canonical_isomorphism`.
 
 ```jldoctest
 julia> Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
@@ -961,7 +962,7 @@ true
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  _has_canonical_isomorphism(F, G) || return false
+  has_canonical_isomorphism(F, G) || return false
   return compare_helper(M, N, is_canonically_isomorphic)
 end
 

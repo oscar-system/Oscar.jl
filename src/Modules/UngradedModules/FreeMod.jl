@@ -266,10 +266,26 @@ function is_zero(F::AbstractFreeMod)
   return rank(F) == 0
 end
 
-# Whether `canonical_isomorphism(F, G)` succeeds: the identification of the
-# generators must be forced, which for graded modules means pairwise distinct
-# degrees.
-function _has_canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+@doc raw"""
+    has_canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+
+Return whether `canonical_isomorphism(F, G)` exists. This requires `F` and `G`
+to be isomorphic; for graded `F != G` it also requires the degrees of the
+generators to be pairwise distinct, since otherwise matching generators by
+degree leaves a choice.
+
+# Examples
+```jldoctest
+julia> R, _ = graded_polynomial_ring(QQ, [:x, :y]);
+
+julia> has_canonical_isomorphism(graded_free_module(R, [0, 1]), graded_free_module(R, [1, 0]))
+true
+
+julia> has_canonical_isomorphism(graded_free_module(R, [0, 0, 1]), graded_free_module(R, [0, 1, 0]))
+false
+```
+"""
+function has_canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
   F == G && return true
   is_isomorphic(F, G) || return false
   return !is_graded(F) || allunique(F.d)

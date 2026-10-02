@@ -427,14 +427,15 @@ end
 @doc raw"""
     is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
-Check if `M` are canonically isomorphic. This means that if `F = ambient_free_module(M)` is 
-isomorphic to `G = ambient_free_module(N)` and the image of `M` under `canonical_isomorphism(F, G)`
-is equal to `N`.
+Check if `M` and `N` are canonically isomorphic. This means that
+`has_canonical_isomorphism(F, G)` holds for `F = ambient_free_module(M)` and
+`G = ambient_free_module(N)`, and the image of `M` under
+`canonical_isomorphism(F, G)` is equal to `N`.
 """
 function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  _has_canonical_isomorphism(F, G) || return false
+  has_canonical_isomorphism(F, G) || return false
   f = canonical_isomorphism(F,G)
   return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
 end

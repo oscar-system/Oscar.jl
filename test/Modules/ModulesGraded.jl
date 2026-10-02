@@ -1359,10 +1359,14 @@ end
   F2 = graded_free_module(Rg, [0, 1, 0])
   M1 = image(F1, Rg[x x 1])
   M2 = image(F2, Rg[x 1 x])
+  @test !has_canonical_isomorphism(F1, F2)
+  @test has_canonical_isomorphism(F1, F1)
+  @test has_canonical_isomorphism(graded_free_module(Rg, [0, 1]), graded_free_module(Rg, [1, 0]))
   @test !is_canonically_isomorphic(M1, M2)
 
   G = graded_free_module(Rg, [0, 0])
   N = image(G, Rg[x x])
+  @test !has_canonical_isomorphism(F1, G)
   @test !is_canonically_isomorphic(M1, N)
 
   iso, f = is_canonically_isomorphic_with_map(M1, N)
