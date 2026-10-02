@@ -82,23 +82,20 @@ julia> tdc = toric_divisor_class(td)
 Divisor class on a normal toric variety
 ```
 """
-function toric_divisor_class(td::ToricDivisor)
-  f = map_from_torusinvariant_weil_divisor_group_to_class_group(toric_variety(td))
-  class = f(sum(coefficients(td) .* gens(domain(f))))
-  return toric_divisor_class(toric_variety(td), class)
-end
+toric_divisor_class(td::ToricDivisor) =
+  toric_divisor_class(toric_variety(td), divisor_class(td))
 
 ########################
 # 4: Addition and scalar multiplication
 ########################
 
 function Base.:+(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-  @req toric_variety(tdc1) === toric_variety(tdc1) "The divisor classes must be defined on the same toric variety"
+  @req toric_variety(tdc1) === toric_variety(tdc2) "The divisor classes must be defined on the same toric variety"
   return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) + divisor_class(tdc2))
 end
 
 function Base.:-(tdc1::ToricDivisorClass, tdc2::ToricDivisorClass)
-  @req toric_variety(tdc1) === toric_variety(tdc1) "The divisor classes must be defined on the same toric variety"
+  @req toric_variety(tdc1) === toric_variety(tdc2) "The divisor classes must be defined on the same toric variety"
   return toric_divisor_class(toric_variety(tdc1), divisor_class(tdc1) - divisor_class(tdc2))
 end
 

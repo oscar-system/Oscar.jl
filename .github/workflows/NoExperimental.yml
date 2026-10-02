@@ -94,4 +94,4 @@ jobs:
               include("docs/documenter_helpers.jl")
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
+              doctest(Oscar; doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())'

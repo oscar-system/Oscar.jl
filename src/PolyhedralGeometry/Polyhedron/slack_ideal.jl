@@ -7,7 +7,7 @@ in [GMTW19](@cite).
 To get the slack ideal one needs to saturate this ideal, which can be
 expensive.
 
-Optionally one can pass a suitable polynomial ring as the first arguemnt.
+Optionally one can pass a suitable polynomial ring as the first argument.
 
 # Examples
 ```jldoctest

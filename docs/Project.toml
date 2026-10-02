@@ -7,7 +7,7 @@ Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 
 [compat]
 DelimitedFiles = "1.9.1"
-Documenter = "1.16.0"
+Documenter = "1.19.0"
 DocumenterCitations = "~1.4"
 JSON = "1.0.1"
 

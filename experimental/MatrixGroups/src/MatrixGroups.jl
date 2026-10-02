@@ -61,18 +61,18 @@ function matrix_group(matrices::Vector{<:MatElem{T}}; check::Bool = true) where 
      matrices_Fq = [matrix(x) for x in gens(G)]  # Oscar matrices over F
      iso = Oscar.iso_oscar_gap(base_ring(matrices_Fq[1]))
      gap_matrices_Fq = [map_entries(iso, m) for m in matrices_Fq]
-     G2 = GAP.Globals.Group(GapObj(gap_matrices_Fq))
+     G2 = GAPWrap.Group(GapObj(gap_matrices_Fq))
 
      # Create a GAP group of wrapped matrices in characteristic zero.
      gapMatrices = [Oscar.MatrixGroups._wrap_for_gap(m) for m in matrices]
-     G = GAP.Globals.Group(GapObj(gapMatrices))
+     G = GAPWrap.Group(GapObj(gapMatrices))
 
      # Create a nice monomorphism from `G` to `G2`.
      # (`GroupHomomorphismByFunction` admits computing images via the
      # reduction `OtoFq`,
      # computing preimages is possible via the nice monomorphism of `G2`
      # which is an action homomorphism.)
-     JuliaGAPMap = GAP.Globals.GroupHomomorphismByFunction(G, G2,
+     JuliaGAPMap = GAPWrap.GroupHomomorphismByFunction(G, G2,
        M -> map_entries(iso, Oscar._reduce(GAP.getbangproperty(M, :m), OtoFq)))
      GAP.Globals.SetIsBijective(JuliaGAPMap, true)
      GAP.Globals.SetFilterObj(JuliaGAPMap, GAP.Globals.IsPreImagesByAction)

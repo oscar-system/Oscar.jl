@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Toric Blowups (Experimental)
 
 It is a common goal in algebraic geometry to resolve singularities.

@@ -26,28 +26,6 @@ function bases_of_subspaces(V::AbstractAlgebra.Generic.FreeModule{T}, k::Int) wh
   return SubspacesIterator{T}(V, k)
 end
 
-# For an iterator of `k`-dimensional subspaces in an `n`-dimensional space
-# over the field with `q` elements,
-# the state is `(comb_iter, choice, prod_iter, values)`
-# where
-# - `comb_iter` is the iterator `combinations(1:n, k)`,
-# - `choice` is the current state of `comb_iter`,
-#   a vector that denotes the `k` pivot column positions in the matrix,
-# - `prod_iter` is an iterator of vectors, where the current vector
-#   corresponds to those entries in the not necessarily zero positions
-#   of the matrix that are not pivots, and
-# - `values` is the current state ot `prod_iter`.
-
-struct SubspacesIterator{T <: FinFieldElem}
-  V::AbstractAlgebra.Generic.AbstractAlgebra.Generic.FreeModule{T}
-  k::Int
-
-  function SubspacesIterator{T}(V, k) where T
-    @req 0 <= k <= vector_space_dim(V) "wrong dimension"
-    return new(V, k)
-  end
-end
-
 eltype(::SubspacesIterator{T}) where T = dense_matrix_type(T)
 
 function length(S::SubspacesIterator{T}) where T
