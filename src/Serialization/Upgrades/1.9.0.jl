@@ -19,8 +19,8 @@
 #    in question.
 #
 push!(upgrade_scripts_set, UpgradeScript(
-  v"1.8.0+2",
-  function upgrade_1_8_0_2(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+  v"1.9.0",
+  function upgrade_1_9_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
 
     # We want to run this upgrade only on the top level,
     # and only if there is a `_refs` entry.
