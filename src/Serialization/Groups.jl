@@ -2,7 +2,8 @@
 #
 # General ideas of the (de)serialization of groups and group elements:
 #
-# - Each `GAPGroupElem` object gets serialized together with its `parent`.
+# - Each `GAPGroupElem` object gets serialized together with its `parent`,
+#   via the `type_params(x::T)` method for `T <: SetElem`.
 #
 # - We request `uses_id` for the (de)serialization of group objects
 #   because parent references to the same group must point to the same object.
@@ -11,78 +12,38 @@
 #   deserializing the same group element twice may yield two nonidentical
 #   objects.
 #
-# - Not all subobjects of GAP objects get serialized, only the ones that are
+# - Not all subobjects of groups get serialized, only the ones that are
 #   needed to define the object.
-#   For example, we do not attempt to serialize the known properties and
+#   In particular, we do not attempt to serialize all known properties and
 #   attributes.
 #   (We may decide that some of them shall better get serialized because
 #   they are expensive to compute, such as finiteness and group order of
 #   finitely presented groups.)
-#   Moreover, some subobjects are intended just for "internal purposes".
-#   For example, a pc group in GAP stores (via its family object)
-#   a rewriting system in terms of elements of a free group.
-#   We do not serialize this information, it gets created anew when the
-#   pc group gets deserialized; this way, the original pc group and the
-#   deserialized one store nonidentical free group objects.
 #
-# - There are cases where the comparison of Oscar group elements relies on
-#   the comparison of underlying GAP elements,
+# - For Oscar objects that rely on underlying GAP objects,
+#   we do not implement the serialization recursively
+#   via a serialization of these GAP objects.
+#   For example, consider the situation that two groups in Oscar point to
+#   the same GAP object.
+#   Serializing and then deserializing these two groups may yield Oscar groups
+#   that point to different GAP objects.
+#
+#   There are cases where the equality check for Oscar group elements
+#   relies on the equality check for the underlying GAP elements,
 #   such that the object identity of the `GAPWrap.FamilyObj` values of these
-#   GAP elements is required.
-#   `FPGroupElem` and `PcGroupElem` are examples.
-#   In these cases, we install a (de)serialization of the GAP group object,
-#   with requirement `uses_id`.
-#   This way, we can (de)serialize Oscar group elements and Oscar groups
-#   as well as GAP groups.
+#   GAP elements is required for the equality of the elements.
+#   In these cases, we assume that the analogous object identity is satisfied
+#   also for the Oscar group objects in question.
+#   Thus the (de)serialization code for groups and group elements does not
+#   rely on a (de)serialization for the underlying GAP objects.
 #
-#   (Note that from GAP's viewpoint, it would look more logical
-#   to (de)serialize the `GAPWrap.FamilyObj` object,
-#   because the group element in GAP stores a reference to this object
-#   but not to a group object.
-#   However, technically the creation of the family objects in GAP
-#   is encapsulated inside functions such as `GAPWrap.FreeGroup`
-#   that create groups.
-#   Thus it would require extra code on the Oscar side if we would want to
-#   first deserialize some elements of a free group by creating the family
-#   object on the GAP side, and then later create a free group with prescribed
-#   elements family.
-#   In particular, we do not support the (de)serialization of GAP's
-#   family objects.)
+#   The type `FPGroupElem` and `PcGroupElem` are examples.
+#   Serializing a tuple containing several subgroups and quotients of a
+#   finitely presented group stores the information about the full group
+#   and the underlying full free group,
+#   such that the deserialization yields a tuple of groups which have the
+#   same relations to each other as the groups in the original tuple.
 #
-# - Currently it is not our aim to provide a (de)serialization of as many
-#   GAP objects as possible.
-#   We provide methods for those GAP objects that are needed for the
-#   (de)serialization of Oscar objects.
-#   For example, we need a serialization of free groups in GAP, because of
-#   the object identity requirements, but (de)serializing elements of
-#   free groups in Oscar is done by serializing the underlying word and
-#   the parent object, without serializing the underlying element in GAP.
-#
-# - Remark:
-#   In those cases where the object identity of `GAPWrap.FamilyObj`
-#   objects must be preserved in the deserialization, we cannot simply
-#   leave it to the (de)serialization of Oscar objects to deal with "their"
-#   underlying GAP objects.
-#
-#   For example, serialize two subgroups `H`, `K` of a finitely presented
-#   group `G` in Oscar.
-#   In order to achieve that the deserialized `H` and `K` in a new Julia
-#   session are compatible (that is, elements of `H` and elements of `K`
-#   can be multiplied with each other), we have to make sure that
-#   `GAPWrap.FamilyObj(GapObj(H)) === GAPWrap.FamilyObj(GapObj(K))`
-#   are identical.
-#   Since `H` and `K` know about these objects only via `GapObj(H)` and
-#   `GapObj(K)`,
-#   the mechanism that automatically takes care of object identity in the
-#   (de)serialization can be used only if (de)serialization methods for
-#   `GapObj(H)` and `GapObj(K)` are provided.
-#
-#   (The situation would be different if `H` and `K` would store references
-#   to the "full group" `G`.
-#   In this case, we could force that serializing `H` and `K` involves also
-#   a serialization of `G`, then deserializing `H` and `K` would recreate the
-#   common `G`, and the object identity of the GAP family object could be
-#   forced via `G`.)
 
 using Oscar: GAPGroup, _coeff
 
@@ -97,7 +58,7 @@ const GAPGroup_attributes = [
 ]
 
 function save_attrs(s::SerializerState, G::T) where T <: GAPGroup
-  save_data_dict(s, :attrs) do 
+  save_data_dict(s, :attrs) do
     for attr in attrs_list(T)
       func = Symbol(string("has_", attr))
       if @eval $func($G)
@@ -161,30 +122,218 @@ end
 
 
 ##############################################################################
-# FPGroup, SubFPGroup
-# PcGroup, SubPcGroup
-# We do the same for full free groups, subgroups of free groups,
-# full f.p. groups, and subgroups of f.p. groups.
+# FPGroup
 
 @register_serialization_type FPGroup uses_id
-@register_serialization_type SubFPGroup uses_id
+
+function type_and_params(G::FPGroup)
+  F = free_group(G)
+  if F === G
+    # A full *free* group does not need type parameters.
+    return TypeAndParams(FPGroup, nothing)
+  else
+    # A group with relators needs the underlying free group
+    # as a type parameter,
+    # since the same free group object can be used for creating
+    # several f.p. groups.
+    return TypeAndParams(FPGroup, F)
+  end
+end
+
+# There are several internal representations of elements of free groups in GAP.
+# Let the serialized data not depend on the names of the GAP filters.
+_word_filters = Dict(
+  :IsSyllableWordsFamily => :syllables,
+  :IsLetterWordsFamily => :letters,
+  :IsWLetterWordsFamily => :wletters,
+  :IsBLetterWordsFamily => :bletters,
+  )
+_word_filters_inv = Dict()
+for x in keys(_word_filters)
+  _word_filters_inv[_word_filters[x]] = x
+end
+
+function save_object(s::SerializerState, G::FPGroup)
+  F = free_group(G)
+  if F === G
+    # A full *free* group is represented by the names of the generators,
+    # and the information about the GAP filter that defines the internal
+    # representation of the elements; there are four such filters.
+    # (Currently we do not support free groups on infinitely many generators.)
+    X = GapObj(G)
+    elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
+    @assert GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
+    save_data_dict(s) do
+      # (rank and) names of generators
+      Xnames = GAP.getbangproperty(elfam, :names)::GapObj
+      names = Vector{String}(Xnames)
+      save_object(s, names, :names)
+      # the internal representation of elements
+      if GAP.Globals.IsSyllableWordsFamily(elfam)::Bool
+        wfilt = :IsSyllableWordsFamily
+      elseif GAP.Globals.IsLetterWordsFamily(elfam)::Bool
+        wfilt = :IsLetterWordsFamily
+      elseif GAP.Globals.IsWLetterWordsFamily(elfam)::Bool
+        wfilt = :IsWLetterWordsFamily
+      elseif GAP.Globals.IsBLetterWordsFamily(elfam)::Bool
+        wfilt = :IsBLetterWordsFamily
+      else
+        error("not supported internal representation")
+      end
+      save_object(s, _word_filters[wfilt], :rep)
+    end
+  else
+    # A group with relators is represented by the underlying free group
+    # (via the type parameter) and a description of the relators.
+    X = GapObj(G)
+    elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
+    relators = GAP.getbangproperty(elfam, :relators)::GapObj
+    save_data_dict(s) do
+      save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in relators], :relators)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{FPGroup}, ::Nothing)
+  # Without type parameters, the object is a free group.
+  load_node(s) do d
+    # Create a new full free group.
+    wfilt = getproperty(GAP.Globals, _word_filters_inv[load_object(s, Symbol, :rep)])::GapObj
+
+    init = load_node(s, :names) do names
+      GapObj(names; recursive = true)
+    end
+    G = GAPWrap.FreeGroup(wfilt, init)
+    res = FPGroup(G)
+    res.free_group = res
+    return res
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{FPGroup}, F::FPGroup)
+  # The object is a f.p. group, `F` is the underlying free group.
+  # Create a new full f.p. group.
+  FX = GapObj(F)
+  relators = load_object(s, Vector{Vector{Int}}, :relators)
+  elfreefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FX))
+  rels = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in relators]
+  G = FX / GapObj(rels)::GapObj
+  return fp_group(G, F)
+end
+
+
+##############################################################################
+# PcGroup
+# The full group is described by its collector, no type parameters are needed.
+
 @register_serialization_type PcGroup uses_id
+
+function save_object(s::SerializerState, G::PcGroup)
+  X = GapObj(G)
+  elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
+  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
+  @assert fullpcgs === GAPWrap.Pcgs(X)
+  save_data_dict(s) do
+    # relative orders
+    relord = [GAPWrap.RelativeOrderOfPcElement(fullpcgs, x) for x in fullpcgs]
+    save_object(s, relord, :relord)
+    # power relators
+    rels = Tuple{Int, Vector{Int}}[]
+    for i in 1:length(relord)
+      ne = fullpcgs[i]^relord[i]
+      if ! GAPWrap.IsOne(ne)
+        push!(rels, (i, _free_group_extrep_from_exponents(
+          Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, ne)))))
+      end
+    end
+    save_object(s, rels, :power_rels)
+    # commutator relators
+    rels = Tuple{Int, Int, Vector{Int}}[]
+    for i in 1:(length(relord)-1)
+      for j in (i+1):length(relord)
+        ne = GAP.Globals.Comm(fullpcgs[j], fullpcgs[i])::GapObj
+        if ! GAPWrap.IsOne(ne)
+          push!(rels, (j, i, _free_group_extrep_from_exponents(
+            Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, ne)))))
+        end
+      end
+    end
+    save_object(s, rels, :comm_rels)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{PcGroup}, ::Nothing)
+  relord = load_object(s, Vector{Int}, :relord)
+  F = GAPWrap.FreeGroup(GAP.Globals.IsSyllableWordsFamily, length(relord))
+  fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+  rws = GAP.Globals.SingleCollector(F, GapObj(relord))::GapObj
+  for (i, elm) in load_object(s, Vector{Tuple{Int, Vector{Int}}}, :power_rels)
+    GAP.Globals.SetPower(rws, i, GAPWrap.ObjByExtRep(fam, GapObj(elm)))
+  end
+  for (j, i, elm) in load_object(s, Vector{Tuple{Int, Int, Vector{Int}}}, :comm_rels)
+    GAP.Globals.SetCommutator(rws, j, i, GAPWrap.ObjByExtRep(fam, GapObj(elm)))
+  end
+  G = GAP.Globals.GroupByRwsNC(rws)::GapObj
+  return PcGroup(G)
+end
+
+
+##############################################################################
+# SubFPGroup, SubPcGroup
+# The group is described by full group (via a reference) and generators.
+
+@register_serialization_type SubFPGroup uses_id
 @register_serialization_type SubPcGroup uses_id
 
-function type_and_params(G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
-  TypeAndParams(T, GapObj(G))
+function type_and_params(G::T) where T <: Union{SubFPGroup, SubPcGroup}
+  # The subgroup needs a reference to its full group.
+  return TypeAndParams(T, G.full_group)
 end
 
-function save_object(s::SerializerState,
-                     G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
-  #needs place holder
-  save_data_array(() -> (),  s)
+function save_object(s::SerializerState, G::SubFPGroup)
+  save_data_dict(s) do
+    save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(GapObj(x)::GapObj)::GapObj) for x in gens(G)], :gens)
+  end
 end
 
-function load_object(s::DeserializerState, ::Type{T},
-                     G::GapObj) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
-  return T(G)
+function save_object(s::SerializerState, G::SubPcGroup)
+  X = GapObj(G)
+  elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
+  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
+
+  save_data_dict(s) do
+    save_object(s, [Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, x))
+                    for x in GAP.Globals.InducedPcgsWrtHomePcgs(X)::GapObj], :gens)
+  end
 end
+
+function load_object(s::DeserializerState, ::Type{SubFPGroup}, F::FPGroup)
+  @assert haskey(s, :gens)
+  Ffam = GAPWrap.FamilyObj(F)
+  elfam = GAPWrap.ElementsFamily(Ffam)
+  freegroup = GAP.getbangproperty(elfam, :freeGroup)::GapObj
+  freefam = GAPWrap.FamilyObj(freegroup)
+  elfreefam = GAPWrap.ElementsFamily(freefam)
+  load_node(s) do d
+    generators = load_object(s, Vector{Vector{Int}}, :gens)
+    gens = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in generators]
+    Ggens = [Oscar.group_element(F, GAPWrap.ElementOfFpGroup(elfam, x)) for x in gens]
+    return sub(F, Ggens)[1]
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{SubPcGroup}, parent_group::PcGroup)
+  X = GapObj(parent_group)
+  elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
+  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
+  load_node(s) do d
+    generators = load_object(s, Vector{Vector{Int}}, :gens)
+    Ggens = [Oscar.group_element(parent_group, GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(x, true))::GapObj)
+             for x in generators]
+    return sub(parent_group, Ggens)[1]
+  end
+end
+
 
 ##############################################################################
 # FPGroupElem, SubFPGroupElem
