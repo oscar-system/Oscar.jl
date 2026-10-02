@@ -233,4 +233,33 @@ function canonical_projection(G::OFPModule, i::Int)
   end
 end
     
+@doc raw"""
+    direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
+        domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
+        codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1]
+      )
+
+Create the direct sum of morphisms of `OFPModule`s over a common `base_ring`. 
+The `domain` and `codomain` for the output can be specified via keyword arguments; 
+they need to be compatible with the internal machinery. 
+"""
+function direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
+    domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
+    codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1], 
+    check::Bool=true
+  )
+  img_gens = elem_type(codomain)[]
+  for (k, phi) in enumerate(phis)
+    @check begin # the creation of the projections is lazy and should be avoided if possible
+      pr_dom = canonical_projection(domain, k)
+      Oscar.codomain(pr_dom) === Oscar.domain(phi)
+    end
+    inc_cod = canonical_injection(codomain, k)
+    @assert Oscar.domain(inc_cod) === Oscar.codomain(phi)
+    ig2 = images_of_generators(phi)
+    ig3 = [inc_cod(v) for v in ig2]
+    append!(img_gens, ig3)
+  end
+  return hom(domain, codomain, img_gens)
+end
 
