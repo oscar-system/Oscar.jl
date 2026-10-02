@@ -1103,7 +1103,6 @@ end
 function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      vertex_distinguishable::Bool=true,
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
-  
   G_map = getproperty(G, label)
   label_type = typeof(G_map[first(edges(G))])
   vertices_by_label = !isnothing(G_map.vertex_map) ?
@@ -1662,7 +1661,7 @@ function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}
 
   isnothing(G_map1.edge_map) && vertex_distinguishable && return _canonical_form(g1; label=label) == _canonical_form(g2; label=label)
 
-  # the vertex labels of the gadget graph only encode the position of a label in
+  # the vertex labels of the `edge_label_to_vertex` graph only encode the position of a label in
   # the sorted list of labels, so distinguishable labels also need to agree as sets
   if vertex_distinguishable && !isnothing(G_map1.vertex_map)
     Set(G_map1[v] for v in 1:n_vertices(g1)) == Set(G_map2[v] for v in 1:n_vertices(g2)) || return false
