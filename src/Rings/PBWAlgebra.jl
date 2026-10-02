@@ -66,6 +66,8 @@ coefficient_ring(a::PBWAlgRing{T}) where T = a.coeff_ring::parent_type(T)
 
 coefficient_ring(a::PBWAlgElem) = coefficient_ring(parent(a))
 
+_coeff_iso(a::PBWAlgRing) = _cached_iso_oscar_singular_coeff_ring(coefficient_ring(a))
+
 base_ring(a::PBWAlgRing{T}) where T = a.poly_ring::mpoly_ring_type(T)
 
 function Base.deepcopy_internal(a::PBWAlgElem, dict::IdDict)
@@ -119,15 +121,15 @@ function AbstractAlgebra.leading_exponent_vector(a::PBWAlgElem)
 end
 
 function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T}) where T
-  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))::T
+  return preimage(_coeff_iso(parent(a)), AbstractAlgebra.leading_coefficient(a.sdata))::T
 end
 
 function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T}) where T
-  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))::T
+  return preimage(_coeff_iso(parent(a)), AbstractAlgebra.trailing_coefficient(a.sdata))::T
 end
 
 function constant_coefficient(a::PBWAlgElem{T}) where T
-  return coefficient_ring(a)(constant_coefficient(a.sdata))::T
+  return preimage(_coeff_iso(parent(a)), constant_coefficient(a.sdata))::T
 end
 
 function AbstractAlgebra.leading_term(a::PBWAlgElem)
@@ -210,13 +212,13 @@ end
 function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}) where T
   b = Base.iterate(a.second)
   b === nothing && return b
-  return (coefficient_ring(a.first)(b[1])::T, b[2])
+  return (preimage(_coeff_iso(a.first), b[1])::T, b[2])
 end
 
 function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, state) where T
   b = Base.iterate(a.second, state)
   b === nothing && return b
-  return (coefficient_ring(a.first)(b[1])::T, b[2])
+  return (preimage(_coeff_iso(a.first), b[1])::T, b[2])
 end
 
 function build_ctx(R::PBWAlgRing)
@@ -225,7 +227,7 @@ end
 
 function push_term!(M::OscarPair{<:PBWAlgRing{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
   c = coefficient_ring(M.first)(c)::T
-  c = base_ring(M.first.sring)(c)::S
+  c = _coeff_iso(M.first)(c)::S
   push_term!(M.second, c, e)
 end
 
@@ -319,7 +321,7 @@ end
 
 function (R::PBWAlgRing{T, S})(c::T) where {T, S}
   c = coefficient_ring(R)(c)::T
-  c = base_ring(R.sring)(c)::S
+  c = _coeff_iso(R)(c)::S
   return PBWAlgElem(R, R.sring(c))
 end
 
@@ -353,10 +355,21 @@ end
 
 ####
 
+const _SingularPolyOrPluralRing = Union{Singular.PolyRing, Singular.PluralRing}
+
+# coefficient map from the coefficients of `S` to those of `R`
+function _coeff_conversion(R, S)
+  R isa _SingularPolyOrPluralRing && S isa _SingularPolyOrPluralRing && return base_ring(R)
+  R isa _SingularPolyOrPluralRing && return _cached_iso_oscar_singular_coeff_ring(coefficient_ring(S))
+  S isa _SingularPolyOrPluralRing && return c -> preimage(_cached_iso_oscar_singular_coeff_ring(coefficient_ring(R)), c)
+  return base_ring(R)
+end
+
 function _unsafe_coerce(R::Union{MPolyRing, Singular.PluralRing}, a::Union{MPolyRingElem, Singular.spluralg}, rev::Bool)
   z = MPolyBuildCtx(R)
+  f = _coeff_conversion(R, parent(a))
   for (c, e) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
-    push_term!(z, base_ring(R)(c), rev ? reverse(e) : e)
+    push_term!(z, f(c), rev ? reverse(e) : e)
   end
   return finish(z)
 end
@@ -434,7 +447,7 @@ julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
   n = nvars(r)
   nrows(rel) == n && ncols(rel) == n || error("oops")
-  scr = singular_coeff_ring(coefficient_ring(r))
+  scr = codomain(_cached_iso_oscar_singular_coeff_ring(coefficient_ring(r)))
   S = elem_type(scr)
   sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord), cached = false)
   sr::Singular.PolyRing{S}
