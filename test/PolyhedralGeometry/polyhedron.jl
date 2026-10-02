@@ -376,6 +376,29 @@
         map(v -> abs(dot(v, v) - 1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec - 1)
       )
 
+      # dual bounding bodies contain the input for l = 1 and miss fewer than l vertices per halfspace otherwise
+      V = vertices(rsph_r)
+      dbb = @inferred rand_dual_bounding_body(Oscar.get_seeded_rng(), rsph_r, 20)
+      @test is_bounded(dbb)
+      @test issubset(rsph_r, dbb)
+      @test n_facets(dbb) <= 40
+      dbb3 = rand_dual_bounding_body(rsph_r, 20, 3; precision=20)
+      @test all(h -> count(v -> v in h, V) >= 8, facets(dbb3))
+      @test_throws ArgumentError rand_dual_bounding_body(rsph_r, 0)
+      @test_throws ArgumentError rand_dual_bounding_body(rsph_r, 5, 11)
+      @test_throws ArgumentError rand_dual_bounding_body(convex_hull([0 0], [1 0]), 5)
+      dbbf = @inferred rand_dual_bounding_body(
+        Oscar.get_seeded_rng(), convex_hull(Float64, [1.5 0; 0 0; 0 1; 1 1]), 10
+      )
+      @test dbbf isa Polyhedron{Float64}
+      @test is_bounded(dbbf)
+      Pf = convex_hull(Float64, [1.5 0; 0 0; 0 1])
+      @test affine_inequality_matrix(facets(rand_dual_bounding_body(Pf, 6; seed=5))) ==
+        affine_inequality_matrix(facets(rand_dual_bounding_body(Pf, 6; seed=5)))
+      @test rand_dual_bounding_body(rsph_r, 5; seed=7, precision=30) ==
+        rand_dual_bounding_body(rsph_r, 5; seed=7, precision=30)
+      @test rand_dual_bounding_body(convex_hull([0; 2;;]), 3) == convex_hull([0; 2;;])
+
       @test_throws ArgumentError SIM_body_polytope([])
       @test_throws ArgumentError SIM_body_polytope([1, 2, 3])
       let sim = SIM_body_polytope([3, 2, 1])

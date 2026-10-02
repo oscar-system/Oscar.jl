@@ -1556,6 +1556,7 @@ export rand
 export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
+export rand_dual_bounding_body
 export rand_homogeneous
 export rand_metric
 export rand_metric_int
