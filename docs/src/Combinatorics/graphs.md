@@ -33,6 +33,7 @@ dual_graph(p::Polyhedron)
 vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
+graph_from_edge_orbits
 graph_from_labeled_edges
 induced_subgraph
 ```
