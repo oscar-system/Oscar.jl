@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Tableaux
 
 A **Young diagram** is a diagram of finitely many empty "boxes" arranged

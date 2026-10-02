@@ -136,6 +136,12 @@ end
   @test L(x)/L(y) == L(x//y)
   @test L(y)/L(x) == L(y//x)
   @test_throws ErrorException L(y)/L(x-1)
+
+  # integer divided by a ring element
+  @test 2/L(y) == L(2//y)
+  @test ZZ(2)/L(y) == L(2//y)
+  @test divexact(2, L(y)) == L(2//y)
+  @test_throws ErrorException 2/L(x-1)
 end
 
 @testset "associated primes (quo and localized)" begin

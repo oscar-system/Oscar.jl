@@ -162,7 +162,9 @@ Advanced technical details are available in [BMT25](@cite BMT25).
 !!! warning
     The classification of singularities is based on a Monte Carlo algorithm, which involves random sampling.
     While reliable in practice, this probabilistic method may occasionally yield non-deterministic results.
-    The random source can be set with the optional argument `rng`.
+
+!!! note "Randomness"
+    The random source used for randomized computations can be set with the `rng` keyword.
 
 # Examples
 ```jldoctest

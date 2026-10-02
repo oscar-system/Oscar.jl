@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Blow-ups
 
 The *blow-up* of a smooth variety $X$ along a smooth subvariety $Z$ replaces $Z$ by the

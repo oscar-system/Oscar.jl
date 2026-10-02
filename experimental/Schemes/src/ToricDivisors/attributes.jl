@@ -42,7 +42,7 @@ Torus-invariant, prime divisor on a normal toric variety
 
 julia> forget_toric_structure(td)
 Effective weil divisor
-  on normal, 3-dimensional toric variety
+  on normal 3-dimensional toric variety
 with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals

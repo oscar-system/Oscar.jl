@@ -337,7 +337,7 @@ function primitive_generator_with_scaling_factor(
   r::AbstractVector{T}
 ) where {T<:RationalUnion}
   first_scaling_factor = ZZ(lcm(denominator.(r)))
-  result = ZZ.(first_scaling_factor * r)
+  result = ZZ.(first_scaling_factor .* r)
   g = gcd(result)
   @req g > 0 "The vector `r` cannot be a zero vector"
   scaling_factor = QQ(first_scaling_factor, g)
@@ -647,6 +647,31 @@ julia> n_rays(face_fan(cube(3)))
 """
 n_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _n_rays(PF) : 0
 _n_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+
+@doc raw"""
+    n_rays_modulo_lineality(PF::PolyhedralFan)
+
+Return the number of rays of `PF` modulo lineality.
+
+# Examples
+The 2-cube in 3-space lies in a 2-dimensional subspace and has 4 maximal
+proper faces. Accordingly, its normal fan has a 1-dimenional lineality
+space modulo which it has 4 rays.
+```jldoctest
+julia> C = convex_hull([0 0 0; 1 0 0; 1 1 0; 0 1 0])
+Polyhedron in ambient dimension 3
+
+julia> PF = normal_fan(C)
+Polyhedral fan in ambient dimension 3
+
+julia> n_rays(PF)
+0
+
+julia> n_rays_modulo_lineality(PF)
+4
+```
+"""
+n_rays_modulo_lineality(PF::_FanLikeType) = _n_rays(PF)
 
 @doc raw"""
     f_vector(PF::PolyhedralFan)

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
