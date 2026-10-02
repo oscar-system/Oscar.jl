@@ -1017,6 +1017,11 @@ function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
   return f
 end
 
+function setcoeff!(f::MPolyDecRingElem, exps::Vector{Int}, c)
+  f.f = setcoeff!(forget_decoration(f), exps, c)
+  return f
+end
+
 function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   f = sort_terms!(M.poly.f)
   f = combine_like_terms!(M.poly.f)
