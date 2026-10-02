@@ -17,7 +17,7 @@ morphism_type(::Type{T}) where {S<:FieldElem, T <: AbstractAlgebra.FPModule{S}} 
 
 zero_morphism(dom::AbstractAlgebra.FPModule, cod::AbstractAlgebra.FPModule) = hom(dom, cod, [zero(cod) for i in 1:ngens(dom)])
 
-function Base.:*(k::Int, phi::AbstractAlgebra.Generic.ModuleHomomorphism)
+function Base.:*(k::Union{Integer, ZZRingElem}, phi::AbstractAlgebra.Generic.ModuleHomomorphism)
   R = base_ring(codomain(phi))
   return R(k)*phi
 end

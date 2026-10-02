@@ -403,6 +403,18 @@ function Nemo.matrix(h::Oscar.GModuleHom{<:Any, <:AbstractAlgebra.FPModule{<:Any
   return matrix(h.module_map)
 end
 
+function Oscar.zero_map(A::AbstractAlgebra.Generic.FreeModule{ZZRingElem}, B::AbstractAlgebra.Generic.FreeModule{ZZRingElem})
+  return hom(A, B, zero_matrix(ZZ, rank(A), rank(B)))
+end
+
+function Oscar.zero_map(A::AbstractAlgebra.FPModule{T}, B::AbstractAlgebra.FPModule{T}) where T <: FieldElem
+  return hom(A, B, zero_matrix(base_ring(A), rank(A), rank(B)))
+end
+import Base:*
+*(a::ZZRingElem, phi::AbstractAlgebra.Generic.ModuleHomomorphism{ZZRingElem}) = hom(domain(phi), codomain(phi), a*matrix(phi))
+
+*(c::ZZRingElem, v::AbstractAlgebra.FPModuleElem{T}) where T<:RingElement = base_ring(parent(v))(c)*v
+
 end # module
 using .Misc
 export relative_field

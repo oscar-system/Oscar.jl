@@ -106,6 +106,9 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
     end
   end
   Q, mQ = quo(N, s)
+
+  set_order(Q, order(E)) #supposed to help Gap....
+
   @assert ngens(Q) == ngens(N)
   function EtoQ(x::GrpExtElem)
     w = mGF(x.g)
@@ -136,6 +139,18 @@ function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   c = E.c
   C = c.C
   G = C.G
+  if !isa(G, PcGroup)
+    iso = isomorphism(PcGroup, G) #G -> Pc
+    T = typeof(c((one(G), one(G))))
+    cC = gmodule(codomain(iso), [action(C, preimage(iso, g)) for g = gens(codomain(iso))])
+    d = Dict((iso(k[1]), iso(k[2]))=>v for (k,v) = c.d)
+    if isdefined(c, :D)
+      cc = Oscar.GrpCoh.CoChain{2, PcGroupElem, T}(cC, d, x->c.D((preimage(iso, x[1]), preimage(iso, x[2]))))
+    else
+      cc = Oscar.GrpCoh.ChChain{2, PcGroupElem, T}(cC, d)
+    end
+    return Oscar.isomorphism(PcGroup, extension(cc))
+  end
   @assert isa(G, PcGroup)
   M = C.M
   mMf = Oscar.isomorphism(PcGroup, M) # M -> PcGroup
@@ -415,6 +430,11 @@ function Oscar.permutation_group(G::GrpExt)
     return permutation_group(codomain(isomorphism(FPGroup, G)))
   end
 end
+
+function Oscar.pc_group(G::GrpExt)
+  return codomain(isomorphism(PcGroup, G))
+end
+
 
 end #module
 

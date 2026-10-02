@@ -181,10 +181,13 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
   end
   lp = Set(prime_divisors(order(Q)))
+  ZG = free_res(group_algebra(ZZ, G); side = :right)
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
     ia = gmodule(FinGenAbGroup, ib)
-    a, b = Oscar.GrpCoh.H_one_maps(ia)
+    X = hom(ZG, ia)
+    b = map(X, 1)
+#    a, b = H_one_maps(ia)    
 #    da = Oscar.dual(a)
 #    db = Oscar.dual(b)
     #=
@@ -300,11 +303,13 @@ end
 function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
+  global last_lift = (C, mp)
 
   G = domain(mp)
   N = group(C)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
+  ZN = free_res(group_algebra(ZZ, N); side = :right)
 
   R = relators(G)
   M = C.M
@@ -332,33 +337,52 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
   function _process(mu; is_trivial::Bool = false, limit::Int)
-    res = typeof(mp)[]
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
-    @assert isa(GG, PcGroup)
+    local allG = typeof(mp)[]
+    GG = Oscar.GrpCoh.extension(mu)
+    mGG_PC = isomorphism(PcGroup, GG)
 
-    s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
-    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
-    @assert all(x->isone(GGpro(x)), rel)
-    rhs = [preimage(GGinj, x) for x = rel]
-    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
-
-    fl, pe = try
-      true, preimage(s, K(rhs))
-    catch
-      false, zero(D)
+    im = elem_type(K)[]
+    gns = [GG(mp(G[i]), zero(M)) for i=1:ngens(G)]
+    rhs = [map_word(R[i], gns).m for i=1:length(R)]
+    for h = gens(D)
+      gns = [GG(mp(G[i]), pro[i](h)) for i=1:ngens(G)]
+      push!(im, K([map_word(R[i], gns).m  - rhs[i] for i=1:length(R)]))
     end
+    #this is not linear... suppose R = (gh), then with tails:
+    # ((g,x)(h,y)) -> (gh, x^h+y+sigma(g,h)) "=" (1, x^h+y+sigma(g,h))
+
+    s = hom(D, K, im)
+#    s = hom(D, K, [sum([iK[i](map_word(R[i], [GG(mp(G[j]), pro[j](h)) for j=1:ngens(G)]).m) for i=1:length(R)]) for h = gens(D)])
+
+    # G -> GG  g -> (mp(g), n), rel(G)() -> (1, 0) 
+    # |  /
+    # N 
+
+    split = false
+    if all(is_zero, rhs)
+      #Plesken: split case!
+      split = true
+    else
+      #non-split case
+      #here all lifts are automatically epimorphic
+      #and, in some way, can never again be used
+      #inf(mu) paired with M is out
+    end
+    fl, pe = has_preimage_with_preimage(s, K(rhs))
     if !fl
-#      @show :no_sol
-      return res
+      return allG
     end
     k, mk = kernel(s)
     for x = k
-      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
-      if is_surjective(hm)
-        push!(res, hm)
+      im = [(GG(mp(G[i]), pro[i](mk(x)+pe))) for i=1:ngens(G)]
+#      @show [map_word(R[i], im) for i=1:length(R)]
+      im = map(mGG_PC, im)
+#      @show [map_word(R[i], im) for i=1:length(R)]
+      hm = hom(G, codomain(mGG_PC), im)
+      if !split || is_surjective(hm)
+        push!(allG, hm)
       else
+        @assert split
 #        @show :not_sur
       end
     end
@@ -379,7 +403,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     return allG
   end
 
-  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  H2, _, z = cohomology_group(hom(ZN, C), 2)
 
   for h = H2
     is_zero(h) && continue
