@@ -107,7 +107,11 @@ push!(upgrade_scripts_set, UpgradeScript(
                        :name => name,
                        :params => oscaruuid)
 
-        insert_oscar_free_group(gapdata[:freeGroup], "FPGroup")
+        # the GAP free group is the type parameter of the GAP f.p. group
+        freepointer = refs[Symbol(pointer)][:_type][:params]
+        if !haskey(pointers, freepointer)
+          insert_oscar_free_group(freepointer, "FPGroup")
+        end
       elseif haskey(gapdata, :relord)
         # subgroup of a pc group
         oscarobj = Dict{Symbol, Any}(
