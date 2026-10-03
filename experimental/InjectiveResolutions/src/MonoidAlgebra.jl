@@ -541,7 +541,8 @@ function intersect(a::MonoidAlgebraIdeal, b::MonoidAlgebraIdeal...)
   kQ = base_ring(a)
   @req all(base_ring(g) === kQ for g in b) "base rings must match"
   as = Singular.intersection(singular_generators(a), [singular_generators(g) for g in b]...)
-  return MonoidAlgebraIdeal(kQ, [kQ(x) for x in gens(as)])
+  iso = _iso_onto(kQ, base_ring(as))
+  return MonoidAlgebraIdeal(kQ, [preimage(iso, x) for x in gens(as)])
 end
 
 function Base.intersect(V::Vector{T}) where {T <: MonoidAlgebraIdeal}

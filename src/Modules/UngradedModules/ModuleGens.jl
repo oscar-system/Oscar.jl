@@ -250,7 +250,7 @@ end
 Create a Singular module from a given free module.
 """
 function singular_module(F::FreeMod)
-  Sx = singular_poly_ring(base_ring(F), keep_ordering=false)
+  Sx = codomain(iso_oscar_singular_poly_ring(base_ring(F), keep_ordering=false))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -260,7 +260,7 @@ end
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
 function singular_module(F::FreeMod{<:MPolyRingElem}, ordering::ModuleOrdering)
-  Sx = singular_poly_ring(base_ring(F), singular(ordering))
+  Sx = codomain(iso_oscar_singular_poly_ring(base_ring(F), singular(ordering)))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -271,13 +271,13 @@ Convert a free module element to the Singular side.
 """
 function (SF::Singular.FreeMod)(m::FreeModElem)
   is_zero(m) && return SF()
-  Sx = base_ring(SF)
+  iso = _iso_onto(base_ring(parent(m)), base_ring(SF))
   c = coordinates(m)
   if isone(length(c)) 
     (p, v) = only(c)
-    return Sx(v)*gen(SF, p) 
+    return iso(v)*gen(SF, p) 
   end
-  return sum(Sx(v)*gen(SF, p) for (p, v) in c; init=SF())
+  return sum(iso(v)*gen(SF, p) for (p, v) in c; init=SF())
 end
 
 @doc raw"""
@@ -303,13 +303,13 @@ function _build_sparse_row(
     cast::Ring=Rx
   )
   is_zero(length(s)) && return sparse_row(cast)
-  R = coefficient_ring(Rx)
+  f = _coeff_iso(_iso_onto(Rx, base_ring(s)))
 
   # shortcuts in order not to allocate the dictionary
   ctx = MPolyBuildCtx(Rx)
   if isone(length(s))
     (i, e, c) = first(s)
-    push_term!(ctx, R(c), e)
+    push_term!(ctx, preimage(f, c), e)
     cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx)))])
     return sparse_row(Rx, [(i, finish(ctx))])
   end
@@ -318,14 +318,14 @@ function _build_sparse_row(
   last_index = 0
   for (i, e, c) in s
     if i == last_index
-      push_term!(ctx, R(c), e)
+      push_term!(ctx, preimage(f, c), e)
       continue
     end
     last_index = i
     ctx = get!(cache, i) do
       MPolyBuildCtx(Rx)
     end
-    push_term!(ctx, R(c), e)
+    push_term!(ctx, preimage(f, c), e)
   end
   cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx))) for (i, ctx) in cache])
   return sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache])
@@ -356,7 +356,7 @@ function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRin
     error("The free module element is not liftable to the given generating system.")
   end
   Rx = base_ring(generators)
-  return sparse_row(Rx, s[1], 1:ngens(generators))
+  return sparse_row(_iso_onto(Rx, base_ring(s)), s[1], 1:ngens(generators))
 end
 
 @doc raw"""
@@ -400,7 +400,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
     error("The free module element is not liftable to the given generating system.")
   end
   Rx = base_ring(generators)
-  coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
+  coords_wrt_groebner_basis = sparse_row(_iso_onto(Rx, base_ring(s)), s[1], 1:ngens(generators))
 
   result = sparse_row(Rx)
   for (i, c) in coords_wrt_groebner_basis

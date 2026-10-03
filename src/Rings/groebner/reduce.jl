@@ -43,7 +43,7 @@ function reduce(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default
   Is = singular_generators(I, ordering)
   Js = singular_generators(J, ordering)
   res = reduce(Is, Js, complete_reduction=complete_reduction)
-  return [R(x) for x in gens(res)]
+  return gens(ideal(R, res))
 end
 
 @doc raw"""
@@ -396,7 +396,8 @@ function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::M
   sI = singular_generators(I, ordering)
   sJ = singular_generators(J, ordering)
   res = Singular.divrem2(sI, sJ, complete_reduction=complete_reduction)
-  return matrix(R, res[3]), matrix(R, res[1]), [R(x) for x in gens(res[2])]
+  iso = _sing_iso(J, base_ring(res[2]))
+  return matrix(iso, res[3]), matrix(iso, res[1]), [preimage(iso, x) for x in gens(res[2])]
 end
 
 @doc raw"""
@@ -568,11 +569,12 @@ julia> Oscar._normal_form_singular(A, J, default_ordering(base_ring(J)))
 function _normal_form_singular(A::Vector{T}, J::MPolyIdeal, ordering::MonomialOrdering) where { T <: MPolyRingElem }
   GS = singular_groebner_generators(J, ordering)
   SR = base_ring(GS)
-  tmp = map(SR, A)
-  IS = Singular.Ideal(SR, tmp)
-  K = reduce(IS, GS)
+  iso = _sing_iso(J, SR)
+  # `A` may live in the undecorated ring of a graded `base_ring(J)`
   OR = base_ring(J)
-  return map(OR, gens(K))
+  IS = Singular.Ideal(SR, [iso(OR(a)) for a in A])
+  K = reduce(IS, GS)
+  return [preimage(iso, g) for g in gens(K)]
 end
 
 @doc raw"""

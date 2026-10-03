@@ -134,8 +134,7 @@ end
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
   O::Vector{S}
-  Sx::NCRing # Singular Poly Ring or Algebra, poss. with different ordering
-  f #= isomorphism Ox -> Sx =#
+  iso_ox_to_sx::Map #= isomorphism Ox -> Sx =#
   S::Singular.sideal
 
   function BiPolyArray(Ox::T) where {T <: NCRing}
@@ -157,7 +156,6 @@ mutable struct BiPolyArray{S}
 
   function BiPolyArray(Ox::T, S::Singular.sideal) where {T <: NCRing}
     r = BiPolyArray(Ox)
-    r.Sx = base_ring(S)
     r.S = S
     return r
   end
@@ -317,21 +315,19 @@ end
 
 function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_ordering(base_ring(B)))
   if !isdefined(B.gensBiPolyArray, :S)
-    g = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
-    B.gensBiPolyArray.Sx = codomain(g)
-    B.gensBiPolyArray.f = g
-    B.gensBiPolyArray.S = Singular.Ideal(B.gensBiPolyArray.Sx, elem_type(B.gensBiPolyArray.Sx)[g(x) for x in oscar_generators(B)])
+    g = _sing_iso(B)
+    B.gensBiPolyArray.S = Singular.Ideal(codomain(g), elem_type(codomain(g))[g(x) for x in oscar_generators(B)])
   end
-  if B.isGB && isdefined(B, :ord) && B.ord == monomial_ordering(base_ring(B), internal_ordering(B.gensBiPolyArray.Sx))
+  Sx = base_ring(B.gensBiPolyArray.S)
+  if B.isGB && isdefined(B, :ord) && B.ord == monomial_ordering(base_ring(B), internal_ordering(Sx))
     B.gensBiPolyArray.S.isGB = true
   end
 
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(base_ring(B), MPolyQuoRing) && return B.gensBiPolyArray.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(base_ring(B.gensBiPolyArray.S))) == B.ord && return B.gensBiPolyArray.S
-  g = iso_oscar_singular_poly_ring(base_ring(B), monorder)
-  SR = codomain(g)
-  f = Singular.AlgebraHomomorphism(B.gensBiPolyArray.Sx, SR, gens(SR))
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(base_ring(B), Singular.ordering(Sx)) == B.ord && return B.gensBiPolyArray.S
+  SR = _create_singular_poly_ring(base_ring(Sx), base_ring(B), monorder)
+  f = Singular.AlgebraHomomorphism(Sx, SR, gens(SR))
   S = Singular.map_ideal(f, B.gensBiPolyArray.S)
   if isdefined(B, :ord) && B.ord == monorder
     S.isGB = B.isGB
@@ -401,151 +397,6 @@ end
 
 ##############################################################################
 #
-# Conversion to and from Singular: in particular, some Rings are
-# special as they exist natively in Singular and thus should be used
-#
-##############################################################################
-#
-# Needs convert(Target(Ring), elem)
-# Ring(s.th.)
-#
-# Singular's polynomial rings are not recursive:
-# 1. singular_poly_ring(R::Ring) tries to create a Singular.PolyRing (with
-#    elements of type Singular.spoly) isomorphic to R
-# 2. singular_coeff_ring(R::Ring) tries to create a ring isomorphic to R that is
-#    acceptable to Singular.jl as 'coefficients'
-#
-# a real native Singular polynomial ring with Singular's native QQ as coefficients:
-#  singular_poly_ring(QQ[t]) => Singular.PolyRing{Singular.n_Q}
-#
-# Singular's native Fp(5):
-#  singular_coeff_ring(GF(5)) => Singular.N_ZpField
-#
-# Singular wrapper of the Oscar type QQPolyRingElem:
-#  singular_coeff_ring(QQ[t]) => Singular.N_Ring{QQPolyRingElem}
-#
-# even more wrappings of the immutable Oscar type FpFieldElem:
-#  singular_coeff_ring(GF(ZZRingElem(5))) => Singular.N_Field{Singular.FieldElemWrapper{FpField, FpFieldElem}}
-
-for T in [:MPolyRing, :(AbstractAlgebra.Generic.MPolyRing)]
-@eval function (Ox::$T)(f::Singular.spoly)
-  O = base_ring(Ox)
-  Sx = parent(f)
-  @assert ngens(Sx) == ngens(Ox)
-  g = MPolyBuildCtx(Ox)
-  for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-    push_term!(g, O(c), e)
-  end
-  return finish(g)
-end
-end
-
-#Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_coeff_ring(::ZZRing) = Singular.Integers()
-singular_coeff_ring(::QQField) = Singular.Rationals()
-
-# if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_coeff_ring(F::fpField) = Singular.Fp(Int(characteristic(F)))
-
-function singular_coeff_ring(F::Union{zzModRing, ZZModRing})
-  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
-end
-
-singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
-
-# Note: Several Singular functions crash if they get the catch-all
-# Singular.CoefficientRing(F) instead of the native Singular equivalent as
-# conversions to/from factory are not implemented.
-singular_coeff_ring(R::Union{AbsSimpleNumField, fqPolyRepField, FqField}) = codomain(iso_oscar_singular_coeff_ring(R))
-
-function (K::FqField)(a::Singular.n_algExt)
-  SK = parent(a)
-  SF = parent(Singular.modulus(SK))
-  SFa = SF(a)
-  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
-  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
-  @assert isone(denSa)
-  res = zero(K)
-  Ka = gen(K)
-  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
-    res += K(Int(c))*Ka^e[1]
-  end
-  return res
-end
-
-function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
-  F = parent(a)
-  Sa = gen(SF)
-  res = SF(lift(ZZ, coeff(a, 0)))
-  var = one(SF)
-  for i in 1:degree(F)-1
-    var = mul!(var, Sa)
-    res = addmul!(res, SF(lift(ZZ, coeff(a, i))), var)
-  end
-  return res
-end
-
-function (F::FqField)(a::Singular.n_Zp)
-  return F(Int(a))
-end
-
-function (SF::Singular.N_ZpField)(a::FqFieldElem)
-   return SF(lift(ZZ, a))
-end
-
-#### TODO stuff to move to singular.jl
-function (F::Singular.N_FField)(a::Union{zzModRingElem, fpFieldElem})
-  return F(a.data)
-end
-
-function (K::fqPolyRepField)(a::Singular.n_algExt)
-  SK = parent(a)
-  SF = parent(Singular.modulus(SK))
-  SFa = SF(a)
-  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
-  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
-  @assert isone(denSa)
-  res = zero(K)
-  Ka = gen(K)
-  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
-    res += K(Int(c))*Ka^e[1]
-  end
-  return res
-end
-
-function (SF::Singular.N_AlgExtField)(a::fqPolyRepFieldElem)
-  F = parent(a)
-  Sa = gen(SF)
-  res = SF(coeff(a, 0))
-  var = one(SF)
-  for i in 1:degree(F)-1
-    var = mul!(var, Sa)
-    res = addmul!(res, SF(coeff(a, i)), var)
-  end
-  return res
-end
-#### end stuff to move to singular.jl
-
-function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where {T <: RingElem}
-  return _create_singular_poly_ring(singular_coeff_ring(base_ring(Rx)), Rx; keep_ordering)
-end
-
-function singular_poly_ring(Rx::MPolyRing{T}, ord::Union{Symbol, Singular.sordering, MonomialOrdering}) where {T <: RingElem}
-  return _create_singular_poly_ring(singular_coeff_ring(base_ring(Rx)), Rx, ord)
-end
-
-#catch all for generic nemo rings
-function Oscar.singular_coeff_ring(F::AbstractAlgebra.Ring)
-  return Singular.CoefficientRing(F)
-end
-
-#??? needs to coerce into b? assert parent?
-function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
-  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))::elem_type(b)
-end
-
-##############################################################################
-#
 # Multivariate ideals - also used for the decorated stuff
 #
 ##############################################################################
@@ -606,6 +457,25 @@ function ideal(Rx::MPolyRing, s::Singular.sideal)
   return MPolyIdeal(Rx, s)
 end
 
+# iso from `base_ring(B)` onto the ring of `B`'s Singular generators, created on demand
+function _sing_iso(B::IdealGens)
+  BA = B.gensBiPolyArray
+  isdefined(BA, :iso_ox_to_sx) && return BA.iso_ox_to_sx
+  if isdefined(BA, :S)
+    BA.iso_ox_to_sx = _iso_onto(base_ring(B), base_ring(BA.S))
+  else
+    BA.iso_ox_to_sx = iso_oscar_singular_poly_ring(base_ring(B); keep_ordering = B.keep_ordering)
+  end
+  return BA.iso_ox_to_sx
+end
+
+_sing_iso(I::MPolyIdeal) = _sing_iso(I.gens)
+
+# iso onto the base ring of `singular_generators(B, ordering)`
+_sing_iso(B::IdealGens, Sx::Singular.PolyRing) = _iso_with_codomain(_sing_iso(B), Sx)
+
+_sing_iso(I::MPolyIdeal, Sx::Singular.PolyRing) = _sing_iso(I.gens, Sx)
+
 function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
   return singular_generators(generating_system(I), monorder)
 end
@@ -624,20 +494,20 @@ oscar_generators(IG::IdealGens) = oscar_generators(IG.gensBiPolyArray)
 
 function oscar_generators(B::BiPolyArray)
   if !isdefined(B, :O)
-    if B.Ox isa MPolyQuoRing
-      R = oscar_origin_ring(B.Ox)
-    else
-      R = B.Ox
+    if !isdefined(B, :iso_ox_to_sx)
+      B.iso_ox_to_sx = _iso_onto(B.Ox, base_ring(B.S))
     end
-    B.O = [R(x) for x in gens(B.S)]
+    O = [preimage(B.iso_ox_to_sx, x) for x in gens(B.S)]
+    B.O = B.Ox isa MPolyQuoRing ? map(lift, O) : O
   end
   return B.O
 end
 
-function map_entries(R, M::Singular.smatrix)
-  s = nrows(M), ncols(M)
-  S = parent(R(zero(base_ring(M))))
-  return matrix(S, s[1], s[2], elem_type(S)[R(M[i,j]) for i=1:s[1] for j=1:s[2]])
+# the matrix over `domain(iso)` corresponding to `M` over a Singular ring
+function map_entries(iso::Map, M::Singular.smatrix)
+  iso = _iso_with_codomain(iso, base_ring(M))
+  r, c = nrows(M), ncols(M)
+  return matrix(domain(iso), r, c, [preimage(iso, M[i,j]) for i=1:r for j=1:c])
 end
 
 @doc raw"""

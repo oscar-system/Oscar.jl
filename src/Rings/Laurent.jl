@@ -225,9 +225,7 @@ end
 
 function in(x::LaurentMPolyRingElem, I::LaurentMPolyIdeal)
   R = parent(x)
-  if parent(x) !== base_ring(I)
-    return false
-  end
+  R !== base_ring(I) && return false
   f = _polyringquo(R)
   return f(x) in f(I)
 end

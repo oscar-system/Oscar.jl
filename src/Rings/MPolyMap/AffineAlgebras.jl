@@ -23,15 +23,17 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 #
 ################################################################################
 
-@attr Any _singular_ring_domain(f::MPolyAnyMap) = singular_poly_ring(domain(f))
+@attr Any _singular_ring_domain_iso(f::MPolyAnyMap) = iso_oscar_singular_poly_ring(domain(f))
 
-@attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_poly_ring(codomain(f))
+@attr Any _singular_ring_codomain_iso(f::MPolyAnyMap) = iso_oscar_singular_poly_ring(codomain(f))
 
 @attr Any function _singular_algebra_morphism(f::MPolyAnyMap{<:MPolyRing, <:Union{MPolyRing, MPolyQuoRing}, Nothing})
   @assert coefficient_ring(domain(f)) === coefficient_ring(codomain(f))  "singular does not handle coefficient maps"
-  DS = _singular_ring_domain(f)
-  CS = _singular_ring_codomain(f)
-  CSimgs = CS.(_images(f))
+  isoD = _singular_ring_domain_iso(f)
+  isoC = _singular_ring_codomain_iso(f)
+  DS = codomain(isoD)
+  CS = codomain(isoC)
+  CSimgs = isoC.(_images(f))
   return Singular.AlgebraHomomorphism(DS, CS, CSimgs)
 end
 
@@ -261,12 +263,14 @@ function _preimage_via_singular(
            CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   D = domain(f)
+  isoD = _singular_ring_domain_iso(f)
+  isoC = _singular_ring_codomain_iso(f)
   salghom = _singular_algebra_morphism(f)
   CS = codomain(salghom)
   V = gens(I)
-  Ix = Singular.Ideal(CS, CS.(V))
+  Ix = Singular.Ideal(CS, isoC.(V))
   prIx = Singular.preimage(salghom, Ix)
-  return ideal(D, D.(gens(prIx)))
+  return ideal(D, [preimage(isoD, g) for g in gens(prIx)])
 end
 
 function preimage(

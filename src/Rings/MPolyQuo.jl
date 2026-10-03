@@ -71,10 +71,7 @@ oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_gener
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
-singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
-singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
-oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
+singular_origin_ring_iso(Q::MPolyQuoRing) = _groebner_basis(Q) && _sing_iso(Q.I.gb[Q.ordering])
 
 default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 
@@ -248,7 +245,6 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
    r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
-   r.gens.gensBiPolyArray.O = [R(g) for g in gens(r.gens.gensBiPolyArray.S)]
    B = r.gens
    if length(B) >= 1 && is_graded(R)
      @req all(is_homogeneous, oscar_generators(B)) "The generators of the ideal must be homogeneous"
@@ -302,18 +298,19 @@ end
 
 oscar_generators(I::MPolyQuoIdeal) = oscar_generators(I.gens)
 
+_sing_iso(I::MPolyQuoIdeal) = _sing_iso(I.gens)
+
 function _groebner_basis(a::MPolyQuoIdeal)
   # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gensBiPolyArray.S.isGB = a.gb.isGB = true
   end
+  return a.gb
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
-  _groebner_basis(a)
-
-  return a.gb.gensBiPolyArray.S
+  _groebner_basis(a).gensBiPolyArray.S
 end
 
 @doc raw"""
@@ -661,10 +658,10 @@ function simplify(a::MPolyQuoIdeal)
   Q = base_ring(a)
   R = base_ring(Q)
   red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
-  SQ   = singular_poly_ring(Q)
-  si   = Singular.Ideal(SQ, unique!(gens(red)))
+  iso = _sing_iso(a)
+  si   = Singular.Ideal(codomain(iso), unique!(gens(red)))
   a.gens.gensBiPolyArray.S = si
-  a.gens.gensBiPolyArray.O = [R(g) for g in gens(si)]
+  a.gens.gensBiPolyArray.O = [lift(preimage(iso, g)) for g in gens(si)]
   return a
 end
 
@@ -695,8 +692,8 @@ true
 """
 function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
-  SR = singular_poly_ring(base_ring(b))
-  return Singular.iszero(Singular.reduce(SR(simplify(a)), singular_groebner_generators(b)))
+  iso = _sing_iso(b)
+  return Singular.iszero(Singular.reduce(iso(simplify(a)), singular_groebner_generators(b)))
 end
 
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
@@ -731,6 +728,7 @@ x^3 + x
 ```
 """
 function simplify(f::MPolyQuoRingElem)
+  f.simplified && return f
   Q = parent(f)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
@@ -740,11 +738,10 @@ end
 function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   f.simplified && return f
   R  = parent(f)
-  OR = oscar_origin_ring(R)
-  SR = singular_origin_ring(R)
   G  = singular_origin_groebner_basis(R)
+  iso = singular_origin_ring_iso(R)
   g  = f.f
-  f.f = OR(reduce(SR(g), G))
+  f.f = preimage(iso, reduce(iso(g), G))
   f.simplified = true
   return f::elem_type(R)
 end
@@ -903,17 +900,6 @@ function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
 end
 
-function (Q::MPolyQuoRing)(a::Singular.spoly)
-  @assert singular_poly_ring(Q) == parent(a)
-  return MPolyQuoRingElem(base_ring(Q)(a), Q)
-end
-
-function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
-  Q = parent(a)
-  @assert singular_poly_ring(Q) == S
-  return S(a.f)
-end
-
 (Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
 
 one(Q::MPolyQuoRing) = Q(1)
@@ -1024,15 +1010,18 @@ function is_zero_divisor(f::MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}})
 end
 
 """
-Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
+Converts a sparse-Singular vector of polynomials to an Oscar sparse row
+over the domain of `iso`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
+function sparse_row(iso::Map, M::Singular.svector{<:Singular.spoly})
+  R = domain(iso)
+  f = _coeff_iso(_iso_with_codomain(iso, base_ring(M)))
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     vi = get!(v, i) do
       MPolyBuildCtx(R)
     end
-    push_term!(vi, base_ring(R)(c), e)
+    push_term!(vi, preimage(f, c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1042,14 +1031,16 @@ end
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 Collect only the column indices in `U`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
+function sparse_row(iso::Map, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
+  R = domain(iso)
+  f = _coeff_iso(_iso_with_codomain(iso, base_ring(M)))
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
     vi = get!(v, i) do
       MPolyBuildCtx(R)
     end
-    push_term!(vi, base_ring(R)(c), e)
+    push_term!(vi, preimage(f, c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1059,11 +1050,11 @@ end
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
-  S = sparse_matrix(R)
+function sparse_matrix(iso::Map, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
+  S = sparse_matrix(domain(iso))
   for g = 1:Singular.ngens(M)
     (g in V) || continue
-    push!(S, sparse_row(R, M[g], U))
+    push!(S, sparse_row(iso, M[g], U))
   end
   return S
 end
@@ -1071,10 +1062,10 @@ end
 """
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module)
-  S = sparse_matrix(R)
+function sparse_matrix(iso::Map, M::Singular.Module)
+  S = sparse_matrix(domain(iso))
   for g = 1:Singular.ngens(M)
-    push!(S, sparse_row(R, M[g]))
+    push!(S, sparse_row(iso, M[g]))
   end
   S.r = ngens(M)
   S.c = rank(M)
@@ -1084,8 +1075,8 @@ end
 """
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar dense-matrix.
 """
-function matrix(R::MPolyRing, M::Singular.Module)
-  return matrix(sparse_matrix(R, M))
+function matrix(iso::Map, M::Singular.Module)
+  return matrix(sparse_matrix(iso, M))
 end
 
 function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
@@ -1105,7 +1096,8 @@ function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   if !iszero(rest)
     return false, a
   end
-  return true, Q(sparse_matrix(base_ring(Q), s, 1:1, length(J):length(J))[1, length(J)])
+  iso = _sing_iso(BJ, base_ring(s))
+  return true, Q(sparse_matrix(iso, s, 1:1, length(J):length(J))[1, length(J)])
 end
 
 function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
@@ -1142,12 +1134,11 @@ function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   # Make sure that the singular side of this ideal is filled with the correct ordering
   # Get our hands on the actual singular ideal
   Ising = singular_generators(I.gens, o)
-  # ...and the ring
-  Rsing = base_ring(Ising)
-  a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
+  iso = _sing_iso(I, base_ring(Ising))
+  a_ideal = Singular.Ideal(codomain(iso), [iso(lift(a))])
   u_sing, rem = Singular.lift(Ising, a_ideal)
   !iszero(rem) && return false, a
-  return true, A(sparse_matrix(base_ring(A), u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
+  return true, A(sparse_matrix(iso, u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
 end
 
 #TODO: find a more descriptive, meaningful name
@@ -1157,7 +1148,7 @@ function _kbase(Q::MPolyQuoRing)
   if iszero(s)
     error("the vector space dimension of the quotient ring is not finite")
   end
-  return [base_ring(Q)(x) for x = gens(s)]
+  return gens(ideal(base_ring(Q), s))
 end
 
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
@@ -1661,12 +1652,12 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
   if isdefined(I, :gb)
     _, sing_min = Singular.mstd(singular_generators(I.gb.gens))
-    return filter(!iszero, (Q).(gens(sing_min)))
+    return filter(!iszero, gens(MPolyQuoIdeal(Q, sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(base_ring(I), sing_gb, true)
     I.gb.gensBiPolyArray.S.isGB = I.gb.isGB = true
-    return filter(!iszero, (Q).(gens(sing_min)))
+    return filter(!iszero, gens(MPolyQuoIdeal(Q, sing_min)))
   end
 end
 

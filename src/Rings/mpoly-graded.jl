@@ -797,7 +797,6 @@ parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, paren
 
 (W::MPolyDecRing)() = MPolyDecRingElem(forget_decoration(W)(), W)
 (W::MPolyDecRing)(i::Int) = MPolyDecRingElem(forget_decoration(W)(i), W)
-(W::MPolyDecRing)(f::Singular.spoly) = MPolyDecRingElem(forget_decoration(W)(f), W)
 
 ### Coercion of elements of the underlying polynomial ring
 # into the graded ring.
@@ -976,13 +975,6 @@ end
   fl, w_ord = has_weighted_ordering(R)
   fl && return w_ord
   return degrevlex(R)
-end
-
-function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
-  if !keep_ordering
-    return singular_poly_ring(forget_decoration(R), default_ordering(R))
-  end
-  return singular_poly_ring(forget_decoration(R); keep_ordering)
 end
 
 function iso_oscar_singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
@@ -2640,13 +2632,13 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # side if we have one
     G = first(values(I.gb))
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
     ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   end
 end
 

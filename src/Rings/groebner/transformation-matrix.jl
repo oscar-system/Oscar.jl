@@ -25,7 +25,8 @@ julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   istd, m = Singular.lift_std(singular_generators(B, ordering), complete_reduction = complete_reduction)
   R = base_ring(B)
-  return IdealGens(R, istd), map_entries(R, m)
+  iso = _sing_iso(B, base_ring(istd))
+  return IdealGens(R, istd), map_entries(iso, m)
 end
 
 # same as above, but using a sparse matrix 

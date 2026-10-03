@@ -139,9 +139,9 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify(I)
-  SQ = Oscar.singular_poly_ring(Q)
+  iso = Oscar.iso_oscar_singular_poly_ring(Q)
   SI = Oscar.singular_generators(I.gens)
-  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
+  @test SI[1] == iso(-x+y) && SI[2] == iso(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false

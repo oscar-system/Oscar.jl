@@ -621,7 +621,7 @@ function _koszul_matrix_from_singular(V::Vector{T}, i::Int) where T <: MPolyRing
   R = parent(V[1])
   @assert all(x->parent(x) == R, V)
   I = ideal(R, V)
-  return transpose(map_entries(R, Singular.LibHomolog.KoszulMap(singular_generators(I), i)))
+  return transpose(map_entries(_sing_iso(I), Singular.LibHomolog.KoszulMap(singular_generators(I), i)))
 end
 
 @doc raw"""

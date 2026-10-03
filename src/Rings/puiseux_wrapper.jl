@@ -16,13 +16,15 @@
 # of the two cases applies is not foreseeable from the input alone. We 
 # therefore catch it with dispatch on `_process_result`. 
 
-function _process_result(P::MPolyRing, prec::Int, SE::Singular.PolyRing, res::Dict, rest...)
+function _process_result(iso::Map, prec::Int, SE::Singular.PolyRing, res::Dict, rest...)
+  P = domain(iso)
   # create the necesessary field extension on the Oscar side
   kk = coefficient_ring(SE) # the extension field of QQ
   mp = Singular.modulus(kk) # the minimum polynomial
   mmp = Singular.n_transExt_to_spoly(mp) # convert into an actual polynomial
   L, t = polynomial_ring(QQ, :t; cached=false)
-  kkO, alpha = extension_field(L(mmp))
+  mmpO = sum(QQ(c)*t^e[1] for (c, e) in zip(AbstractAlgebra.coefficients(mmp), AbstractAlgebra.exponent_vectors(mmp)); init = zero(L))
+  kkO, alpha = extension_field(mmpO)
   P_ext, to_P_ext = change_base_ring(kkO, P)
   Puis, xx = puiseux_series_ring(kkO, prec, symbols(P_ext)[1]; cached=false)
 
@@ -40,10 +42,12 @@ function _process_result(P::MPolyRing, prec::Int, SE::Singular.PolyRing, res::Di
   return result
 end
 
-function _process_result(P::MPolyRing, prec::Int, h::Singular.spoly, e::Int, rest...)
+function _process_result(iso::Map, prec::Int, h::Singular.spoly, e::Int, rest...)
+  P = domain(iso)
   kk = coefficient_ring(P)
   Puis, xx = puiseux_series_ring(kk, prec, symbols(P)[1]; cached=false)
-  return [evaluate(P(h), [xx^(1//e), zero(xx)])]
+  hh = preimage(_iso_with_codomain(iso, parent(h)), h)
+  return [evaluate(hh, [xx^(1//e), zero(xx)])]
 end
 
 
@@ -83,9 +87,8 @@ function puiseux_expansion(
   @assert ngens(R) == 2 "polynomial must be bivariate"
 
   # prepare for the Singular call
-  SR = singular_poly_ring(R)
-  Sf = SR(f)
-  raw = Singular.LibPuiseuxexpansions.puiseux(Sf, max_ord, 1)
-  return reduce(vcat, [_process_result(R, precision, data...) for data in raw])
+  iso = iso_oscar_singular_poly_ring(R)
+  raw = Singular.LibPuiseuxexpansions.puiseux(iso(f), max_ord, 1)
+  return reduce(vcat, [_process_result(iso, precision, data...) for data in raw])
 end
 
