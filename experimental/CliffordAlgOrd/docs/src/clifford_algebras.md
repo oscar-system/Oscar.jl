@@ -1,4 +1,4 @@
-# [Clifford Algebras over fields](@id cliffordalgebras) 
+# [Clifford Algebras over fields](@id cliffordalgebras)
 
 For Clifford algebras over fields, we introduce the following new types:
 - `CliffordAlgebra{T, S} <: Hecke.AbstractAssociativeAlgebra{T}` for Clifford algebras

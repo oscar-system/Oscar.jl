@@ -87,7 +87,7 @@ end
 @testset "matrices over a cyclotomic field" begin
     g = small_group(64, 140)
     reps = GAP.Globals.IrreducibleRepresentations(GapObj(g))
-    gmats = GAP.Globals.GeneratorsOfGroup(GAP.Globals.Image(reps[end]))
+    gmats = GAPWrap.GeneratorsOfGroup(GAPWrap.Image(reps[end]))
     omats, F, z = Oscar.matrices_over_cyclotomic_field(gmats)
 
     @test all(isone, [x^4 for x in omats])
@@ -136,7 +136,7 @@ end
     R, x = polynomial_ring(oF)
     gpol = image(Oscar.iso_oscar_gap(R), x^2+x+1)
     F = GAP.Globals.AlgebraicExtension(codomain(gF), gpol)
-    mats = GapObj([[[GAP.Globals.One(F)]], [GAP.Globals.GeneratorsOfField(F)]]; recursive = true)
+    mats = GapObj([[[GAPWrap.One(F)]], [GAP.Globals.GeneratorsOfField(F)]]; recursive = true)
     omats, F, z = Oscar.matrices_over_cyclotomic_field(mats)
     @test order(F) == 4
     @test omats[1][1,1] == one(F)

@@ -1,3 +1,7 @@
+if !isdefined(Main, :GAPWrap)
+  import Oscar: GAPWrap
+end
+
 using JSONSchema, Oscar.JSON
 # This code is needed for multiple test files that may end up on different workers.
 # Thus, this needs to be conditionally included in each of these test files.

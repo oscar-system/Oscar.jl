@@ -54,9 +54,12 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) =
 @doc raw"""
     weierstrass_model(h::HypersurfaceModel)
 
-Return the Weierstrass model corresponding to the given hypersurface model, if known.
+Return an explicit Weierstrass model corresponding to the given hypersurface model.
 
-If needed, this function constructs a literature model, which may create generic sections.
+If needed, this function constructs a referenced literature model, which may create generic
+sections, or converts a known global Tate model. Although a Weierstrass model exists in
+theory, OSCAR may not know how to compute an explicit representation. In that case, this
+function raises an `ArgumentError`.
 
 !!! note "Randomness"
     The random source used for randomized computations can be set with the `rng` keyword.
@@ -95,35 +98,38 @@ julia> weierstrass_model(h) === w
 true
 ```
 """
-function weierstrass_model(h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng())
-  @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
-  w = get_attribute(h, :weierstrass_model)
-  if w isa WeierstrassModel
-    return w
+@attr WeierstrassModel function weierstrass_model(
+  h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng()
+)
+  if !has_attribute(h, :weierstrass_model_index)
+    @req (
+      has_attribute(h, :global_tate_model) ||
+      has_attribute(h, :global_tate_model_index)
+    ) "OSCAR cannot currently compute an explicit Weierstrass model for the given hypersurface model"
+
+    return weierstrass_model(global_tate_model(h; rng))
   end
-  @req w isa String "Internal inconsistency encountered"
-  model_indices = _model_indices()
+  model_index = get_attribute(h, :weierstrass_model_index)::Int
   if is_base_space_fully_specified(h)
-    w_model = literature_model(
-      parse(Int, model_indices[w]);
+    return literature_model(
+      model_index;
       base_space=base_space(h),
       defining_classes=defining_classes(h),
       completeness_check=false,
       rng=rng,
-    )
-  else
-    w_model = literature_model(parse(Int, model_indices[w]); rng=rng)
+    )::WeierstrassModel
   end
-  set_weierstrass_model(h, w_model)
-  return w_model
+  return literature_model(model_index; rng=rng)::WeierstrassModel
 end
 
 @doc raw"""
     global_tate_model(h::HypersurfaceModel)
 
-Return the global Tate model corresponding to the given hypersurface model, if known.
+Return an explicit global Tate model corresponding to the given hypersurface model.
 
-If needed, this function constructs a literature model, which may create generic sections.
+If needed, this function constructs a referenced literature model, which may create generic
+sections. Although a global Tate model exists in theory, OSCAR may not know how to compute
+an explicit representation. In that case, this function raises an `ArgumentError`.
 
 !!! note "Randomness"
     The random source used for randomized computations can be set with the `rng` keyword.
@@ -168,27 +174,21 @@ julia> global_tate_model(h) === t
 true
 ```
 """
-function global_tate_model(h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng())
-  @req has_attribute(h, :global_tate_model) "No corresponding global Tate model is known"
-  t = get_attribute(h, :global_tate_model)
-  if t isa GlobalTateModel
-    return t
-  end
-  @req t isa String "Internal inconsistency encountered"
-  model_indices = _model_indices()
+@attr GlobalTateModel function global_tate_model(
+  h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng()
+)
+  @req has_attribute(h, :global_tate_model_index) "OSCAR cannot currently compute an explicit global Tate model for the given hypersurface model"
+  model_index = get_attribute(h, :global_tate_model_index)::Int
   if is_base_space_fully_specified(h)
-    t_model = literature_model(
-      parse(Int, model_indices[t]);
+    return literature_model(
+      model_index;
       base_space=base_space(h),
       defining_classes=defining_classes(h),
       completeness_check=false,
       rng=rng,
-    )
-  else
-    t_model = literature_model(parse(Int, model_indices[t]); rng=rng)
+    )::GlobalTateModel
   end
-  set_global_tate_model(h, t_model)
-  return t_model
+  return literature_model(model_index; rng=rng)::GlobalTateModel
 end
 
 @doc raw"""
@@ -197,7 +197,7 @@ end
 Return the discriminant ``\Delta = 4f^3 + 27g^2`` of the Weierstrass model associated
 with the given hypersurface model.
 
-Raises an error if no such Weierstrass model is known.
+Raises an error if OSCAR cannot compute an explicit Weierstrass model.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), in order to demonstrate this functionality.
@@ -234,7 +234,6 @@ Abelian group element [36]
 """
 @attr MPolyRingElem function discriminant(h::HypersurfaceModel)
   @req base_space(h) isa NormalToricVariety "Discriminant currently only supported for toric varieties as base space"
-  @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   return discriminant(weierstrass_model(h))
 end
 
@@ -245,7 +244,7 @@ Return the singular loci of the Weierstrass model equivalent to the given hypers
 along with the order of vanishing of ``(f, g, \Delta)`` at each locus and the corresponding
 refined Tate fiber type. See [`singular_loci(w::WeierstrassModel)`](@ref) for more details.
 
-Raises an error if no such Weierstrass model is known.
+Raises an error if OSCAR cannot compute an explicit Weierstrass or global Tate model.
 
 In the example below, we construct a hypersurface model and its corresponding Weierstrass
 model (see [BMT25](@cite BMT25) for background), in order to demonstrate this functionality.
@@ -293,8 +292,8 @@ julia> length(singular_loci(h; rng = Random.Xoshiro(1234)))
   h::HypersurfaceModel; rng::AbstractRNG=Random.default_rng()
 )
   @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
-  @req has_attribute(h, :weierstrass_model) || has_attribute(h, :global_tate_model) "No corresponding Weierstrass model or global Tate model is known"
-  return if has_attribute(h, :weierstrass_model)
+  return if has_attribute(h, :weierstrass_model) ||
+    has_attribute(h, :weierstrass_model_index)
     singular_loci(weierstrass_model(h); rng)
   else
     singular_loci(global_tate_model(h); rng)
