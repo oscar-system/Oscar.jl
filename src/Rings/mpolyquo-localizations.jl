@@ -359,6 +359,11 @@ function rand(W::MPolyQuoLocRing, v1::AbstractUnitRange{Int}, v2::AbstractUnitRa
   return W(rand(localized_ring(W), v1, v2, v3))
 end
 
+### Conformance test element generation
+function ConformanceTests.generate_element(W::MPolyQuoLocRing)
+  return rand(W, 0:3, 0:4, 0:3)
+end
+
 ########################################################################
 # Elements of localizations of polynomial algebras                     #
 ########################################################################
@@ -584,6 +589,8 @@ function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoRingEle
   lift(f) in inverted_set(L) && return true
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
+
+is_nilpotent(f::MPolyQuoLocRingElem) = radical_membership(lifted_numerator(f), saturated_ideal(modulus(parent(f))))
 
 function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
   iszero(f) && return true
@@ -868,6 +875,8 @@ zero(W::MPolyQuoLocRing)= W(zero(base_ring(W)))
 
 elem_type(::Type{MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+
+is_exact_type(::Type{<:MPolyQuoLocRingElem}) = true
 
 
 @doc raw"""
