@@ -90,10 +90,7 @@ julia> kappa_g = matrix(R, [0 y; -y 0])
 [ 0   y]
 [-y   0]
 
-julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g)
-Dict{MatGroupElem{QQFieldElem, QQMatrix}, AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}} with 2 entries:
-  [1 0; 0 1]   => [0 x; -x 0]
-  [-1 0; 0 -1] => [0 y; -y 0]
+julia> forms = Dict(one(G) => kappa_1, G[1] => kappa_g);
 
 julia> drinfeld_hecke_algebra(forms)
 Drinfeld-Hecke algebra
@@ -313,15 +310,14 @@ function Base.show(io::IO, a::DrinfeldHeckeAlgebraElem)
   end
 
   group_elements = parent(a.element).base_to_group
-  non_zero_coefficients = Dict()
-
-  for (i,c) in enumerate(coefficients(a.element))
-
+  non_zero_coefficients = [
+    group_elements[i] => c
+    for (i, c) in enumerate(coefficients(a.element))
     if !is_zero(c)
-      g = group_elements[i]
-      non_zero_coefficients[g] = c
-    end
-  end
+  ]
+  sort!(
+    non_zero_coefficients; by = p -> (!is_one(first(p)), string(matrix(first(p))))
+  )
 
   n = degree(group(parent(a)))
   for (i,(g,c)) in enumerate(non_zero_coefficients)

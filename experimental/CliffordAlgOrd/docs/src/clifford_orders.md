@@ -165,7 +165,7 @@ in the separable quadratic ``K``-algebra ``\mathcal{Z}(V)``. This means that
 with a fractional ideal ``\mathfrak{a}`` and some root ``x \in C(V)`` of the polynomial ``X^2 - tX + n \in K[X]``,
 where ``t \in \mathfrak{a}^{-1}`` and ``n \in \mathfrak{a}^{-2}``. Every such quadratic ``\mathcal{O}_K``-order
 ``\Lambda`` contains a unique maximal orthogonal suborder, denoted by ``\Lambda^o``, where orthogonal means that
-one can choose ``t = 0`` in the above representation and maximal is meant with respect to set inclusion. 
+one can choose ``t = 0`` in the above representation and maximal is meant with respect to set inclusion.
 If we write ``\Lambda^o = \mathcal{O}_K \cdot 1_\Lambda \oplus \mathfrak{b}z`` with ``z \in K\Lambda``
 satisfying ``z^2 - d \in K^\times``, then ``\mathcal{Z}(L)^o`` is determined as an ``\mathcal{O}_K``-algebra
 up to isomorphism by the fractional ideal ``\mathfrak{b}^2 n`` and the ``K``-square class of ``d``. The pair
@@ -188,7 +188,7 @@ Just as in the field case, the behavior of the center and the centroid heavily d
 
 - If the rank ``n`` is even, the centroid is entirely contained within the even Clifford order, i.e. ``\mathcal{Z}(L) \subseteq C_0(L)``.
   Moreover, the center is trivial, ``Z(C) = \mathcal{O}_K``.
-- If the rank ``n`` is odd, the centroid is strictly orthogonal, meaning ``\mathcal{Z}(L) = \mathcal{Z}(L)^o``. 
+- If the rank ``n`` is odd, the centroid is strictly orthogonal, meaning ``\mathcal{Z}(L) = \mathcal{Z}(L)^o``.
   In this case, the generator of the centroid can be chosen from ``C_1(L)`` such that it has a trace of zero. Furthermore,
   the centroid coincides with the center of the Clifford order, ``Z(C) = \mathcal{Z}(L)``.
 

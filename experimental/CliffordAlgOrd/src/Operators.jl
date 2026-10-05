@@ -75,7 +75,7 @@ Base.:*(a::Rational{Int}, x::ZZCliffordOrderElem) = parent(x)(a .* coefficients(
 
 ################################################################################
 #
-#  Auxillary function for multiplication 
+#  Auxillary function for multiplication
 #
 ################################################################################
 
@@ -99,20 +99,20 @@ function _mul_aux!(out::AbstractVector{T}, x::AbstractVector{T}, y::AbstractVect
     end
     return out
   end
-    
+
   y_even = @view y[1:2:end]
   y_odd  = @view y[2:2:end]
-    
+
   # Accumulate x * y_even
   _mul_aux!(out, x, y_even, gram, i + 1, temp_buffers)
-    
+
   # Accumulate (x * e_i) * y_odd
   if !is_zero(y_odd)
     x_next = temp_buffers[i]
     _mul_with_gen!(x_next, x, i, gram)
     _mul_aux!(out, x_next, y_odd, gram, i + 1, temp_buffers)
   end
-    
+
   return out
 end
 
@@ -122,7 +122,7 @@ function _mul_with_gen!(out::AbstractVector{T}, x::AbstractVector{T}, i::Int, gr
   @inbounds for j in eachindex(out)
     out[j] = zero!(out[j])
   end
-  
+
   @inbounds for char in 1:length(x)
     if !is_zero(x[char])
       _add_mul_baseelt_with_gen!(out, x[char], char, i, gram, 0)
@@ -140,26 +140,26 @@ function _add_mul_baseelt_with_gen!(out::AbstractVector{T}, c::T, char::Int, i::
       out[idx] = is_positive ? add!(out[idx], out[idx], c) : sub!(out[idx], out[idx], c)
       return
     end
-        
+
     j = 8 * sizeof(Int) - leading_zeros(char - 1)
-        
+
     if j < i
       idx = char + (1 << (i - 1)) + shift
       out[idx] = is_positive ? add!(out[idx], out[idx], c) : sub!(out[idx], out[idx], c)
       return
     end
-        
+
     if j == i
       idx = char - (1 << (i - 1)) + shift
       half_G = divexact(gram[i, i], 2)
       out[idx] = is_positive ? addmul!(out[idx], c, half_G) : submul!(out[idx], c, half_G)
       return
     end
-        
+
     # j > i
     idx = char - (1 << (j - 1)) + shift
     out[idx] = is_positive ? addmul!(out[idx], c, gram[i, j]) : submul!(out[idx], c, gram[i, j])
-    
+
     # Setup for the next loop iteration
     is_positive = !is_positive
     char = char - (1 << (j - 1))
@@ -198,7 +198,7 @@ end
 
 ################################################################################
 #
-#  Unsafe operations 
+#  Unsafe operations
 #
 ################################################################################
 
@@ -223,7 +223,7 @@ function neg!(c::T, a::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderEl
   cs, as = coefficients(c), coefficients(a)
   for i in 1:length(cs)
     cs[i] = neg!(cs[i], as[i])
-  end 
+  end
   return c
 end
 
@@ -246,7 +246,7 @@ end
 
 function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordOrderElem, ZZCliffordOrderElem}}
   cs, as, bs = coefficients(c), coefficients(a), coefficients(b)
-  
+
   if cs === as || cs === bs
     tmp = a * b
     tmps = coefficients(tmp)
@@ -259,14 +259,14 @@ function mul!(c::T, a::T, b::T) where {T <: Union{CliffordAlgebraElem, CliffordO
 
   gram = gram_matrix(parent(c))
   R = base_ring(gram)
-    
+
   temp_buffers = [[R() for _ in 1:length(cs)] for _ in 1:ncols(gram)]
-    
+
   @inbounds for i in eachindex(cs)
     cs[i] = zero!(cs[i])
   end
-    
+
   _mul_aux!(cs, as, bs, gram, 1, temp_buffers)
-    
+
   return c
 end
