@@ -44,12 +44,12 @@ function divides(p::PolyT, q::PolyT) where {PolyT<:ActionPolyRingElem}
 end
 
 function Base.div(p::PolyT, q::PolyT) where {PolyT<:ActionPolyRingElem}
-  check_parent(p, q) 
+  check_parent(p, q)
   return parent(p)(div(data(p), data(q)))
 end
 
 function Base.divrem(p::PolyT, q::PolyT) where {PolyT<:ActionPolyRingElem}
-  check_parent(p, q) 
+  check_parent(p, q)
   return parent(p).(divrem(data(p), data(q)))
 end
 
@@ -65,13 +65,13 @@ end
 ###############################################################################
 
 function gcd(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-  check_parent(p, q) 
+  check_parent(p, q)
   return parent(p)(gcd(data(p), data(q)))
 end
 
 function lcm(p::PolyT, q::PolyT) where {PolyT <: ActionPolyRingElem}
-   check_parent(p, q)
-   return parent(p)(lcm(data(p), data(q)))
+  check_parent(p, q)
+  return parent(p)(lcm(data(p), data(q)))
 end
 
 ###############################################################################

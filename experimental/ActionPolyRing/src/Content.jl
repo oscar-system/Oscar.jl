@@ -6,12 +6,12 @@
 
 ##### Algebras #####
 
-### Difference ###
+### Trivial difference ###
 @doc raw"""
     difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
 
-Construct the difference polynomial ring over the base ring `R` with the given action indeterminates and
-`n_action_maps` commuting endomorphisms.
+Construct the difference polynomial ring over the coefficient ring `R` with the given action indeterminates that is equipped with `n_action_maps`-many trivial shift operators,
+i.e. they are the identity map on `R`.
 
 - If `action_indeterminates` is a vector of symbols, those names are used.
 - If it is an integer `m`, the symbols `u1, …, um` are generated automatically.
@@ -56,13 +56,15 @@ julia> variablesS
 ```
 """
 function difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, n_action_maps)
+  action_maps = Union{TrivialActionShift{typeof(R)}, NontrivialActionShift{typeof(R)}}[action_shift(R) for _ in 1:n_action_maps]
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_action_indeterminates])))
 end
 
 function difference_polynomial_ring(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int; kwargs...)
-  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, action_indeterminates, n_action_maps)
+  action_maps = Union{TrivialActionShift{typeof(R)}, NontrivialActionShift{typeof(R)}}[action_shift(R) for _ in 1:n_action_maps]
+  dpr = DifferencePolyRing{elem_type(typeof(R))}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(action_indeterminates)])))
 end
@@ -99,12 +101,62 @@ function difference_polynomial_ring(R::Ring, action_indeterminate::Symbol, n_act
   return (tmp[1], tmp[2][1])
 end
 
-### Differential ###
+### Nontrivial difference  ###
+@doc raw"""
+    difference_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, action_maps::Vector{<:ActionShift}; kwargs...) -> Tuple{DifferencePolyRing, Vector{DifferencePolyRingElem}}
+
+This constructor behaves exactly like and comes with the same features as [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
+but additionally allows the user to pass a custom vector of shift operators `action_maps`. In particular, this constructor allows for nontrivial shift operators.
+
+# Examples
+```jldoctest
+julia> S, x = polynomial_ring(QQ, :x);
+
+julia> nontrivial_shifts = action_shift.([hom(S, S, x + 1), hom(S, S, x + 2)])
+2-element Vector{Oscar.NontrivialActionShift{QQPolyRing}}:
+ Shift operator on S
+ Shift operator on S
+
+julia> dpr, (u, v) = difference_polynomial_ring(S, [:u, :v], nontrivial_shifts)
+(Difference polynomial ring in 2 action indeterminates over S, DifferencePolyRingElem{QQPolyRingElem}[u[0,0], v[0,0]])
+```
+"""
+function difference_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}, action_maps)
+  n_maps = length(action_maps)
+  dpr = DifferencePolyRing{elem_type(D)}(R, n_action_indeterminates, action_maps)
+  set_ranking!(dpr; kwargs...)
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_maps)) for i in 1:n_action_indeterminates])))
+end
+
+function difference_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all shift operators must be identical to the provided coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionShift{D}, NontrivialActionShift{D}}}, action_maps)
+  n_maps = length(action_maps)
+  dpr = DifferencePolyRing{elem_type(D)}(R, action_indeterminates, action_maps)
+  set_ranking!(dpr; kwargs...)
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_maps)) for i in 1:length(action_indeterminates)])))
+end
+
+@doc raw"""
+    difference_polynomial_ring(R::Ring, action_indeterminate::Symbol, action_maps::Vector{<:ActionShift}; kwargs...) -> Tuple{DifferencePolyRing, DifferencePolyRingElem}
+
+This constructor behaves exactly like [`difference_polynomial_ring`](@ref difference_polynomial_ring(R::Ring, action_indeterminate::Symbol, n_action_maps::Int; kwargs...)) in that
+only a single action indeterminate is passed as a symbol but additionally allows the user to pass a custom vector of shift operators `action_maps`. In particular, this constructor allows
+for nontrivial shift operators.
+"""
+function difference_polynomial_ring(R::D, action_indeterminate::Symbol, action_maps::Vector{<:ActionShift{D}}; kwargs...) where {D <: Ring}
+  tmp = difference_polynomial_ring(R, [action_indeterminate], action_maps; kwargs...)
+  return (tmp[1], tmp[2][1])
+end
+
+### Trivial differential ###
 @doc raw"""
     differential_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, n_action_maps::Int) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
 
-Construct the differential polynomial ring over the base ring `R` with the given action indeterminates and
-`n_action_maps` commuting derivations.
+Construct the differential polynomial ring over the coefficient ring `R` with the given action indeterminates and
+`n_action_maps`-many zero derivations.
 
 - If `action_indeterminates` is a vector of symbols, those names are used.
 - If it is an integer `m`, the symbols `u1, …, um` are generated automatically.
@@ -149,13 +201,15 @@ julia> variablesS
 ```
 """
 function differential_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, n_action_maps)
+  action_maps = Union{TrivialActionDerivation{typeof(R)}, NontrivialActionDerivation{typeof(R)}}[action_derivation(R) for _ in 1:n_action_maps]
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, n_action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:n_action_indeterminates])))
 end
 
 function differential_polynomial_ring(R::Ring, action_indeterminates::Vector{Symbol}, n_action_maps::Int; kwargs...)
-  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, action_indeterminates, n_action_maps)
+  action_maps = Union{TrivialActionDerivation{typeof(R)}, NontrivialActionDerivation{typeof(R)}}[action_derivation(R) for _ in 1:n_action_maps]
+  dpr = DifferentialPolyRing{elem_type(typeof(R))}(R, action_indeterminates, action_maps)
   set_ranking!(dpr; kwargs...)
   return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_action_maps)) for i in 1:length(action_indeterminates)])))
 end
@@ -192,12 +246,62 @@ function differential_polynomial_ring(R::Ring, action_indeterminate::Symbol, n_a
   return (tmp[1], tmp[2][1])
 end
 
+### Nontrivial differential ###
+@doc raw"""
+    differential_polynomial_ring(R::Ring, action_indeterminates::Union{Vector{Symbol}, Int}, action_maps::Vector{<:ActionDerivation}; kwargs...) -> Tuple{DifferentialPolyRing, Vector{DifferentialPolyRingElem}}
+
+This constructor behaves exactly like and comes with the same features as [`differential_polynomial_ring`](@ref differential_polynomial_ring(R::Ring, n_action_indeterminates::Int, n_action_maps::Int; kwargs...))
+but additionally allows the user to pass a custom vector of derivations `action_maps`. In particular, this constructor allows for nontrivial derivations.
+
+# Examples
+```jldoctest
+julia> S, (x, y) = polynomial_ring(QQ, [:x, :y]);
+
+julia> nontrivial_derivations = action_derivation.([map_from_func(S, S, p -> derivative(p, x)), map_from_func(S, S, p -> derivative(p, y))])
+2-element Vector{Oscar.NontrivialActionDerivation{QQMPolyRing}}:
+ Derivation on S
+ Derivation on S
+
+julia> dpr, (u, v) = differential_polynomial_ring(S, [:u, :v], nontrivial_derivations)
+(Differential polynomial ring in 2 action indeterminates over S, DifferentialPolyRingElem{QQMPolyRingElem}[u[0,0], v[0,0]])
+```
+"""
+function differential_polynomial_ring(R::D, n_action_indeterminates::Int, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}, action_maps)
+  n_maps = length(action_maps)
+  dpr = DifferentialPolyRing{elem_type(D)}(R, n_action_indeterminates, action_maps)
+  set_ranking!(dpr; kwargs...)
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_maps)) for i in 1:n_action_indeterminates])))
+end
+
+function differential_polynomial_ring(R::D, action_indeterminates::Vector{Symbol}, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  @req all(f -> domain(f) === R, action_maps) "The domain of all derivations must be identical to the provided coefficient ring"
+  action_maps = convert(Vector{Union{TrivialActionDerivation{D}, NontrivialActionDerivation{D}}}, action_maps)
+  n_maps = length(action_maps)
+  dpr = DifferentialPolyRing{elem_type(D)}(R, action_indeterminates, action_maps)
+  set_ranking!(dpr; kwargs...)
+  return (dpr, deepcopy.(__add_new_jetvar!(dpr, [(i, zeros(Int, n_maps)) for i in 1:length(action_indeterminates)])))
+end
+
+@doc raw"""
+    differential_polynomial_ring(R::Ring, action_indeterminate::Symbol, action_maps::Vector{<:ActionDerivation}; kwargs...) -> Tuple{DifferentialPolyRing, DifferentialPolyRingElem}
+
+This constructor behaves exactly like [`differential_polynomial_ring`](@ref differential_polynomial_ring(R::Ring, action_indeterminate::Symbol, n_action_maps::Int; kwargs...)) in that
+only a single action indeterminate is passed as a symbol but additionally allows the user to pass a custom vector of derivations `action_maps`. In particular, this constructor allows
+for nontrivial derivations.
+"""
+function differential_polynomial_ring(R::D, action_indeterminate::Symbol, action_maps::Vector{<:ActionDerivation{D}}; kwargs...) where {D <: Ring}
+  tmp = differential_polynomial_ring(R, [action_indeterminate], action_maps; kwargs...)
+  return (tmp[1], tmp[2][1])
+end
+
 ##### Elements #####
 
 ### Union ###
 (apr::ActionPolyRing)() = elem_type(apr)(apr)
 (apr::ActionPolyRing)(upre::AbstractAlgebra.UniversalPolyRingElem) = elem_type(apr)(apr, upre)
-(apr::ActionPolyRing)(mpre::MPolyRingElem) = elem_type(apr)(apr, mpre)
+(apr::ActionPolyRing)(mpre::MPolyRingElem) = apr(base_ring(apr)(mpre))
 (apr::ActionPolyRing)(a::T) where {T<:RingElement} = apr(base_ring(apr)(a))
 
 ### Difference ###
@@ -311,9 +415,26 @@ action_indeterminates(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dp
 @doc raw"""
     n_action_maps(A::ActionPolyRing) -> Int
 
-Return the number of action indeterminates of the action polynomial ring `A`.
+Return the number of action maps of the action polynomial ring `A`.
 """
-n_action_maps(dpr::Union{DifferencePolyRing, DifferentialPolyRing}) = dpr.n_action_maps
+n_action_maps(apr::ActionPolyRing) = length(action_maps(apr))
+
+@doc raw"""
+    action_maps(A::ActionPolyRing) -> Vector{ActionMap}
+
+Return the action maps of the action polynomial ring `A` as a vector.
+"""
+action_maps(A::ActionPolyRing)
+
+action_maps(dpr::DifferencePolyRing) = dpr.action_maps::Vector{Union{TrivialActionShift{coefficient_ring_type(dpr)}, NontrivialActionShift{coefficient_ring_type(dpr)}}}
+action_maps(dpr::DifferentialPolyRing) = dpr.action_maps::Vector{Union{TrivialActionDerivation{coefficient_ring_type(dpr)}, NontrivialActionDerivation{coefficient_ring_type(dpr)}}}
+
+@doc raw"""
+    action_map(A::ActionPolyRing, i::Int) -> ActionMap
+
+Return the `i`-th action map of the action polynomial ring `A`.
+"""
+action_map(apr::ActionPolyRing, i::Int) = action_maps(apr)[i]
 
 ##### Elements #####
 
@@ -328,7 +449,7 @@ parent(dpre::Union{DifferencePolyRingElem, DifferentialPolyRingElem}) = dpre.par
 @doc raw"""
     coeff(p::ActionPolyRingElem, i::Int)
 
-Return coefficient of the `i`-th term of `p`.
+Return the coefficient of the `i`-th term of `p`.
 """
 coeff(apre::ActionPolyRingElem, i::Int) = coeff(data(apre), __perm_for_sort_poly(apre)[i])
 
@@ -445,7 +566,7 @@ is_constant(apre::ActionPolyRingElem) = is_constant(data(apre))
 @doc raw"""
     vars(p::ActionPolyRingElem; sorted::Bool=true)
 
-Return the jet variables actually occurring in `p` as a vector. 
+Return the jet variables actually occurring in `p` as a vector.
 If `sorted` is `true` (the default), the jet variables are sorted with respect to the
 ranking of the action polynomial ring containing `p`, leading with the largest jet variable.
 """
@@ -588,7 +709,7 @@ getindex(apr::ActionPolyRing, i::Int, jet::Vector{Int}) = gen(apr, i, jet)
 
 getindex(apr::ActionPolyRing, jet_idx::Tuple{Int, Vector{Int}}) = gen(apr, jet_idx...)
 
-@doc raw""" 
+@doc raw"""
     getindex(var::ActionPolyRingElem, index_shift::Int...)
 
 Given the jet variable `var`, return the jet variable with jet shifted by `index_shift`.
@@ -637,13 +758,13 @@ Return the constant coefficient of `p`. Does not throw an error for the zero pol
 constant_coefficient(apre::ActionPolyRingElem) = constant_coefficient(data(apre))
 
 @doc raw"""
-    leading_coefficient(p::ActionPolyRingElem{T}) -> T 
+    leading_coefficient(p::ActionPolyRingElem{T}) -> T
 
 Return the leading coefficient of the polynomial `p`, i.e. the coefficient of the first (with respect to the ranking of the action polynomial ring containing it) nonzero term.
 """
 function leading_coefficient(apre::ActionPolyRingElem{T}) where {T}
   @req length(apre) > 0 "The zero polynomial has no leading coefficient"
-  return coeff(apre, 1) 
+  return coeff(apre, 1)
 end
 
 @doc raw"""
@@ -651,7 +772,7 @@ end
 
 Return the leading monomial of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
 """
-function leading_monomial(apre::ActionPolyRingElem) 
+function leading_monomial(apre::ActionPolyRingElem)
   @req length(apre) > 0 "The zero polynomial has no leading monomial"
   return monomial(apre, 1)
 end
@@ -661,7 +782,7 @@ end
 
 Return the leading term of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
 """
-function leading_term(apre::ActionPolyRingElem) 
+function leading_term(apre::ActionPolyRingElem)
   @req length(apre) > 0 "The zero polynomial has no a leading term"
   return term(apre, 1)
 end
@@ -683,7 +804,7 @@ end
 
 Return the trailing monomial of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
 """
-function trailing_monomial(apre::ActionPolyRingElem) 
+function trailing_monomial(apre::ActionPolyRingElem)
   len = length(apre)
   @req len > 0 "The zero polynomial has no trailing monomial"
   return monomial(apre, len)
@@ -694,7 +815,7 @@ end
 
 Return the leading term of the polynomial `p` with respect to the ranking of the action polynomial ring containing it.
 """
-function trailing_term(apre::ActionPolyRingElem) 
+function trailing_term(apre::ActionPolyRingElem)
   len = length(apre)
   @req len > 0 "The zero polynomial has no trailing term"
   return term(apre, len)
@@ -740,7 +861,7 @@ Return the separant of `p` which is the formal derivative of `p` with respect to
 If `p` is a constant, then `p` itself is returned.
 """
 function separant(dpre::DifferentialPolyRingElem)
-  is_constant(dpre) && return dpre
+  is_constant(dpre) && return deepcopy(dpre)
   return derivative(dpre, leader(dpre))
 end
 
@@ -776,9 +897,59 @@ julia> apply_action(f, 2)
 function apply_action(dpre::DifferencePolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
-  d = fill(0, n_action_maps(parent(dpre)))
-  d[i] = 1
-  return apply_action(dpre, d)
+
+  is_zero(dpre) && return zero(dpr)
+
+  dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
+  add_new_vars_idx = Tuple{Int, Vector{Int}}[]
+  for (var_idx, jet_vec) in dpre_vars_idxs
+    new_jet = copy(jet_vec)
+    new_jet[i] += 1
+    new_idx = (var_idx, new_jet)
+
+    if !haskey(__jtu_idx(dpr), new_idx)
+      push!(add_new_vars_idx, new_idx)
+    end
+  end
+
+  if !is_empty(add_new_vars_idx)
+    __add_new_jetvar!(dpr, add_new_vars_idx)
+  end
+
+  jtu = __jtu_idx(dpr)
+  old_to_new_pos = Dict{Int, Int}()
+  for idx_loop in 1:length(dpre_vars_idxs)
+    (var_idx, jet_vec) = dpre_vars_idxs[idx_loop]
+
+    new_jet = copy(jet_vec)
+    new_jet[i] += 1
+
+    old_to_new_pos[jtu[(var_idx, jet_vec)]] = jtu[(var_idx, new_jet)]
+  end
+
+  upr = base_ring(dpr)
+  upre = data(dpre)
+  C = MPolyBuildCtx(upr)
+
+  shift_map = action_map(dpr, i)
+
+  for term in terms(upre)
+    coeff_t = shift_map(coeff(term, 1))
+
+    vars_t = vars(term)
+    ev = append!(exponent_vector(term, 1), fill(0, ngens(upr) - length(exponent_vector(term, 1))))
+    new_exp_vec = fill(0, length(ev))
+
+    for var in vars_t
+      var_pos = findfirst(==(var), gens(upr))
+      shifted_var_pos = old_to_new_pos[var_pos]
+
+      new_exp_vec[shifted_var_pos] = ev[var_pos]
+    end
+
+    push_term!(C, coeff_t, new_exp_vec)
+  end
+  return dpr(finish(C))
 end
 
 @doc raw"""
@@ -808,37 +979,53 @@ function apply_action(dpre::DifferentialPolyRingElem{T}, i::Int) where {T}
   dpr = parent(dpre)
   @req i in 1:n_action_maps(dpr) "index out of range"
 
-  # Remove constant term: d_i(1) = 0
-  dpre -= constant_coefficient(dpre)
+  is_zero(dpre) && return zero(dpr)
 
-  if is_zero(dpre)
-    return dpre
+  dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
+  add_new_vars_idx = Tuple{Int, Vector{Int}}[]
+  for (var_idx, jet_vec) in dpre_vars_idxs
+    new_jet = copy(jet_vec)
+    new_jet[i] += 1
+    new_idx = (var_idx, new_jet)
+
+    if !haskey(__jtu_idx(dpr), new_idx)
+      push!(add_new_vars_idx, new_idx)
+    end
   end
 
-  d = fill(0, n_action_maps(dpr))
-  d[i] = 1
-  dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
-  add_new_vars_idx = filter(new_idx -> !haskey(__jtu_idx(dpr), new_idx), map(idx -> (idx[1], idx[2] + d), dpre_vars_idxs))
   if !is_empty(add_new_vars_idx)
     __add_new_jetvar!(dpr, add_new_vars_idx)
   end
+
   jtu = __jtu_idx(dpr)
-  old_to_new_pos = Dict{Int, Int}() #Dictionary that links the positions of old with new variables
-  for i in 1:length(dpre_vars_idxs)
-    (i, idx) = dpre_vars_idxs[i]
-    new_idx = jtu[(i, idx + d)]
-    old_to_new_pos[jtu[(i, idx)]] = new_idx
-  end 
+  old_to_new_pos = Dict{Int, Int}()
+  for idx_loop in 1:length(dpre_vars_idxs)
+    (var_idx, jet_vec) = dpre_vars_idxs[idx_loop]
+
+    new_jet = copy(jet_vec)
+    new_jet[i] += 1
+
+    old_to_new_pos[jtu[(var_idx, jet_vec)]] = jtu[(var_idx, new_jet)]
+  end
 
   upr = base_ring(dpr)
   upre = data(dpre)
   C = MPolyBuildCtx(upr)
+
+  ith_deriv = action_map(dpr, i)
 
   for term in terms(upre)
     coeff_t = coeff(term, 1)
     vars_t = vars(term)
     ev = append!(exponent_vector(term, 1), fill(0, ngens(upr) - length(exponent_vector(term, 1))))
 
+    # Leibniz rule 1/2: D_i(c) * M
+    d_coeff = ith_deriv(coeff_t)
+    if !is_zero(d_coeff)
+      push_term!(C, d_coeff, ev)
+    end
+
+    # Leibniz rule 2/2: c * D_i(M)
     for var in vars_t
       var_pos = findfirst(==(var), gens(upr))
       exp = ev[var_pos]
@@ -862,11 +1049,18 @@ Successively apply the `i`-th shift operator `d[i]`-times to the difference poly
 function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   dpr = parent(dpre)
   @req length(d) == n_action_maps(dpr) && all(>=(0), d) "Invalid vector of multiplicities"
-  if is_zero(d)
-    return dpre
-  end
+
+  is_zero(d) && return deepcopy(dpre)
+
   dpre_vars_idxs = map(var -> __vtj(dpr)[var], vars(dpre))
-  add_new_vars_idx = filter(new_idx -> !haskey(__jtu_idx(dpr), new_idx), map(idx -> (idx[1], idx[2] + d), dpre_vars_idxs))
+  add_new_vars_idx = Tuple{Int, Vector{Int}}[]
+  for (var_idx, jet_vec) in dpre_vars_idxs
+    new_idx = (var_idx, jet_vec + d)
+    if !haskey(__jtu_idx(dpr), new_idx)
+      push!(add_new_vars_idx, new_idx)
+    end
+  end
+
   if !is_empty(add_new_vars_idx)
     __add_new_jetvar!(dpr, add_new_vars_idx)
   end
@@ -874,17 +1068,26 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
   jtu = __jtu_idx(dpr)
   old_to_new_pos = Dict{Int, Int}() #Dictionary that links the positions of old with new variables
   for i in 1:length(dpre_vars_idxs)
-    (i, idx) = dpre_vars_idxs[i]
-    new_idx = jtu[(i, idx + d)]
-    old_to_new_pos[jtu[(i, idx)]] = new_idx
-  end 
+    (var_idx, jet_vec) = dpre_vars_idxs[i]
+    new_idx = jtu[(var_idx, jet_vec + d)]
+    old_to_new_pos[jtu[(var_idx, jet_vec)]] = new_idx
+  end
 
   upr = base_ring(dpr)
   upre = data(dpre)
   C = MPolyBuildCtx(upr)
 
+  maps = action_maps(dpr)
+
   for term in terms(upre)
     coeff_t = coeff(term, 1)
+
+    for k in 1:length(d)
+      for _ in 1:d[k]
+        coeff_t = maps[k](coeff_t)
+      end
+    end
+
     vars_t = vars(term)
     ev = append!(exponent_vector(term, 1), fill(0, ngens(upr) - length(exponent_vector(term, 1))))
     new_exp_vec = fill(0, length(ev))
@@ -892,11 +1095,11 @@ function apply_action(dpre::DifferencePolyRingElem{T}, d::Vector{Int}) where {T}
     for var in vars_t
       var_pos = findfirst(==(var), gens(upr))
       shifted_var_pos = old_to_new_pos[var_pos]
-      
+
       new_exp_vec[shifted_var_pos] = ev[var_pos]
     end
 
-    push_term!(C, coeff_t , new_exp_vec)
+    push_term!(C, coeff_t, new_exp_vec)
   end
   return dpr(finish(C))
 end
@@ -926,7 +1129,7 @@ If `p` is a nonzero constant, `p` itself is returned. If `p` is the zero polynom
 """
 function initial(apre::ActionPolyRingElem)
   @req !is_zero(apre) "The zero polynomial has no initial"
-  is_constant(apre) && return apre
+  is_constant(apre) && return deepcopy(apre)
   return univariate_leading_coefficient(apre, leader(apre))
 end
 
@@ -986,16 +1189,16 @@ Return the discriminant of `p`.
 """
 function discriminant(p::ActionPolyRingElem)
   if is_constant(p)
-    is_zero(p) && return p
+    is_zero(p) && return zero(p)
     return one(p)
   end
 
   ld = leader(p)
-  
+
   if degree(p, ld) % 4 in (0,1)
     return divexact(resultant(p, derivative(p, ld), ld), initial(p))
   end
-  
+
   return -divexact(resultant(p, derivative(p, ld), ld), initial(p))
 end
 
@@ -1055,7 +1258,7 @@ function univariate_coefficients(r::ActionPolyRingElem, var::ActionPolyRingElem)
   @req is_gen(var) "Not a jet variable"
   return univariate_coefficients(r, __vtj(parent(var))[var])
 end
-  
+
 @doc raw"""
     univariate_coefficients(p::ActionPolyRingElem, i::Int, jet::Vector{Int})
 
@@ -1131,7 +1334,7 @@ univariate_leading_coefficient(r::ActionPolyRingElem, i::Int) = univariate_leadi
 function __permute_vals(S::ActionPolyRing, A::Vector{T}) where {T}
   perm = invperm(__perm_for_sort(S))
   n = nvars(S)
-  m = length(A) 
+  m = length(A)
   m > n && error("Too many values")
   return vcat(A, [zero(T) for _ in 1:(n - m)])[perm]
 end
@@ -1319,10 +1522,12 @@ rand(apr::ActionPolyRing, term_range, exp_bound, v...) = rand(Random.default_rng
 
 ConformanceTests.generate_element(R::ActionPolyRing{ZZRingElem}) = rand(R, 0:4, 0:10, -10:10)
 ConformanceTests.generate_element(R::ActionPolyRing{ZZModRingElem}) = rand(R, 0:4, 0:10, -10:10)
+ConformanceTests.generate_element(R::ActionPolyRing{QQPolyRingElem}) = rand(R, 0:4, 0:5, 0:2, -10:10)
+ConformanceTests.generate_element(R::ActionPolyRing{QQMPolyRingElem}) = rand(R, 0:4, 0:5, 0:2, 0:2, -10:10)
 
 ###############################################################################
 #
-#  Misc 
+#  Misc
 #
 ###############################################################################
 
@@ -1397,11 +1602,11 @@ function __set_perm_for_sort_poly!(dpre::Union{DifferencePolyRingElem, Different
   exps = collect(exponents(data(dpre)))
   n = length(exps)
 
-  if n <= 1 
+  if n <= 1
     dpre.permutation = n == 1 ? [1] : Int[]
     __set_is_perm_up_to_date!(dpre, true)
     return dpre
-  end  
+  end
 
   full_perm = __perm_for_sort(parent(dpre))
   if !isdefined(dpre, :permutation) || length(dpre.permutation) != n
@@ -1421,7 +1626,7 @@ function __is_less_wrt_perm(a::AbstractVector{Int}, b::AbstractVector{Int}, perm
   @inbounds for i in perm
     va = i <= len_a ? a[i] : 0
     vb = i <= len_b ? b[i] : 0
-      
+
     va != vb && return va < vb
   end
   return false
@@ -1471,7 +1676,7 @@ ranking(dpr::DifferentialPolyRing{T}) where {T} = dpr.ranking::ActionPolyRingRan
                  partition_name::Symbol = :default,
                  index_ordering_name::Symbol = :default,
                  partition::Vector{Vector{Int}} = Vector{Int}[],
-                 index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0)) 
+                 index_ordering_matrix::ZZMatrix = zero_matrix(ZZ, 0, 0))
 
 This method configures the ranking of the action polynomial ring `A`, using an ordered partition of the action indeterminates and a monomial ordering on the indices. The ranking can be specified either by choosing predefined naming options or by explicitly providing a custom configuration.
 

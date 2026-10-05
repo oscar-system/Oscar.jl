@@ -2403,7 +2403,7 @@ julia> syllables(epi(F1^5*F2^-3))
 """
 function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
-  return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
+  return Pair{Int, ZZRingElem}[l[i] => ZZRingElem(l[i+1]) for i in 1:2:length(l)]
 end
 
 function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})

@@ -337,7 +337,7 @@ function primitive_generator_with_scaling_factor(
   r::AbstractVector{T}
 ) where {T<:RationalUnion}
   first_scaling_factor = ZZ(lcm(denominator.(r)))
-  result = ZZ.(first_scaling_factor * r)
+  result = ZZ.(first_scaling_factor .* r)
   g = gcd(result)
   @req g > 0 "The vector `r` cannot be a zero vector"
   scaling_factor = QQ(first_scaling_factor, g)
