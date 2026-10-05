@@ -48,6 +48,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   for (a, st) in Sprev.DSt
+    # seen_tmp := IndexedSet
     tmp = PermGroupElem[]
     for t in T
       if ~(t in tmp)
@@ -269,11 +270,11 @@ end
 
 
 function _my_intersect(G1::PermGroup, V::Oscar.GAPGroup...)
-  return intersect([G1, V...])
+  return _my_intersect([G1, V...])
 end
 
 function _my_intersect(V::AbstractVector{PermGroup})
   L = GapObj(V; recursive = true)
-  K = GAPWrap.Intersection(L)
-  return _as_subgroup(V[1], K)[1]
+  K = Oscar.GAPWrap.Intersection(L)
+  return Oscar._as_subgroup(V[1], K)[1]
 end
