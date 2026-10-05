@@ -291,9 +291,10 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       @vprint :BruecknerSQ 2 "... transfer over min. field\n"
       @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
       @vprint :BruecknerSQ 2 "... lift...\n"
-      #TODO: why do we need the module over GF(p)???
-      iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
-      @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
+      #TODO: why do we need the module over GF(p)??? 
+      #we don't
+      #iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
+      @vtime :BruecknerSQ 2 l = lift(ii, mQ; limit = limit - length(allR))
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
       #TODO: in Plesken p119 has more comments what not to do
       append!(allR, [x for x in l])# if is_surjective(x)])
@@ -315,12 +316,15 @@ function trivial_chain(C::GModule, n::Int)
   return Oscar.GrpCoh.CoChain{2, S, T}(C, c, x->zero(C.M))
 end
 
+lift_list = []
 """
   mp: G ->> Q
   C a F_p[Q]-module
   Find all extensions of Q my C s.th. mp can be lifted to an epi.
 """
 function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
+#  global lift_list
+#  push!(lift_list, (C, mp))
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
 
@@ -443,7 +447,13 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
   H2, _, z = cohomology_group(hom(ZN, C), 2)
-  Ends = Oscar.GModuleFromGap.hom_base(C, C)
+  #XXX: if done correctly, C is abs. irr over some Fq
+  #     the endo is Fq and we need for each "Fq line" only one rep
+  #     possibly the one where the 1st non-zero entry is 1
+  #     cohomology elements are in C^k as well - or the representing chains
+  #     are
+  @show Ends = Oscar.GModuleFromGap.hom_base(C, C)
+  @assert length(Ends) == degree(base_ring(C))
 
   seen = [zero(H2)]
   for h = H2
