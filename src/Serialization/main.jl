@@ -65,7 +65,7 @@ function serialization_version_info(ns_dict::JSON.Object{String, Any})
   return version_number(version_info)
 end
 
-serialization_version_info(obj::JSON.LazyValue) = serialization_version_info(obj[])
+serialization_version_info(obj::JSON.LazyValue) = version_number(obj[:_ns][:Oscar][2][])
 
 
 function version_number(v_number::String)
