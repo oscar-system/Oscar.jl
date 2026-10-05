@@ -12,7 +12,7 @@ that carries an ``R``-valued quadratic form ``q.`` For a positive integer ``m``,
 A *Clifford algebra* for ``(M,q)`` is a pair ``(C,g)``, that consists of an associative
 unital ``R``-algebra ``C`` and an ``R``-module homomorphism
 ``g : M \rightarrow C`` such that ``g(x)^2 = q(x) \cdot 1_C``, for all ``x \in M``, which
-has the following universal property: 
+has the following universal property:
 For any other pair ``(B,f)`` of an associative unital ``R``-algebra ``B`` and an ``R``-module homomorphism
 ``f : M \rightarrow B`` with ``f(x)^2 = q(x) \cdot 1_B`` for all ``x \in M``, there exists a unique
 ``R``-algebra homomorphism ``h : C \rightarrow B`` such that ``f = h \circ g``.
@@ -98,7 +98,7 @@ L = \bigoplus\sum\limits_{i = 1}^n \mathfrak{a}_i e_i.
 ```
 The rank ``n`` of ``L`` is well-defined and ``n = \mathrm{rank}(L) = \mathrm{dim}(V)``.
 
-If ``V = (V,q)`` is a quadratic ``K``-space then by means of restriction, we obtain the 
+If ``V = (V,q)`` is a quadratic ``K``-space then by means of restriction, we obtain the
 quadratic ``R``-lattice ``L = (L,q)``. We always assume that ``L`` is an *even* lattice,
 which is to say that the form ``q`` is ``R``-valued.
 

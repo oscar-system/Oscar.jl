@@ -120,7 +120,7 @@ install_GAP_serialization(:IsFreeGroup,
       save_data_dict(s) do
         save_object(s, "IsFreeGroup", :GapType)
         # the internal representation of elements
-        if GAP.Globals.IsSyllableWordsFamily(elfam)::Bool
+        if GAPWrap.IsSyllableWordsFamily(elfam)
           wfilt = "IsSyllableWordsFamily"
         elseif GAP.Globals.IsLetterWordsFamily(elfam)::Bool
           wfilt = "IsLetterWordsFamily"
@@ -197,7 +197,7 @@ install_GAP_deserialization(
       fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
       Ggens = [GAPWrap.ObjByExtRep(fam, GapObj(x, true)) for x in generators]
       # Create the subgroup.
-      return GAP.Globals.SubgroupNC(F, GapObj(Ggens))::GapObj
+      return GAPWrap.SubgroupNC(F, GapObj(Ggens))
     end
   end)
 
@@ -259,7 +259,7 @@ install_GAP_deserialization(
         gens = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in generators]
         Ggens = [GAPWrap.ElementOfFpGroup(elfam, x) for x in gens]
         # Create the subgroup.
-        G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))::GapObj
+        G = GAPWrap.SubgroupNC(F, GapObj(Ggens))
       else
         # Create a new full f.p. group.
         relators = load_object(s, Vector{Vector{Int}}, :relators)
@@ -310,7 +310,7 @@ install_GAP_serialization(:IsPcGroup,
       save_data_dict(s) do
         save_object(s, "IsPcGroup", :GapType)
         # relative orders
-        relord = [GAP.Globals.RelativeOrderOfPcElement(fullpcgs, x)::GAP.Obj
+        relord = [GAPWrap.RelativeOrderOfPcElement(fullpcgs, x)
                   for x in fullpcgs]
         save_object(s, relord, :relord)
         # power relators
@@ -319,7 +319,7 @@ install_GAP_serialization(:IsPcGroup,
           ne = fullpcgs[i]^relord[i]
           if ! GAPWrap.IsOne(ne)
             push!(rels, (i, _free_group_extrep_from_exponents(
-              Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne)::GapObj))))
+              Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, ne)))))
           end
         end
         save_object(s, rels, :power_rels)
@@ -330,7 +330,7 @@ install_GAP_serialization(:IsPcGroup,
             ne = GAP.Globals.Comm(fullpcgs[j], fullpcgs[i])::GapObj
             if ! GAPWrap.IsOne(ne)
               push!(rels, (j, i, _free_group_extrep_from_exponents(
-                Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, ne)::GapObj))))
+                Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, ne)))))
             end
           end
         end
@@ -340,7 +340,7 @@ install_GAP_serialization(:IsPcGroup,
       # save generators w.r.t. the full group
       save_data_dict(s) do
         save_object(s, "IsPcGroup", :GapType)
-        save_object(s, [Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, x)::GapObj)
+        save_object(s, [Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, x))
                         for x in GAP.Globals.InducedPcgsWrtHomePcgs(X)::GapObj], :gens)
       end
     end
@@ -373,8 +373,8 @@ install_GAP_deserialization(
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
     # Deserialize the generators.
     generators = load_object(s, Vector{Vector{Int}}, :gens)
-    Ggens = [GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(x, true))::GapObj
+    Ggens = [GAPWrap.PcElementByExponentsNC(fullpcgs, GapObj(x, true))
              for x in generators]
     # Create the subgroup.
-    return GAP.Globals.SubgroupNC(F, GapObj(Ggens))::GapObj
+    return GAPWrap.SubgroupNC(F, GapObj(Ggens))
   end)

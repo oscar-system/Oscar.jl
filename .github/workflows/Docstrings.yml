@@ -39,3 +39,6 @@ jobs:
     - name: 'Check markdown files for absence of `@meta` blocks'
       run: |
         julia --color=yes -e 'include("etc/check_meta.jl")'
+    - name: 'Check GAP package bibliography entries being up to date'
+      run: |
+        julia --project=. etc/update_gap_package_bib.jl --check

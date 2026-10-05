@@ -327,10 +327,6 @@ triggers a version of the Hilbert driven Gröbner basis algorithm which proceeds
    to the extended ordering. Return the dehomogenization of this basis
    with respect to the extra variable.
 
-If the characteristic of $K$ is zero,  by semi-continuity of the Hilbert function,
-it is sufficient to perform step 3 for the reduction of $I$ modulo a conveniently
-chosen prime number rather than for $I$ itself.
-
 !!! note
     If appropriate weights and/or the Hilbert function with respect to appropriate weights
     are already known to the user, this information can be entered when calling the Hilbert
@@ -352,7 +348,7 @@ groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     only if you know what you are doing.
 
 ```@docs
-groebner_basis_f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1, info_level::Int=0)
+groebner_basis_f4( I::MPolyIdeal; initial_hts::Int=17, nr_thrds::Int=1, max_nr_pairs::Int=0, la_option::Int=2, reduce_gb::Int=1)
 ```
 
 ## Leading Ideals

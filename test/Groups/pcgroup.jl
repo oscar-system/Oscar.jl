@@ -89,6 +89,43 @@ end
   @test_throws ArgumentError set_relative_order!(c, 2, 3)
 end
 
+@testset "deepcopy collectors" begin
+  # a copy of a collector is independent of the original,
+  # also when the GAP collector has already been created
+  for create_gap_collector in [false, true]
+    # finite case: `c.X` is a GAP single collector
+    c = collector(2, Int)
+    set_relative_orders!(c, [2, 3])
+    set_conjugate!(c, 2, 1, [2 => 2])
+    create_gap_collector && pc_group(c)
+
+    cc = deepcopy(c)
+    @test get_relative_orders(cc) == get_relative_orders(c)
+    @test get_conjugate(cc, 2, 1) == get_conjugate(c, 2, 1)
+    @test !isdefined(c, :X) || cc.X !== c.X
+
+    set_conjugate!(cc, 2, 1, [2 => 1])
+    set_power!(cc, 1, [2 => 1])
+    @test get_conjugate(c, 2, 1) == [2 => 2]
+    @test get_power(c, 1) == Pair{Int, Int}[]
+    @test describe(pc_group(c)) == "S3"
+    @test describe(pc_group(cc)) == "C6"
+
+    # infinite case: `c.X` is a collector from the left
+    c = collector(2, Int)
+    set_relative_orders!(c, [2, 0])
+    set_conjugate!(c, 2, 1, [2 => -1])
+    create_gap_collector && pc_group(c)
+
+    cc = deepcopy(c)
+    @test !isdefined(c, :X) || cc.X !== c.X
+
+    set_relative_orders!(cc, [3, 0])
+    @test get_relative_orders(c) == [2, 0]
+    @test describe(pc_group(c)) == "an infinite group"
+  end
+end
+
 @testset "create letters from polycyclic group elements" begin
 
   # finite polycyclic groups

@@ -1654,7 +1654,7 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
 
   k = base_ring(C)
   h = Oscar.iso_oscar_gap(k)
-  s = GAP.Globals.ShallowCopy(GAP.Obj(map(h, m)))
+  s = GAPWrap.ShallowCopy(GAP.Obj(map(h, m)))
   g = Gap(C)
   x = GAP.Globals.MTX.SubGModule(g, s)
   b = matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])
@@ -2931,7 +2931,7 @@ function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   #add them with the correct multiplicity
   f = GAP.Globals.IrreducibleAffordingRepresentation(GapObj(chi))
   K = abelian_closure(QQ)[1]
-  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
+  g = GAP.Globals.List(GAPWrap.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
   F = free_module(K, degree(Int, chi); cached = false)
   M = gmodule(group(chi), [hom(F, F, x) for x = z])

@@ -44,19 +44,24 @@ end
 # standard basis for non-global orderings #############################
 @doc raw"""
     standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+                   complete_reduction::Bool = false, signature_ordering = :POT, algorithm::Symbol = :buchberger)
 
 Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
-- `:modular` (implementation of multi-modular approach, if applicable),
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
 - `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
 - `:markov` (implementation to compute Gröbner basis for lattice ideals in *4ti2*)
+- `:modular` (implementation of multi-modular approach, if applicable),
+- `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
 
+The keyword `signature_ordering` is only used if `algorithm = :signature_based`. It can be set to
+ - `:POT` (position-over-term ordering)
+ - `:DPOT` (degree-position-over-term ordering)
+ 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
     and `f4` in the OSCAR documentation for some more details and for restrictions    
@@ -77,10 +82,11 @@ Standard basis with elements
   2: y
 with respect to the ordering
   negdegrevlex([x, y])
+
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+                        complete_reduction::Bool = false, signature_ordering::Symbol = :POT, algorithm::Symbol = :buchberger)
   complete_reduction && @assert is_global(ordering)
   @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
@@ -91,6 +97,12 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
     elseif complete_reduction == true
       I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
+    end
+  elseif algorithm == :signature_based
+    if is_signature_based_gb_algorithm_applicable(I, ordering, signature_ordering)
+      groebner_basis_signature_based(I, signature_ordering=signature_ordering)
+    else
+      error("Signature-based option not applicable in this setting.")
     end
   elseif algorithm == :modular
     if is_f4_applicable(I, ordering)
@@ -109,37 +121,25 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
   elseif algorithm == :hilbert
     weights = _find_weights(gens(I))
     if !any(iszero, weights)
-      J, target_ordering, hn = I, ordering, nothing
+      GB = groebner_basis_hilbert_driven(I, destination_ordering=ordering,
+                         complete_reduction=complete_reduction,
+                         weights=weights,
+                         hilbert_numerator=nothing)
     else
-      R = base_ring(I)
-      K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
-      S = base_ring(K)
-      ord = degrevlex(S)
-      gb = standard_basis(K, ordering=ord)
-      # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
-      H = homogenizer(S, "w")
-      K_hom = H(K)
-      gb_hom = IdealGens(H.(gens(gb)))
-      gb_hom.isGB = true
-      gb_hom.ord = ord
-      K_hom.gb[ord] = gb_hom
-      hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
-      H2 = homogenizer(R, "w")
-      J = H2(I)
-      weights = ones(Int, ngens(base_ring(J)))
-      target_ordering = _extend_mon_order(ordering, base_ring(J))
+      singular_I_gens = Oscar.singular_generators(I.gens, ordering)
+      singular_ring = base_ring(singular_I_gens)
+      SI = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
+      GBS = Singular.LibStandard.stdhilb(SI)
+      GB = IdealGens(base_ring(I), GBS)
+      # TODO: add `complete_reduction` as soon as functionality
+      # for reduction is available in Oscar
+      GB.isGB = true
+      GB.ord = ordering
+      if isdefined(GB.gensBiPolyArray, :S)
+       GB.gensBiPolyArray.S.isGB  = true
+      end
     end
-    GB = groebner_basis_hilbert_driven(J, destination_ordering=target_ordering,
-                                       complete_reduction=complete_reduction,
-                                       weights=weights,
-                                       hilbert_numerator=hn)
-    if base_ring(I) == base_ring(J)
-      I.gb[ordering] = GB
-    else
-      DH2 = dehomogenizer(H2)
-      GB_dehom_gens = DH2.(gens(GB))
-      I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
-    end
+    I.gb[ordering] = GB
   elseif algorithm == :f4
     #  since msolve v0.7.0 is most of the time more efficient
     #  to compute a reduced GB by default
@@ -154,16 +154,22 @@ end
 @doc raw"""
     groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+      complete_reduction::Bool = false, signature_ordering=:POT,
+      algorithm::Symbol = :buchberger)
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
-- `:modular` (implementation of multi-modular approach, if applicable),
-- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
+- `:modular` (implementation of multi-modular approach, if applicable),
+- `:signature_based` (implementation of a variant of Faugère's F5 Algorithm in *AlgebraicSolving*)
+
+The keyword `signature_ordering` is only used if `algorithm = :signature_based`. It can be set to
+ - `:POT` (position-over-term ordering)
+ - `:DPOT` (degree-position-over-term ordering)
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -238,12 +244,34 @@ julia> total_degree(G[8])
 
 julia> leading_coefficient(G[8])
 -91230304237130414552564280286681870842473427917231798336639893796481988733936505735341479640589040146625319419037353645834346047404145021391726185993823650399589880820226804328750
+
+```
+
+```jldoctest
+julia> R, (a, b, c, d, e) = polynomial_ring(QQ, [:a, :b, :c, :d, :e]);
+
+julia> f1 = a+b+c+d+e;
+
+julia> f2 = a*b+b*c+c*d+a*e+d*e;
+
+julia> f3 = a*b*c+b*c*d+a*b*e+a*d*e+c*d*e;
+
+julia> f4 = b*c*d+a*b*c*e+a*b*d*e+a*c*d*e+b*c*d*e;
+
+julia> f5 = a*b*c*d*e-1;
+
+julia> I = ideal(R, [f1, f2, f3, f4, f5]);
+
+julia> G = groebner_basis(I, ordering = lex(R), complete_reduction = true, algorithm = :hilbert);
+
+julia> length(G)
+8
+
 ```
 """
-function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-                        algorithm::Symbol = :buchberger)
+function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false, signature_ordering = :POT, algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
-    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
+    return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, signature_ordering=signature_ordering, algorithm=algorithm)
 end
 
 function is_known(

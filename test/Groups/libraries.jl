@@ -2,6 +2,17 @@
    @test number_of_transitive_groups(4)==5
    @test number_of_transitive_groups(10)==45
 
+   # the trivial group is the unique transitive group of degree 1,
+   # even though GAP's library of transitive groups starts at degree 2
+   @test number_of_transitive_groups(1) == 1
+   @test transitive_group(1, 1) == symmetric_group(1)
+   @test transitive_group_identification(symmetric_group(1)) == (1, 1)
+   @test transitive_group_identification(trivial_subgroup(symmetric_group(4))[1]) == (1, 1)
+   @test all_transitive_groups(1) == [transitive_group(1, 1)]
+   @test all_transitive_groups(degree => 1, is_cyclic) == [transitive_group(1, 1)]
+   @test all_transitive_groups(degree => 1, !is_cyclic) == PermGroup[]
+   @test_throws ArgumentError transitive_group(1, 0)
+
    for i in 1:10
        @test number_of_transitive_groups(i) == length(all_transitive_groups(degree => i))
    end

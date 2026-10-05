@@ -13,6 +13,8 @@
     @test sprint(show, "text/plain", h) isa String
     @test domain(h) === Kx
     @test codomain(h) === Kx
+    @test Oscar.domain_type(h) === typeof(Kx)
+    @test Oscar.codomain_type(h) === typeof(Kx)
     @test (@inferred h(x)) == y
     @test (@inferred h(x)) == y
     @test (@inferred h(y)) == x
