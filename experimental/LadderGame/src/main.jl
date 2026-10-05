@@ -48,34 +48,32 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   for (a, st) in Sprev.DSt
-    # seen_tmp := IndexedSet
-    tmp = PermGroupElem[]
+    seen = IndexedSet{PermGroupElem}()
     for t in T
-      if ~(t in tmp)
-        d = t*a
-        S1 = _my_intersect(U, A^d)
+      t in seen && continue
+      d = t*a
+      S1 = _my_intersect(U, A^d)
 
-        # not used in calculation
-        # S2 = _my_intersect(U, Aprev^a)
-        # @assert is_subset(S1, S2)
-        # @assert st[1][1] == S2
-        # @assert S2 == _my_intersect(U, Aprev^d)
+      # not used in calculation
+      # S2 = _my_intersect(U, Aprev^a)
+      # @assert is_subset(S1, S2)
+      # @assert st[1][1] == S2
+      # @assert S2 == _my_intersect(U, Aprev^d)
 
-        st2, Sta = _induce_chain(S1, Tmap, st ; conj=d)
+      st2, Sta = _induce_chain(S1, Tmap, st ; conj=d)
 
-        # not used in calculation
-        # @assert length(Sta) == index(S2, S1)
-        # Tss = right_transversal(S2, S1)
-        # ss = map_from_func(S2, S2, x -> Tss[index_of_coset(Tss, x)])
-        # @assert allunique(map(x -> ss(S2(x)), Sta))
+      # not used in calculation
+      # @assert length(Sta) == index(S2, S1)
+      # Tss = right_transversal(S2, S1)
+      # ss = map_from_func(S2, S2, x -> Tss[index_of_coset(Tss, x)])
+      # @assert allunique(map(x -> ss(S2(x)), Sta))
 
-        DSt[d] = st2
-        for u in Sta
-          tt = Tmap(Aprev(d*u*inv(a)))
-          push!(tmp, tt)
-          Im[tt*a] = (d, u)
-          # @assert tt*a*inv(u)*inv(d) in A
-        end
+      DSt[d] = st2
+      for u in Sta
+        tt = Tmap(Aprev(d*u*inv(a)))
+        push!(seen, tt)
+        Im[tt*a] = (d, u)
+        # @assert tt*a*inv(u)*inv(d) in A
       end
     end
     # @assert Set(collect(T)) == Set(tmp)
@@ -149,7 +147,7 @@ function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::Transvers
 
   last_tUU = PermGroupElem[ one(C[end][1]) ]
 
-  tU = PermGroupElem[ one(codomain(Tm)) ] # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
+  tU = IndexedSet([ one(codomain(Tm)) ]) # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
   for i in (length(C)-1):-1:1
     map!(C[i][1], last_tUU, last_tUU)
     tUU = copy(last_tUU)
