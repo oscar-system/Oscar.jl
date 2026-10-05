@@ -97,8 +97,8 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   DSt = Dict{PermGroupElem, TransversalChain}()
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
-  seen = PermGroupElem[]
-  store = PermGroupElem[]
+  # seen = PermGroupElem[]
+  # store = PermGroupElem[]
   cls_store = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   for (a, st) in Sprev.DSt
