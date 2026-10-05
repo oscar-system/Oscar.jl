@@ -229,17 +229,9 @@ end
 
 save_object(s::SerializerState, I::Hecke.ZZIdl) = save_object(s, gens(I))
 
-function load_object(s::DeserializerState, ::Type{Hecke.ZZIdl}, ::ZZRing)
-  gens = ZZRingElem[]
-  load_array_node(s) do _
-    push!(gens, load_object(s, ZZRingElem, ZZ))
-  end
-  return ideal(ZZ, gens)
-end
-
-# the parent is always ZZ, so top-level loads need no params
+# the parent is always ZZ, so no params are needed
 load_object(s::DeserializerState, ::Type{Hecke.ZZIdl}) =
-  load_object(s, Hecke.ZZIdl, ZZ)
+  ideal(ZZ, load_object(s, Vector{ZZRingElem}))
 
 function save_object(s::SerializerState, I::Ideal)
   # we might want to serialize generating_system(I) and I.gb
