@@ -860,15 +860,17 @@ function Oscar.restrict(c::CoChain{N, G, M}, m::Map) where {N, G, M}
   end 
 end
 
-function Oscar.inflate(c::CoChain{N, G, M}, m::Map) where {N, G, M}
+function Oscar.inflate(c::CoChain{N, G, M}, m::Map; parent::GModule = inflate(c.C, m)) where {N, G, M}
+  nM = parent
+  MM = elem_type(nM.M)
+  GG = elem_type(nM.G)
+  dd = Dict(map(pseudo_inv(m), k)=>v for (k,v) = c.d)
   if isdefined(c, :D)
-    return CoChain{N, G, M}(inflate(c.C, m), Dict(map(pseudo_inv(m), k)=>v for (k,v) = c.d),  x->c.D(map(m, x)))
+    return CoChain{N, GG, MM}(nM, dd,  x->c.D(map(m, x)))
   else
-    return CoChain{N, G, M}(inflate(c.C, m), c.d)
-    return CoChain{N, G, M}(inflate(c.C, m), Dict(map(pseudo_inv(m), k)=>v for (k,v) = c.d))
+    return CoChain{N, GG, MM}(nM, dd)
   end 
 end
-
 
 #TODO: careful with lazy chains!!!
 function ==(c::CoChain{N, G, M}, d::CoChain{N, G, M}) where {N, G, M}
@@ -915,6 +917,11 @@ module
 function (C::CoChain{1})(g::Oscar.BasicGAPGroupElem)
   if haskey(C.d, (g,))
     return C.d[(g,)]
+  end
+  if isdefined(C, :D)
+    r = C.D((g, ))
+    C.d[(g,)] = r
+    return r
   end
   F, mF = fp_group_with_isomorphism(C.C)
   G = parent(g)
@@ -1448,6 +1455,10 @@ function cyclic_res(ZG::GroupAlgebra; side = :left)
   return Cpx
 end
 
+from_1chain() = error("niy")
+#TODO: given a 1-chain, evaluation at the gens will get a vector that should
+# be the image in the C^1. Problem is that C^1 = ZG^g for g the gens of a 
+# different group, the FF, mFF or so...
 @doc """
     free_res(ZG::GroupAlgebra; side = :left)
 
@@ -1475,7 +1486,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
   if one_only
     FF = G
     mFF = identity_map(G)
-    R = [[word(x[1]), word(x[2])] for x = relations(G)]
+    R = [[letters(x[1]), letters(x[2])] for x = relations(G)]
     n = length(R)
     pos = collect(1:n)
   else
@@ -1540,6 +1551,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
     @assert !one_only || idx < 3
     if idx == 2
       local to_1chain::Function
+      local from_1chain::Function
       for i=1:length(R)
         pos[i]== 0 && continue
         r = R[i] #(lhs, rhs)
@@ -1591,7 +1603,8 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
       else
         Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left)
       end
-      set_attribute!(Fg, :to_chain => x->to_1chain(word(preimage(mFF, x))))
+      set_attribute!(Fg, :to_chain => x->to_1chain(letters(preimage(mFF, x))))
+      set_attribute!(Fg, :from_chain => from_1chain)
       #so to get a "proper" 1-cochain from s in C^1(G, M) given
       # as a "black box" s in M^g from this resolution
       # then: for the generators we have the values
@@ -1708,13 +1721,13 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
         c.T = [zero(ZG) for i=1:n]
 #        collect(vcat(word(preimage(mFF, x)), word(preimage(mFF, y))), c)
 #        return c.T
-        xx = collect(word(preimage(mFF, x)), c)
+        xx = collect(letters(preimage(mFF, x)), c)
         if isone(x)
           @assert length(xx) == 0
           @assert all(is_zero, c.T)
         end
         c.T = [zero(ZG) for i=1:n]
-        yy = collect(word(preimage(mFF, y)), c)
+        yy = collect(letters(preimage(mFF, y)), c)
         if isone(y)
           @assert length(yy) == 0
           @assert all(is_zero, c.T)
@@ -2032,7 +2045,9 @@ function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractA
   s, ms = snf(q)
   mp = ms*pseudo_inv(mq)*mk
   #do not turn into hom!
-  if i == 2
+  if i == 1
+    res  = (s, mp, map_from_func(s, AllCoChains{1, elem_type(G), elem_type(M.M)}(), x->one_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
+  elseif i == 2
     res  = (s, mp, map_from_func(s, AllCoChains{2, elem_type(G), elem_type(M.M)}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
   else
     res = (s, mp)
@@ -2069,6 +2084,24 @@ function two_chain(a::T) where T <: Union{FinGenAbGroupElem, <:AbstractAlgebra.F
 
   return CoChain{2, elem_type(G), elem_type(M.M)}(M, D, fill)
 end
+
+function one_chain(a::T) where T <: Union{FinGenAbGroupElem, <:AbstractAlgebra.FPModuleElem}
+  A = parent(a)
+  #need a map GxG -> M
+  (zg, M) = get_attribute(A, :hom)
+  c = get_attribute(zg, :to_chain)
+
+  G = group(base_ring(zg))
+  D = Dict{NTuple{1, elem_type(G)}, elem_type(M.M)}()
+  fill = function(g)
+    ch = c(g[1])
+    re = sum(action(M, ch[i], canonical_projection(A, i)(a)) for i=1:length(ch))
+    return re
+  end
+
+  return CoChain{1, elem_type(G), elem_type(M.M)}(M, D, fill)
+end
+
 
 #TODO: ZG^r otimes M = M^r and the res otimes M - then we can do homology as well!
 
