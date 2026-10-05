@@ -272,10 +272,8 @@ function Base.isempty(s::DeserializerState)
 end
 
 function Base.haskey(s::DeserializerState, key::Symbol)::Bool
-  !(s.obj isa JSON.LazyValue) && return false
-  obj = s.obj[]
-  obj isa String && return false
-  return haskey(obj, key)::Bool
+  s.obj isa JSON.LazyValue && JSON.gettype(s.obj) == JSON.JSONTypes.OBJECT || return false
+  return !isnothing(get(s.obj, key, nothing))
 end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothing)

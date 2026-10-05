@@ -132,8 +132,8 @@ function Serialization.load_attrs(
 )
   !with_attrs(s) && return nothing
 
-  haskey(s, :attrs) && load_node(s, :attrs) do d
-    serialized_attributes = keys(d)
+  haskey(s, :attrs) && load_node(s, :attrs) do
+    serialized_attributes = propertynames(s.obj)
     for old_name in serialized_attributes
       new_name = get(LEGACY_FTHEORY_MODEL_ATTRIBUTE_NAMES, old_name, old_name)
       old_name != new_name && new_name in serialized_attributes && continue
