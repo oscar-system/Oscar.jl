@@ -70,7 +70,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
       DSt[d] = st2
       for u in Sta
-        tt = Tmap(Aprev(d*u*inv(a)))
+        tt = Tmap(d*u*inv(a))
         push!(seen, tt)
         Im[tt*a] = (d, u)
         # @assert tt*a*inv(u)*inv(d) in A
