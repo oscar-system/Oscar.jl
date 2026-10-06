@@ -1002,14 +1002,9 @@ function AbstractAlgebra.exponent_vectors(v, f::MPolyDecRingElem; inplace::Bool=
   return AbstractAlgebra.exponent_vectors(v, forget_decoration(f), inplace=inplace)
 end
 
-function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
-  if iszero(c)
-    return M
-  end
-  len = length(M.poly.f) + 1
-  set_exponent_vector!(M.poly.f, len, expv)
-  setcoeff!(M.poly.f, len, c)
-  return M
+function fit!(f::MPolyDecRingElem, n::Int)
+  fit!(forget_decoration(f), n)
+  return nothing
 end
 
 function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
@@ -1017,10 +1012,19 @@ function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
   return f
 end
 
-function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
-  f = sort_terms!(M.poly.f)
-  f = combine_like_terms!(M.poly.f)
-  return parent(M.poly)(f)
+function setcoeff!(f::MPolyDecRingElem, i::Int, c)
+  f.f = setcoeff!(forget_decoration(f), i, c)
+  return f
+end
+
+function sort_terms!(f::MPolyDecRingElem)
+  f.f = sort_terms!(forget_decoration(f))
+  return f
+end
+
+function combine_like_terms!(f::MPolyDecRingElem)
+  f.f = combine_like_terms!(forget_decoration(f))
+  return f
 end
 
 function jacobian_matrix(f::MPolyDecRingElem)

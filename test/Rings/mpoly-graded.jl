@@ -260,6 +260,27 @@ end
   @test divrem(f, g) == (one(R), y)
 end
 
+@testset "Unsafe functions" begin
+  # build 2*y + 3*x^2 term by term, out of order and with a duplicate term
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ])
+  f = zero(R)
+  fit!(f, 3)
+  for (i, (c, e)) in enumerate([(1, [0, 1]), (3, [2, 0]), (1, [0, 1])])
+    @test set_exponent_vector!(f, i, e) === f
+    @test setcoeff!(f, i, QQ(c)) === f
+  end
+  @test sort_terms!(f) === f
+  @test combine_like_terms!(f) === f
+  @test f == 2*y + 3*x^2
+  @test parent(f) === R
+
+  B = MPolyBuildCtx(R)
+  push_term!(B, QQ(2), [0, 1])
+  push_term!(B, QQ(3), [2, 0])
+  @test finish(B) == 2*y + 3*x^2
+  @test iszero(finish(B))
+end
+
 # Conversion bug
 
 begin
