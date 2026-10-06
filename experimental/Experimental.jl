@@ -13,7 +13,6 @@ const orderedpkgs = [
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
   "Schemes",
-  "FTheoryTools",            # must be loaded after Schemes and LieAlgebras
   "IntersectionTheory",      # must be loaded after Schemes
   "Parallel",
   "AlgebraicStatistics", # must be loaded after Parallel

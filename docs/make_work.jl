@@ -35,20 +35,18 @@ Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 # get the prefix `Experimental/PACKAGE_NAME`.
 #
 # Example:
-# cat experimental/FTheoryTools/docs/doc.main 
+# cat experimental/ExperimentalTemplate/docs/doc.main
 # [
-#    "F-Theory Tools" => [
+#    "Experimental Template" => [
 #       "introduction.md",
-#       "weierstrass.md",
-#       "tate.md",
+#       "example_page.md",
 #    ],
 # ]
 # after `add_prefix_to_experimental_docs` becomes
 # [
-#    "F-Theory Tools" => [
-#       "Experimental/FTheoryTools/introduction.md",
-#       "Experimental/FTheoryTools/weierstrass.md",
-#       "Experimental/FTheoryTools/tate.md",
+#    "Experimental Template" => [
+#       "Experimental/ExperimentalTemplate/introduction.md",
+#       "Experimental/ExperimentalTemplate/example_page.md",
 #    ],
 # ]
 #
