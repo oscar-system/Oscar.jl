@@ -277,6 +277,14 @@ end
   @test_throws ErrorException sqrt(f)
 end
 
+@testset "MPoly interface for graded rings" begin
+  # test_MPoly_interface requires exactly two variables
+  for (K, w) in [(QQ, [1, 1]), (ZZ, [1, 2]), (GF(7), [2, 3])]
+    R, _ = graded_polynomial_ring(K, [ :x, :y ]; weights = w)
+    ConformanceTests.test_MPoly_interface(R; reps = 3)
+  end
+end
+
 @testset "Unsafe functions" begin
   # build 2*y + 3*x^2 term by term, out of order and with a duplicate term
   R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ])
