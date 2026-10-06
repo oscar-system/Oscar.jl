@@ -1,13 +1,13 @@
+# Absolutely no guarantee for any meaningful distribution. Just ad-hoc for now.
 function random_origami(d::Integer)
-  symm_group = symmetric_group(d)
-  h = rand(symm_group)
-  v = rand(symm_group)
-  perm_group = permutation_group(d, [h, v])
-  while !(transitivity(perm_group) > 0)
-    v = rand(symm_group)
-    perm_group = permutation_group(d, [h, v])
-  end
-  return origami(h, v; check=false)
+  @req d >= 1 "degree must be positive"
+  G = symmetric_group(d)
+  cyc = cperm(G, randperm(d)) # random d-cycle; this ensures transitivity
+  other = G(randperm(d)) # arbitrary random permutation
+  # swap the h and v permutation with 50% probability
+  # and also apply a random power to the d-cycle
+  iszero(rand(0:1)) && return origami(cyc^rand(1:d), other; check=false)
+  return origami(other, cyc^rand(1:d); check=false)
 end
 
 function staircase_origami(length::Integer, height::Integer, steps::Integer)

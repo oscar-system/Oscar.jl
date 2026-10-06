@@ -190,9 +190,39 @@ function genus(o::Origami)
   return ZZ(div(sum(stratum(o)) + 2, 2))
 end
 
-function veech_group(O::Origami)
-  # TODO use hashtables or not? Implement modular subgroup?
-  GAP.Globals.ComputeVeechGroupWithHashTables(GapObj(O))
+function veech_group(o::Origami)
+  o = normal_form(o)
+
+  index_of = Dict{typeof(canonical_origami_key(o)), Int}()
+  index_of[canonical_origami_key(o)] = 1
+
+  orbit = Origami[o]
+  queue = Int[1]
+  s_imgs = Int[]
+  t_imgs = Int[]
+
+  while !isempty(queue)
+    i = popfirst!(queue)
+    P = orbit[i]
+
+    for (j, Q0) in enumerate((action_s(P), action_t(P)))
+      Q = normal_form(Q0)
+      key = canonical_origami_key(Q)
+      k = get!(index_of, key, length(orbit) + 1)
+      if k > length(orbit)
+        push!(orbit, Q)
+        push!(queue, k)
+      end
+      imgs = j == 1 ? s_imgs : t_imgs
+      resize!(imgs, max(length(imgs), i))
+      imgs[i] = k
+    end
+  end
+
+  n = length(orbit)
+  G = symmetric_group(n)
+  # GAP returns ModularSubgroup(PermList(sigma_S)^-1, PermList(sigma_T)^-1)
+  return modular_subgroup_via_left_action(G(s_imgs), G(t_imgs))
 end
 
 @doc raw"""
@@ -211,7 +241,7 @@ julia> index_monodromy_group(o)
 ```
 """
 function index_monodromy_group(o::Origami)
-  return GAP.Globals.IndexOfMonodromyGroup(GapObj(o))::Int
+  return index(perm_group(o), permutation_group(degree(o), [horizontal_perm(o), vertical_perm(o)]))
 end
 
 @doc raw"""
@@ -340,11 +370,53 @@ function cylinder_structure(o::Origami)
 end
 
 function veech_group_and_orbit(o::Origami)
-  return GAP.Globals.VeechGroupAndOrbit(GapObj(o))
+  o = normal_form(o)
+
+  index_of = Dict{typeof(canonical_origami_key(o)), Int}()
+  index_of[canonical_origami_key(o)] = 1
+
+  orbit = Origami[o]
+  matrices = ZZMatrix[identity_matrix(ZZ, 2)]
+  queue = Int[1]
+  s_imgs = Int[]
+  t_imgs = Int[]
+
+  matS = matrix(ZZ, [0 -1; 1 0])
+  matT = matrix(ZZ, [1 1; 0 1])
+
+  while !isempty(queue)
+    i = popfirst!(queue)
+    P = orbit[i]
+    # left action: the matrix of a child is gen * matrix of the parent
+    gens = ((action_s(P), matS), (action_t(P), matT))
+
+    for (j, (Q0, gen)) in enumerate(gens)
+      Q = normal_form(Q0)
+      key = canonical_origami_key(Q)
+      k = get(index_of, key, 0)
+      if k == 0
+        k = length(orbit) + 1
+        index_of[key] = k
+        push!(orbit, Q)
+        push!(matrices, gen * matrices[i])
+        push!(queue, k)
+      end
+      imgs = j == 1 ? s_imgs : t_imgs
+      resize!(imgs, max(length(imgs), i))
+      imgs[i] = k
+    end
+  end
+
+  n = length(orbit)
+  G = symmetric_group(n)
+  group = modular_subgroup_via_left_action(G(s_imgs), G(t_imgs))
+  #TODO maybe there's a better structure to return?
+  return (veech_group = group, orbit = orbit, matrices = matrices)
 end
 
 function veech_group_is_even(o::Origami)
-  return GAP.Globals.VeechGroupIsEven(GapObj(o))::Bool
+  q = action_s(action_s(o))
+	return are_equivalent(o, q)
 end
 
 @doc raw"""
@@ -364,51 +436,7 @@ true
 ```
 """
 function are_equivalent(o1::Origami, o2::Origami)
-  return GAP.Globals.OrigamisEquivalent(GapObj(o1), GapObj(o2))::Bool
-end
-
-# TODO why is this not in canonical.jl?
-function normalform_conjugators(o::Origami)
-  x = horizontal_perm(o)
-  y = vertical_perm(o)
-  n = degree(o)
-  G = PermGroupElem[]
-  sym = perm_group(o)
-
-  # Starting from each of the vertices found above, do a breadth-first search
-  # and list the vertices in the order they appear.
-  # This defines a permutation l with which we conjugate x and y.
-  # From the resulting list of pairs of permutations (all of which are by
-  # definition simultaneously conjugated to (x,y)) we choose the
-  # lexicographically smallest one as the canonical form.
-  for i in 1:n
-    L = fill(0, n)
-    seen = fill(false, n)
-    Q = [i]
-    seen[i] = true
-    numSeen = 1
-    L[i] = 1
-    while numSeen < n
-      v = popfirst!(Q)
-      wx = v^x
-      wy = v^y
-      if !seen[wx]
-        push!(Q, wx)
-        seen[wx] = true
-        numSeen += 1
-        L[wx] = numSeen
-      end
-      if !seen[wy]
-        push!(Q, wy)
-        seen[wy] = true
-        numSeen += 1
-        L[wy] = numSeen
-      end
-    end
-    push!(G, perm(sym, L))
-  end
-
-  return G
+  return canonical_origami_key(o1) == canonical_origami_key(o2)
 end
 
 @doc raw"""
