@@ -273,6 +273,8 @@ end
   @test combine_like_terms!(f) === f
   @test f == 2*y + 3*x^2
   @test parent(f) === R
+  @test coeff(f, [2, 0]) == 3
+  @test iszero(coeff(f, [1, 1]))
 
   B = MPolyBuildCtx(R)
   push_term!(B, QQ(2), [0, 1])
