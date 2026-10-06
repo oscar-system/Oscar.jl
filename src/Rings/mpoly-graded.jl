@@ -921,6 +921,12 @@ function divrem(x::MPolyDecRingElem, y::MPolyDecRingElem)
   return R(q), R(r)
 end
 
+function divrem(x::T, y::Vector{T}) where {T <: MPolyDecRingElem}
+  R = parent(x)
+  q, r = divrem(forget_decoration(x), map(forget_decoration, y))
+  return T[R(qi) for qi in q], R(r)
+end
+
 function Base.sqrt(x::MPolyDecRingElem; check::Bool=true)
   return parent(x)(sqrt(forget_decoration(x); check))
 end

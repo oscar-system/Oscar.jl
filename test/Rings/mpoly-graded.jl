@@ -258,6 +258,11 @@ end
   g = x^2
   @test div(f, g) == one(R)
   @test divrem(f, g) == (one(R), y)
+
+  q, r = divrem(f, [g, y])
+  @test q == [one(R), one(R)]
+  @test iszero(r)
+  @test parent(r) === R
 end
 
 @testset "Square roots" begin
