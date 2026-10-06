@@ -921,6 +921,17 @@ function divrem(x::MPolyDecRingElem, y::MPolyDecRingElem)
   return R(q), R(r)
 end
 
+function Base.sqrt(x::MPolyDecRingElem; check::Bool=true)
+  return parent(x)(sqrt(forget_decoration(x); check))
+end
+
+is_square(x::MPolyDecRingElem) = is_square(forget_decoration(x))
+
+function AbstractAlgebra.is_square_with_sqrt(x::MPolyDecRingElem)
+  fl, s = AbstractAlgebra.is_square_with_sqrt(forget_decoration(x))
+  return fl, parent(x)(s)
+end
+
 ################################################################################
 #
 #  Equality

@@ -260,6 +260,18 @@ end
   @test divrem(f, g) == (one(R), y)
 end
 
+@testset "Square roots" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
+  f = x^2 + y
+  @test sqrt(f^2) == f
+  @test parent(sqrt(f^2)) === R
+  @test is_square(f^2)
+  @test !is_square(f)
+  @test is_square_with_sqrt(f^2) == (true, f)
+  @test !is_square_with_sqrt(f)[1]
+  @test_throws ErrorException sqrt(f)
+end
+
 @testset "Unsafe functions" begin
   # build 2*y + 3*x^2 term by term, out of order and with a duplicate term
   R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ])
