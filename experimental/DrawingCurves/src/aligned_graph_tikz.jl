@@ -184,9 +184,9 @@ function get_to_str(type::Symbol, pta::_Point, ptb::_Point)
       end
     else
       if pta.ycoord < ptb.ycoord
-        outang = 270
-      else
         outang = 90
+      else
+        outang = 270
       end
     end
     result = "to[out=$outang, in=$inang]"
