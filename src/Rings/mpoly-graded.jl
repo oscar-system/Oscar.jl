@@ -829,12 +829,19 @@ zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 #
 ################################################################################
 
+# Different gradings of the same ring share the element type, so the
+# undecorated operations cannot detect mismatched parents.
 for T in [:(+), :(-), :(*)]
-  @eval ($T)(a::TT,
-             b::TT) where {TT <: MPolyDecRingElem} = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
+  @eval function ($T)(a::TT, b::TT) where {TT <: MPolyDecRingElem}
+    check_parent(a, b)
+    return MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
+  end
 end
 
-divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
+function divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true)
+  check_parent(a, b)
+  return MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
+end
 
 
 ################################################################################
@@ -906,22 +913,26 @@ function factor_squarefree(x::MPolyDecRingElem)
 end
 
 function gcd(x::MPolyDecRingElem, y::MPolyDecRingElem)
+  check_parent(x, y)
   R = parent(x)
   return R(gcd(forget_decoration(x), forget_decoration(y)))
 end
 
 function div(x::MPolyDecRingElem, y::MPolyDecRingElem)
+  check_parent(x, y)
   R = parent(x)
   return R(div(forget_decoration(x), forget_decoration(y)))
 end
 
 function divrem(x::MPolyDecRingElem, y::MPolyDecRingElem)
+  check_parent(x, y)
   R = parent(x)
   q, r = divrem(forget_decoration(x), forget_decoration(y))
   return R(q), R(r)
 end
 
 function divrem(x::T, y::Vector{T}) where {T <: MPolyDecRingElem}
+  foreach(g -> check_parent(x, g), y)
   R = parent(x)
   q, r = divrem(forget_decoration(x), map(forget_decoration, y))
   return T[R(qi) for qi in q], R(r)
@@ -944,7 +955,10 @@ end
 #
 ################################################################################
 
-==(a::MPolyDecRingElem, b::MPolyDecRingElem) = forget_decoration(a) == forget_decoration(b)
+function ==(a::MPolyDecRingElem, b::MPolyDecRingElem)
+  check_parent(a, b)
+  return forget_decoration(a) == forget_decoration(b)
+end
 
 ^(a::MPolyDecRingElem, i::Int) = MPolyDecRingElem(forget_decoration(a)^i, parent(a))
 

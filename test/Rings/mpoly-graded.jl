@@ -265,6 +265,17 @@ end
   @test parent(r) === R
 end
 
+@testset "Parent checks" begin
+  # two gradings of the same ring have the same element type
+  R, _ = QQ[:x, :y]
+  S1, (x1, y1) = grade(R, [1, 1])
+  S2, (x2, y2) = grade(R, [1, 2])
+  for op in (+, -, *, ==, divexact, gcd, div, divrem)
+    @test_throws ErrorException op(x1, x2)
+  end
+  @test_throws ErrorException divrem(x1, [x1, x2])
+end
+
 @testset "Square roots" begin
   R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
   f = x^2 + y
