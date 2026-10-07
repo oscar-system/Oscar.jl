@@ -46,6 +46,8 @@ the following steps to verify your work:
       `julia --project=. -e 'using Oscar; Oscar.doctest(function_name)'`.
     - To run doctests for files matching a path substring:
       `julia --project=. -e 'using Oscar; Oscar.doctest("/Rings/")'`.
+    - The first such run instantiates `docs/`, the environment providing
+      `Documenter`; this is expected and only happens once.
     - IMPORTANT: The doctests may take up to 15 minutes. Do NOT terminate the
       doctests before completion. Do NOT use a timeout for doctests.
     - If you are ChatGPT, you may have to increase `yield_time_ms`.
