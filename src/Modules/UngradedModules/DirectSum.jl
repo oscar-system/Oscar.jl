@@ -189,9 +189,9 @@ end
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_injection(G::OFPModule, i::Int)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
-  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int,OFPModuleHom}
+  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int, <:OFPModuleHom}
   return get!(injection_dictionary, i) do
     @req 0 < i <= length(H) "index out of bound"
     j = sum(ngens(H[l]) for l in 1:i-1; init=0)
@@ -218,9 +218,9 @@ end
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_projection(G::OFPModule, i::Int)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
-  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int,OFPModuleHom}
+  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int, <:OFPModuleHom}
   return get!(projection_dictionary, i) do
     @req 0 < i <= length(H) "index out of bound"
     j = sum(ngens(H[l]) for l in 1:i-1; init=0)
@@ -234,7 +234,7 @@ function canonical_projection(G::OFPModule, i::Int)
 end
     
 @doc raw"""
-    direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
+    direct_sum(phis::Vector{<:OFPModuleHom}; 
         domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
         codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1]
       )
@@ -243,7 +243,7 @@ Create the direct sum of morphisms of `OFPModule`s over a common `base_ring`.
 The `domain` and `codomain` for the output can be specified via keyword arguments; 
 they need to be compatible with the internal machinery. 
 """
-function direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
+function direct_sum(phis::Vector{<:OFPModuleHom}; 
     domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
     codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1], 
     check::Bool=true
@@ -252,7 +252,7 @@ function direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothin
 end
 
 # not documented, because the stub of this function should document it for all of Oscar
-function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:OFPModule}; check::Bool=true)
+function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:OFPModuleHom}; check::Bool=true)
   img_gens = elem_type(codomain)[]
   for (k, phi) in enumerate(phis)
     @check begin # the creation of the projections is lazy and should be avoided if possible
