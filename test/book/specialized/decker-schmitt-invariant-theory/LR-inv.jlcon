@@ -8,7 +8,7 @@ Representation of SL2
 
 julia> RG = invariant_ring(r)
 Invariant Ring of
-graded multivariate polynomial ring in 3 variables over QQ
+  graded multivariate polynomial ring in 3 variables over QQ
   under group action of SL2
 
 julia> fundamental_invariants(RG)

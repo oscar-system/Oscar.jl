@@ -152,7 +152,8 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 
 julia> RT = invariant_ring(r)
 Invariant Ring of
-graded multivariate polynomial ring in 4 variables over QQ under group action of torus of rank2
+  graded multivariate polynomial ring in 4 variables over QQ
+  under group action of torus of rank 2
 ```
 """
 invariant_ring(R::RepresentationTorusGroup) = TorGroupInvarRing(R)
@@ -224,8 +225,8 @@ end
 function Base.show(io::IO, R::TorGroupInvarRing)
   io = pretty(io)
   println(io, "Invariant Ring of")
-  print(io, Lowercase(), R.poly_ring)
-  print(io, Indent(), " under group action of torus of rank", rank(group(R)))
+  println(io, Indent(), Lowercase(), polynomial_ring(R))
+  print(io, "under group action of torus of rank ", rank(group(R)))
   print(io, Dedent())
 end
 

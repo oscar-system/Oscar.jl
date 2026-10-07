@@ -250,7 +250,7 @@ julia> r = representation_on_forms(G, 2);
 
 julia> RG = invariant_ring(r)
 Invariant Ring of
-graded multivariate polynomial ring in 3 variables over QQ
+  graded multivariate polynomial ring in 3 variables over QQ
   under group action of SL2
 ```
 """
@@ -271,7 +271,7 @@ julia> S, x = graded_polynomial_ring(QQ, :x => 1:10);
 
 julia> RG = invariant_ring(S, r)
 Invariant Ring of
-graded multivariate polynomial ring in 10 variables over QQ
+  graded multivariate polynomial ring in 10 variables over QQ
   under group action of SL3
 ```
 """
@@ -328,9 +328,9 @@ end
 
 function Base.show(io::IO, R::RedGroupInvarRing)
   io = pretty(io)
-  print(io, "Invariant Ring of")
-  println(io, Lowercase(), R.poly_ring)
-  print(io, Indent(), "under group action of ")
+  println(io, "Invariant Ring of")
+  println(io, Indent(), Lowercase(), polynomial_ring(R))
+  print(io, "under group action of ")
   if isdefined(group(R), :group)
     print(io, group_type(group(R)), group_dim(group(R)))
   else
