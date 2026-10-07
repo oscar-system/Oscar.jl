@@ -486,24 +486,17 @@ function reynolds_v_slm(
   mixed_ring_xy = parent(elem)
   n = ncols(new_rep_mat)
   new_vars = new_rep_mat * gens(mixed_ring_xy)[1:n]
-  sum_ = mixed_ring_xy()
-  phi = hom(
-    mixed_ring_xy, mixed_ring_xy, vcat(new_vars, [0 for i in 1:(ncols(new_rep_mat) + m^2)])
-  )
-  sum_ = phi(elem)
-  t = needed_degree(sum_, m)
-  if !is_divisible_by(t, m)
-    return parent(elem)()
-  else
-    p = divexact(t, m)
+  # new_vars need not be homogeneous, so this is not a map of graded rings
+  sum_ = evaluate(elem, vcat(new_vars, [mixed_ring_xy() for i in 1:(n + m^2)]))
+
+  # The Omega process applies to one degree in the z_ij at a time; the parts of
+  # degree not divisible by m are mapped to 0.
+  res = mixed_ring_xy()
+  for (t, f) in _components_by_z_degree(sum_, m)
+    is_divisible_by(t, m) || continue
+    res += reynolds_slm(f, new_det, divexact(t, m))
   end
-  #num = omegap_(p, new_det, sum_)
-  #den = omegap_(p, new_det, (new_det)^p)
-  #if !(denominator(num//den)==1)
-  #    error("denominator of reynolds not rational")
-  #end
-  #return numerator(num//den)
-  return reynolds_slm(sum_, new_det, p)
+  return res
 end
 
 # Reynolds operator for SLm using Cayleys Omega process
@@ -516,15 +509,17 @@ function reynolds_slm(elem::MPolyRingElem, det_::MPolyRingElem, p::Int)
   return numerator(num//den)
 end
 
-# Used to compute the degree p of omega_p
-# Computes the degree of the z_ij variables of the leading term of elem.
-function needed_degree(elem_::MPolyDecRingElem, m::Int)
-  elem = leading_monomial(elem_)
+# Split elem into its homogeneous components with respect to the degree in the
+# z_ij, which are the last m^2 variables of the ring.
+function _components_by_z_degree(elem::MPolyDecRingElem, m::Int)
   R = parent(elem)
   n = ngens(R) - m^2
-  extra_ring, _ = polynomial_ring(base_ring(R), :z => 1:(m^2); cached=false)
-  mapp = hom(R, extra_ring, vcat([1 for i in 1:n], gens(extra_ring)))
-  return total_degree(mapp(elem))
+  ctxs = Dict{Int,MPolyBuildCtx}()
+  for (c, e) in zip(coefficients(elem), exponents(elem))
+    ctx = get!(() -> MPolyBuildCtx(R), ctxs, sum(@view e[(n + 1):end]))
+    push_term!(ctx, c, e)
+  end
+  return Dict(t => finish(ctx) for (t, ctx) in ctxs)
 end
 
 function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)

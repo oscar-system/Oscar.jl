@@ -43,6 +43,22 @@
   x = gens(R_rep1.poly_ring)
   @test FI_rep2 == [-4 * x[1] * x[3] + x[2]^2]
 
+  #Reynolds operator on inhomogeneous polynomials
+  h = FI_rep1[1]
+  @test reynolds_operator(R_rep1, h^2 + h + 1) == h^2 + h + 1
+  @test is_zero(reynolds_operator(R_rep1, zero(h)))
+
+  #representation matrix whose rows are not homogeneous
+  M = block_diagonal_matrix([
+    representation_matrix(representation_on_forms(G, 1)), representation_matrix(rep1)
+  ])
+  P = identity_matrix(S, 5)
+  P[1, 3] = 1
+  rep_mixed = representation_reductive_group(G, inv(P) * M * P)
+  FI_mixed = fundamental_invariants(invariant_ring(rep_mixed))
+  @test sort(map(total_degree, FI_mixed)) == [2, 3]
+  @test all(h -> is_invariant(h, rep_mixed), FI_mixed)
+
   #direct sum of representation_linearly_reductive_group
   D = Oscar._direct_sum(rep1, rep2)
   @test ncols(representation_matrix(D)) == 6
