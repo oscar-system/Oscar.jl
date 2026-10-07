@@ -2228,3 +2228,26 @@ end
   @test_throws ErrorException F[1]*x
   @test_throws ErrorException F[1]*2
 end
+
+@testset "direct sums of morphisms" begin
+  R, (x, y) = QQ[:x, :y]
+  F = FreeMod(R, 2)
+  phi = identity_map(F)
+  F2, _ = direct_sum([F, F])
+  psi = direct_sum([phi, phi])
+  @test domain(psi) !== F2
+  @test codomain(psi) !== F2
+  psi = direct_sum([phi, phi]; domain=F2, codomain=F2)
+  @test domain(psi) === F2
+  @test codomain(psi) === F2
+  I = sub_object(F, [x*F[1], y*F[2]])
+  eta = identity_map(I)
+  mu = hom(F, I, gens(I))
+  psi = direct_sum([eta, mu, phi])
+  new_dom, _ = direct_sum([I, F, F])
+  new_cod, _ = direct_sum([I, I, F])
+  psi = direct_sum([eta, mu, phi]; domain=new_dom, codomain=new_cod)
+  @test domain(psi) === new_dom
+  @test codomain(psi) === new_cod
+end 
+
