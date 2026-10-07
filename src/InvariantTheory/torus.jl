@@ -1,7 +1,3 @@
-export field
-export representation_from_weights
-export torus_group
-
 #####################
 #Setting up tori for fast torus algorithm
 #####################

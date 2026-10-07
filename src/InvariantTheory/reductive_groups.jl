@@ -3,22 +3,6 @@
 #Then we set up the invariant ring of the group. The fundamental invariants are computed using Derksen's alg.
 #As of now, the only reynolds operator that is implemented is the one for SLm, using Cayley's Omega process.
 
-export canonical_representation
-export group_ideal
-export LinearlyReductiveGroup
-export linearly_reductive_group
-export natural_representation
-export null_cone_ideal
-export RedGroupInvarRing
-export representation
-export RepresentationLinearlyReductiveGroup
-export representation_matrix
-export representation_reductive_group
-export representation_on_forms
-export tensor
-export group_dim
-export group_type
-
 ##########################
 #Setting up Reductive Groups 
 ##########################
@@ -697,8 +681,6 @@ function reynolds_operator(R::RedGroupInvarRing, elem::MPolyRingElem)
   X = R.representation
   return reynolds_operator(X, elem)
 end
-
-include("TorusInvariantsFast.jl")
 
 #####################Invariant rings as affine algebras
 

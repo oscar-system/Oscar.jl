@@ -1,11 +1,11 @@
 @testset "Invariant Theory of SL_m" begin
     S, z = polynomial_ring(QQ, :z=> (1:2, 1:2))
     G = linearly_reductive_group(:SL,2,S)
-    @test group_type(G) == :SL
-    @test group_dim(G) == 2
+    @test Oscar.group_type(G) == :SL
+    @test Oscar.group_dim(G) == 2
     @test group_ideal(G) == ideal([z[1, 1]*z[2, 2] - z[2, 1]*z[1, 2] - 1])
-    @test ncols(canonical_representation(G)) == 2
-    @test natural_representation(G) == canonical_representation(G)
+    @test ncols(Oscar.canonical_representation(G)) == 2
+    @test Oscar.natural_representation(G) == Oscar.canonical_representation(G)
 
     rep1 = representation_on_forms(G,2)
     @test ncols(representation_matrix(rep1)) == 3
@@ -27,8 +27,8 @@
     #direct sum of representation_linearly_reductive_group
     D = direct_sum(rep1, rep2)
     @test ncols(representation_matrix(D)) == 6
-    T1 = tensor([rep1, rep2])
-    T2 = tensor(rep1, rep2)
+    T1 = Oscar.tensor([rep1, rep2])
+    T2 = Oscar.tensor(rep1, rep2)
     @test representation_matrix(T1) == representation_matrix(T2)
     @test ncols(representation_matrix(T1)) == 9
 
