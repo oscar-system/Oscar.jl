@@ -392,7 +392,7 @@ The selfprojecting realization space is
   [0   0   0   1    1   x2]
 in the multivariate polynomial ring in 2 variables over QQ
 avoiding the zero loci of the polynomials
-RingElem[x2, -x1, -x2 + 1, -x1 + 1]
+RingElem[x2, -x1, -x2 + 1, -x1 + 1, x1*x2 - x1, x1*x2 - x1 - x2 + 1]
 
 julia> m = uniform_matroid(3,6)
 Matroid of rank 3 on 6 elements
