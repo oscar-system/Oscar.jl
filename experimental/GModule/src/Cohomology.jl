@@ -1818,13 +1818,6 @@ function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingE
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
 
-function Oscar.direct_sum(a::Vector{<:OFPModuleHom})
-  @req allequal(domain, a) "All maps must have equal domain"
-  D = direct_sum(codomain.(a); task = :none)
-  return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
-end
-
-
 function Base.sum(a::Vector{FqMatrix})
   c = deepcopy(a[1])
   for i=2:length(a)
