@@ -65,6 +65,18 @@
   f = fundamental_invariants(I)
   @test length(f) == 6
 
+  #several variables of the same weight
+  I = invariant_ring(representation_from_weights(T, [1, 1, -1, -1]))
+  X = gens(polynomial_ring(I))
+  @test issetequal(fundamental_invariants(I), [X[i] * X[j] for i in 1:2 for j in 3:4])
+  I = invariant_ring(representation_from_weights(T, [2, 2, -1, -1]))
+  X = gens(polynomial_ring(I))
+  @test issetequal(
+    fundamental_invariants(I), [X[i] * X[j] * X[k] for i in 1:2 for j in 3:4 for k in j:4]
+  )
+  I = invariant_ring(representation_from_weights(T, [0, 0]))
+  @test issetequal(fundamental_invariants(I), gens(polynomial_ring(I)))
+
   #example from Macaulay2
   T = torus_group(QQ, 2)
   r = representation_from_weights(T, [1 0; 0 1; -1 -1; -1 1])

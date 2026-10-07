@@ -295,19 +295,9 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     if is_zero(point)
       index_0 = findfirst(==(point), C)
     end
-    c = true
-    for i in 1:n
-      if point == W[i]
-        push!(S, [gen(R, i)])
-        push!(U, [gen(R, i)])
-        c = false
-        break
-      end
-    end
-    if c == true
-      push!(S, elem_type(R)[])
-      push!(U, elem_type(R)[])
-    end
+    vars = [gen(R, i) for i in 1:n if point == W[i]]
+    push!(S, vars)
+    push!(U, copy(vars))
   end
   #step 4
   count = 0
