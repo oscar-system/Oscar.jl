@@ -272,8 +272,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}};multiplicatives::Bo
         end
         for candidate in candidates
             @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-            if isone(candidate) || isone(-candidate) 
-            else
+            if !isone(candidate) && !isone(-candidate) 
                 if isnothing(multiplicativeSet) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
                 multiplicativeSet = powers_of_element(candidate)
                     push!(ineqs,R(candidate))
