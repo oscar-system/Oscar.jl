@@ -69,6 +69,9 @@
     @test is_invariant(FI_K[1], repK)
   end
 
+  #no invariants of positive degree
+  @test is_empty(fundamental_invariants(invariant_ring(representation_on_forms(G, 1))))
+
   #direct sum of representation_linearly_reductive_group
   D = Oscar._direct_sum(rep1, rep2)
   @test ncols(representation_matrix(D)) == 6
@@ -150,6 +153,12 @@
   X = polynomial_ring(RG)
   g = gens(X)
   @test F[1] == g[1] * g[3] - g[2]^2
+
+  #a torus acting with weights 1, 1 has no invariants of positive degree
+  ringg, z = polynomial_ring(QQ, :z => 1:2)
+  G = linearly_reductive_group(ideal([z[1] * z[2] - 1]))
+  R = representation_reductive_group(G, diagonal_matrix(ringg, [z[1], z[1]]))
+  @test is_empty(fundamental_invariants(invariant_ring(R)))
 
   #SL(2) over symmetric forms of degree 4:
   g = linearly_reductive_group(:SL, 2, QQ)

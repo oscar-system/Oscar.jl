@@ -305,9 +305,8 @@ end
 @attr ideal_type(PolyRingT) function null_cone_ideal(
   R::RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
 ) where {FldT,PolyRingElemT,PolyRingT}
-  Z = representation(R)
   I, _ = proj_of_image_ideal(R)
-  return ideal(_gens_of_null_cone(group(Z), I, Z.rep_mat))
+  return _null_cone_ideal(I, vector_space_dim(representation(R)))
 end
 
 polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
@@ -396,26 +395,22 @@ function proj_of_image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
   return eliminate(W[1], gens(mixed_ring_xy)[((2 * n) + 1):end]), W[2]
 end
 
-#this function gets the generators of the null cone. they may or may not be invariant.
+#this function gets the null cone ideal, given by a minimal generating set.
+#the generators may or may not be invariant.
 #to do this we evaluate what is returned from proj_of_image_ideal at y = 0 
 #ie at gens(basering)[n+1:2*n] = [0 for i in 1:n]
-function _gens_of_null_cone(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
-  n = ncols(rep_mat)
-  gbasis = gens(X)
-  length(gbasis) == 0 && return gbasis
-  mixed_ring_xy = parent(gbasis[1])
+function _null_cone_ideal(X::MPolyIdeal, n::Int)
+  mixed_ring_xy = base_ring(X)
   #evaluate at gens(mixed_ring_xy)[n+1:2*n] = 0
   xyz = gens(mixed_ring_xy)
   V = vcat(xyz[1:n], [0 for i in 1:n], xyz[(2 * n + 1):end])
-  ev_gbasis = [evaluate(f, V) for f in gbasis]
+  ev_gbasis = [evaluate(f, V) for f in gens(X)]
   #grading starts here. In the end, our invariant ring is graded.
   mixed_ring_graded, _ = grade(mixed_ring_xy)
   mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
-  ev_gbasis_new = [mapp(ev_gbasis[i]) for i in 1:length(ev_gbasis)]
-  if length(ev_gbasis_new) == 0
-    return [mixed_ring_graded()]
-  end
-  return minimal_generating_set(ideal(ev_gbasis_new))
+  I = ideal(mixed_ring_graded, elem_type(mixed_ring_graded)[mapp(f) for f in ev_gbasis])
+  # the ring is passed as there are no generators if I is zero
+  return ideal(mixed_ring_graded, minimal_generating_set(I))
 end
 
 # Computing the invariant generators of the null cone by applying reynolds
@@ -460,9 +455,6 @@ function inv_generators(
     if !is_zero(elemm)
       push!(new_gens, mixed_to_ring(elemm))
     end
-  end
-  if length(new_gens) == 0
-    return [ringg()]
   end
 
   #remove ugly coefficients:
