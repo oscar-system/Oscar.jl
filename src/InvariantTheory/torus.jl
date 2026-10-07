@@ -1,13 +1,3 @@
-#####################
-#Setting up tori for fast torus algorithm
-#####################
-
-struct TorusGroup
-  field::Field
-  rank::Int
-  #weights::Vector{Vector{ZZRingElem}}
-end
-
 @doc raw"""
     torus_group(K::Field, m::Int)
 
@@ -59,15 +49,6 @@ function Base.show(io::IO, G::TorusGroup)
   println(io, "Torus of rank ", rank(G))
   print(terse(io), Indent(), "over ", Lowercase(), field(G))
   print(io, Dedent())
-end
-
-#####################
-#Setting up weights for fast torus algorithm
-#####################
-
-struct RepresentationTorusGroup
-  group::TorusGroup
-  weights::Vector{Vector{ZZRingElem}}
 end
 
 @doc raw"""
@@ -153,40 +134,6 @@ function Base.show(io::IO, R::RepresentationTorusGroup)
   println(terse(io), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
   print(io, R.weights)
   print(io, Dedent())
-end
-
-#####################
-#Setting up invariant ring for fast torus algorithm. 
-#####################
-
-@attributes mutable struct TorGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
-  field::FldT
-  poly_ring::PolyRingT #graded
-
-  group::TorusGroup
-  representation::RepresentationTorusGroup
-
-  fundamental::Vector{PolyRingElemT}
-  presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT},PolyRingT,Nothing,PolyRingElemT}
-
-  #Invariant ring of reductive group G (in representation R), no other input.
-  function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
-    n = length(weights(R))
-    super_ring, _ = graded_polynomial_ring(field(group(R)), :X => 1:n)
-    return TorGroupInvarRing(R, super_ring)
-  end
-
-  #to compute invariant ring ring^G where G is the reductive group of R. 
-  function TorGroupInvarRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
-    K = field(group(R))
-    z = new{typeof(K),elem_type(ring_),typeof(ring_)}()
-    n = length(weights(R))
-    z.field = K
-    z.poly_ring = ring_
-    z.representation = R
-    z.group = group(R)
-    return z
-  end
 end
 
 @doc raw"""
@@ -282,13 +229,9 @@ function Base.show(io::IO, R::TorGroupInvarRing)
   print(io, Dedent())
 end
 
-##########################
-#fast algorithm for invariants of tori
-##########################
-#Algorithm 4.3.1 from Derksen and Kemper. Computes Torus invariants without Reynolds operator.
-
+# Algorithm 4.3.1 from [DK15]. Computes Torus invariants without Reynolds operator.
 function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
-  #no check that length(W[i]) for all i is the same
+  # no check that length(W[i]) for all i is the same
   length(W) == ngens(R) || error(
     "number of weights must be equal to the number of generators of the polynomial ring"
   )
@@ -372,8 +315,6 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     end
   end
 end
-
-#####################Invariant rings as affine algebras
 
 @doc raw"""
     affine_algebra(RT::TorGroupInvarRing)

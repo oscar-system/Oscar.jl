@@ -1,59 +1,24 @@
-#This code uses Derksen's algorithm to compute fundamental invariants of linearly reductive group.
-#We first set up LinearlyReductiveGroup , then we set up a representation via which the group acts on a vector space (RepresentationLinearlyReductiveGroup)
-#Then we set up the invariant ring of the group. The fundamental invariants are computed using Derksen's alg.
-#As of now, the only reynolds operator that is implemented is the one for SLm, using Cayley's Omega process.
+# This code uses Derksen's algorithm [Der99] to compute fundamental invariants
+# of linearly reductive groups.
+# We first set up a LinearlyReductiveGroup, then we set up a representation via
+# which the group acts on a vector space (RepresentationLinearlyReductiveGroup).
+# Then we set up the invariant ring of the group. The fundamental invariants are
+# computed using Derksen's algorithm.
+# As of now, the only Reynolds operator that is implemented is the one for SLm,
+# using Cayley's Omega process.
 
-##########################
-#Setting up Reductive Groups 
-##########################
-#These are objects that carry information about a linearly reductive group. 
-#As of now it is only implemented for SLn, its direct products and tensors. 
+################################################################################
+#
+#  Linearly reductive groups
+#
+################################################################################
 
-mutable struct LinearlyReductiveGroup
-  field::Field #characteristic zero. implement check? 
-  group::Tuple{Symbol,Int}
-  group_ideal::MPolyIdeal
-  reynolds_operator::Function
-  canonical_representation::MatElem
-
-  function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
-    #check char(fld)
-    @assert sym == :SL && characteristic(fld) == 0
-    R, _ = polynomial_ring(fld, :z => (1:m, 1:m); cached=false)
-    return LinearlyReductiveGroup(sym, m, R)
-  end
-
-  function LinearlyReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
-    #check char(field)
-    G = new()
-    fld = base_ring(pring)
-    @assert sym == :SL && characteristic(fld) == 0
-    characteristic(fld) == 0 ||
-      error("Characteristic should be 0 for linearly reductive groups")
-    G.field = fld
-    @req m^2 == ngens(pring) "ring not compatible"
-    G.group = (sym, m)
-    G.reynolds_operator = reynolds_slm
-    M = transpose(matrix(pring, m, m, gens(pring)))
-    G.canonical_representation = M
-    G.group_ideal = ideal([det(M) - 1])
-    #base ring of M has to be the same as the representation matrix when that is created later.
-    return G
-  end
-
-  function LinearlyReductiveGroup(I::MPolyIdeal) #defined by just the ideal
-    #no checks 
-    G = new()
-    G.group_ideal = I
-    G.field = base_ring(base_ring(I))
-    #G.reynolds_operator
-    return G
-  end
-end
+# As of now, linearly reductive groups are only implemented for SLn, its direct
+# products and tensors.
 
 function Base.show(io::IO, G::LinearlyReductiveGroup)
   io = pretty(io)
-  if group_type(G) == :SL
+  if group_type(G) === :SL
     println(io, "Reductive group ", group_type(G), group_dim(G))
     print(terse(io), Indent(), "over ", Lowercase(), field(G))
     print(io, Dedent())
@@ -63,8 +28,6 @@ function Base.show(io::IO, G::LinearlyReductiveGroup)
     print(io, Dedent())
   end
 end
-
-#getter functions
 
 @doc raw"""
     linearly_reductive_group(sym::Symbol, m::Int, K::Field)
@@ -122,43 +85,11 @@ natural_representation(G::LinearlyReductiveGroup) = G.canonical_representation
 group_type(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[1] : nothing
 group_dim(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[2] : nothing
 
-#####################
-#Setting up Representation objects
-#####################
-#Objects of type LinearlyReductiveGroup can be embedded in GLn (for some n) via a representation. This defines the action on a vector space. 
-#We set up an object RepresentationLinearlyReductiveGroup that carries information about this representation.
-
-mutable struct RepresentationLinearlyReductiveGroup
-  group::LinearlyReductiveGroup
-  rep_mat::MatElem
-  reynolds_v::Function
-
-  #stores if the representation is on symmetric forms, and of which degree. 
-  sym_deg::Tuple{Bool,Int}
-
-  #representation of group G over symmetric degree d
-  function RepresentationLinearlyReductiveGroup(G::LinearlyReductiveGroup, d::Int)
-    R = new()
-    R.group = G
-    R.rep_mat = rep_mat_(G, d)
-    R.sym_deg = (true, d)
-    R.reynolds_v = reynolds_v_slm
-    return R
-  end
-
-  #matrix M is the representation matrix. does not check M.
-  function RepresentationLinearlyReductiveGroup(G::LinearlyReductiveGroup, M::MatElem)
-    @req base_ring(M) == base_ring(G.group_ideal) "Group ideal and representation matrix must have same parent ring"
-    R = new()
-    R.group = G
-    R.rep_mat = M
-    R.sym_deg = (false, 0)
-    if group_type(G) == :SL
-      R.reynolds_v = reynolds_v_slm
-    end
-    return R
-  end
-end
+################################################################################
+#
+#  Representations of linearly reductive groups
+#
+################################################################################
 
 representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem) =
   RepresentationLinearlyReductiveGroup(G, M)
@@ -190,19 +121,19 @@ julia> representation_matrix(r)
 ```
 """
 function representation_on_forms(G::LinearlyReductiveGroup, d::Int)
-  @assert group_type(G) == :SL
+  @assert group_type(G) === :SL
   return RepresentationLinearlyReductiveGroup(G, d)
 end
 
 function representation_reductive_group(G::LinearlyReductiveGroup)
-  @assert group_type(G) == :SL
+  @assert group_type(G) === :SL
   M = canonical_representation(G)
   return RepresentationLinearlyReductiveGroup(G, M)
 end
 
 function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
   io = pretty(io)
-  if group_type(group(R)) == :SL
+  if group_type(group(R)) === :SL
     println(io, "Representation of ", group_type(group(R)), group_dim(group(R)))
     if R.sym_deg[1]
       print(io, Indent(), "on symmetric forms of degree ", R.sym_deg[2])
@@ -223,7 +154,7 @@ end
 function direct_sum(
   X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup
 )
-  @req group(X) == group(Y) "not compatible"
+  @req group(X) === group(Y) "not compatible"
   G = group(X)
   R = base_ring(group_ideal(G))
   Mat = block_diagonal_matrix(
@@ -236,7 +167,7 @@ function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
   n = length(V)
   G = group(V[1])
   for i in 2:n
-    @req G == group(V[i]) "not compatible"
+    @req G === group(V[i]) "not compatible"
   end
   R = base_ring(group_ideal(G))
   Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(V[i])) for i in 1:n])
@@ -246,7 +177,7 @@ end
 function tensor(
   X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup
 )
-  @req group(X) == group(Y) "not compatible"
+  @req group(X) === group(Y) "not compatible"
   Mat = kronecker_product(representation_matrix(X), representation_matrix(Y))
   return RepresentationLinearlyReductiveGroup(group(X), Mat)
 end
@@ -254,7 +185,7 @@ end
 function tensor(V::Vector{RepresentationLinearlyReductiveGroup})
   n = length(V)
   for i in 2:n
-    @req group(V[1]) == group(V[i]) "not compatible"
+    @req group(V[1]) === group(V[i]) "not compatible"
   end
   Mat = representation_matrix(V[1])
   for i in 2:n
@@ -263,11 +194,10 @@ function tensor(V::Vector{RepresentationLinearlyReductiveGroup})
   return RepresentationLinearlyReductiveGroup(group(V[1]), Mat)
 end
 
-###############
-
-#computes the representation matrices of SL_m acting over m-forms of symmetric degree sym_deg
-function rep_mat_(G::LinearlyReductiveGroup, sym_deg::Int)
-  group_type(G) == :SL || error("Only implemented for SLm")
+# Compute the representation matrices of SL_m acting over m-forms of symmetric
+# degree sym_deg
+function _rep_mat(G::LinearlyReductiveGroup, sym_deg::Int)
+  group_type(G) === :SL || error("Only implemented for SLm")
   m = group_dim(G)
   R = base_ring(group_ideal(G))
   mixed_ring, t = polynomial_ring(R, :t => 1:m; cached=false)
@@ -275,7 +205,7 @@ function rep_mat_(G::LinearlyReductiveGroup, sym_deg::Int)
   new_vars = group_mat * t
 
   b = [
-    multinomial(sym_deg, first(AbstractAlgebra.exponent_vectors(a))) * a for
+    multinomial_coefficient(sym_deg, first(AbstractAlgebra.exponent_vectors(a))) * a for
     a in monomials_of_degree(mixed_ring, sym_deg)
   ]
   n = length(b)
@@ -296,61 +226,16 @@ function rep_mat_(G::LinearlyReductiveGroup, sym_deg::Int)
   return mat
 end
 
-#used to compute multinomial expansion coefficients
-function multinomial(n::Int, v::AbstractVector{<:IntegerUnion})
+function multinomial_coefficient(n::Int, v::AbstractVector{<:IntegerUnion})
   x = prod(factorial, v)
   return Int(factorial(n) / x)
 end
 
-##########################
-#Invariant Rings of Reductive groups
-##########################
-@attributes mutable struct RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
-  field::FldT
-  poly_ring::PolyRingT # graded
-
-  group::LinearlyReductiveGroup
-  representation::RepresentationLinearlyReductiveGroup
-
-  reynolds_operator::Function
-
-  fundamental::Vector{PolyRingElemT}
-  presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT},PolyRingT,Nothing,PolyRingElemT}
-
-  #Invariant ring of reductive group G (in representation R), no other input.
-  function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
-    G = group(R)
-    K = field(G)
-    n = ncols(R.rep_mat)
-    poly_ring, _ = graded_polynomial_ring(K, :X => 1:n; cached=false)
-    z = new{typeof(K),elem_type(poly_ring),typeof(poly_ring)}()
-    z.representation = R
-    z.group = G
-    z.field = K
-    z.poly_ring = poly_ring
-    if isdefined(group(R), :group)
-      z.reynolds_operator = reynolds_v_slm
-    end
-    return z
-  end
-
-  #to compute invariant ring ring^G where G is the reductive group of R. 
-  function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup, ring::MPolyDecRing)
-    n = ncols(R.rep_mat)
-    n == ngens(ring) || error("The given polynomial ring is not compatible.")
-    G = group(R)
-    K = field(G)
-    z = new{typeof(K),elem_type(ring),typeof(ring)}()
-    z.representation = R
-    z.group = G
-    z.field = K
-    z.poly_ring = ring
-    if isdefined(group(R), :group)
-      z.reynolds_operator = reynolds_v_slm
-    end
-    return z
-  end
-end
+################################################################################
+#
+#  Invariant rings of linearly reductive groups
+#
+################################################################################
 
 @doc raw"""
     invariant_ring(r::RepresentationLinearlyReductiveGroup)
@@ -393,10 +278,12 @@ graded multivariate polynomial ring in 10 variables over QQ
 invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) =
   RedGroupInvarRing(R, ring)
 
-@attr MPolyIdeal function null_cone_ideal(R::RedGroupInvarRing)
-  Z = R.representation
+@attr ideal_type(PolyRingT) function null_cone_ideal(
+  R::RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
+) where {FldT,PolyRingElemT,PolyRingT}
+  Z = representation(R)
   I, _ = proj_of_image_ideal(group(Z), Z.rep_mat)
-  return ideal(_gens_of_null_cone(Z.group, I, Z.rep_mat))
+  return ideal(_gens_of_null_cone(group(Z), I, Z.rep_mat))
 end
 
 polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
@@ -423,17 +310,17 @@ julia> fundamental_invariants(RG)
 
 ```
 """
-function fundamental_invariants(z::RedGroupInvarRing) #unable to use abstract type
+function fundamental_invariants(z::RedGroupInvarRing)
   if !isdefined(z, :fundamental)
-    R = z.representation
-    I, M = proj_of_image_ideal(R.group, R.rep_mat)
-    null_cone_ideal(z) = ideal(_gens_of_null_cone(R.group, I, R.rep_mat))
+    R = representation(z)
+    I, M = proj_of_image_ideal(group(R), R.rep_mat)
+    null_cone_ideal(z) = ideal(_gens_of_null_cone(group(R), I, R.rep_mat))
     if isdefined(group(z), :group)
       z.fundamental = inv_generators(
-        null_cone_ideal(z), R.group, z.poly_ring, M, z.reynolds_operator
+        null_cone_ideal(z), group(R), polynomial_ring(z), M, z.reynolds_operator
       )
     else
-      z.fundamental = inv_gens_no_reynolds(null_cone_ideal(z), M, z.poly_ring)
+      z.fundamental = inv_gens_no_reynolds(null_cone_ideal(z), M, polynomial_ring(z))
     end
   end
   return copy(z.fundamental)
@@ -441,7 +328,7 @@ end
 
 function Base.show(io::IO, R::RedGroupInvarRing)
   io = pretty(io)
-  println(io, "Invariant Ring of")
+  print(io, "Invariant Ring of")
   println(io, Lowercase(), R.poly_ring)
   print(io, Indent(), "under group action of ")
   if isdefined(group(R), :group)
@@ -505,8 +392,9 @@ function _gens_of_null_cone(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::M
   return minimal_generating_set(ideal(ev_gbasis_new))
 end
 
-#computing the invariant generators of the null cone by applying reynolds operator to gens(I). This is done in K[X,Y] (basering(I)).
-#the elements returned will be in the polynomial K[X] (ringg).
+# Computing the invariant generators of the null cone by applying reynolds
+# operator to gens(I). This is done in K[X,Y] (basering(I)).
+# The elements returned will be in the polynomial K[X] (ringg).
 function inv_generators(
   I::MPolyIdeal,
   G::LinearlyReductiveGroup,
@@ -532,13 +420,13 @@ function inv_generators(
   new_det = mapp_(det_)
 
   #now we apply reynolds operator to genss
-  if group_type(G) == :SL #TODO other types of reductive groups
+  if group_type(G) === :SL #TODO other types of reductive groups
     new_gens_wrong_ring = [reynolds_function(g, new_rep_mat, new_det, m) for g in genss]
   else
     return nothing
   end
 
-  #map them to the required ring, ringg. 
+  #map them to the required ring, ringg.
   img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, length(xyz) - n))
   mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
   new_gens = Vector{elem_type(ringg)}()
@@ -551,7 +439,7 @@ function inv_generators(
     return [ringg()]
   end
 
-  #remove ugly coefficients: 
+  #remove ugly coefficients:
   new_gens_ = Vector{elem_type(ringg)}()
   for elem in new_gens
     V = collect(coefficients(elem))
@@ -565,7 +453,7 @@ function inv_generators(
   return new_gens_
 end
 
-#the reynolds operator for SLm acting via new_rep_mat. 
+# The Reynolds operator for SLm acting via new_rep_mat.
 function reynolds_v_slm(
   elem::MPolyDecRingElem, new_rep_mat::MatElem, new_det::MPolyDecRingElem, m::Int
 )
@@ -592,7 +480,7 @@ function reynolds_v_slm(
   return reynolds_slm(sum_, new_det, p)
 end
 
-#reynolds operator for SLm using Cayleys Omega process 
+# Reynolds operator for SLm using Cayleys Omega process
 function reynolds_slm(elem::MPolyRingElem, det_::MPolyRingElem, p::Int)
   num = omegap_(p, det_, elem)
   den = omegap_(p, det_, det_^p)
@@ -602,8 +490,8 @@ function reynolds_slm(elem::MPolyRingElem, det_::MPolyRingElem, p::Int)
   return numerator(num//den)
 end
 
-#used to compute the degree p of omega_p
-#computes the degree of the z_ij variables of the leading term of elem.
+# Used to compute the degree p of omega_p
+# Computes the degree of the z_ij variables of the leading term of elem.
 function needed_degree(elem_::MPolyDecRingElem, m::Int)
   elem = leading_monomial(elem_)
   R = parent(elem)
@@ -634,11 +522,9 @@ function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
   return f
 end
 
-#####################callable reynold's operator
-
-#this function returns the image of elem under the reynolds operator of group with representation X
+# Return the image of elem under the reynolds operator of group with representation X
 function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyRingElem)
-  group_type(group(X)) == :SL || error("Only implemented for SLm")
+  group_type(group(X)) === :SL || error("Only implemented for SLm")
   vector_ring = parent(elem)
   G = X.group
   n = ngens(vector_ring)
@@ -682,8 +568,6 @@ function reynolds_operator(R::RedGroupInvarRing, elem::MPolyRingElem)
   return reynolds_operator(X, elem)
 end
 
-#####################Invariant rings as affine algebras
-
 @doc raw"""
     affine_algebra(RG::RedGroupInvarRing)
 
@@ -725,34 +609,30 @@ function affine_algebra(R::RedGroupInvarRing)
   return domain(R.presentation), R.presentation
 end
 
-###################
-#In the case there is no reynolds operator
-###################
-
-#Algorithm 4.5.1 in Computational Invariant Theory by Derksen and Kemper Second Edition [DK15] 
-
+# Algorithm 4.5.1 in [DK15]
 function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing)
-  #I is the null cone ideal, mat_ is the representation matrix and 
-  #ringg is the ring in which we must return the invariants
+  # I is the null cone ideal, mat_ is the representation matrix and
+  # ringg is the ring in which we must return the invariants
   g = collect(groebner_basis(I))
   n = ncols(mat_)
-  #make a vector of all the degrees of generators of the null cone ideal I
+  # make a vector of all the degrees of generators of the null cone ideal I
   V = map(total_degree, g)
   sort!(V)
   unique!(V)
-  #change base ring of mat_
+  # change base ring of mat_
   R = base_ring(mat_)
   mixed_ring_xy = base_ring(I)
   mapp = hom(R, mixed_ring_xy, gens(mixed_ring_xy))
   new_rep_mat = matrix(mixed_ring_xy, [mapp(mat_[i, j]) for i in 1:n, j in 1:n])
 
-  #for each degree d of generator of the null cone ideal, we compute a basis of ringg^G_d (which is K[V]^G_d in the book)
+  # for each degree d of generator of the null cone ideal, we compute a basis of
+  # ringg^G_d (which is K[V]^G_d in the book)
   answer_vector = Vector{Vector{elem_type(mixed_ring_xy)}}()
   for degree in V
     push!(answer_vector, basis_no_reynolds(degree, new_rep_mat, I))
   end
 
-  #return one vector in the ring 'ringg'
+  # return one vector in the ring 'ringg'
   phi = hom(
     mixed_ring_xy, ringg, vcat(gens(ringg), [0 for i in (n + 1):ngens(mixed_ring_xy)])
   )
@@ -765,13 +645,14 @@ function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing)
   return ans_vect
 end
 
-#the function to compute the k-basis of K[V]^G_d
+# the function to compute the k-basis of K[V]^G_d
 function basis_no_reynolds(d::Int, mat_::MatElem, II::MPolyIdeal)
   mixed_ring = base_ring(mat_)
   n = ncols(mat_)
   m = ngens(mixed_ring) - 2 * n
 
-  #collect all monomials of given degree d generated by the first n generators of mixed_ring. 
+  #collect all monomials of given degree d generated by the first n generators of
+  #mixed_ring.
   #since mixed_ring has generators x(1:n), y(1:n) and z(1:?)
   H = collect(monomials_of_degree(mixed_ring, d, [i for i in 1:n]))
 
