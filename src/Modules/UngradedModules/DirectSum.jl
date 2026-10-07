@@ -248,6 +248,11 @@ function direct_sum(phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothin
     codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1], 
     check::Bool=true
   )
+  return hom_direct_sum(domain, codomain, phis; check)
+end
+
+# not documented, because the stub of this function should document it for all of Oscar
+function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:OFPModule}; check::Bool=true)
   img_gens = elem_type(codomain)[]
   for (k, phi) in enumerate(phis)
     @check begin # the creation of the projections is lazy and should be avoided if possible
