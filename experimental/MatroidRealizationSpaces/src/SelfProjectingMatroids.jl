@@ -288,8 +288,7 @@ function basis_minors(M::MatElem, Bases::Vector{Vector{Int}};multiplicatives::Bo
         ineqs = [R(0)]
         for candidate in candidates
         @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-            if isone(candidate) || isone(-candidate) 
-            elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
+            if !isone(candidate) && !isone(-candidate) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
                 push!(ineqs,R(candidate))
             end
         end
