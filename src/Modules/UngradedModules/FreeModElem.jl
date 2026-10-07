@@ -258,13 +258,14 @@ function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleOFPModuleRingE
   return parent(b)(base_ring(parent(b))(a)*coordinates(b))
 end
 
+# Right and left scalar multiplication agree over a commutative base ring.
+# The `a::T` method breaks the ambiguity with the non-commutative one below.
+*(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem} = a*b
+*(b::AbstractFreeModElem{T}, a::T) where {T <: RingElem} = a*b
+
 function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleOFPModuleRingElem}
   @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
   error("right multiplication is not supported at the moment")
-end
-
-function *(b::AbstractFreeModElem, a::Any)
-  error("scalar multiplication from the right is not yet supported")
 end
 
 # Methods to determine whether a module is a left-, right-, or bi-module. 

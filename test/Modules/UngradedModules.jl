@@ -2220,11 +2220,31 @@ end
   @test normal_form(w, SB) == zero(F)
 end
 
-@testset "right scalar multiplication is not supported" begin
-  # right multiplication is rejected by its own error, not by a dispatch ambiguity
+@testset "right scalar multiplication" begin
+  # over a commutative base ring right scalar multiplication agrees with the left one
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   F = free_module(R, 2)
+  v = F[1] + y*F[2]
 
-  @test_throws ErrorException F[1]*x
-  @test_throws ErrorException F[1]*2
+  @test v*x == x*v
+  @test parent(v*x) === F
+  @test v*(x + y^2) == (x + y^2)*v
+  @test v*2 == 2*v
+  @test v*QQ(1//2) == QQ(1//2)*v
+  @test is_zero(v*zero(R))
+  @test v*one(R) == v
+
+  Q, _ = quo(F, [x*F[1]])
+  w = Q[1] + y*Q[2]
+
+  @test w*x == x*w
+  @test parent(w*x) === Q
+  @test w*(x + y^2) == (x + y^2)*w
+  @test w*2 == 2*w
+  @test w*QQ(1//2) == QQ(1//2)*w
+  @test is_zero(w*zero(R))
+  @test w*one(R) == w
+
+  # multiplying two module elements is not scalar multiplication
+  @test_throws MethodError w*w
 end
