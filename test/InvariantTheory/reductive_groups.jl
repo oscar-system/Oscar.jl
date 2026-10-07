@@ -59,6 +59,16 @@
   @test sort(map(total_degree, FI_mixed)) == [2, 3]
   @test all(h -> is_invariant(h, rep_mixed), FI_mixed)
 
+  #fields other than QQ
+  Qt, _ = rational_function_field(QQ, :t)
+  for K in [quadratic_field(2)[1], Qt, algebraic_closure(QQ)]
+    GK = linearly_reductive_group(:SL, 2, K)
+    repK = representation_on_forms(GK, 2)
+    FI_K = fundamental_invariants(invariant_ring(repK))
+    @test length(FI_K) == 1
+    @test is_invariant(FI_K[1], repK)
+  end
+
   #direct sum of representation_linearly_reductive_group
   D = Oscar._direct_sum(rep1, rep2)
   @test ncols(representation_matrix(D)) == 6

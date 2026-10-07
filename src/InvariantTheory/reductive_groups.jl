@@ -466,17 +466,16 @@ function inv_generators(
   end
 
   #remove ugly coefficients:
-  new_gens_ = Vector{elem_type(ringg)}()
-  for elem in new_gens
-    V = collect(coefficients(elem))
-    maxx = maximum([abs(denominator(V[i])) for i in 1:length(V)])
-    minn = minimum([abs(numerator(V[i])) for i in 1:length(V)])
-    if denominator((maxx * elem)//minn) != 1
-      error("den not 1")
-    end
-    push!(new_gens_, numerator((maxx * elem)//minn))
-  end
-  return new_gens_
+  return map(_remove_content, new_gens)
+end
+
+# Over QQ, scale f by a positive number such that its coefficients become
+# coprime integers.
+_remove_content(f::MPolyRingElem) = f
+
+function _remove_content(f::MPolyRingElem{QQFieldElem})
+  c = reduce(gcd, coefficients(f); init=zero(QQ))
+  return is_zero(c) ? f : inv(c) * f
 end
 
 # The Reynolds operator for SLm acting via new_rep_mat.
