@@ -1339,8 +1339,8 @@ end
   end
   dummy(F)
 
-  GC.gc()
-  GC.gc()
+  GC.gc(true)
+  GC.gc(true)
 
   @test is_empty(F.incoming)
   # The other way around it will not work, because I has a reference to its ambient_free_module f.
@@ -1359,8 +1359,8 @@ end
   end
   dummy2(F)
   
-  GC.gc()
-  GC.gc()
+  GC.gc(true)
+  GC.gc(true)
 
   @test is_empty(F.incoming)
 end
