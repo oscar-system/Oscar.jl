@@ -1,4 +1,14 @@
 @testset "Invariant Theory of SL_m" begin
+  #h is invariant if h(M*x) - h(x) vanishes modulo the defining ideal of the group
+  function is_invariant(h::MPolyRingElem, r::Oscar.RepresentationLinearlyReductiveGroup)
+    M = representation_matrix(r)
+    S = base_ring(M)
+    Sx, x = polynomial_ring(S, :x => 1:ncols(M); cached=false)
+    hx = map_coefficients(S, forget_grading(h); parent=Sx)
+    d = evaluate(hx, M * x) - hx
+    return all(c -> is_zero(normal_form(c, defining_ideal(group(r)))), coefficients(d))
+  end
+
   S, z = polynomial_ring(QQ, :z => (1:2, 1:2))
   G = linearly_reductive_group(:SL, 2, S)
   @test Oscar.group_type(G) == :SL
@@ -116,13 +126,14 @@
   @test F[1] == g[1] * g[3] - g[2]^2
 
   #SL(2) over symmetric forms of degree 4:
-  #Here we see that without the Reynolds operator we get many more generators.
   g = linearly_reductive_group(:SL, 2, QQ)
   r = representation_on_forms(g, 4)
   #with reynolds operator we get 2 fundamental invariants:
   rg = invariant_ring(r)
   FF = fundamental_invariants(rg)
   @test length(FF) == 2
+  @test all(h -> is_invariant(h, r), FF)
+  #without the Reynolds operator we get invariants of the same degrees:
   M = representation_matrix(r)
   ringg = parent(M[1, 1])
   z = gens(ringg)
@@ -131,5 +142,6 @@
   R = representation_reductive_group(G, M)
   RG = invariant_ring(R)
   F = fundamental_invariants(RG)
-  @test length(F) == 27
+  @test map(total_degree, F) == map(total_degree, FF)
+  @test all(h -> is_invariant(h, R), F)
 end
