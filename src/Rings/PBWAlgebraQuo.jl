@@ -267,7 +267,7 @@ function (Q::PBWAlgQuo)()
 end
 
 function (Q::PBWAlgQuo{T, S})(c::T) where {T, S}
-  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(c)))
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(_coeff_iso(base_ring(Q))(c))))
 end
 
 function (Q::PBWAlgQuo)(c::IntegerUnion)
