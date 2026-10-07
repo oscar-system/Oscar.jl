@@ -7,9 +7,9 @@ export torus_group
 #####################
 
 struct TorusGroup
-    field::Field
-    rank::Int
-    #weights::Vector{Vector{ZZRingElem}}
+  field::Field
+  rank::Int
+  #weights::Vector{Vector{ZZRingElem}}
 end
 
 @doc raw"""
@@ -26,7 +26,7 @@ Torus of rank 2
   over QQ
 ```
 """
-torus_group(F::Field, n::Int) = TorusGroup(F,n)
+torus_group(F::Field, n::Int) = TorusGroup(F, n)
 
 @doc raw"""
     rank(T::TorusGroup)
@@ -59,10 +59,10 @@ Rational field
 field(G::TorusGroup) = G.field
 
 function Base.show(io::IO, G::TorusGroup)
-    io = pretty(io)
-    println(io, "Torus of rank ", rank(G))
-    print(terse(io), Indent(), "over ", Lowercase(), field(G))
-    print(io, Dedent())
+  io = pretty(io)
+  println(io, "Torus of rank ", rank(G))
+  print(terse(io), Indent(), "over ", Lowercase(), field(G))
+  print(io, Dedent())
 end
 
 #####################
@@ -70,8 +70,8 @@ end
 #####################
 
 struct RepresentationTorusGroup
-    group::TorusGroup
-    weights::Vector{Vector{ZZRingElem}}
+  group::TorusGroup
+  weights::Vector{Vector{ZZRingElem}}
 end
 
 @doc raw"""
@@ -89,27 +89,29 @@ Representation of torus of rank 2
   Vector{ZZRingElem}[[-1, 1], [-1, 1], [2, -2], [0, -1]]
 ```
 """
-function representation_from_weights(G::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
-    n = rank(G)
-    V = weights_from_matrix(n,W)
-    return RepresentationTorusGroup(G,V)
+function representation_from_weights(
+  G::TorusGroup, W::Union{ZZMatrix,Matrix{<:Integer},Vector{<:Int}}
+)
+  n = rank(G)
+  V = weights_from_matrix(n, W)
+  return RepresentationTorusGroup(G, V)
 end
 
-function weights_from_matrix(n::Int, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
-    V = Vector{Vector{ZZRingElem}}()
-    if W isa Vector
-        n == 1 || error("Incompatible weights")
-        for i in 1:length(W)
-            push!(V, [ZZRingElem(W[i])])
-        end
-    else
-        n == ncols(W) || error("Incompatible weights")
-        #assume columns = G.group[2]
-        for i in 1:nrows(W)
-            push!(V, [ZZRingElem(W[i,j]) for j in 1:ncols(W)])
-        end
+function weights_from_matrix(n::Int, W::Union{ZZMatrix,Matrix{<:Integer},Vector{<:Int}})
+  V = Vector{Vector{ZZRingElem}}()
+  if W isa Vector
+    n == 1 || error("Incompatible weights")
+    for i in 1:length(W)
+      push!(V, [ZZRingElem(W[i])])
     end
-    return V
+  else
+    n == ncols(W) || error("Incompatible weights")
+    #assume columns = G.group[2]
+    for i in 1:nrows(W)
+      push!(V, [ZZRingElem(W[i, j]) for j in 1:ncols(W)])
+    end
+  end
+  return V
 end
 
 @doc raw"""
@@ -150,46 +152,45 @@ Torus of rank 2
 group(R::RepresentationTorusGroup) = R.group
 
 function Base.show(io::IO, R::RepresentationTorusGroup)
-    io = pretty(io)
-        println(io, "Representation of torus of rank ", rank(group(R)))
-        println(terse(io), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
-        print(io, R.weights)
-        print(io, Dedent())
+  io = pretty(io)
+  println(io, "Representation of torus of rank ", rank(group(R)))
+  println(terse(io), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
+  print(io, R.weights)
+  print(io, Dedent())
 end
 
 #####################
 #Setting up invariant ring for fast torus algorithm. 
 #####################
 
-@attributes mutable struct TorGroupInvarRing{FldT, PolyRingElemT, PolyRingT}
-    field::FldT
-    poly_ring::PolyRingT #graded
+@attributes mutable struct TorGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
+  field::FldT
+  poly_ring::PolyRingT #graded
 
-    group::TorusGroup
-    representation::RepresentationTorusGroup
+  group::TorusGroup
+  representation::RepresentationTorusGroup
 
-    fundamental::Vector{PolyRingElemT}
-    presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT}, PolyRingT, Nothing, PolyRingElemT}
+  fundamental::Vector{PolyRingElemT}
+  presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT},PolyRingT,Nothing,PolyRingElemT}
 
+  #Invariant ring of reductive group G (in representation R), no other input.
+  function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
+    n = length(weights(R))
+    super_ring, _ = graded_polynomial_ring(field(group(R)), :X => 1:n)
+    return TorGroupInvarRing(R, super_ring)
+  end
 
-    #Invariant ring of reductive group G (in representation R), no other input.
-    function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
-        n = length(weights(R))
-        super_ring, _ = graded_polynomial_ring(field(group(R)), :X=>1:n)
-        return TorGroupInvarRing(R, super_ring)
-    end
-
-    #to compute invariant ring ring^G where G is the reductive group of R. 
-    function TorGroupInvarRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
-        K = field(group(R))
-        z = new{typeof(K), elem_type(ring_), typeof(ring_)}()
-        n = length(weights(R))
-        z.field = K
-        z.poly_ring = ring_
-        z.representation = R
-        z.group = group(R)
-        return z
-    end
+  #to compute invariant ring ring^G where G is the reductive group of R. 
+  function TorGroupInvarRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
+    K = field(group(R))
+    z = new{typeof(K),elem_type(ring_),typeof(ring_)}()
+    n = length(weights(R))
+    z.field = K
+    z.poly_ring = ring_
+    z.representation = R
+    z.group = group(R)
+    return z
+  end
 end
 
 @doc raw"""
@@ -270,19 +271,19 @@ julia> fundamental_invariants(RT)
 ```
 """
 function fundamental_invariants(z::TorGroupInvarRing)
-    if !isdefined(z, :fundamental)
-        R = z.representation
-        z.fundamental = torus_invariants_fast(weights(R), polynomial_ring(z))
-    end
-    return copy(z.fundamental)
+  if !isdefined(z, :fundamental)
+    R = z.representation
+    z.fundamental = torus_invariants_fast(weights(R), polynomial_ring(z))
+  end
+  return copy(z.fundamental)
 end
 
-function Base.show(io::IO, R::TorGroupInvarRing) 
-    io = pretty(io)
-    println(io, "Invariant Ring of")
-    print(io, Lowercase(), R.poly_ring)
-    print(io, Indent(),  " under group action of torus of rank", rank(group(R)))
-    print(io, Dedent())
+function Base.show(io::IO, R::TorGroupInvarRing)
+  io = pretty(io)
+  println(io, "Invariant Ring of")
+  print(io, Lowercase(), R.poly_ring)
+  print(io, Indent(), " under group action of torus of rank", rank(group(R)))
+  print(io, Dedent())
 end
 
 ##########################
@@ -291,87 +292,89 @@ end
 #Algorithm 4.3.1 from Derksen and Kemper. Computes Torus invariants without Reynolds operator.
 
 function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
-    #no check that length(W[i]) for all i is the same
-    length(W) == ngens(R) || error("number of weights must be equal to the number of generators of the polynomial ring")
-    n = length(W)
-    r = length(W[1])
-    #step 2
-    if length(W[1]) == 1
-        M = zero_matrix(ZZ, n, 1)
-        for i in 1:n
-            M[i,1] = W[i][1]
-        end
-        C1 = lattice_points(convex_hull(M))
-    else
-        M = zero_matrix(ZZ, 2*n, r)
-        for i in 1:n
-            M[i, 1:r] = 2*r*W[i]
-            M[n + i, 1:r] = -2*r*W[i]   
-        end
-        C1 = lattice_points(convex_hull(M))
+  #no check that length(W[i]) for all i is the same
+  length(W) == ngens(R) || error(
+    "number of weights must be equal to the number of generators of the polynomial ring"
+  )
+  n = length(W)
+  r = length(W[1])
+  #step 2
+  if length(W[1]) == 1
+    M = zero_matrix(ZZ, n, 1)
+    for i in 1:n
+      M[i, 1] = W[i][1]
     end
-    
-    #get a Vector{Vector{ZZRingElem}} from Vector{PontVector{ZZRingElem}}
-    C = map(Vector{ZZRingElem}, C1)
-    #step 3
-    S = Vector{Vector{elem_type(R)}}()
-    U = Vector{Vector{elem_type(R)}}()
-    index_0 = 0
-    for point in C
-        if is_zero(point)
-            index_0 = findfirst(==(point), C)
-        end
-        c = true
+    C1 = lattice_points(convex_hull(M))
+  else
+    M = zero_matrix(ZZ, 2 * n, r)
+    for i in 1:n
+      M[i, 1:r] = 2 * r * W[i]
+      M[n + i, 1:r] = -2 * r * W[i]
+    end
+    C1 = lattice_points(convex_hull(M))
+  end
+
+  #get a Vector{Vector{ZZRingElem}} from Vector{PontVector{ZZRingElem}}
+  C = map(Vector{ZZRingElem}, C1)
+  #step 3
+  S = Vector{Vector{elem_type(R)}}()
+  U = Vector{Vector{elem_type(R)}}()
+  index_0 = 0
+  for point in C
+    if is_zero(point)
+      index_0 = findfirst(==(point), C)
+    end
+    c = true
+    for i in 1:n
+      if point == W[i]
+        push!(S, [gen(R, i)])
+        push!(U, [gen(R, i)])
+        c = false
+        break
+      end
+    end
+    if c == true
+      push!(S, elem_type(R)[])
+      push!(U, elem_type(R)[])
+    end
+  end
+  #step 4
+  count = 0
+  while true
+    for j in 1:length(U)
+      if length(U[j]) != 0
+        m = U[j][1]
+        w = C[j] #weight_of_monomial(m, W)
+        #step 5 - 7
         for i in 1:n
-            if point == W[i]
-                push!(S, [gen(R,i)])
-                push!(U, [gen(R,i)])
+          u = m * gen(R, i)
+          v = w + W[i]
+          if v in C
+            index = findfirst(==(v), C)
+            c = true
+            for elem in S[index]
+              if is_divisible_by(u, elem)
                 c = false
                 break
+              end
             end
-        end
-        if c == true
-            push!(S, elem_type(R)[])
-            push!(U, elem_type(R)[])
-        end
-    end
-    #step 4
-    count = 0
-    while true
-        for j in 1:length(U)
-            if length(U[j]) != 0
-                m = U[j][1]
-                w = C[j] #weight_of_monomial(m, W)
-                #step 5 - 7
-                for i in 1:n
-                    u = m*gen(R,i)
-                    v = w + W[i]
-                    if v in C
-                        index = findfirst(==(v), C)
-                        c = true
-                        for elem in S[index]
-                            if is_divisible_by(u, elem)
-                                c = false
-                                break
-                            end
-                        end
-                        if c == true
-                            push!(S[index], u)
-                            push!(U[index], u)
-                        end
-                    end
-                end
-                deleteat!(U[j], findall(==(m), U[j]))
-            else
-                count += 1
+            if c == true
+              push!(S[index], u)
+              push!(U[index], u)
             end
+          end
         end
-        if count == length(U)
-            return S[index_0]
-        else
-            count = 0
-        end
+        deleteat!(U[j], findall(==(m), U[j]))
+      else
+        count += 1
+      end
     end
+    if count == length(U)
+      return S[index_0]
+    else
+      count = 0
+    end
+  end
 end
 
 #####################Invariant rings as affine algebras
@@ -408,14 +411,16 @@ function affine_algebra(R::TorGroupInvarRing)
     s = length(V)
     weights_ = zeros(Int, s)
     for i in 1:s
-        weights_[i] = total_degree(V[i])
+      weights_[i] = total_degree(V[i])
     end
-    S,_ = graded_polynomial_ring(field(group(representation(R))), :t=>1:s; weights = weights_)
+    S, _ = graded_polynomial_ring(
+      field(group(representation(R))), :t => 1:s; weights=weights_
+    )
     R_ = polynomial_ring(R)
-    StoR = hom(S,R_,V)
+    StoR = hom(S, R_, V)
     I = kernel(StoR)
-    Q, StoQ = quo(S,I)
-    QtoR = hom(Q,R_,V)
+    Q, StoQ = quo(S, I)
+    QtoR = hom(Q, R_, V)
     R.presentation = QtoR
   end
   return domain(R.presentation), R.presentation
