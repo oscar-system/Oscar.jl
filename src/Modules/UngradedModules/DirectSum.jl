@@ -178,7 +178,7 @@ Return the canonical injections from all components into $G$
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_injections(G::OFPModule)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
   return [canonical_injection(G, i) for i in 1:length(H)]
 end
@@ -207,7 +207,7 @@ Return the canonical projections from $G$ to all components
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_projections(G::OFPModule)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
   return [canonical_projection(G, i) for i in 1:length(H)]
 end
@@ -243,7 +243,7 @@ Create the direct sum of morphisms of `OFPModule`s over a common `base_ring`.
 The `domain` and `codomain` for the output can be specified via keyword arguments; 
 they need to be compatible with the internal machinery. 
 """
-function direct_sum(phis::Vector{<:OFPModuleHom}; 
+function direct_sum(phis::Vector{<:OFPModuleHom{<:Any, <:Any, Nothing}}; 
     domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
     codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1], 
     check::Bool=true
@@ -252,7 +252,7 @@ function direct_sum(phis::Vector{<:OFPModuleHom};
 end
 
 # not documented, because the stub of this function should document it for all of Oscar
-function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:OFPModuleHom}; check::Bool=true)
+function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:OFPModuleHom{<:Any, <:Any, Nothing}}; check::Bool=true)
   img_gens = elem_type(codomain)[]
   for (k, phi) in enumerate(phis)
     @check begin # the creation of the projections is lazy and should be avoided if possible
