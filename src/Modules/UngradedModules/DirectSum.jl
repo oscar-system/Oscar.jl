@@ -265,6 +265,6 @@ function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:O
     ig3 = [inc_cod(v) for v in ig2]
     append!(img_gens, ig3)
   end
-  return hom(domain, codomain, img_gens)
+  return hom(domain, codomain, img_gens; check)
 end
 
