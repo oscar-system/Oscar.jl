@@ -287,14 +287,15 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
 
   #get a Vector{Vector{ZZRingElem}} from Vector{PontVector{ZZRingElem}}
   C = map(Vector{ZZRingElem}, C1)
+
+  # 0 is not in C if r = 1 and all weights have the same sign
+  index_0 = findfirst(is_zero, C)
+  isnothing(index_0) && return elem_type(R)[]
+
   #step 3
   S = Vector{Vector{elem_type(R)}}()
   U = Vector{Vector{elem_type(R)}}()
-  index_0 = 0
   for point in C
-    if is_zero(point)
-      index_0 = findfirst(==(point), C)
-    end
     vars = [gen(R, i) for i in 1:n if point == W[i]]
     push!(S, vars)
     push!(U, copy(vars))

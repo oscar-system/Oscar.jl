@@ -77,6 +77,10 @@
   I = invariant_ring(representation_from_weights(T, [0, 0]))
   @test issetequal(fundamental_invariants(I), gens(polynomial_ring(I)))
 
+  #all weights of the same sign: only the constants are invariant
+  I = invariant_ring(representation_from_weights(T, [1, 2]))
+  @test is_empty(fundamental_invariants(I))
+
   #example from Macaulay2
   T = torus_group(QQ, 2)
   r = representation_from_weights(T, [1 0; 0 1; -1 -1; -1 1])
