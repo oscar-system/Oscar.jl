@@ -12,6 +12,13 @@ The groups are provided by the GAP package `TransGrp` [TransGrp](@cite),
 for degrees up to 48; the data for the degrees 32 and 48 are not installed
 with OSCAR. The numbering for degree up to 15 is that of [CHM98](@cite).
 
+A permutation group is regarded as a group on its moved points:
+`identify(L, G)` returns `(d, i)` where `d` is `number_of_moved_points(G)`,
+which can be smaller than `degree(G)`.
+The two agree for the groups in the library, and
+[`find(L::GroupLibrary, filters...)`](@ref) accepts `number_of_moved_points`
+in place of `degree`.
+
 [`find(L::GroupLibrary, filters...)`](@ref) supports the functions
 `degree`, `exponent`, `is_abelian`, `is_almost_simple`, `is_cyclic`,
 `is_nilpotent`, `is_perfect`, `is_primitive`, `is_quasisimple`, `is_simple`,

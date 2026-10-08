@@ -24,9 +24,9 @@ A handle `L` is created by one of
 [`primitive_groups_library`](@ref),
 [`perfect_groups_library`](@ref),
 [`groups_with_class_number_library`](@ref).
-Each group in a library has an identifier, a pair `(k, i)` where `k` is the
-value of the *primary key* of the library (the order, the degree, ...)
-and `i` numbers the groups with that value.
+Each group in a library has an identifier. For the libraries above it is a
+pair `(k, i)` where `k` is the value of the *primary key* of the library
+(the order, the degree, ...) and `i` numbers the groups with that value.
 
 - `L[k, i]` and `L[(k, i)]` return the group with identifier `(k, i)`.
 - [`find(L::GroupLibrary, filters...)`](@ref) selects the groups with given
@@ -130,8 +130,9 @@ end
 
 _first(S::GroupLibrarySelection, k) = _first_by_iteration(S, k)
 
-# A GAP iterator as a Julia iterator. GAP.jl's own iteration copies the GAP
-# iterator first, which not every library iterator supports; `it` is consumed.
+# A GAP iterator as a Julia iterator. Each one here is created to be run
+# through once, so it is consumed rather than copied first, as GAP.jl's own
+# iteration does; `PrimitiveGroupsIterator` cannot be copied in PrimGrp 4.0.3.
 struct _ConsumingGapIterator
   it::GapObj
 end
@@ -243,7 +244,8 @@ Return the identifier `(k, i)` of the group `G` in the library `L`,
 that is, `L[k, i]` and `G` are equivalent in the sense of `L`
 (isomorphic, or permutation isomorphic).
 An exception is thrown if `G` does not belong to `L` or
-if `has_identification(L, k)` is `false`.
+if `has_identification(L, k)` is `false`,
+where `k` is the value of the primary key of `L` for `G`.
 
 # Examples
 ```jldoctest

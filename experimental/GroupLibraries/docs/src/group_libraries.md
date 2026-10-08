@@ -1,7 +1,9 @@
 # Using a library of groups
 
-A library is represented by a handle. The same functions work for every
-handle.
+A library is represented by a handle, which is the first argument of the
+functions below.
+Which groups a library provides, and whether their number and their
+identification are available, depends on the library.
 
 | Expression | Meaning |
 |:---|:---|

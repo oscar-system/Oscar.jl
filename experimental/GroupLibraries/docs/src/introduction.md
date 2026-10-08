@@ -4,8 +4,8 @@ OSCAR provides several libraries of groups, see [Group libraries](@ref),
 each with its own functions such as `small_group`, `all_small_groups` and
 `number_of_small_groups`.
 This project offers these libraries through one interface:
-there is a handle object for each library, and the same functions work for
-all handles.
+there is a handle object for each library, and the functions for accessing
+a library take its handle as an argument.
 
 ## Status
 
