@@ -16,16 +16,29 @@
 # As of now, linearly reductive groups are only implemented for SLn, its direct
 # products and tensors.
 
-function Base.show(io::IO, G::LinearlyReductiveGroup)
+function Base.show(io::IO, ::MIME"text/plain", G::LinearlyReductiveGroup)
   io = pretty(io)
-  if group_type(G) === :SL
-    println(io, "Reductive group ", group_type(G), group_dim(G))
+  if isdefined(G, :group)
+    println(io, "Linearly reductive group ", group_type(G), group_dim(G))
     print(terse(io), Indent(), "over ", Lowercase(), base_ring(G))
     print(io, Dedent())
   else
     println(io, "Linearly reductive group defined by")
-    print(io, Indent(), defining_ideal(G))
+    print(io, Indent(), Lowercase(), defining_ideal(G))
     print(io, Dedent())
+  end
+end
+
+function Base.show(io::IO, G::LinearlyReductiveGroup)
+  if is_terse(io)
+    print(io, "Linearly reductive group")
+  else
+    print(io, "Linearly reductive group")
+    if isdefined(G, :group)
+      print(io, " ", group_type(G), "(", group_dim(G), ",")
+      print(terse(io), base_ring(G))
+      print(io, ")")
+    end
   end
 end
 
@@ -40,7 +53,7 @@ Currently, the supported options for `sym` are:
 # Examples
 ```jldoctest
 julia> G = linearly_reductive_group(:SL, 2, QQ)
-Reductive group SL2
+Linearly reductive group SL2
   over QQ
 
 julia> defining_ideal(G)
@@ -63,7 +76,7 @@ Currently, the supported options for `sym` are:
 julia> S, z = polynomial_ring(QQ, :c=> (1:2, 1:2));
 
 julia> G = linearly_reductive_group(:SL,2,S)
-Reductive group SL2
+Linearly reductive group SL2
   over QQ
 
 julia> defining_ideal(G)
@@ -110,7 +123,8 @@ If `G` is the special linear group acting by linear substitution on, say, `n`-ar
 julia> G = linearly_reductive_group(:SL, 2, QQ);
 
 julia> r = representation_on_forms(G, 2)
-Representation of SL2
+Representation
+  of linearly reductive group SL(2,QQ)
   on symmetric forms of degree 2
 
 julia> representation_matrix(r)
@@ -130,23 +144,26 @@ function representation_reductive_group(G::LinearlyReductiveGroup)
   return RepresentationLinearlyReductiveGroup(G, M)
 end
 
-function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
+function Base.show(io::IO, ::MIME"text/plain", R::RepresentationLinearlyReductiveGroup)
   io = pretty(io)
-  if group_type(group(R)) === :SL
-    println(io, "Representation of ", group_type(group(R)), group_dim(group(R)))
-    if R.sym_deg[1]
-      print(io, Indent(), "on symmetric forms of degree ", R.sym_deg[2])
-      print(io, Dedent())
-    else
-      println(io, Indent(), "with representation matrix")
-      show(io, R.rep_mat)
-      print(io, Dedent())
-    end
-  else
-    println(io, "Representation of linearly reductive group")
-    println(io, Indent(), "with representation matrix")
-    show(io, R.rep_mat)
+  println(io, "Representation")
+  println(io, Indent(), "of ", Lowercase(), group(R))
+  if R.sym_deg[1]
+    print(io, "on symmetric forms of degree ", R.sym_deg[2])
     print(io, Dedent())
+  else
+    println(io, "with representation matrix")
+    show(io, representation_matrix(R))
+    print(io, Dedent())
+  end
+end
+
+function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
+  if is_terse(io)
+    print(io, "Representation of linearly reductive group")
+  else
+    # I don't know what else to print here
+    print(io, "Representation of linearly reductive group")
   end
 end
 
@@ -248,9 +265,9 @@ julia> G = linearly_reductive_group(:SL, 2, QQ);
 julia> r = representation_on_forms(G, 2);
 
 julia> RG = invariant_ring(r)
-Invariant Ring of
-  graded multivariate polynomial ring in 3 variables over QQ
-  under group action of SL2
+Invariant ring
+  of graded multivariate polynomial ring in 3 variables over QQ
+  under group action of linearly reductive group SL(2,QQ)
 ```
 """
 invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGroupInvarRing(R)
@@ -269,9 +286,9 @@ julia> r = representation_on_forms(G, 3);
 julia> S, x = graded_polynomial_ring(QQ, :x => 1:10);
 
 julia> RG = invariant_ring(S, r)
-Invariant Ring of
-  graded multivariate polynomial ring in 10 variables over QQ
-  under group action of SL3
+Invariant ring
+  of graded multivariate polynomial ring in 10 variables over QQ
+  under group action of linearly reductive group SL(3,QQ)
 ```
 """
 invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) =
@@ -325,18 +342,22 @@ function fundamental_invariants(z::RedGroupInvarRing)
   return copy(z.fundamental)
 end
 
-function Base.show(io::IO, R::RedGroupInvarRing)
+function Base.show(io::IO, ::MIME"text/plain", R::RedGroupInvarRing)
   io = pretty(io)
-  println(io, "Invariant Ring of")
-  println(io, Indent(), Lowercase(), polynomial_ring(R))
-  print(io, "under group action of ")
-  if isdefined(group(R), :group)
-    print(io, group_type(group(R)), group_dim(group(R)))
-  else
-    println(io, "linearly reductive group defined by")
-    print(io, defining_ideal(group(R)))
-  end
+  println(io, "Invariant ring")
+  println(io, Indent(), "of ", Lowercase(), polynomial_ring(R))
+  print(io, "under group action of ", Lowercase(), group(R))
   print(io, Dedent())
+end
+
+function Base.show(io::IO, R::RedGroupInvarRing)
+  if is_terse(io)
+    print(io, "Invariant ring")
+  else
+    io = pretty(io)
+    print(io, "Invariant ring of ")
+    print(terse(io), Lowercase(), group(R))
+  end
 end
 
 #computing the graph Gamma from Derksens paper

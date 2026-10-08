@@ -44,11 +44,21 @@ Rational field
 """
 base_ring(G::TorusGroup) = G.field
 
-function Base.show(io::IO, G::TorusGroup)
+function Base.show(io::IO, ::MIME"text/plain", G::TorusGroup)
   io = pretty(io)
   println(io, "Torus of rank ", rank(G))
   print(terse(io), Indent(), "over ", Lowercase(), base_ring(G))
   print(io, Dedent())
+end
+
+function Base.show(io::IO, G::TorusGroup)
+  if is_terse(io)
+    print(io, "Torus")
+  else
+    io = pretty(io)
+    print(io, "Torus of rank ", rank(G))
+    print(terse(io), " over ", Lowercase(), base_ring(G))
+  end
 end
 
 @doc raw"""
@@ -61,9 +71,10 @@ Return the diagonal action of `T` with weights given by `W`.
 julia> T = torus_group(QQ,2);
 
 julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1])
-Representation of torus of rank 2
-  over QQ and weights 
-  Vector{ZZRingElem}[[-1, 1], [-1, 1], [2, -2], [0, -1]]
+Representation
+  of torus of rank 2 over QQ
+  over QQ
+  with weights Vector{ZZRingElem}[[-1, 1], [-1, 1], [2, -2], [0, -1]]
 ```
 """
 function representation_from_weights(
@@ -128,12 +139,22 @@ Torus of rank 2
 """
 group(R::RepresentationTorusGroup) = R.group
 
-function Base.show(io::IO, R::RepresentationTorusGroup)
+function Base.show(io::IO, ::MIME"text/plain", R::RepresentationTorusGroup)
   io = pretty(io)
-  println(io, "Representation of torus of rank ", rank(group(R)))
-  println(terse(io), Indent(), "over ", Lowercase(), base_ring(group(R)), " and weights ")
-  print(io, R.weights)
+  println(io, "Representation")
+  println(io, Indent(), "of ", Lowercase(), group(R))
+  println(terse(io), "over ", Lowercase(), base_ring(group(R)))
+  print(io, "with weights ", weights(R))
   print(io, Dedent())
+end
+
+function Base.show(io::IO, R::RepresentationTorusGroup)
+  if is_terse(io)
+    print(io, "Representation of torus group")
+  else
+    # I don't know what else to print here
+    print(io, "Representation of torus group")
+  end
 end
 
 @doc raw"""
@@ -151,9 +172,9 @@ julia> T = torus_group(QQ,2);
 julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 
 julia> RT = invariant_ring(r)
-Invariant Ring of
-  graded multivariate polynomial ring in 4 variables over QQ
-  under group action of torus of rank 2
+Invariant ring
+  of graded multivariate polynomial ring in 4 variables over QQ
+  under group action of torus of rank 2 over QQ
 ```
 """
 invariant_ring(R::RepresentationTorusGroup) = TorGroupInvarRing(R)
@@ -222,12 +243,22 @@ function fundamental_invariants(z::TorGroupInvarRing)
   return copy(z.fundamental)
 end
 
-function Base.show(io::IO, R::TorGroupInvarRing)
+function Base.show(io::IO, ::MIME"text/plain", R::TorGroupInvarRing)
   io = pretty(io)
-  println(io, "Invariant Ring of")
-  println(io, Indent(), Lowercase(), polynomial_ring(R))
-  print(io, "under group action of torus of rank ", rank(group(R)))
+  println(io, "Invariant ring")
+  println(io, Indent(), "of ", Lowercase(), polynomial_ring(R))
+  print(io, "under group action of ", Lowercase(), group(R))
   print(io, Dedent())
+end
+
+function Base.show(io::IO, R::TorGroupInvarRing)
+  if is_terse(io)
+    print(io, "Invariant ring")
+  else
+    io = pretty(io)
+    print(io, "Invariant ring of ")
+    print(terse(io), Lowercase(), group(R))
+  end
 end
 
 # Algorithm 4.3.1 from [DK15]. Computes Torus invariants without Reynolds operator.
