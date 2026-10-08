@@ -150,47 +150,60 @@ end
 _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{Matrix{Int}}, canonical_ordering::Vector{Int}) = _get_canonical_form(A, [matrix(ZZ, v) for v in char_vectors_set], canonical_ordering)
 
 function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, canonical_ordering::Vector{Int})
-  p = length(char_vectors_set)
-  filter!(e->e!=p+1 && e!=p+2, canonical_ordering)
   can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
   _, U = hnf_with_transform(can_char_vectors_set) 
   U_inv = inv(U)
   return transpose(U_inv)*A*U_inv
 end
 
-_get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _get_edge_labeled_graph(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
+_canonical_ordering(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _canonical_ordering(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
 
-function _get_edge_labeled_graph(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
+# Return an ordering of the characteristic vectors `cv_set` which depends only
+# on the isometry class of the lattice with gram matrix `gram`.
+#
+# The characteristic vectors together with their inner products form a complete
+# graph whose vertices are colored by the norms and whose edges are labeled by
+# the inner products. Following section 14 of the nauty manual the edge labels
+# are turned into vertex colors: the label of an edge is written in binary and
+# the edge is inserted into those of the `nlayers` copies of the vertex set
+# which correspond to the bits set. The labels are numbered by decreasing
+# frequency, so the most frequent inner product is encoded by zero, that is, by
+# no edge at all; this keeps the resulting graph small.
+function _canonical_ordering(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
   p = length(cv_set)
-  res_graph = graph(Undirected, p+2)
-  max_w = 0
-  label!(res_graph, Dict{Tuple{Int, Int}, Int,}(), nothing; name=:edge)
-  v_i = Matrix{Int}(undef, 1, number_of_columns(gram))
-  t_i = Matrix{Int}(undef, number_of_rows(gram), 1)
-  w_i = Matrix{Int}(undef, 1, 1)
-  for i = 1:p 
-    v_i = AbstractAlgebra.LinearAlgebra.mul!(v_i, cv_set[i], gram)
-    for j = i+1:p
-      w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[j]))
-      w = w_i[1]
-      max_w = max(w, max_w)
-      add_edge!(res_graph, i, j)
-      res_graph.edge[i, j] = w
+  cv = reduce(vcat, cv_set)
+  prods = (cv*gram)*transpose(cv)
+
+  counts = Dict{Int, Int}()
+  for j in 1:p, i in 1:j-1
+    counts[prods[i, j]] = get(counts, prods[i, j], 0) + 1
+  end
+  labels = sort!(collect(keys(counts)); by = w -> (-counts[w], w))
+  nlayers = length(digits(length(labels)-1; base=2))
+  codes = sort(0:2^nlayers-1; by = c -> (count_ones(c), c))
+  code = Dict{Int, Int}(w => codes[k] for (k, w) in enumerate(labels))
+
+  norms = sort!(unique([prods[i, i] for i in 1:p]))
+  colors = [(l-1)*length(norms) + searchsortedfirst(norms, prods[i, i]) for l in 1:nlayers for i in 1:p]
+
+  g = graph(Undirected, nlayers*p)
+  for j in 1:p, i in 1:j-1
+    c = code[prods[i, j]]
+    while !iszero(c)
+      l = trailing_zeros(c)
+      add_edge!(g, i + l*p, j + l*p)
+      c &= c-1
     end
-    add_edge!(res_graph, i, p+1)
-    w_i = AbstractAlgebra.LinearAlgebra.mul!(w_i, v_i, AbstractAlgebra.LinearAlgebra.transpose!(t_i, cv_set[i]))
-    w = w_i[1]
-    res_graph.edge[i, p+1] = w
   end
-  a = 1+max_w 
-  b = a + 1
-  for i = 1:p 
-    add_edge!(res_graph, i, p+2)
-    res_graph.edge[i, p+2] = a
+  for l in 1:nlayers-1, i in 1:p
+    add_edge!(g, i + (l-1)*p, i + l*p)
   end
-  add_edge!(res_graph, p+1, p+2)
-  res_graph.edge[p+1, p+2] = b
-  return res_graph
+  perm = Polymake._canonical_perm(pm_object(g), Polymake.Array{Int}(colors))
+  # the vertices of the first layer come first in the coloring, hence they are
+  # exactly the first `p` entries of the canonical labeling
+  order = Polymake.to_one_based_indexing(perm)[1:p]
+  @assert isperm(order)
+  return order
 end
 
 """
@@ -207,7 +220,6 @@ function canonical_form(L::ZZLat)
   L = lll(L) # leaves canonical form unchanged and helps if the basis is badly conditioned
   gram = matrix(ZZ, gram_matrix(L))
   char_vectors_set = Hecke._reduced_characteristic_vectors(L)
-  graph = _get_edge_labeled_graph(char_vectors_set, gram) # transform from adjenctcy matrix A to edge-vertex weighted graph Ga, then to edge weighted graph T1(Ga)
-  can_order = _canonical_perm(graph; label=:edge) #_canonical_perm uses _edge_label_to_vertex_label themselfs
+  can_order = _canonical_ordering(char_vectors_set, gram)
   return _get_canonical_form(gram, char_vectors_set, can_order)
 end
