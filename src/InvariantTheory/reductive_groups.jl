@@ -227,8 +227,8 @@ function _rep_mat(G::LinearlyReductiveGroup, sym_deg::Int)
 end
 
 function multinomial_coefficient(n::Int, v::AbstractVector{<:IntegerUnion})
-  x = prod(factorial, v)
-  return Int(factorial(n) / x)
+  x = prod(factorial(ZZ(k)) for k in v)
+  return divexact(factorial(ZZ(n)), x)
 end
 
 ################################################################################
