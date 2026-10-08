@@ -457,7 +457,7 @@ end
   #Invariant ring of reductive group G (in representation R), no other input.
   function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
     G = group(R)
-    K = field(G)
+    K = base_ring(G)
     n = ncols(R.rep_mat)
     poly_ring, _ = graded_polynomial_ring(K, :X => 1:n; cached=false)
     z = new{typeof(K),elem_type(poly_ring),typeof(poly_ring)}()
@@ -476,7 +476,7 @@ end
     n = ncols(R.rep_mat)
     n == ngens(ring) || error("The given polynomial ring is not compatible.")
     G = group(R)
-    K = field(G)
+    K = base_ring(G)
     z = new{typeof(K),elem_type(ring),typeof(ring)}()
     z.representation = R
     z.group = G
@@ -512,13 +512,13 @@ end
   #Invariant ring of reductive group G (in representation R), no other input.
   function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
     n = length(weights(R))
-    super_ring, _ = graded_polynomial_ring(field(group(R)), :X => 1:n)
+    super_ring, _ = graded_polynomial_ring(base_ring(group(R)), :X => 1:n)
     return TorGroupInvarRing(R, super_ring)
   end
 
   #to compute invariant ring ring^G where G is the reductive group of R.
   function TorGroupInvarRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
-    K = field(group(R))
+    K = base_ring(group(R))
     z = new{typeof(K),elem_type(ring_),typeof(ring_)}()
     n = length(weights(R))
     z.field = K

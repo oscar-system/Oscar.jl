@@ -5,7 +5,7 @@ in particular, relies on algorithmic means from polyhedral geometry.
 
 ## Creating Invariant Rings
 
-### How Tori  and Their Representations are Given
+### How Tori and Their Representations are Given
 
 ```@docs
  torus_group(F::Field, n::Int)
@@ -16,7 +16,7 @@ rank(T::TorusGroup)
 ```
 
 ```@docs
-field(T::TorusGroup)
+base_ring(T::TorusGroup)
 ```
 
 ```@docs

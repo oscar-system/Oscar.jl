@@ -30,7 +30,7 @@ julia> rank(T)
 rank(G::TorusGroup) = G.rank
 
 @doc raw"""
-    field(T::TorusGroup)
+    base_ring(T::TorusGroup)
 
 Return the field over which `T` is defined.
 
@@ -38,16 +38,16 @@ Return the field over which `T` is defined.
 ```jldoctest
 julia> T = torus_group(QQ,2);
 
-julia> field(T)
+julia> base_ring(T)
 Rational field
 ```
 """
-field(G::TorusGroup) = G.field
+base_ring(G::TorusGroup) = G.field
 
 function Base.show(io::IO, G::TorusGroup)
   io = pretty(io)
   println(io, "Torus of rank ", rank(G))
-  print(terse(io), Indent(), "over ", Lowercase(), field(G))
+  print(terse(io), Indent(), "over ", Lowercase(), base_ring(G))
   print(io, Dedent())
 end
 
@@ -131,7 +131,7 @@ group(R::RepresentationTorusGroup) = R.group
 function Base.show(io::IO, R::RepresentationTorusGroup)
   io = pretty(io)
   println(io, "Representation of torus of rank ", rank(group(R)))
-  println(terse(io), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
+  println(terse(io), Indent(), "over ", Lowercase(), base_ring(group(R)), " and weights ")
   print(io, R.weights)
   print(io, Dedent())
 end
@@ -352,7 +352,7 @@ function affine_algebra(R::TorGroupInvarRing)
       weights_[i] = total_degree(V[i])
     end
     S, _ = graded_polynomial_ring(
-      field(group(representation(R))), :t => 1:s; weights=weights_
+      base_ring(group(representation(R))), :t => 1:s; weights=weights_
     )
     R_ = polynomial_ring(R)
     StoR = hom(S, R_, V)

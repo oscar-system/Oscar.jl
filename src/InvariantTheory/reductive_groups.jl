@@ -20,7 +20,7 @@ function Base.show(io::IO, G::LinearlyReductiveGroup)
   io = pretty(io)
   if group_type(G) === :SL
     println(io, "Reductive group ", group_type(G), group_dim(G))
-    print(terse(io), Indent(), "over ", Lowercase(), field(G))
+    print(terse(io), Indent(), "over ", Lowercase(), base_ring(G))
     print(io, Dedent())
   else
     println(io, "Linearly reductive group defined by")
@@ -77,7 +77,7 @@ linearly_reductive_group(sym::Symbol, m::Int, R::MPolyRing) =
 linearly_reductive_group(I::MPolyIdeal) = LinearlyReductiveGroup(I)
 
 group(G::LinearlyReductiveGroup) = G.group
-field(G::LinearlyReductiveGroup) = G.field
+base_ring(G::LinearlyReductiveGroup) = G.field
 reynolds_operator(G::LinearlyReductiveGroup) = G.reynolds_operator
 defining_ideal(G::LinearlyReductiveGroup) = G.defining_ideal
 canonical_representation(G::LinearlyReductiveGroup) = G.canonical_representation
@@ -289,7 +289,7 @@ end
 polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
 group(R::RedGroupInvarRing) = R.group
 representation(R::RedGroupInvarRing) = R.representation
-field(R::RedGroupInvarRing) = R.field
+coefficient_ring(R::RedGroupInvarRing) = R.field
 
 @doc raw"""
     fundamental_invariants(RG::RedGroupInvarRing)
@@ -350,7 +350,7 @@ function image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     m = ngens(base_ring(defining_ideal(G)))
   end
   mixed_ring_xy, x, y, zz = polynomial_ring(
-    G.field, :x => 1:n, :y => 1:n, :zz => 1:m; cached=false
+    base_ring(G), :x => 1:n, :y => 1:n, :zz => 1:m; cached=false
   )
   ztozz = hom(R, mixed_ring_xy, zz)
   genss = [ztozz(f) for f in gens(defining_ideal(G))]
@@ -531,7 +531,7 @@ function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyR
   n == ncols(X.rep_mat) || error("group not compatible with element")
   m = group_dim(G)
   R, _ = graded_polynomial_ring(
-    G.field, :x => 1:n, :y => 1:n, :z => (1:m, 1:m); cached=false
+    base_ring(G), :x => 1:n, :y => 1:n, :z => (1:m, 1:m); cached=false
   )
   map1 = hom(vector_ring, R, gens(R)[1:n])
   new_elem = map1(elem)
@@ -598,7 +598,7 @@ function affine_algebra(R::RedGroupInvarRing)
     for i in 1:s
       weights_[i] = total_degree(V[i])
     end
-    S, _ = graded_polynomial_ring(field(R), :t => 1:s; weights=weights_, cached=false)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), :t => 1:s; weights=weights_, cached=false)
     R_ = polynomial_ring(R)
     StoR = hom(S, R_, V)
     I = kernel(StoR)

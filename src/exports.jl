@@ -655,7 +655,6 @@ export fiber_components
 export fiber_product
 export fibonacci
 export fibration_type
-export field
 export filtrate
 export find_morphism
 export find_morphisms
