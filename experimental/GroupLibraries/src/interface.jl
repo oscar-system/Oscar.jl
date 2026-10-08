@@ -23,12 +23,14 @@ A handle `L` is created by one of
 [`transitive_groups_library`](@ref),
 [`primitive_groups_library`](@ref),
 [`perfect_groups_library`](@ref),
-[`groups_with_class_number_library`](@ref).
-Each group in a library has an identifier. For the libraries above it is a
-pair `(k, i)` where `k` is the value of the *primary key* of the library
+[`groups_with_class_number_library`](@ref),
+[`atlas_groups_library`](@ref).
+Each group in a library has an identifier. Except for the last library it is
+a pair `(k, i)` where `k` is the value of the *primary key* of the library
 (the order, the degree, ...) and `i` numbers the groups with that value.
 
-- `L[k, i]` and `L[(k, i)]` return the group with identifier `(k, i)`.
+- `L[id]` returns the group with identifier `id`; `L[k, i]` abbreviates
+  `L[(k, i)]`.
 - [`find(L::GroupLibrary, filters...)`](@ref) selects the groups with given
   properties.
 - [`identify`](@ref) returns the identifier of a given group.
@@ -52,7 +54,7 @@ abstract type GroupLibrary{T} end
 # The groups of `library` whose primary key lies in `keys` and which satisfy
 # the filters `rest`; `gaprest` is `rest` in the form GAP's selection
 # functions expect.
-struct GroupLibrarySelection{L<:GroupLibrary,K<:IntegerUnion}
+struct GroupLibrarySelection{L<:GroupLibrary,K}
   library::L
   keys::Vector{K}
   rest::Tuple
@@ -67,8 +69,9 @@ end
 
 # Required:
 #   _name(L)::String           used for printing
-#   _primary_key(L)            the function whose value is the primary key
-#   _key_type(L)               type of the two entries of an identifier
+#   _primary_key(L)            the function whose value is the primary key,
+#                              or a `Symbol` naming the key if there is none
+#   _key_type(L)               type of the values of the primary key
 #   _filter_attrs(L)           supported filters, or `nothing` for any function
 #   _number(L, k)              number of groups with primary key `k`
 #   getindex, identify, has_groups, has_number_of_groups, has_identification
@@ -78,8 +81,25 @@ end
 #   _ids(S, k)                 lazy iterator of ids
 #   _count(S, k)               number of groups
 #   _first(S, k)               first group, or `nothing`
+#   _isempty(S, k)             whether there is no group
+#
+# Optional, if the primary key is not a positive integer:
+#   _key_values(L, x)          the key values that `x` stands for in a filter
+#   _normalize_keys(L, vals)   the key values of a selection, in the order of
+#                              their evaluation
 
 _is_primary_key(L::GroupLibrary, f) = f === _primary_key(L)
+
+# `nothing` if `x` is neither a value of the primary key nor a vector of values
+function _key_values(::GroupLibrary, x)
+  x isa IntegerUnion && return [x]
+  x isa AbstractVector{<:IntegerUnion} && return x
+  return nothing
+end
+
+function _normalize_keys(L::GroupLibrary, vals)
+  return sort!(unique!(_key_type(L)[k for k in vals if k >= 1]))
+end
 
 _wrap(::GroupLibrary{GAPGroup}, G::GapObj) = _oscar_group(G)
 _wrap(::GroupLibrary{T}, G::GapObj) where {T} = T(_oscar_group(G))
@@ -130,6 +150,8 @@ end
 
 _first(S::GroupLibrarySelection, k) = _first_by_iteration(S, k)
 
+_isempty(S::GroupLibrarySelection, k) = _first(S, k) === nothing
+
 # A GAP iterator as a Julia iterator. Each one here is created to be run
 # through once, so it is consumed rather than copied first, as GAP.jl's own
 # iteration does; `PrimitiveGroupsIterator` cannot be copied in PrimGrp 4.0.3.
@@ -162,9 +184,9 @@ Each filter has one of the following forms.
 - `!func` selects groups for which `func` returns `false`
 
 At least one filter must restrict the primary key of `L`.
-A leading integer or vector of integers abbreviates such a filter,
-so `find(L, 16)` means `find(L, order => 16)` for a library whose primary
-key is the order.
+A leading value of the primary key, or a vector of such values, abbreviates
+such a filter, so `find(L, 16)` means `find(L, order => 16)` for a library
+whose primary key is the order.
 The documentation of each library lists the functions it supports.
 
 Creating the selection `S` computes nothing. Afterwards
@@ -217,14 +239,18 @@ julia> length(find(L, order => 512, is_abelian))
 ```
 """
 function find(L::GroupLibrary, filters...)
+  @req !isempty(filters) "must specify at least one filter"
   key = _primary_key(L)
-  K = _key_type(L)
+  if _key_values(L, filters[1]) !== nothing
+    filters = (key => filters[1], Base.tail(filters)...)
+  end
+
   keyvals = nothing
   rest = []
-  for f in _expand_key_shorthand(filters, key)
+  for f in filters
     if f isa Pair && _is_primary_key(L, f[1])
-      vals = f[2] isa IntegerUnion ? [f[2]] : f[2]
-      @req vals isa AbstractVector{<:IntegerUnion} "bad argument $(f[2]) for function $key"
+      vals = _key_values(L, f[2])
+      @req vals !== nothing "bad argument $(f[2]) for function $key"
       keyvals = keyvals === nothing ? collect(vals) : intersect(keyvals, vals)
     else
       push!(rest, f)
@@ -232,7 +258,7 @@ function find(L::GroupLibrary, filters...)
   end
   @req keyvals !== nothing "must specify a filter for $key"
 
-  keyvals = sort!(unique!(K[k for k in keyvals if k >= 1]))
+  keyvals = _normalize_keys(L, keyvals)
   rest = Tuple(rest)
   return GroupLibrarySelection(L, keyvals, rest, _translate(L, rest))
 end
@@ -259,7 +285,7 @@ julia> identify(primitive_groups_library(), symmetric_group(4))
 function identify end
 
 @doc raw"""
-    has_groups(L::GroupLibrary, k::IntegerUnion)
+    has_groups(L::GroupLibrary, k)
 
 Return whether the groups in `L` with primary key `k` are available.
 
@@ -275,7 +301,7 @@ false
 function has_groups end
 
 @doc raw"""
-    has_number_of_groups(L::GroupLibrary, k::IntegerUnion)
+    has_number_of_groups(L::GroupLibrary, k)
 
 Return whether the number of groups in `L` with primary key `k` is available,
 that is, whether `length(find(L, k))` works.
@@ -292,7 +318,7 @@ julia> length(find(small_groups_library(), 1024))
 function has_number_of_groups end
 
 @doc raw"""
-    has_identification(L::GroupLibrary, k::IntegerUnion)
+    has_identification(L::GroupLibrary, k)
 
 Return whether [`identify`](@ref) is available for the groups in `L`
 with primary key `k`.
@@ -343,7 +369,7 @@ end
 
 Base.keys(S::GroupLibrarySelection) = Iterators.flatten(_ids(S, k) for k in S.keys)
 
-Base.isempty(S::GroupLibrarySelection) = all(k -> _first(S, k) === nothing, S.keys)
+Base.isempty(S::GroupLibrarySelection) = all(k -> _isempty(S, k), S.keys)
 
 function Base.first(S::GroupLibrarySelection)
   for k in S.keys
@@ -364,7 +390,7 @@ end
 function Base.show(io::IO, S::GroupLibrarySelection)
   lib = S.library
   print(io, "Selection of ", _name(lib), ": ", _primary_key(lib), " => ")
-  print(io, length(S.keys) == 1 ? S.keys[1] : S.keys)
+  show(io, length(S.keys) == 1 ? S.keys[1] : S.keys)
   for f in S.rest
     print(io, ", ")
     _show_filter(io, f)

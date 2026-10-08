@@ -155,6 +155,85 @@ end
     @test first(find(P, 3, !is_abelian)) isa PermGroup
   end
 
+  # The identifiers and the number of groups of a selection must agree with
+  # `all_atlas_group_infos` and `number_of_atlas_groups`.
+  @testset "Atlas groups" begin
+    L = atlas_groups_library()
+    P = atlas_groups_library(PermGroup)
+    M = atlas_groups_library(MatGroup)
+    @testset for (name, filters) in [
+      ("A5", ()),
+      ("A5", (degree => [5, 6],)),
+      ("A5", (dim => [2, 3], characteristic => 2)),
+      ("A5", (character => character_table("A5", 2)[2],)),
+      ("A5", (is_primitive, transitivity => 2:3)),
+      ("A5", (rank_action => 2, !is_transitive)),
+      ("2.A5", (!is_primitive,)),
+      ("M11xA6.2^2", (!is_transitive,)),
+    ]
+      S = find(L, name, filters...)
+      infos = all_atlas_group_infos(name, filters...)
+      @test collect(keys(S)) == infos
+      @test length(S) == length(infos)
+      @test isempty(S) == isempty(infos)
+      perms = filter(x -> haskey(x, :degree), infos)
+      @test collect(keys(find(P, name, filters...))) == perms
+      @test collect(keys(find(M, name, filters...))) == setdiff(infos, perms)
+    end
+
+    @testset for name in ["A5", "2.A5", "B", "M"]
+      @test length(find(L, name)) == number_of_atlas_groups(name)
+      @test length(find(P, name)) == number_of_atlas_groups(PermGroup, name)
+      @test length(find(M, name)) == number_of_atlas_groups(MatGroup, name)
+      @test has_number_of_groups(L, name)
+      @test has_groups(P, name) == !isempty(find(P, name))
+    end
+    @test length(collect(keys(find(P, "2.A5")))) ==
+      number_of_atlas_groups(PermGroup, "2.A5")
+
+    S = find(L, "A5", degree => 5)
+    G = first(S)
+    @test G isa PermGroup
+    @test (degree(G), order(G)) == (5, 60)
+    @test collect(S) == [G]
+    @test L[only(keys(S))] == G
+    @test eltype(S) == Union{PermGroup,MatGroup}
+
+    groups = collect(find(P, "A5"))
+    @test groups isa Vector{PermGroup}
+    @test degree.(groups) == [5, 6, 10]
+
+    info = only(keys(find(L, "A5", dim => 4, characteristic => 3)))
+    @test M[info] isa MatGroup
+    @test_throws ArgumentError P[info]
+    R = GF(2, 2)
+    @test base_ring(first(find(M, "A5", base_ring => R))) == R
+
+    # names are made canonical and sorted
+    @test length(find(L, ["L2(4)", "A5"])) == number_of_atlas_groups("A5")
+    @test collect(keys(find(L, ["M11", "A5"], degree => 1:11))) == vcat(
+      all_atlas_group_infos("A5", degree => 1:11),
+      all_atlas_group_infos("M11", degree => 1:11),
+    )
+    @test length(find(L, :name => ["A5", "M11"], :name => "A5", degree => 5)) == 1
+
+    @test has_groups(L, "B") && has_groups(M, "B") && !has_groups(P, "B")
+    @test !has_groups(L, "M")
+    @test !has_groups(L, "no group") && !has_number_of_groups(L, "no group")
+    @test isempty(find(L, "no group"))
+    @test length(find(L, "no group")) == 0
+    @test !has_identification(L, "A5")
+    @test_throws ArgumentError identify(L, G)
+
+    @test_throws ArgumentError find(L)
+    @test_throws ArgumentError find(L, degree => 5)
+    @test_throws ArgumentError find(L, "A5", order => 60)
+    @test_throws ArgumentError find(L, "A5", 5)
+    @test_throws ArgumentError find(L, :name => 5)
+    @test_throws ArgumentError first(find(L, "M"))
+    @test_throws MethodError atlas_groups_library(PcGroup)
+  end
+
   # only the GAP package SOTGrps provides the groups of order 2662
   @testset "small groups from SOTGrps" begin
     L = small_groups_library()

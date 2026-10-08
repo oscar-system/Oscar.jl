@@ -7,7 +7,7 @@ identification are available, depends on the library.
 
 | Expression | Meaning |
 |:---|:---|
-| `L[k, i]` | the group with identifier `(k, i)` |
+| `L[id]`, `L[k, i]` | the group with identifier `id`, with identifier `(k, i)` |
 | `find(L, filters...)` | a lazy selection `S` of groups |
 | `for G in S`, `collect(S)`, `first(S)`, `isempty(S)` | the groups in `S` |
 | `length(S)` | the number of groups in `S` |
@@ -31,4 +31,5 @@ transitive_groups_library
 primitive_groups_library
 perfect_groups_library
 groups_with_class_number_library
+atlas_groups_library
 ```
