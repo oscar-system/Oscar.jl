@@ -374,7 +374,7 @@ mutable struct LinearlyReductiveGroup
   canonical_representation::MatElem
 
   function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
-    @assert sym == :SL && characteristic(fld) == 0
+    @req sym === :SL && characteristic(fld) == 0 "Only SL in characteristic 0 is implemented so far"
     R, _ = polynomial_ring(fld, :z => (1:m, 1:m); cached=false)
     return LinearlyReductiveGroup(sym, m, R)
   end
@@ -382,9 +382,7 @@ mutable struct LinearlyReductiveGroup
   function LinearlyReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
     G = new()
     fld = base_ring(pring)
-    @assert sym == :SL && characteristic(fld) == 0
-    characteristic(fld) == 0 ||
-      error("Characteristic should be 0 for linearly reductive groups")
+    @req sym === :SL && characteristic(fld) == 0 "Only SL in characteristic 0 is implemented so far"
     G.field = fld
     @req m^2 == ngens(pring) "ring not compatible"
     G.group = (sym, m)
