@@ -90,7 +90,6 @@ linearly_reductive_group(sym::Symbol, m::Int, R::MPolyRing) =
 linearly_reductive_group(I::MPolyIdeal) = LinearlyReductiveGroup(I)
 
 base_ring(G::LinearlyReductiveGroup) = G.field
-reynolds_operator(G::LinearlyReductiveGroup) = G.reynolds_operator
 defining_ideal(G::LinearlyReductiveGroup) = G.defining_ideal
 canonical_representation(G::LinearlyReductiveGroup) = G.canonical_representation
 natural_representation(G::LinearlyReductiveGroup) = G.canonical_representation
