@@ -8,10 +8,8 @@ see [`Oscar.GroupLibrary`](@ref) for what one can do with it.
 
 The primary key is the `order`; the group `L[n, i]` is the `i`-th group of
 order `n`, up to isomorphism.
-The groups are provided by the GAP package `SmallGrp` [SmallGrp](@cite).
-After `GAP.Packages.load("sotgrps")` or `GAP.Packages.load("sglppow")`,
-the handle also covers the orders that the GAP packages
-`SOTGrps` [SOTGrps](@cite) and `SglPPow` [SglPPow](@cite) provide.
+The groups are provided by the GAP packages `SmallGrp` [SmallGrp](@cite),
+`SOTGrps` [SOTGrps](@cite) and `SglPPow` [SglPPow](@cite).
 
 A group is returned as `PcGroup` if it is solvable and as `PermGroup`
 otherwise; if `T` is given, each group is converted to type `T`.
