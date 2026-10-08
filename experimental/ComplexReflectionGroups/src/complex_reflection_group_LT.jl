@@ -4,12 +4,12 @@
 
 
 ###########################################################################################
-# Important remark: In OSCAR, matrices act by default from the right on vectors, so x*A. 
-# For example the kernel of a matrix A is the space of all vectors such that x*A=0 
+# Important remark: In OSCAR, matrices act by default from the right on coordinate vectors.
+# For example, the kernel of a matrix A is the space of all vectors x such that x * A = 0.
 # (confusingly, this is usually referred to a s the *left kernel*....). The same holds for
 # Magma and also CHEVIE.
-# 
-# This means that when we take matrices for the models from the literature in which 
+#
+# This means that when we take matrices for the models from the literature in which
 # matrices act from the left (the usual convention for non-computer stuff), like the book
 # by Lehrer & Taylor, we need to transpose these matrices! This is why down there in the
 # code there are several transpose operation for the final generators.
@@ -65,7 +65,7 @@ function complex_reflection_group_LT(n::Int)
 
     r = matspace(K[1 0 ; 0 -1])
     r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-  
+
     push!(gens, transpose(r))
     push!(gens, transpose(r1))
 
@@ -84,7 +84,7 @@ function complex_reflection_group_LT(n::Int)
     r = matspace(K[1 0 ; 0 -1])
     r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
     r2 = omega//2 * matspace(K[-1+i -1+i ; 1+i -1-i])
-  
+
     push!(gens, transpose(r))
     push!(gens, transpose(r1))
     push!(gens, transpose(r2))
@@ -100,7 +100,7 @@ function complex_reflection_group_LT(n::Int)
 
     r4 = matspace(K[1 0 ; 0 i])
     r4prime = 1//2 * matspace(K[1+i -1+i ; -1+i 1+i])
-  
+
     push!(gens, transpose(r4))
     push!(gens, transpose(r4prime))
 
@@ -118,7 +118,7 @@ function complex_reflection_group_LT(n::Int)
 
     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
     r4 = matspace(K[1 0 ; 0 i])
-  
+
     push!(gens, transpose(r3))
     push!(gens, transpose(r4))
 
@@ -136,7 +136,7 @@ function complex_reflection_group_LT(n::Int)
 
     r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
     r4prime = 1//2 * matspace(K[1+i -1+i ; -1+i 1+i])
-  
+
     push!(gens, transpose(r1))
     push!(gens, transpose(r4prime))
 
@@ -425,22 +425,22 @@ function complex_reflection_group_LT(n::Int)
     cycshift = elem_type(matspace)[]
     push!(cycshift, identity_matrix(K, 3))
     push!(cycshift, matrix(K,3,3,[0 1 0; 0 0 1; 1 0 0])) #(2 3 1)
-    push!(cycshift, matrix(K,3,3,[0 0 1; 1 0 0; 0 1 0])) #(3 1 2) 
+    push!(cycshift, matrix(K,3,3,[0 0 1; 1 0 0; 0 1 0])) #(3 1 2)
 
-    lines = [V([1,0,0])*A for A in cycshift]
-    lines = vcat(lines, [1//2*V([K(1),tau,tau^-1])*A for A in cycshift])
-    lines = vcat(lines, [1//2*V([K(1),tau,-tau^-1])*A for A in cycshift])
-    lines = vcat(lines, [1//2*V([K(1),-tau,tau^-1])*A for A in cycshift])
-    lines = vcat(lines, [1//2*V([K(1),-tau,-tau^-1])*A for A in cycshift])
+    lines = [V([K(1), K(0), K(0)] * A) for A in cycshift]
+    lines = vcat(lines, [1//2 * V([K(1), tau, tau^-1] * A) for A in cycshift])
+    lines = vcat(lines, [1//2 * V([K(1), tau, -tau^-1] * A) for A in cycshift])
+    lines = vcat(lines, [1//2 * V([K(1), -tau, tau^-1] * A) for A in cycshift])
+    lines = vcat(lines, [1//2 * V([K(1), -tau, -tau^-1] * A) for A in cycshift])
 
     refls = Set([unitary_reflection(l) for l in lines])
 
-    # I guessed the roots of generating reflections from the proof of 
-    # Theorem 8.10 (page 144). 
+    # I guessed the roots of generating reflections from the proof of
+    # Theorem 8.10 (page 144).
     # The line system H3 is the star-closure of the following lines.
     a = V([0,1,0])
     b = 1//2*V([K(1),tau,tau^-1])
-    p = V([1,0,0])  
+    p = V([1,0,0])
 
     # Now, create the corresponding generators
     gens = elem_type(matspace)[]
@@ -467,7 +467,7 @@ function complex_reflection_group_LT(t::Tuple)
   (m,p,n) = t
 
   # See Lehrer & Taylor (2009), p 35-36
-  
+
   # For the symmetric group case we do not want permutation matrices
   # since this is not an irreducible reflection representation
   if m == 1 && p == 1
@@ -492,9 +492,9 @@ function complex_reflection_group_LT(t::Tuple)
   #the matrix t
   t = matspace(1)
   t[1,1] = z
-                          
+
   #the matrix s
-  if n > 1 
+  if n > 1
     s = t^-1*transp[1]*t
   end
 

@@ -19,7 +19,7 @@ complex_conjugation(K::QQAbField) = conj
 function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: QQAlgFieldElem
 
   @req parent(v) === parent(w) "Incompatible vector spaces"
-  
+
   V = parent(v)
   K = base_ring(V)
   n = dim(V)
@@ -41,7 +41,7 @@ function is_orthogonal(M::MatElem)
 end
 
 function is_unitary(M::QQMatrix)
-  
+
   return is_orthogonal(M)
 
 end
@@ -63,14 +63,14 @@ function is_unitary(M::MatElem{T}) where T <: NumFieldElem
 
 end
 
-function is_unitary(M::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+function is_unitary(M::MatGroupElem{T}) where T <: QQAlgFieldElem
 
   return is_unitary(matrix(M))
 
 end
 
-function is_unitary(G::MatrixGroup{T}) where T <: QQAlgFieldElem
-  
+function is_unitary(G::MatGroup{T}) where T <: QQAlgFieldElem
+
   return all(is_unitary, gens(G))
 
 end

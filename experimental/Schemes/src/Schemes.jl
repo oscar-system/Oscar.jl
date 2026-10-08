@@ -22,7 +22,6 @@ include("ToricBlowups/constructors.jl")
 include("ToricBlowups/attributes.jl")
 include("ToricBlowups/methods.jl")
 
-include("DerivedPushforward.jl")
 include("Resolution_structure.jl")
 include("Resolution_tools.jl")
 
@@ -52,7 +51,6 @@ export milnor_algebra
 export milnor_number
 export minimal_supercone_coordinates_of_exceptional_ray
 export point
-export rational_point_coordinates
 export standard_covering
 export standard_coordinates
 export strict_transform

@@ -60,8 +60,8 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
     (sliced into ideals, one for each ambient free module component).
 
 # Examples
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [4,3,2]);
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]; weights = [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -77,7 +77,7 @@ julia> num
 -t^25 + 2*t^17 + t^16 + t^15 - t^12 - t^11 - t^9 - t^8 - t^7 + t^4 + t^3
 
 julia> den
-(-t^4 + 1)^1*(-t^3 + 1)^1*(-t^2 + 1)^1
+(-t^3 + 1)^1*(-t^2 + 1)^1*(-t^4 + 1)^1
 
 ```
 """
@@ -103,7 +103,7 @@ function multi_hilbert_series(
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:ngens(R)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached=false)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R); weights=W, cached=false)
     map_into_S = hom(R, S, gens(S))
     SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG (issue #2657) !!!
     (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)
@@ -118,7 +118,7 @@ function multi_hilbert_series(
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
   denom = _hilbert_series_denominator(parent, W)
   numer = HSNum_module(SubM, parent, backend)
-  return (numer, denom), (G, identity_map(G))
+  return (numer, denom), (G, id_hom(G))
 end
 
 function multi_hilbert_series(

@@ -1,38 +1,3 @@
-# T=type of the group, S=type of the element
-@doc raw"""
-    GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
-
-Type of right and left cosets of subgroups in groups.
-
-For an element $g$ in a group $G$, and a subgroup $H$ of $G$,
-the set $Hg = \{ hg; h \in H \}$ is a right coset of $H$ in $G$,
-and the set $gH = \{ gh; h \in H \}$ is a left coset of $H$ in $G$.
-
-- [`group(C::GroupCoset)`](@ref) returns $G$.
-
-- [`acting_group(C::GroupCoset)`](@ref) returns $H$.
-
-- [`representative(C::GroupCoset)`](@ref) returns an element
-  (the same element for each call) of `C`.
-
-- [`is_right(C::GroupCoset)`](@ref) and [`is_left(C::GroupCoset)`](@ref)
-  return whether `C` is a right or left coset, respectively.
-
-Two cosets are equal if and only if they are both left or right, respectively,
-and they contain the same elements.
-"""
-struct GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
-   G::TG                   # big group containing the subgroup and the element
-   H::TH                   # subgroup (may have a different type)
-   repr::S                 # element
-   side::Symbol            # says if the coset is left or right
-   X::Ref{GapObj}          # GapObj(H*repr)
-
-   function GroupCoset(G::TG, H::TH, representative::S, side::Symbol) where {TG <: GAPGroup, TH <: GAPGroup, S <:GAPGroupElem}
-     return new{TG, TH, S}(G, H, representative, side, Ref{GapObj}())
-   end
-end
-
 GAP.@install function GapObj(obj::GroupCoset)
   if !isassigned(obj.X)
     g = GapObj(representative(obj))
@@ -49,6 +14,7 @@ Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{TG, TH, S}}) where {TG, TH, S} = S
 
 function ==(C1::GroupCoset, C2::GroupCoset)
+  C1 === C2 && return true
   H = C1.H
   right = is_right(C1)
   (right == is_right(C2) && C1.G == C2.G && H == C2.H ) || return false
@@ -92,18 +58,18 @@ Return the coset `Hg`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> right_coset(H, g)
-Right coset of Sym(3)
+Right coset of symmetric group of degree 3
   with representative (1,3)(2,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
@@ -127,12 +93,12 @@ julia> g = perm([3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> gH = left_coset(H, g)
-Left coset of Sym(3)
+Left coset of symmetric group of degree 3
   with representative (1,3)(2,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
@@ -160,20 +126,20 @@ Base.:*(H::GAPGroup, g::GAPGroupElem) = right_coset(H,g)
 Base.:*(g::GAPGroupElem, H::GAPGroup) = left_coset(H,g)
 
 function Base.:*(c::GroupCoset, y::GAPGroupElem)
-   @assert y in c.G "element not in the group"
+   yy = c.G(y)
    if is_right(c)
-      return right_coset(c.H, representative(c)*y)
+      return right_coset(c.H, representative(c)*yy)
    else
-      return left_coset(c.H^y, representative(c)*y)
+      return left_coset(c.H^y, representative(c)*yy)
    end
 end
 
 function Base.:*(y::GAPGroupElem, c::GroupCoset)
-   @assert y in c.G "element not in the group"
+   yy = c.G(y)
    if is_left(c)
-      return left_coset(c.H, y*representative(c))
+      return left_coset(c.H, yy*representative(c))
    else
-      return right_coset(c.H^(y^-1), y*representative(c))
+      return right_coset(c.H^(y^-1), yy*representative(c))
    end
 end
 
@@ -192,7 +158,7 @@ That is, `C` is a left or right coset of a subgroup of `G` in `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = sylow_subgroup(G, 2)[1]
 Permutation group of degree 5 and order 8
@@ -200,7 +166,7 @@ Permutation group of degree 5 and order 8
 julia> C = right_coset(H, gen(G, 1))
 Right coset of permutation group of degree 5 and order 8
   with representative (1,2,3,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> group(C) == G
 true
@@ -218,15 +184,15 @@ or `xH` (if `C` is a left coset), for an element `x` in `C`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> C = right_coset(H, gen(G, 1))
-Right coset of Sym(3)
+Right coset of symmetric group of degree 3
   with representative (1,2,3,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> acting_group(C) == H
 true
@@ -244,18 +210,18 @@ or `xH` (if `C` is a left coset).
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> Hg = right_coset(H, g)
-Right coset of Sym(3)
+Right coset of symmetric group of degree 3
   with representative (1,3)(2,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> representative(Hg)
 (1,3)(2,4,5)
@@ -275,18 +241,18 @@ This is the case if and only if the coset representative normalizes
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> gH = left_coset(H, g)
-Left coset of Sym(4)
+Left coset of symmetric group of degree 4
   with representative (1,3)(2,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> is_bicoset(gH)
 false
@@ -295,9 +261,9 @@ julia> f = perm(G,[2,1,4,3,5])
 (1,2)(3,4)
 
 julia> fH = left_coset(H, f)
-Left coset of Sym(4)
+Left coset of symmetric group of degree 4
   with representative (1,2)(3,4)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> is_bicoset(fH)
 true
@@ -317,15 +283,15 @@ Use [`right_transversal`](@ref) to compute the vector of coset representatives.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> rc = right_cosets(G, H)
 Right cosets of
-  Sym(3) in
-  Sym(4)
+  symmetric group of degree 3 in
+  symmetric group of degree 4
 
 julia> collect(rc)
 4-element Vector{GroupCoset{PermGroup, PermGroup, PermGroupElem}}:
@@ -351,15 +317,15 @@ Use [`left_transversal`](@ref) to compute the vector of coset representatives.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> left_cosets(G, H)
 Left cosets of
-  Sym(3) in
-  Sym(4)
+  symmetric group of degree 3 in
+  symmetric group of degree 4
 ```
 """
 function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
@@ -367,32 +333,11 @@ function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
   return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
-
-@doc raw"""
-    SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
-
-Type of left/right transversals of subgroups in groups.
-
-Objects of this type are created by [`right_transversal`](@ref) and
-[`left_transversal`](@ref).
-
-# Note for developers
-
-The elements are encoded via a right transversal object in GAP.
-(Note that GAP does not support left transversals.)
-"""
-struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
-   G::T                    # big group containing the subgroup
-   H::S                    # subgroup
-   side::Symbol            # says if the transversal is left or right
-   X::GapObj               # underlying *right* transversal in GAP
-end
-
 GAP.@install GapObj(T::SubgroupTransversal) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = is_left(x) ? "Left" : "Right"
-  println(io, "$side transversal of length $(length(x)) of")
+  println(io, "$side transversal of length $(length(ZZRingElem, x)) of")
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.H, " in")
@@ -419,8 +364,11 @@ Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
 
 Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 
-function Base.getindex(T::SubgroupTransversal, i::Int)
-  res = group_element(T.G, GapObj(T)[i])
+Base.length(::Type{I}, T::SubgroupTransversal) where I <: IntegerUnion = index(I, T.G, T.H)
+
+function Base.getindex(T::SubgroupTransversal, i::IntegerUnion)
+  res = group_element(T.G, GAP.Globals.ELM_LIST(GapObj(T), GAP.Obj(i)))
+#TODO: As soon as `GapObj(T)[i]` works for large `i`, simplify the above line
   if is_left(T)
     res = inv(res)
   end
@@ -436,6 +384,55 @@ function Base.keys(T::SubgroupTransversal)
     return keys(1:length(T))
 end
 
+"""
+    group(T::SubgroupTransversal)
+
+Return the group `G` that contains all of the elements in `T`.
+That is, `T` is a left or right transversal of a subgroup of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Symmetric group of degree 5
+
+julia> H = sylow_subgroup(G, 2)[1]
+Permutation group of degree 5 and order 8
+
+julia> T = right_transversal(G, H)
+Right transversal of length 15 of
+  permutation group of degree 5 and order 8 in
+  symmetric group of degree 5
+
+julia> group(T) == G
+true
+```
+"""
+group(T::SubgroupTransversal) = T.G
+
+"""
+    subgroup(T::SubgroupTransversal)
+
+Return the group `H` such that `T` is a (left or right)
+transversal of `H`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5)
+Symmetric group of degree 5
+
+julia> H = symmetric_group(3)
+Symmetric group of degree 3
+
+julia> T = right_transversal(G, H)
+Right transversal of length 20 of
+  symmetric group of degree 3 in
+  symmetric group of degree 5
+
+julia> subgroup(T) == H
+true
+```
+"""
+subgroup(T::SubgroupTransversal) = T.H
 
 """
     right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
@@ -452,15 +449,15 @@ Use [`right_cosets`](@ref) to compute the G-set of right cosets.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> T = right_transversal(G, H)
 Right transversal of length 4 of
-  Sym(3) in
-  Sym(4)
+  symmetric group of degree 3 in
+  symmetric group of degree 4
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
@@ -494,15 +491,15 @@ Use [`left_cosets`](@ref) to compute the G-set of left cosets.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> T = left_transversal(G, H)
 Left transversal of length 4 of
-  Sym(3) in
-  Sym(4)
+  symmetric group of degree 3 in
+  symmetric group of degree 4
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
@@ -521,38 +518,49 @@ function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup w
               GAPWrap.RightTransversal(GapObj(G), GapObj(H)))
 end
 
-
-@doc raw"""
-    GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
-
-Type of double cosets of subgroups in groups.
-
-For an element $g$ in a group $G$, and two subgroups $H$, $K$ of $G$,
-the set $HgK = \{ hgk; h \in H, k \in K \}$ is a $H-K$-double coset in $G$.
-
-- [`group(C::GroupDoubleCoset)`](@ref) returns $G$.
-
-- [`left_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
-
-- [`right_acting_group(C::GroupDoubleCoset)`](@ref) returns $H$.
-
-- [`representative(C::GroupDoubleCoset)`](@ref) returns an element
-  (the same element for each call) of `C`.
-
-Two double cosets are equal if and only if they contain the same elements.
 """
-struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
-# T=type of the group, S=type of the element
-   G::T
-   H::GAPGroup
-   K::GAPGroup
-   repr::S
-   X::Ref{GapObj}
-   size::Ref{ZZRingElem}
+    index_of_coset(::Type{I} = ZZRingElem, T::SubgroupTransversal, g::GroupElem) where I <: IntegerUnion
 
-   function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
-     return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}())
+Return the position `i` in `T` such that
+`g` is an element of `subgroup(T)*T[i]` if `T` is a right transversal and
+`g` is an element of `T[i]*subgroup(T)` if `T` is a left transversal.
+
+The returned value has type `I`.
+
+`parent(g)` must be equal to `group(T)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> H = symmetric_group(3);
+
+julia> Tr = right_transversal(G, H);
+
+julia> index_of_coset(Tr, G[1])
+2
+
+julia> Tl = left_transversal(G, H);
+
+julia> index_of_coset(Tl, G[1])
+4
+
+julia> G[1] in right_coset(H, Tr[2])
+true
+
+julia> G[1] in left_coset(H, Tl[4])
+true
+```
+"""
+index_of_coset(T::SubgroupTransversal, g::GroupElem) = index_of_coset(ZZRingElem, T::SubgroupTransversal, g::GroupElem)
+
+function index_of_coset(::Type{I}, T::SubgroupTransversal, g::GroupElem) where I <: IntegerUnion
+   @req parent(g) === group(T) "parent(g) differs from group(T)"
+   Gap_g = GapObj(g)
+   if is_left(T)
+     Gap_g = inv(Gap_g)
    end
+   return I(GAPWrap.PositionCanonical(GapObj(T), Gap_g)::GapInt)
 end
 
 GAP.@install function GapObj(C::GroupDoubleCoset)
@@ -566,7 +574,8 @@ Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
-   # Avoid creating a GAP object if the result is obviously `false`.
+   # Avoid creating a GAP object if the result is "obvious"
+   x === y && return true
    isassigned(x.size) && isassigned(y.size) && order(x) != order(y) && return false
    return GapObj(x) == GapObj(y)
 end
@@ -602,22 +611,22 @@ Return the double coset `HxK`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> g = perm(G,[3,4,5,1,2])
 (1,3,5,2,4)
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> double_coset(H,g,K)
-Double coset of Sym(3)
-  and Sym(2)
+Double coset of symmetric group of degree 3
+  and symmetric group of degree 2
   with representative (1,3,5,2,4)
-  in Sym(5)
+  in symmetric group of degree 5
 ```
 """
 function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
@@ -638,13 +647,13 @@ If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
 julia> H = symmetric_group(3)
-Sym(3)
+Symmetric group of degree 3
 
 julia> K = symmetric_group(2)
-Sym(2)
+Symmetric group of degree 2
 
 julia> double_cosets(G,H,K)
 3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
@@ -713,15 +722,15 @@ That is, `C` is a double coset of two subgroups of `G` in `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = symmetric_group(3); K = symmetric_group(2);
 
 julia> HgK = double_coset(H, gen(G, 1), K)
-Double coset of Sym(3)
-  and Sym(2)
+Double coset of symmetric group of degree 3
+  and symmetric group of degree 2
   with representative (1,2,3,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> group(HgK) == G
 true
@@ -737,15 +746,15 @@ Return an element `x` of the double coset `C` = `HxK`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = symmetric_group(3); K = symmetric_group(2);
 
 julia> HgK = double_coset(H, gen(G, 1), K)
-Double coset of Sym(3)
-  and Sym(2)
+Double coset of symmetric group of degree 3
+  and symmetric group of degree 2
   with representative (1,2,3,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> representative(HgK)
 (1,2,3,4,5)
@@ -761,15 +770,15 @@ Return `H` if `C` = `HxK`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = symmetric_group(3); K = symmetric_group(2);
 
 julia> HgK = double_coset(H, gen(G, 1), K)
-Double coset of Sym(3)
-  and Sym(2)
+Double coset of symmetric group of degree 3
+  and symmetric group of degree 2
   with representative (1,2,3,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> left_acting_group(HgK) == H
 true
@@ -785,15 +794,15 @@ Return `K` if `C` = `HxK`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Sym(5)
+Symmetric group of degree 5
 
 julia> H = symmetric_group(3); K = symmetric_group(2);
 
 julia> HgK = double_coset(H, gen(G, 1), K)
-Double coset of Sym(3)
-  and Sym(2)
+Double coset of symmetric group of degree 3
+  and symmetric group of degree 2
   with representative (1,2,3,4,5)
-  in Sym(5)
+  in symmetric group of degree 5
 
 julia> right_acting_group(HgK) == K
 true
@@ -815,9 +824,93 @@ function Base.in(g::GAPGroupElem, C::GroupCoset)
 end
 
 function Base.in(g::GAPGroupElem, C::GroupDoubleCoset)
-  return GapObj(g) in GapObj(C)
-#TODO: avoid delegation to GAP?
-# (GAP uses `RepresentativesContainedRightCosets`, `CanonicalRightCosetElement`)
+  if !isassigned(C.right_coset_reps)
+    C.right_coset_reps[] = _right_coset_reps(C)
+  end
+  canon = GAP.Globals.CanonicalRightCosetElement(GapObj(left_acting_group(C)), GapObj(g))
+  return haskey(C.right_coset_reps[], group_element(group(C), canon))
+end
+
+"""
+   _decompose(C::GroupDoubleCoset, x::GAPGroupElem)
+
+Return `flag, u, v` such that `flag` is `true` if `x` is an element
+of `C`, and `false` otherwise.
+
+If `flag = true` then `x = u*g*v` holds where `g` is `representative(C)`,
+`u` is an element of `left_acting_group(C)`,
+and `v` is an element of `right_acting_group(C)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(5);
+
+julia> H = sylow_subgroup(G, 2)[1]; K = sylow_subgroup(G, 3)[1];
+
+julia> x = gen(G, 1); C = double_coset(H, x, K);
+
+julia> d = Oscar._decompose(C, x^3)
+(true, (1,3)(2,4), (1,3,2))
+
+julia> d[2] * x * d[3] == x^3
+true
+
+julia> Oscar._decompose(C, x^2)
+(false, (), ())
+```
+"""
+function _decompose(C::GroupDoubleCoset, x::GAPGroupElem)
+  G = group(C)
+  U = left_acting_group(C)
+  rcr = _right_coset_reps(C)
+  GAP_x = GapObj(x)
+  GAP_y = GAP.Globals.CanonicalRightCosetElement(GapObj(U), GAP_x)
+  y = group_element(G, GAP_y)
+  haskey(rcr, y) || return false, one(U), one(right_acting_group(C))
+  u, v = rcr[y]
+  return true, group_element(U, GAP_x/GAP_y)*u, v
+end
+
+function _right_coset_reps(C)
+  if !isassigned(C.right_coset_reps)
+    C.right_coset_reps[] = _compute_right_coset_reps(C)
+  end
+  return C.right_coset_reps[]
+end
+# Compute the data for the (constructive) membership test.
+function _compute_right_coset_reps(C::GroupDoubleCoset)
+  # `C = UxV`
+  G = group(C)
+  U = left_acting_group(C)
+  V = right_acting_group(C)
+  Gx = representative(C)
+  x = GapObj(Gx)
+  GAP_U = GapObj(U)
+
+  # `C` is a disjoint union of right cosets `Ur`
+  # where each representative `r` is canonical and has the form `u_r*x*v_r`,
+  # with `u_r` in `U` and `v_r` in `V`.
+  # `data` stores `(u_r, v_r)` at the key `r`.
+  y = GAP.Globals.CanonicalRightCosetElement(GAP_U, x)
+  Gy = group_element(G, y)
+  data = Dict{GAPGroupElem, Tuple{GAPGroupElem, GAPGroupElem}}(Gy => (group_element(U, y/x), one(V)))
+  orb = IndexedSet([Gy])
+  for Gr in orb
+    r = GapObj(Gr)
+    for v in gens(V)
+      rv = r*GapObj(v)
+      k = GAP.Globals.CanonicalRightCosetElement(GAP_U, rv)
+      Gk = group_element(G, k)
+      if !(Gk in orb)
+        # `k = u*r*v` for some `u` in `U`
+        # `r = u_r*x*v_r` means `u_k = u*u_r`, `v_k = v_r*v`.
+        u_r, v_r = data[Gr]
+        data[Gk] = (group_element(U, k/rv)*u_r, v_r*v)
+        push!(orb, Gk)
+      end
+    end
+  end
+  return data
 end
 
 Base.IteratorSize(::Type{<:GroupCoset{TG, TH, S}}) where {TG, TH, S} = Base.IteratorSize(TH)

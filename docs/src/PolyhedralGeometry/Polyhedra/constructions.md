@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -206,6 +207,7 @@ a new polyhedron.
 *(::Polyhedron{T}, ::Polyhedron{U})  where {T<:scalar_types, U<:scalar_types}
 bipyramid
 intersect(::Polyhedron...)
+prism
 pyramid
 vertex_figure
 ```

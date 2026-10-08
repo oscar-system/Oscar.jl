@@ -34,7 +34,7 @@
     end
 
     let # Example where ideal basis is only found after two steps
-      sc = zeros(QQ, 4, 4, 4)
+      sc = Hecke.zeros_array(QQ, 4, 4, 4)
       sc[1, 2, 3] = 1
       sc[2, 1, 3] = -1
       sc[1, 3, 4] = 1

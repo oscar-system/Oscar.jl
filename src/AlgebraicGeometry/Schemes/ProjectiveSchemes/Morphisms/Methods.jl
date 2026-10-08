@@ -213,7 +213,7 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::FreeMod)
   FT = graded_free_module(T, [_degree_fast(a) for a in gens(M)])
   I = image_ideal(inc)
   IFT, inc_IFT = I*FT
-  MT = cokernel(inc_IFT)
+  MT, _ = cokernel(inc_IFT)
   id = hom(MT, M, gens(M), f; check=false)
   return MT, id
 end
@@ -230,7 +230,7 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::SubquoModule)
   relT = elem_type(FT)[sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(rel)]
   G, inc_G = sub(FT, vcat(gT, relT))
   Q, inc_Q = sub(G, gens(G)[length(gT)+1:end])
-  MT = cokernel(inc_Q)
+  MT, _ = cokernel(inc_Q)
   id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]), S; check=false)
   return MT, id
 end

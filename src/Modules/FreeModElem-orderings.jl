@@ -2,11 +2,11 @@
 # FreeModElem term orderings
 ###############################################################################
 
-function Orderings.lex(F::ModuleFP)
+function Orderings.lex(F::OFPModule)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :lex))
 end
 
-function Orderings.invlex(F::ModuleFP)
+function Orderings.invlex(F::OFPModule)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :invlex))
 end
 
@@ -81,7 +81,7 @@ end
 function expressify(a::OscarPair{<:FreeModElem{<:MPolyRingElem}, Vector{Tuple{Int, Int}}}; context = nothing)
   f = a.first
   x = symbols(base_ring(parent(f)))
-  e = generator_symbols(parent(f))
+  e = symbols(parent(f))
   s = Expr(:call, :+)
   for (i, j) in a.second
     prod = Expr(:call, :*)

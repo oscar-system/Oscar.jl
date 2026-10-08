@@ -5,8 +5,10 @@ import Oscar: Polymake, pm_object
 ##  Constructing
 ################################################################################
 
-struct SimplicialComplex
+mutable struct SimplicialComplex
     pm_simplicialcomplex::Polymake.BigObject
+    face_cache::Dict{Int,Vector{Set{Int}}}
+    SimplicialComplex(bo::Polymake.BigObject) = new(bo)
 end
 
 pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
@@ -38,7 +40,7 @@ Abstract simplicial complex of dimension -1 on 0 vertices
 ```
 
 The original vertices can be recovered:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = simplicial_complex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
@@ -142,6 +144,31 @@ function facets(K::SimplicialComplex)
     return Vector{Set{Int}}(the_facets)
 end
 
+function _get_face_cache(K::SimplicialComplex)
+  if !isdefined(K, :face_cache)
+    K.face_cache = Dict{Int,Vector{Set{Int}}}()
+  end
+  return K.face_cache
+end
+
+@doc raw"""
+    faces(K::SimplicialComplex [, dim::Int])
+
+Return the faces of the abstract simplicial complex `K`, passing `dim` as the second argument returns faces of dimension `dim` (sets of size `dim + 1`).
+"""
+function faces(K::SimplicialComplex, d::Int)
+  @req -1 <= d <= dim(K) "Dimension must be between -1 and dim(K)"
+  fc = _get_face_cache(K)
+  return get!(fc, d) do
+    po = face_poset(K)
+    Set.(data.(elements_of_rank(po, d + 1)))
+  end
+end
+
+function faces(K::SimplicialComplex)
+  return reduce(vcat, faces(K,i) for i in -1:dim(K))
+end
+
 @doc raw"""
     dim(K::SimplicialComplex)
 
@@ -183,9 +210,10 @@ julia> h_vector(torus())
 h_vector(K::SimplicialComplex) = Vector{Int}(pm_object(K).H_VECTOR)
 
 @doc raw"""
-    betti_numbers(K::SimplicialComplex)
+    betti_numbers([R::Union{<: Field, ZZRing}=ZZ,] K::SimplicialComplex)
 
-Return the reduced rational Betti numbers of the abstract simplicial complex `K`.
+Return the reduced Betti numbers of the abstract simplicial complex `K`.
+Defaults to computing Betti numbers over `ZZ`, otherwise computes the Betti numbers over the ring `R`.
 
 # Examples
 ```jldoctest
@@ -194,9 +222,31 @@ julia> betti_numbers(klein_bottle())
  0
  1
  0
+
+julia> betti_numbers(GF(2), klein_bottle())
+3-element Vector{Int64}:
+ 0
+ 2
+ 1
 ```
 """
 betti_numbers(K::SimplicialComplex) = Vector{Int}(Polymake.topaz.betti_numbers(pm_object(K)))
+
+function betti_numbers(R::Union{<:Field, ZZRing}, K::SimplicialComplex)
+  c = characteristic(R)
+  iszero(c) && return betti_numbers(K)
+  b = Int[]
+  boundary_m = matrix(R, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), 0))
+  im_dim = 1
+  for k = 1:dim(K) + 1
+    ker_dim = size(boundary_m)[1] - im_dim
+    boundary_m = matrix(R, Polymake.topaz.boundary_matrix(Oscar.pm_object(K), k))
+    im_dim = rank(boundary_m)
+    
+    push!(b, ker_dim - im_dim)
+  end
+  return b
+end
 
 @doc raw"""
     euler_characteristic(K::SimplicialComplex)
@@ -248,7 +298,7 @@ cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_g
 Return the minimal non-faces of the abstract simplicial complex `K`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> minimal_nonfaces(K)
@@ -620,7 +670,7 @@ end
 Remove the given face and all the faces containing it from an abstract simplicial complex `K`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]]);
 
 julia> K_with_deletion = deletion(K, Set([1, 2]));
@@ -676,7 +726,7 @@ Given a simplicial complex `K` return the simplicial complex corresponding
 to a permutation on it's vertices given by `g`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
 
@@ -704,7 +754,7 @@ end
 Given simplicial complexes `K1` and `K2` return their simplicial product.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K1 = simplicial_complex([[1, 2], [2, 3]])
 Abstract simplicial complex of dimension 1 on 3 vertices
 
@@ -754,7 +804,7 @@ end
 Given simplicial complex `K` returns its barycentric subdivision.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K = simplicial_complex([[1, 2, 3]])
 Abstract simplicial complex of dimension 2 on 3 vertices
 

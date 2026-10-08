@@ -2,7 +2,19 @@
 # Toric varieties
 @register_serialization_type AffineNormalToricVariety uses_id
 
-@register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group, :cohomology_ring]
+toric_serialization_list = [
+:cox_ring,
+:map_from_character_lattice_to_torusinvariant_weil_divisor_group,
+:map_from_torusinvariant_cartier_divisor_group_to_class_group,
+:map_from_torusinvariant_cartier_divisor_group_to_picard_group,
+:map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group,
+:map_from_torusinvariant_weil_divisor_group_to_class_group,
+:cohomology_ring,
+:is_complete,
+:is_smooth,
+:is_simplicial]
+
+@register_serialization_type NormalToricVariety uses_id toric_serialization_list
 
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
   save_object(s, ntv.polymakeNTV)
@@ -16,7 +28,7 @@ end
 # Torus invariant divisors on toric varieties
 @register_serialization_type ToricDivisor
 
-type_params(obj::ToricDivisor) = TypeParams(ToricDivisor, toric_variety(obj))
+type_and_params(obj::ToricDivisor) = TypeAndParams(ToricDivisor, toric_variety(obj))
 
 function save_object(s::SerializerState, td::ToricDivisor)
   save_object(s, td.coeffs)
@@ -40,7 +52,7 @@ end
 # Torus invariant divisor classes on toric varieties
 @register_serialization_type ToricDivisorClass
 
-type_params(obj::ToricDivisorClass) = TypeParams(ToricDivisorClass, toric_variety(obj))
+type_and_params(obj::ToricDivisorClass) = TypeAndParams(ToricDivisorClass, toric_variety(obj))
 
 function save_object(s::SerializerState, tdc::ToricDivisorClass)
   save_object(s, toric_divisor(tdc).coeffs)
@@ -64,7 +76,7 @@ end
 # Cohomology classes on toric varieties
 @register_serialization_type CohomologyClass
 
-type_params(obj::CohomologyClass) = TypeParams(CohomologyClass, toric_variety(obj))
+type_and_params(obj::CohomologyClass) = TypeAndParams(CohomologyClass, toric_variety(obj))
 
 function save_object(s::SerializerState, cc::CohomologyClass)
   save_object(s, lift(polynomial(cc)))

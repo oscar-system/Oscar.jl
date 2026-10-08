@@ -2,7 +2,7 @@
 # functions for accessing the precomputed data
 
 # the precomputed data for Atlas groups
-const OD_data = JSON.parsefile(joinpath(@__DIR__, "../data/odresults.json"))
+const OD_data = JSON.parsefile(joinpath(@__DIR__, "..", "data", "odresults.json"))
 
 const OD_simple_names = Dict{String, String}()
 

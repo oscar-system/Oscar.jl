@@ -47,7 +47,7 @@
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["b7","b9"],
-        "model_sections": ["b1", "b2", "b3", "b5", "b6", "b7", "b8", "b9", "b10"],
+        "tunable_sections": ["b1", "b2", "b3", "b5", "b6", "b7", "b8", "b9", "b10"],
         "f": "1//48*(-(-4*b1*b10 + b6^2 - 4*(b5*b7 + b3*b8 + b2*b9))^2 + 24*(-b6*(b10*b2*b5 + b2*b7*b8 + b3*b5*b9 + b1*b7*b9) + 2*(b10*(b1*b5*b7 + b2^2*b8 + b3*(b5^2 - 4*b1*b8) + b1*b2*b9) + b7*(b1*b7*b8 + b2*b5*b9) + b3*(b5*b7*b8 + b2*b8*b9 + b1*b9^2))))",
         "g": "1//864*((-4*b1*b10 + b6^2 - 4*(b5*b7 + b3*b8 + b2*b9))^3 - 36*(-4*b1*b10 + b6^2 - 4*(b5*b7 + b3*b8 + b2*b9))*(-b6*(b10*b2*b5 + b2*b7*b8 + b3*b5*b9 + b1*b7*b9) + 2*(b10*(b1*b5*b7 + b2^2*b8 + b3*(b5^2 - 4*b1*b8) + b1*b2*b9) + b7*(b1*b7*b8 + b2*b5*b9) + b3*(b5*b7*b8 + b2*b8*b9 + b1*b9^2))) + 216*((b10*b2*b5 + b2*b7*b8 + b3*b5*b9 + b1*b7*b9)^2 - 4*(b2*b3*b5*b7*b8*b9 + b1^2*b10*(-4*b10*b3*b8 + b7^2*b8 + b3*b9^2) + b10*(b3^2*b5^2*b8 + b2^2*b5*b7*b8 + b2*b3*(-b5*b6*b8 + b2*b8^2 + b5^2*b9)) + b1*(b10^2*(b3*b5^2 + b2^2*b8) + b2*b7^2*b8*b9 + b3^2*b8*b9^2 + b3*b7*(b7*b8^2 - b6*b8*b9 + b5*b9^2) + b10*(-4*b3^2*b8^2 + b3*b6*(b6*b8 - b5*b9) + b2*b7*(-b6*b8 + b5*b9))))))",
         "classes_of_tunable_sections_in_basis_of_Kbar_and_defining_classes": [

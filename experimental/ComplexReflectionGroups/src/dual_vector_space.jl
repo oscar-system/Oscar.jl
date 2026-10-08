@@ -1,6 +1,6 @@
 # Some functions concerning the dual of a vector space.
 #
-# Ulrich Thiel, 2023 
+# Ulrich Thiel, 2023
 
 
 function canonical_pairing(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem
@@ -16,7 +16,7 @@ function canonical_pairing(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::Abst
 end
 
 function linear_form(v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem
-   
+
   V = parent(v)
   K = base_ring(V)
   n = dim(V)

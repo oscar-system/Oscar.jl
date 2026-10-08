@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -78,6 +79,7 @@ positive_root(::RootSystem, ::Int64)
 positive_roots(::RootSystem)
 negative_root(::RootSystem, ::Int64)
 negative_roots(::RootSystem)
+highest_root(::RootSystem)
 ```
 
 
@@ -111,6 +113,7 @@ RootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 RootSpaceElem(::RootSystem, ::QQMatrix)
 RootSpaceElem(::WeightLatticeElem)
 zero(::Type{RootSpaceElem}, ::RootSystem)
+dual(::DualRootSpaceElem)
 ```
 
 ```@docs
@@ -156,6 +159,7 @@ reflect!(::RootSpaceElem, ::RootSpaceElem)
 DualRootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 DualRootSpaceElem(::RootSystem, ::QQMatrix)
 zero(::Type{DualRootSpaceElem}, ::RootSystem)
+dual(::RootSpaceElem)
 ```
 
 ```@docs

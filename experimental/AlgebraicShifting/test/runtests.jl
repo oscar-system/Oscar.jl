@@ -5,7 +5,7 @@
 
   @testset "Symmetric Shifting" begin
     shift = Oscar.symmetric_shift(GF(2), K, longest_element(W))
-    @test facets(shift) == [Set([2, 1]), Set([3, 2])]
+    @test facets(shift) == [Set([2, 1]), Set([3, 1])]
   end
   
   @testset "Partial Shift Graph" begin

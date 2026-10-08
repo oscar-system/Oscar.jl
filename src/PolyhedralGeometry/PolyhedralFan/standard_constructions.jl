@@ -57,6 +57,38 @@ function face_fan(P::Polyhedron{T}) where {T<:scalar_types}
 end
 
 ###############################################################################
+## Common refinement
+###############################################################################
+
+@doc raw"""
+    common_refinement(PF1::PolyhedralFan{T},PF2::PolyhedralFan{T}) where T<:scalar_types
+
+Return the common refinement of two polyhedral fans.
+
+# Examples
+```jldoctest
+julia> NF1 = normal_fan(cross_polytope(2)); NF2 = normal_fan(cube(2)); 
+
+julia> C = common_refinement(NF1, NF2)
+Polyhedral fan in ambient dimension 2
+
+julia> length(maximal_cones(C))
+8
+```
+"""
+function common_refinement(
+  PF1::PolyhedralFan{T}, PF2::PolyhedralFan{T}
+) where {T<:scalar_types}
+  U, f = _promote_scalar_field(coefficient_field(PF1), coefficient_field(PF2))
+  pm_PF1 = pm_object(PF1)
+  pm_PF2 = pm_object(PF2)
+  result = Polymake.fan.PolyhedralFan{_scalar_type_to_polymake(T)}(
+    Polymake.fan.common_refinement(pm_PF1, pm_PF2)
+  )
+  return PolyhedralFan{T}(result, f)
+end
+
+###############################################################################
 ## Star subdivision
 ###############################################################################
 
@@ -87,12 +119,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(
@@ -241,12 +273,12 @@ julia> rays(star)
 
 julia> ray_indices(maximal_cones(star))
 6×5 IncidenceMatrix
-[2, 3, 5]
-[1, 3, 5]
-[1, 2, 5]
-[2, 3, 4]
-[1, 3, 4]
-[1, 2, 4]
+ [2, 3, 5]
+ [1, 3, 5]
+ [1, 2, 5]
+ [2, 3, 4]
+ [1, 3, 4]
+ [1, 2, 4]
 ```
 """
 function star_subdivision(Sigma::_FanLikeType, n::Int)
@@ -334,7 +366,7 @@ arrangement_polynomial(...  ; hyperplanes=:in_cols)
 ```
 
 # Example using standard ring and then custom ring.
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
 [   1   2   5//2]
 [   0   0      1]
@@ -344,21 +376,21 @@ julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
 [   7   8      1]
 
 julia> factor(arrangement_polynomial(A))
-(1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
+(1//4) * (2*x1 + 3*x2 + 2*x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * (7*x1 + 8*x2 + x3) * x3 * (3*x1 + x2 + 2*x3)
 
 julia> R,_ = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> factor(arrangement_polynomial(R, A))
-(1//4) * (2*x + 3*y + 2*z) * (7*x + 8*y + z) * (x + 6*y + 10*z) * (2*x + 4*y + 5*z) * z * (3*x + y + 2*z)
+(1//4) * (2*x + 3*y + 2*z) * (x + 6*y + 10*z) * (2*x + 4*y + 5*z) * (7*x + 8*y + z) * z * (3*x + y + 2*z)
 ```
 
 To use the columns instead, proceed in the following way:
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1]);
 
 julia> factor(arrangement_polynomial(A; hyperplanes=:in_cols))
-(1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
+(1//4) * (2*x1 + 3*x2 + 2*x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * (7*x1 + 8*x2 + x3) * x3 * (3*x1 + x2 + 2*x3)
 ```
 """
 function arrangement_polynomial(A::MatElem{<:FieldElem}; hyperplanes=:in_rows)
@@ -405,3 +437,35 @@ function arrangement_polynomial(
   F = parent(first(A))
   return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  SigmaRays, SigmaLineality = rays_modulo_lineality(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix, Sigma)
+  return polyhedral_fan(
+    coefficient_field(Sigma), SigmaIncidence, -SigmaRays, SigmaLineality; non_redundant=true
+  )
+end
+
+###############################################################################
+## Scalar multiplication
+###############################################################################
+
+_empty_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(0, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+_origin_fan(cf, dim) =
+  polyhedral_fan(cf, incidence_matrix(1, 0), zero_matrix(cf, 0, dim); non_redundant=true)
+
+function *(c::scalar_types_extended, Sigma::PolyhedralFan)
+  n_maximal_cones(Sigma) == 0 &&
+    return _empty_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  iszero(c) && return _origin_fan(coefficient_field(Sigma), ambient_dim(Sigma))
+  is_positive(c) && return Sigma
+  return -Sigma
+end
+*(Sigma::PolyhedralFan, c::scalar_types_extended) = c * Sigma

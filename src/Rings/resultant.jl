@@ -117,12 +117,12 @@ function __resultant_poisson(F::Vector{<: MPolyRingElem{<:FieldElem}})
   end
   Q, mQ = quo(S, I)
   V, VtoQ = vector_space(K, Q)
-  @assert dim(V) == prod(d[1:end-1]; init = 1)
-  M = zero_matrix(K, dim(V), dim(V))
+  @assert vector_space_dim(V) == prod(d[1:end-1]; init = 1)
+  M = zero_matrix(K, vector_space_dim(V), vector_space_dim(V))
   fn = mQ(last(f))
-  for i in 1:dim(V)
+  for i in 1:vector_space_dim(V)
     v = VtoQ\(VtoQ(V[i]) * fn)
-    for j in 1:dim(V)
+    for j in 1:vector_space_dim(V)
       M[i, j] = v[j]
     end
   end

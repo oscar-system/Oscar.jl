@@ -1,9 +1,15 @@
+```@meta
+CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
+```
+
 # `SubObjectIterator`
 
 Many of the objects in the field of *Polyhedral Geometry* mask a `BigObject`
 from `Polymake.jl`. These big objects have properties which can easily be
 accessed via julia's dot syntax. The return commonly does not adhere to the
-mathematical or the typing conventions of `Oscar`; many properties encode
+mathematical or the typing conventions of OSCAR; many properties encode
 information about a collection of mathematical objects within a single data
 object.
 
@@ -104,7 +110,7 @@ the sense that one can
 The first case is covered by adding methods to specific internal functions.
 Remember implementation of `rays` discussed above. It makes sense to define
 a `vector_matrix` method on its output, encoding the rays of the cone as a
-single matrix based on a convention applied throughout `Oscar`. The function's
+single matrix based on a convention applied throughout OSCAR. The function's
 implementation a user calls in this case is evaluated to these lines:
 
 ```julia
@@ -120,7 +126,7 @@ Two functionalities are defined this way:
    for the value type of the access function, it falls back to throwing an
    error.
 2. The matrix received from step 1 is converted from `Polymake.jl` format
-   to `Oscar` format.
+   to OSCAR format.
 
 So by defining the following we have a fully functional `vector_matrix` method
 in the context of `rays`:

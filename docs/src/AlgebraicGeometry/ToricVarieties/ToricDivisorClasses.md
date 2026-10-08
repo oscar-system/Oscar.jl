@@ -1,5 +1,7 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
@@ -49,7 +51,9 @@ is_effective(tdc::ToricDivisorClass)
 ## Attributes
 
 ```@docs
+coefficients(tdc::ToricDivisorClass)
 divisor_class(tdc::ToricDivisorClass)
+picard_class(tdc::ToricDivisorClass)
 toric_variety(tdc::ToricDivisorClass)
 toric_divisor(tdc::ToricDivisorClass)
 ```

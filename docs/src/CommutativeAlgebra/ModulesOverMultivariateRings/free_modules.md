@@ -1,12 +1,13 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
-over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.
+over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, `MPolyQuoLocRing`, `ZZRing`, or `Field`.
 More concretely, given a ring $R$ of one of these types, the free $R$-modules considered are of
 type $R^p$, where we think of $R^p$ as a free module with a given basis, namely the basis of
 standard unit vectors. Accordingly, elements of free modules are represented by coordinate vectors,
@@ -18,8 +19,8 @@ and homomorphisms between free modules by matrices.
 ## Types
 
 All OSCAR types for the modules considered here belong to the
-abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
-Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
+abstract type `OFPModule{T}`, where `T` is the element type of the underlying ring.
+Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: OFPModule{T}`,
 they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
@@ -32,6 +33,11 @@ they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{
 
 ```@docs
 free_module(R::MPolyRing, n::Int, name::VarName = :e; cached::Bool = false)
+```
+
+```@docs
+free_module(::Type{<:FreeMod}, R::Union{ZZRing, Field, MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing},
+                n::Int, name::VarName = :e; cached::Bool = false)
 ```
 
 Over graded multivariate polynomial rings and their quotients,  there are two basic ways of
@@ -61,7 +67,7 @@ If `F` is a free `R`-module, then
 
 - `base_ring(F)` refers to `R`,
 - `basis(F)`, `gens(F)` to the basis vectors of `F`, 
-- `rank(F)`, `number_of_generators(F)` / `ngens(F)`, `dim(F)` to the number of these vectors, and
+- `rank(F)`, `number_of_generators(F)` / `ngens(F)` to the number of these vectors, and
 - `F[i]`, `basis(F, i)`, `gen(F, i)` to the `i`-th such vector.
 
 ###### Examples
@@ -95,7 +101,7 @@ degrees_of_generators(F::FreeMod)
 
 All OSCAR types for elements of the modules considered here belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
-The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
+The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: OFPModuleElem{T}`.
 They are modeled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
 which implements an element $f$ of a free module $F$ as a sparse row, that is, as an object of
 type `SRow{T}`. This object specifies the coordinates of $f$ with respect to the basis of standard
@@ -197,17 +203,17 @@ is_zero(F::AbstractFreeMod)
 ## Homomorphisms from Free Modules
 
 All OSCAR types for homomorphisms of the modules considered here belong
-to the abstract type `ModuleFPHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
+to the abstract type `OFPModuleHom{T1, T2}`, where `T1` and `T2` are the types of domain and codomain respectively.
 A homomorphism $F\to M$ from a free module $F$ is determined by specifying the images
 of the basis vectors of $F$ in $M$. For such homomorphisms, OSCAR provides the concrete type
-`FreeModuleHom{T1, T2} <: ModuleFPHom{T1, T2}` as well as the following constructors:
+`FreeModuleHom{T1, T2} <: OFPModuleHom{T1, T2}` as well as the following constructors:
 
 ```@docs
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T 
+hom(F::FreeMod, M::OFPModule{T}, V::Vector{<:OFPModuleElem{T}}) where T 
 ```
 
 ```@docs
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+hom(F::FreeMod, M::OFPModule{T}, V::Vector{<:OFPModuleElem{T}}, h::RingMapType) where {T, RingMapType}
 ```
 
 Given a homomorphism of type `FreeModuleHom`, a matrix representing it

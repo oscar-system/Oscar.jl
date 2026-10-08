@@ -200,7 +200,7 @@ or its root system.
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> dominant_character(L, [2, 1, 0])
@@ -211,7 +211,7 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
   2*w_1 + w_2 => 1
 ```
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = root_system(:B, 3);
 
 julia> dominant_character(R, 2 * fundamental_weight(R, 1) + fundamental_weight(R, 3))
@@ -336,7 +336,7 @@ or its root system.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::WeightLatticeElem)).
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> character(L, [2, 0, 0])
@@ -353,7 +353,7 @@ Dict{WeightLatticeElem, Int64} with 10 entries:
   -w_2             => 1
 ```
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = root_system(:B, 3);
 
 julia> character(R, fundamental_weight(R, 3))
@@ -427,7 +427,7 @@ This function uses Klimyk's formula (see [Hum72; Exercise 24.9](@cite)).
 The return type may change in the future.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = lie_algebra(QQ, :A, 2);
 
 julia> tensor_product_decomposition(L, [1, 0], [0, 1])
@@ -444,7 +444,7 @@ MSet{Vector{Int64}} with 6 elements:
   [0, 3]
 ```
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = root_system(:B, 2);
 
 julia> tensor_product_decomposition(R, fundamental_weight(R, 1), fundamental_weight(R, 2))
@@ -520,7 +520,7 @@ end
 
 ###############################################################################
 #
-#   Demazure modules (via highest weight) of semisimple Lie algebras
+#   Demazure modules of semisimple Lie algebras
 #
 ###############################################################################
 
@@ -563,7 +563,7 @@ where $P$ denotes the additive group of the weight lattice.
 If a single weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = root_system(:A, 3);
 
 julia> pos_r = positive_root(R, 4)
@@ -600,6 +600,25 @@ function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   return demazure_operator(r, Dict(w => 1))
 end
 
+# If the reduced expression is w_1,w_2,...,w_k, then this applies the Demazure operator for w_1, then for w_2, and so on to `char`.
+function _iterated_demazure_operator(
+  R::RootSystem,
+  reduced_expression::Vector{<:IntegerUnion},
+  char::Dict{WeightLatticeElem,<:IntegerUnion},
+)
+  for i in reduced_expression
+    char = demazure_operator(simple_root(R, Int(i)), char)
+  end
+  return char
+end
+
+function _iterated_demazure_operator(
+  R::RootSystem, x::WeylGroupElem, char::Dict{WeightLatticeElem,<:IntegerUnion}
+)
+  @req root_system(parent(x)) === R "parent root system mismatch"
+  return _iterated_demazure_operator(R, word(x), char)
+end
+
 @doc raw"""
     demazure_character(
       [T = Int],
@@ -622,7 +641,7 @@ For Demazure characters of generalized flag manifolds, as in [PS09](@cite),
 see [`demazure_character(::AbstractVector, ::PermGroupElem)`](@ref).
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> L = lie_algebra(QQ, :A, 2);
 
 julia> demazure_character(L, [1, 1], [2, 1])
@@ -634,7 +653,7 @@ Dict{WeightLatticeElem, Int64} with 5 entries:
   -2*w_1 + w_2 => 1
 ```
 
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> R = root_system(:B, 3);
 
 julia> demazure_character(R, fundamental_weight(R, 2), weyl_group(R)([1, 2, 3]))
@@ -681,35 +700,118 @@ function demazure_character(
   return demazure_character(T, R, WeightLatticeElem(R, w), x)
 end
 
-function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
-  @req root_system(parent(x)) === R "parent root system mismatch"
-  return demazure_character(R, w, word(x))
-end
-
 function demazure_character(
-  T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem
+  R::RootSystem, w::WeightLatticeElem, x::Union{WeylGroupElem,Vector{<:IntegerUnion}}
 )
-  @req root_system(parent(x)) === R "parent root system mismatch"
-  return demazure_character(T, R, w, word(x))
-end
-
-function demazure_character(
-  R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
-)
-  return demazure_character(Int, R, w, reduced_expression)
+  return demazure_character(Int, R, w, x)
 end
 
 function demazure_character(
   T::DataType,
   R::RootSystem,
   w::WeightLatticeElem,
-  reduced_expression::Vector{<:IntegerUnion},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
   @req root_system(w) === R "parent root system mismatch"
   @req is_dominant(w) "not a dominant weight"
   char = Dict{WeightLatticeElem,T}(w => T(1))
-  for i in reduced_expression
-    char = demazure_operator(simple_root(root_system(w), Int(i)), char)
-  end
-  return char
+  return _iterated_demazure_operator(R, x, char)
+end
+
+###############################################################################
+#
+#   Kostant-Kumar-Modules of semisimple Lie algebras
+#
+###############################################################################
+
+@doc raw"""
+    kostant_kumar_character(
+      [T = Int],
+      L::LieAlgebra *or* R::RootSystem,
+      w1::WeightLatticeElem *or* w1::Vector{<:IntegerUnion},
+      w2::WeightLatticeElem *or* w2::Vector{<:IntegerUnion},
+      x::WeylGroupElem *or* reduced_expr::Vector{<:IntegerUnion},
+    ) -> Dict{WeightLatticeElem, T}
+
+Compute all weights occurring in the Kostant-Kumar module with highest weight `w1` and extremal weight `w2 * x`
+together with their multiplicities,
+using a formula by Kumar (see [Kum88; Theorem 2.14](@cite)).
+
+The Kostant-Kumar module with highest weight `w1` and extremal weight `w2 * x` is the cyclic $U(L)$-submodule
+of the tensor product of the simple modules with highest weights `w1` and `w2`,
+generated by the tensor product of a vector of weight `w1` and a vector of weight `w2 * x` (see [Kum88; Lemma 2.8](@cite)).
+
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
+
+Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
+This function may return arbitrary results if the provided expression is not reduced.
+"""
+function kostant_kumar_character(
+  L::LieAlgebra,
+  w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
+  @req is_semisimple(L) "Lie algebra not semisimple"
+  return kostant_kumar_character(root_system(L), w1, w2, x)
+end
+
+function kostant_kumar_character(
+  T::DataType,
+  L::LieAlgebra,
+  w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
+  @req is_semisimple(L) "Lie algebra not semisimple"
+  return kostant_kumar_character(T, root_system(L), w1, w2, x)
+end
+
+function kostant_kumar_character(
+  R::RootSystem, w1::Vector{<:IntegerUnion}, w2::Vector{<:IntegerUnion},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
+  return kostant_kumar_character(R, WeightLatticeElem(R, w1), WeightLatticeElem(R, w2), x)
+end
+
+function kostant_kumar_character(
+  T::DataType,
+  R::RootSystem,
+  w1::Vector{<:IntegerUnion},
+  w2::Vector{<:IntegerUnion},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
+  return kostant_kumar_character(
+    T, R, WeightLatticeElem(R, w1), WeightLatticeElem(R, w2), x
+  )
+end
+
+function kostant_kumar_character(
+  R::RootSystem, w1::WeightLatticeElem, w2::WeightLatticeElem,
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
+  return kostant_kumar_character(Int, R, w1, w2, x)
+end
+
+function kostant_kumar_character(
+  T::DataType,
+  R::RootSystem,
+  w1::WeightLatticeElem,
+  w2::WeightLatticeElem,
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
+  @req root_system(w1) === root_system(w2) === R "parent root system mismatch"
+  @req is_dominant(w1) "first weight is not a dominant weight"
+  @req is_dominant(w2) "second weight is not a dominant weight"
+  # Compute D_w0(e^w1 * D_x(e^w2))
+  char_w2x = Dict{WeightLatticeElem,T}(w2 => T(1))
+  char_w2x = _iterated_demazure_operator(R, x, char_w2x)
+  char_w2x_shifted = Dict{WeightLatticeElem,T}(
+    (w + w1) => coeff for (w, coeff) in char_w2x
+  )
+  w0 = longest_element(weyl_group(R))
+  return _iterated_demazure_operator(R, w0, char_w2x_shifted)
 end

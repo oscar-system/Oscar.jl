@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -80,4 +81,10 @@ tensor_product_decomposition(::LieAlgebra, ::WeightLatticeElem, ::WeightLatticeE
 ```@docs
 demazure_operator(::RootSpaceElem, ::Dict{WeightLatticeElem,<:IntegerUnion})
 demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)
+```
+
+### Functions concerning Kostant-Kumar modules
+
+```@docs
+kostant_kumar_character(::LieAlgebra, ::WeightLatticeElem, ::WeightLatticeElem, ::WeylGroupElem)
 ```

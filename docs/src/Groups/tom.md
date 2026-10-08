@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -38,7 +39,6 @@ of all those available tables of marks that have certain properties.
 ## Construct tables of marks
 
 ```@docs
-GAPGroupTableOfMarks
 table_of_marks(G::Union{GAPGroup, FinGenAbGroup})
 table_of_marks(id::String)
 Base.show(io::IO, ::MIME"text/plain", tom::GAPGroupTableOfMarks)
@@ -101,4 +101,10 @@ restrict(chi::GAPGroupMarksVector, tbl::GAPGroupCharacterTable)
 ```@docs
 character_table(tom::GAPGroupTableOfMarks)
 table_of_marks(tbl::GAPGroupCharacterTable)
+```
+
+## Technicalities
+
+```@docs
+GAPGroupTableOfMarks
 ```

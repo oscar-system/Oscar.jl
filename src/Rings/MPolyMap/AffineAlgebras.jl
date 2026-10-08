@@ -284,6 +284,11 @@ function preimage(
   return ideal(domain(f), help_map.(gens(K)))
 end
 
+@attr Any function kernel(f::MPolyAnyMap{<:Union{MPolyRing, MPolyQuoRing}, <:Generic.LaurentMPolyWrapRing, <:Any, <:Any})
+  C = codomain(f)
+  return preimage(f, ideal(C, [zero(C)]))
+end
+
 # Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .
 # Construct the polynomial ring K[y, x], the natural maps K[x] -> K[y, x]
 # and K[y, x] -> K[y], and the ideal I_2 + (y_i - f_i) in it.
@@ -307,6 +312,6 @@ function _groebner_data(F::AffAlgHom)
   end::MPolyIdeal{mpoly_type(K)}
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
-  TtoR = hom(T, R, append!(zeros(R, n), gens(R)))
+  TtoR = hom(T, R, append!(Hecke.zeros_array(R, n), gens(R)))
   return T, S2toT, TtoR, J
 end

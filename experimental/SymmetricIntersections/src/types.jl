@@ -83,10 +83,10 @@ have entries in the base field of the representation ring.
 """
 @attributes mutable struct LinRep{S, T, U}
   rep_ring::RepRing{S, T}
-  f::GAPGroupHomomorphism{T, MatrixGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}
+  f::GAPGroupHomomorphism{T, MatGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}
   char::Oscar.GAPGroupClassFunction
 
-  function LinRep{S, T, U}(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatrixGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}, char::Oscar.GAPGroupClassFunction) where {S, T, U}
+  function LinRep{S, T, U}(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, MatGroup{U, AbstractAlgebra.Generic.MatSpaceElem{U}}}, char::Oscar.GAPGroupClassFunction) where {S, T, U}
     z = new{S, T, U}()
     z.rep_ring = RR
     z.f = f

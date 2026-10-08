@@ -139,7 +139,7 @@ end
 end
 
 @testset "AtlasSLDecision evaluate /compile" begin
-    p = perm"(1, 2)(3, 4)"
+    p = AbstractAlgebra.perm"(1, 2)(3, 4)"
     q = Perm([1, 4, 2, 3])
     pq = [p, q]
 

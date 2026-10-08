@@ -3,13 +3,13 @@
     @testset "IsObject" begin
       x = GAP.evalstr("Objectify(NewType(NewFamily(\"TestFamily\"),IsObject),rec())")
       filenamex = joinpath(path, "x")
-      @test_throws ErrorException Oscar.save(filenamex, x)
+      @test_throws GAP.GAPError Oscar.save(filenamex, x)
     end
 
     @testset "IsFamily" begin
       x = GAP.Globals.FamilyObj(GapObj(symmetric_group(5)))
       filenamex = joinpath(path, "x")
-      @test_throws ErrorException Oscar.save(filenamex, x)
+      @test_throws GAP.GAPError Oscar.save(filenamex, x)
     end
 
     @testset "IsFreeGroup" begin

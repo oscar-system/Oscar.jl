@@ -1,4 +1,4 @@
-const expdir = joinpath(@__DIR__, "../experimental")
+const expdir = joinpath(@__DIR__, "..", "experimental")
 
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -8,13 +8,17 @@ const expdir = joinpath(@__DIR__, "../experimental")
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # needs code from LieAlgebras
-  "ComplexReflectionGroups",  # Because LieAlgebra implements coroot
+  "ComplexReflectionGroups", # needs `coroot` from LieAlgebras
+  "ModStd",                  # is needed for AlgebraicShifting
   "AlgebraicShifting",       # Needs code from Lie Algebras (`isomorphism(PermGroup, ::WeylGroup)` specifically)
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
   "Schemes",
   "FTheoryTools",            # must be loaded after Schemes and LieAlgebras
   "IntersectionTheory",      # must be loaded after Schemes
+  "Parallel",
+  "AlgebraicStatistics", # must be loaded after Parallel
+  "OscarDB", # needs GroupBasedPhylogenticModel Serialization
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -64,7 +68,7 @@ for name in names(Oscar)
     # Loop over all definitions of a function
     for entry in md.meta[:results]
       # Test whether function was defined in experimental
-      if startswith(entry.data[:path], joinpath(Oscar.oscardir, "experimental"))
+      if startswith(entry.data[:path], @__DIR__)
         append!(entry.object.content[1].content, warnexp.content)
       end
     end

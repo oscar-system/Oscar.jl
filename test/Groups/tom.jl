@@ -50,7 +50,7 @@ default `show`
 
 ```jldoctest tables_of_marks.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Table of marks of Alt(4)
+Table of marks of alternating group of degree 4
 
 1: 12        
 2:  6 2      
@@ -63,7 +63,7 @@ LaTeX format
 
 ```jldoctest tables_of_marks.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-Table of marks of Alt(4)
+Table of marks of alternating group of degree 4
 
 $\begin{array}{rrrrrr}
 1: & 12 &  &  &  &  \\ 
@@ -302,7 +302,7 @@ end
   t = table_of_marks(g)
   @test nrows(t) == 11
   @test ncols(t) == 11
-  @test_throws ErrorException t[12]
+  @test_throws GAP.GAPError t[12]
   tr = t[end]
   @test parent(tr) === t
   @test tr in t

@@ -22,7 +22,7 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.12.2",
-  function upgrade_0_12_2(s::UpgradeState, dict::Dict)
+  function upgrade_0_12_2(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     s.nested_level += 1
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
@@ -74,7 +74,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       end
 
-      local_refs = Dict()
+      local_refs = Dict{Symbol, Any}()
       upgraded_parents = []
 
       # using the parent list we attach the refs 
@@ -82,7 +82,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       for parent in parents
         id = parent[:id]
         
-        pushfirst!(upgraded_parents, Dict(:id => id, :type => "#backref"))
+        pushfirst!(upgraded_parents, Dict{Symbol, Any}(:id => id, :type => "#backref"))
         if haskey(local_refs, Symbol(id))
           continue
         end
@@ -93,7 +93,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           base_dict = parent[:data][:base_ring]
 
           if haskey(base_dict, :id)
-            parent[:data][:base_ring] = Dict(:id => base_dict[:id], :type => "#backref")
+            parent[:data][:base_ring] = Dict{Symbol, Any}(:id => base_dict[:id], :type => "#backref")
           end
         end
         local_refs[Symbol(id)] = parent
@@ -117,7 +117,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         # to the new terms format
         exponent = 0
         for coeff in upgraded_dict[:data][:coeffs][:data][:vector]
-          if !isa(coeff, Dict)
+          if !isa(coeff, AbstractDict)
             upgraded_coeff = coeff
           elseif haskey(coeff[:data], :polynomial)
             upgraded_coeff = upgrade_0_12_2(s, coeff[:data][:polynomial])[:data][:terms]
@@ -129,7 +129,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           exponent += 1
         end
       end
-      upgraded_dict[:data] = Dict(:terms => terms, 
+      upgraded_dict[:data] = Dict{Symbol, Any}(:terms => terms, 
                                   :parents => upgraded_parents)
       merge!(s.id_to_dict, local_refs)
     end

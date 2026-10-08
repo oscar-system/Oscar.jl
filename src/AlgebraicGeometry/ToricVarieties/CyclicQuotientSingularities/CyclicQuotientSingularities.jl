@@ -5,12 +5,10 @@
 ################################################################################
 
 function Base.show(io::IO, cqs::CyclicQuotientSingularity)
-    n = pm_object(cqs).N
-    q = pm_object(cqs).Q
-    print(io, "Cyclic quotient singularity Y($(n), $(q))")
+  n = pm_object(cqs).N
+  q = pm_object(cqs).Q
+  print(io, "Cyclic quotient singularity Y($(n), $(q))")
 end
-
-
 
 ################################################################################
 ################################################################################
@@ -36,15 +34,16 @@ julia> is_smooth(cqs)
 false
 ```
 """
-function cyclic_quotient_singularity(n::T, q::T) where {T <: IntegerUnion}
-    n > 0 || error("n (=$(n)) must be positive")
-    q > 0 || error("q (=$(q)) must be positive")
-    q < n || error("q must be smaller than n (q=$(q) >= n=$(n))")
-    gcd(n, q) == 1 || error("n and q must be coprime (gcd=$(gcd(n, q)))")
-    pmntv = Polymake.fulton.CyclicQuotient(N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q))
-    return CyclicQuotientSingularity(pmntv, Dict())
+function cyclic_quotient_singularity(n::T, q::T) where {T<:IntegerUnion}
+  n > 0 || error("n (=$(n)) must be positive")
+  q > 0 || error("q (=$(q)) must be positive")
+  q < n || error("q must be smaller than n (q=$(q) >= n=$(n))")
+  gcd(n, q) == 1 || error("n and q must be coprime (gcd=$(gcd(n, q)))")
+  pmntv = Polymake.fulton.CyclicQuotient(;
+    N=convert(Polymake.Integer, n), Q=convert(Polymake.Integer, q)
+  )
+  return CyclicQuotientSingularity(pmntv, Dict())
 end
-
 
 @doc raw"""
     continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
@@ -73,10 +72,11 @@ julia> ecf = cf[1]-1//(cf[2]-QQFieldElem(1, cf[3]))
 7//5
 ```
 """
-@attr Vector{ZZRingElem} function continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-    return Vector{ZZRingElem}(pm_object(cqs).CONTINUED_FRACTION)
+@attr Vector{ZZRingElem} function continued_fraction_hirzebruch_jung(
+  cqs::CyclicQuotientSingularity
+)
+  return Vector{ZZRingElem}(pm_object(cqs).CONTINUED_FRACTION)
 end
-
 
 @doc raw"""
     dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
@@ -104,10 +104,11 @@ julia> edcf = dcf[1] - QQFieldElem(1, dcf[2])
 7//2
 ```
 """
-@attr Vector{ZZRingElem} function dual_continued_fraction_hirzebruch_jung(cqs::CyclicQuotientSingularity)
-    return Vector{ZZRingElem}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
+@attr Vector{ZZRingElem} function dual_continued_fraction_hirzebruch_jung(
+  cqs::CyclicQuotientSingularity
+)
+  return Vector{ZZRingElem}(pm_object(cqs).DUAL_CONTINUED_FRACTION)
 end
-
 
 @doc raw"""
     continued_fraction_hirzebruch_jung_to_rational(v::Vector{ZZRingElem})
@@ -136,9 +137,10 @@ julia> continued_fraction_hirzebruch_jung_to_rational(v)
 ```
 """
 function continued_fraction_hirzebruch_jung_to_rational(v::Vector{ZZRingElem})
-    return convert(QQFieldElem, Polymake.fulton.cf2rational(convert(Vector{Polymake.Integer}, v)))
+  return convert(
+    QQFieldElem, Polymake.fulton.cf2rational(convert(Vector{Polymake.Integer}, v))
+  )
 end
-
 
 @doc raw"""
     rational_to_continued_fraction_hirzebruch_jung(r::QQFieldElem)
@@ -175,19 +177,19 @@ true
 ```
 """
 function rational_to_continued_fraction_hirzebruch_jung(r::QQFieldElem)
-    cf = continued_fraction(r)
-    z = ZZRingElem[]
-    n = length(cf)
-    for i in 1:n
-       cfi = cf[i]
-       if iseven(i)
-          cfi < 2^30 || @warn "blowing up your memory"
-          while (cfi -= 1) > 0
-             push!(z, ZZRingElem(2))
-          end
-       else
-          push!(z, cfi + (1 < i < n) + (1 < n))
-       end
+  cf = continued_fraction(r)
+  z = ZZRingElem[]
+  n = length(cf)
+  for i in 1:n
+    cfi = cf[i]
+    if iseven(i)
+      cfi < 2^30 || @warn "blowing up your memory"
+      while (cfi -= 1) > 0
+        push!(z, ZZRingElem(2))
+      end
+    else
+      push!(z, cfi + (1 < i < n) + (1 < n))
     end
-    z
+  end
+  z
 end

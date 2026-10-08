@@ -23,6 +23,3 @@ end
 
 ideal_type(::Type{RT}) where {RT<:MPolyRing} = MPolyIdeal{elem_type(RT)}
 ideal_type(::Type{RT}) where {PolyType, RT<:MPolyQuoRing{PolyType}} = MPolyQuoIdeal{PolyType}
-ideal_type(R::Ring) = ideal_type(typeof(R))
-
-

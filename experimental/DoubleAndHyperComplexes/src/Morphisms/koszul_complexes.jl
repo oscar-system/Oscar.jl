@@ -32,10 +32,10 @@ function (fac::KoszulKomplexMorphismFactory)(self::AbsHyperComplexMorphism, i::T
                        [first(gens(codomain(self)[ngens(codomain(fac.original_map)) - d]))],
                        check=false
                       )
-  return induced_map_on_exterior_power(fac.original_map, d, 
-                                       domain=domain(self)[i], 
-                                       codomain=codomain(self)[ngens(codomain(fac.original_map)) - d]
-                                      )
+  return exterior_power(fac.original_map, d;
+                        domain=domain(self)[i], 
+                        codomain=codomain(self)[ngens(codomain(fac.original_map)) - d]
+                       )
 end
 
 function can_compute(fac::KoszulKomplexMorphismFactory, self::AbsHyperComplexMorphism, i::Tuple)

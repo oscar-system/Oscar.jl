@@ -156,7 +156,7 @@ function unitary_reflection(root::AbstractAlgebra.Generic.FreeModuleElem{T}) whe
   K = base_ring(V)
 
   zeta = K(-1)
-  
+
   return unitary_reflection(root,zeta)
 
 end
@@ -165,7 +165,7 @@ end
 # Construction of a complex reflection from matrix
 ###########################################################################################
 function is_complex_reflection_with_data(w::MatElem{T}; debug::Bool=false) where T <: QQAlgFieldElem
-  
+
   if !is_square(w)
     return false, nothing
   end
@@ -196,7 +196,7 @@ function is_complex_reflection_with_data(w::MatElem{T}; debug::Bool=false) where
   # If H \cap R != {0} then w is not of finite order: if w is of finite order, then
   # image(1-w) is the orthogonal complement of ker(1-w) with respect to a w-invariant scalar
   # product, which exists since w is of finite order.
-  
+
   HcapR, HcapRincl = intersect(H,R)
 
   if dim(HcapR) > 0
@@ -215,7 +215,7 @@ function is_complex_reflection_with_data(w::MatElem{T}; debug::Bool=false) where
 
   # Now, we need to determine the scalar zeta by which w acts on alpha (we do not yet know
   # whether w is a root of unity (which is equivalent to w being of finite order).
-  alpha_w = alpha*w
+  alpha_w = parent(alpha)(coordinates(alpha) * w)
 
   # We need a non-zero entry of alpha for this
   i=1
@@ -283,11 +283,11 @@ end
 ###########################################################################################
 # Construction of a complex reflection from matrix group element
 ###########################################################################################
-function is_complex_reflection_with_data(w::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+function is_complex_reflection_with_data(w::MatGroupElem{T}) where T <: QQAlgFieldElem
 
   G = parent(w)
 
-  # If G has reflections assigned (see function below), try to find w in the list and 
+  # If G has reflections assigned (see function below), try to find w in the list and
   # return the data.
   if has_attribute(G, :complex_reflections)
     refls = collect(get_attribute(G, :complex_reflections))
@@ -302,12 +302,12 @@ function is_complex_reflection_with_data(w::MatrixGroupElem{T}) where T <: QQAlg
   return is_complex_reflection_with_data(matrix(w))
 end
 
-function is_complex_reflection(w::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+function is_complex_reflection(w::MatGroupElem{T}) where T <: QQAlgFieldElem
   b, w_data = is_complex_reflection_with_data(w)
   return b
 end
 
-function complex_reflection(w::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+function complex_reflection(w::MatGroupElem{T}) where T <: QQAlgFieldElem
 
   b,w_data = is_complex_reflection_with_data(w)
 
@@ -322,8 +322,8 @@ end
 ###########################################################################################
 # Determining all reflections of a matrix group.
 ###########################################################################################
-function complex_reflections(G::MatrixGroup{T}) where T <: QQAlgFieldElem
-   
+function complex_reflections(G::MatGroup{T}) where T <: QQAlgFieldElem
+
   if has_attribute(G, :complex_reflections)
     return get_attribute(G, :complex_reflections)
   end
@@ -333,7 +333,7 @@ function complex_reflections(G::MatrixGroup{T}) where T <: QQAlgFieldElem
   # This is not efficient yet: we should loop only over conjugacy classes
   for g in G
     b,g_data = is_complex_reflection_with_data(g)
-    if b 
+    if b
       push!(refls, g_data)
     end
   end

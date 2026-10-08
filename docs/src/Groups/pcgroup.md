@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -58,10 +59,10 @@ Inverses and products of elements given by their normal forms
 can be efficiently written in normal form.
 
 Groups which are given by a polycyclic presentation are called
-*polycyclicly presented* groups.
+*polycyclicly presented* groups, or simply *pc groups*.
 The rest of this section is about these groups.
 
-Polycyclicly presented groups in Oscar have the type [`PcGroup`](@ref),
+Pc groups in OSCAR have the type [`PcGroup`](@ref),
 their elements have the type [`PcGroupElem`](@ref).
 Analogous to the situation with finitely presented groups and their subgroups,
 there are the types [`SubPcGroup`](@ref) for subgroups
@@ -70,7 +71,7 @@ and [`SubPcGroupElem`](@ref) for their elements.
 ## Basic Creation
 
 One can write down a polycyclic presentation by hand, using a so-called
-[collector](@ref "Collectors for polycyclicly presented groups"),
+[collector](@ref "Collectors for pc groups"),
 and then creating a group with this presentation.
 
 ```jldoctest
@@ -87,16 +88,18 @@ julia> describe(gg)
 "S3"
 ```
 
-Alternatively, one can take a polycyclic group,
-and let Oscar compute a pc presentation for it.
+Alternatively, one can convert another type of group into a pc group,
+either via [`isomorphism`](@ref isomorphism(::Type{T}, G::Group) where T <: Group) or using the `pc_group` command:
+
+```@docs
+pc_group(G::T) where T <: Union{Group, FinGenAbGroup}
+```
 
 ```jldoctest
 julia> g = symmetric_group(4)
-Sym(4)
+Symmetric group of degree 4
 
-julia> iso = isomorphism(PcGroup, g);
-
-julia> h = codomain(iso)
+julia> h = pc_group(g)
 Pc group of order 24
 ```
 
@@ -121,6 +124,10 @@ Pc group of order 24
 ```@docs
 letters(g::Union{PcGroupElem, SubPcGroupElem})
 syllables(g::Union{PcGroupElem, SubPcGroupElem})
+depth(g::Union{PcGroupElem,SubPcGroupElem})
+relative_order(g::Union{PcGroupElem,SubPcGroupElem})
+exponent_vector(g::Union{PcGroupElem,SubPcGroupElem})
+leading_exponent(g::Union{PcGroupElem,SubPcGroupElem})
 map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 ```
 
@@ -128,16 +135,17 @@ map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Ve
 
 ```@docs
 relators(G::PcGroup)
+hirsch_length(G::PcGroup)
 ```
 
 The function
 [`full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}`](@ref)
 for (subgroups of) finitely presented groups is applicable to
-(subgroups of) polycyclicly presented groups as well.
+(subgroups of) pc groups as well.
 
 ## Series of polycyclic groups
 
-The following functions can be used to create polycyclicly presented groups
+The following functions can be used to create pc groups
 from certain series of groups.
 
 (In fact, one can request also other types for the results,
@@ -146,12 +154,13 @@ but `PcGroup` is the default type in all cases except `abelian_group`.)
 ```@docs
 abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup
 elementary_abelian_group
+extraspecial_group
 cyclic_group
 dihedral_group
 quaternion_group
 ```
 
-## Collectors for polycyclicly presented groups
+## Collectors for pc groups
 
 The following functions can be used to enter polycyclic presentations
 by hand, or to create new such presentations from given ones.
@@ -169,6 +178,15 @@ get_conjugate(c::Collector{T}, j::Int, i::Int) where T <: IntegerUnion
 set_commutator!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
 pc_group(c::GAP_Collector)
 collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
+```
+
+## Encoding and reconstruction of pc groups
+
+The following functions provide conversions between polycyclic groups and their integer encodings.
+
+```@docs
+encode(::PcGroup)
+pc_group(::IntegerUnion, ::IntegerUnion)
 ```
 
 ## Technicalities

@@ -1,16 +1,12 @@
 using Oscar
 using Test
 
-function evalu(x::Fac)
-  return x.unit * prod(p*k for (p,k) = x.fac)
-end
-
 @testset "factorizations" begin
   k, a = quadratic_field(-5)
   zk = maximal_order(k)
   f = factorizations(zk(6))
   @test length(f) == 2
-  @test all(x -> evalu(x) == 6, f)
+  @test all(x -> evaluate(x) == 6, f)
   @test !is_irreducible(zk(6))
 end
 

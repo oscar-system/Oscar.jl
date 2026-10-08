@@ -5,7 +5,7 @@
 # Ulrich Thiel, 2024
 
 
-function symplectic_doubling(G::MatrixGroup)
+function symplectic_doubling(G::MatGroup)
 
   K = base_ring(G)
   n = degree(G)
@@ -25,7 +25,7 @@ function symplectic_doubling(G::MatrixGroup)
 
 end
 
-function symplectic_reflection_group(W::MatrixGroup)
+function symplectic_reflection_group(W::MatGroup)
 
   if !is_complex_reflection_group(W)
     throw(ArgumentError("Group must be a complex reflection group"))
@@ -38,12 +38,12 @@ function symplectic_reflection_group(W::MatrixGroup)
   return W_symp
 end
 
-function is_symplectic_reflection_group(G::MatrixGroup)
+function is_symplectic_reflection_group(G::MatGroup)
 
   if has_attribute(G, :is_symplectic_reflection_group)
     return get_attribute(G, :is_symplectic_reflection_group)
   end
-  
+
   #this should be upgraded later to work with a general matrix group
   error("Not implemented yet")
 

@@ -10,7 +10,7 @@
     @test is_ready(res)
     x = rand(G)
     @test x in res
-    if G isa MatrixGroup
+    if G isa MatGroup
       @test matrix(x) in res
     end
     slp = straight_line_program(res, x)

@@ -3,7 +3,7 @@ using Oscar
 
 @testset "Elevators" begin
   W = sort(rand(1:5, 10))
-  S, x = graded_polynomial_ring(QQ, 10, W; cached=false)
+  S, x = graded_polynomial_ring(QQ, 10; weights=W, cached=false)
 
   function weight(p)
     return degree(p).coeff[1]
@@ -13,7 +13,7 @@ using Oscar
     el = Oscar.elevator(x, weight, i)
     Oscar.number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
-    @test Oscar.number_of_elevations(el) == dim(Si)
+    @test Oscar.number_of_elevations(el) == vector_space_dim(Si)
     @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si)))
   end
 
@@ -65,7 +65,7 @@ end
 
   f = representation_mapping(rep)
   @test domain(f) === E
-  @test codomain(f) isa MatrixGroup
+  @test codomain(f) isa MatGroup
   @test character_representation(RR, f) == chi
 
   n = @inferred dimension_representation(rep)
@@ -138,7 +138,7 @@ end
 
   f = representation_mapping_linear_lift(prep)
   @test order(domain(f)) == 64
-  @test codomain(f) isa MatrixGroup
+  @test codomain(f) isa MatGroup
   @test character_representation(RR, f) == chi
 
   n = @inferred dimension_representation(prep)

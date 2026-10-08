@@ -7,12 +7,12 @@
 # References:
 #
 # * Lehrer, G. I., & Taylor, D. E. (2009). Unitary reflection groups (Vol. 20, p. viii). Cambridge University Press, Cambridge.
-# 
+#
 # * Thiel, U. (2014). On restricted rational Cherednik algebras. TU Kaiserslautern.
 #
 # * Geck, M., & Malle, G. (2006). Reflection groups. In Handbook of algebra. Vol. 4 (Vol. 4, pp. 337–383)
 #
-# Ulrich Thiel, 2023 
+# Ulrich Thiel, 2023
 
 struct ComplexReflectionGroupType
   type::Vector{Union{Int, Tuple{Int,Int,Int}}}
@@ -42,11 +42,11 @@ struct ComplexReflectionGroupType
 
         # Normalization of special overlap cases to get unique labeling
         # See # Lehrer & Taylor (2009). p 27
-        if (m,p,n) == (4,4,2) 
+        if (m,p,n) == (4,4,2)
           tnorm = (2,1,2)
-        elseif (m,p,n) == (3,3,2) 
+        elseif (m,p,n) == (3,3,2)
           tnorm = (1,1,3)
-        elseif (m,p,n) == (2,2,3) 
+        elseif (m,p,n) == (2,2,3)
           tnorm = (1,1,4)
         elseif n == 1
           m = div(m,p)
@@ -97,7 +97,7 @@ ComplexReflectionGroupType(t::Tuple{Int,Int,Int}) = ComplexReflectionGroupType(c
 complex_reflection_group_type(i::Int) = ComplexReflectionGroupType(i)
 complex_reflection_group_type(m::Int, p::Int, n::Int) = ComplexReflectionGroupType(m,p,n)
 complex_reflection_group_type(t::Tuple{Int,Int,Int}) = ComplexReflectionGroupType(t)
-complex_reflection_group_type(X::Vector) = 
+complex_reflection_group_type(X::Vector) =
 ComplexReflectionGroupType(X)
 
 # Triviality
@@ -115,7 +115,7 @@ function number_of_components(G::ComplexReflectionGroupType)
 end
 
 function is_irreducible(G::ComplexReflectionGroupType)
-  
+
   return length(G.type) == 1
 
 end
@@ -164,11 +164,11 @@ function rank(G::ComplexReflectionGroupType)
       p = ZZ(t[2])
       n = ZZ(t[3])
       if m == 1 && p == 1 #symmetric group case is of rank n-1
-        N *= n-1 
+        N *= n-1
       else
         N *= n
       end
-    end 
+    end
   end
   return N
 end
@@ -227,19 +227,19 @@ function number_of_reflections(G::ComplexReflectionGroupType)
       m = ZZ(t[1])
       p = ZZ(t[2])
       n = ZZ(t[3])
-      N += div(m*(n^2-n),2) + n*(div(m,p)-1) 
+      N += div(m*(n^2-n),2) + n*(div(m,p)-1)
       # Formula follows from Lehrer & Taylor (2009), Lemma 2.8.
     end
   end
 
   return N
-end 
+end
 
 function is_well_generated(G::ComplexReflectionGroupType)
-  
+
   # Grabbed from Magma
   excwell = [ 4, 5, 6, 8, 9, 10, 14, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37 ]
-  
+
   for t in G.type
     if isa(t, Int)
       if !(t in excwell)
@@ -264,7 +264,7 @@ function degrees(G::ComplexReflectionGroupType)
   degrees = Vector{Int}()
 
   # Lehrer & Taylor (2009), Table D.3 (p 275)
-  excdegrees = 
+  excdegrees =
   [
     [ 4, 6 ],
     [ 6, 12 ],
@@ -305,7 +305,7 @@ function degrees(G::ComplexReflectionGroupType)
   for t in G.type
     if isa(t, Int)
       i = t
-      append!(degrees, convert(Vector{ZZRingElem}, excdegrees[i-3]) ) 
+      append!(degrees, convert(Vector{ZZRingElem}, excdegrees[i-3]) )
     else
       # Lehrer & Taylor (2009), Appendix D.2 (p 274)
       (m,p,n) = t
@@ -316,7 +316,7 @@ function degrees(G::ComplexReflectionGroupType)
       else
         append!(degrees, sort([[ZZ(m)*i for i=1:n-1] ; [div(ZZ(n)*ZZ(m),ZZ(p))]]))
       end
-    end 
+    end
   end
 
   return degrees
@@ -328,7 +328,7 @@ function codegrees(G::ComplexReflectionGroupType)
   codegrees = Vector{Int}()
 
   # Lehrer & Taylor (2009), Table D.3 (p 275)
-  exccodegrees = 
+  exccodegrees =
   [
     [ 0, 2 ],  #4
     [ 0, 6 ],  #5
@@ -369,7 +369,7 @@ function codegrees(G::ComplexReflectionGroupType)
   for t in G.type
     if isa(t, Int)
       i = t
-      append!(codegrees, convert(Vector{ZZRingElem}, exccodegrees[i-3]) ) 
+      append!(codegrees, convert(Vector{ZZRingElem}, exccodegrees[i-3]) )
     else
       # Lehrer & Taylor (2009), Appendix D.2 (p 274)
       (m,p,n) = t
@@ -384,7 +384,7 @@ function codegrees(G::ComplexReflectionGroupType)
           append!(codegrees, sort([[ZZ(m)*i for i=0:n-2]; [ZZ(n-1)*ZZ(m)-ZZ(n)]]))
         end
       end
-    end 
+    end
   end
 
   return codegrees
@@ -397,7 +397,7 @@ function exponents(G::ComplexReflectionGroupType)
   deg = degrees(G)
   return [ d-1 for d in deg ]
 
-end 
+end
 
 function coexponents(G::ComplexReflectionGroupType)
 
@@ -405,7 +405,7 @@ function coexponents(G::ComplexReflectionGroupType)
   codeg = codegrees(G)
   return [ d+1 for d in codeg ]
 
-end 
+end
 
 function number_of_hyperplanes(G::ComplexReflectionGroupType)
 
@@ -515,7 +515,7 @@ end
 #       m = t[1]
 #       p = t[2]
 #       n = t[3]
-#       if p != 1 
+#       if p != 1
 #         return false
 #       end
 #     end
@@ -530,7 +530,7 @@ end
 # end
 
 function is_spetsial(G::ComplexReflectionGroupType)
-  
+
   # See Achar (2009)
   excspet = [ 4, 6, 8, 14, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37 ]
 
@@ -565,7 +565,7 @@ function number_of_reflection_classes(G::ComplexReflectionGroupType)
       N += ZZ(excnum[i-3]) #index shift by 3 because exceptionals start with G4
     else
       (m,p,n) = t
-      
+
       # See Thiel (2014), Theorem 15.27
       if n > 2 || (n == 2 && is_odd(p))
         N += div(ZZ(m),ZZ(p))

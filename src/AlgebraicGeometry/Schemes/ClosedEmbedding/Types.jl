@@ -23,10 +23,10 @@ ideal ``I ⊂ R``.
   U::AffineSchemeOpenSubscheme
 
   # On an affine scheme X return the subscheme defined by I ⊂ 𝒪(X).
-  function ClosedEmbedding(X::AbsAffineScheme, I::Ideal; check=true)
+  function ClosedEmbedding(X::AbsAffineScheme, I::Ideal; check::Bool=true)
     base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
     Y = subscheme(X, I)
-    inc = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+    inc = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)); check=false); check=false)
     return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
   end
 

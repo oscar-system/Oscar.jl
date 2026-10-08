@@ -186,6 +186,14 @@
     @test is_integral(Z2cov)
   end
 
+  @testset "irreducible components" begin 
+    P1 = projective_space(QQ,1)
+    (s0,s1) = homogeneous_coordinates(P1)
+    X = subscheme(P1,ideal(s0*s1))
+    Xcov = covered_scheme(X)
+    @test length(irreducible_components(Xcov))==2
+  end 
+  
   @testset "conversion of morphisms" begin
     P = projective_space(QQ, 2)
     SP = homogeneous_coordinate_ring(P)
@@ -350,7 +358,7 @@
     gluing_morphisms(Cnorm[1,2])
 
     # A non-normal Enriques surface as constructed by Enriques himself
-    S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ,[:x0,:x1,:x2,:x3])
+    S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ, [:x0,:x1,:x2,:x3])
     J = ideal(S, [x1^2*x2^2*x3^2 + x0^2*x2^2*x3^2 + x0^2*x1^2*x3^2 + x0^2*x1^2*x2^2 + x0*x1*x2*x3*(x0^2+x1^2+2x0*x1+x2^2+x3^2)])
     X = proj(S, J)
     Xcov = covered_scheme(X)

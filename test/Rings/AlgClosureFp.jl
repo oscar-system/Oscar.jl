@@ -185,4 +185,5 @@
   R = algebraic_closure(GF(3,1))
   Kt, t = rational_function_field(R, "t")
   @test sprint(show, t) isa String
+  @test is_perfect(R)
 end

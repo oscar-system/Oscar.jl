@@ -1,3 +1,5 @@
+using Oscar: _vec, set_root_system_type!
+
 ###############################################################################
 #
 #   Root systems
@@ -37,7 +39,7 @@ end
 @register_serialization_type RootSpaceElem
 @register_serialization_type DualRootSpaceElem
 
-type_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = TypeParams(T, root_system(e))
+type_and_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = TypeAndParams(T, root_system(e))
 
 function save_object(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceElem})
   save_object(s, _vec(coefficients(r)))
@@ -57,7 +59,7 @@ end
 
 @register_serialization_type WeightLattice uses_id
 
-type_params(P::WeightLattice) = TypeParams(WeightLattice, root_system(P))
+type_and_params(P::WeightLattice) = TypeAndParams(WeightLattice, root_system(P))
 
 function save_object(s::SerializerState, P::WeightLattice)
   save_data_dict(s) do
@@ -71,8 +73,6 @@ function load_object(s::DeserializerState, ::Type{WeightLattice}, R::RootSystem)
 end
 
 @register_serialization_type WeightLatticeElem
-
-type_params(w::WeightLatticeElem) = TypeParams(WeightLatticeElem, parent(w))
 
 function save_object(s::SerializerState, w::WeightLatticeElem)
   save_object(s, _vec(coefficients(w)))
@@ -90,7 +90,7 @@ end
 
 @register_serialization_type WeylGroup uses_id
 
-type_params(W::WeylGroup) = TypeParams(WeylGroup, root_system(W))
+type_and_params(W::WeylGroup) = TypeAndParams(WeylGroup, root_system(W))
 
 function save_object(s::SerializerState, W::WeylGroup)
   save_data_dict(s) do
@@ -104,8 +104,6 @@ function load_object(s::DeserializerState, ::Type{WeylGroup}, R::RootSystem)
 end
 
 @register_serialization_type WeylGroupElem
-
-type_params(w::WeylGroupElem) = TypeParams(WeylGroupElem, parent(w))
 
 function save_object(s::SerializerState, x::WeylGroupElem)
   save_object(s, word(x))

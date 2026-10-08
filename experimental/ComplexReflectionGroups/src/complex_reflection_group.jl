@@ -3,17 +3,17 @@
 # References:
 #
 # * Lehrer, G. I., & Taylor, D. E. (2009). Unitary reflection groups (Vol. 20, p. viii). Cambridge University Press, Cambridge.
-# 
+#
 # * Thiel, U. (2014). On restricted rational Cherednik algebras. TU Kaiserslautern.
 #
 # * Marin, I., & Michel, J. (2010). Automorphisms of complex reflection groups. Represent. Theory, 14, 747–788.
 #
-# Ulrich Thiel, 2023 
+# Ulrich Thiel, 2023
 
 function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
-  
+
   # this will be the list of matrix groups corresponding to the components of G
-  component_groups = MatrixGroup[]
+  component_groups = MatGroup[]
 
   # list of models of the components
   modellist = []
@@ -37,7 +37,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
     else
       Cmodel = model
     end
-    
+
     if Cmodel == :LT
       matgrp = complex_reflection_group_LT(t)
     elseif Cmodel == :Magma
@@ -89,7 +89,7 @@ complex_reflection_group(X::Vector, model::Symbol=:default) = complex_reflection
 ############################################################################################
 # Getter functions
 ############################################################################################
-function complex_reflection_group_type(G::MatrixGroup)
+function complex_reflection_group_type(G::MatGroup)
   if has_attribute(G, :complex_reflection_group_type)
     return get_attribute(G, :complex_reflection_group_type)
   end
@@ -98,7 +98,7 @@ function complex_reflection_group_type(G::MatrixGroup)
   # type from scratch is not so easy though)
 end
 
-function complex_reflection_group_model(G::MatrixGroup)
+function complex_reflection_group_model(G::MatGroup)
   if has_attribute(G, :complex_reflection_group_model)
     return get_attribute(G, :complex_reflection_group_model)
   end
@@ -108,9 +108,9 @@ end
 ############################################################################################
 # The dual of a complex reflection group, i.e. the dual of the natural representation of
 # the matrix group. This is of course a general operation of matrix group but this function
-# here (applied to a complex reflection group) sets several attributes 
+# here (applied to a complex reflection group) sets several attributes
 ############################################################################################
-function complex_reflection_group_dual(W::MatrixGroup)
+function complex_reflection_group_dual(W::MatGroup)
 
   if !is_complex_reflection_group(W)
     error("Group is not a complex reflection group")
@@ -129,13 +129,13 @@ end
 ###########################################################################################
 # Checking if a matrix group is a complex reflection group.
 ###########################################################################################
-function is_complex_reflection_group(G::MatrixGroup{T}) where T <: QQAlgFieldElem
-  
+function is_complex_reflection_group(G::MatGroup{T}) where T <: QQAlgFieldElem
+
   # First, check if we already know that G is a complex reflection group
   if has_attribute(G, :is_complex_reflection_group)
     return get_attribute(G, :is_complex_reflection_group)
   end
-  
+
   # Now, check if the (fixed) generating set happens to consist of reflections.
   if all(is_complex_reflection, gens(G))
     set_attribute!(G, :is_complex_reflection_group, true)
@@ -157,7 +157,7 @@ end
 ###########################################################################################
 # Cartan matrix
 ###########################################################################################
-function complex_reflection_group_cartan_matrix(W::MatrixGroup)
+function complex_reflection_group_cartan_matrix(W::MatGroup)
 
   if !is_complex_reflection_group(W)
     throw(ArgumentError("Group is not a complex reflection group"))
@@ -175,7 +175,7 @@ function complex_reflection_group_cartan_matrix(W::MatrixGroup)
 
   K = base_ring(W)
   n = length(roots)
-  C = matrix(K,n,n,[ canonical_pairing(coroots[j], roots[i]) for i=1:n for j=1:n ]) 
+  C = matrix(K,n,n,[ canonical_pairing(coroots[j], roots[i]) for i=1:n for j=1:n ])
 
   return C
 end

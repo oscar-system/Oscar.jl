@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+CollapsedDocStrings = true
 DocTestSetup = Oscar.doctestsetup()
 ```
 
@@ -8,7 +9,6 @@ DocTestSetup = Oscar.doctestsetup()
 ## Direct products
 
 ```@docs
-DirectProductGroup
 direct_product(L::AbstractVector{<:GAPGroup}; morphisms=false)
 inner_direct_product(L::AbstractVector{T}; morphisms=false) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}
 number_of_factors(G::DirectProductGroup)
@@ -26,7 +26,6 @@ is_full_direct_product(G::DirectProductGroup)
 ## Semidirect products
 
 ```@docs
-SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup}
 semidirect_product(N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T) where S <: GAPGroup where T <: GAPGroup
 normal_subgroup(G::SemidirectProductGroup)
 acting_subgroup(G::SemidirectProductGroup)
@@ -39,13 +38,20 @@ canonical_projection(G::SemidirectProductGroup)
 ## Wreath products
 
 ```@docs
-WreathProductGroup
 wreath_product(G::T, H::PermGroup) where T<: GAPGroup
-normal_subgroup(W::WreathProductGroup)
-acting_subgroup(W::WreathProductGroup)
-homomorphism_of_wreath_product(G::WreathProductGroup)
-is_full_wreath_product(G::WreathProductGroup)
-canonical_projection(W::WreathProductGroup)
-canonical_injection(W::WreathProductGroup, n::Int)
-canonical_injections(W::WreathProductGroup)
+normal_subgroup(::WreathProductGroup)
+acting_subgroup(::WreathProductGroup)
+homomorphism_of_wreath_product(::WreathProductGroup)
+is_full_wreath_product(::WreathProductGroup)
+canonical_projection(::WreathProductGroup)
+canonical_injection(::WreathProductGroup, ::Int)
+canonical_injections(::WreathProductGroup)
+```
+
+## Technicalities
+
+```@docs
+DirectProductGroup
+SemidirectProductGroup{S<:GAPGroup, T<:GAPGroup}
+WreathProductGroup
 ```

@@ -42,7 +42,7 @@ function _arithmetic_genus(I::MPolyIdeal)
     #req is_standard_graded(S) "The base ring must be standard graded."
    A, _ = quo(S, I)
    H = hilbert_polynomial(A)
-   return (-1)^(dim(A)-1)*(ZZ(coeff(H, 0)) - 1)
+   return (-1)^(krull_dim(A)-1)*(ZZ(coeff(H, 0)) - 1)
 end
 
 @doc raw"""
@@ -149,9 +149,10 @@ julia> I = ideal(R, [x[1]*x[6] - x[2]*x[5] + x[3]*x[4]]);
 julia> GRASSMANNIAN = variety(I);
 
 julia> Omega = canonical_bundle(GRASSMANNIAN)
-Graded submodule of R^1 with 1 generator
+Graded subquotient of graded submodule of R^1 with 1 generator
   1: e[1]
-represented as subquotient with no relations
+by graded submodule of R^1 with 1 generator
+  1: (x[1]*x[6] - x[2]*x[5] + x[3]*x[4])*e[1]
 
 julia> degrees_of_generators(Omega)
 1-element Vector{FinGenAbGroupElem}:
@@ -198,7 +199,7 @@ function canonical_bundle(X::AbsProjectiveVariety)
   A = homogeneous_coordinate_ring(X)
   n = ngens(Pn)-1
   c = codim(X)
-  FA = free_resolution(A, algorithm = :fres)
+  FA, _ = free_resolution(SimpleFreeResolution, A)
   C_simp = simplify(FA)
   C_shift = shift(C_simp, c)
   OmegaPn = graded_free_module(Pn, [n+1])
@@ -310,7 +311,7 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
       if !any(x -> total_degree(x) > 1, Oscar._vec(D)) 
          adj = _adjoint_matrix(D)
       else
-        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
+        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = true))
       end
       rd = _random_matrix(Pn, 3, ncols(adj), 0)
       dd = dim(ideal(Pn, rd*gens(Pn))+I) 
@@ -330,13 +331,13 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
 	  Ipts = Ipts+AAi
       end
       Ipts = saturation(Ipts, ideal(Pn, gens(Pn)))
-      pts = algebraic_set(Ipts,  is_radical = false, check = false) 
+      pts = algebraic_set(Ipts,  is_radical = true, check = false) 
       if dim(pts) == 0
          l = degree(pts)
       else
          l = zero(ZZ)
       end
-      Y = variety(I, check = false, is_radical = false)
+      Y = variety(I, check = false, is_radical = true)
       dY = degree(Y)
       piY = sectional_genus(Y)
       dummy = (ZZ(ngens(Pn)-1), dY, piY)

@@ -26,7 +26,6 @@ tg = @elapsed Gg = groebner_walk(I, o_t, o_s, algorithm =:generic) #60-70s
 
 ts = @elapsed Gs = groebner_walk(I, o_t, o_s, algorithm =:standard) 
 
-tp = @elapsed Gp = groebner_walk(I, o_t, o_s, algorithm =:perturbed)
 tb = @elapsed Gb = groebner_basis(I, ordering = o_t, complete_reduction = true) #140-160s
 
 tf = @elapsed Gf = groebner_basis(I, ordering = o_t, complete_reduction = true, algorithm =:fglm) #error: dimension of ideal must be zero! 

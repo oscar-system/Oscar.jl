@@ -15,11 +15,12 @@
   Qx, x = QQ[:x]
   K, r = number_field(x^3 - 3x^2 - 4x + 8, "r")
   Ky, y = K[:y]
-  L, = number_field(y^2 - (2 - r^2)//2, "q")
+  L, lq = number_field(y^2 - (2 - r^2)//2, "q")
   Lz, z = L[:z]
-  E, q = Hecke.embedded_field(L, real_embeddings(L)[2])
-  pq1 = E(roots(z^2 - (3 + 2r - r^2))[2])
-  pq2 = E(roots(z^2 - (3 - r^2))[1])
+  emb = only(filter(Base.Fix1(is_positive, lq), real_embeddings(L)))
+  E, q = Hecke.embedded_field(L, emb)
+  pq1 = only(filter(is_positive, E.(roots(z^2 - (3 + 2r - r^2)))))
+  pq2 = only(filter(is_positive, E.(roots(z^2 - (3 - r^2)))))
   p = (pq1 + pq2)//2
   r = E(r)
 
@@ -97,9 +98,9 @@
       @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
     end
     let ng = n_gon(5)
-      (A,b) = halfspace_matrix_pair(facets(ng))
-      @test typeof(polyhedron(A,b)) == typeof(ng)
-      @test coefficient_field(polyhedron(A,b)) == coefficient_field((ng))
+      (A, b) = halfspace_matrix_pair(facets(ng))
+      @test typeof(polyhedron(A, b)) == typeof(ng)
+      @test coefficient_field(polyhedron(A, b)) == coefficient_field((ng))
     end
   end
 
@@ -188,8 +189,8 @@
       @test volume(p) == 379 * sre2//36 + 1349//108
     end
 
-    cc = positive_hull(ENF, Oscar.homogenized_matrix(vertices(c), 1))
-    dc = positive_hull(Oscar.homogenized_matrix(vertices(d), 1))
+    cc = positive_hull(ENF, Oscar.homogenized_matrix(ENF, vertices(c), 1))
+    dc = positive_hull(Oscar.homogenized_matrix(ENF, vertices(d), 1))
     @test intersect(cc, dc) isa Cone{T}
     let p = intersect(cc, dc)
       @test f_vector(p) == f_vector(c)
@@ -254,5 +255,41 @@
       end
       l = f[1]
     end
+  end
+
+  @testset "coefficient field coercion" begin
+    d = dodecahedron()
+    qqb = algebraic_closure(QQ)
+    dqqb = polyhedron(qqb, d)
+    @test dqqb isa Polyhedron{QQBarFieldElem}
+    @test volume(dqqb) isa QQBarFieldElem
+    @test volume(dqqb) == qqb(volume(d))
+
+    df = polyhedron(Float64, d)
+    @test df isa Polyhedron{Float64}
+    @test Oscar.pm_object(df).VOLUME isa Float64
+
+    dqf = polyhedron(Float64, dqqb)
+    @test dqf isa Polyhedron{Float64}
+    @test Oscar.pm_object(dqf).VOLUME isa Float64
+
+    @test isapprox(volume(dqf), volume(df); rtol=0.00001)
+
+    js9 = johnson_solid(qqb, 9)
+    @test Oscar.pm_object(js9).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js9).VOLUME) isa QQBarFieldElem
+
+    js18 = johnson_solid(qqb, 18)
+    @test js18 isa Polyhedron{QQBarFieldElem}
+    @test Oscar.pm_object(js18).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js18).VOLUME) isa QQBarFieldElem
+
+    js22 = johnson_solid(qqb, 22)
+    @test Oscar.pm_object(js22).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(js22).VOLUME) isa QQBarFieldElem
+
+    cs = catalan_solid(qqb, "pentagonal_icositetrahedron")
+    @test Oscar.pm_object(cs).VOLUME isa Polymake.OscarNumber
+    @test Polymake.unwrap(Oscar.pm_object(cs).VOLUME) isa QQBarFieldElem
   end
 end

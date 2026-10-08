@@ -27,6 +27,28 @@ The coordinates are with respect to the ambient space of its ambient scheme.
 """
 coordinates(p::AffineRationalPoint) = p.coordinates
 
+@doc raw"""
+    rational_point(X::AbsAffineScheme, coordinates; check::Bool=true) -> AbsAffineRationalPoint 
+    
+Return the rational point of `X` given by `coordinates`.
+
+# Examples 
+```jldoctest
+julia> A1 = affine_space(QQ,1)
+Affine space of dimension 1
+  over rational field
+with coordinate [x1]
+
+julia> rational_point(A1,[1])
+Rational point
+  of affine 1-space over QQ with coordinate [x1]
+with coordinates (1)
+
+```
+"""
+rational_point(X::AbsAffineScheme, coordinates; check::Bool=true) = X(coordinates;check)
+
+
 function (X::AbsAffineScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)
@@ -129,7 +151,7 @@ end
 @doc raw"""
     scheme(P::AbsAffineRationalPoint) -> AbsAffineScheme
 
-Return the rational point ``P`` viewed as a reduced, affine subscheme
+Return the rational point `P` viewed as a reduced, affine subscheme
 of its ambient affine space.
 """
 function scheme(P::AbsAffineRationalPoint)
@@ -177,7 +199,7 @@ end
 @doc raw"""
     is_smooth(P::AbsAffineRationalPoint)
 
-Return whether ``P`` is a smooth point of its ambient scheme ``X``.
+Return whether `P` is a smooth point of its ambient scheme `X`.
 """
 is_smooth(P::AbsAffineRationalPoint) = is_smooth(codomain(P),P)
 
@@ -214,7 +236,7 @@ tangent_space(P::AbsAffineRationalPoint{<:FieldElem}) = tangent_space(codomain(P
 
 Return whether the ambient scheme of `P` has at most a Du Val singularity at `P`.
 
-Note that this includes the case that ``P`` is a smooth point.
+Note that this includes the case that `P` is a smooth point.
 """
 is_du_val_singularity(P::AbsAffineRationalPoint{<:FieldElem}) = is_du_val_singularity(codomain(P), ideal(P))
 

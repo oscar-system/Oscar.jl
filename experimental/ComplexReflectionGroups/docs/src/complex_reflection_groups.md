@@ -11,12 +11,12 @@ definitions before we discuss the implemented functions. The standard reference 
 ## Theoretical review
 
 Throughout, let $V$ be a finite-dimensional vector space over $\mathbb{C}$. The **fix
-space** of an element $g \in \mathrm{GL}(V)$ is 
+space** of an element $g \in \mathrm{GL}(V)$ is
 
 $$\mathrm{Fix}(g) = \{ v \in V \mid gv = v \} = \mathrm{Ker}(1-g) \;.$$
 
 We call $g$ a (complex) **reflection** if $g$ is of *finite order* and its fix space is a
-*hyperplane*. 
+*hyperplane*.
 
 Let $(\cdot, \cdot)$ be an inner product on $V$. We always assume that $(\cdot, \cdot)$ is
 linear in the first component and conjugate-linear in the second component. We say that $g$
@@ -69,13 +69,13 @@ H$ and
 $$\alpha^\vee(\alpha) = 1-\zeta \;.$$
 
 We call $\alpha^\vee$ the **coroot** of $g$ with respect to $\alpha$. If $g$ is unitary with
-respect to an inner product $(\cdot, \cdot)$, we can take $L_H = (\cdot,\alpha)$ so that 
+respect to an inner product $(\cdot, \cdot)$, we can take $L_H = (\cdot,\alpha)$ so that
 
 $$\alpha^\vee = (1-\zeta) \frac{(\cdot,\alpha)}{(\alpha,\alpha)} \;.$$
 
 
 
-!!! warning 
+!!! warning
     In OSCAR—like in most computer algebra systems—matrices $A$ act from the *right*
     on vectors $x$ and consequently the kernel of $A$ consists of the vectors $x$ with $xA =
     0$. The same applies to the image and any other construction involving the action. In
@@ -83,7 +83,7 @@ $$\alpha^\vee = (1-\zeta) \frac{(\cdot,\alpha)}{(\alpha,\alpha)} \;.$$
     transfer results between the computer and the literature, one usually needs to
     *transpose* the matrices.
 
- 
+
 
 ## Showcase
 As a demonstration, we create the exceptional complex reflection group $G_{4}$ in the
@@ -127,7 +127,7 @@ julia> eigenvalue(w_data)
 -ω - 1
 ```
 
-One can now run all avaialable matrix group functionality in OSCAR on this group. For 
+One can now run all avaialable matrix group functionality in OSCAR on this group. For
 example one can compute its invariant ring:
 
 ```jldoctest
@@ -156,7 +156,7 @@ Matrix group of degree 2
   over cyclotomic field of order 3
 
 julia> gens(W)
-2-element Vector{MatrixGroupElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}}}:
+2-element Vector{MatGroupElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}}}:
  [1 0; 0 z_3]
  [2//3*z_3+1//3 2//3*z_3-2//3; 1//3*z_3-1//3 1//3*z_3+2//3]
 
@@ -184,7 +184,7 @@ Matrix group of degree 2
   over cyclotomic field of order 3
 
 julia> gens(W)
-2-element Vector{MatrixGroupElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}}}:
+2-element Vector{MatGroupElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}}}:
  [z_3 0; -z_3-1 1]
  [1 z_3+1; 0 z_3]
 ```
@@ -192,7 +192,7 @@ julia> gens(W)
 This illustrates that having available different models is useful in practice and we
 therefore support this in our implementation.
 
-Another feature of our implementation is that we do not just implement matrix models but 
+Another feature of our implementation is that we do not just implement matrix models but
 
 ```jldoctest
 julia> W = complex_reflection_group_type([23, (2,1,4)])

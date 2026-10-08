@@ -109,7 +109,7 @@ function complex_reflection_group_Magma(n::Int)
     push!(gens, s1)
     push!(gens, s2)
     push!(gens, s3)
-    
+
     W = matrix_group(gens)
 
   elseif n == 12
@@ -152,7 +152,7 @@ function complex_reflection_group_Magma(n::Int)
 
     push!(gens, s1)
     push!(gens, s2)
-    
+
     W = matrix_group(gens)
 
   elseif n == 15
@@ -167,7 +167,7 @@ function complex_reflection_group_Magma(n::Int)
     push!(gens, s1)
     push!(gens, s2)
     push!(gens, s3)
-    
+
     W = matrix_group(gens)
 
   elseif n == 16
@@ -221,7 +221,7 @@ function complex_reflection_group_Magma(n::Int)
     push!(gens, s1)
     push!(gens, s2)
     push!(gens, s3)
-    
+
     W = matrix_group(gens)
 
   elseif n == 20
@@ -337,7 +337,7 @@ function complex_reflection_group_Magma(n::Int)
     push!(gens, s1)
     push!(gens, s2)
     push!(gens, s3)
-    
+
     W = matrix_group(gens)
 
   elseif n == 28
@@ -547,12 +547,12 @@ function complex_reflection_group_Magma(t::Tuple)
   (m,p,n) = t
 
   if m == 1 && p == 1
-     # In Magma, ShephardTodd(1,1,n) gives the permutation representation, 
+     # In Magma, ShephardTodd(1,1,n) gives the permutation representation,
      # which is not irreducible...
      error("No model in Magma for the symmetric group case")
   end
 
-  # What's implemented in Magma deviates slightly from Lehrer & Taylor, 
+  # What's implemented in Magma deviates slightly from Lehrer & Taylor,
   # see the remarks below.
   K, z = cyclotomic_field(m)
   matspace = matrix_space(K, n, n)
