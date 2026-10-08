@@ -72,6 +72,11 @@
   #no invariants of positive degree
   @test is_empty(fundamental_invariants(invariant_ring(representation_on_forms(G, 1))))
 
+  #forms of a degree whose factorial exceeds the range of Int
+  M = representation_matrix(representation_on_forms(G, 21))
+  @test M[1, 2] == 21 * z[1, 1]^20 * z[2, 1]
+  @test Oscar.multinomial_coefficient(30, [10, 10, 10]) == 5550996791340
+
   #direct sum of representation_linearly_reductive_group
   D = Oscar._direct_sum(rep1, rep2)
   @test ncols(representation_matrix(D)) == 6
