@@ -326,7 +326,7 @@ Return a map `nu` from `R` to the min (default) or max tropical semiring `T` suc
 julia> Kt, (t,) = puiseux_polynomial_ring(QQ,["t"]);
 
 julia> nu = tropical_semiring_map(Kt,t)
-Map into Min tropical semiring encoding the t-adic valuation on Multivariate polynomial ring in 1 variable over multivariate Laurent polynomial ring
+Map into Min tropical semiring encoding the t-adic valuation on Puiseux polynomial ring in 1 variable over QQ
 
 julia> nu(t)
 (1)
@@ -335,7 +335,7 @@ julia> nu(0)
 infty
 
 julia> nu = tropical_semiring_map(Kt,t,max)
-Map into Max tropical semiring encoding the t-adic valuation on Multivariate polynomial ring in 1 variable over multivariate Laurent polynomial ring
+Map into Max tropical semiring encoding the t-adic valuation on Puiseux polynomial ring in 1 variable over QQ
 
 julia> nu(t)
 (-1)
