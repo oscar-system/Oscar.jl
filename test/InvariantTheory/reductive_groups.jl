@@ -36,8 +36,8 @@
   #direct sum of representation_linearly_reductive_group
   D = direct_sum(rep1, rep2)
   @test ncols(representation_matrix(D)) == 6
-  T1 = Oscar.tensor([rep1, rep2])
-  T2 = Oscar.tensor(rep1, rep2)
+  T1 = Oscar._tensor_product([rep1, rep2])
+  T2 = Oscar._tensor_product(rep1, rep2)
   @test representation_matrix(T1) == representation_matrix(T2)
   @test ncols(representation_matrix(T1)) == 9
 

@@ -174,7 +174,7 @@ function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
   return RepresentationLinearlyReductiveGroup(G, Mat)
 end
 
-function tensor(
+function _tensor_product(
   X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup
 )
   @req group(X) === group(Y) "not compatible"
@@ -182,7 +182,7 @@ function tensor(
   return RepresentationLinearlyReductiveGroup(group(X), Mat)
 end
 
-function tensor(V::Vector{RepresentationLinearlyReductiveGroup})
+function _tensor_product(V::Vector{RepresentationLinearlyReductiveGroup})
   n = length(V)
   for i in 2:n
     @req group(V[1]) === group(V[i]) "not compatible"
