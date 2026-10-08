@@ -76,7 +76,6 @@ linearly_reductive_group(sym::Symbol, m::Int, R::MPolyRing) =
 
 linearly_reductive_group(I::MPolyIdeal) = LinearlyReductiveGroup(I)
 
-group(G::LinearlyReductiveGroup) = G.group
 base_ring(G::LinearlyReductiveGroup) = G.field
 reynolds_operator(G::LinearlyReductiveGroup) = G.reynolds_operator
 defining_ideal(G::LinearlyReductiveGroup) = G.defining_ideal
