@@ -151,6 +151,8 @@
   z = gens(ringg)
   f = z[1] * z[4] - z[2] * z[3] - 1
   G = linearly_reductive_group(ideal([f]))
+  @test_throws ArgumentError representation_on_forms(G, 2)
+  @test_throws ArgumentError representation_reductive_group(G)
   R = representation_reductive_group(G, M)
   RG = invariant_ring(R)
   F = fundamental_invariants(RG)

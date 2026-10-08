@@ -134,12 +134,12 @@ julia> representation_matrix(r)
 ```
 """
 function representation_on_forms(G::LinearlyReductiveGroup, d::Int)
-  @assert group_type(G) === :SL
+  @req group_type(G) === :SL "Only implemented for SLm"
   return RepresentationLinearlyReductiveGroup(G, d)
 end
 
 function representation_reductive_group(G::LinearlyReductiveGroup)
-  @assert group_type(G) === :SL
+  @req group_type(G) === :SL "Only implemented for SLm"
   M = canonical_representation(G)
   return RepresentationLinearlyReductiveGroup(G, M)
 end
