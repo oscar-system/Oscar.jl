@@ -598,7 +598,9 @@ function affine_algebra(R::RedGroupInvarRing)
     for i in 1:s
       weights_[i] = total_degree(V[i])
     end
-    S, _ = graded_polynomial_ring(coefficient_ring(R), :t => 1:s; weights=weights_, cached=false)
+    S, _ = graded_polynomial_ring(
+      coefficient_ring(R), :t => 1:s; weights=weights_, cached=false
+    )
     R_ = polynomial_ring(R)
     StoR = hom(S, R_, V)
     I = kernel(StoR)

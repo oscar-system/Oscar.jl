@@ -352,7 +352,7 @@ function affine_algebra(R::TorGroupInvarRing)
       weights_[i] = total_degree(V[i])
     end
     S, _ = graded_polynomial_ring(
-      base_ring(group(representation(R))), :t => 1:s; weights=weights_
+      base_ring(group(representation(R))), :t => 1:s; weights=weights_, cached=false
     )
     R_ = polynomial_ring(R)
     StoR = hom(S, R_, V)

@@ -512,7 +512,7 @@ end
   #Invariant ring of reductive group G (in representation R), no other input.
   function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
     n = length(weights(R))
-    super_ring, _ = graded_polynomial_ring(base_ring(group(R)), :X => 1:n)
+    super_ring, _ = graded_polynomial_ring(base_ring(group(R)), :X => 1:n; cached=false)
     return TorGroupInvarRing(R, super_ring)
   end
 
