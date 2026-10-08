@@ -4,7 +4,9 @@ include("transitive_groups.jl")
 include("primitive_groups.jl")
 include("perfect_groups.jl")
 include("class_number_groups.jl")
+include("atlas_groups.jl")
 
+export atlas_groups_library
 export find
 export groups_with_class_number_library
 export has_groups
