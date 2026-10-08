@@ -103,7 +103,7 @@ If `G` is the special linear group acting by linear substitution on, say, `n`-ar
 
 !!! note
     In accordance with classical papers, an $n$-ary form of degree $d$ in $K[x_1, \dots, x_n]$ is written as a $K$-linear combination
-    of the $K$-basis with elements $\binom{n}{I}x^I$. Here, $I = (i_1, \dots, i_n)\in\mathbb Z_{\geq 0}^n$ with $i_1+\dots +i_n =d$.
+    of the $K$-basis with elements $\binom{d}{I}x^I$. Here, $I = (i_1, \dots, i_n)\in\mathbb Z_{\geq 0}^n$ with $i_1+\dots +i_n =d$.
 
 # Examples
 ```jldoctest
