@@ -151,7 +151,7 @@ function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
   end
 end
 
-function direct_sum(
+function _direct_sum(
   X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup
 )
   @req group(X) === group(Y) "not compatible"
@@ -163,7 +163,7 @@ function direct_sum(
   return RepresentationLinearlyReductiveGroup(G, Mat)
 end
 
-function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
+function _direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
   n = length(V)
   G = group(V[1])
   for i in 2:n

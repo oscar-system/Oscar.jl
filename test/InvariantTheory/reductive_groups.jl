@@ -34,7 +34,7 @@
   @test FI_rep2 == [-4 * x[1] * x[3] + x[2]^2]
 
   #direct sum of representation_linearly_reductive_group
-  D = direct_sum(rep1, rep2)
+  D = Oscar._direct_sum(rep1, rep2)
   @test ncols(representation_matrix(D)) == 6
   T1 = Oscar._tensor_product([rep1, rep2])
   T2 = Oscar._tensor_product(rep1, rep2)
