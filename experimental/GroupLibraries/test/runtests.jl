@@ -155,10 +155,9 @@ end
     @test first(find(P, 3, !is_abelian)) isa PermGroup
   end
 
-  # SOTGrps registers its groups with the small groups library when loaded
+  # only the GAP package SOTGrps provides the groups of order 2662
   @testset "small groups from SOTGrps" begin
     L = small_groups_library()
-    @test GAP.Packages.load("sotgrps")
     @test has_groups(L, 2662)
     S = find(L, 2662)
     @test length(S) == length(collect(keys(S))) == number_of_small_groups(2662)
