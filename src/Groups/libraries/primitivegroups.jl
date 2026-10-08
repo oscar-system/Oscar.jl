@@ -107,10 +107,12 @@ end
     primitive_group_identification(G::PermGroup)
 
 Return a pair `(d,n)` such that `G` is permutation isomorphic with
-`primitive_group(d,n)`, where `G` acts primitively on `d` points.
+`primitive_group(d,n)`, where `d` is the degree of `G`.
 
-If `G` is not primitive on its moved points, or if the primitive permutation groups of
+If `G` is not primitive on `1:d`, or if the primitive permutation groups of
 degree `d` are not available, an exception is thrown.
+To identify a group that is primitive only on its moved points,
+pass its action on these points.
 
 # Examples
 ```jldoctest
@@ -126,31 +128,26 @@ Permutation group of degree 7 and order 720
 julia> is_primitive(S)
 false
 
-julia> is_primitive(S, moved_points(S))
-true
+julia> primitive_group_identification(S)
+ERROR: ArgumentError: group is not primitive on 1:7
+[...]
 
-julia> m = primitive_group_identification(S)
+julia> A = image(action_homomorphism(gset(S, moved_points(S))))[1]
+Permutation group of degree 6
+
+julia> primitive_group_identification(A)
 (6, 4)
-
-julia> order(primitive_group(m...)) == order(S)
-true
 
 julia> primitive_group_identification(symmetric_group(4096))
 ERROR: ArgumentError: identification of primitive permutation groups of degree 4096 is not available
 [...]
-
-julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
-
-julia> primitive_group_identification(S)
-ERROR: ArgumentError: group is not primitive on its moved points
-[...]
 ```
 """
 function primitive_group_identification(G::PermGroup)
-  moved = moved_points(G)
-  @req is_primitive(G, moved) "group is not primitive on its moved points"
-  deg = length(moved)
-  @req has_primitive_groups(deg) "identification of primitive permutation groups of degree $(deg) is not available"
+  deg = degree(G)
+  @req is_primitive(G) "group is not primitive on 1:$(deg)"
+  # GAP's library has no group of degree 1
+  @req deg > 1 && has_primitive_groups(deg) "identification of primitive permutation groups of degree $(deg) is not available"
   res = GAP.Globals.PrimitiveIdentification(GapObj(G))::Int
   return deg, res
 end

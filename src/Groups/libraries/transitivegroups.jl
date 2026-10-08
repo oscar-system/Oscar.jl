@@ -109,10 +109,12 @@ end
     transitive_group_identification(G::PermGroup)
 
 Return a pair `(d,n)` such that `G` is permutation isomorphic with
-`transitive_group(d,n)`, where `G` acts transitively on `d` points.
+`transitive_group(d,n)`, where `d` is the degree of `G`.
 
-If `G` is not transitive on its moved points, or if the transitive groups of
+If `G` is not transitive on `1:d`, or if the transitive groups of
 degree `d` are not available, an exception is thrown.
+To identify a group that is transitive only on its moved points,
+pass its action on these points.
 
 # Examples
 ```jldoctest
@@ -128,34 +130,25 @@ Permutation group of degree 7
 julia> is_transitive(S)
 false
 
-julia> is_transitive(S, moved_points(S))
-true
+julia> transitive_group_identification(S)
+ERROR: ArgumentError: group is not transitive on 1:7
+[...]
 
-julia> m = transitive_group_identification(S)
+julia> A = image(action_homomorphism(gset(S, moved_points(S))))[1]
+Permutation group of degree 4
+
+julia> transitive_group_identification(A)
 (4, 1)
-
-julia> order(transitive_group(m...)) == order(S)
-true
 
 julia> transitive_group_identification(symmetric_group(64))
 ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
 [...]
-
-julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
-
-julia> transitive_group_identification(S)
-ERROR: ArgumentError: group is not transitive on its moved points
-[...]
-
-julia> transitive_group_identification(trivial_subgroup(G)[1])
-(1, 1)
 ```
 """
 function transitive_group_identification(G::PermGroup)
-  moved = moved_points(G)
-  @req is_transitive(G, moved) "group is not transitive on its moved points"
-  deg = length(moved)
-  deg == 0 && return (1, 1)   # the trivial group is 1T1
+  deg = degree(G)
+  @req is_transitive(G) "group is not transitive on 1:$(deg)"
+  deg == 1 && return (1, 1)   # GAP's library starts at degree 2
   @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
   res = GAP.Globals.TransitiveIdentification(GapObj(G))::Int
   return deg, res

@@ -7,7 +7,7 @@
    @test number_of_transitive_groups(1) == 1
    @test transitive_group(1, 1) == symmetric_group(1)
    @test transitive_group_identification(symmetric_group(1)) == (1, 1)
-   @test transitive_group_identification(trivial_subgroup(symmetric_group(4))[1]) == (1, 1)
+   @test_throws ArgumentError transitive_group_identification(trivial_subgroup(symmetric_group(4))[1])
    @test all_transitive_groups(1) == [transitive_group(1, 1)]
    @test all_transitive_groups(degree => 1, is_cyclic) == [transitive_group(1, 1)]
    @test all_transitive_groups(degree => 1, !is_cyclic) == PermGroup[]
@@ -28,6 +28,14 @@
       @test count(l -> is_isomorphic(K,l), L) == 1
    end
    @test sort([transitive_group_identification(l) for l in L]) == [(4,i) for i in 1:5]
+
+   # identification refers to the action on 1:degree(G), not on the moved points
+   H = sub(symmetric_group(5), [cperm(1:4)])[1]
+   @test is_transitive(H, moved_points(H))
+   @test_throws ArgumentError transitive_group_identification(H)
+   A = image(action_homomorphism(gset(H, moved_points(H))))[1]
+   @test transitive_group_identification(A) == (4, 1)
+
    @test Set(L) == Set(all_transitive_groups(degree => 4))
    @test [H2] == all_transitive_groups(degree => 4, is_cyclic)
    @test [H4] == all_transitive_groups(degree => 4, !is_cyclic, is_abelian)
@@ -188,6 +196,15 @@ end
 
    @test issetequal(all_primitive_groups(3:2:9, is_abelian), all_primitive_groups(degree => 3:2:9, is_abelian))
    @test issetequal(all_primitive_groups(9, is_abelian), all_primitive_groups(degree => 9, is_abelian))
+
+   # identification refers to the action on 1:degree(G), not on the moved points
+   @test primitive_group_identification(primitive_group(10, 3)) == (10, 3)
+   H = stabilizer(symmetric_group(5), 1)[1]
+   @test is_primitive(H, moved_points(H))
+   @test_throws ArgumentError primitive_group_identification(H)
+   A = image(action_homomorphism(gset(H, moved_points(H))))[1]
+   @test primitive_group_identification(A) == (4, 2)
+   @test_throws ArgumentError primitive_group_identification(symmetric_group(1))
 end
 
 @testset "Atlas groups" begin
