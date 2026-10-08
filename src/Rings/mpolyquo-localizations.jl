@@ -293,7 +293,7 @@ Localization
   at complement of maximal ideal of point (0, 0)
 
 julia> iota
-Map defined by a julia-function
+Map defined by a Julia function
   from quotient of multivariate polynomial ring by ideal (2*x^2 - y^3, 2*x^2 - y^5)
   to localization of RQ at complement of maximal ideal
 
