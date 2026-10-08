@@ -73,7 +73,6 @@ julia> T = torus_group(QQ,2);
 julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1])
 Representation
   of torus of rank 2 over QQ
-  over QQ
   with weights Vector{ZZRingElem}[[-1, 1], [-1, 1], [2, -2], [0, -1]]
 ```
 """
@@ -143,7 +142,6 @@ function Base.show(io::IO, ::MIME"text/plain", R::RepresentationTorusGroup)
   io = pretty(io)
   println(io, "Representation")
   println(io, Indent(), "of ", Lowercase(), group(R))
-  println(terse(io), "over ", Lowercase(), base_ring(group(R)))
   print(io, "with weights ", weights(R))
   print(io, Dedent())
 end
