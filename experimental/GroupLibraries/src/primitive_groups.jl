@@ -10,6 +10,13 @@ The primary key is the `degree`; the group `L[d, i]` is the `i`-th
 primitive group on `d` points, up to permutation isomorphism.
 The groups are provided by the GAP package `PrimGrp` [PrimGrp](@cite).
 
+A permutation group is regarded as a group on its moved points:
+`identify(L, G)` returns `(d, i)` where `d` is `number_of_moved_points(G)`,
+which can be smaller than `degree(G)`.
+The two agree for the groups in the library, and
+[`find(L::GroupLibrary, filters...)`](@ref) accepts `number_of_moved_points`
+in place of `degree`.
+
 [`find(L::GroupLibrary, filters...)`](@ref) supports the same functions as
 for [`transitive_groups_library`](@ref).
 
@@ -20,6 +27,11 @@ Library of primitive groups
 
 julia> L[10, 1]
 Permutation group of degree 10 and order 60
+
+julia> G = stabilizer(symmetric_group(5), 1)[1];
+
+julia> degree(G), identify(L, G)
+(5, (4, 2))
 
 julia> S = find(L, degree => 10, !is_solvable, order => 1:1000)
 Selection of primitive groups: degree => 10, !is_solvable, order => 1:1000
