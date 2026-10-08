@@ -33,6 +33,13 @@ using Oscar.OscarDB.Mongoc
         tsc = Oscar.OscarDB.find_one(db["TransitiveSimplicialComplexes"],
                                      Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
         @test betti_numbers(tsc) == [0, 0, 0, 1]
+
+        # `find` of Oscar forwards to the method of `Mongoc.find`
+        query = Dict("data.betti_numbers" => ["0", "0", "0", "1"])
+        @test Mongoc.find(collection_tsc, query) isa Oscar.OscarDB.Cursor
+        tscs = Oscar.find(collection_tsc, query)
+        @test tscs isa Oscar.OscarDB.Cursor
+        @test betti_numbers(first(tscs)) == [0, 0, 0, 1]
       end
     end
 

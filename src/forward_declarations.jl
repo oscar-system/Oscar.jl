@@ -145,5 +145,6 @@ const NormalToricVarietyType = Union{NormalToricVariety, AffineNormalToricVariet
 
 # `find(collection, query...)` returns a lazy iterable of the matching entries.
 # Declared here so that experimental packages can add methods without
-# depending on each other.
+# depending on each other. For database collections whose `find` is a method
+# of `Mongoc.find`, OscarDB adds a method that forwards to it.
 function find end
