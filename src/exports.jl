@@ -754,7 +754,6 @@ export groebner_basis_signature_based
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
-export group_ideal
 export group_with_class_number
 export group_with_class_number_identification
 export gset

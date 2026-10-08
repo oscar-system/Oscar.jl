@@ -369,7 +369,7 @@ end
 mutable struct LinearlyReductiveGroup
   field::Field #characteristic zero. implement check?
   group::Tuple{Symbol,Int}
-  group_ideal::MPolyIdeal
+  defining_ideal::MPolyIdeal
   reynolds_operator::Function
   canonical_representation::MatElem
 
@@ -391,7 +391,7 @@ mutable struct LinearlyReductiveGroup
     G.reynolds_operator = reynolds_slm
     M = transpose(matrix(pring, m, m, gens(pring)))
     G.canonical_representation = M
-    G.group_ideal = ideal([det(M) - 1])
+    G.defining_ideal = ideal([det(M) - 1])
     #base ring of M has to be the same as the representation matrix when that is created later.
     return G
   end
@@ -399,7 +399,7 @@ mutable struct LinearlyReductiveGroup
   function LinearlyReductiveGroup(I::MPolyIdeal) #defined by just the ideal
     #no checks
     G = new()
-    G.group_ideal = I
+    G.defining_ideal = I
     G.field = base_ring(base_ring(I))
     return G
   end
@@ -429,7 +429,7 @@ mutable struct RepresentationLinearlyReductiveGroup
 
   #matrix M is the representation matrix. does not check M.
   function RepresentationLinearlyReductiveGroup(G::LinearlyReductiveGroup, M::MatElem)
-    @req base_ring(M) == base_ring(G.group_ideal) "Group ideal and representation matrix must have same parent ring"
+    @req base_ring(M) == base_ring(defining_ideal(G)) "Defining ideal and representation matrix must have same parent ring"
     R = new()
     R.group = G
     R.rep_mat = M

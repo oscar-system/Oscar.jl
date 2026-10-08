@@ -3,7 +3,7 @@
   G = linearly_reductive_group(:SL, 2, S)
   @test Oscar.group_type(G) == :SL
   @test Oscar.group_dim(G) == 2
-  @test group_ideal(G) == ideal([z[1, 1] * z[2, 2] - z[2, 1] * z[1, 2] - 1])
+  @test defining_ideal(G) == ideal([z[1, 1] * z[2, 2] - z[2, 1] * z[1, 2] - 1])
   @test ncols(Oscar.canonical_representation(G)) == 2
   @test Oscar.natural_representation(G) == Oscar.canonical_representation(G)
 
