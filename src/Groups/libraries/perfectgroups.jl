@@ -219,10 +219,7 @@ julia> all_perfect_groups(order => 1:200, !is_simple)
 ```
 """
 function all_perfect_groups(L...)
-   @req !isempty(L) "must specify at least one filter"
-   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
-      L = (order => L[1], L[2:end]...)
-   end
+   L = _expand_key_shorthand(L, order)
    # first get all order restrictions
    ordsL = [x for x in L if x isa Pair && x[1] == order]
    @req !isempty(ordsL) "must restrict the order"
