@@ -258,6 +258,65 @@ end
   g = x^2
   @test div(f, g) == one(R)
   @test divrem(f, g) == (one(R), y)
+
+  q, r = divrem(f, [g, y])
+  @test q == [one(R), one(R)]
+  @test iszero(r)
+  @test parent(r) === R
+end
+
+@testset "Parent checks" begin
+  # two gradings of the same ring have the same element type
+  R, _ = QQ[:x, :y]
+  S1, (x1, y1) = grade(R, [1, 1])
+  S2, (x2, y2) = grade(R, [1, 2])
+  for op in (+, -, *, ==, divexact, gcd, div, divrem)
+    @test_throws ErrorException op(x1, x2)
+  end
+  @test_throws ErrorException divrem(x1, [x1, x2])
+end
+
+@testset "Square roots" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
+  f = x^2 + y
+  @test sqrt(f^2) == f
+  @test parent(sqrt(f^2)) === R
+  @test is_square(f^2)
+  @test !is_square(f)
+  @test is_square_with_sqrt(f^2) == (true, f)
+  @test !is_square_with_sqrt(f)[1]
+  @test_throws ErrorException sqrt(f)
+end
+
+@testset "MPoly interface for graded rings" begin
+  # test_MPoly_interface requires exactly two variables
+  for (K, w) in [(QQ, [1, 1]), (ZZ, [1, 2]), (GF(7), [2, 3])]
+    R, _ = graded_polynomial_ring(K, [ :x, :y ]; weights = w)
+    ConformanceTests.test_MPoly_interface(R; reps = 3)
+  end
+end
+
+@testset "Unsafe functions" begin
+  # build 2*y + 3*x^2 term by term, out of order and with a duplicate term
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ])
+  f = zero(R)
+  fit!(f, 3)
+  for (i, (c, e)) in enumerate([(1, [0, 1]), (3, [2, 0]), (1, [0, 1])])
+    @test set_exponent_vector!(f, i, e) === f
+    @test setcoeff!(f, i, QQ(c)) === f
+  end
+  @test sort_terms!(f) === f
+  @test combine_like_terms!(f) === f
+  @test f == 2*y + 3*x^2
+  @test parent(f) === R
+  @test coeff(f, [2, 0]) == 3
+  @test iszero(coeff(f, [1, 1]))
+
+  B = MPolyBuildCtx(R)
+  push_term!(B, QQ(2), [0, 1])
+  push_term!(B, QQ(3), [2, 0])
+  @test finish(B) == 2*y + 3*x^2
+  @test iszero(finish(B))
 end
 
 # Conversion bug
