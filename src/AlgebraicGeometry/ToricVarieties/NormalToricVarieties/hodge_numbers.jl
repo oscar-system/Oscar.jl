@@ -2,21 +2,13 @@
 # Hodge numbers
 ############################
 
-function _hodge_number_matrix(d::Int)
-  H = Matrix{ZZRingElem}(undef, d + 1, d + 1)
-  for p in 1:(d + 1)
-    for q in 1:(d + 1)
-      p != q && (H[p, q] = ZZ(0))
-    end
-  end
-  return H
-end
-
 @doc raw"""
     hodge_number(v::NormalToricVarietyType, p::Int, q::Int)
 
 Return the rational Hodge number $h^{p,q}$ of a complete and simplicial
 toric variety `v`.
+
+Both `p` and `q` must lie between zero and `dim(v)`, inclusive.
 
 By Theorem 9.3.2 of [CLS11](@cite), the Hodge numbers of such a variety
 vanish off the diagonal: $h^{p,q}(X_\Sigma) = 0$ for $p \neq q$. Consequently,
@@ -36,12 +28,9 @@ julia> (hodge_number(X, 1, 1), hodge_number(X, 1, 0))
 function hodge_number(v::NormalToricVarietyType, p::Int, q::Int)
   @req is_complete(v) && is_simplicial(v) "Hodge numbers are currently supported only for complete and simplicial toric varieties"
   d = dim(v)
-  !(0 <= p <= d && 0 <= q <= d) && return ZZ(0)
-  H = get_attribute!(() -> _hodge_number_matrix(d), v, :hodge_numbers)::Matrix{ZZRingElem}
-  if !isassigned(H, p + 1, q + 1)
-    H[p + 1, q + 1] = betti_number(v, 2 * p)
-  end
-  return deepcopy(H[p + 1, q + 1])
+  @req 0 <= p <= d && 0 <= q <= d "Hodge number indices must lie between zero and the dimension of the variety"
+  p != q && return ZZ(0)
+  return betti_number(v, 2 * p)
 end
 
 @doc raw"""
@@ -51,9 +40,10 @@ For a complete and simplicial toric variety `v`, return the matrix `H`
 of rational Hodge numbers of `v`. The entry `H[p + 1, q + 1]` is ``h^{p,q}``.
 
 Use [`print_hodge_diamond`](@ref) for diamond-shaped printing.
+The returned matrix is cached; use `deepcopy` before modifying it.
 
 Note that by Theorem 9.3.2 of [CLS11](@cite), the Hodge numbers of such a
-toric variety variety vanish off the diagonal: $h^{p,q}(X_\Sigma) = 0$ for
+toric variety vanish off the diagonal: $h^{p,q}(X_\Sigma) = 0$ for
 $p \neq q$. Consequently, the diagonal Hodge numbers agree with the even
 Betti numbers,
 \[
@@ -70,21 +60,14 @@ julia> H = hodge_numbers(P2)
 [0   0   1]
 ```
 """
-function hodge_numbers(v::NormalToricVarietyType)
+@attr ZZMatrix function hodge_numbers(v::NormalToricVarietyType)
   @req is_complete(v) && is_simplicial(v) "Hodge numbers are currently available only for complete and simplicial toric varieties"
   d = dim(v)
-  H = if has_attribute(v, :hodge_numbers)
-    get_attribute(v, :hodge_numbers)::Matrix{ZZRingElem}
-  else
-    _hodge_number_matrix(d)
-  end
+  H = zero_matrix(ZZ, d + 1, d + 1)
   for p in 0:d
-    if !isassigned(H, p + 1, p + 1)
-      H[p + 1, p + 1] = betti_number(v, 2 * p)
-    end
+    H[p + 1, p + 1] = hodge_number(v, p, p)
   end
-  set_attribute!(v, :hodge_numbers, H)
-  return matrix(ZZ, deepcopy(H))
+  return H
 end
 
 @doc raw"""
