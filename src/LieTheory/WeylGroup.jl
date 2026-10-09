@@ -208,8 +208,12 @@ Return the unique longest element of `W`.
 This only exists if `W` is finite.
 """
 function longest_element(W::WeylGroup)
-  @req is_finite(W) "Weyl group is not finite"
+  # copy to avoid mutating the cached element
+  return deepcopy(_longest_element(W))
+end
 
+@attr WeylGroupElem function _longest_element(W::WeylGroup)
+  @req is_finite(W) "Weyl group is not finite"
   _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
   return w0
 end
@@ -474,7 +478,7 @@ Return a pseudo-random element of the Weyl group. The elements are not uniformly
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
   if is_finite(W)
-    return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+    return W(Int.(Random.randsubseq(rng, word(_longest_element(W)), 2 / 3)))
   else
     m = 2^rand(1:10)
     n = rand(0:m)
