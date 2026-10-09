@@ -394,6 +394,7 @@ true
 ```
 """
 function parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupElem=one(W))
+  @req !isempty(vec) "Vector must be non-empty"
   @req allunique(vec) "Elements of vector are not pairwise distinct"
   @req all(i -> 1 <= i <= number_of_generators(W), vec) "Invalid indices"
   cm = cartan_matrix(W)[vec, vec]
