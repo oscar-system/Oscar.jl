@@ -764,6 +764,7 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
+export has_canonical_isomorphism
 export has_edge
 export has_groups_with_class_number
 export has_groups_with_class_number_identification
