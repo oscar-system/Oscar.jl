@@ -1,4 +1,8 @@
-# Construction and basic functionality
+# Linear Quotients
+
+Linear quotients are orbit spaces of the action of a finite group $G$ on a finite-dimensional vector space $V$ over $\mathbb C$.
+Formally, we define $V/G := \operatorname{Spec}\mathbb C[V]^G$.
+Notice that the invariant ring $\mathbb C[V]^G$ is an affine algebra by a theorem of Hilbert-Noether.
 
 ## Constructor
 
@@ -36,4 +40,13 @@ has_canonical_singularities(L::LinearQuotient)
 ```
 ```@docs
 has_terminal_singularities(L::LinearQuotient)
+```
+
+## Cox rings of linear quotients
+
+By a theorem of Arzhantsev and Gaifullin [AG10](@cite), the Cox ring of a linear
+quotient $V/G$ is graded isomorphic to the invariant ring $K[V]^{[G,G]}$, where
+$[G,G]$ is the derived subgroup of $G$.
+```@docs
+cox_ring(L::LinearQuotient)
 ```
