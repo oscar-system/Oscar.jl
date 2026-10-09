@@ -378,7 +378,11 @@ mutable struct RawJSONArray <: AbstractVector{Any}
 end
 
 function parsed(v::RawJSONArray)
-  isnothing(v.parsed) && (v.parsed = JSON.parse(v.text))
+  if isnothing(v.parsed)
+    v.parsed = JSON.parse(v.text)
+    # the text is never read once parsed, so free it
+    v.text = ""
+  end
   return v.parsed
 end
 
