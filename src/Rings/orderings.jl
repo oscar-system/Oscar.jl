@@ -64,7 +64,6 @@ struct WSymbOrdering{S} <: AbsGenOrdering
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
     @req length(v) == length(w) "number of variables should match the number of weights"
-    @req all(>(0), v) "all weights should be positive"
     return new{S}(v, w)
   end
 end
@@ -2213,6 +2212,12 @@ end
 
 function _try_singular_easy(Q::order_conversion_ctx, o::WSymbOrdering{S}) where S
   _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
+  # Singular.jl rejects non-positive weights for Wp/wp and a zero first weight for Ws/ws
+  if S in (:wdeglex, :wdegrevlex)
+    all(>(0), o.weights) || return (false, Q.def)
+  else
+    !iszero(o.weights[1]) || return (false, Q.def)
+  end
   n = length(o.vars)
   Q.last_var += n
   return S == :wdeglex       ? (true, Singular.ordering_Wp(o.weights)) :
