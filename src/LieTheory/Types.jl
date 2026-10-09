@@ -61,7 +61,7 @@ struct RootSpaceElem
   @doc raw"""
       RootSpaceElem(R::RootSystem, vec::QQMatrix) -> RootSpaceElem
 
-  Construct a root space element in the root system `R` with the given coefficien vector w.r.t. the simple roots of `R`.
+  Construct a root space element in the root system `R` with the given coefficient vector w.r.t. the simple roots of `R`.
 
   `vec` must be a row vector of the same length as the rank of `R`.
   """
@@ -83,7 +83,7 @@ struct DualRootSpaceElem
   @doc raw"""
       DualRootSpaceElem(R::RootSystem, vec::QQMatrix) -> DualRootSpaceElem
 
-  Construct a dual root space element in the root system `R` with the given coefficien vector w.r.t. the simple coroots of `R`.
+  Construct a dual root space element in the root system `R` with the given coefficient vector w.r.t. the simple coroots of `R`.
 
   `vec` must be a row vector of the same length as the rank of `R`.
   """
@@ -164,7 +164,7 @@ Type for elements of Weyl groups.
 """
 struct WeylGroupElem <: GroupElem
   parent::WeylGroup     # parent group
-  word::Vector{UInt8}   # short revlex normal form of the word
+  word::Vector{UInt8}   # short lex normal form of the word
 
   function WeylGroupElem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
     if !normalize
@@ -196,7 +196,7 @@ See [`reduced_expressions(::WeylGroupElem)`](@ref) for the constructor.
 """
 struct ReducedExpressionIterator
   el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
-  up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s3*s1 and not s1*s3
+  up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s1*s3 and not s3*s1
 end
 
 struct WeylIteratorNoCopy

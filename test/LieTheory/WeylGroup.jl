@@ -280,7 +280,7 @@
   end
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
-    # test short revlex normal form
+    # test short lex normal form
     W = weyl_group(:A, 2)
     s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])

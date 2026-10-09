@@ -217,14 +217,14 @@ end
 @doc raw"""
     number_of_generators(W::WeylGroup) -> Int
 
-Return the number of generators of the `W`, i.e. the rank of the underlying root system.
+Return the number of generators of `W`, i.e. the rank of the underlying root system.
 """
 function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
 end
 
 @doc raw"""
-    order(W::WeylGroup) -> ZZRingELem
+    order(W::WeylGroup) -> ZZRingElem
     order(::Type{T}, W::WeylGroup) where {T} -> T
 
 Return the order of `W`.
@@ -264,7 +264,7 @@ function order(::Type{T}, W::WeylGroup) where {T}
 end
 
 @doc raw"""
-    cartan_matrix(W::WeylGroup) -> RootSystem
+    cartan_matrix(W::WeylGroup) -> ZZMatrix
 
 Return the Cartan matrix of `W`.
 """
@@ -444,7 +444,7 @@ function is_finite_order(x::WeylGroupElem)
 end
 
 @doc raw"""
-    order(x::WeylGroupElem) -> ZZRingELem
+    order(x::WeylGroupElem) -> ZZRingElem
     order(::Type{T}, x::WeylGroupElem) where {T} -> T
 
 Return the order of `x`, i.e. the smallest natural number `n` such that `is_one(x^n)`.
@@ -641,11 +641,11 @@ function letters(x::WeylGroupElem)
 end
 
 @doc raw"""
-    syllables(x::WeylGroupElem) -> Vector{Pair{UInt8, <:IntegerUnion}}
+    syllables(x::WeylGroupElem) -> Vector{Pair{Int, ZZRingElem}}
 
 Return `x` as a list of pairs, each entry corresponding to indices of simple reflections and its exponent.
 
-This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UInt8, <:IntegerUnion}})`.
+This function is right inverse to calling `(W::WeylGroup)(sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}})`.
 
 # Examples
 
@@ -939,7 +939,7 @@ end
 @doc raw"""
     weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
 
-Shorthand for `weyl_orbit(root_system(R), vec)`.
+Shorthand for `weyl_orbit(root_system(W), vec)`.
 """
 function weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
   return weyl_orbit(root_system(W), vec)

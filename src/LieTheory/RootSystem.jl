@@ -736,7 +736,7 @@ Return the `i`-th fundamental weight of `R`.
 
 This is a more efficient version for `fundamental_weights(R)[i]`.
 
-See also: [`fundamental_weight(::RootSystem)`](@ref).
+See also: [`fundamental_weights(::RootSystem)`](@ref).
 """
 function fundamental_weight(R::RootSystem, i::Int)
   return gen(weight_lattice(R), i)
@@ -1609,8 +1609,8 @@ The minimal roots and coroots are given as coefficient vectors w.r.t. the simple
 The minimal roots are indexed by `1:n`, with the first `m` of them corresponding
 to the simple roots, and the other roots sorted by height.
 
-If `beta = alpha_j * s_i` is a minimal root, then `refl_table[i, j]` stores the index of beta, and otherwise `0`.
-Note that `refl_table[i, i] = 0` for every simple root `alpha_i`.
+If `beta = alpha_j * s_i` is a minimal root, then `refl[i, j]` stores the index of beta, and otherwise `0`.
+Note that `refl[i, i] = 0` for every simple root `alpha_i`.
 """
 function _positive_roots_and_reflections(cartan_matrix::ZZMatrix)
   rank, _ = size(cartan_matrix)
