@@ -1180,6 +1180,7 @@ export linear_inequality_matrix
 export linear_span
 export linear_symmetries
 export linear_system
+export linearly_reductive_group
 export link_subcomplex
 export load
 export load_lp
@@ -1616,6 +1617,10 @@ export rem_vertex!
 export rem_vertices!
 export renest
 export repres
+export representation_from_weights
+export representation_matrix
+export representation_on_forms
+export representation_reductive_group
 export representative
 export representative_field
 export representative_patch
@@ -1819,6 +1824,7 @@ export toric_variety
 export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
+export torus_group
 export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group

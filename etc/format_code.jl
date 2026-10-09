@@ -47,6 +47,7 @@ oscardir = joinpath(@__DIR__, "..")
 
 files_and_dirs_to_be_formatted = [
   "src/InvariantTheory",
+  "test/InvariantTheory",
   "src/PolyhedralGeometry",
   "test/PolyhedralGeometry",
   "src/LieTheory",
@@ -65,7 +66,6 @@ files_and_dirs_to_be_formatted = [
 ]
 # a few files for one reason or another may need to be skipped
 ignore = [
-  "experimental/InvariantTheory/src/InvariantTheory.jl",
 ]
 
 for fname in files_and_dirs_to_be_formatted

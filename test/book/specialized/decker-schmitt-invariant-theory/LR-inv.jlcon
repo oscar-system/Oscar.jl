@@ -1,15 +1,16 @@
 julia> G = linearly_reductive_group(:SL, 2, QQ)
-Reductive group SL2
+Linearly reductive group SL2
   over QQ
 
 julia> r = representation_on_forms(G, 2)
-Representation of SL2
+Representation
+  of linearly reductive group SL(2,QQ)
   on symmetric forms of degree 2
 
 julia> RG = invariant_ring(r)
-Invariant Ring of
-graded multivariate polynomial ring in 3 variables over QQ
-  under group action of SL2
+Invariant ring
+  of graded multivariate polynomial ring in 3 variables over QQ
+  under group action of linearly reductive group SL(2,QQ)
 
 julia> fundamental_invariants(RG)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
