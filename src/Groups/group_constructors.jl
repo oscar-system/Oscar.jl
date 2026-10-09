@@ -112,12 +112,14 @@ Return the cyclic group of order `n`, as an instance of type `T`.
 ```jldoctest
 julia> G = cyclic_group(5)
 Pc group of order 5
+  with 1 generator f1
 
 julia> G = cyclic_group(PermGroup, 5)
 Permutation group of degree 5 and order 5
 
 julia> G = cyclic_group(PosInf())
 Pc group of infinite order
+  with 1 generator g1
 
 ```
 """
@@ -245,6 +247,7 @@ The `gens` vector of the result has minimal length.
 ```jldoctest
 julia> g = elementary_abelian_group(27)
 Pc group of order 27
+  with 3 generators f1, f2, f3
 
 julia> g = elementary_abelian_group(PermGroup, 27)
 Permutation group of degree 9 and order 27
@@ -639,6 +642,7 @@ representation by a vector of integers is chosen in the default case of
 ```jldoctest
 julia> F = free_group(:a, :b)
 Free group of rank 2
+  with 2 generators a, b
 
 julia> w = F[1]^3 * F[2]^F[1] * F[-2]^2
 a^2*b*a*b^-2
@@ -726,6 +730,7 @@ its generators as Julia variables into the current scope.
 ```jldoctest
 julia> F = @free_group(:a, :b)
 Free group of rank 2
+  with 2 generators a, b
 
 julia> a^2*b*a*b^-2
 a^2*b*a*b^-2
@@ -840,12 +845,14 @@ where `T` is in {`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`}.
 ```jldoctest
 julia> dihedral_group(6)
 Pc group of order 6
+  with 2 generators f1, f2
 
 julia> dihedral_group(PermGroup, 6)
 Permutation group of degree 3
 
 julia> dihedral_group(PosInf())
 Pc group of infinite order
+  with 2 generators g1, g2
 
 julia> dihedral_group(7)
 ERROR: ArgumentError: n must be a positive even integer or infinity
@@ -905,12 +912,15 @@ and `T` is a suitable group type such as
 ```jldoctest
 julia> g = dicyclic_group(8)
 Pc group of order 8
+  with 3 generators x, y, y2
 
 julia> dicyclic_group(PermGroup, 8)
 Permutation group of degree 8
 
 julia> g = dicyclic_group(FPGroup, 8)
 Finitely presented group of order 8
+  with 2 generators r, s
+  and 3 relators
 
 julia> relators(g)
 3-element Vector{FPGroupElem}:
@@ -1017,6 +1027,7 @@ of order 8 and one quaternion group of order 8 if `p` is 2.
 ```jldoctest
 julia> extraspecial_group(3, 2, :-)
 Pc group of order 243
+  with 5 generators f1, f2, f3, f4, f5
 
 julia> describe(extraspecial_group(2, 1, :+))
 "D8"
