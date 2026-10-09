@@ -49,7 +49,7 @@ function betti_number(v::NormalToricVarietyType, i::Int)
   end
 
   # return result
-  return deepcopy(cached_betti_numbers[k + 1])
+  return cached_betti_numbers[k + 1]
 end
 
 @doc raw"""
