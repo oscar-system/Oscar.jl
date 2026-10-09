@@ -206,7 +206,7 @@ end
 Return `x`. Fails if `x` is not an element of `L`.
 """
 function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:FieldElem}
-  @req L === parent(x) "Incompatible modules."
+  @req L === parent(x) "Incompatible Lie algebras."
   return x
 end
 
