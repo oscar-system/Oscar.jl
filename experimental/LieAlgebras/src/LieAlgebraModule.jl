@@ -334,8 +334,8 @@ function (V::LieAlgebraModule{C})(
     return a[1]
   elseif ((fl, W) = _is_dual(V); fl)
     @req length(a) == 1 "Invalid input length."
-    @req W === parent(a) "Incompatible modules."
-    return V(coefficients(a))
+    @req W === parent(only(a)) "Incompatible modules."
+    return V(coefficients(only(a)))
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
