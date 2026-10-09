@@ -301,8 +301,6 @@ function free_resolution(M::SubquoModule{T};
       codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
-      #generator_matrix(SM)
-      #ff = graded_map(codom, SM.matrix)
       ff = graded_map(codom, gens(SM); check=false)
       dom = domain(ff)
       insert!(maps, 1, ff)
@@ -312,7 +310,6 @@ function free_resolution(M::SubquoModule{T};
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
-      #generator_matrix(SM)
       insert!(maps, 1, hom(dom, codom, gens(SM); check=false))
       j += 1
     end
