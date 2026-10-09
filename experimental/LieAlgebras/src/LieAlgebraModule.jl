@@ -75,7 +75,7 @@ end
 Check whether the Lie algebra module element `v` is zero.
 """
 function iszero(v::LieAlgebraModuleElem)
-  return iszero(coefficients(v))
+  return iszero(_matrix(v))
 end
 
 @inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
@@ -87,8 +87,8 @@ end
 
 Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
-function coefficients(v::LieAlgebraModuleElem)
-  return collect(_matrix(v))[1, :]
+function coefficients(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
+  return C[_matrix(v)[1, i] for i in 1:dim(parent(v))]
 end
 
 @doc raw"""
@@ -445,13 +445,13 @@ function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:FieldElem}
   check_parent(v1, v2)
-  return coefficients(v1) == coefficients(v2)
+  return _matrix(v1) == _matrix(v2)
 end
 
 function Base.hash(v::LieAlgebraModuleElem, h::UInt)
   b = 0x723913014484513a % UInt
   h = hash(parent(v), h)
-  h = hash(coefficients(v), h)
+  h = hash(_matrix(v), h)
   return xor(h, b)
 end
 

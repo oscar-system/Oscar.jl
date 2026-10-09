@@ -90,8 +90,8 @@ end
 
 Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
-function coefficients(x::LieAlgebraElem)
-  return collect(_matrix(x))[1, :]
+function coefficients(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  return C[_matrix(x)[1, i] for i in 1:dim(parent(x))]
 end
 
 @doc raw"""

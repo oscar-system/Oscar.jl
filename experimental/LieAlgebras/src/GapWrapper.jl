@@ -33,11 +33,8 @@ function lie_algebra_simple_module_struct_consts_gap(
       R,
       Tuple{Int,elem_type(R)}[
         (k, R(c)) for (k, c) in enumerate(
-          map(
-            c -> preimage(isoR, c),
-            GAPWrap.Coefficients(GAPWrap.Basis(gapV), basisL[i]^basisV[j]),
-          ),
-        )
+          map(c -> preimage(isoR, c), GAPWrap.Coefficients(basisV, basisL[i]^basisV[j]))
+        ) if !iszero(c)
       ],
     )
   end
