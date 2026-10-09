@@ -177,40 +177,8 @@ Invariant ring
 """
 invariant_ring(R::RepresentationTorusGroup) = TorGroupInvarRing(R)
 
-@doc raw"""
-    polynomial_ring(RT::TorGroupInvarRing)
-
-# Examples
-```jldoctest
-julia> T = torus_group(QQ,2)
-Torus of rank 2
-  over QQ
-```
-"""
 polynomial_ring(R::TorGroupInvarRing) = R.poly_ring
-
-@doc raw"""
-    group(RT::TorGroupInvarRing)
-
-# Examples
-```jldoctest
-julia> T = torus_group(QQ,2)
-Torus of rank 2
-  over QQ
-```
-"""
 group(R::TorGroupInvarRing) = R.group
-
-@doc raw"""
-    representation(RT::TorGroupInvarRing)
-
-# Examples
-```jldoctest
-julia> T = torus_group(QQ,2)
-Torus of rank 2
-  over QQ
-```
-"""
 representation(R::TorGroupInvarRing) = R.representation
 
 @doc raw"""
