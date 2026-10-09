@@ -29,7 +29,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:MatroidRealizatio
   R = tp[:ideal_ring]
   GR = tp[:ground_ring]
   I = load_object(s, TypeAndParams(MPolyIdeal, R), :defining_ideal)
-  Ineqs = load_object(s, TypeAndParams(Vector{MPolyRingElem}, R), :inequations)
+  Ineqs = load_object(s, TypeAndParams(Vector{elem_type(R)}, R), :inequations)
   RMat = isnothing(MS) ? nothing : load_object(s, TypeAndParams(MatElem, MS), :realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
@@ -72,7 +72,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:MatroidRealizatio
   R = tp[:ideal_ring]
   GR = tp[:ground_ring]
   I = load_object(s, TypeAndParams(MPolyIdeal, R), :defining_ideal)
-  Ineqs = load_object(s, TypeAndParams(Vector{MPolyRingElem}, R), :inequations)
+  Ineqs = load_object(s, TypeAndParams(Vector{elem_type(R)}, R), :inequations)
   RMat = isnothing(MS) ? nothing : load_object(s, TypeAndParams(MatElem, MS), :selfprojecting_realization_matrix)
   if R isa MPolyRing
     char = characteristic(coefficient_ring(R))
