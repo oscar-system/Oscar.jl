@@ -93,10 +93,24 @@ end
     L = new{C}(R, n, length(basis), basis, s)
     if check
       @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
-      # TODO: make work
-      # for xi in basis(L), xj in basis(L)
-      #   @req (xi * xj) in L
-      # end
+      # rows of `lgs` are the flattened basis matrices
+      lgs = zero_matrix(R, length(basis), n^2)
+      for (k, b) in enumerate(basis), i in 1:n
+        lgs[k, (i - 1) * n .+ (1:n)] = view(b, i:i, :)
+      end
+      @req rank(lgs) == length(basis) "Basis is not linearly independent."
+      # rows of `rhs` are the flattened commutators of all pairs of basis matrices
+      m = length(basis)
+      rhs = zero_matrix(R, div(m * (m - 1), 2), n^2)
+      r = 0
+      for (j, bj) in enumerate(basis), bi in view(basis, 1:(j - 1))
+        r += 1
+        comm = bi * bj - bj * bi
+        for i in 1:n
+          rhs[r, (i - 1) * n .+ (1:n)] = view(comm, i:i, :)
+        end
+      end
+      @req can_solve(lgs, rhs; side=:left) "Not closed under the bracket."
     end
     return L
   end
