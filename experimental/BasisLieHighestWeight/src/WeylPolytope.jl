@@ -5,7 +5,7 @@ function convert_lattice_points_to_monomials(
 end
 
 @doc raw"""
-    get_lattice_points_of_weightspace(root_weights::Vector{Vector{QQFieldElem}}, weight::Vector{QQFieldElem}, zero_coordinates::Vector{Int})
+    get_lattice_points_of_weightspace(root_weights::Vector{RootSpaceElem}, weight::RootSpaceElem, zero_coordinates::Vector{Int})
 
 
 Calculates all lattice points in a given weightspace for a Lie algebra highest weight module.

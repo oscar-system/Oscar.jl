@@ -452,7 +452,7 @@ function add_by_hand(
   basis::Set{ZZMPolyRingElem},
 )
   # This function calculates the missing monomials by going through each non full weightspace and adding possible
-  # monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
+  # monomials manually by computing their corresponding vectors and checking if they enlarge the basis.
 
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
