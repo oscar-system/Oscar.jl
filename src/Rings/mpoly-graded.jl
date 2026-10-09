@@ -2681,13 +2681,13 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # side if we have one
     G = first(values(I.gb))
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
     ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   end
 end
 

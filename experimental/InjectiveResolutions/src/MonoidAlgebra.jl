@@ -529,6 +529,14 @@ krull_dim(I::MonoidAlgebraIdeal) = krull_dim(underlying_ideal(I))
 # user facing constructor
 ideal(A::MonoidAlgebra, v::Vector) = MonoidAlgebraIdeal(A, elem_type(A)[A(x) for x in v])
 
+# from a Singular ideal, via the iso from `A` onto its Singular ring
+function MonoidAlgebraIdeal(A::MonoidAlgebra, s::Singular.sideal)
+  iso = _iso_onto(A, base_ring(s))
+  return MonoidAlgebraIdeal(A, elem_type(A)[preimage(iso, x) for x in gens(s)])
+end
+
+ideal(A::MonoidAlgebra, s::Singular.sideal) = MonoidAlgebraIdeal(A, s)
+
 function Base.in(a::MonoidAlgebraElem, I::MonoidAlgebraIdeal)
   return underlying_element(a) in underlying_ideal(I)
 end
@@ -541,7 +549,7 @@ function intersect(a::MonoidAlgebraIdeal, b::MonoidAlgebraIdeal...)
   kQ = base_ring(a)
   @req all(base_ring(g) === kQ for g in b) "base rings must match"
   as = Singular.intersection(singular_generators(a), [singular_generators(g) for g in b]...)
-  return MonoidAlgebraIdeal(kQ, [kQ(x) for x in gens(as)])
+  return MonoidAlgebraIdeal(kQ, as)
 end
 
 function Base.intersect(V::Vector{T}) where {T <: MonoidAlgebraIdeal}
