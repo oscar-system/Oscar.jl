@@ -195,7 +195,7 @@ Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest e
 given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
 Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
 
-The monomial ordering is fixed to `neglex` (negative lexicographic order).      
+The monomial ordering is fixed to `neglex` (negative lexicographic order).
 
 For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
 
@@ -245,10 +245,10 @@ for a simple Lie algebra $L$ of type `type_rank`.
 
 Then the birational sequence used consists of all operators in descening height of the corresponding root.
 
-The monomial ordering is fixed to `degrevlex`.      
+The monomial ordering is fixed to `degrevlex`.
 
 For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
-      
+
 # Examples
 ```jldoctest
 julia> basis_lie_highest_weight_ffl(:A, 3, [1,1,1])
@@ -288,7 +288,7 @@ Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest e
 given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
 Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
 
-The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).      
+The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).
 
 For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
 
@@ -310,7 +310,7 @@ Monomial basis of a highest weight module
   with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6, x7, x8, x9, x10])
 over abstract Lie algebra of type A4 over QQ
 where the used birational sequence consists of the following roots:
-  [a_4, a_3, a_2, a_1, a_2, a_3, a_4, a_3, a_2, a_3] 
+  [a_4, a_3, a_2, a_1, a_2, a_3, a_4, a_3, a_2, a_3]
 ```
 """
 function basis_lie_highest_weight_nz(
@@ -336,7 +336,7 @@ end
     basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex, kwargs...)
     basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex, kwargs...)
 
-Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`)
 of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
 with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
@@ -345,7 +345,7 @@ of the bases of the lower degrees.
 !!! warning
     Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
     This might change in a minor release.
-    
+
 If no birational sequence is specified, all operators in the order of `basis_lie_highest_weight_operators` are used.
 A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
 A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
@@ -442,7 +442,7 @@ end
     basis_coordinate_ring_kodaira_ffl(L::LieAlgebra, highest_weight::Vector{Int}, degree::Int; kwargs...)
     basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; kwargs...)
 
-Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`)
 of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
 with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
@@ -454,7 +454,7 @@ of the bases of the lower degrees.
 
 The the birational sequence used consists of all operators in descening height of the corresponding root, i.e. a "good" ordering.
 
-The monomial ordering is fixed to `degrevlex`. 
+The monomial ordering is fixed to `degrevlex`.
 
 For supported keyword arguments, see [`basis_coordinate_ring_kodaira`](@ref).
 
@@ -687,7 +687,7 @@ Then the birational sequence used consists of all operators in descening height 
 The monomial ordering is fixed to `degrevlex`.
 
 For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
-      
+
 # Examples
 ```jldoctest
 julia> basis_lie_demazure_ffl(:C, 3, [1,1,1], [1,2])
@@ -729,7 +729,7 @@ Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest e
 given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
 Then the birational sequence used consists of $\alpha_{i_1}, \dots, \alpha_{i_N}$.
 
-The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).     
+The monomial ordering is fixed to `degrevlex` (degree reverse lexicographic order).
 
 For supported keyword arguments, see [`basis_lie_highest_weight`](@ref).
 
@@ -769,7 +769,7 @@ end
     basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex, kwargs...)
     basis_coordinate_ring_kodaira_demazure(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex, kwargs...)
 
-Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`)
 of the Kodaira embedding of a Schubert variety into the projective space of the Demazure module
 of extremal weight `highest_weight * weyl_group_elem` associated with a simple Lie algebra $L$ of type `type` and rank `rank`.
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
@@ -778,7 +778,7 @@ of the bases of the lower degrees.
 !!! warning
     Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
     This might change in a minor release.
-    
+
 If no birational sequence is specified, all operators in the order of `basis_lie_highest_weight_operators` are used.
 A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
 A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
@@ -868,7 +868,7 @@ end
     basis_coordinate_ring_kodaira_demazure_ffl(L::LieAlgebra, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int; kwargs...)
     basis_coordinate_ring_kodaira_demazure_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, weyl_group_elem::Vector{Int}, degree::Int; kwargs...)
 
-Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`)
 of the Kodaira embedding of a Schubert variety into the projective space of the Demazure module
 of extremal weight `highest_weight * weyl_group_elem` associated with a simple Lie algebra $L$ of type `type` and rank `rank`.
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
@@ -880,7 +880,7 @@ of the bases of the lower degrees.
 
 The the birational sequence used consists of all operators in descening height of the corresponding root, i.e. a "good" ordering.
 
-The monomial ordering is fixed to `degrevlex`. 
+The monomial ordering is fixed to `degrevlex`.
 
 For supported keyword arguments, see [`basis_coordinate_ring_kodaira`](@ref).
 
