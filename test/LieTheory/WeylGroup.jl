@@ -122,6 +122,16 @@
     ConformanceTests.test_GroupElem_interface(rand(W, 2)...)
   end
 
+  @testset "rand(W::WeylGroup)" begin
+    # equally seeded rngs must give the same element
+    for W in [weyl_group(:B, 3), weyl_group(ZZ[2 -2; -2 2])]
+      x = rand(Oscar.get_seeded_rng(), W)
+      y = rand(Oscar.get_seeded_rng(), W)
+      @test parent(x) === W
+      @test x == y
+    end
+  end
+
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
     # for rank 2 v < w iff l(v) < l(w), since W is a dihedral group
     for fam in [:A, :B, :C, :G]

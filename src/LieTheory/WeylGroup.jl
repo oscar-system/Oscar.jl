@@ -485,9 +485,9 @@ function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup}
   if is_finite(W)
     return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
   else
-    m = 2^rand(1:10)
-    n = rand(0:m)
-    return W(rand(1:ngens(W), n))
+    m = 2^rand(rng, 1:10)
+    n = rand(rng, 0:m)
+    return W(rand(rng, 1:ngens(W), n))
   end
 end
 
