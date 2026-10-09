@@ -502,10 +502,7 @@ end
 
 function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:AbstractLieAlgebra}
   @req n >= 0 "Dimension must be non-negative."
-  basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
   s = ["x_$(i)" for i in 1:n]
-  L = lie_algebra(R, n, basis, s; check=false)
-
   struct_consts = Matrix{sparse_row_type(R)}(undef, n, n)
   for i in axes(struct_consts, 1), j in axes(struct_consts, 2)
     struct_consts[i, j] = sparse_row(R)
