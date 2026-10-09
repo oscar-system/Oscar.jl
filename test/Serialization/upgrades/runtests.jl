@@ -92,4 +92,8 @@
     @test GAP.Globals.FamilyObj(GapObj(F)) !== GAP.Globals.FamilyObj(GapObj(G))
     @test GAP.Globals.FamilyObj(GapObj(P)) === GAP.Globals.FamilyObj(GapObj(S))
   end
+  @testset "load files serialized with 1.8.2" begin
+    test_upgrade_folder("version_1_8_2")
+  end
+
 end
