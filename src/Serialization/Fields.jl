@@ -28,7 +28,7 @@ function save_object(s::SerializerState, elem::fpFieldElem)
   save_data_basic(s, lift(ZZ, elem))
 end
 
-load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField) = F(load_object(s, UInt64))
+load_object(s::DeserializerState, tp::TypeAndParams{fpFieldElem, fpField}) = params(tp)(load_object(s, UInt64))
 
 ################################################################################
 # ZZRingElem variant
@@ -47,7 +47,7 @@ save_object(s::SerializerState, elem::FpFieldElem) = save_data_basic(s, lift(ZZ,
 
 function load_object(s::DeserializerState, tp::TypeAndParams{FpFieldElem, FpField})
   F = params(tp)
-  return F(load_object(S, ZZRingElem))
+  return F(load_object(s, ZZRingElem))
 end
 
 ################################################################################
