@@ -159,9 +159,11 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}) where {S}
     if isempty(s)
       return T(undef, 0, 0)
     end
-    # iterate the rows, indexing them would rescan the array for each row
-    rows = load_array_node(_ -> load_object(s, Vector{S}), s)
-    return T(stack(rows; dims=1))
+    len = length(s.obj)
+    m = stack([
+      load_object(s, Vector{S}, i) for i in 1:len
+        ]; dims=1)
+    return T(m)
   end
 end
 
@@ -173,9 +175,11 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:Matrix{S}}) where
     if isempty(s)
       return T(undef, 0, 0)
     end
-    # iterate the rows, indexing them would rescan the array for each row
-    rows = load_array_node(_ -> load_object(s, TypeAndParams(Vector{S}, elem_tp)), s)
-    return T(stack(rows; dims=1))
+    len = length(s.obj)
+    m = stack([
+      load_object(s, TypeAndParams(Vector{S}, elem_tp), i) for i in 1:len
+        ]; dims=1)
+    return T(m)
   end
 end
 
