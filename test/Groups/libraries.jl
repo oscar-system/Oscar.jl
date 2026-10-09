@@ -144,6 +144,9 @@ end
    # all_perfect_groups with multiple order specifications
    @test all_perfect_groups(order => 1:5:200, order => 25:50) == all_perfect_groups(order => intersect(1:5:200, 25:50))
 
+   # all_perfect_groups with a filter that is neither a function nor a pair
+   @test_throws ArgumentError all_perfect_groups(60, 5)
+
    # lazy artifact loading
    @test perfect_group(1376256, 1) isa PermGroup
 end
