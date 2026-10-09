@@ -119,6 +119,8 @@ function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
     return "sl_$n"
   elseif type == :special_orthogonal
     return "so_$n"
+  elseif type == :symplectic
+    return "sp_$n"
   end
   return nothing
 end
