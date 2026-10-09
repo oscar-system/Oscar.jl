@@ -1,4 +1,7 @@
 # modular gröbner basis techniques using Singular
+
+import Hecke.MPolyGcd: Terms, lead_term
+
 @doc raw"""
     groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)), certify::Bool = false)
 
@@ -25,6 +28,117 @@ with respect to the ordering
 """
 function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
                                 certify::Bool = false)
+  # small function to get a canonically sorted reduced gb
+  sorted_gb = idl -> begin
+    R = base_ring(idl)
+    gb = gens(groebner_basis(idl, ordering = ordering,
+                             complete_reduction = true))
+    sort!(gb; by = lead_term,
+          lt = (m1, m2) -> Base.cmp(m1, m2) > 0)
+  end
+  
+  if haskey(I.gb, ordering)
+    return I.gb[ordering]
+  end
+
+  primes = Hecke.PrimesSet(rand(2^15:2^16), -1)
+
+  p = iterate(primes)[1]
+  Qt = base_ring(I)
+  Zt = polynomial_ring(ZZ, symbols(Qt); cached = false)[1]
+
+  Rt, t = polynomial_ring(Native.GF(p), symbols(Qt); cached = false)
+
+  std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
+    map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
+  end
+  std_basis_crt_previous = std_basis_mod_p_lifted
+
+  d = ZZRingElem(p)
+  done = false
+  local final_gb
+  local test_gb
+  lft = 60
+  test_gb = nothing
+  final_gb = QQMPolyRingElem[]
+  prime_cnt = 0
+  while !done
+    @show p = iterate(primes, p)[1]
+    Rt, t = polynomial_ring(Native.GF(p), symbols(Qt); cached = false)
+    std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
+      map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
+    end
+    prime_cnt += 1
+
+    i = 1
+    j = 1
+    new = ZZMPolyRingElem[]
+    while i <= length(std_basis_mod_p_lifted) &&
+          j <= length(std_basis_crt_previous)
+      f = lead_term(std_basis_mod_p_lifted[i])   
+      g = lead_term(std_basis_crt_previous[j])   
+      cmp = Base.cmp(f, g)
+      if cmp == 0
+        push!(new, induce_crt(std_basis_crt_previous[j], d, 
+                   std_basis_mod_p_lifted[i], ZZRingElem(p), true)[1])
+        i += 1
+        j += 1
+      elseif cmp > 0
+        push!(new, induce_crt(std_basis_crt_previous[j], d, 
+                   zero(Zt), ZZRingElem(p), true)[1])
+        j += 1
+      else
+        push!(new, induce_crt(zero(Zt), d, 
+                   std_basis_mod_p_lifted[i], ZZRingElem(p), true)[1])
+        i += 1
+      end
+    end
+    while i <= length(std_basis_mod_p_lifted)
+      push!(new, induce_crt(zero(Zt), d,
+                 std_basis_mod_p_lifted[i], ZZRingElem(p), true)[1])
+      i += 1
+    end
+    while j <= length(std_basis_crt_previous)
+      push!(new, induce_crt(std_basis_crt_previous[j], d, 
+                 zero(Zt), ZZRingElem(p), true)[1])
+      j += 1
+    end
+    std_basis_crt_previous = new
+    d *= p
+
+    if nbits(d) < lft
+      continue
+    end
+    lft = ceil(lft*1.4)
+    while length(final_gb) < length(std_basis_crt_previous)
+      push!(final_gb, zero(base_ring(I)))
+    end
+
+    reco = false
+    for i=1:length(std_basis_crt_previous)
+      if iszero(final_gb[i])
+        fl, g = induce_rational_reconstruction(std_basis_crt_previous[i], d, parent = base_ring(I))
+        if fl
+          reco = true
+          final_gb[i] = g
+        end
+      end
+    end
+
+    @show reco, prime_cnt, nbits(d)
+    if any(iszero, final_gb)
+      continue
+    end
+    test_gb = IdealGens(final_gb, ordering);
+    (!certify || _certify_modular_groebner_basis(I, test_gb)) && break
+  end
+  I.gb[ordering] = test_gb
+  I.gb[ordering].isGB = true
+  return I.gb[ordering]
+end
+
+function groebner_basis_modular_singular(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
+                                certify::Bool = false)
   SG = Singular.LibModstd.modStd(Oscar.singular_generators(I, ordering), Int(certify))
 
   G = IdealGens(base_ring(I), SG)
@@ -38,21 +152,24 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
   return I.gb[ordering]
 end
 
-
 function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem; parent = 1)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
-    fl, r, s = Hecke.rational_reconstruction(c, d)
-    fl ? push_term!(g, r//s, v) : push_term!(g, c, v)
+    fl, r, s = Hecke.rational_reconstruction(c, d; error_tolerant = true)
+    !fl && return fl, finish(g)
+    l = gcd(r, s)
+    if !isone(l)
+      @show :bad_prime, l
+    end
+    push_term!(g, r//s, v) 
   end
-  return finish(g)
+  return true, finish(g)
 end
 
-function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
-  @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
-  singular_generators(I.gb[ordering])
-  SR = I.gb[ordering].gensBiPolyArray.Sx
-  SG = I.gb[ordering].gensBiPolyArray.S
+function _certify_modular_groebner_basis(I::MPolyIdeal, G::IdealGens)
+  SR = singular_polynomial_ring(G, G.ord)
+  SG = singular_generators(G, G.ord)
+  SG.isGB = true
 
   #= test if I is included in <G> =#
   for f in I.gens
@@ -62,5 +179,5 @@ function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrderi
   end
 
   #= test if G is a standard basis of <G> w.r.t. ordering =#
-  return is_standard_basis(I.gb[ordering], ordering=ordering)
+  return is_standard_basis(G, ordering=G.ord)
 end
