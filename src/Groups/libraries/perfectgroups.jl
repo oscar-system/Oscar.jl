@@ -237,7 +237,7 @@ function all_perfect_groups(L...)
          elseif c isa Function
             ok = c(G)
          else
-            throw(ArgumentError("expected a function or a pair, got $arg"))
+            throw(ArgumentError("expected a function or a pair, got $c"))
          end
          ok || break
       end
