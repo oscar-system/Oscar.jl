@@ -262,7 +262,7 @@ end
   header::MapHeader{T1,T2}
   matrix::MatT
 
-  inverse_isomorphism::LieAlgebraHom{T2,T1}
+  inverse_isomorphism::LieAlgebraHom{T2,T1,MatT}
 
   function LieAlgebraHom(
     L1::LieAlgebra, L2::LieAlgebra, imgs::Vector{<:LieAlgebraElem}; check::Bool=true
