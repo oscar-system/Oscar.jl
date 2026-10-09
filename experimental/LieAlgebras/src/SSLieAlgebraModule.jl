@@ -310,7 +310,7 @@ function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
-function _action_matrices_on_weights(W::WeylGroup)
+@attr Vector{ZZMatrix} function _action_matrices_on_weights(W::WeylGroup)
   R = root_system(W)
   return map(1:rank(R)) do i
     x = gen(W, i)
