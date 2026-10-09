@@ -281,6 +281,14 @@ function root_system(W::WeylGroup)
   return W.root_system
 end
 
+function Base.hash(W::WeylGroup, h::UInt)
+  # even though we don't have a == method for WeylGroup, we add a hash method
+  # to make hashing of WeylGroup and WeylGroupElem more deterministic
+  b = 0x3c1f8a6d9e2b7045 % UInt
+  h = hash(root_system(W), h)
+  return xor(b, h)
+end
+
 ###############################################################################
 # Weyl group elements
 
@@ -857,7 +865,7 @@ function _iterate_nocopy(state::WeylIteratorNoCopyState)
       break
     elseif isempty(path)
       return nothing
-    elseif iszero(di)
+    else # iszero(di)
       reflect!(wt, Int(ai))
       di = popfirst!(path)
       ai = isempty(path) ? UInt8(0) : first(path)

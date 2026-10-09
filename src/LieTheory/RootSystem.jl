@@ -1246,14 +1246,14 @@ function zero!(r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), zero!(r.vec))
 end
 
-function add!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
-  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
-  return DualRootSpaceElem(root_system(rr), add!(rr.vec, r1.vec, r2.vec))
-end
-
 function neg!(rr::DualRootSpaceElem, r::DualRootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   return DualRootSpaceElem(root_system(rr), neg!(rr.vec, r.vec))
+end
+
+function add!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  return DualRootSpaceElem(root_system(rr), add!(rr.vec, r1.vec, r2.vec))
 end
 
 function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
