@@ -5,7 +5,7 @@
 ###############################################################################
 
 using Oscar.Serialization
-import Oscar.Serialization: load_object, save_object, type_and_params
+import Oscar.Serialization: load_object, save_object, type_and_params, params
 
 const lie_algebra_serialization_attributes = [
   :is_abelian, :is_nilpotent, :is_perfect, :is_semisimple, :is_simple, :is_solvable
@@ -34,9 +34,9 @@ function save_object(s::SerializerState, L::AbstractLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict)
+function load_object(s::DeserializerState, d::TypeAndParams{<:AbstractLieAlgebra, <:Tuple{Vararg{Pair}}})
   R = d[:base_ring]
-  struct_consts = load_object(s, Matrix{sparse_row_type(R)}, R, :struct_consts)
+  struct_consts = load_object(s, TypeAndParams(Matrix{sparse_row_type(R)}, R), :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
   load_root_system_data(s, L, d)
@@ -60,11 +60,11 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
+function load_object(s::DeserializerState, d::TypeAndParams{<:LinearLieAlgebra, <:Tuple{Vararg{Pair}}})
   R = d[:base_ring]
   n = load_object(s, Int, :n)
   basis = Vector{dense_matrix_type(R)}(
-    load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, n, n), :basis)
+    load_object(s, TypeAndParams(Vector{dense_matrix_type(R)}, matrix_space(R, n, n)), :basis)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
@@ -88,7 +88,7 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra}, d::Dict)
+function load_object(s::DeserializerState, d::TypeAndParams{<:DirectSumLieAlgebra, <:Tuple{Vararg{Pair}}})
   R = d[:base_ring]
   summands = d[:summands]
 
@@ -111,12 +111,12 @@ function type_and_params_for_root_system(L::LieAlgebra)
   end
 end
 
-function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
+function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::TypeAndParams)
   if haskey(d, :root_system)
     rs = d[:root_system]
     chev = NTuple{3,Vector{elem_type(L)}}(
       load_object(
-        s, NTuple{3,Vector{elem_type(L)}}, (L, L, L), :chevalley_basis
+        s, TypeAndParams(NTuple{3,Vector{elem_type(L)}}, (L, L, L)), :chevalley_basis
       ),
     ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
     set_root_system_and_chevalley_basis!(L, rs, chev)
@@ -131,9 +131,10 @@ function save_object(s::SerializerState, x::LieAlgebraElem)
   save_object(s, coefficients(x))
 end
 
-function load_object(s::DeserializerState, ::Type{<:LieAlgebraElem}, L::LieAlgebra)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:LieAlgebraElem, <:LieAlgebra})
+  L = params(tp)
   R = coefficient_ring(L)
-  return L(load_object(s, Vector{elem_type(R)}, R))
+  return L(load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
 end
 
 ###############################################################################
@@ -158,12 +159,13 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
+function load_object(s::DeserializerState, d::TypeAndParams{<:LieAlgebraModule, <:Tuple{Vararg{Pair}}})
+  T = Serialization.type(d)
   L = d[:lie_algebra]
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)
   transformation_matrices = load_object(
-    s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
+    s, TypeAndParams(Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim)), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
   V = load_construction_data(L, T, d)
@@ -192,7 +194,7 @@ function type_and_params_for_construction_data(V::LieAlgebraModule)
   return ()
 end
 
-function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, d::Dict)
+function load_construction_data(L::LieAlgebra, T::Type{<:LieAlgebraModule}, d::TypeAndParams)
   V = nothing
   if haskey(d, :_is_standard_module) && d[:_is_standard_module]
     V = standard_module(L)
@@ -224,9 +226,8 @@ function save_object(s::SerializerState, x::LieAlgebraModuleElem)
   save_object(s, coefficients(x))
 end
 
-function load_object(
-  s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
-)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:LieAlgebraModuleElem, <:LieAlgebraModule})
+  V = params(tp)
   R = coefficient_ring(V)
-  return V(load_object(s, Vector{elem_type(R)}, R))
+  return V(load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
 end
