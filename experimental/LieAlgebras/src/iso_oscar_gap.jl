@@ -46,7 +46,7 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra; set_attributes::Bool=true)
     [
       [
         begin
-          pairs = collect(LO.struct_consts[i, j])
+          pairs = collect(_struct_consts(LO)[i, j])
           (first.(pairs), GAP.Obj[coeffs_iso(c) for c in last.(pairs)])
         end for j in 1:dim(LO)
       ] for i in 1:dim(LO)
