@@ -219,10 +219,7 @@ julia> all_transitive_groups(degree => 1:5, is_abelian)
 ```
 """
 function all_transitive_groups(L...)
-   @req !isempty(L) "must specify at least one filter"
-   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
-      L = (degree => L[1], L[2:end]...)
-   end
+   L = _expand_key_shorthand(L, degree)
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
    res = PermGroup[PermGroup(x) for x in K]
