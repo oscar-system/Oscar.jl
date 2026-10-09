@@ -526,7 +526,7 @@ function explain_rmul(x::WeylGroupElem, i::Integer)
   insert_index = length(x) + 1
   insert_letter = UInt8(i)
 
-  root = insert_letter
+  root = UInt(i) # same type as the entries of `refl`
   for s in length(x):-1:1
     if x[s] == root
       return false, s, x[s]
@@ -850,22 +850,22 @@ function _iterate_nocopy(state::WeylIteratorNoCopyState)
 
   ai = isempty(path) ? UInt8(0) : first(path)
   # compute next descendant index
-  di = UInt8(0)
+  di = 0
   while true
-    di = next_descendant_index(Int(ai), Int(di), wt)
+    di = next_descendant_index(Int(ai), di, wt)
     if !iszero(di)
       break
     elseif isempty(path)
       return nothing
     elseif iszero(di)
       reflect!(wt, Int(ai))
-      di = popfirst!(path)
+      di = Int(popfirst!(path))
       ai = isempty(path) ? UInt8(0) : first(path)
     end
   end
 
   pushfirst!(path, di)
-  reflect!(wt, Int(di))
+  reflect!(wt, di)
   return state
 end
 
