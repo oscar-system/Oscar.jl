@@ -239,7 +239,7 @@ getindex(F::ModuleGens, i::Int) = oscar_generators(F)[i]
 Compute the union of `M` and `N`.
 """
 function union(M::ModuleGens, N::ModuleGens)
-  @assert oscar_free_module(M) === oscar_free_module(M)
+  @assert oscar_free_module(M) === oscar_free_module(N)
   O = vcat(oscar_generators(M), oscar_generators(N))
   return ModuleGens(oscar_free_module(M), O)
 end
