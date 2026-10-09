@@ -14,7 +14,7 @@ struct ComplexReflection{T <: QQAlgFieldElem}
   coroot_form::AbstractAlgebra.Generic.ModuleHomomorphism{T}
   hyperplane::AbstractAlgebra.Generic.Submodule{T}
   hyperplane_inclusion::AbstractAlgebra.Generic.ModuleHomomorphism{T}
-  hyperplane_basis::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}
+  hyperplane_basis::Vector{<:AbstractAlgebra.Generic.FreeModuleElem{T}}
   eigenvalue::T
   order::Int
   is_unitary::Bool
@@ -118,7 +118,10 @@ function complex_reflection(root::AbstractAlgebra.Generic.FreeModuleElem{T}, cor
 
   H, Hincl = kernel(coroot_form)
 
-  Hbasis = [ Hincl(h) for h in gens(H) ]
+  Hbasis = typeof(root)[]
+  for h in gens(H)
+    push!(Hbasis, Hincl(h))
+  end
 
   root_line, root_line_inclusion = sub(V, [root])
 
@@ -255,7 +258,12 @@ function is_complex_reflection_with_data(w::MatElem{T}; debug::Bool=false) where
   L_H = V(A[:,i])
   alpha_check = (1-zeta)//canonical_pairing(L_H,alpha) * L_H
 
-  w_data = ComplexReflection(K, V, w, alpha, R, Rincl, alpha_check, linear_form(alpha_check), H, Hincl, [ Hincl(h) for h in gens(H) ], zeta, d, is_unitary(w))
+  Hbasis = typeof(alpha)[]
+  for h in gens(H)
+    push!(Hbasis, Hincl(h))
+  end
+
+  w_data = ComplexReflection(K, V, w, alpha, R, Rincl, alpha_check, linear_form(alpha_check), H, Hincl, Hbasis, zeta, d, is_unitary(w))
 
   return true, w_data
 
@@ -330,7 +338,24 @@ function complex_reflections(G::MatGroup{T}) where T <: QQAlgFieldElem
 
   refls = Set(ComplexReflection[])
 
-  # This is not efficient yet: we should loop only over conjugacy classes
+  # For a marked complex reflection group, use the type-backed hyperplane
+  # orbits. This avoids enumerating the group and, in particular, avoids GAP
+  # conjugacy-class computations over relative number-field towers.
+  if complex_reflection_group_type(G) !== nothing
+    for orbit in reflection_library(G)
+      for hyperplane_reflections in orbit
+        for s in hyperplane_reflections
+          push!(refls, complex_reflection(s))
+        end
+      end
+    end
+
+    @assert length(refls) == number_of_reflections(complex_reflection_group_type(G))
+    set_attribute!(G, :complex_reflections, refls)
+    return refls
+  end
+
+  # For an unmarked matrix group, fall back to exhaustive enumeration.
   for g in G
     b,g_data = is_complex_reflection_with_data(g)
     if b

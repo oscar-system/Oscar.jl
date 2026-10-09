@@ -1,8 +1,12 @@
-# This file implements isomorphism types of complex reflection groups following the
-# classification of Shephard & Todd (1954).
+# This file implements types of essential complex reflection groups following
+# the classification of Shephard & Todd (1954).
 #
-# Moreover, we implement data that is known (or can be computed) just from the isomorphism
-# type.
+# The type of an irreducible reflection group G <= GL_n(C) is its conjugacy
+# class in GL_n(C). For an essential reducible group, the type is the unordered
+# product of the types of its irreducible factors. This is finer than the
+# isomorphism type of the underlying abstract group. The present object does not
+# encode a trivial fixed summand, and therefore does not describe a nonessential
+# ambient embedding.
 #
 # References:
 #
@@ -14,15 +18,33 @@
 #
 # Ulrich Thiel, 2023
 
+const ComplexReflectionGroupComponent = Union{Int, Tuple{Int, Int, Int}}
+
+"""
+    ComplexReflectionGroupType
+
+The type of an essential finite complex reflection group, written as a
+normalized product of irreducible types.
+
+For an irreducible group `G` in `GL(n, C)`, its type is its conjugacy class in
+`GL(n, C)`. The Shephard--Todd symbols stored here are classification labels for
+these conjugacy classes. For a reducible essential group, the unordered product
+of its irreducible types determines its type. This object stores neither a
+concrete matrix representative nor a basis or reference marking.
+
+A nonessential realization has an additional trivial fixed summand. Its ambient
+conjugacy class also depends on the dimension of that summand, which is not
+recorded here.
+"""
 struct ComplexReflectionGroupType
-  type::Vector{Union{Int, Tuple{Int,Int,Int}}}
+  type::Tuple{Vararg{ComplexReflectionGroupComponent}}
 
   # Argument checking Cannot be more specific than Vector for the constructor argument
   # since [ 4, (4,1,4) ] is of type Vector{Any}
   function ComplexReflectionGroupType(type::Vector)
 
     # The normalized type with unique labels (see below)
-    typenorm = Vector{Union{Int, Tuple{Int,Int,Int}}}()
+    typenorm = ComplexReflectionGroupComponent[]
 
     for t in type
       @req isa(t, Int) || isa(t, Tuple{Int,Int,Int}) "Type must be a vector of integers (for exceptional groups) or of 3-element tuples (for the infinite series)"
@@ -38,11 +60,14 @@ struct ComplexReflectionGroupType
         (m,p,n) = t
         @req m >= 1 && p >= 1 && n >= 1 "m,p,n >= 1 required"
         @req is_divisible_by(m,p) "p must be a divisor of m"
-        @req (m,p,n) != (2,2,2) "(2,2,2) is not irreducible"
-
         # Normalization of special overlap cases to get unique labeling
         # See # Lehrer & Taylor (2009). p 27
-        if (m,p,n) == (4,4,2)
+        if (m,p,n) == (2,2,2)
+          # G(2, 2, 2) is the product of two groups of type A1.
+          push!(typenorm, (1,1,2))
+          push!(typenorm, (1,1,2))
+          continue
+        elseif (m,p,n) == (4,4,2)
           tnorm = (2,1,2)
         elseif (m,p,n) == (3,3,2)
           tnorm = (1,1,3)
@@ -62,9 +87,16 @@ struct ComplexReflectionGroupType
       end
       push!(typenorm, tnorm)
     end
-    return new(typenorm)
+
+    # The order of the irreducible factors carries no mathematical information.
+    sort!(typenorm; by=t -> isa(t, Int) ? (1,t,0,0) : (0,t[1],t[2],t[3]))
+    return new(Tuple(typenorm))
   end
 end
+
+Base.:(==)(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType) = G1.type == G2.type
+Base.isequal(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType) = isequal(G1.type, G2.type)
+Base.hash(G::ComplexReflectionGroupType, h::UInt) = hash(G.type, hash(:ComplexReflectionGroupType, h))
 
 # Printing
 function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
@@ -120,9 +152,14 @@ function is_irreducible(G::ComplexReflectionGroupType)
 
 end
 
-# Isomorphism check
-function is_isomorphic(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType)
-  return MSet(G1.type) == MSet(G2.type)
+"""
+    is_equivalent(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType)
+
+Return whether `G1` and `G2` describe the same conjugacy type of essential
+complex reflection group.
+"""
+function is_equivalent(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType)
+  return G1 == G2
 end
 
 # Group order
@@ -150,7 +187,7 @@ end
 
 # Rank
 function rank(G::ComplexReflectionGroupType)
-  N = ZZ(1)
+  N = ZZ(0)
 
   # Ranks of the exceptional groups (grabbed from Magma)
   excranks = [ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 6, 6, 7, 8 ]
@@ -158,15 +195,15 @@ function rank(G::ComplexReflectionGroupType)
   for t in G.type
     if isa(t, Int)
       i = t
-      N *= ZZ(excranks[i-3]) #index shift by 3 because exceptionals start with G4
+      N += ZZ(excranks[i-3]) #index shift by 3 because exceptionals start with G4
     else
       m = ZZ(t[1])
       p = ZZ(t[2])
       n = ZZ(t[3])
       if m == 1 && p == 1 #symmetric group case is of rank n-1
-        N *= n-1
+        N += n-1
       else
-        N *= n
+        N += n
       end
     end
   end
@@ -175,24 +212,24 @@ end
 
 # Imprimitivity
 function is_imprimitive(G::ComplexReflectionGroupType)
-  # A direct product of matrix groups is imprimitive if and only if all the factors
-  # are imprimitive.
-  # We go through the factors. If there is a primitive one, we can return false.
-  # See Lehrer & Taylor (2009).
-  for t in G.type
-    if isa(t, Int) #exceptionals are primitive
-      return false
-    else
-      (m,p,n) = t
-      if n == 1 #rank 1 is primitive
-        return false
-      else
-        if m == 1 && n >= 5 #S_n^ref is primitive for n >= 5
-          return false
-        end
-      end
-    end
+  @req is_irreducible(G) "Imprimitivity is defined only for irreducible nontrivial types"
+
+  t = G.type[1]
+  if isa(t, Int) #exceptionals are primitive
+    return false
   end
+
+  (m,p,n) = t
+  if rank(G) == 1
+    return false
+  end
+
+  # S_n^ref is primitive for n >= 5. The apparent n = 4 exception in some
+  # statements is excluded by S_4^ref = G(2, 2, 3), which is imprimitive.
+  if m == 1 && p == 1 && n >= 5
+    return false
+  end
+
   return true
 end
 
@@ -201,8 +238,10 @@ function is_primitive(G::ComplexReflectionGroupType)
 end
 
 function direct_product(X::Vector{ComplexReflectionGroupType})
-
-  type = reduce(vcat, [ G.type for G in X ]) #simply the flattened list of the types
+  type = ComplexReflectionGroupComponent[]
+  for G in X
+    append!(type, G.type)
+  end
 
   return ComplexReflectionGroupType(type)
 
@@ -497,6 +536,8 @@ end
 
 function coxeter_number(G::ComplexReflectionGroupType)
 
+  @req is_irreducible(G) "The Coxeter number is defined only for irreducible nontrivial types"
+
   return div(number_of_reflections(G) + number_of_hyperplanes(G), rank(G))
 
 end
@@ -567,7 +608,11 @@ function number_of_reflection_classes(G::ComplexReflectionGroupType)
       (m,p,n) = t
 
       # See Thiel (2014), Theorem 15.27
-      if n > 2 || (n == 2 && is_odd(p))
+      if n == 1
+        # Each nonidentity element of the cyclic group G(m, 1, 1) is a reflection
+        # and forms its own conjugacy class.
+        N += ZZ(m - 1)
+      elseif n > 2 || (n == 2 && is_odd(p))
         N += div(ZZ(m),ZZ(p))
       else
         N += div(ZZ(m),ZZ(p)) + 1

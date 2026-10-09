@@ -589,7 +589,9 @@ function complex_reflection_group_CHEVIE(t::Tuple)
     tprime = t^p
 
     #the matrix s_1'
-    s1prime = t^-1*transp[1]*t
+    if n > 1
+      s1prime = t^-1*transp[1]*t
+    end
 
     #now, create the list of generators
     if m == p
