@@ -604,7 +604,7 @@ Return the G-set `Omega` that consists of the closure of root space elements
 under the natural action of `W`.
 
 !!! note
-    This function is only implemented for finite Weyl groups, that is root systems of classical type.
+    This function is only implemented for finite Weyl groups, that is, root systems of finite type.
 
 # Examples
 ```jldoctest

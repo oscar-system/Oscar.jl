@@ -256,7 +256,7 @@ end
     (V::LieAlgebraModule{C})(v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
-Fails, if `Int` cannot be coerced into the base ring of `L`.
+Fails, if `Int` cannot be coerced into the coefficient ring of `V`.
 """
 function (V::LieAlgebraModule)(v::AbstractVector{Int})
   return V(coefficient_ring(V).(v))
@@ -277,7 +277,7 @@ end
     (V::LieAlgebraModule{C})(mat::MatElem{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector equivalent to
-the $1 \times \dim(L)$ matrix `mat`.
+the $1 \times \dim(V)$ matrix `mat`.
 """
 function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:FieldElem}
   @req ncols(v) == dim(V) "Length of vector does not match dimension"
@@ -611,7 +611,7 @@ end
 @doc raw"""
     abstract_module(L::LieAlgebra{C}, dimV::Int, transformation_matrices::Vector{<:MatElem{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
 
-Construct the the Lie algebra module over `L` of dimension `dimV` given by
+Construct the Lie algebra module over `L` of dimension `dimV` given by
 `transformation_matrices` and with basis element names `s`.
 
 * `transformation_matrices`: The action of the $i$-th basis element of `L`
@@ -619,8 +619,8 @@ Construct the the Lie algebra module over `L` of dimension `dimV` given by
   of the matrix `transformation_matrices[i]` to the coefficient vector of $v$.
 * `s`: A vector of basis element names. This is
   `[Symbol("v_$i") for i in 1:dimV]` by default.
-* `check`: If `true`, check that the structure constants are anti-symmetric and
-  satisfy the Jacobi identity. This is `true` by default.
+* `check`: If `true`, check that the transformation matrices define a
+  representation of `L`, i.e. are compatible with the Lie bracket. This is `true` by default.
 """
 function abstract_module(
   L::LieAlgebra{C},
@@ -633,9 +633,9 @@ function abstract_module(
 end
 
 @doc raw"""
-    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{sparse_row_type{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
+    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{sparse_row_type(C)}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
 
-Construct the the Lie algebra module over `L` of dimension `dimV` given by
+Construct the Lie algebra module over `L` of dimension `dimV` given by
 structure constants `struct_consts` and with basis element names `s`.
 
 The action on the newly constructed Lie algebra module `V` is determined by the structure
@@ -646,8 +646,8 @@ such that $x_i * v_j = \sum_k a_{i,j,k} v_k$.
 
 * `s`: A vector of basis element names. This is
   `[Symbol("v_$i") for i in 1:dimV]` by default.
-* `check`: If `true`, check that the structure constants are anti-symmetric and
-  satisfy the Jacobi identity. This is `true` by default.
+* `check`: If `true`, check that the structure constants define a
+  representation of `L`, i.e. are compatible with the Lie bracket. This is `true` by default.
 """
 function abstract_module(
   L::LieAlgebra{C},

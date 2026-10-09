@@ -162,6 +162,14 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    direct_sum(Ss::Vector{<:LieAlgebra{C}}) -> DirectSumLieAlgebra{C}
+    direct_sum(S::LieAlgebra{C}, Ss::LieAlgebra{C}...) -> DirectSumLieAlgebra{C}
+
+Construct the direct sum of the Lie algebras `Ss`, which must have the same
+coefficient ring. The summands are accessible via `canonical_injection` and
+`canonical_projection`.
+"""
 function direct_sum(Ss::Vector{<:LieAlgebra{C}}) where {C<:FieldElem}
   R = coefficient_ring(Ss[1])
   return direct_sum(R, Ss)

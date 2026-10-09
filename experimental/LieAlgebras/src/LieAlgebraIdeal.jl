@@ -103,7 +103,7 @@ end
     (I::LieAlgebraIdeal{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `I` with coefficient vector `v`.
-Fail, if `Int` cannot be coerced into the base ring of `I`.
+Fail, if `Int` cannot be coerced into the coefficient ring of `I`.
 """
 function (I::LieAlgebraIdeal)(v::AbstractVector{Int})
   return I(coefficient_ring(I).(v))

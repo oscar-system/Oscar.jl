@@ -101,7 +101,7 @@ end
     (S::LieSubalgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `S` with coefficient vector `v`.
-Fail, if `Int` cannot be coerced into the base ring of `S`.
+Fail, if `Int` cannot be coerced into the coefficient ring of `S`.
 """
 function (S::LieSubalgebra)(v::AbstractVector{Int})
   return S(coefficient_ring(S).(v))
