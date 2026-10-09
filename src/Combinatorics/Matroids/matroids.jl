@@ -278,7 +278,7 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractS
 end
 
 @doc raw"""
-    matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
+    matroid_from_matrix_columns(A::MatElem; check::Bool=true)
 
 A matroid represented by the column vectors of a matrix `A`. The value of `check` is currently ignored.
 
@@ -293,7 +293,7 @@ julia> M = matroid_from_matrix_columns(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
+function matroid_from_matrix_columns(A::MatElem; check::Bool=true)
     rk = rank(A)
     nr = nrows(A)
     bases = Vector{Vector{Int64}}()
@@ -314,7 +314,7 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
 end
 
 @doc raw"""
-    matroid_from_matrix_rows(A::MatrixElem, check::Bool=true)
+    matroid_from_matrix_rows(A::MatElem, check::Bool=true)
 
 A matroid represented by the row vectors of a matrix. The value of `check` is currently ignored.
 
@@ -329,7 +329,7 @@ julia> M = matroid_from_matrix_rows(A)
 Matroid of rank 2 on 4 elements
 ```
 """
-matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
+matroid_from_matrix_rows(A::MatElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc raw"""
     cycle_matroid(g::Graph{Undirected})
@@ -904,11 +904,11 @@ R10_matroid() = matroid_from_revlex_basis_encoding("0000000********0****00******
 Construct the all-subsets-matroid of rank `r`, a.k.a. the matroid underlying the resonance arrangement or rank `r`.
 """
 function all_subsets_matroid(r::Int)
-    M = []
+    M = Int[]
     for i in 1:2^r-1
-        M = vcat(M,digits(i, base=2, pad=r))
+        append!(M, digits(i, base=2, pad=r))
     end
-    M = convert(Array{Int64, 2}, reshape(M, r, 2^r-1))
+    M = reshape(M, r, 2^r-1)
     return matroid_from_matrix_columns(matrix(QQ, M); check=false)
 end
 
@@ -960,15 +960,15 @@ function projective_geometry(r::Int, q::Int; check::Bool=false)
     elseif r==2
         return projective_plane(q)
     end
-    M=[]
+    M=Int[]
     n=Int((q^(r+1)-1)/(q-1))
     for i in 1:(q^(r+1)-1)
         new_column = digits(i, base=q, pad=r+1)
         if new_column[findfirst(!is_zero, new_column)]==1
-            M = vcat(M, new_column)
+            append!(M, new_column)
         end
     end
-    M = convert(Array{Int64,2},reshape(M, r+1, n))
+    M = reshape(M, r+1, n)
     return matroid_from_matrix_columns(matrix(GF(q), M); check=check)
 end
 

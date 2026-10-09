@@ -19,7 +19,7 @@ struct ViewMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{Morphism
       domain::HyperComplexView,
       codomain::HyperComplexView
     )
-    return new{ModuleFPHom}(phi, rng, domain, codomain)
+    return new{OFPModuleHom}(phi, rng, domain, codomain)
   end
 end
 
@@ -47,7 +47,7 @@ end
     map_factory = ViewMorphismFactory(phi, rng, domain, codomain)
 
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=false, offset=offset(phi))
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

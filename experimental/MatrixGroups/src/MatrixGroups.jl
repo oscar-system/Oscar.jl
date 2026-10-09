@@ -10,7 +10,7 @@ export _wrap_for_gap
 
 ################################################################################
 """
-   _wrap_for_gap(m::MatrixElem)
+   _wrap_for_gap(m::MatElem)
 
 Compute the JuliaMatrixRep of `m` in GAP.
 
@@ -22,12 +22,12 @@ julia> Oscar._wrap_for_gap(m)
 GAP: <matrix object of dimensions 2x2 over Integer ring>
 ```
 """
-_wrap_for_gap(m::MatrixElem) = GAP.Globals.MakeJuliaMatrixRep(m)
+_wrap_for_gap(m::MatElem) = GAP.Globals.MakeJuliaMatrixRep(m)
 
 
 ################################################################################
 """
-    matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+    matrix_group(matrices::Vector{<:MatElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
 
 Construct a GAP group `G` where the generators on the GAP side are wrappers
 of type `JuliaMatrixRep` around the given Oscar matrices `matrices`.
@@ -48,7 +48,7 @@ julia> Oscar.MatrixGroups.matrix_group([m1, m2])
 GAP: <group with 2 generators>
 ```
 """
-function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+function matrix_group(matrices::Vector{<:MatElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
      # Compute the reduction map to a matrix group over a finite field `F`.
      flag, res = Oscar._isomorphic_group_over_finite_field(matrices, check = check)
 
@@ -61,18 +61,18 @@ function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) whe
      matrices_Fq = [matrix(x) for x in gens(G)]  # Oscar matrices over F
      iso = Oscar.iso_oscar_gap(base_ring(matrices_Fq[1]))
      gap_matrices_Fq = [map_entries(iso, m) for m in matrices_Fq]
-     G2 = GAP.Globals.Group(GapObj(gap_matrices_Fq))
+     G2 = GAPWrap.Group(GapObj(gap_matrices_Fq))
 
      # Create a GAP group of wrapped matrices in characteristic zero.
      gapMatrices = [Oscar.MatrixGroups._wrap_for_gap(m) for m in matrices]
-     G = GAP.Globals.Group(GapObj(gapMatrices))
+     G = GAPWrap.Group(GapObj(gapMatrices))
 
      # Create a nice monomorphism from `G` to `G2`.
      # (`GroupHomomorphismByFunction` admits computing images via the
      # reduction `OtoFq`,
      # computing preimages is possible via the nice monomorphism of `G2`
      # which is an action homomorphism.)
-     JuliaGAPMap = GAP.Globals.GroupHomomorphismByFunction(G, G2,
+     JuliaGAPMap = GAPWrap.GroupHomomorphismByFunction(G, G2,
        M -> map_entries(iso, Oscar._reduce(GAP.getbangproperty(M, :m), OtoFq)))
      GAP.Globals.SetIsBijective(JuliaGAPMap, true)
      GAP.Globals.SetFilterObj(JuliaGAPMap, GAP.Globals.IsPreImagesByAction)

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lie algebra modules
 
 Lie algebra modules in OSCAR are always finite dimensional and represented by the type
@@ -81,4 +75,10 @@ tensor_product_decomposition(::LieAlgebra, ::WeightLatticeElem, ::WeightLatticeE
 ```@docs
 demazure_operator(::RootSpaceElem, ::Dict{WeightLatticeElem,<:IntegerUnion})
 demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)
+```
+
+### Functions concerning Kostant-Kumar modules
+
+```@docs
+kostant_kumar_character(::LieAlgebra, ::WeightLatticeElem, ::WeightLatticeElem, ::WeylGroupElem)
 ```

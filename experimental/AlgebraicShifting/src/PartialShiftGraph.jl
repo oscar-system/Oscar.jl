@@ -222,7 +222,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
     # this should be updated to use the parallel framework at some point?
     channels = [RemoteChannel(()->Channel{Any}(32), i) for i in workers()]
     # setup parents needed to be sent to each process
-    map(channel -> put_type_params(channel, codomain(phi)), channels)
+    map(channel -> put_type_and_params(channel, codomain(phi)), channels)
     map_function = pmap
   end
   try

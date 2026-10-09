@@ -172,7 +172,7 @@ struct InducedKoszulMorFactory{MorphismType} <: HyperComplexMorphismFactory{Morp
       cod::HomogKoszulComplex,
       A::SMat
     )
-    return new{ModuleFPHom}(dom, cod, A)
+    return new{OFPModuleHom}(dom, cod, A)
   end
 end
 
@@ -196,6 +196,6 @@ end
     )
     map_factory = InducedKoszulMorFactory(dom, cod, transition_matrix)
     internal_morphism = HyperComplexMorphism(dom, cod, map_factory, cached=true, offset=[0 for i in 1:dim(dom)])
-    return new{typeof(dom), typeof(cod), ModuleFPHom}(internal_morphism)
+    return new{typeof(dom), typeof(cod), OFPModuleHom}(internal_morphism)
   end
 end

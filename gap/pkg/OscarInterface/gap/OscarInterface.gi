@@ -127,7 +127,7 @@ InstallMethod( GroupGeneratorsDefinePresentation,
 ############################################################################
 
 
-Perform( Oscar_jl.Serialization._GAP_type_params,
+Perform( Oscar_jl.Serialization._GAP_type_and_params,
          function( entry )
            InstallMethod( SerializationInOscarDependentObjects,
              [ JuliaToGAP( IsString, entry[1] ) ],

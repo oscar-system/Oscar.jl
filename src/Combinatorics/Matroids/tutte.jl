@@ -23,12 +23,6 @@ function circuits(M::Matroid, S::T) where T<:GroundsetType
   return circuits(restriction(M,S))
 end
 
-function _circuit(M::Matroid, S::T) where T<:GroundsetType
-  C = circuits(M, S)
-  @req !isempty(C) "S does not contain a circuit of the matroid"
-  return C[1] 
-end
-
 @doc raw"""
     cocircuits(M::Matroid, S::T) where T<:GroundsetType
 
@@ -50,11 +44,6 @@ function cocircuits(M::Matroid, S::T) where T<:GroundsetType
   return circuits(MD,S)
 end
 
-function _cocircuit(M::Matroid, S::T) where T<:GroundsetType
-  @req !iszero(rank(M)) "The rank of the matroid should be smaller than the cardinality of the ground set"
-  return cocircuits(M,S)[1] 
-end
-
 @doc raw"""
     tutte_group(M::Matroid; char::Int=0)
 
@@ -71,9 +60,8 @@ julia> ngens(T)
 ```
 """
 function tutte_group(M::Matroid; char::Int=0)
-  B = bases(M)
-  gs = matroid_groundset(M)
-  idx = Dict{Set{eltype(gs)}, Int}(Set(k) => i for (i,k) in enumerate(B))
+  B = bases(Int, M)
+  idx = Dict{BitSet, Int}(BitSet(b) => i for (i,b) in enumerate(B))
   v = zeros(Int, length(B)+1)
   if char == 2
     v[end] = 1 #this is for the epsilon
@@ -81,25 +69,34 @@ function tutte_group(M::Matroid; char::Int=0)
     v[end] = 2 #this is for the epsilon
   end
   relations = [v]
-  for X in nonbases(M)
-    if rank(M,X) == rank(M)-1
-      C = _circuit(M,X)
-      D = _cocircuit(M,setdiff(gs,X))
-      e = popfirst!(C)
-      f = popfirst!(D)
-      #push!(ret,D)
-      for g in C
-        for h in D
-          v = zeros(Int, length(B)+1)
-          I = setdiff(Set(X), [e,g])
-          v[idx[union(I, [e,f])]] = 1
-          v[idx[union(I, [g,h])]] = 1
-          v[idx[union(I, [e,h])]] = -1
-          v[idx[union(I, [g,f])]] = -1
-          v[end] = count([e<f, f<g, g<h, h<e]) #this is the index for the epsilon
-          push!(relations, v)
-       end
-     end
+  all_circuits = circuits(Int, M)
+  all_cocircuits = cocircuits(Int, M)
+  all_circ_bs = BitSet.(all_circuits)
+  all_cocirc_bs = BitSet.(all_cocircuits)
+  n = length(M)
+  for X in nonbases(Int, M)
+    Xbs = BitSet(X)
+    ci = findfirst(c -> issubset(c, Xbs), all_circ_bs)
+    ci === nothing && continue
+    findnext(c -> issubset(c, Xbs), all_circ_bs, ci+1) !== nothing && continue
+    Ybs = BitSet(1:n); setdiff!(Ybs, Xbs)
+    di = findfirst(c -> issubset(c, Ybs), all_cocirc_bs)
+    di === nothing && continue
+    C = copy(all_circuits[ci])
+    D = copy(all_cocircuits[di])
+    e = popfirst!(C)
+    f = popfirst!(D)
+    for g in C
+      for h in D
+        v = zeros(Int, length(B)+1)
+        I = setdiff(Xbs, (e, g))
+        v[idx[union(I, (e, f))]] = 1
+        v[idx[union(I, (g, h))]] = 1
+        v[idx[union(I, (e, h))]] = -1
+        v[idx[union(I, (g, f))]] = -1
+        v[end] = count([e<f, f<g, g<h, h<e]) #this is the index for the epsilon
+        push!(relations, v)
+      end
     end
   end
   relations_matrix = matrix(ZZ, relations)

@@ -451,7 +451,7 @@ function ref_ff!(M::MatElem)
   return rk
 end
 
-function Hecke.content(M::MatrixElem{<:MPolyRingElem})
+function Hecke.content(M::MatElem{<:MPolyRingElem})
   m = []
   for idx = eachindex(M)
     l = length(M[idx]) # should be 0 iff entry is zero

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Sheaves on Projective Space
 
 We present two algorithms for computing sheaf cohomology over projective $n$-space.
@@ -14,7 +8,7 @@ syzygy computations over the symmetric algebra (see [DE02](@cite) for a tutorial
 the first algorithm is much faster.
 
 ```@docs
-sheaf_cohomology(M::ModuleFP{T}, l::Int, h::Int; algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
+sheaf_cohomology(M::OFPModule{T}, l::Int, h::Int; algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
 ```
 
 

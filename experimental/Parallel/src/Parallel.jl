@@ -1,7 +1,7 @@
 using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers
 import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager
 
-import .Serialization: put_type_params
+import .Serialization: put_type_and_params
 
 @doc raw"""
      OscarWorkerPool
@@ -20,7 +20,7 @@ mutable struct OscarWorkerPool <: AbstractWorkerPool
   channel::Channel{Int} # required for the `AbstractWorkerPool` interface
   workers::Set{Int}     # same
   wids::Vector{Int}     # a list of the ids of all workers which are associated to this pool
-  oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
+  oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_and_params` to the workers
 
   function OscarWorkerPool(n::Int; kw...)
     wids = addprocs(n; kw...)
@@ -136,9 +136,9 @@ end
 close!(wp::OscarWorkerPool) = rmprocs(workers(wp)...)
 
 # extend functionality so that `pmap` works with Oscar stuff
-function put_type_params(wp::OscarWorkerPool, a::Any)
+function put_type_and_params(wp::OscarWorkerPool, a::Any)
   asyncmap(wp.wids) do id
-    put_type_params(get_channel(wp, id), a)
+    put_type_and_params(get_channel(wp, id), a)
   end
 end
 
@@ -231,7 +231,7 @@ process_result!(ctx, id::Int, res) = ctx
 
 #=
 # Custom versions of `remotecall` and `remotecall_fetch` for `OscarWorkerPool`s.
-# The idea is to use this special type of worker pool to send the `type_params`
+# The idea is to use this special type of worker pool to send the `type_and_params`
 # of the arguments to the workers up front. Then hopefully, whenever an
 # `OscarWorkerPool` is being used, loads of other functionality like `pmap`
 # will run out of the box.
@@ -239,10 +239,10 @@ process_result!(ctx, id::Int, res) = ctx
 function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   wid = take!(wp)
   for a in args
-    put_type_params(get_channel(wp, wid), a)
+    put_type_and_params(get_channel(wp, wid), a)
   end
   for a in kwargs
-    put_type_params(get_channel(wp, wid), a)
+    put_type_and_params(get_channel(wp, wid), a)
   end
 
   # Copied from Distributed.jl/src/workerpool.jl.
@@ -272,10 +272,10 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   # TODO only send params when necessary
   # and/or figure out how to clear channels
   for a in args
-    put_type_params(get_channel(wp, wid), a)
+    put_type_and_params(get_channel(wp, wid), a)
   end
   for a in kwargs
-    put_type_params(get_channel(wp, wid), a)
+    put_type_and_params(get_channel(wp, wid), a)
   end
   result = remotecall_fetch(f, wid, args...; kwargs...)
   put!(wp, wid)
@@ -283,11 +283,12 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
 end
 
 # this is here so that setting batchsize still works
-type_params(p::Base.Iterators.Zip) = type_params(first(p))
+type_and_params(p::Base.Iterators.Zip) = type_and_params(first(p))
   
 function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
-  put_type_params(wp, c)
+  put_type_and_params(wp, c)
   pmap(f, wp.wp, c; kwargs...)
 end
 
+include("determinants.jl")
 export oscar_worker_pool

@@ -1,13 +1,13 @@
 ### Production of the chains
 struct ENCChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
-  A::MatrixElem
+  A::MatElem
   exps::Vector{Vector{Vector{Int}}} # a hashtable for indexing
   F::ChainType # the original free module for the Koszul complex
   sym_powers::Dict{Int, ChainType}
   ext_powers::Dict{Int, ChainType}
 
   function ENCChainFactory(
-      A::MatrixElem{T},
+      A::MatElem{T},
       F::FreeMod
     ) where {T<:RingElem}
     n = ncols(A)
@@ -108,7 +108,7 @@ end
   internal_complex::HyperComplex{ChainType, MorphismType}
 
   function EagonNorthcottComplex(
-      A::MatrixElem{T};
+      A::MatElem{T};
       F::FreeMod{T}=begin
         R = base_ring(A)
         F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)]) : FreeMod(R, ncols(A))
@@ -133,7 +133,7 @@ matrix(c::EagonNorthcottComplex) = chain_factory(c).A
 
 # user facing constructors
 @doc raw"""
-    eagon_northcott_complex(A::MatrixElem{T}; F::FreeMod{T}) where {T}
+    eagon_northcott_complex(A::MatElem{T}; F::FreeMod{T}) where {T}
 
 Given an ``m \times n``-matrix ``A`` over a commutative ring ``R``, construct
 the Eagon-Northcott complex associated to it [EN62](@cite).
@@ -143,7 +143,7 @@ of ``A`` are interpreted as elements in the dual of ``F`` in the construction
 of the complex.
 """
 function eagon_northcott_complex(
-    A::MatrixElem{T};
+    A::MatElem{T};
     F::FreeMod{T}=begin
       R = base_ring(A)
       F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)], "f") : FreeMod(R, ncols(A), "f")

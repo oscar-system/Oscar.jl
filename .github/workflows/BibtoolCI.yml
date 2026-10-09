@@ -27,7 +27,7 @@ jobs:
   check-standard-refs:
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install bibtool
         run: |
           sudo apt-get -y update

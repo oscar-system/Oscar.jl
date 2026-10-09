@@ -8,11 +8,11 @@ function __GAP_info_messages_off(off::Bool = true)
   if length(__GAP_info_levels_default) == 0
     # Initialize the info about default levels.
     for c in Vector{GapObj}(GAP.Globals.INFO_CLASSES)
-      push!(__GAP_info_levels_default, c => GAP.Globals.InfoLevel(c))
+      push!(__GAP_info_levels_default, c => GAPWrap.InfoLevel(c))
     end
   end
   # Set the info levels.
   for pair in __GAP_info_levels_default
-    GAP.Globals.SetInfoLevel(pair[1], off ? 0 : pair[2])
+    GAPWrap.SetInfoLevel(pair[1], off ? 0 : pair[2])
   end
 end

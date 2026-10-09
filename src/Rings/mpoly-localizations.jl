@@ -1556,7 +1556,7 @@ function pre_saturation_data(I::MPolyLocalizedIdeal)
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::PT, x::MatrixElem{PT}, u::PT;
+    I::MPolyLocalizedIdeal, f::PT, x::MatElem{PT}, u::PT;
     check::Bool=true
   ) where {PT <: MPolyRingElem}
   nrows(x) == 1 || error("matrix must be a row vector")
@@ -1578,7 +1578,7 @@ function extend_pre_saturated_ideal!(
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatrixElem{PT}, u::Vector{PT};
+    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatElem{PT}, u::Vector{PT};
     check::Bool=true
   ) where {PT <: MPolyRingElem}
   L = base_ring(I)

@@ -109,10 +109,14 @@ function __init__()
      "forms",    # bilinear/sesquilinear/quadratic forms
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
+     "perfgrp",  # perfect groups library
      "primgrp",  # primitive groups library
      "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
+     "sglppow",  # small groups library extension
+     "smallclassnr", # library of groups with few conjugacy classes
      "smallgrp", # small groups library
+     "sotgrps",  # small groups library extension
      "transgrp", # transitive groups library
      "wedderga", # provides a function to compute Schur indices
      ]
@@ -180,6 +184,12 @@ function __init__()
   add_verbosity_scope(:DirectImages)
 
   add_verbosity_scope(:DrawingCurves)
+
+  add_verbosity_scope(:f4ncgb)
+
+  add_verbosity_scope(:AlgebraicSolving)
+
+  add_verbosity_scope(:FundamentalInvariants)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
@@ -272,12 +282,13 @@ include("../gap/pkg/OscarInterface/julia/constants.jl")
 
 
 include("Modules/Modules.jl")
-include("Rings/ReesAlgebra.jl") # Needs ModuleFP
+include("Rings/ReesAlgebra.jl") # Needs OFPModule
 
 include("NumberTheory/NmbThy.jl")
 include("NumberTheory/QuadFormAndIsom.jl")
 include("NumberTheory/vinberg.jl")
 include("NumberTheory/embedding_with_roots.jl")
+include("NumberTheory/OverLat.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")

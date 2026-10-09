@@ -101,7 +101,7 @@ parent(x::CliffordAlgebraElem) = x.parent
     coefficients(x::CliffordAlgebraElem) -> Vector
 
 Return the coefficient vector of `x` wrt the
-canonical basis of its parent Clifford algebra.  
+canonical basis of its parent Clifford algebra.
 """
 coefficients(x::CliffordAlgebraElem) = x.coeffs
 
@@ -328,34 +328,34 @@ function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
   n = dim(C)
   R = base_ring(C)
   res = zero_matrix(R, n, n)
-  
+
   x_coeffs = coefficients(x)
   gram = gram_matrix(C)
-  
+
   out_buffer = [zero(R) for _ in 1:n]
   y_buffer   = [zero(R) for _ in 1:n]
   temp_buffers = [[zero(R) for _ in 1:n] for _ in 1:ncols(gram)]
-  
+
   @inbounds for k in 1:n
     y_buffer[k] = one!(y_buffer[k])
-    
+
     for j in 1:n
       out_buffer[j] = zero!(out_buffer[j])
     end
-    
+
     if action == :left
       _mul_aux!(out_buffer, x_coeffs, y_buffer, gram, 1, temp_buffers)
     else #action = right
       _mul_aux!(out_buffer, y_buffer, x_coeffs, gram, 1, temp_buffers)
     end
-    
+
     for j in 1:n
       res[k, j] = deepcopy(out_buffer[j])
     end
-    
+
     y_buffer[k] = zero!(y_buffer[k])
   end
-  
+
   return res
 end
 
@@ -455,7 +455,7 @@ AbstractAlgebra.promote_rule(::Type{CAE}, ::Type{CAE}) where
 
 ################################################################################
 #
-#  Random generation 
+#  Random generation
 #
 ################################################################################
 
@@ -468,7 +468,7 @@ rand(C::CliffordAlgebra, v...) = rand(Random.default_rng(), C, v...)
 
 ################################################################################
 #
-#  Conformance test element generation 
+#  Conformance test element generation
 #
 ################################################################################
 
@@ -482,24 +482,24 @@ ConformanceTests.generate_element(C::CliffordAlgebra) = C([base_ring(C)(rand(-3:
 
 function _orth_elt(C::CliffordAlgebra)
   isdefined(C, :orth_elt) && isdefined(C, :disq) && return C.orth_elt::elem_type(C)
-    
+
   n = dim(space(C))
   if n == 0
     C.orth_elt = C(1)
     C.disq = base_ring(C)(1)
     return C.orth_elt::elem_type(C)
   end
-    
-  T = orthogonal_basis(space(C))  
+
+  T = orthogonal_basis(space(C))
   orth_gens = [sum(gen(C, j) * T[i, j] for j in 1:n) for i in 1:n]
   orth_elt = prod(orth_gens)
   scale = denominator(orth_elt)
   C.orth_elt = orth_elt * scale
-  
+
   if !isdefined(C, :disq)
     sign = n % 4 in (0, 1) ? 1 : -1
     C.disq = sign * prod(coefficients(x^2)[1] for x in orth_gens) * scale^2
   end
-  
+
   return C.orth_elt::elem_type(C)
 end

@@ -302,7 +302,7 @@ end
   t = table_of_marks(g)
   @test nrows(t) == 11
   @test ncols(t) == 11
-  @test_throws ErrorException t[12]
+  @test_throws GAP.GAPError t[12]
   tr = t[end]
   @test parent(tr) === t
   @test tr in t

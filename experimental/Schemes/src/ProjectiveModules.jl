@@ -135,7 +135,7 @@ function _is_projective_without_denominators(A::MatElem;
   # Get rid of the zero entries.
   entry_list = entry_list[involved_entries]
   lambda1 = lambda1[1, involved_entries]
-  sub_results = Tuple{Bool, <:MatrixElem, Int}[]
+  sub_results = Tuple{Bool, <:MatElem, Int}[]
   sub_localizations = Tuple{<:Ring, <:Map}[]
   for (u, i, j) in entry_list
     # Assemble the submatrix Bᵢⱼ

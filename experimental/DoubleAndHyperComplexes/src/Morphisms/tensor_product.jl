@@ -19,7 +19,7 @@ struct InducedTensorProductMorphismFactory{MorphismType} <: HyperComplexMorphism
       domain::HCTensorProductComplex,
       codomain::HCTensorProductComplex
     )
-    return new{ModuleFPHom}(factors, domain, codomain)
+    return new{OFPModuleHom}(factors, domain, codomain)
   end
 end
 
@@ -55,7 +55,7 @@ end
     map_factory = InducedTensorProductMorphismFactory(factors, domain, codomain)
 
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[0 for i in 1:dim(domain)])
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

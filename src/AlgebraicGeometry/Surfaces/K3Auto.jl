@@ -737,7 +737,7 @@ end
 
 
 # legacy worker for hom and aut without Plesken-Souvignier preprocessing
-function alg319(gram::MatrixElem, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
+function alg319(gram::MatElem, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
   n = ncols(gram)
   partial_homs = [zero_matrix(ZZ, 0, n)]
   basis,_ = _find_basis(raysD, n)
@@ -745,7 +745,7 @@ function alg319(gram::MatrixElem, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatri
   return alg319(gram, basis, gram_basis, raysD, raysE, membership_test)
 end
 
-function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::ZZMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
+function alg319(gram::MatElem, basis::ZZMatrix, gram_basis::ZZMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
   n = ncols(gram)
   partial_homs = [zero_matrix(ZZ, 0, n)]
   # breadth first search
@@ -849,7 +849,7 @@ function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, prRdelta, w::QQMatrix)
   return delta_w
 end
 
-function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, w::MatrixElem)
+function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, w::MatElem)
   Rdual = dual(R)
   sv = short_vectors(Rdual, 2, ZZRingElem)
   # not storing the following for efficiency
@@ -1002,7 +1002,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   #return [s*B for s in sol]
 
   # much of this code is copied from
-  # short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldElem, d)
+  # short_vectors_affine(gram::MatElem, v::MatElem, alpha::QQFieldElem, d)
   # to avoid repeated calculation of the same stuff e.g. K and Q
   # find a solution <x,v> = alpha with x in L if it exists
   ww = transpose(wS)

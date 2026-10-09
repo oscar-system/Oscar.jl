@@ -38,6 +38,7 @@ export irreducible_factors
 export is_ad_nilpotent
 export is_self_normalizing
 export killing_matrix
+export kostant_kumar_character
 export lie_algebra
 export lower_central_series
 export matrix_repr_basis

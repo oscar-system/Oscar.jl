@@ -454,7 +454,9 @@ julia> cocircuits(uniform_matroid(2, 5))
  [2, 3, 4, 5]
 ```
 """
-cocircuits(M::Matroid) = circuits(dual_matroid(M))
+cocircuits(M::Matroid{T}) where T = _property_to_gs(M, Symbol("DUAL.CIRCUITS"))::Vector{Vector{T}}
+
+cocircuits(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).DUAL.CIRCUITS)::Vector{Vector{Int}}
 
 @doc raw"""
     cohyperplanes(M::Matroid)
@@ -1179,10 +1181,19 @@ true
 ```
 """
 function is_isomorphic(M1::Matroid, M2::Matroid)
-    if length(M1) != length(M2)
+    B1 = bases(Int, M1)
+    B2 = bases(Int, M2)
+    b1 = length(B1)
+    b2 = length(B2)
+    n1 = length(M1)
+    n2 = length(M2)
+    if b1 != b2 || n1 != n2
         return false
+    else
+        I1 = incidence_matrix(b1,n1,B1)
+        I2 = incidence_matrix(b2,n2,B2)
+        return !isnothing(Polymake.graph.find_row_col_permutation(I1,I2))
     end
-    return Polymake.matroid.is_isomorphic_to(M1.pm_matroid, M2.pm_matroid)::Bool
 end
 
 @doc raw"""

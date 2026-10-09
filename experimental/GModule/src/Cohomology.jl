@@ -1818,7 +1818,7 @@ function Oscar.direct_sum(a::Vector{<:Union{<:Generic.ModuleHomomorphism{<:RingE
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
 end
 
-function Oscar.direct_sum(a::Vector{<:ModuleFPHom})
+function Oscar.direct_sum(a::Vector{<:OFPModuleHom})
   @req allequal(domain, a) "All maps must have equal domain"
   D = direct_sum(codomain.(a); task = :none)
   return hom(domain(a[1]), D, reduce(hcat, matrix.(a)))
@@ -1865,7 +1865,7 @@ end
 # create a free module with type "compatible" with that of `M`
 _similar_free_module(M::FinGenAbGroup, n::Int) = free_abelian_group(n)
 _similar_free_module(M::AbstractAlgebra.FPModule, n::Int) = free_module(base_ring(M), n; cached = false)
-_similar_free_module(M::Oscar.ModuleFP, n::Int) = FreeMod(base_ring(M), n)
+_similar_free_module(M::Oscar.OFPModule, n::Int) = FreeMod(base_ring(M), n)
 
 """
 Compute
@@ -2205,12 +2205,12 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   fM, mfM = pc_group_with_isomorphism(M)
 
   N = free_group(ngens(G) + ngens(fM))
-  Gp = GAP.Globals.Pcgs(GapObj(G))
+  Gp = GAPWrap.Pcgs(GapObj(G))
   @assert length(Gp) == ngens(G)
 #  @assert all(x->Gp[x] == GapObj(gen(G, x)), 1:ngens(G))
   Go = GAP.Globals.RelativeOrders(Gp)
 
-  Mp = GAP.Globals.Pcgs(GapObj(fM))
+  Mp = GAPWrap.Pcgs(GapObj(fM))
   @assert length(Mp) == ngens(fM) == ngens(M)
 #  @assert all(x->Mp[x] == GapObj(gen(fM, x)), 1:ngens(M))
   #problem/ TODO: Z/100Z has a useful GAP-pc-group has 4 gens (of
