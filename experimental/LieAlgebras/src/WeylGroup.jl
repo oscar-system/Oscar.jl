@@ -11,7 +11,7 @@ Finally, return `w`.
 See also [`exchange_right!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref).
 """
 function exchange_left!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
-  if w[1] == i
+  if isempty(w) || w[1] == i
     return w
   end
 
@@ -45,7 +45,7 @@ See also [`exchange_left!(::WeylGroup, ::AbstractVector{UInt8}, ::UInt8)`](@ref)
 function exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
   # The algorithm is almost the same as explain_rmul
   # But we don't need a normal form, so this is faster
-  if w[end] == i
+  if isempty(w) || w[end] == i
     return w
   end
 
@@ -53,7 +53,7 @@ function exchange_right!(W::WeylGroup, w::AbstractVector{UInt8}, i::UInt8)
   for s in length(w):-1:1
     if w[s] == root
       for n in s:(length(w) - 1)
-        w[n] = w[s + 1]
+        w[n] = w[n + 1]
       end
       w[end] = i
       return w
