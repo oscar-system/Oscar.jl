@@ -106,17 +106,17 @@ end
 # (these are run on a custom schedule only)
 test_subsets = Dict(
                :extra_long => [
-                               "experimental/FTheoryTools/test/FTM-1511-03209.jl",
-                               "experimental/FTheoryTools/test/long_QSMs.jl",
-                               "experimental/FTheoryTools/test/singular_loci.jl",
-                               "experimental/FTheoryTools/test/paper_tests.jl",
+                               "test/FTheoryTools/FTM-1511-03209.jl",
+                               "test/FTheoryTools/long_QSMs.jl",
+                               "test/FTheoryTools/singular_loci.jl",
+                               "test/FTheoryTools/paper_tests.jl",
                                "experimental/DoubleAndHyperComplexes/test/min_k_tester.jl",
                                "experimental/DoubleAndHyperComplexes/test/LeGreuelFormulaOnStratifiedSpaces.jl",
                               ],
 
                     :long  => [
                                "test/Aqua.jl",
-                               "experimental/FTheoryTools/test/weierstrass.jl",
+                               "test/FTheoryTools/weierstrass_models.jl",
                                "test/PolyhedralGeometry/timing.jl",
                                "experimental/GITFans/test/runtests.jl",
                                "test/AlgebraicGeometry/ToricVarieties/toric_schemes.jl",

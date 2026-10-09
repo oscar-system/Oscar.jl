@@ -51,6 +51,8 @@ files_and_dirs_to_be_formatted = [
   "test/PolyhedralGeometry",
   "src/LieTheory",
   "test/LieTheory",
+  "src/FTheoryTools",
+  "test/FTheoryTools",
   "src/aliases.jl",
   "src/AlgebraicGeometry/ToricVarieties",
   "test/AlgebraicGeometry/ToricVarieties",
@@ -60,7 +62,6 @@ files_and_dirs_to_be_formatted = [
   "experimental/LieAlgebras",
   "experimental/LinearAlgebraicGroups",
   "experimental/LinearQuotients",
-  "experimental/FTheoryTools",
   "experimental/DrawingCurves",
 ]
 # a few files for one reason or another may need to be skipped
