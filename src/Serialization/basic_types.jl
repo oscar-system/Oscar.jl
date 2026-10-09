@@ -42,6 +42,13 @@ end
 
 load_object(s::DeserializerState, ::TypeAndParams{ZZRingElem, ZZRing}) = load_object(s, ZZRingElem)
 
+function load_object(s::DeserializerState, ::Type{ZZRingElem})
+  load_node(s) do
+    node_is_string(s) && return ZZRingElem(load_json(s, String))
+    return ZZRingElem(load_json(s, Int))
+  end::ZZRingElem
+end
+
 ################################################################################
 # QQFieldElem
 @register_serialization_type QQFieldElem
@@ -78,12 +85,10 @@ end
 @register_serialization_type Float64
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
-  load_node(s) do x
-    if x isa Integer
-      return T(x)
-    else
-      parse(T, load_json(s, String))
-    end
+  load_node(s) do
+    # small integers are stored as JSON numbers, everything else as strings
+    node_is_string(s) && return parse(T, load_json(s, String))
+    return load_json(s, T)
   end::T
 end
 
