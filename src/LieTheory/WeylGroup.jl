@@ -237,30 +237,31 @@ function order(::Type{T}, W::WeylGroup) where {T}
     throw(InfiniteOrderError(W))
   end
 
-  ord = T(1)
+  # compute in ZZ, the `Int` intermediate results overflow for rank >= 17
+  ord = one(ZZ)
   for (fam, rk) in root_system_type(root_system(W))
     if fam == :A
-      ord *= T(factorial(rk + 1))
+      ord *= factorial(ZZ(rk + 1))
     elseif fam == :B || fam == :C
-      ord *= T(2^rk * factorial(rk))
+      ord *= ZZ(2)^rk * factorial(ZZ(rk))
     elseif fam == :D
-      ord *= T(2^(rk - 1) * factorial(rk))
+      ord *= ZZ(2)^(rk - 1) * factorial(ZZ(rk))
     elseif fam == :E
       if rk == 6
-        ord *= T(51840)
+        ord *= 51840
       elseif rk == 7
-        ord *= T(2903040)
+        ord *= 2903040
       elseif rk == 8
-        ord *= T(696729600)
+        ord *= 696729600
       end
     elseif fam == :F
-      ord *= T(1152)
+      ord *= 1152
     else
-      ord *= T(12)
+      ord *= 12
     end
   end
 
-  return ord
+  return T(ord)
 end
 
 @doc raw"""

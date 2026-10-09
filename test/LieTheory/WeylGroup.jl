@@ -279,6 +279,19 @@
     @test ngens(weyl_group((:F, 4), (:G, 2))) == 4 + 2
   end
 
+  @testset "order(W::WeylGroup)" begin
+    # these orders overflow `Int` if computed naively
+    @test order(weyl_group(:A, 20)) == factorial(ZZ(21))
+    @test order(weyl_group(:B, 17)) == ZZ(2)^17 * factorial(ZZ(17))
+    @test order(weyl_group(:C, 17)) == ZZ(2)^17 * factorial(ZZ(17))
+    @test order(weyl_group(:D, 17)) == ZZ(2)^16 * factorial(ZZ(17))
+    @test order(weyl_group((:A, 20), (:G, 2))) == 12 * factorial(ZZ(21))
+
+    @test order(Int, weyl_group(:E, 8)) === 696729600
+    @test_throws InexactError order(Int, weyl_group(:A, 20))
+    @test_throws InfiniteOrderError order(weyl_group([2 -2; -2 2]))
+  end
+
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
     # test short lex normal form
     W = weyl_group(:A, 2)
