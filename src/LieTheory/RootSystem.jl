@@ -1522,7 +1522,7 @@ If `r` is not a simple coroot, the second return value is arbitrary.
 See also: [`is_simple_coroot(::DualRootSpaceElem)`](@ref).
 """
 function is_simple_coroot_with_index(r::DualRootSpaceElem)
-  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
+  i = get(root_system(r).positive_coroots_map, coefficients(r), nothing)
   if isnothing(i) || i > number_of_simple_roots(root_system(r))
     return false, 0
   else
