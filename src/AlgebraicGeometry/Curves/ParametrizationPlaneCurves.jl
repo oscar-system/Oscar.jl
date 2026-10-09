@@ -9,21 +9,22 @@
 @attr Singular.spoly{Singular.n_Q} function _tosingular(C::ProjectivePlaneCurve{QQField})
     F = defining_equation(C)
     T = parent(F)
-    Tx = singular_poly_ring(T)
-    return Tx(F)
+    return iso_oscar_singular_poly_ring(T)(F)
 end
 
-function _fromsingular_ring(R::Singular.PolyRing)
+# iso onto `R`, a ring created by Singular, from a new Oscar ring
+function _fromsingular_iso(R::Singular.PolyRing)
     Kx = base_ring(R)
     if Kx isa Singular.N_AlgExtField
-        FF, t = rational_function_field(QQ, "t")
-        f = numerator(FF(Kx.minpoly))
+        Qt, t = polynomial_ring(QQ, :t; cached=false)
+        mp = Singular.n_transExt_to_spoly(Kx.minpoly)
+        f = sum(QQ(c)*t^e[1] for (c, e) in zip(AbstractAlgebra.coefficients(mp), AbstractAlgebra.exponent_vectors(mp)); init = zero(Qt))
         K, _ = number_field(f, "a")
     else
         K = QQ
     end
     newring, _ = polynomial_ring(K, symbols(R); cached=false)
-    return newring
+    return OscarSingularPolyRingMap(newring, R, OscarSingularCoefficientRingMapGeneric(K, Kx))
 end
 
 function _tosingular_ideal(C::ProjectiveCurve)
@@ -57,8 +58,8 @@ function parametrization(C::ProjectivePlaneCurve{QQField})
     L = Singular.LibParaplanecurves.paraPlaneCurve(F, "local")
     R = L[1]
     J = L[2][:PARA]
-    S = _fromsingular_ring(R)
-    return gens(ideal(S, J))
+    iso = _fromsingular_iso(R)
+    return [preimage(iso, g) for g in gens(J)]
 end
 
 @doc raw"""
@@ -141,8 +142,8 @@ function rational_point_conic(C::ProjectivePlaneCurve{QQField})
     L = Singular.LibParaplanecurves.rationalPointConic(F)
     R = L[1]
     P = L[2][:point]
-    S = _fromsingular_ring(R)
-    return [S(P[1, i]) for i in 1:3]
+    iso = _fromsingular_iso(R)
+    return [preimage(iso, P[1, i]) for i in 1:3]
 end
 
 @doc raw"""
@@ -157,8 +158,8 @@ function parametrization_conic(C::ProjectivePlaneCurve{QQField})
     L = Singular.LibParaplanecurves.paraConic(F)
     R = L[1]
     J = L[2][:PARACONIC]
-    S = _fromsingular_ring(R)
-    return gens(ideal(S, J))
+    iso = _fromsingular_iso(R)
+    return [preimage(iso, g) for g in gens(J)]
 end
 
 @doc raw"""
@@ -186,10 +187,10 @@ function map_to_rational_normal_curve(C::ProjectivePlaneCurve{QQField})
     F = _tosingular(C)
     I = Singular.LibParaplanecurves.adjointIdeal(F)
     L = Singular.LibParaplanecurves.mapToRatNormCurve(F, I)
-    S = _fromsingular_ring(L[1])
+    iso = _fromsingular_iso(L[1])
     J = L[2][:RNC]
-    R,_ = grade(S)
-    IC = ideal(R, R.(gens(J)))
+    R,_ = grade(domain(iso))
+    IC = ideal(R, [R(preimage(iso, g)) for g in gens(J)])
     return ProjectiveCurve(IC)
 end
 
@@ -337,10 +338,10 @@ function rat_normal_curve_It_Proj_Even(C::ProjectiveCurve)
     I = _tosingular_ideal(C)
     L = Singular.LibParaplanecurves.rncItProjEven(I)
     phi = _lookup_ideal(base_ring(I), :PHI)
-    O = _fromsingular_ring(L[1]::Singular.PolyRing)
-    Ograded,_ = grade(O)
+    Oiso = _fromsingular_iso(L[1]::Singular.PolyRing)
+    Ograded,_ = grade(domain(Oiso))
     conic = L[2][:CONIC]::Singular.spoly
-    return gens(ideal(R, phi)), ProjectivePlaneCurve(Ograded(conic))
+    return gens(ideal(R, phi)), ProjectivePlaneCurve(Ograded(preimage(Oiso, conic)))
 end
 
 @doc raw"""
@@ -357,8 +358,8 @@ function invert_birational_map(phi::Vector{T}, C::ProjectivePlaneCurve) where {T
     S = parent(phi[1])
     I = ideal(S, phi)
     L = Singular.LibParaplanecurves.invertBirMap(singular_generators(I), _tosingular(C))
-    R = _fromsingular_ring(L[1])
+    iso = _fromsingular_iso(L[1])
     J = L[2][:J]
     psi = L[2][:psi]
-    return Dict([("image", gens(ideal(R, J))), ("inverse", gens(ideal(R, psi)))])
+    return Dict([("image", [preimage(iso, g) for g in gens(J)]), ("inverse", [preimage(iso, g) for g in gens(psi)])])
 end
