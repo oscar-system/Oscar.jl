@@ -5,6 +5,7 @@
 Given a group `G`, it is always possible to have access to some particular elements.
 
 ```@docs
+group
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
