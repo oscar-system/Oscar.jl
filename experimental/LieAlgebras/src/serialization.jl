@@ -160,17 +160,15 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
   L = d[:lie_algebra]
+  V = load_construction_data(L, T, d)
+  !isnothing(V) && return V
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)
   transformation_matrices = load_object(
     s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  V = load_construction_data(L, T, d)
-  if isnothing(V)
-    V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
-  end
-  return V
+  return abstract_module(L, dim, transformation_matrices, symbs; check=false)
 end
 
 function type_and_params_for_construction_data(V::LieAlgebraModule)
