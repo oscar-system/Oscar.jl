@@ -5,8 +5,8 @@ struct SelfProjectingMatroidRealizations
   matroid::Matroid
   rank::Int
   length_groundset::Int
-  realization_space::MatroidRealizationSpace
-  dim_r::Int
+  realization_space::Union{MatroidRealizationSpace,Nothing}
+  dim_r::Union{Int,Nothing}
   selfprojecting_realization_space::Union{MatroidRealizationSpaceSelfProjecting,Nothing} # in case that the computation of the selfprojecting realization space did not terminate the value will be nothing, as for dim_s and equal
   dim_s::Union{Int,Nothing}
   equality_of_realizationspaces::Union{Bool,Nothing}
@@ -79,7 +79,11 @@ rank(MR::SelfProjectingMatroidRealizations) = MR.rank
 function Base.show(io::IO, ::MIME"text/plain", MR::SelfProjectingMatroidRealizations)
   io = Oscar.pretty(io)
   print(io, "The matroid is of rank ", MR.rank, " on ", MR.length_groundset, " elements.\n")
-  show(io, MIME("text/plain"),realization_space(MR))
+  if !isnothing(realization_space(MR))
+    show(io, MIME("text/plain"),realization_space(MR))
+  else
+    print(io, "The computation of the realization space did not terminate.")
+  end
   print(io, "\n")
   if !isnothing(selfprojecting_realization_space(MR))
     show(io, MIME("text/plain"),selfprojecting_realization_space(MR))
