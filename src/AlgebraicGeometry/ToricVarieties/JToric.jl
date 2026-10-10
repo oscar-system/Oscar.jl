@@ -39,6 +39,7 @@ include("NormalToricVarieties/toric_ideal.jl")
 include("NormalToricVarieties/properties.jl")
 include("NormalToricVarieties/attributes.jl")
 include("NormalToricVarieties/betti_numbers.jl")
+include("NormalToricVarieties/hodge_numbers.jl")
 include("NormalToricVarieties/standard_constructions.jl")
 
 include("CyclicQuotientSingularities/CyclicQuotientSingularities.jl")
