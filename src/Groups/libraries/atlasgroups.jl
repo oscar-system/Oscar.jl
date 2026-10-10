@@ -208,6 +208,12 @@ and for matrix groups
 - `characteristic`
 - `dim`
 
+If the character of a representation is known then the value of
+`:constituents` in its dictionary is the vector of positions of the
+irreducible constituents in the character table of the group
+(the Brauer table in positive characteristic);
+a constituent of multiplicity `m` occurs `m` times.
+
 # Examples
 ```jldoctest
 julia> info = all_atlas_group_infos("A5", degree => [5, 6])
@@ -274,7 +280,7 @@ function all_atlas_group_infos(name::String, L...)
 
     # the character may be stored
     if hasproperty(r, :constituents)
-      d[:constituents] = Vector{Int}(r.constituents)
+      d[:constituents] = _atlas_constituents(r.constituents)
     end
 
     # permutation groups have a degree
@@ -295,6 +301,20 @@ function all_atlas_group_infos(name::String, L...)
     push!(res, d)
   end
 
+  return res
+end
+
+# AtlasRep stores a constituent of multiplicity `m > 1` as the pair `[pos, m]`;
+# list `pos` `m` times instead.
+function _atlas_constituents(l::GapObj)
+  res = Int[]
+  for x in l
+    if x isa Int
+      push!(res, x)
+    else
+      append!(res, fill(x[1]::Int, x[2]::Int))
+    end
+  end
   return res
 end
 
