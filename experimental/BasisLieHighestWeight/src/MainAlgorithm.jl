@@ -10,14 +10,14 @@ function basis_lie_highest_weight_compute(
   #     return compute_monomials(highest_weight)
 
   # compute_monomials(highest_weight)
-  #     if highest_weight was already computed 
+  #     if highest_weight was already computed
   #         return old results
   #     if highest_weight = [0, ..., 0] or [0, ..., 1, ..., 0]
   #         return add_by_hand(highest_weight, {})
   #     else
   #         set_mon = {}
   #         go through all partitions lambda_1 + lambda_2 = highest_weight
-  #             add compute_monomials(lambda_1) (+) compute_monomials(lambda_2) to set_mon 
+  #             add compute_monomials(lambda_1) (+) compute_monomials(lambda_2) to set_mon
   #         if set_mon too small
   #             add_by_hand(highest_weight, set_mon)
   #         return set_mon
@@ -76,7 +76,7 @@ function basis_lie_highest_weight_compute(
     collect(no_minkowski);
     by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
   )
-  # output  
+  # output
   if V isa SimpleModuleData
     mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
   elseif V isa DemazureModuleData #the module is twisted and we need to twist it back
@@ -116,9 +116,9 @@ function basis_coordinate_ring_kodaira_compute(
 
   # basis_coordinate_ring_kodaira_compute(highest_weight, degree)
 
-  # returns all multiples of the given highest_weight up to degree 
+  # returns all multiples of the given highest_weight up to degree
   # such that for this ordering the monomial basis is not a Minkowski sum of bases of smaller multiples.
-  #     return monomial bases for highest_weight and for each multiple up to degree, that is not the Minkowski sum 
+  #     return monomial bases for highest_weight and for each multiple up to degree, that is not the Minkowski sum
   #       of smaller multiples, the missing monomials
 
   @req degree > 0 "Degree must be positive"
@@ -243,14 +243,14 @@ function compute_monomials(
   polytopes::Union{Dict{WeightLatticeElem,Polyhedron{QQFieldElem}},Nothing},
   no_minkowski::Set{WeightLatticeElem},
 )
-  # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
-  # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
-  # If this is not the case, we need to perform computations. The recursion works by using the Minkowski-sum. 
-  # If M_{highest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is known 
-  # that for lambda_1 + lambda_2 = highest_weight we have M_{lambda_1} + M_{lambda_2} subseteq M_{highest_weight}. 
+  # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed
+  # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step.
+  # If this is not the case, we need to perform computations. The recursion works by using the Minkowski-sum.
+  # If M_{highest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is known
+  # that for lambda_1 + lambda_2 = highest_weight we have M_{lambda_1} + M_{lambda_2} subseteq M_{highest_weight}.
   # The complexity grows exponentially in the size of highest_weight. Therefore, it is very helpful to obtain a part of
-  # M_{highest_weight} by going through all partitions of highest_weight and using the Minkowski-property. The base 
-  # cases of the recursion are the fundamental weights highest_weight = [0, ..., 1, ..., 0]. In this case, or if the 
+  # M_{highest_weight} by going through all partitions of highest_weight and using the Minkowski-property. The base
+  # cases of the recursion are the fundamental weights highest_weight = [0, ..., 1, ..., 0]. In this case, or if the
   # Minkowski-property did not find enough monomials, we need to perform the computations "by hand".
 
   # simple cases
@@ -318,7 +318,7 @@ function compute_monomials(
         polytopes,
         no_minkowski,
       )
-      # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
+      # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with
       # points in ZZ^n
       union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
       if !isnothing(polytopes)
@@ -363,8 +363,8 @@ function add_new_monomials!(
   zero_coordinates::Vector{Int},
 )
   # If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
-  # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
-  # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
+  # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it
+  # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope.
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   # polytope is bounded these are finitely many and we can sort them and then go through them, until we found enough.
 
@@ -451,8 +451,8 @@ function add_by_hand(
   monomial_ordering::MonomialOrdering,
   basis::Set{ZZMPolyRingElem},
 )
-  # This function calculates the missing monomials by going through each non full weightspace and adding possible 
-  # monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
+  # This function calculates the missing monomials by going through each non full weightspace and adding possible
+  # monomials manually by computing their corresponding vectors and checking if they enlarge the basis.
 
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
@@ -560,7 +560,7 @@ function operators_by_simple_roots(
 end
 
 function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
-  # Computes the operators for the lusztig polytopes for a longest weyl-word 
+  # Computes the operators for the lusztig polytopes for a longest weyl-word
   # reduced_expression.
 
   # \beta_k := (\alpha_{i_k}) s_{i_{k-1}} … s_{i_1}
