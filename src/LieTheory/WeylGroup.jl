@@ -217,14 +217,14 @@ end
 @doc raw"""
     number_of_generators(W::WeylGroup) -> Int
 
-Return the number of generators of the `W`, i.e. the rank of the underlying root system.
+Return the number of generators of `W`, i.e. the rank of the underlying root system.
 """
 function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
 end
 
 @doc raw"""
-    order(W::WeylGroup) -> ZZRingELem
+    order(W::WeylGroup) -> ZZRingElem
     order(::Type{T}, W::WeylGroup) where {T} -> T
 
 Return the order of `W`.
@@ -237,34 +237,35 @@ function order(::Type{T}, W::WeylGroup) where {T}
     throw(InfiniteOrderError(W))
   end
 
-  ord = T(1)
+  # compute in ZZ, the `Int` intermediate results overflow for rank >= 17
+  ord = one(ZZ)
   for (fam, rk) in root_system_type(root_system(W))
     if fam == :A
-      ord *= T(factorial(rk + 1))
+      ord *= factorial(ZZ(rk + 1))
     elseif fam == :B || fam == :C
-      ord *= T(2^rk * factorial(rk))
+      ord *= ZZ(2)^rk * factorial(ZZ(rk))
     elseif fam == :D
-      ord *= T(2^(rk - 1) * factorial(rk))
+      ord *= ZZ(2)^(rk - 1) * factorial(ZZ(rk))
     elseif fam == :E
       if rk == 6
-        ord *= T(51840)
+        ord *= 51840
       elseif rk == 7
-        ord *= T(2903040)
+        ord *= 2903040
       elseif rk == 8
-        ord *= T(696729600)
+        ord *= 696729600
       end
     elseif fam == :F
-      ord *= T(1152)
+      ord *= 1152
     else
-      ord *= T(12)
+      ord *= 12
     end
   end
 
-  return ord
+  return T(ord)
 end
 
 @doc raw"""
-    cartan_matrix(W::WeylGroup) -> RootSystem
+    cartan_matrix(W::WeylGroup) -> ZZMatrix
 
 Return the Cartan matrix of `W`.
 """
@@ -279,6 +280,14 @@ Return the underlying root system of `W`.
 """
 function root_system(W::WeylGroup)
   return W.root_system
+end
+
+function Base.hash(W::WeylGroup, h::UInt)
+  # even though we don't have a == method for WeylGroup, we add a hash method
+  # to make hashing of WeylGroup and WeylGroupElem more deterministic
+  b = 0x3c1f8a6d9e2b7045 % UInt
+  h = hash(root_system(W), h)
+  return xor(b, h)
 end
 
 ###############################################################################
@@ -444,7 +453,7 @@ function is_finite_order(x::WeylGroupElem)
 end
 
 @doc raw"""
-    order(x::WeylGroupElem) -> ZZRingELem
+    order(x::WeylGroupElem) -> ZZRingElem
     order(::Type{T}, x::WeylGroupElem) where {T} -> T
 
 Return the order of `x`, i.e. the smallest natural number `n` such that `is_one(x^n)`.
@@ -476,9 +485,9 @@ function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup}
   if is_finite(W)
     return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
   else
-    m = 2^rand(1:10)
-    n = rand(0:m)
-    return W(rand(1:ngens(W), n))
+    m = 2^rand(rng, 1:10)
+    n = rand(rng, 0:m)
+    return W(rand(rng, 1:ngens(W), n))
   end
 end
 
@@ -641,11 +650,11 @@ function letters(x::WeylGroupElem)
 end
 
 @doc raw"""
-    syllables(x::WeylGroupElem) -> Vector{Pair{UInt8, <:IntegerUnion}}
+    syllables(x::WeylGroupElem) -> Vector{Pair{Int, ZZRingElem}}
 
 Return `x` as a list of pairs, each entry corresponding to indices of simple reflections and its exponent.
 
-This function is right inverse to calling `(W::WeylGroup)(sylls::Vector{Pair{UInt8, <:IntegerUnion}})`.
+This function is right inverse to calling `(W::WeylGroup)(sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}})`.
 
 # Examples
 
@@ -857,7 +866,7 @@ function _iterate_nocopy(state::WeylIteratorNoCopyState)
       break
     elseif isempty(path)
       return nothing
-    elseif iszero(di)
+    else # iszero(di)
       reflect!(wt, Int(ai))
       di = popfirst!(path)
       ai = isempty(path) ? UInt8(0) : first(path)
@@ -939,7 +948,7 @@ end
 @doc raw"""
     weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
 
-Shorthand for `weyl_orbit(root_system(R), vec)`.
+Shorthand for `weyl_orbit(root_system(W), vec)`.
 """
 function weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
   return weyl_orbit(root_system(W), vec)
