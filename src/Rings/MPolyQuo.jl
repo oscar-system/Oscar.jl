@@ -20,6 +20,10 @@
   end
 end
 
+function singular_origin_groebner_basis(Q::MPolyQuoRing)
+  return singular_groebner_generators(modulus(Q), ordering(Q))
+end
+
 function _groebner_basis(r::MPolyQuoRing)
   # Assure that the correspondence to Singular is set up
   # Note that this is the only way to create the Singular quotient ring:
@@ -29,9 +33,7 @@ function _groebner_basis(r::MPolyQuoRing)
   if isdefined(r, :SQRGB)
     return true
   end
-  ordering = r.ordering
-  groebner_basis(r.I, ordering=ordering)
-  SG = singular_generators(r.I.gb[ordering], ordering)
+  SG = singular_origin_groebner_basis(r)
   r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
   return true
@@ -69,7 +71,6 @@ coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
@@ -590,14 +591,68 @@ end
 
 -(a::MPolyQuoRingElem) = MPolyQuoRingElem(-a.f, a.P)
 
-*(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S} = check_parent(a, b) && simplify(MPolyQuoRingElem(a.f*b.f, a.P))
+function *(a::MPolyQuoRingElem{S}, b::MPolyQuoRingElem{S}) where {S}
+  check_parent(a, b)
+  Q = parent(a)
+  is_zero(modulus(Q)) && return MPolyQuoRingElem(a.f * b.f, Q, true)
+  kk = coefficient_ring(Q)
+  return _mul_quo(HasGroebnerAlgorithmTrait(kk), a, b)
+end
+
+function _mul_quo(::HasSingularGroebnerAlgorithm, a::MPolyQuoRingElem, b::MPolyQuoRingElem)
+  Q = parent(a)
+  G = singular_origin_groebner_basis(Q)
+  S = base_ring(G)
+  f = Singular.reduce(S(a.f) * S(b.f), G)
+  return MPolyQuoRingElem(base_ring(Q)(f), Q, true)
+end
+
+function _mul_quo(::HasGroebnerAlgorithmTrait, a::MPolyQuoRingElem, b::MPolyQuoRingElem)
+  return simplify(MPolyQuoRingElem(a.f * b.f, parent(a)))
+end
 
 function Base.:(^)(a::MPolyQuoRingElem, b::Base.Integer)
   if b >= 0
-    simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P))
-  else
-    return inv(a)^(-b)
+    Q = parent(a)
+    if is_zero(modulus(Q))
+      return MPolyQuoRingElem(Base.power_by_squaring(a.f, b), Q, true)
+    end
+    kk = coefficient_ring(Q)
+    return _power_quo(HasGroebnerAlgorithmTrait(kk), a, b)
   end
+  return inv(a)^(-widen(b))
+end
+
+function _power_quo(::HasSingularGroebnerAlgorithm, a::MPolyQuoRingElem, n::Base.Integer)
+  Q = parent(a)
+  G = singular_origin_groebner_basis(Q)
+  S = base_ring(G)
+  if iszero(n)
+    z = Singular.reduce(one(S), G)
+  else
+    x = S(a.f)
+    if !a.simplified
+      x = Singular.reduce(x, G)
+    end
+    while iseven(n)
+      x = Singular.reduce(x * x, G)
+      n >>= 1
+    end
+    z = x
+    n >>= 1
+    while !iszero(n)
+      x = Singular.reduce(x * x, G)
+      if isodd(n)
+        z = Singular.reduce(z * x, G)
+      end
+      n >>= 1
+    end
+  end
+  return MPolyQuoRingElem(base_ring(Q)(z), Q, true)
+end
+
+function _power_quo(::HasGroebnerAlgorithmTrait, a::MPolyQuoRingElem, n::Base.Integer)
+  return simplify(MPolyQuoRingElem(Base.power_by_squaring(a.f, n), parent(a)))
 end
 
 *(a::MPolyQuoRingElem, b::QQFieldElem) = simplify(MPolyQuoRingElem(a.f * b, a.P))
