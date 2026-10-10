@@ -8,7 +8,8 @@ const expdir = joinpath(@__DIR__, "..", "experimental")
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # needs code from LieAlgebras
-  "ModStd", # is needed for AlgebraicShifting
+  "ComplexReflectionGroups", # needs `coroot` from LieAlgebras
+  "ModStd",                  # is needed for AlgebraicShifting
   "AlgebraicShifting",       # Needs code from Lie Algebras (`isomorphism(PermGroup, ::WeylGroup)` specifically)
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
