@@ -208,8 +208,12 @@ Return the unique longest element of `W`.
 This only exists if `W` is finite.
 """
 function longest_element(W::WeylGroup)
-  @req is_finite(W) "Weyl group is not finite"
+  # copy to avoid mutating the cached element
+  return deepcopy(_longest_element(W))
+end
 
+@attr WeylGroupElem function _longest_element(W::WeylGroup)
+  @req is_finite(W) "Weyl group is not finite"
   _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
   return w0
 end
@@ -474,7 +478,7 @@ Return a pseudo-random element of the Weyl group. The elements are not uniformly
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
   if is_finite(W)
-    return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+    return W(Int.(Random.randsubseq(rng, word(_longest_element(W)), 2 / 3)))
   else
     m = 2^rand(1:10)
     n = rand(0:m)
@@ -526,7 +530,7 @@ function explain_rmul(x::WeylGroupElem, i::Integer)
   insert_index = length(x) + 1
   insert_letter = UInt8(i)
 
-  root = insert_letter
+  root = UInt(i) # same type as the entries of `refl`
   for s in length(x):-1:1
     if x[s] == root
       return false, s, x[s]
@@ -850,22 +854,22 @@ function _iterate_nocopy(state::WeylIteratorNoCopyState)
 
   ai = isempty(path) ? UInt8(0) : first(path)
   # compute next descendant index
-  di = UInt8(0)
+  di = 0
   while true
-    di = next_descendant_index(Int(ai), Int(di), wt)
+    di = next_descendant_index(Int(ai), di, wt)
     if !iszero(di)
       break
     elseif isempty(path)
       return nothing
     elseif iszero(di)
       reflect!(wt, Int(ai))
-      di = popfirst!(path)
+      di = Int(popfirst!(path))
       ai = isempty(path) ? UInt8(0) : first(path)
     end
   end
 
   pushfirst!(path, di)
-  reflect!(wt, Int(di))
+  reflect!(wt, di)
   return state
 end
 
