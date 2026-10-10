@@ -202,6 +202,14 @@ end
    @test length(info1) == 1
    @test length(info2) > length(info1)
 
+   # constituents that occur with multiplicity
+   info = all_atlas_group_infos("M11", degree => 165)
+   @test length(info) == 1
+   @test info[1][:constituents] == [1, 2, 5, 8, 8, 10]
+   t = character_table("M11")
+   @test degree(sum(t[i] for i in info[1][:constituents])) == 165
+   @test length(all_atlas_group_infos("M11")) == number_of_atlas_groups("M11")
+
    # prescribed character of the matrix group
    t = character_table("A5", 2)
    info1 = all_atlas_group_infos("A5", character => t[2])
