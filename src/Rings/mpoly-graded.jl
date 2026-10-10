@@ -1612,7 +1612,7 @@ S_[1 1] of dim 6
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
-Map defined by a julia-function with inverse
+Map defined by a Julia function with inverse
   from S_[1 1] of dim 6
   to graded multivariate polynomial ring in 5 variables over QQ
 
