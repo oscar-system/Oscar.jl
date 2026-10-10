@@ -468,7 +468,7 @@ function show_atlas_info(groupname::String)
   # Show the info
   if groupname == "all"
     # one-line overview of all supported groups
-    info = GAP.Globals.AGR.StringAtlasInfoOverview(GapObj(groupnames, true),
+    info = GAP.Globals.AGR.StringAtlasInfoOverview(GapObj("all"),
                GapObj([]))::GapObj # unconditional
   else
     # detailed overview for one group
