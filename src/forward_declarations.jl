@@ -145,6 +145,8 @@ const NormalToricVarietyType = Union{NormalToricVariety, AffineNormalToricVariet
 
 # `find(collection, query...)` returns a lazy iterable of the matching entries.
 # Declared here so that experimental packages can add methods without
-# depending on each other. For database collections whose `find` is a method
-# of `Mongoc.find`, OscarDB adds a method that forwards to it.
+# depending on each other.
 function find end
+
+# polymake's database has a `find` of its own
+find(c::Polymake.Polydb.Collection, args...; kwargs...) = Polymake.Polydb.find(c, args...; kwargs...)

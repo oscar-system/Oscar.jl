@@ -146,9 +146,6 @@ function find(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
   return Mongoc.find(c, d; opts)
 end
 
-# polymake's database is queried with `Mongoc.find` as well
-find(c::Polymake.Polydb.Collection, args...; kwargs...) = Mongoc.find(c, args...; kwargs...)
-
 function Mongoc.find(c::Collection, d::Dict=Dict();
                      opts::Union{Nothing, Dict}=nothing)
   return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))
