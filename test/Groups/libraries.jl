@@ -265,6 +265,17 @@ end
    end
 end
 
+@testset "Atlas info overview" begin
+   # without arguments, there is one line for each Atlas group
+   lines = mktemp() do path, io
+     redirect_stdout(show_atlas_info, io)
+     flush(io)
+     readlines(path)
+   end
+   @test count(startswith("M11 "), lines) == 1
+   @test count(startswith("A5 "), lines) == 1
+end
+
 @testset "Atlas subgroups" begin
    # `atlas_subgroup` for group name and position
    H, emb = atlas_subgroup("M11", 1)
