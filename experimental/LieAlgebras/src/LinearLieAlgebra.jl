@@ -154,7 +154,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    matrix_repr(x::LinearLieAlgebraElem{C}) -> Mat{C}
+    matrix_repr(x::LinearLieAlgebraElem{C}) -> MatElem{C}
 
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
@@ -406,8 +406,8 @@ Given a non-degenerate symmetric bilinear form $f$ via its Gram matrix `gram`,
 $\mathfrak{so}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
-If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
-is used, and for $n = 2k + 1$ the form defined by $\begin{matrix} 1 & 0 & 0 \\ 0 & 0 I_k \\ 0 & I_k & 0 \end{matrix}$.
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ I_k & 0 \end{pmatrix}$
+is used, and for $n = 2k + 1$ the form defined by $\begin{pmatrix} 1 & 0 & 0 \\ 0 & 0 & I_k \\ 0 & I_k & 0 \end{pmatrix}$.
 
 # Examples
 ```jldoctest
@@ -499,7 +499,7 @@ Given a non-degenerate skew-symmetric bilinear form $f$ via its Gram matrix `gra
 $\mathfrak{sp}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
-If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ -I_k & 0 \end{pmatrix}$
 is used.
 For odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
 

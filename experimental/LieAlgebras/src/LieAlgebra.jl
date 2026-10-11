@@ -162,7 +162,7 @@ end
     (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
-Fail, if `Int` cannot be coerced into the base ring of `L`.
+Fail, if `Int` cannot be coerced into the coefficient ring of `L`.
 """
 function (L::LieAlgebra)(v::AbstractVector{Int})
   return L(coefficient_ring(L).(v))
@@ -362,7 +362,7 @@ end
     lower_central_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
 
 Return the lower central series of `L`, i.e. the sequence of ideals
-$L^{(0)} = L$, $L^{(i + 1)} = [L, L^{(i)}]$.
+$L^{0} = L$, $L^{i + 1} = [L, L^{i}]$.
 """
 function lower_central_series(L::LieAlgebra)
   curr = ideal(L)
@@ -1096,17 +1096,16 @@ function abelian_lie_algebra(R::Field, n::Int)
 end
 
 @doc raw"""
-    lie_algebra(gapL::GapObj, s::Vector{<:VarName}) -> LieAlgebra{elem_type(R)}
+    lie_algebra(gapL::GapObj, s::Vector{<:VarName}) -> LieAlgebra
 
-Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
+Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis elements are named by `s`,
 or by `x_i` by default.
 We require `gapL` to be a finite-dimensional GAP Lie algebra. The return type is dependent on
 properties of `gapL`, in particular, whether GAP knows about a matrix representation.
-
 """
 function lie_algebra(
   gapL::GapObj,
-  s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
+  s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)],
 )
   @req GAPWrap.IsLieAlgebra(gapL) "input must be a Lie algebra."
   if GAPWrap.IsFiniteDimensional(gapL)

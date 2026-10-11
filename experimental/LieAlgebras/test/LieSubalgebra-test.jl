@@ -56,4 +56,13 @@
     @test sub3 isa LieSubalgebra
     @test dim(sub3) < dim(L)
   end
+
+  @testset "bracket" begin
+    # [S, S] must be computed from a basis, not generators; S is all of sl_2
+    L = special_linear_lie_algebra(QQ, 2)
+    e, f, h = basis(L)
+    S = sub(L, [e, f])
+    @test dim(S) == 3
+    @test dim(bracket(S, S)) == 3
+  end
 end
