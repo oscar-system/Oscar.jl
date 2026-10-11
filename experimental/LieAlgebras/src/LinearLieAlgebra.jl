@@ -143,8 +143,25 @@ function coerce_to_lie_algebra_elem(
   L::LinearLieAlgebra{C}, x::MatElem{C}
 ) where {C<:FieldElem}
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
-  m = coefficient_vector(x, matrix_repr_basis(L))
+  m = solve(_matrix_repr_basis_solve_ctx(L), _vec_row(x); side=:left)
   return L(m)
+end
+
+# Flatten `x` into a `1 x (nrows * ncols)` matrix.
+function _vec_row(x::MatElem)
+  return matrix(base_ring(x), 1, nrows(x) * ncols(x), _vec(transpose(x)))
+end
+
+# TODO: use the concrete `solve_context_type(C)` as return type once
+# Nemocas/AbstractAlgebra.jl#2101 is available.
+@attr AbstractAlgebra.Solve.SolveCtx function _matrix_repr_basis_solve_ctx(
+  L::LinearLieAlgebra{C}
+) where {C<:FieldElem}
+  lgs = zero_matrix(coefficient_ring(L), dim(L), L.n^2)
+  for (k, b) in enumerate(matrix_repr_basis(L))
+    lgs[k:k, :] = _vec_row(b)
+  end
+  return solve_init(lgs)
 end
 
 ###############################################################################
