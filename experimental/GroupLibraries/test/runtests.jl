@@ -13,6 +13,10 @@ function _test_group_library_selection(L, classic, filters)
   @test sort!([identify(L, G) for G in classic(filters...)]) == ids
   @test all(id -> identify(L, L[id]) == id, ids)
 
+  ps = collect(pairs(S))
+  @test first.(ps) == ids
+  @test all(p -> identify(L, p[2]) == p[1], ps)
+
   @test isempty(S) == isempty(ids)
   if isempty(ids)
     @test_throws ArgumentError first(S)

@@ -174,7 +174,8 @@ Creating the selection `S` computes nothing. Afterwards
 - `collect(S)` returns them as a vector,
 - `first(S)` returns the first group, `isempty(S)` tells whether there is one,
 - `length(S)` returns the number of groups,
-- `keys(S)` iterates over the identifiers of the groups.
+- `keys(S)` iterates over the identifiers of the groups,
+- `pairs(S)` iterates over the pairs `identifier => group`.
 
 `length` and `keys` construct groups only if the library cannot decide a
 filter from precomputed data.
@@ -342,6 +343,12 @@ function Base.length(S::GroupLibrarySelection)
 end
 
 Base.keys(S::GroupLibrarySelection) = Iterators.flatten(_ids(S, k) for k in S.keys)
+
+# Base's fallback would run through the selection twice, once for the
+# identifiers and once for the groups
+function Base.pairs(S::GroupLibrarySelection)
+  return Iterators.flatten((id => G for (id, G) in _pairs(S, k)) for k in S.keys)
+end
 
 Base.isempty(S::GroupLibrarySelection) = all(k -> _first(S, k) === nothing, S.keys)
 

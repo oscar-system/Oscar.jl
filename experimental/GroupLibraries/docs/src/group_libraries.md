@@ -12,6 +12,7 @@ identification are available, depends on the library.
 | `for G in S`, `collect(S)`, `first(S)`, `isempty(S)` | the groups in `S` |
 | `length(S)` | the number of groups in `S` |
 | `keys(S)` | the identifiers of the groups in `S` |
+| `pairs(S)` | the pairs `identifier => group` for the groups in `S` |
 | `identify(L, G)` | the identifier of the group `G` |
 
 ```@docs
