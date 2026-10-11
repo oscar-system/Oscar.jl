@@ -2214,7 +2214,7 @@ function _try_singular_easy(Q::order_conversion_ctx, o::WSymbOrdering{S}) where 
   _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
   # Singular.jl rejects non-positive weights for Wp/wp and a zero first weight for Ws/ws
   if S in (:wdeglex, :wdegrevlex)
-    all(>(0), o.weights) || return (false, Q.def)
+    all(is_positive, o.weights) || return (false, Q.def)
   else
     !iszero(o.weights[1]) || return (false, Q.def)
   end
