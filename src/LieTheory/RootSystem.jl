@@ -1575,7 +1575,8 @@ function dual(r::RootSpaceElem)
   R = root_system(r)
   iszero(r) && return zero(DualRootSpaceElem, R)
   lr = dot(r, r)
-  coeffs = [dot(simple_root(R, i), simple_root(R, i))//lr * coeff(r, i) for i in 1:rank(R)]
+  bil = bilinear_form(R) # bil[i, i] == dot(simple_root(R, i), simple_root(R, i))
+  coeffs = [bil[i, i]//lr * coeff(r, i) for i in 1:rank(R)]
   return DualRootSpaceElem(R, coeffs)
 end
 
@@ -1590,9 +1591,8 @@ function dual(r::DualRootSpaceElem)
   R = root_system(r)
   iszero(r) && return zero(RootSpaceElem, R)
   lr = dot(r, r)
-  coeffs = [
-    dot(simple_coroot(R, i), simple_coroot(R, i))//lr * coeff(r, i) for i in 1:rank(R)
-  ]
+  bil = bilinear_form_of_dual(R) # bil[i, i] == dot(simple_coroot(R, i), simple_coroot(R, i))
+  coeffs = [bil[i, i]//lr * coeff(r, i) for i in 1:rank(R)]
   return RootSpaceElem(R, coeffs)
 end
 
