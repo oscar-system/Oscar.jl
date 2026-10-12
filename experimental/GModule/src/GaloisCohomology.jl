@@ -6,7 +6,7 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
                      Group
 import Base: parent
 import Oscar: direct_sum
-import Oscar: pretty, Lowercase, Indent, Dedent, terse
+import Oscar: pretty, Lowercase, Indent, Dedent, terse, GrpExt, GrpExtElem
 
 export is_coboundary, idele_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
@@ -2253,7 +2253,9 @@ end
     galois_group(A::ClassField, ::QQField; idele_parent::IdeleParent = idele_class_gmodule(base_field(A)))
 
 Determine the Galois group (over `QQ`) of the extension parametrized by `A`.
-`A` needs to be normal over `QQ`.
+The base field of `A` needs to be normal over `QQ`.
+
+If `A` itself is normal over `QQ` already, then `is_normal_known = true` can be passed in to skip the test and the computation of the normal closure.
 
 # Examples
 ```jldoctest; setup = :(using Oscar), filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
@@ -2277,9 +2279,35 @@ julia> [describe(x[1]) for x = b]
 
 ```
 """    
-function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleParent,Nothing} = nothing) 
+function Oscar.galois_group(A::ClassField, ::QQField; 
+    idele_parent::Union{IdeleParent,Nothing} = nothing, 
+    is_normal_known::Bool = false) 
+  return galois_group(PermGroup, A, QQ; idele_parent, is_normal_known)
+end
 
-  if !is_normal(A)
+function Oscar.galois_group(::Type{PermGroup}, A::ClassField, ::QQField; 
+    idele_parent::Union{IdeleParent,Nothing} = nothing, 
+    is_normal_known::Bool = false) 
+
+  E = galois_group(GrpExt, A, QQ; idele_parent, is_normal_known)
+  @vprintln :GaloisCohomology 2 "computing permutation group from cocycle ..."
+  @vtime :GaloisCohomology 2 P = permutation_group(E.c)
+  return P, (E.c, E.c.C)
+end
+
+function Oscar.galois_group(::Type{PcGroup}, A::ClassField, ::QQField; 
+    idele_parent::Union{IdeleParent,Nothing} = nothing, 
+    is_normal_known::Bool = false) 
+
+  E = galois_group(GrpExt, A, QQ; idele_parent, is_normal_known)
+  return pc_group(E), (E.c, E.c.C)
+end
+
+function Oscar.galois_group(::Type{GrpExt}, A::ClassField, ::QQField; 
+    idele_parent::Union{IdeleParent,Nothing} = nothing, 
+    is_normal_known::Bool = false) 
+
+  if !is_normal_known && !is_normal(A)
     @vprint :GaloisCohomology 2 "abelian field is not relative normal, computing closure"
     A = normal_closure(A)
   end
@@ -2318,9 +2346,8 @@ function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleP
   @vtime :GaloisCohomology 4 aa = phi[2](gamma)
 
   @hassert :GaloisCohomology 2 is_zero(map(hA, 2)(aa))
-  @vprintln :GaloisCohomology 2 "computing permutation group from cocycle ..."
-  @vtime :GaloisCohomology 2 P = permutation_group(GrpCoh.two_chain(aa))
-  return P, (aa, gA)
+  P = extension(GrpCoh.two_chain(aa))
+  return P
 end
 
 function Oscar.components(A::FinGenAbGroup)
