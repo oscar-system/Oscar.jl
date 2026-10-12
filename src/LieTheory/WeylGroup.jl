@@ -778,7 +778,7 @@ function Base.eltype(::Type{ReducedExpressionIterator})
 end
 
 function Base.iterate(iter::ReducedExpressionIterator)
-  w = deepcopy(word(iter.el))
+  w = copy(word(iter.el)) # `copy` suffices for a `Vector{UInt8}`
   return w, w
 end
 
@@ -788,7 +788,7 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
   rk = rank(root_system(parent(iter.el)))
 
   # we need to copy word; iterate behaves differently when length is (not) known
-  next = deepcopy(word)
+  next = copy(word) # `copy` suffices for a `Vector{UInt8}`
   weight = reflect!(weyl_vector(root_system(parent(iter.el))), Int(next[end]))
 
   i = length(next)

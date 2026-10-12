@@ -28,7 +28,7 @@ See [`root_system(::ZZMatrix)`](@ref) for the constructor.
     check && @req is_cartan_matrix(mat) "Requires a generalized Cartan matrix"
 
     pos_roots, pos_coroots, refl = _positive_roots_and_reflections(mat)
-    finite = count(refl .== 0) == nrows(mat)
+    finite = count(iszero, refl) == nrows(mat)
 
     R = new(mat)
     R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
