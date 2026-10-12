@@ -491,7 +491,7 @@ function reflect!(w::WeightLatticeElem, s::Int)
 end
 
 @doc raw"""
-    reflect(w::WeightLatticeElem, beta::RootSpaceElem) -> RootSpaceElem
+    reflect(w::WeightLatticeElem, beta::RootSpaceElem) -> WeightLatticeElem
   
 Return the reflection of `w` in the hyperplane orthogonal to root `beta`.
 
@@ -502,7 +502,7 @@ function reflect(w::WeightLatticeElem, beta::RootSpaceElem)
 end
 
 @doc raw"""
-    reflect!(w::WeightLatticeElem, beta::RootSpaceElem) -> RootSpaceElem
+    reflect!(w::WeightLatticeElem, beta::RootSpaceElem) -> WeightLatticeElem
 
 Reflect `w` in the hyperplane orthogonal to the root `beta`, and return it.
 
