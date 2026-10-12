@@ -527,15 +527,14 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
   if dim(L) <= 1
     # L is abelian and hence nilpotent
   elseif characteristic(L) == 0
+    # if L is not nilpotent, some x_i or x_i + x_j is not ad-nilpotent [Gra00; Prop. 2.7.2]
     for x in basis(L)
       !is_ad_nilpotent(x) && return x
     end
-    for (i, x) in enumerate(basis(L))
-      for (j, y) in enumerate(basis(L))
-        i > j && continue
-        xy = x * y
-        !is_ad_nilpotent(xy) && return xy
-      end
+    for (i, x) in enumerate(basis(L)), (j, y) in enumerate(basis(L))
+      i < j || continue
+      xy = x + y
+      !is_ad_nilpotent(xy) && return xy
     end
   else # characteristic > 0
     x = basis(L, 1)
