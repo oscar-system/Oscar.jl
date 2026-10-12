@@ -437,8 +437,13 @@ function Base.hash(V::LieAlgebraModule, h::UInt)
   h = hash(dim(V), h)
   h = hash(symbols(V), h)
   h = hash(base_lie_algebra(V), h)
-  h = hash(transformation_matrices(V), h)
+  h = hash(_transformation_matrices_hash(V), h)
   return xor(h, b)
+end
+
+# cached, as the matrices never change and every element hash goes through here
+@attr UInt function _transformation_matrices_hash(V::LieAlgebraModule)
+  return hash(transformation_matrices(V))
 end
 
 function Base.:(==)(
