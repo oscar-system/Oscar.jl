@@ -106,7 +106,7 @@ end
 
 function Oscar.from_chain(M::AbstractAlgebra.FPModule, c::CoChain{1})
   (zg, A) = get_attribute(M, :hom)
-  fc = get_attribute(zg, :from_chain)
+  fc = get_attribute(zg, :from_1chain)
   d = fc((g) -> Oscar.GModuleElem(c.C, c(g)))
   return sum(canonical_injection(M, i)(d[i].data) for i=1:length(d))
 end

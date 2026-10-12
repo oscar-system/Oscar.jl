@@ -415,19 +415,52 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       return allG
     end
     k, mk = kernel(s)
+    if split 
+      h1 = cohomology_group(hom(ZN, C), 1; no_image = true) #need the no-image tag..
+      #want a map from k1[1] (the kern) to D (images of the gens of the
+      #large group)
+      #let l be a 1-chain in k1[1]
+      #gen(G) -mp-> N and we map on the 1-chain evaluated there
+      #note: we need Z^1, no H^1, hence the no_image to not quotient
+      #out. Needs different interface
+      _imgs = elem_type(D)[]
+      for i = gens(h1[1])
+        c1 = h1[3](i)
+        push!(_imgs, sum(inj[l](c1((mp(G[l]),))) for l=1:ngens(G)))
+      end
+      inf = hom(h1[1], D, _imgs)
+      q, mq = quo(k, image(inf)[1])
+      k = q #according to Brueckner lifting with multiplicity is
+      #linked to ngens(k) at this point. S is the kernel, S' the image of inf
+      #thus the number a is ngens(k) - ngens(image) == ngens(q)...
+      mk = pseudo_inv(mq)*mk
+      if order(k) == 1
+        @assert length(allG) == 0
+        return allG
+      end
+    end
+    
     for x = k
+      if split
+        fnd = false
+        iszero(x) && continue
+        for j=1:ngens(k) #need only ones with 1st non-zero entry 1
+          #TODO: lifting with multiplicity
+          is_zero(x[j]) && continue
+          if is_one(x[j]) 
+            fnd = true
+          end
+          break
+        end
+        fnd || continue
+      end
       im = [(GG(mp(G[i]), pro[i](mk(x)-pe))) for i=1:ngens(G)]
       #@show [map_word(R[i], im) for i=1:length(R)]
       im = map(mGG_PC, im)
       #@show [map_word(R[i], im) for i=1:length(R)]
       hm = hom(G, codomain(mGG_PC), im)
-      if !split || is_surjective(hm)
-        push!(allG, hm)
-        length(allG) >= limit && return allG
-      else
-        @assert split
-#        @show :not_sur
-      end
+      push!(allG, hm)
+      @assert is_surjective(hm)
     end
     return allG
   end
@@ -452,13 +485,17 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   #     possibly the one where the 1st non-zero entry is 1
   #     cohomology elements are in C^k as well - or the representing chains
   #     are
-  @show Ends = Oscar.GModuleFromGap.hom_base(C, C)
-  @assert length(Ends) == degree(base_ring(C))
+#  @show Ends = Oscar.GModuleFromGap.hom_base(C, C)
+#  @assert length(Ends) == degree(base_ring(C))
 
   seen = [zero(H2)]
   for h = H2
     h in seen && continue
     is_zero(h) && continue
+    for x = base_ring(H2) #the line will not give "different" quotients
+      iszero(x) && continue
+      push!(seen, x*h)
+    end
 
     append!(allG, _process(z(h); is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
@@ -549,8 +586,7 @@ In particular Satz 15 c should be implemented.
 
 #= EXAMPLE
 F = @free_group(:a, :b)
-G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^
--1*b^2])
+G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^-1*b^2])
 f1 = Oscar.RepPc.solvable_quotient(G)
 f2 = Oscar.RepPc.brueckner(f1; primes = [2])
 Oscar.RepPc.brueckner(f2[1]; primes = [2])

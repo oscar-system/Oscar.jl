@@ -210,7 +210,11 @@ function Oscar.map_word(v::Vector{Int64}, genimgs::Vector{Map}; genimgs_inv::Uni
   else
     D = domain(init)
   end
-  res = identity_matrix(ZZ, ngens(D))
+  if isa(D, FinGenAbGroup)
+    res = identity_matrix(ZZ, ngens(D))
+  else
+    res = identity_matrix(base_ring(D), ngens(D))
+  end
   for i = v
     mul!(res, res, i<0 ? igen[-i] : gen[i])
   end
@@ -1618,8 +1622,8 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
         end
         return res
       end
-      set_attribute!(Fg, :to_chain => x->to_1chain(letters(preimage(mFF, x))))
-      set_attribute!(Fg, :from_chain => _from_1chain)
+      set_attribute!(Fg, :to_1chain => x->to_1chain(letters(preimage(mFF, x))))
+      set_attribute!(Fg, :from_1chain => _from_1chain)
       #so to get a "proper" 1-cochain from s in C^1(G, M) given
       # as a "black box" s in M^g from this resolution
       # then: for the generators we have the values
@@ -2026,9 +2030,9 @@ function Oscar.hom(m::Map{FinGenAbGroup, FinGenAbGroup})
   return FinGenAbGroupHom(m)
 end
 
-function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractAlgebra.FPModule}}, i::Int; tate::Bool = false, no_kernel::Bool = false)
+function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractAlgebra.FPModule}}, i::Int; tate::Bool = false, no_kernel::Bool = false, no_image::Bool = false)
   c = get_attribute(C, :cohomology_group)
-  can_cache = !no_kernel && (!tate || i != 0) 
+  can_cache = !(no_kernel || no_image) && (!tate || i != 0) 
   if !isnothing(c) && can_cache && haskey(c, i)
     return c[i]
   end
@@ -2049,11 +2053,13 @@ function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractA
     else
       q, mq = quo(k, [zero(k)])
     end
+  elseif no_image
+    q, mq = quo(k, sub(k, [zero(k)])[1])
   else
     q, mq = quo(k, image(map(C, i-1))[1])
   end
 
-  if isfinite(G) && isa(q, FinGenAbGroup) && !no_kernel
+  if isfinite(G) && isa(q, FinGenAbGroup) && !(no_kernel || no_image)
     q.exponent = order(G)
   end
 
@@ -2061,7 +2067,7 @@ function cohomology_group(C::ComplexOfMorphisms{<:Union{FinGenAbGroup, AbstractA
   mp = ms*pseudo_inv(mq)*mk
   #do not turn into hom!
   if i == 1
-    res  = (s, mp, map_from_func(s, AllCoChains{1, elem_type(G), elem_type(M.M)}(), x->one_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
+    res  = (s, mp, map_from_func(s, AllCoChains{1, elem_type(G), elem_type(M.M)}(), x->one_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[1], y))))
   elseif i == 2
     res  = (s, mp, map_from_func(s, AllCoChains{2, elem_type(G), elem_type(M.M)}(), x->two_chain(mp(x)), y->preimage(mp, Oscar.from_chain(C[2], y))))
   else
@@ -2104,7 +2110,7 @@ function one_chain(a::T) where T <: Union{FinGenAbGroupElem, <:AbstractAlgebra.F
   A = parent(a)
   #need a map GxG -> M
   (zg, M) = get_attribute(A, :hom)
-  c = get_attribute(zg, :to_chain)
+  c = get_attribute(zg, :to_1chain)
 
   G = group(base_ring(zg))
   D = Dict{NTuple{1, elem_type(G)}, elem_type(M.M)}()
