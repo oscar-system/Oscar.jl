@@ -8,7 +8,8 @@
 #    iterate(S), length(S), keys(S)  groups, their number, their ids
 #
 #  A selection is evaluated one value of the primary key (order, degree, ...)
-#  at a time. A library implements the functions listed under "Protocol".
+#  at a time, or as a whole if the library has no primary key.
+#  A library implements the functions listed under "Protocol".
 #
 ################################################################################
 
@@ -24,10 +25,13 @@ A handle `L` is created by one of
 [`primitive_groups_library`](@ref),
 [`perfect_groups_library`](@ref),
 [`groups_with_class_number_library`](@ref),
-[`atlas_groups_library`](@ref).
-Each group in a library has an identifier. Except for the last library it is
-a pair `(k, i)` where `k` is the value of the *primary key* of the library
-(the order, the degree, ...) and `i` numbers the groups with that value.
+[`atlas_groups_library`](@ref),
+[`character_table_library`](@ref).
+Each group in a library has an identifier. Except for the last two libraries
+it is a pair `(k, i)` where `k` is the value of the *primary key* of the
+library (the order, the degree, ...) and `i` numbers the groups with that
+value.
+The last library consists of character tables instead of groups.
 
 - `L[id]` returns the group with identifier `id`; `L[k, i]` abbreviates
   `L[(k, i)]`.
@@ -53,12 +57,13 @@ abstract type GroupLibrary{T} end
 
 # The groups of `library` whose primary key lies in `keys` and which satisfy
 # the filters `rest`; `gaprest` is `rest` in the form GAP's selection
-# functions expect.
+# functions expect, `options` are the keyword arguments of `find`.
 struct GroupLibrarySelection{L<:GroupLibrary,K}
   library::L
   keys::Vector{K}
   rest::Tuple
   gaprest::Vector{Any}
+  options::NamedTuple
 end
 
 ################################################################################
@@ -70,11 +75,23 @@ end
 # Required:
 #   _name(L)::String           used for printing
 #   _primary_key(L)            the function whose value is the primary key,
-#                              or a `Symbol` naming the key if there is none
-#   _key_type(L)               type of the values of the primary key
+#                              a `Symbol` naming the key if there is no such
+#                              function, `nothing` if there is no key
 #   _filter_attrs(L)           supported filters, or `nothing` for any function
+#   getindex
+#
+# Required if there is a primary key:
+#   _key_type(L)               type of the values of the primary key
 #   _number(L, k)              number of groups with primary key `k`
-#   getindex, identify, has_groups, has_number_of_groups, has_identification
+#   identify, has_groups, has_number_of_groups, has_identification
+#
+# Required if there is no primary key, for a selection `S`:
+#   find                       a method that creates `S`
+#   _pairs(S)                  lazy iterator of `(id, object)`
+#   _ids(S)                    lazy iterator of ids
+#   _count(S)                  number of objects
+#   _first(S)                  first object, or `nothing`
+#   _isempty(S)                whether there is no object
 #
 # Optional, for a selection `S` and a value `k` of the primary key:
 #   _pairs(S, k)               lazy iterator of `(id, group)`
@@ -152,6 +169,20 @@ _first(S::GroupLibrarySelection, k) = _first_by_iteration(S, k)
 
 _isempty(S::GroupLibrarySelection, k) = _first(S, k) === nothing
 
+# with a primary key, a selection is evaluated one key value at a time
+_pairs(S::GroupLibrarySelection) = Iterators.flatten(_pairs(S, k) for k in S.keys)
+_ids(S::GroupLibrarySelection) = Iterators.flatten(_ids(S, k) for k in S.keys)
+_count(S::GroupLibrarySelection) = sum(k -> Int(_count(S, k)), S.keys; init=0)
+_isempty(S::GroupLibrarySelection) = all(k -> _isempty(S, k), S.keys)
+
+function _first(S::GroupLibrarySelection)
+  for k in S.keys
+    G = _first(S, k)
+    G === nothing || return G
+  end
+  return nothing
+end
+
 # A GAP iterator as a Julia iterator. Each one here is created to be run
 # through once, so it is consumed rather than copied first, as GAP.jl's own
 # iteration does; `PrimitiveGroupsIterator` cannot be copied in PrimGrp 4.0.3.
@@ -183,7 +214,7 @@ Each filter has one of the following forms.
 - `func` selects groups for which `func` returns `true`
 - `!func` selects groups for which `func` returns `false`
 
-At least one filter must restrict the primary key of `L`.
+If `L` has a primary key then at least one filter must restrict it.
 A leading value of the primary key, or a vector of such values, abbreviates
 such a filter, so `find(L, 16)` means `find(L, order => 16)` for a library
 whose primary key is the order.
@@ -261,7 +292,7 @@ function find(L::GroupLibrary, filters...)
 
   keyvals = _normalize_keys(L, keyvals)
   rest = Tuple(rest)
-  return GroupLibrarySelection(L, keyvals, rest, _translate(L, rest))
+  return GroupLibrarySelection(L, keyvals, rest, _translate(L, rest), (;))
 end
 
 @doc raw"""
@@ -354,7 +385,7 @@ function Base.eltype(::Type{<:GroupLibrarySelection{<:GroupLibrary{T}}}) where {
 end
 
 function Base.iterate(S::GroupLibrarySelection)
-  groups = Iterators.flatten((G for (_, G) in _pairs(S, k)) for k in S.keys)
+  groups = (G for (_, G) in _pairs(S))
   return _advance(groups, iterate(groups))
 end
 
@@ -364,26 +395,20 @@ end
 
 _advance(groups, next) = next === nothing ? nothing : (next[1], (groups, next[2]))
 
-function Base.length(S::GroupLibrarySelection)
-  return sum(k -> Int(_count(S, k)), S.keys; init=0)
-end
+Base.length(S::GroupLibrarySelection) = _count(S)
 
-Base.keys(S::GroupLibrarySelection) = Iterators.flatten(_ids(S, k) for k in S.keys)
+Base.keys(S::GroupLibrarySelection) = _ids(S)
 
 # Base's fallback would run through the selection twice, once for the
 # identifiers and once for the groups
-function Base.pairs(S::GroupLibrarySelection)
-  return Iterators.flatten((id => G for (id, G) in _pairs(S, k)) for k in S.keys)
-end
+Base.pairs(S::GroupLibrarySelection) = (id => G for (id, G) in _pairs(S))
 
-Base.isempty(S::GroupLibrarySelection) = all(k -> _isempty(S, k), S.keys)
+Base.isempty(S::GroupLibrarySelection) = _isempty(S)
 
 function Base.first(S::GroupLibrarySelection)
-  for k in S.keys
-    G = _first(S, k)
-    G === nothing || return G
-  end
-  throw(ArgumentError("collection must be non-empty"))
+  G = _first(S)
+  G === nothing && throw(ArgumentError("collection must be non-empty"))
+  return G
 end
 
 _show_filter(io::IO, f) = print(io, f)
@@ -396,10 +421,25 @@ end
 
 function Base.show(io::IO, S::GroupLibrarySelection)
   lib = S.library
-  print(io, "Selection of ", _name(lib), ": ", _primary_key(lib), " => ")
-  show(io, length(S.keys) == 1 ? S.keys[1] : S.keys)
+  print(io, "Selection of ", _name(lib))
+  sep = ": "
+
+  key = _primary_key(lib)
+  if key !== nothing
+    print(io, sep, key, " => ")
+    show(io, length(S.keys) == 1 ? S.keys[1] : S.keys)
+    sep = ", "
+  end
+
   for f in S.rest
-    print(io, ", ")
+    print(io, sep)
     _show_filter(io, f)
+    sep = ", "
+  end
+
+  sep = "; "
+  for (name, value) in pairs(S.options)
+    print(io, sep, name, " = ", value)
+    sep = ", "
   end
 end
