@@ -96,8 +96,6 @@ function class_group(L::LinearQuotient)
   A = snfA
   KtoA = compose(KtoA, inv(snfAtoA))
   if !is_trivial(H)
-    # TODO: this is an insane concatenation of maps and many of them might be identities.
-    # Can we have Hecke.compose_and_squash for groups?
     GtoA = compose(GtoK, KtoA)
   else
     GtoA = KtoA
@@ -181,6 +179,7 @@ true
 ```
 """
 function has_canonical_singularities(L::LinearQuotient)
+  # The result does not depend on the choice of root of unity
   zeta = fixed_root_of_unity(L)
   cc = conjugacy_classes(group(L))
   return all(c -> is_one(representative(c)) || age(representative(c), zeta) >= 1, cc)
@@ -208,6 +207,7 @@ false
 ```
 """
 function has_terminal_singularities(L::LinearQuotient)
+  # The result does not depend on the choice of root of unity
   zeta = fixed_root_of_unity(L)
   cc = conjugacy_classes(group(L))
   return all(c -> is_one(representative(c)) || age(representative(c), zeta) > 1, cc)
@@ -308,9 +308,7 @@ function action_on_basis(
     polys_g = [G_action(f, g) for f in polys]
     N = polys_to_smat(polys_g, monomial_to_column)
 
-    # Little bit of a waste to recompute the rref of M all the time.
-    # But I don't see how to do it better and mats should not contain many
-    # elements anyways.
+    # TODO: this would need a SolveContext for sparse matrices
     sol = solve(M, N; side=:left)
 
     push!(res, sol)
@@ -423,8 +421,8 @@ end
 # Despite the name, the generators inhom_gens are assumed to be homogeneous with
 # respect to the standard grading!
 # Let action(HBB) be a linear action by an abelian group G on the subalgebra A.
-# This action induces a grading of the group of (linear) characters Hom(G, C^\times)
-# of G on A. As G is isomorphic to Hom(G, C^\times), we interpret this as a grading
+# This action induces a grading of the group of (linear) characters Hom(G, CC^\times)
+# of G on A. As G is isomorphic to Hom(G, CC^\times), we interpret this as a grading
 # by G.
 # Return generators of A which are homogeneous with respect to this grading, their
 # degrees and an automorphism phi of a polynomial ring T over K in #inhom_gens
