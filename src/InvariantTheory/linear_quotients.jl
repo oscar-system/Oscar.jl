@@ -21,7 +21,8 @@ julia> r = K[-1 0; 0 1]; s = K[a 0; 0 inv(a)];
 julia> G = matrix_group(r, s);
 
 julia> L = linear_quotient(G)
-Linear quotient by matrix group of degree 2 over K
+Linear quotient
+  by matrix group of degree 2 over K
 ```
 """
 function linear_quotient(G::MatGroup)
@@ -29,9 +30,20 @@ function linear_quotient(G::MatGroup)
   return LinearQuotient(G)
 end
 
-function show(io::IO, L::LinearQuotient)
+function Base.show(io::IO, ::MIME"text/plain", L::LinearQuotient)
   io = pretty(io)
-  print(io, "Linear quotient by ", Lowercase(), group(L))
+  println(io, "Linear quotient")
+  print(io, Indent(), "by ", Lowercase(), group(L), Dedent())
+end
+
+function Base.show(io::IO, L::LinearQuotient)
+  if is_terse(io)
+    print(io, "Linear quotient")
+  else
+    io = pretty(io)
+    print(io, "Linear quotient by ")
+    print(terse(io), Lowercase(), group(L))
+  end
 end
 
 group(L::LinearQuotient) = L.group
