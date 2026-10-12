@@ -134,16 +134,22 @@ end
 ###############################################################################
 
 @doc raw"""
-    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
+    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
 
 Return the element of `L` whose matrix representation corresponds to `x`.
 If no such element exists, an error is thrown.
+With `check=false` this is not verified and `x` is assumed to lie in the span of `matrix_repr_basis(L)`.
 """
 function coerce_to_lie_algebra_elem(
-  L::LinearLieAlgebra{C}, x::MatElem{C}
+  L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true
 ) where {C<:FieldElem}
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
-  m = solve(_matrix_repr_basis_solve_ctx(L), _vec_row(x); side=:left)
+  pivots, lgs_pivots_inv, lgs = _matrix_repr_basis_pivot_data(L)
+  v = matrix(
+    coefficient_ring(L), 1, dim(L), C[x[div(k - 1, L.n) + 1, rem(k - 1, L.n) + 1] for k in pivots]
+  )
+  m = v * lgs_pivots_inv
+  check && @req m * lgs == _vec_row(x) "Matrix is not in the span of the basis."
   return L(m)
 end
 
@@ -152,16 +158,22 @@ function _vec_row(x::MatElem)
   return matrix(base_ring(x), 1, nrows(x) * ncols(x), _vec(transpose(x)))
 end
 
-# TODO: use the concrete `solve_context_type(C)` as return type once
-# Nemocas/AbstractAlgebra.jl#2101 is available.
-@attr AbstractAlgebra.Solve.SolveCtx function _matrix_repr_basis_solve_ctx(
+# `lgs` is the `dim(L) x n^2` matrix with the flattened basis matrices as
+# rows, `pivots` are `dim(L)` column indices such that `lgs[:, pivots]` is
+# invertible, and `lgs_pivots_inv` is the inverse of that submatrix. Hence the
+# coefficient vector of a matrix `x` in the span of the basis is
+# `_vec_row(x)[:, pivots] * lgs_pivots_inv`.
+@attr Tuple{Vector{Int},dense_matrix_type(C),dense_matrix_type(C)} function _matrix_repr_basis_pivot_data(
   L::LinearLieAlgebra{C}
 ) where {C<:FieldElem}
   lgs = zero_matrix(coefficient_ring(L), dim(L), L.n^2)
   for (k, b) in enumerate(matrix_repr_basis(L))
     lgs[k:k, :] = _vec_row(b)
   end
-  return solve_init(lgs)
+  r, ech = rref(lgs)
+  @req r == dim(L) "Basis matrices are linearly dependent."
+  pivots = Int[findfirst(j -> !is_zero_entry(ech, i, j), 1:ncols(ech)) for i in 1:r]
+  return (pivots, inv(lgs[:, pivots]), lgs)
 end
 
 ###############################################################################
@@ -192,7 +204,7 @@ function bracket(
   L = parent(x)
   x_mat = matrix_repr(x)
   y_mat = matrix_repr(y)
-  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat)
+  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat; check=false)
 end
 
 ###############################################################################
