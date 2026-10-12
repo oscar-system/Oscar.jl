@@ -460,12 +460,12 @@ i.e., one of
 - `G_2`.
 """
 function is_cartan_type(fam::Symbol, rk::Int)
-  fam in [:A, :B, :C, :D, :E, :F, :G] || return false
+  fam in (:A, :B, :C, :D, :E, :F, :G) || return false
   fam == :A && rk >= 1 && return true
   fam == :B && rk >= 2 && return true
   fam == :C && rk >= 2 && return true
   fam == :D && rk >= 4 && return true
-  fam == :E && rk in [6, 7, 8] && return true
+  fam == :E && rk in (6, 7, 8) && return true
   fam == :F && rk == 4 && return true
   fam == :G && rk == 2 && return true
   return false

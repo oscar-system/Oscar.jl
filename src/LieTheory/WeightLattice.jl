@@ -72,7 +72,9 @@ See also: [`fundamental_weight(::RootSystem, ::Int)`](@ref).
 """
 function gen(P::WeightLattice, i::Int)
   @req 1 <= i <= rank(P) "invalid index"
-  return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), i .== 1:rank(P)))
+  vec = zero_matrix(ZZ, 1, rank(P))
+  vec[1, i] = 1
+  return WeightLatticeElem(P, vec)
 end
 
 @doc raw"""
