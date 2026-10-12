@@ -148,7 +148,7 @@ function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
       end
 
       # mat[i,j] != 0 or mat[j,i] != 0, so both entries must be < 0
-      if mat[i, j] >= 0 || mat[j, i] >= 0
+      if !is_negative_entry(mat, i, j) || !is_negative_entry(mat, j, i)
         return false
       end
     end
