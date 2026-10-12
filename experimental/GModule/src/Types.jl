@@ -119,3 +119,32 @@ function Oscar.action(a::Oscar.GModuleElem, g::GroupAlgebraElem)
   return Oscar.GModuleElem(parent(a), action(parent(a), g, a.data))
 end
 
+"""
+A type representing the group extension by a 2-co-cycle.
+Let ``h in H^2(G, M)`` for some group `G` and module `M`.
+Then `S` is the type of elements in `G` while `T` is the
+type of the module elements.
+
+The chains is then of type `CoChain{2, S, T}`, elements
+of this group are essentially pairs of elements of `G` and
+`M`.
+"""
+struct GrpExt{S, T} <: Group
+  c :: Oscar.GrpCoh.CoChain{2, S, T} 
+  function GrpExt(c::Oscar.GrpCoh.CoChain{2, A, B}) where A where B
+    return new{A, B}(c)
+  end
+end
+
+"""
+The elements of the extension, given via a 2-co-chain.
+"""
+struct GrpExtElem{S, T} <: AbstractAlgebra.GroupElem
+  P::GrpExt{S, T} #parent
+  g::S            #the group bit
+  m::T            #the module bit
+  function GrpExtElem(P::GrpExt{A, B}, g::A, m::B) where A where B 
+    return new{A, B}(P, g, m)
+  end
+end
+

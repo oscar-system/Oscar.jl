@@ -2,41 +2,13 @@ module GrpExt_module
 using Oscar
 
 import Base: *, ==, one, rand, show, iterate
-export GrpExt, GrpExtElem
 export commutator_decomposition_map
 import Oscar.GAPWrap
-
-"""
-A type representing the group extension by a 2-co-cycle.
-Let ``h in H^2(G, M)`` for some group `G` and module `M`.
-Then `S` is the type of elements in `G` while `T` is the
-type of the module elements.
-
-The chains is then of type `CoChain{2, S, T}`, elements
-of this group are essentially pairs of elements of `G` and
-`M`.
-"""
-struct GrpExt{S, T} <: Group
-  c :: Oscar.GrpCoh.CoChain{2, S, T} 
-  function GrpExt(c::Oscar.GrpCoh.CoChain{2, A, B}) where A where B
-    return new{A, B}(c)
-  end
-end
+import Oscar.GrpExt
+import Oscar.GrpExtElem
 
 function show(io::IO, G::GrpExt)
   print(io, "Extension via $(gmodule(G))")
-end
-
-"""
-The elements of the extension, given via a 2-co-chain.
-"""
-struct GrpExtElem{S, T} <: AbstractAlgebra.GroupElem
-  P::GrpExt{S, T} #parent
-  g::S            #the group bit
-  m::T            #the module bit
-  function GrpExtElem(P::GrpExt{A, B}, g::A, m::B) where A where B 
-    return new{A, B}(P, g, m)
-  end
 end
 
 function show(io::IO, g::GrpExtElem)
@@ -441,3 +413,5 @@ end #module
 using .GrpExt_module
 
 export commutator_decomposition_map
+export GrpExt
+export GrpExtElem
