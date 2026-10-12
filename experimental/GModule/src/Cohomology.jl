@@ -1483,10 +1483,10 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
     end
   end
 
-  if one_only
-    FF = G
-    mFF = identity_map(G)
-    R = [[letters(x[1]), letters(x[2])] for x = relations(G)]
+  if one_only 
+    mFF = inv(isomorphism(FPGroup, G))
+    FF = domain(mFF)
+    R = [[letters(x[1]), letters(x[2])] for x = relations(FF)]
     n = length(R)
     pos = collect(1:n)
   else
@@ -1603,8 +1603,15 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
       else
         Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left)
       end
+      function _from_1chain(c)
+        res = []
+        for g = gens(FF)
+          push!(res, c(mFF(g)))
+        end
+        return res
+      end
       set_attribute!(Fg, :to_chain => x->to_1chain(letters(preimage(mFF, x))))
-      set_attribute!(Fg, :from_chain => from_1chain)
+      set_attribute!(Fg, :from_chain => _from_1chain)
       #so to get a "proper" 1-cochain from s in C^1(G, M) given
       # as a "black box" s in M^g from this resolution
       # then: for the generators we have the values
