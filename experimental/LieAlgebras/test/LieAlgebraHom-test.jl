@@ -8,6 +8,11 @@
     @test codomain(h) == L2
     @test matrix(h) == matrix(QQ, [0 1 0 0; 0 0 1 0; 1 0 0 -1])
     @test is_welldefined(h)
+
+    # swapping e and f is not a homomorphism
+    e, f, hh = basis(L1)
+    @test_throws ArgumentError hom(L1, L1, [f, e, hh])
+    @test !is_welldefined(hom(L1, L1, [f, e, hh]; check=false))
   end
 
   @testset "Image and kernel" begin

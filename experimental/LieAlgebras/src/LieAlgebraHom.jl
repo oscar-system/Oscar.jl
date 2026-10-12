@@ -23,8 +23,11 @@ This function is used internally when calling `hom` with `check=true`.
 """
 function is_welldefined(h::LieAlgebraHom)
   L1 = domain(h)
-  for x1 in basis(L1), x2 in basis(L1)
-    h(x1) * h(x2) == h(x1 * x2) || return false
+  b = basis(L1)
+  imgs = [h(x) for x in b]
+  for (i, (xi, hxi)) in enumerate(zip(b, imgs)), (j, (xj, hxj)) in enumerate(zip(b, imgs))
+    i < j || continue
+    hxi * hxj == h(xi * xj) || return false
   end
   return true
 end

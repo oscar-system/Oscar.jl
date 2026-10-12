@@ -38,7 +38,8 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
       ) "Invalid structure constants."
       @req all(iszero, struct_consts[i, i] for i in 1:dimL) "Not anti-symmetric."
       @req all(
-        iszero, struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL, j in 1:dimL
+        iszero,
+        struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL for j in (i + 1):dimL
       ) "Not anti-symmetric."
       @req all(
         iszero,
@@ -54,7 +55,7 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
             row = addmul!(row, k_val, struct_consts[k, j])
           end
           row
-        end for i in 1:dimL, j in 1:dimL, l in 1:dimL
+        end for i in 1:dimL for j in (i + 1):dimL for l in (j + 1):dimL
       ) "Jacobi identity does not hold."
     end
     return new{C}(R, dimL, struct_consts, s)
@@ -319,8 +320,17 @@ end
     V = new{C,elem_type(L)}(L, dimV, transformation_matrices, s)
     if check
       @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
-      for xi in basis(L), xj in basis(L), v in basis(V)
-        @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
+      # with the right action `v * T_x`, the module axiom reads T_[x,y] = T_y T_x - T_x T_y
+      for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))
+        i < j || continue
+        T_i = transformation_matrices[i]
+        T_j = transformation_matrices[j]
+        T_bracket = sum(
+          c * transformation_matrices[k] for
+          (k, c) in enumerate(coefficients(xi * xj)) if !iszero(c);
+          init=zero(T_i),
+        )
+        @req T_bracket == T_j * T_i - T_i * T_j "Transformation matrices do not define a module."
       end
     end
     return V
