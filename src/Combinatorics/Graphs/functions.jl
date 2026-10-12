@@ -1217,7 +1217,7 @@ function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          seed::Int=42)
   isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
   G_map = getproperty(G, label)
-  isnothing(G_map.edge_map) && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
+  isnothing(G_map.edge_map) && vertex_distinguishable && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
   new_G = _edge_label_to_vertex_label(G, label;
                                       edge_distinguishable=edge_distinguishable,
                                       vertex_distinguishable=vertex_distinguishable)
@@ -1232,7 +1232,7 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
   isnothing(label) && return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G)))
 
   G_map = getproperty(G, label)
-  if isnothing(G_map.edge_map)
+  if isnothing(G_map.edge_map) && vertex_distinguishable
     return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)])))
   end
 
@@ -1298,7 +1298,7 @@ function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwa
   isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
 
   p = _canonical_perm(G; label=label, kwargs...)
-  return _permute_nodes_and_label(G, p, [label])
+  return _permute_nodes_and_labels(G, p, [label])
 end
 
 
@@ -1649,17 +1649,33 @@ julia> is_isomorphic(vertex_edge_graph(cube(3)), dual_graph(cube(3)))
 false
 ```
 """
-function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing,
+                       vertex_distinguishable::Bool=true, edge_distinguishable::Bool=true) where {T <: Union{Directed, Undirected}}
   isnothing(label) && return Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
 
-  if isnothing(Oscar._graph_maps(g1)[label].edge_map)
-    !isnothing(Oscar._graph_maps(g2)[label].edge_map) && return false
+  n_vertices(g1) == n_vertices(g2) && n_edges(g1) == n_edges(g2) || return false
+  G_map1 = Oscar._graph_maps(g1)[label]
+  G_map2 = Oscar._graph_maps(g2)[label]
+  isnothing(G_map1.edge_map) == isnothing(G_map2.edge_map) || return false
+  isnothing(G_map1.vertex_map) == isnothing(G_map2.vertex_map) || return false
+
+  isnothing(G_map1.edge_map) && vertex_distinguishable && return _canonical_form(g1; label=label) == _canonical_form(g2; label=label)
+
+  # the vertex labels of the `edge_label_to_vertex` graph only encode the position of a label in
+  # the sorted list of labels, so distinguishable labels also need to agree as sets
+  if vertex_distinguishable && !isnothing(G_map1.vertex_map)
+    Set(G_map1[v] for v in 1:n_vertices(g1)) == Set(G_map2[v] for v in 1:n_vertices(g2)) || return false
   end
-  if isnothing(Oscar._graph_maps(g1)[label].vertex_map)
-    !isnothing(Oscar._graph_maps(g2)[label].vertex_map) && return false
+  if edge_distinguishable && !isnothing(G_map1.edge_map)
+    Set(G_map1[e] for e in edges(g1)) == Set(G_map2[e] for e in edges(g2)) || return false
   end
 
-  error("Not implemented yet")
+  # compare the canonical forms of the gadget graphs, the canonical forms of g1 and g2
+  # keep the original label values and so are not invariant under renaming labels
+  new_g1 = _edge_label_to_vertex_label(g1, label; vertex_distinguishable, edge_distinguishable)
+  new_g2 = _edge_label_to_vertex_label(g2, label; vertex_distinguishable, edge_distinguishable)
+  n_vertices(new_g1) == n_vertices(new_g2) || return false
+  return _canonical_form(new_g1; label=:edge_to_vertex) == _canonical_form(new_g2; label=:edge_to_vertex)
 end
 
 @doc raw"""
