@@ -479,7 +479,7 @@ function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) wh
   return sub(F, v)
 end
 
-@attr Any function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
+@attr AbstractAlgebra.Solve.solve_context_type(parent_type(T)) function kernel_ctx(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
   solve_init(matrix(h))
 end
 

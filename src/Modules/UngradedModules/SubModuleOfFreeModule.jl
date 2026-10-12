@@ -498,7 +498,7 @@ function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{
   return iszero(reduce(a, standard_basis(M)))
 end
 
-@attr Any function solve_ctx(M::SubModuleOfFreeModule)
+@attr AbstractAlgebra.Solve.solve_context_type(parent_type(T)) function solve_ctx(M::SubModuleOfFreeModule{T}) where {T}
   F = ambient_free_module(M)
   d, n = rank(F), ngens(M)
   R = base_ring(F)
