@@ -146,7 +146,8 @@ function coerce_to_lie_algebra_elem(
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
   pivots, lgs_pivots_inv, lgs = _matrix_repr_basis_pivot_data(L)
   v = matrix(
-    coefficient_ring(L), 1, dim(L), C[x[div(k - 1, L.n) + 1, rem(k - 1, L.n) + 1] for k in pivots]
+    coefficient_ring(L), 1, dim(L),
+    C[x[div(k - 1, L.n) + 1, rem(k - 1, L.n) + 1] for k in pivots],
   )
   m = v * lgs_pivots_inv
   check && @req m * lgs == _vec_row(x) "Matrix is not in the span of the basis."
