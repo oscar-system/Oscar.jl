@@ -207,6 +207,11 @@ end
     @test groups isa Vector{PermGroup}
     @test degree.(groups) == [5, 6, 10]
 
+    ps = collect(pairs(find(P, "A5")))
+    @test first.(ps) == collect(keys(find(P, "A5")))
+    @test last.(ps) == groups
+    @test all(p -> degree(p[2]) == p[1][:degree], ps)
+
     info = only(keys(find(L, "A5", dim => 4, characteristic => 3)))
     @test M[info] isa MatGroup
     @test_throws ArgumentError P[info]
