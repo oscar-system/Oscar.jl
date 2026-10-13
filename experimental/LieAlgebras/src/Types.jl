@@ -102,9 +102,16 @@ end
   end
 end
 
-struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
+mutable struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
+  mat::MatElem{C} # 1 x dim(parent) coefficient vector w.r.t. basis(parent)
+  matrix_repr::MatElem{C} # parent.n x parent.n matrix, set on demand
+
+  function LinearLieAlgebraElem{C}(
+    L::LinearLieAlgebra{C}, mat::MatElem{C}
+  ) where {C<:FieldElem}
+    return new{C}(L, mat)
+  end
 end
 
 ###############################################################################
