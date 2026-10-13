@@ -89,7 +89,7 @@ function compute_additional_inequalities(
   for i in n:-1:1
     bir_seq_i = operator_as_root(bir_sequence, i)
     rhs = dot(coefficients(dual(bir_seq_i)), coefficients(highest_weight)) # maybe something with coroot?
-    lhs = zeros(QQ, n)
+    lhs = [zero(QQ) for _ in 1:n]
     for k in 1:i-1 #k<i
       lhs[k] = 0
     end
@@ -106,7 +106,7 @@ function compute_additional_inequalities(
   n = length(bir_sequence)
   inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
   for coord in zero_coordinates
-    lhs = zeros(QQ, n)
+    lhs = [zero(QQ) for _ in 1:n]
     lhs[coord] = 1
     rhs = 0
     push!(inequalities, (lhs, rhs))
