@@ -6,7 +6,7 @@ Currently, it supports base rings such as the rationals, algebraic number fields
 ## [Definitions and notations](@id definitionsandnotations_cliff)
 
 Let ``R`` be a ring and ``(M,q)`` a quadratic ``R``-module, i.e. ``M`` is an ``R``-module
-that carries an ``R``-valued quadratic form ``q``. For a positive integer ``m``, we write
+that carries an ``R``-valued quadratic form ``q.`` For a positive integer ``m``, we write
 ``\underline{m} = \lbrace 1, \ldots, m \rbrace``.
 
 A *Clifford algebra* for ``(M,q)`` is a pair ``(C,g)`` consisting of an associative
