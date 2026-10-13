@@ -10,6 +10,7 @@ toric_serialization_list = [
 :map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group,
 :map_from_torusinvariant_weil_divisor_group_to_class_group,
 :cohomology_ring,
+:betti_numbers,
 :is_complete,
 :is_smooth,
 :is_simplicial]

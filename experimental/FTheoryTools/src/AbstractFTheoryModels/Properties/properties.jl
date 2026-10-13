@@ -89,10 +89,10 @@ true
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
   @req dim(base_space(m)) == 3 "Verification of Euler characteristic of F-theory model currently supported only for toric base spaces of dimension 3"
   @req dim(ambient_space(m)) == 5 "Verification of Euler characteristic of F-theory model currently supported only for toric ambient spaces of dimension 5"
-  @req has_attribute(m, :h11) "Verification of Euler characteristic of F-theory model requires h11"
-  @req has_attribute(m, :h12) "Verification of Euler characteristic of F-theory model requires h12"
-  @req has_attribute(m, :h13) "Verification of Euler characteristic of F-theory model requires h13"
-  @req has_attribute(m, :h22) "Verification of Euler characteristic of F-theory model requires h22"
+  @req has_attribute(m, :hodge_h11) "Verification of Euler characteristic of F-theory model requires hodge_h11"
+  @req has_attribute(m, :hodge_h12) "Verification of Euler characteristic of F-theory model requires hodge_h12"
+  @req has_attribute(m, :hodge_h13) "Verification of Euler characteristic of F-theory model requires hodge_h13"
+  @req has_attribute(m, :hodge_h22) "Verification of Euler characteristic of F-theory model requires hodge_h22"
 
   # Computer Euler characteristic from integrating c4
   ec = euler_characteristic(m; completeness_check)

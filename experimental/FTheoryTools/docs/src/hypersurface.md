@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Hypersurface Models](@id hypersurface_models)
 
 A **hypersurface model** is a description of an elliptic fibration whose

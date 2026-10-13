@@ -210,6 +210,40 @@ end
   @test is_isomorphic(D, abelian_group([0]))
 end
 
+@testset "Monomial bases and homogeneous components with torsion" begin
+  S, (u, v) = graded_polynomial_ring(QQ, [:u, :v])
+  @test monomial_basis(S, 2) == [v^2, u * v, u^2]
+
+  # The relation matrix gives G = Z ⊕ Z/2, so the second generator is torsion.
+  G = abelian_group([0, 2])
+  g1, g2 = gens(G)
+  @test !is_free(G)
+  @test order(g2) == 2
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, G([1, 1])])
+  d = G([2, 1])
+
+  @test monomial_basis(R, d) == [x * y]
+  @test Set(monomial_basis(R, G([2, 0]))) == Set([x^2, y^2])
+  @test all(degree(p) == d for p in monomial_basis(R, d))
+
+  # Homogeneous components with torsion: a nonzero component.
+  V, embedding = homogeneous_component(R, G([2, 0]))
+  @test dim(V) == 2
+  @test Set(embedding.(gens(V))) == Set([x^2, y^2])
+
+  # A zero-dimensional component and its embedding.
+  V0, embedding0 = homogeneous_component(R, G([0, 1]))
+  @test dim(V0) == 0
+  @test embedding0(zero(V0)) == zero(R)
+  @test R(zero(V0)) == zero(R)
+
+  Q, _ = quo(R, ideal(R, [x^2]))
+  @test monomial_basis(Q, G([2, 0])) == [y^2]
+
+  R_infinite, _ = graded_polynomial_ring(QQ, [:z]; weights = [g2])
+  @test_throws InfiniteDimensionError monomial_basis(R_infinite, G([0, 0]))
+end
+
 @testset "Minimal generating set" begin
   R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y]; weights = [ 1, 2 ])
   I = ideal(R, [ x^2, y, x^2 + y ])
@@ -224,6 +258,65 @@ end
   g = x^2
   @test div(f, g) == one(R)
   @test divrem(f, g) == (one(R), y)
+
+  q, r = divrem(f, [g, y])
+  @test q == [one(R), one(R)]
+  @test iszero(r)
+  @test parent(r) === R
+end
+
+@testset "Parent checks" begin
+  # two gradings of the same ring have the same element type
+  R, _ = QQ[:x, :y]
+  S1, (x1, y1) = grade(R, [1, 1])
+  S2, (x2, y2) = grade(R, [1, 2])
+  for op in (+, -, *, ==, divexact, gcd, div, divrem)
+    @test_throws ErrorException op(x1, x2)
+  end
+  @test_throws ErrorException divrem(x1, [x1, x2])
+end
+
+@testset "Square roots" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ]; weights = [ 1, 2 ])
+  f = x^2 + y
+  @test sqrt(f^2) == f
+  @test parent(sqrt(f^2)) === R
+  @test is_square(f^2)
+  @test !is_square(f)
+  @test is_square_with_sqrt(f^2) == (true, f)
+  @test !is_square_with_sqrt(f)[1]
+  @test_throws ErrorException sqrt(f)
+end
+
+@testset "MPoly interface for graded rings" begin
+  # test_MPoly_interface requires exactly two variables
+  for (K, w) in [(QQ, [1, 1]), (ZZ, [1, 2]), (GF(7), [2, 3])]
+    R, _ = graded_polynomial_ring(K, [ :x, :y ]; weights = w)
+    ConformanceTests.test_MPoly_interface(R; reps = 3)
+  end
+end
+
+@testset "Unsafe functions" begin
+  # build 2*y + 3*x^2 term by term, out of order and with a duplicate term
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ])
+  f = zero(R)
+  fit!(f, 3)
+  for (i, (c, e)) in enumerate([(1, [0, 1]), (3, [2, 0]), (1, [0, 1])])
+    @test set_exponent_vector!(f, i, e) === f
+    @test setcoeff!(f, i, QQ(c)) === f
+  end
+  @test sort_terms!(f) === f
+  @test combine_like_terms!(f) === f
+  @test f == 2*y + 3*x^2
+  @test parent(f) === R
+  @test coeff(f, [2, 0]) == 3
+  @test iszero(coeff(f, [1, 1]))
+
+  B = MPolyBuildCtx(R)
+  push_term!(B, QQ(2), [0, 1])
+  push_term!(B, QQ(3), [2, 0])
+  @test finish(B) == 2*y + 3*x^2
+  @test iszero(finish(B))
 end
 
 # Conversion bug
@@ -319,6 +412,8 @@ end
   @test custom == gcd == generator == cocoa == indeterminate
 end
 
+using Random
+
 @testset "Rand" begin
   for K in [ZZ, GF(3), QQ]
     R, = K[:x, :y, :z]
@@ -326,6 +421,14 @@ end
     for i in 1:100
       f = rand(R, 5:10, 1:10, 1:100)
       @test parent(f) === R
+
+      # a graded ring yields homogeneous polynomials, with or without an
+      # explicit rng
+      for g in (rand(S, 5:10, 1:10, 1:100),
+                rand(Random.default_rng(), S, 5:10, 1:10, 1:100))
+        @test parent(g) === S
+        @test is_homogeneous(g)
+      end
     end
   end
 end
@@ -603,5 +706,11 @@ end
   @test is_graded(S101)
   @test grading_group(S) === grading_group(S101)
   @test degree.(gens(S)) == degree.(gens(S101))
+end
+
+@testset "coercion in towers of graded rings" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  SS, S_to_SS = change_base_ring(S, S)
+  S_to_SS(x) # used to throw an error because of method ambiguity
 end
 

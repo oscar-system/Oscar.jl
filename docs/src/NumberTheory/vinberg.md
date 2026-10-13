@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Vinberg's algorithm
 
  A *Lorentzian lattice* $L$ is an integral $\Z$-lattice of signature $(s_+, s_-)$ with $s_+=1$ and $s_->0$. 

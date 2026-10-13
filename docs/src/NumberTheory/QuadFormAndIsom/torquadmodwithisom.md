@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Torsion quadratic modules with isometry
 
 We call *torsion quadratic module with isometry* any pair $(T, f)$ consisting

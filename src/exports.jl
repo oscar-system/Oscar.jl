@@ -749,10 +749,12 @@ export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
 export groebner_basis_modular
+export groebner_basis_signature_based
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
 export group_with_class_number
+export group_with_class_number_identification
 export gset
 export h_star_polynomial
 export h_vector
@@ -764,6 +766,7 @@ export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_edge
 export has_groups_with_class_number
+export has_groups_with_class_number_identification
 export has_nonempty_intersection
 export has_perfect_groups
 export has_preimage_with_preimage
@@ -785,6 +788,9 @@ export hilbert_series_expanded
 export hilbert_series_reduced
 export hirsch_length
 export hirzebruch_surface
+export hodge_number
+export hodge_numbers
+export print_hodge_diamond
 export hom
 export hom_product
 export hom_tensor
@@ -1192,7 +1198,6 @@ export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
-export map_from_func
 export map_from_picard_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_picard_group

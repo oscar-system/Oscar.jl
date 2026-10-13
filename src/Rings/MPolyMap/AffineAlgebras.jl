@@ -5,10 +5,8 @@
 ################################################################################
 
 const AffAlgHom = MPolyAnyMap{DT, CT, Nothing} where {T <: FieldElem,
-                                                       U1 <: MPolyRingElem{T},
-                                                       U2 <: MPolyRingElem{T}, # types in domain an codomain might differ: one might be decorated, the other not.
-                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{U1}},
-                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
+                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}},
+                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
 
 affine_algebra_morphism_type(::Type{T}) where {T <: Union{MPolyRing, MPolyQuoRing}} = morphism_type(T, T)
 
@@ -48,7 +46,7 @@ end
 
 Return the kernel of `F`.
 """
-@attr Any function kernel(f::AffAlgHom) # TODO: need some ideal_type(domain(f)) here :)
+@attr ideal_type(domain_type(T)) function kernel(f::T) where {T <: AffAlgHom}
   C = codomain(f)
   return preimage(f, ideal(C, [zero(C)]))
 end

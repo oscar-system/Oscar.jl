@@ -35,6 +35,30 @@ weierstrass_P3 = weierstrass_model(P3; completeness_check=false, rng=our_rng)
   @test isempty(exceptional_divisor_indices(weierstrass_P3))
 end
 
+# Equal G4-fluxes must have equal hashes after restriction to the hypersurface.
+@testset "Hashing G4-fluxes" begin
+  ambient = ambient_space(weierstrass_P3)
+  cohomology = cohomology_ring(ambient; completeness_check=false)
+  cy = cohomology_class(
+    toric_divisor_class(ambient, degree(hypersurface_equation(weierstrass_P3)));
+    completeness_check=false,
+  )
+  candidates = [
+    cohomology_class(ambient, x * y; completeness_check=false) for
+    (i, x) in enumerate(gens(cohomology)) for y in gens(cohomology)[i:end]
+  ]
+  kernel_index = findfirst(
+    c -> !iszero(polynomial(c)) && iszero(polynomial(cy * c)), candidates
+  )::Int
+  kernel_class = candidates[kernel_index]
+  zero_class = cohomology_class(ambient, zero(cohomology); completeness_check=false)
+  zero_flux = Oscar.G4Flux(weierstrass_P3, zero_class)
+  kernel_flux = Oscar.G4Flux(weierstrass_P3, kernel_class)
+  @test zero_flux == kernel_flux
+  @test hash(zero_flux) == hash(kernel_flux)
+  @test length(unique([zero_flux, kernel_flux])) == 1
+end
+
 # Check detailed display for a model carrying parameter metadata.
 set_attribute!(weierstrass_P3, :model_description, "Parameterized model")
 set_attribute!(weierstrass_P3, :model_parameters, Dict("z" => 2, "a" => 1))

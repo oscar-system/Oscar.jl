@@ -1440,7 +1440,7 @@ function _separate_disjoint_components(comp::Vector{<:AbsIdealSheaf}; covering::
     if isempty(cof)
       push!(new_patches, U)
     else
-      new_patches = vcat(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
+      append!(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
     end
   end
   new_cov = Covering(new_patches)

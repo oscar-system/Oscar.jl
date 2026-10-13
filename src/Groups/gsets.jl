@@ -253,18 +253,26 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
   return GSetByElements(G, on_tuples_sets, Omega; closed = closed, check = false)
 end
 
-## action of permutations on vectors of positive integers
-## action of matrices on vectors via right multiplication
+## action of matrices on vectors via right multiplication,
+## where the entries of the matrices and the entries of the vectors
+## have the same type
+## (if the types do *not* match then we do not define a default action,
+## pointwise action on the entries of the vector might be a natural action)
+function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{Vector{E}}; closed::Bool = false) where E where M
+  return GSetByElements(G, *, Omega; closed = closed, check = false)
+end
+
+## action of matrices on elements of free modules via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
   return GSetByElements(G, *, Omega; closed = closed, check = false)
 end
 
-## action of matrices on sets of vectors via right multiplication
+## action of matrices on sets of free module elements via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Set{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_sets, Omega; closed = closed, check = false)
 end
 
-## action of matrices on vectors of vectors via right multiplication
+## action of matrices on vectors of free module elements via right multiplication
 function gset_by_type(G::MatGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
   return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
@@ -324,7 +332,7 @@ natural_gset(G::PermGroup) = gset(G, 1:G.deg; closed = true)
 """
     natural_gset(G::MatGroup{T, MT}) where {MT, T <: FinFieldElem}
 
-Return the G-set `Omega` that consists of vectors under the 
+Return the G-set `Omega` that consists of vectors under the
 natural action of `G` over a finite field.
 
 # Examples
@@ -596,11 +604,14 @@ julia> map(collect, orbs)
 """
 @attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{Group, FinGenAbGroup},S}
   orbs = GSetByElements{T,S}[]
+  # One shared set of seen points keeps this linear in the number of points.
+  seen = IndexedSet{S}()
   for p_ in Omega.seeds
     p = p_::S
-    if all(o -> !(p in o), orbs)
-      push!(orbs, orbit(Omega, p))
-    end
+    p in seen && continue
+    orb = orbit(Omega, p)
+    append!(seen, elements(orb))
+    push!(orbs, orb)
   end
   return orbs
 end
@@ -761,7 +772,7 @@ function permutation(Omega::GSetByElements{T}, g::Union{GAPGroupElem, FinGenAbGr
 
     # The following works only because GAP does not check
     # whether the given group element 'g' is a group element.
-    pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
+    pi = GAPWrap.PermutationOp(g, omega_list, gfun)
     @req pi !== GAP.Globals.fail "no permutation is induced by $g"
 
     return group_element(action_range(Omega), pi)
@@ -852,7 +863,7 @@ function permutation(Omega::GSetBySubgroupTransversal{T, S, E}, g::E) where T <:
   # The following works because GAP uses its `PositionCanonical`.
   # Note that we use `GAP.Globals.OnRight` also for the case of
   # a left transversal, since a right transversal is used on the GAP side.
-  pi = GAP.Globals.PermutationOp(GapObj(g), Omega.transversal.X, GAP.Globals.OnRight)::GapObj
+  pi = GAPWrap.PermutationOp(GapObj(g), Omega.transversal.X, GAP.Globals.OnRight)
   return group_element(action_range(Omega), pi)
 end
 
@@ -862,7 +873,7 @@ end
   # The following works because GAP uses its `PositionCanonical`.
   # Note that we use `GAP.Globals.OnRight` also for the case of
   # a left transversal, since a right transversal is used on the GAP side.
-  acthom = GAP.Globals.ActionHomomorphism(GapObj(G), Omega.transversal.X, GAP.Globals.OnRight)::GapObj
+  acthom = GAPWrap.ActionHomomorphism(GapObj(G), Omega.transversal.X, GAP.Globals.OnRight)
 
   # See the comment about `SetJuliaData` in the `action_homomorphism` method
   # for `GSetByElements`.
@@ -898,7 +909,7 @@ end
 
   # The following works only because GAP does not check
   # whether the given generators in GAP and Julia fit together.
-  acthom = GAP.Globals.ActionHomomorphism(GapObj(G), omega_list, gap_gens, GAP.Obj(gens(G)), gfun)::GapObj
+  acthom = GAPWrap.ActionHomomorphism(GapObj(G), omega_list, gap_gens, GAP.Obj(gens(G)), gfun)
 
   # The first difficulty on the GAP side is `ImagesRepresentative`
   # (which is the easy direction of the action homomorphism):
@@ -992,7 +1003,7 @@ function is_conjugate_with_data(Omega::GSet, omega1, omega2)
     pos1 === nothing && return false, one(G)
     pos2 = findfirst(isequal(omega2), elms)
     pos2 === nothing && return false, one(G)
-    img = GAP.Globals.RepresentativeAction(GapObj(image(acthom)[1]), pos1, pos2)
+    img = GAPWrap.RepresentativeAction(GapObj(image(acthom)[1]), pos1, pos2)
     img == GAP.Globals.fail && return false, one(G)
     pre = has_preimage_with_preimage(acthom, group_element(image(acthom)[1], img))
     @assert(pre[1])
@@ -1043,7 +1054,7 @@ function blocks(Omega::GSet)
   @assert is_transitive(Omega) "The group action is not transitive"
   G = image(action_homomorphism(Omega))[1]
   L = moved_points(G)
-  bl = Vector{Vector{Int}}(GAP.Globals.Blocks(GapObj(G), GapObj(L))::GapObj)
+  bl = Vector{Vector{Int}}(GAPWrap.Blocks(GapObj(G), GapObj(L)))
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
   bl = map(A -> Set(map(x -> Omega[x], A)), bl)
   return gset(acting_group(Omega), on_sets, bl; closed = true)
@@ -1076,7 +1087,7 @@ function maximal_blocks(Omega::GSet)
   @assert is_transitive(Omega) "The group action is not transitive"
   G = image(action_homomorphism(Omega))[1]
   L = moved_points(G)
-  bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(GapObj(G), GapObj(L))::GapObj)
+  bl = Vector{Vector{Int}}(GAPWrap.MaximalBlocks(GapObj(G), GapObj(L)))
   # NOTE convert to action of `acting_group(Omega)` on subsets of Omega using `action_function`
   bl = map(A -> Set(map(x -> Omega[x], A)), bl)
   return gset(acting_group(Omega), on_sets, bl; closed = true)
@@ -1110,7 +1121,7 @@ function minimal_block_reps(Omega::GSet)
   @assert is_transitive(Omega) "The group action is not transitive"
   G = image(action_homomorphism(Omega))[1]
   L = moved_points(G)
-  bl =  Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
+  bl =  Vector{Vector{Int}}(GAPWrap.RepresentativesMinimalBlocks(GapObj(G), GapObj(L)))
 
   return map(A -> Set(map(x -> Omega[x], A)), bl)
 end
@@ -1145,7 +1156,7 @@ julia> all_blocks(Omega)
 function all_blocks(Omega::GSet)
   @assert is_transitive(Omega) "The group action is not transitive"
   G = image(action_homomorphism(Omega))[1]
-  bl = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
+  bl = Vector{Vector{Int}}(GAPWrap.AllBlocks(GapObj(G)))
 
   return map(A -> Set(map(x -> Omega[x], A)), bl)
 end
@@ -1329,7 +1340,7 @@ julia> collect(blocks(g))
 """
 function blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert is_transitive(G, L) "The group action is not transitive"
-   bl = Vector{Vector{Int}}(GAP.Globals.Blocks(GapObj(G), GapObj(L))::GapObj)
+   bl = Vector{Vector{Int}}(GAPWrap.Blocks(GapObj(G), GapObj(L)))
    return gset(G, on_sets, bl; closed = true)
 end
 
@@ -1358,7 +1369,7 @@ julia> collect(maximal_blocks(G))
 """
 function maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert is_transitive(G, L) "The group action is not transitive"
-   bl = Vector{Vector{Int}}(GAP.Globals.MaximalBlocks(GapObj(G), GapObj(L))::GapObj)
+   bl = Vector{Vector{Int}}(GAPWrap.MaximalBlocks(GapObj(G), GapObj(L)))
    return gset(G, bl; closed = true)
 end
 
@@ -1389,7 +1400,7 @@ julia> minimal_block_reps(G)
 """
 function minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
    @assert is_transitive(G, L) "The group action is not transitive"
-   return Vector{Vector{Int}}(GAP.Globals.RepresentativesMinimalBlocks(GapObj(G), GapObj(L))::GapObj)
+   return Vector{Vector{Int}}(GAPWrap.RepresentativesMinimalBlocks(GapObj(G), GapObj(L)))
 end
 
 
@@ -1416,7 +1427,7 @@ julia> all_blocks(G)
  [1, 7]
 ```
 """
-all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAP.Globals.AllBlocks(GapObj(G)))
+all_blocks(G::PermGroup) = Vector{Vector{Int}}(GAPWrap.AllBlocks(GapObj(G)))
 #TODO: Do we really want to act on the set of moved points?
 
 
@@ -1488,12 +1499,12 @@ ERROR: ArgumentError: the group does not act
 """
 function transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
   gL = GapObj(L)
-  res = GAP.Globals.Transitivity(GapObj(G), gL)::Int
+  res = GAPWrap.Transitivity(GapObj(G), gL)
   @req res !== GAP.Globals.fail "the group does not act"
   # If the result is `0` then it may be that `G` does not act on `L`,
   # and in this case we want to throw an exception.
   if res == 0 && length(L) > 0
-    lens = GAP.Globals.OrbitLengths(GapObj(G), gL)
+    lens = GAPWrap.OrbitLengths(GapObj(G), gL)
 #TODO: Compute the orbit lengths more efficiently than GAP does.
     @req sum(lens) == length(L) "the group does not act"
   end
@@ -1679,7 +1690,7 @@ function _orbit_representatives_and_stabilizers_gset_gap(G::MatGroup{E}, k::Int)
   orbreps = [orb[1] for orb in orbs]
   orbreps_gap = [map_entries(_ring_iso(G), omega) for omega in orbreps]
   orbreps2 = [sub(V, [V([M[i,j] for j in 1:n]) for i in 1:k])[1] for M in orbreps]
-  stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
+  stabs = [_as_subgroup_bare(G, GAPWrap.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps_gap]::Vector{typeof(G)}
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]
 end
 
@@ -1708,31 +1719,31 @@ function _orbit_representatives_and_stabilizers_perm(G::T, k::Int; do_stab::Bool
   return reps
 end
 
-function _orbit_representatives_and_stabilizers_GLn(K::T, n::Int, k::Int) where T <: FinField 
+function _orbit_representatives_and_stabilizers_GLn(K::T, n::Int, k::Int) where T <: FinField
   # Representative of the unique GL_n(K) orbit of rank k
   rep = zero_matrix(K, k, n)
-  for i in 1:k 
+  for i in 1:k
     rep[i,i] = 1
-  end 
+  end
   E = identity_matrix(K, n)
   _gens = dense_matrix_type(T)[]
   if k>0
     for g in gens(GL(k, K))
-      EE = deepcopy(E) 
+      EE = deepcopy(E)
       EE[1:k,1:k] = matrix(g)
       push!(_gens, EE)
     end
-  end 
+  end
   if k < n
     for g in gens(GL(n - k, K))
-      EE = deepcopy(E) 
+      EE = deepcopy(E)
       EE[k+1:end,k+1:end] = matrix(g)
       push!(_gens, EE)
     end
-  end 
-  if 0<k<n 
+  end
+  if 0<k<n
     E[k+1,1] = 1
     push!(_gens, E)
   end
   return rep, _gens
-end 
+end

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 The algebraic geometry part of OSCAR provides functionality for dealing with

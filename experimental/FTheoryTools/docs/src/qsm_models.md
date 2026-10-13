@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [The F-Theory QSMs](@id qsm_models)
 
 The **Quadrillion F-Theory Standard Models (QSMs)** were introduced in [CHLLT19](@cite)

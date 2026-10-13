@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Weierstrass Models](@id weierstrass_models)
 
 Weierstrass models are central to many constructions in F-theory. Such a model describes

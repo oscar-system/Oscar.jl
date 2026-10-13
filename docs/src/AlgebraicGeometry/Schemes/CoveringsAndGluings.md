@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Coverings
 
 `Covering`s are the backbone data structure for `CoveredScheme`s in Oscar. 

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Extensions
 
 An extension is a module that is loaded when all of its dependencies are loaded in the current Julia session.

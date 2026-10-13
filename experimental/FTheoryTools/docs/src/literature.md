@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Literature Models](@id literature_models)
 
 In the landscape of F-theory model building, many constructions introduced over the years remain relevant

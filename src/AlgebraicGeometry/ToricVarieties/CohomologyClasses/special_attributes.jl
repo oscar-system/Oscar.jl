@@ -9,8 +9,13 @@
 ```jldoctest
 julia> p2 = projective_space(NormalToricVariety, 2);
 
-julia> ngens(cohomology_ring(p2))
-3
+julia> cohomology_ring(p2)
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ graded by
+    x1 -> [1]
+    x2 -> [1]
+    x3 -> [1]
+  by ideal (x1 - x3, x2 - x3, x1*x2*x3)
 ```
 """
 @attr MPolyQuoRing{MPolyDecRingElem{QQFieldElem,QQMPolyRingElem}} function cohomology_ring(

@@ -1,4 +1,4 @@
-# This file is an old version of the algorithm that can compute (not all cases) of 
+# This file is an old version of the algorithm that can compute (not all cases) of
 # basis_lie_highest_weight and is used only in runtests.jl to check that the newer algorithm matches
 # There is code doubling, but I am not sure how the src part is going to change when its integrated with the other
 # lie algebra work and would prefer to change this file after doing the integration to make sure that everything stays
@@ -199,7 +199,7 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
     newPos = length(monomials)
     deg = deg + 1
     newMons(deg)
-    # iteration in degrevlex ordering 
+    # iteration in degrevlex ordering
     for i in m:-1:1, di in deg:-1:1
       for p in startPos:newPos
         if !all(monomials[p][(i + 1):m] .== 0)

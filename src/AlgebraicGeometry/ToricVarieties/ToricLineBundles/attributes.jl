@@ -50,7 +50,7 @@ julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
 julia> toric_variety(l)
-Normal toric variety without torusfactor
+Normal toric variety without torusfactors
 ```
 """
 toric_variety(l::ToricLineBundle) = l.toric_variety

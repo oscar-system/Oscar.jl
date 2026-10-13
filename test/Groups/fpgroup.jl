@@ -52,4 +52,12 @@ end
   # check general syllable usage for quotient
   @test G(syllables(epi(x))) == G(s_1)
   @test G(s_1) == epi(x)
+
+  # syllables with large exponents
+  F = free_group(2, eltype = :syllable )
+  x = F[1]
+  n = ZZ(2)^65
+  w = x^n
+#  show(w)   # currently runs into a GAP error
+  @test syllables(w) == [1 => n]
 end

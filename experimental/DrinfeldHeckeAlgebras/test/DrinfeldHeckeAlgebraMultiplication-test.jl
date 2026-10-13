@@ -64,8 +64,7 @@
     w1 = G[1]
     w2 = G[2]
 
-    C = conjugacy_class(G, w2)
-    cw2 = collect(C)[2]
+    cw2 = w1 * w2 * w1
 
     @test A[2]*A[1] == A(x1*x2)
     @test A[1]*A[2] == A(x1*x2)

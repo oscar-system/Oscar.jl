@@ -178,7 +178,7 @@ Return the canonical injections from all components into $G$
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_injections(G::OFPModule)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
   return [canonical_injection(G, i) for i in 1:length(H)]
 end
@@ -189,9 +189,9 @@ end
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_injection(G::OFPModule, i::Int)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
-  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int,OFPModuleHom}
+  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int, <:OFPModuleHom}
   return get!(injection_dictionary, i) do
     @req 0 < i <= length(H) "index out of bound"
     j = sum(ngens(H[l]) for l in 1:i-1; init=0)
@@ -207,7 +207,7 @@ Return the canonical projections from $G$ to all components
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_projections(G::OFPModule)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
   return [canonical_projection(G, i) for i in 1:length(H)]
 end
@@ -218,9 +218,9 @@ end
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_projection(G::OFPModule, i::Int)
-  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
+  H = get_attribute(G, :direct_product)::Vector{<:OFPModule}
   @req H !== nothing "module not a direct product"
-  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int,OFPModuleHom}
+  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int, <:OFPModuleHom}
   return get!(projection_dictionary, i) do
     @req 0 < i <= length(H) "index out of bound"
     j = sum(ngens(H[l]) for l in 1:i-1; init=0)
@@ -233,4 +233,38 @@ function canonical_projection(G::OFPModule, i::Int)
   end
 end
     
+@doc raw"""
+    direct_sum(phis::Vector{<:OFPModuleHom}; 
+        domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
+        codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1]
+      )
+
+Create the direct sum of morphisms of `OFPModule`s over a common `base_ring`. 
+The `domain` and `codomain` for the output can be specified via keyword arguments; 
+they need to be compatible with the internal machinery. 
+"""
+function direct_sum(phis::Vector{<:OFPModuleHom{<:Any, <:Any, Nothing}}; 
+    domain::OFPModule=direct_sum([domain(phi) for phi in phis])[1],
+    codomain::OFPModule=direct_sum([codomain(phi) for phi in phis])[1], 
+    check::Bool=true
+  )
+  return hom_direct_sum(domain, codomain, phis; check)
+end
+
+# not documented, because the stub of this function should document it for all of Oscar
+function hom_direct_sum(domain::OFPModule, codomain::OFPModule, phis::Vector{<:OFPModuleHom{<:Any, <:Any, Nothing}}; check::Bool=true)
+  img_gens = elem_type(codomain)[]
+  for (k, phi) in enumerate(phis)
+    @check begin # the creation of the projections is lazy and should be avoided if possible
+      pr_dom = canonical_projection(domain, k)
+      Oscar.codomain(pr_dom) === Oscar.domain(phi)
+    end
+    inc_cod = canonical_injection(codomain, k)
+    @assert Oscar.domain(inc_cod) === Oscar.codomain(phi)
+    ig2 = images_of_generators(phi)
+    ig3 = [inc_cod(v) for v in ig2]
+    append!(img_gens, ig3)
+  end
+  return hom(domain, codomain, img_gens; check)
+end
 

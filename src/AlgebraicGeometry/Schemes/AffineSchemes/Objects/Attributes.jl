@@ -717,8 +717,7 @@ end
 
 # internal workhorse, not user-facing
 function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
-  empty = AbsAffineScheme[]
-  result = empty
+  result = AbsAffineScheme[]
   is_zero(ngens(OO(X))) && return result # Shortcut needed to avoid creating polynomial rings with zero variables
   I = saturated_ideal(modulus(OO(X)))
 
@@ -744,7 +743,7 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
-    one(OO(X)) in JX && return empty
+    one(OO(X)) in JX && return AbsAffineScheme[]
     return [subscheme(X, J)]
   else
 # if reducible, determine pairwise intersection loci
@@ -759,9 +758,9 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     end
 # and singular loci of components
     for Y in components
-      result = vcat(result, singular_locus(Y)[1])
+      push!(result, singular_locus(Y)[1])
     end
-  #one(OO(X)) in result && return empty
+  #one(OO(X)) in result && return AbsAffineScheme[]
   end
   return result
 end
@@ -858,15 +857,15 @@ ambient_coordinate_ring(X::AffineScheme{T, T}) where {T<:Field} = base_ring(X)
 
 # TODO: Needed?
 
-ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = RT
+ring_type(::Type{<:AbsAffineScheme{<:Any, RT}}) where {RT} = RT
 ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
-base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
+base_ring_type(::Type{<:AbsAffineScheme{BRT}}) where {BRT} = BRT
 
-poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
-poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
-poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyLocRing{<:Any, <:Any, <:Any, T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
-poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
+poly_type(::Type{<:AbsAffineScheme{<:Any, RT}}) where {RT<:MPolyRing} = elem_type(RT)
+poly_type(::Type{<:AbsAffineScheme{<:Any, <:MPolyQuoRing{T}}}) where T = T
+poly_type(::Type{<:AbsAffineScheme{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, T}}}) where T = T
+poly_type(::Type{<:AbsAffineScheme{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}}}) where T = T
 poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT

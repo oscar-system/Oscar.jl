@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Global Tate Models](@id global_tate_models)
 
 Global Tate models provide a powerful framework to systematically engineer elliptic fibrations

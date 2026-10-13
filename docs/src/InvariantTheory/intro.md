@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Introduction](@id invariant_theory)
 
 The invariant theory part of OSCAR provides functionality for computing polynomial invariants

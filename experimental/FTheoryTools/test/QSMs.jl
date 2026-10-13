@@ -31,6 +31,11 @@ fg_not_breaking = special_flux_family(
 g4_exp = flux_instance(fg_not_breaking, [3], [])
 
 @testset "Test properties of the QSM" begin
+  # Legacy QSM database attributes are canonicalized when the model is loaded.
+  @test has_attribute(qsm_model, :kbar3)
+  @test !has_attribute(qsm_model, :Kbar3)
+  @test has_attribute(qsm_model, :has_quick_triangulation)
+  @test !has_attribute(qsm_model, :triang_quick)
   @test H == U + E1 + E2 + E4 == V + E2 + E3
   @test chern_classes(qsm_model)[2] ==
     c2_B - 7 * E4^2 - E1 * Kbar - E2 * Kbar - E3 * Kbar - E4 * Kbar + 3 * H * Kbar
