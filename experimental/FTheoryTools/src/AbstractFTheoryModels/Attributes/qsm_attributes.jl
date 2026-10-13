@@ -30,7 +30,7 @@
   julia> polytope_index(qsm_model)
   4
   ```
-  """, "See [Underlying Polytope](@ref qsm_polytope) for more details.", poly_index)
+  """, "See [Underlying Polytope](@ref qsm_polytope) for more details.")
 
 @define_model_attribute_getter((has_quick_triangulation, Bool),
   """
@@ -43,7 +43,7 @@
   julia> has_quick_triangulation(qsm_model)
   true
   ```
-  """, "See [Underlying Polytope](@ref qsm_polytope) for more details.", triang_quick)
+  """, "See [Underlying Polytope](@ref qsm_polytope) for more details.")
 
 @define_model_attribute_getter((max_lattice_pts_in_facet, Int),
   """
@@ -87,7 +87,7 @@
   julia> typeof(genera_of_ci_curves(qsm_model))
   Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int64}
   ```
-  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.", genus_ci)
+  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.")
 
 @define_model_attribute_getter(
   (
@@ -104,8 +104,7 @@
   julia> typeof(degrees_of_kbar_restrictions_to_ci_curves(qsm_model))
   Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int64}
   ```
-  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.",
-  degree_of_Kbar_of_tv_restricted_to_ci)
+  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.")
 
 @define_model_attribute_getter(
   (topological_intersection_numbers_among_ci_curves, Matrix{Int64}),
@@ -119,8 +118,7 @@
   julia> size(topological_intersection_numbers_among_ci_curves(qsm_model))
   (29, 29)
   ```
-  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.",
-  intersection_number_among_ci_cj)
+  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.")
 
 @define_model_attribute_getter((indices_of_trivial_ci_curves, Vector{Int64}),
   """
@@ -143,8 +141,7 @@
    12
    15
   ```
-  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.",
-  index_facet_interior_divisors)
+  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.")
 
 @define_model_attribute_getter(
   (topological_intersection_numbers_among_nontrivial_ci_curves, Matrix{Int64}),
@@ -158,8 +155,7 @@
   julia> size(topological_intersection_numbers_among_nontrivial_ci_curves(qsm_model))
   (19, 19)
   ```
-  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.",
-  intersection_number_among_nontrivial_ci_cj)
+  """, "See [The Nodal Curve](@ref qsm_nodal_curve) for more details.")
 
 ######################################################################
 # (3) Attributes regarding the dual graph
@@ -204,8 +200,7 @@
   julia> typeof(degrees_of_kbar_restrictions_to_components_of_dual_graph(qsm_model))
   Dict{String, Int64}
   ```
-  """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.",
-  degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph)
+  """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.")
 
 @define_model_attribute_getter((genera_of_components_of_dual_graph, Dict{String,Int64}),
   """
@@ -218,8 +213,7 @@
   julia> typeof(genera_of_components_of_dual_graph(qsm_model))
   Dict{String, Int64}
   ```
-  """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.",
-  genus_of_components_of_dual_graph)
+  """, "See [The Dual Graph](@ref qsm_dual_graph) for more details.")
 
 ######################################################################
 # (4) Attributes regarding the simplified dual graph
@@ -264,8 +258,7 @@
   julia> typeof(degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph(qsm_model))
   Dict{String, Int64}
   ```
-  """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.",
-  degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph)
+  """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.")
 
 @define_model_attribute_getter(
   (genera_of_components_of_simplified_dual_graph, Dict{String,Int64}),
@@ -279,5 +272,4 @@
   julia> typeof(genera_of_components_of_simplified_dual_graph(qsm_model))
   Dict{String, Int64}
   ```
-  """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.",
-  genus_of_components_of_simplified_dual_graph)
+  """, "See [The Simplified Dual Graph](@ref qsm_simple_dual_graph) for more details.")

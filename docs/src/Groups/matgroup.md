@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Matrix groups
 
 ## Introduction
@@ -43,7 +37,7 @@ julia> m = matrix(x)
 [0   0   1]
 
 julia> m == x
-false
+ERROR: function == is not implemented for arguments
 
 julia> G(m) == x
 true

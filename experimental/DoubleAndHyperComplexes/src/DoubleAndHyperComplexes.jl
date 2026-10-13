@@ -47,4 +47,5 @@ include("DerivedPushforward.jl")
 include("SpectralSequences.jl")
 include("Objects/simplicial_complex.jl")
 include("cohomology_ring.jl")
+include("determinants.jl")
 

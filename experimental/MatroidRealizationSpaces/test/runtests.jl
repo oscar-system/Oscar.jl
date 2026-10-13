@@ -208,7 +208,7 @@ end
         @test length(x2) == 4
         @test length(x3) == 5
         @test length(x5) == 3
-        @test length(x6) == 2
+        @test length(x6) == 3
 
         @test isnothing(mat_M1)
         @test mat_M2 ==  matrix(R2, [1 0 0 1 1 1;0 1 0 1 x2[1] x2[3];0 0 1 1 x2[2] x2[4]])
@@ -236,4 +236,65 @@ end
         @test dimension(selfprojecting_realization_space(M5)) == 3
         @test dimension(selfprojecting_realization_space(M6)) == -inf
     end
+end
+
+@testset "saturate=true returns a saturated ideal" begin
+    # Regression: with simplify=saturate=true, the post-saturation reduction
+    # pass could return an UNSATURATED ideal — eliminating a variable via a
+    # solution with nontrivial denominator (a unit on the localized space)
+    # clears that denominator into the substituted generators, and the ideal
+    # picks up junk components inside its vanishing locus. On this matroid the
+    # non-basis minor [2,4,6] of the returned matrix then failed to lie in the
+    # returned ideal.
+    revlex = "0******0******0**********0********0*******0****************" *
+             "*****0*****************0***********0***********************" *
+             "0*****************0******0****0**********0*****"
+    M = matroid_from_revlex_basis_encoding(revlex, 3, 11)
+    RS = realization_space(M; B=[1, 5, 9], saturate=true)
+    I = defining_ideal(RS)
+    A = ambient_ring(RS)
+    @test Oscar.stepwise_saturation(I, inequations(RS)) == I
+    X = realization_matrix(RS)
+    m = det(matrix(A, [X[i, j] for i in 1:3, j in [2, 4, 6]]))
+    @test m in I
+end
+
+@testset "matroid realization space serialization" begin
+    # Regression: a fully reduced (rigid) chart has ambient ring ZZ, and the
+    # loader used to request the inequations as Vector{MPolyRingElem} over
+    # that ZZRing — a method that does not exist, so such charts could not be
+    # loaded in a fresh session. (In the session that saved them, the uses_id
+    # cache returned the object without running the loader, masking the bug.)
+    # The non-Fano matroid produces exactly such a chart: ambient ring ZZ,
+    # zero ideal, inequations [2].
+    RS = realization_space(non_fano_matroid(); saturate=true)
+    @test ambient_ring(RS) isa ZZRing        # precondition: chart is rigid
+    @test !isempty(inequations(RS))
+
+    io = IOBuffer()
+    save(io, RS)
+    Oscar.reset_global_serializer_state()    # simulate a fresh session
+    seekstart(io)
+    loaded = load(io)
+    @test loaded isa Oscar.MatroidRealizationSpace
+    @test ambient_ring(loaded) isa ZZRing
+    @test gens(defining_ideal(loaded)) == gens(defining_ideal(RS))
+    @test inequations(loaded) == inequations(RS)
+    @test realization_matrix(loaded) == realization_matrix(RS)
+
+    # ordinary polynomial-ambient chart: unaffected path stays intact.
+    # After the state reset the loaded ring is a distinct parent, so compare
+    # string representations rather than elements across parents.
+    RS2 = realization_space(pappus_matroid(); saturate=true)
+    @test !(ambient_ring(RS2) isa ZZRing)
+    io2 = IOBuffer()
+    save(io2, RS2)
+    Oscar.reset_global_serializer_state()
+    seekstart(io2)
+    loaded2 = load(io2)
+    @test loaded2 isa Oscar.MatroidRealizationSpace
+    @test symbols(ambient_ring(loaded2)) == symbols(ambient_ring(RS2))
+    @test string.(gens(defining_ideal(loaded2))) == string.(gens(defining_ideal(RS2)))
+    @test string.(inequations(loaded2)) == string.(inequations(RS2))
+    @test string(realization_matrix(loaded2)) == string(realization_matrix(RS2))
 end

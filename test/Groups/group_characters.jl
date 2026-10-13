@@ -1433,6 +1433,35 @@ end
   @test get_attribute(t, :type) == (4, 1, 3)
 end
 
+@testset "construct character tables from character tables" begin
+  # character table of a direct product
+  K, _ = abelian_closure(QQ)
+  tbl1 = character_table(cyclic_group(2))
+  mat1 = matrix(K, 2, 2, vcat(map(values, tbl1)...))
+  tbl2 = character_table(cyclic_group(3))
+  mat2 = matrix(K, 3, 3, vcat(map(values, tbl2)...))
+  tbl = tbl1 * tbl2
+  mat = matrix(K, 6, 6, vcat(map(values, tbl)...))
+  @test kronecker_product(mat1, mat2) == mat
+
+  modtbl1 = tbl1 % 5
+  modtbl2 = tbl2 % 5
+  modtbl = modtbl1 * modtbl2
+  mat = matrix(K, 6, 6, vcat(map(values, modtbl)...))
+  @test kronecker_product(mat1, mat2) == mat
+
+  modtbl_alt = tbl % 5
+  @test modtbl !== modtbl_alt  # the involved tables would not have the info
+  @test map(values, modtbl) == map(values, modtbl_alt)
+  @test map(values, modtbl) == map(values, ordinary_table(modtbl))
+  @test_throws ArgumentError tbl1 * modtbl1
+  @test_throws ArgumentError modtbl1 * tbl1
+
+  # character table of a wreath product with a symmetric group
+  wreathtbl = character_table_wreath_symmetric(tbl1, 2)
+  @test length(wreathtbl) == 5
+end
+
 @testset "symmetrizations" begin
     t = character_table("S5");
     irr = [chi for chi in t];

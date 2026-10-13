@@ -161,5 +161,18 @@ end
   OT = orthogonal_group(T)
   _, i = sub(T, [T[1]])
   @test_throws ArgumentError restrict_automorphism_group(OT, i)
+
+  # `stabilizer` must return an embedding into the group given in input, also
+  # for a submodule whose exponent is a proper prime power
+  L = direct_sum(root_lattice(:D, 5), root_lattice(:A, 3), root_lattice(:A, 3),
+                 root_lattice(:A, 3), root_lattice(:A, 1))[1]
+  T = discriminant_group(L)
+  OT = orthogonal_group(T)
+  _, i = sub(T, [T[2]])
+  @test order(domain(i)) == 4
+  S, j = stabilizer(OT, i)
+  @test codomain(j) === OT
+  @test is_subset(S, OT)
+  @test is_invariant(S, i)
 end
 

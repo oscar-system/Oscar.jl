@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Creating Multivariate Rings
 
 In this section, for the convenience of the reader, we recall from the chapters on

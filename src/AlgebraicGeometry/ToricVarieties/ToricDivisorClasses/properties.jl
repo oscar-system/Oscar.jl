@@ -27,7 +27,7 @@ false
 @attr Bool function is_effective(tdc::ToricDivisorClass)
   amb = toric_variety(tdc)
   pi = matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(amb))
-  coeffs = coefficients(toric_divisor(tdc))
+  coeffs = coefficients(tdc)
   P = polyhedron(
     (-identity_matrix(QQ, nrows(pi)), zeros(QQFieldElem, nrows(pi))),
     (transpose(pi), transpose(pi) * coeffs),

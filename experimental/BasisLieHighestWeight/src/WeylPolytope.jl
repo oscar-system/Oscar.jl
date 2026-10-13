@@ -5,12 +5,11 @@ function convert_lattice_points_to_monomials(
 end
 
 @doc raw"""
-    get_lattice_points_of_weightspace(root_weights::Vector{Vector{QQFieldElem}}, weight::Vector{QQFieldElem}, additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}})
+    get_lattice_points_of_weightspace(root_weights::Vector{RootSpaceElem}, weight::RootSpaceElem, additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}})
 
 Calculate all lattice points in a given weightspace for a Lie algebra highest weight module.
 This is equivalent to finding $\mathbb{Z}_{\geq 0}$-linear combinations of `root_weights` that equal `weight`,
 that also satisfy the `additional_inequalities`.
-All weights are given as coefficients to the simple roots $\alpha_i$.
 """
 function get_lattice_points_of_weightspace(
   root_weights::Vector{RootSpaceElem},

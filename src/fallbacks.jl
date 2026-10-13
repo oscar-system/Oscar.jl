@@ -1,6 +1,6 @@
 
-function coefficients(a...)
-  return AbstractAlgebra.coefficients(a...)
+function coefficients(a...; kwargs...)
+  return AbstractAlgebra.coefficients(a...; kwargs...)
 end
 
 function monomials(a...)

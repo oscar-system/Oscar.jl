@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Schubert calculus
 
 The term *Schubert calculus* refers to the intersection theory of Grassmannians. This is to honor Hermann Schubert,

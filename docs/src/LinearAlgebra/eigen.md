@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Eigenvalues and -spaces
 
 OSCAR can compute eigenvalues and -spaces exactly and numerically over rings and fields as follows.

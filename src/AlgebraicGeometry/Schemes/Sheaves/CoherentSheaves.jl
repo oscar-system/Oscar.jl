@@ -1044,7 +1044,7 @@ end
   OOX = OO(X)
   patch_list = Vector{AbsAffineScheme}()
   for U in affine_charts(X)
-    patch_list = vcat(patch_list, _trivializing_covering(M, U))
+    append!(patch_list, _trivializing_covering(M, U))
   end
   C = Covering(patch_list)
   inherit_gluings!(C, default_covering(X))
@@ -1181,7 +1181,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
       MV, res = change_base_ring(rho, MU)
       add_incoming_restriction!(M, U, MV, res)
       object_cache(M)[V] = MV
-      return_patches = vcat(return_patches, _trivializing_covering(M, V))
+      append!(return_patches, _trivializing_covering(M, V))
     end
     return return_patches
   end
@@ -1261,7 +1261,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
       add_incoming_restriction!(M, U, MV, res)
       object_cache(M)[V] = MV
       set_attribute!(MV, :_presentation_matrix, Asub)
-      return_patches = vcat(return_patches, _trivializing_covering(M, V))
+      append!(return_patches, _trivializing_covering(M, V))
     end
   end
   return return_patches

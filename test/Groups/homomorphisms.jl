@@ -9,7 +9,16 @@
      @test id_hom(H) * emb == emb
      @test emb * id_hom(G) == emb
      @test is_trivial(ker)
+
+     @test_throws ArgumentError [image(emb, g) for g in gens(G)]
    end
+end
+
+@testset "image" begin
+  G = symmetric_group(3)
+  H, _ = trivial_subgroup(G)
+  f = hom(H, G, gens(H))
+  @test_throws ArgumentError f(gen(G, 1))
 end
 
 n = 6
@@ -210,6 +219,17 @@ end
        @test ! isassigned(invs, 2)
      end
    end
+
+   # elements represented by straight line programs on the GAP side
+   F = free_group(2)
+   x, y = gens(F)
+   rels = [x^7, y^9, x*y*x^-1*y^-1]
+   G, _ = quo(F, rels)
+   is_finite(G)
+   elms = elements(G)
+   pos = findall(x -> GAP.Globals.IsStraightLineProgElm(GAP.Globals.UnderlyingElement(GapObj(x))), elms)
+   @test length(pos) > 0
+   map(g -> map_word(g, gens(symmetric_group(4))), elms[pos])
 
    # empty list of generators
    @test map_word([], [], init = 0) == 0        # `init` is returned

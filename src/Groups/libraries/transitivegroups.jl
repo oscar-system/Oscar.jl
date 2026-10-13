@@ -72,6 +72,7 @@ ERROR: ArgumentError: the number of transitive groups of degree 64 is not availa
 """
 function number_of_transitive_groups(deg::Int)
   @req has_number_of_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
+  deg == 1 && return 1
   return GAP.Globals.NrTransitiveGroups(deg)::Int
 end
 
@@ -87,6 +88,9 @@ The output is a group of type `PermGroup`.
 julia> transitive_group(5,4)
 Alternating group of degree 5
 
+julia> transitive_group(1,1)
+Permutation group of degree 1 and order 1
+
 julia> transitive_group(5,6)
 ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
 [...]
@@ -94,8 +98,10 @@ ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
 """
 function transitive_group(deg::Int, i::Int)
   @req has_transitive_groups(deg) "transitive groups of degree $deg are not available"
+  @req i >= 1 "index must be positive, not $i"
   N = number_of_transitive_groups(deg)
   @req i <= N "there are only $N transitive groups of degree $deg, not $i"
+  deg == 1 && return symmetric_group(1)
   return PermGroup(GAP.Globals.TransitiveGroup(deg,i), deg)
 end
 
@@ -103,10 +109,12 @@ end
     transitive_group_identification(G::PermGroup)
 
 Return a pair `(d,n)` such that `G` is permutation isomorphic with
-`transitive_group(d,n)`, where `G` acts transitively on `d` points.
+`transitive_group(d,n)`, where `d` is the degree of `G`.
 
-If `G` is not transitive on its moved points, or if the transitive groups of
+If `G` is not transitive on `1:d`, or if the transitive groups of
 degree `d` are not available, an exception is thrown.
+To identify a group that is transitive only on its moved points,
+pass its action on these points.
 
 # Examples
 ```jldoctest
@@ -122,30 +130,25 @@ Permutation group of degree 7
 julia> is_transitive(S)
 false
 
-julia> is_transitive(S, moved_points(S))
-true
+julia> transitive_group_identification(S)
+ERROR: ArgumentError: group is not transitive on 1:7
+[...]
 
-julia> m = transitive_group_identification(S)
+julia> A = image(action_homomorphism(gset(S, moved_points(S))))[1]
+Permutation group of degree 4
+
+julia> transitive_group_identification(A)
 (4, 1)
-
-julia> order(transitive_group(m...)) == order(S)
-true
 
 julia> transitive_group_identification(symmetric_group(64))
 ERROR: ArgumentError: identification of transitive groups of degree 64 are not available
 [...]
-
-julia> S = sub(G, [perm([1,3,4,5,2,7,6])])[1];
-
-julia> transitive_group_identification(S)
-ERROR: ArgumentError: group is not transitive on its moved points
-[...]
 ```
 """
 function transitive_group_identification(G::PermGroup)
-  moved = moved_points(G)
-  @req is_transitive(G, moved) "group is not transitive on its moved points"
-  deg = length(moved)
+  deg = degree(G)
+  @req is_transitive(G) "group is not transitive on 1:$(deg)"
+  deg == 1 && return (1, 1)   # GAP's library starts at degree 2
   @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
   res = GAP.Globals.TransitiveIdentification(GapObj(G))::Int
   return deg, res
@@ -198,8 +201,10 @@ julia> all_transitive_groups(4)
  Alternating group of degree 4
  Symmetric group of degree 4
 
-julia> all_transitive_groups(degree => 3:5, is_abelian)
-4-element Vector{PermGroup}:
+julia> all_transitive_groups(degree => 1:5, is_abelian)
+6-element Vector{PermGroup}:
+ Permutation group of degree 1 and order 1
+ Symmetric group of degree 2
  Alternating group of degree 3
  Permutation group of degree 4
  Permutation group of degree 4
@@ -207,13 +212,16 @@ julia> all_transitive_groups(degree => 3:5, is_abelian)
 ```
 """
 function all_transitive_groups(L...)
-   @req !isempty(L) "must specify at least one filter"
-   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
-      L = (degree => L[1], L[2:end]...)
-   end
+   L = _expand_key_shorthand(L, degree)
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
-   return [PermGroup(x) for x in K]
+   res = PermGroup[PermGroup(x) for x in K]
+
+   # GAP's library starts at degree 2, so add the degree 1 group by hand
+   T = transitive_group(1, 1)
+   _matches_group_library_filters(T, L) && pushfirst!(res, T)
+
+   return res
 end
 
 # TODO: turn this into an iterator, possibly using PrimitiveGroupsIterator

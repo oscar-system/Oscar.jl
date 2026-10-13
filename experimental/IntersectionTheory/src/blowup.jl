@@ -130,7 +130,7 @@ function blowup(i::AbstractVarietyMap; symbol::String="e")
   # the finite `AX`-module` `AZ`, `present_finite_extension_ring` returns
   # * a vector `gs` of polynomials representing generators for `AZ` as an `AX`-module,
   # * a matrix `PM` of relations, and
-  # * a vector `sect` of sections of the projection `AX^n -> AZ` (where `n = length(gs)`)
+  # * a function `sect` of the projection `AX^n -> AZ` (where `n = length(gs)`)
   #   which sends the `i`-th standard basis vector to `gs[i]`.
   # write Z(gs[i]) for the class in AZ represented by gs[i]
   # if e[i] = j_push_g_pull(Z(gs[i])), then e[end] is the class of the exceptional divisor in ABl;

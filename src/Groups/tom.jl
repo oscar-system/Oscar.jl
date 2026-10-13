@@ -2,38 +2,6 @@
 ##
 ##  tables of marks in Oscar
 ##
-abstract type GroupTableOfMarks end
-
-"""
-    GAPGroupTableOfMarks <: GroupTableOfMarks
-
-This is the type of tables of marks that can delegate
-tasks to an underlying table of marks object in the GAP system
-(field `GAPTable`).
-
-A group can (but need not) be stored in the field `group`.
-If it is available then also the field `isomorphism` is available,
-its value is a bijective map from the `group` value to a group in GAP.
-
-Objects of type `GAPGroupTableOfMarks` support [`get_attribute`](@ref).
-"""
-@attributes mutable struct GAPGroupTableOfMarks <: GroupTableOfMarks
-  GAPTable::GapObj  # the GAP table of marks object
-  group::Union{GAPGroup, FinGenAbGroup}    # the underlying group, if any
-  isomorphism::Map  # isomorphism from `group` to a group in GAP
-
-  function GAPGroupTableOfMarks(G::Union{GAPGroup, FinGenAbGroup}, tom::GapObj, iso::Map)
-    @req GAPWrap.IsTableOfMarks(tom) "tom must be a GAP table of marks"
-    return new(tom, G, iso)
-  end
-
-  function GAPGroupTableOfMarks(tom::GapObj)
-    # group and isomorphism are left undefined
-    @req GAPWrap.IsTableOfMarks(tom) "tom must be a GAP table of marks"
-    return new(tom)
-  end
-end
-
 
 # If `tblid` is an admissible name for a library character table
 # then translate it to the GAP name of the corresponding
@@ -460,19 +428,6 @@ end
 ##
 ##  marks vectors
 ##
-##  In order to describe Burnside rings over the integers,
-##  we implement marks vectors as wrapped GAP vectors,
-##  with parent the table of marks in question.
-##  Note that marks vectors can be shorter than the number of columns
-##  of the table of marks,
-##  meaning that the values at larger positions are zero.
-##
-abstract type GroupMarksVector end
-
-struct GAPGroupMarksVector <: GroupMarksVector
-  table::GAPGroupTableOfMarks
-  values::GapObj
-end
 
 GAP.@install GapObj(chi::GAPGroupMarksVector) = chi.values
 

@@ -644,12 +644,6 @@ function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.FracFieldElem{
   return length(lf) == 2 && lf[2][end] == 1 && is_one(lf[2][2]) 
 end
 
-function Oscar.monomial(R::MPolyRing, v::Vector{Int})
-  b = MPolyBuildCtx(R)
-  push_term!(b, one(base_ring(R)), v)
-  return finish(b)
-end
-
 #=TODO
  - if after a specialisation the degree of the field is wrong (too high) 
    or the multiplicity is wrong (not squarefree)

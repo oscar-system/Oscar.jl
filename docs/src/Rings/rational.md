@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Rationals](@id rationals_section)
 
 Fractions are created in Julia with the double slash operator `//`. If a

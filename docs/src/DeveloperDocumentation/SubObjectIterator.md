@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # `SubObjectIterator`
 
 Many of the objects in the field of *Polyhedral Geometry* mask a `BigObject`

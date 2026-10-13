@@ -11,7 +11,7 @@
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
   ) where {T<:ModuleData}
-    @req dim(V) == length(monomials) "dimesion mismatch"
+    @req dim(V) == length(monomials) "dimension mismatch"
     return new{T}(
       V,
       birational_seq,
@@ -36,7 +36,7 @@ monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 birational_sequence(basis::MonomialBasis) = basis.birational_seq
 
 @doc raw"""
-  polytope_of_essential_exponents(basis::MonomialBasis)
+    polytope_of_essential_exponents(basis::MonomialBasis)
 
 Return the polytope of essential exponents corresponding to the monomial basis, i.e. the convex hull of exponent vectors of all occurring monomials. This is only possible if the basis was computed with `compute_polytope = true`.
 
