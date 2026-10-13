@@ -378,7 +378,76 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
 
+  function _process_trivial(mu; is_trivial::Bool = false, limit::Int)
+    @assert is_trivial
+    local allG = typeof(mp)[]
+
+    GG = Oscar.GrpCoh.extension(mu)
+    mGG_PC = isomorphism(PcGroup, GG)
+
+    im = elem_type(K)[]
+    gns = [GG(mp(G[i]), zero(M)) for i=1:ngens(G)]
+    for h = gens(D)
+      gns = [GG(mp(G[i]), pro[i](h)) for i=1:ngens(G)]
+      push!(im, K([map_word(R[i], gns).m for i=1:length(R)]))
+    end
+    s = hom(D, K, im)
+
+    k, mk = kernel(s)
+    if order(k) == 1
+      @show :nothing, 1
+      @assert length(allG) == 0
+      return allG
+    end
+
+    h1 = cohomology_group(hom(ZN, C), 1; no_image = true) #need the no-image tag..
+    #want a map from k1[1] (the kern) to D (images of the gens of the
+    #large group)
+    #let l be a 1-chain in k1[1]
+    #gen(G) -mp-> N and we map on the 1-chain evaluated there
+    #note: we need Z^1, no H^1, hence the no_image to not quotient
+    #out. Needs different interface
+    _imgs = elem_type(D)[]
+    for i = gens(h1[1])
+      c1 = h1[3](i)
+      push!(_imgs, sum(inj[l](c1((mp(G[l]),))) for l=1:ngens(G)))
+    end
+    inf = hom(h1[1], D, _imgs)
+    q, mq = quo(k, image(inf)[1])
+    k = q #according to Brueckner lifting with multiplicity is
+    #linked to ngens(k) at this point. S is the kernel, S' the image of inf
+    #thus the number a is ngens(k) - ngens(image) == ngens(q)...
+    mk = pseudo_inv(mq)*mk
+    if order(k) == 1
+      @show :nothing, 2
+      @assert length(allG) == 0
+      return allG
+    end
+    @show :split, k
+    if ngens(k) > 1
+      @show :lifting_with_mult, ngens(k)
+      CC, injCC = direct_product([C for i=1:ngens(k)]...; task = :sum)
+      muCC = Oscar.GrpCoh.CoChain{2, PcGroupElem, elem_type(CC.M)}(CC,
+        Dict{NTuple{2, PcGroupElem}, elem_type(CC.M)}(),
+        x->sum(injCC[i](mu.D(x)) for i=1:ngens(k)))
+      GG = extension(muCC)    
+      mGG_PC = isomorphism(PcGroup, GG)
+    else
+      injCC = [identity_map(C.M)]
+    end
+    im = [GG(mp(G[i]), sum(injCC[l](pro[i](mk(k[l]))) for l=1:ngens(k))) for i=1:ngens(G)]
+    #@show [map_word(R[i], im) for i=1:length(R)]
+    im = map(mGG_PC, im)
+    #@show [map_word(R[i], im) for i=1:length(R)]
+    hm = hom(G, codomain(mGG_PC), im)
+    push!(allG, hm)
+    @assert is_surjective(hm)
+    return allG
+  end
+ 
   function _process(mu; is_trivial::Bool = false, limit::Int)
+    @assert !is_trivial
+
     local allG = typeof(mp)[]
     GG = Oscar.GrpCoh.extension(mu)
     mGG_PC = isomorphism(PcGroup, GG)
@@ -400,66 +469,23 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     # |  /
     # N 
 
-    split = false
-    if all(is_zero, rhs)
-      #Plesken: split case!
-      split = true
-    else
-      #non-split case
-      #here all lifts are automatically epimorphic
-      #and, in some way, can never again be used
-      #inf(mu) paired with M is out
-    end
     fl, pe = has_preimage_with_preimage(s, K(rhs))
     if !fl
       return allG
     end
     k, mk = kernel(s)
-    if split 
-      h1 = cohomology_group(hom(ZN, C), 1; no_image = true) #need the no-image tag..
-      #want a map from k1[1] (the kern) to D (images of the gens of the
-      #large group)
-      #let l be a 1-chain in k1[1]
-      #gen(G) -mp-> N and we map on the 1-chain evaluated there
-      #note: we need Z^1, no H^1, hence the no_image to not quotient
-      #out. Needs different interface
-      _imgs = elem_type(D)[]
-      for i = gens(h1[1])
-        c1 = h1[3](i)
-        push!(_imgs, sum(inj[l](c1((mp(G[l]),))) for l=1:ngens(G)))
-      end
-      inf = hom(h1[1], D, _imgs)
-      q, mq = quo(k, image(inf)[1])
-      k = q #according to Brueckner lifting with multiplicity is
-      #linked to ngens(k) at this point. S is the kernel, S' the image of inf
-      #thus the number a is ngens(k) - ngens(image) == ngens(q)...
-      mk = pseudo_inv(mq)*mk
-      if order(k) == 1
-        @assert length(allG) == 0
-        return allG
-      end
-    end
+    @show :non_split, k
     
     for x = k
-      if split
-        fnd = false
-        iszero(x) && continue
-        for j=1:ngens(k) #need only ones with 1st non-zero entry 1
-          #TODO: lifting with multiplicity
-          is_zero(x[j]) && continue
-          if is_one(x[j]) 
-            fnd = true
-          end
-          break
-        end
-        fnd || continue
-      end
       im = [(GG(mp(G[i]), pro[i](mk(x)-pe))) for i=1:ngens(G)]
       #@show [map_word(R[i], im) for i=1:length(R)]
       im = map(mGG_PC, im)
       #@show [map_word(R[i], im) for i=1:length(R)]
       hm = hom(G, codomain(mGG_PC), im)
       push!(allG, hm)
+      if length(allG) >= limit
+        return allG
+      end
       @assert is_surjective(hm)
     end
     return allG
@@ -474,12 +500,13 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
 
 
   mu = trivial_chain(C, 2)
-  allG = _process(mu; is_trivial = true, limit)
+  allG = _process_trivial(mu; is_trivial = true, limit)
   if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
     return allG
   end
 
   H2, _, z = cohomology_group(hom(ZN, C), 2)
+  @show H2
   #XXX: if done correctly, C is abs. irr over some Fq
   #     the endo is Fq and we need for each "Fq line" only one rep
   #     possibly the one where the 1st non-zero entry is 1
@@ -585,6 +612,7 @@ In particular Satz 15 c should be implemented.
 =#
 
 #= EXAMPLE
+Brueckner G1
 F = @free_group(:a, :b)
 G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^-1*b^2])
 f1 = Oscar.RepPc.solvable_quotient(G)
@@ -613,6 +641,10 @@ this works, but constracts all elements...
 
 G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
 orbits(G)
+
+Brueckner G5
+F = @free_group(:a, :b, :c)
+G, _ = quo(F, [c*a*inv(c), inv(b)* a*b*a* b*a*c*b*inv(a)* inv(c)*b, c*inv(b)*a*c*b*c*inv(a)])
 
 =#
 
