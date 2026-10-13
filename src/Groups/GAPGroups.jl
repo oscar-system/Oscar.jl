@@ -2244,6 +2244,16 @@ function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimg
     # Here we take the available syllable representation.
     l = GAPWrap.ExtRepOfObj(gX)
     ll = Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+  elseif GAP.Globals.IsStraightLineProgElm(gX)
+    # Compute the images of the seeds of the straight line program,
+    # by mapping the group generators to `genimgs`.
+    seeds = GAP.getbangindex(gX, 1).seeds::GapObj
+    slp = GAP.getbangindex(gX, 2)::GapObj
+    F = GAP.getbangproperty(GAPWrap.FamilyObj(GapObj(g)), :freeGroup)::GapObj
+    ggens = GAPWrap.GeneratorsOfGroup(F)::GapObj
+    imgs = GapObj(map(i -> GAP.Globals.MappedWord(i, ggens, GapObj(genimgs)), seeds))
+    # Evaluate the straight line program.
+    return GAP.Globals.ResultOfStraightLineProgram(slp, imgs)
   else
     error("do not know the type of the element $gX")
   end
