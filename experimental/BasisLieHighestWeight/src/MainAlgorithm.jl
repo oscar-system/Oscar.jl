@@ -360,7 +360,7 @@ function add_new_monomials!(
   space::Dict{WeightLatticeElem,<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
   basis::Set{ZZMPolyRingElem},
-  new_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
+  additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
 )
   # If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
   # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
@@ -372,7 +372,7 @@ function add_new_monomials!(
   # get monomials that are in the weightspace, sorted by monomial_ordering
   lattice_points_of_weightspace = get_lattice_points_of_weightspace(
     operators_as_roots(birational_seq), RootSpaceElem(highest_weight(V) - weight_w),
-    new_inequalities,
+    additional_inequalities,
   )
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
@@ -499,7 +499,7 @@ function add_by_hand(
   end
 
   # identify coordinates that are trivially zero because of the action on the generator
-  new_inequalities = compute_new_inequalities(birational_seq, highest_weight(V))
+  additional_inequalities = compute_additional_inequalities(birational_seq, highest_weight(V))
   # calculate new monomials
   new_monomials = Set{ZZMPolyRingElem}()
   for weight_w in weights_with_non_full_weightspace
@@ -519,7 +519,7 @@ function add_by_hand(
         space,
         v0,
         basis,
-        new_inequalities,
+        additional_inequalities,
       ),
     )
   end

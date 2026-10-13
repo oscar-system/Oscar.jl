@@ -5,18 +5,17 @@ function convert_lattice_points_to_monomials(
 end
 
 @doc raw"""
-    get_lattice_points_of_weightspace(root_weights::Vector{Vector{QQFieldElem}}, weight::Vector{QQFieldElem}, zero_coordinates::Vector{Int})
+    get_lattice_points_of_weightspace(root_weights::Vector{Vector{QQFieldElem}}, weight::Vector{QQFieldElem}, additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}})
 
-
-Calculates all lattice points in a given weightspace for a Lie algebra highest weight module.
-This is equivalent to finding $\mathbb{Z}$-linear combinations of `root_weights` that equal `weight`,
-where the coordinates in `zero_coordinates` are set to zero.
+Calculate all lattice points in a given weightspace for a Lie algebra highest weight module.
+This is equivalent to finding $\mathbb{Z}_{\geq 0}$-linear combinations of `root_weights` that equal `weight`,
+that also satisfy the `additional_inequalities`.
 All weights are given as coefficients to the simple roots $\alpha_i$.
 """
 function get_lattice_points_of_weightspace(
   root_weights::Vector{RootSpaceElem},
   weight::RootSpaceElem,
-  new_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
+  additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
 )
   # calculate all integer solutions to the following linear program:
   # [       |                 |       ]       [   |   ]      [    |    ]
@@ -35,14 +34,14 @@ function get_lattice_points_of_weightspace(
   b_eq[1:m] = view(coefficients(weight), 1, :)
 
  
-  A_ineq = zero_matrix(QQ, n + length(new_inequalities), n)
-  b_ineq = [zero(QQ) for _ in 1:(n + length(new_inequalities))]
+  A_ineq = zero_matrix(QQ, n + length(additional_inequalities), n)
+  b_ineq = [zero(QQ) for _ in 1:(n + length(additional_inequalities))]
   
   # non-negativity
   A_ineq[1:n, 1:n] = -identity_matrix(QQ, n)
 
-  # TODO kommentar
-  for (i, ineq) in enumerate(new_inequalities)
+  # additional_inequalities
+  for (i, ineq) in enumerate(additional_inequalities)
     A_ineq[n+i, :] = ineq[1]
     b_ineq[n+i] = ineq[2]
   end
@@ -79,18 +78,11 @@ function compute_zero_coordinates(
   return zero_coordinates
 end
 
-function compute_max_of_coordinates(
+function compute_additional_inequalities(
   bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
 )
-  n = length(bir_sequence)
-
-  zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
-  return [i in zero_coordinates ? 0 : typemax(Int) for i in 1:n]
-end
-
-function compute_new_inequalities(
-  bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
-)
+  #=
+  # This does not work yet in all cases, but it is a good start for follow-up work. Until then, do the previous heuristic.
   n = length(bir_sequence)
   R = root_system(bir_sequence)
   gram_mat = cartan_matrix(R) - identity_matrix(QQ, rank(R))
@@ -106,6 +98,18 @@ function compute_new_inequalities(
     for k in i+1:n #k>i
       lhs[k] = dot(coefficients(dual(bir_seq_i)) * gram_mat, coefficients(operator_as_root(bir_sequence, k)))
     end
+    push!(inequalities, (lhs, rhs))
+  end
+  return inequalities
+  =#
+
+  zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
+  n = length(bir_sequence)
+  inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
+  for coord in zero_coordinates
+    lhs = zeros(QQ, n)
+    lhs[coord] = 1
+    rhs = 0
     push!(inequalities, (lhs, rhs))
   end
   return inequalities
