@@ -193,6 +193,7 @@ function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:FieldElem}
   mat = zero_matrix(coefficient_ring(L), L.n, L.n)
   tmp = zero(mat)
   for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
+    iszero(c) && continue
     mat = addmul!(mat, b, c, tmp)
   end
   return mat
