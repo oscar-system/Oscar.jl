@@ -510,6 +510,11 @@ We use ideas from [DK17](@cite) to find homogeneous generators of the invariant 
 To get a map from `group(G)` to the grading group of the returned ring, use
 [`class_group`](@ref).
 
+!!! note "Choice of root of unity"
+    The explicit degrees of the generators of the Cox ring depend on the
+    internal choice of a root of unity. However, different choices induce an
+    isomorphism of the grading group, see [Sch24](@cite).
+
 # Examples
 ```jldoctest
 julia> K, a = cyclotomic_field(4, :a)
