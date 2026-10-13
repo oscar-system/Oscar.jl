@@ -1761,7 +1761,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           @assert zz == xx
           @assert all(is_zero, c.T)
         end
-        return deepcopy(c.T)
+        return copy(c.T)
       end
       function from_2chain(c) # c:: G x G -> M
         res = []
