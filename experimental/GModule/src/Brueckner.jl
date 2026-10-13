@@ -378,20 +378,39 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
 
+  #=following Max/ Claude:
+   the lifting assignes module elems to generators of G
+   in each legal extension, those have to map to zero under the relations
+
+   For a specific group extension given by mu in H^2(N, C)
+   this is a map C^#G -> C^#R (#G no gens, #R no rels of G)
+   for mu zero, this map is linear
+   In general we need the kernel of the map - for each mu in H^2
+   Max/Claude decompose this, the map is affine: linear + rhs
+   The linear part is independent of mu, depending only on C
+   (realised via mu = 0)
+   The rhs is linear from H^2(N, C) -> C^#R
+   So this is done by evaluating at generators of H^2.
+   This drops the evaluations from |H^2| -> dim H^2, so logarithmic
+  =#
+  #start with the map
+  GG = split_extension(C)
+  mGG_PC = isomorphism(PcGroup, GG)
+
+  im = elem_type(K)[]
+  gns = [GG(mp(G[i]), zero(M)) for i=1:ngens(G)]
+  for h = gens(D)
+    gns = [GG(mp(G[i]), pro[i](h)) for i=1:ngens(G)]
+    push!(im, K([map_word(R[i], gns).m for i=1:length(R)]))
+  end
+  s = hom(D, K, im)
+
+  #the H^2-> RHS is not always used, so we defer this slightly.
+
+
   function _process_trivial(mu; is_trivial::Bool = false, limit::Int)
     @assert is_trivial
     local allG = typeof(mp)[]
-
-    GG = Oscar.GrpCoh.extension(mu)
-    mGG_PC = isomorphism(PcGroup, GG)
-
-    im = elem_type(K)[]
-    gns = [GG(mp(G[i]), zero(M)) for i=1:ngens(G)]
-    for h = gens(D)
-      gns = [GG(mp(G[i]), pro[i](h)) for i=1:ngens(G)]
-      push!(im, K([map_word(R[i], gns).m for i=1:length(R)]))
-    end
-    s = hom(D, K, im)
 
     k, mk = kernel(s)
     if order(k) == 1
@@ -444,37 +463,65 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     @assert is_surjective(hm)
     return allG
   end
+
+  mu = trivial_chain(C, 2)
+  allG = _process_trivial(mu; is_trivial = true, limit)
+  if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
+    return allG
+  end
+
+  H2, _, z = cohomology_group(hom(ZN, C), 2)
+  @show H2
+
+  im = elem_type(K)[]
+  for g = gens(H2)
+    GG = extension(z(g))
+    gns = [GG(mp(g), zero(C.M)) for g = gens(G)]
+    push!(im, K([map_word(R[i], gns).m for i=1:length(R)]))
+  end
+  mH2_K = hom(H2, K, im)
+
+  #useful is only the part of H2 that lands in the image...
+  #I'd like preimage(mH2_K, image(s)[1])
+  is, mis = image(s)
+  ih, mih = image(mH2_K)
+  b, mb = intersect(is, ih) #mb: b -> is
+  k, mk = kernel(mH2_K)
+  H2, mH2 = sub(H2, vcat([preimage(is, mb(g)) for g = gens(b)], map(mk, gens(k))))
+  @show H2
+  z = mH2*z
+  mH2_K = mH2*mH2_K
  
-  function _process(mu; is_trivial::Bool = false, limit::Int)
+ #= 
+  ImH2 = image(mH2_K)
+  Is, mIs = image(s)
+  H2, mH2 = intersect(ImH2[1], Is)
+  @show H2
+  z = mH2*ImH2[2]*pseudo_inv(mH2_K)*z
+  mH2_K = mH2*ImH2[2]
+  @show z
+ =#
+ 
+
+  function _process(h; is_trivial::Bool = false, limit::Int)
     @assert !is_trivial
+    @show h
+    rhs = mH2_K(h)
+    mu = z(h)
 
     local allG = typeof(mp)[]
-    GG = Oscar.GrpCoh.extension(mu)
-    mGG_PC = isomorphism(PcGroup, GG)
 
     im = elem_type(K)[]
-    gns = [GG(mp(G[i]), zero(M)) for i=1:ngens(G)]
-    rhs = [map_word(R[i], gns).m for i=1:length(R)]
-    for h = gens(D)
-      gns = [GG(mp(G[i]), pro[i](h)) for i=1:ngens(G)]
-      push!(im, K([map_word(R[i], gns).m  - rhs[i] for i=1:length(R)]))
-    end
-    #this is not linear... suppose R = (gh), then with tails:
-    # ((g,x)(h,y)) -> (gh, x^h+y+sigma(g,h)) "=" (1, x^h+y+sigma(g,h))
-    s = hom(D, K, im)
-
-#    s = hom(D, K, [sum([iK[i](map_word(R[i], [GG(mp(G[j]), pro[j](h)) for j=1:ngens(G)]).m) for i=1:length(R)]) for h = gens(D)])
-
-    # G -> GG  g -> (mp(g), n), rel(G)() -> (1, 0) 
-    # |  /
-    # N 
-
-    fl, pe = has_preimage_with_preimage(s, K(rhs))
+    fl, pe = has_preimage_with_preimage(s, rhs)
+    @assert fl
     if !fl
       return allG
     end
+    @show rhs
     k, mk = kernel(s)
     @show :non_split, k
+    GG = extension(mu)
+    mGG_PC = isomorphism(PcGroup, GG)
     
     for x = k
       im = [(GG(mp(G[i]), pro[i](mk(x)-pe))) for i=1:ngens(G)]
@@ -492,21 +539,6 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
 
-    #TODO: not all "chn" yield distinct groups - the factoring by the
-    #      co-boundaries is missing
-    #      not all "epi" are epi, ie. surjective. The part of the thm
-    #      is missing...
-    # (Thm 15, part b & c) (and the weird lemma)
-
-
-  mu = trivial_chain(C, 2)
-  allG = _process_trivial(mu; is_trivial = true, limit)
-  if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
-    return allG
-  end
-
-  H2, _, z = cohomology_group(hom(ZN, C), 2)
-  @show H2
   #XXX: if done correctly, C is abs. irr over some Fq
   #     the endo is Fq and we need for each "Fq line" only one rep
   #     possibly the one where the 1st non-zero entry is 1
@@ -518,13 +550,12 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   seen = [zero(H2)]
   for h = H2
     h in seen && continue
-    is_zero(h) && continue
     for x = base_ring(H2) #the line will not give "different" quotients
       iszero(x) && continue
       push!(seen, x*h)
     end
 
-    append!(allG, _process(z(h); is_trivial = false, limit = limit - length(allG)))
+    append!(allG, _process(h; is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
       return allG
     end
