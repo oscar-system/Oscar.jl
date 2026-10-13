@@ -184,7 +184,7 @@ function doit(
     DocMeta.setdocmeta!(Oscar.Nemo, :DocTestSetup, :(using Nemo); recursive=true, warn=false)
 
     if doctest !== false
-      Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters())
+      Documenter.doctest(Oscar; fix = doctest === :fix, doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())
     end
 
     makedocs(;
@@ -200,6 +200,7 @@ function doit(
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
       doctest=false,
+      meta=Oscar.docmeta(),
       warnonly=warnonly,
       treat_markdown_warnings_as_error=!warnonly,
       checkdocs=:none,

@@ -150,51 +150,77 @@ function _common_field(fields)
   return _absolute_common_field(fields)
 end
 
-function _block_diagonal_product(groups::Vector{MatGroup})
-  fields = base_ring.(groups)
-  common_field, embeddings = _common_field(fields)
+function _block_diagonal_product(
+    groups::Vector{MatGroup}; fixed_space_dimension::Int=0
+  )
+  @assert fixed_space_dimension >= 0
+
+  common_field, embeddings = if isempty(groups)
+    QQ, Any[]
+  else
+    _common_field(base_ring.(groups))
+  end
   mapped_groups = [
     map_entries(embedding, group) for (embedding, group) in zip(embeddings, groups)
   ]
-  dimensions = degree.(mapped_groups)
+  dimensions = Int[degree(group) for group in mapped_groups]
+  total_dimension = fixed_space_dimension + sum(dimensions; init=0)
   product_generators = elem_type(
-    matrix_space(common_field, sum(dimensions), sum(dimensions))
+    matrix_space(common_field, total_dimension, total_dimension)
   )[]
 
   for (i, group) in enumerate(mapped_groups)
     for generator in gens(group)
-      blocks = [identity_matrix(common_field, dimension) for dimension in dimensions]
-      blocks[i] = matrix(generator)
+      # Use the decomposition V^G \oplus V_1 \oplus ... \oplus V_r.  The fixed
+      # block is omitted when it has dimension zero so that the old essential
+      # models retain exactly their previous matrices.
+      blocks = fixed_space_dimension == 0 ?
+        [identity_matrix(common_field, dimension) for dimension in dimensions] :
+        [
+          identity_matrix(common_field, fixed_space_dimension),
+          [identity_matrix(common_field, dimension) for dimension in dimensions]...,
+        ]
+      blocks[i + (fixed_space_dimension == 0 ? 0 : 1)] = matrix(generator)
       push!(product_generators, block_diagonal_matrix(blocks))
     end
   end
 
-  return matrix_group(product_generators), embeddings, mapped_groups
+  return matrix_group(
+    common_field, total_dimension, product_generators
+  ), embeddings, mapped_groups
 end
 
 """
     complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
-    complex_reflection_group(i::Int, model::Symbol=:default)
-    complex_reflection_group(m::Int, p::Int, n::Int, model::Symbol=:default)
-    complex_reflection_group(types::Vector, model::Symbol=:default)
+    complex_reflection_group(; fixed_space_dimension=0, model=:default)
+    complex_reflection_group(i::Int, model::Symbol=:default;
+                             fixed_space_dimension=0)
+    complex_reflection_group(m::Int, p::Int, n::Int,
+                             model::Symbol=:default;
+                             fixed_space_dimension=0)
+    complex_reflection_group(types::Vector, model::Symbol=:default;
+                             fixed_space_dimension=0)
 
-Construct an exact matrix representative of a known essential complex
-reflection group type. The available named models are `:CHEVIE`, `:LT`, and `:Magma`;
-`:default` chooses a supported model componentwise. For a reducible type the
-components are put into a common exact coefficient field and their original
-presentation fields and embeddings are retained.
+Construct an exact matrix representative of a known complex reflection group
+type. The available named models are `:CHEVIE`, `:LT`, and `:Magma`;
+`:default` chooses a supported model componentwise. The nontrivial components
+are put into a common exact coefficient field and their original presentation
+fields and embeddings are retained. A fixed summand is represented by an
+identity block preceding the nontrivial component blocks.
 
 This is a type-aware constructor, not a recognition routine for arbitrary
-matrix groups. The empty essential type does not specify a positive ambient
-dimension and has no matrix realization through this interface.
+matrix groups. Pure trivial types, including the zero-dimensional type, are
+represented by a generator-free matrix group over `QQ`.
 """
 function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
+
+  @req model in (:default, :CHEVIE, :LT, :Magma) "Specified model not found"
 
   # this will be the list of matrix groups corresponding to the components of G
   component_groups = MatGroup[]
 
   # list of models of the components
-  modellist = []
+  modellist = Symbol[]
 
   for C in components(G)
 
@@ -222,8 +248,6 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
       matgrp = complex_reflection_group_Magma(t)
     elseif Cmodel == :CHEVIE
       matgrp = complex_reflection_group_CHEVIE(t)
-    else
-      error("Specified model not found")
     end
 
     # set attributes that are already known from type
@@ -246,21 +270,23 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
     push!(modellist, Cmodel)
   end
 
-  if length(component_groups) == 1
+  fixed_dimension = fixed_space_dimension(G)
+  if length(component_groups) == 1 && fixed_dimension == 0
     # treat this as a special case because direct_product([G]) will have type direct
     # product which looks weird for a single group.
     return component_groups[1]
   else
-    @req !isempty(component_groups) "A concrete ambient space is required for the trivial reflection group type"
     matgrp, component_embeddings, mapped_component_groups =
-      _block_diagonal_product(component_groups)
+      _block_diagonal_product(
+        component_groups; fixed_space_dimension=fixed_dimension
+      )
 
     set_attribute!(matgrp, :order, order(G))
     set_attribute!(matgrp, :is_complex_reflection_group, true)
     set_attribute!(matgrp, :complex_reflection_group_type, G)
     set_attribute!(matgrp, :complex_reflection_group_model, modellist)
     set_attribute!(matgrp, :reflection_hyperplane_orbit_marking_is_known, true)
-    set_attribute!(matgrp, :is_irreducible, false)
+    set_attribute!(matgrp, :is_irreducible, is_irreducible(G))
     set_attribute!(matgrp, :complex_reflection_group_components, component_groups)
     set_attribute!(matgrp, :complex_reflection_group_mapped_components, mapped_component_groups)
     set_attribute!(matgrp, :complex_reflection_group_component_embeddings, component_embeddings)
@@ -273,6 +299,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
       end
     end
 
+    @assert degree(matgrp) == degree(G)
     return matgrp
   end
 
@@ -281,9 +308,10 @@ end
 """
     components(G::MatGroup)
 
-Return the original component realizations retained by a reducible complex
-reflection group model. For an irreducible marked realization, return `[G]`.
-Return `nothing` when no component decomposition is supplied.
+Return the original nontrivial component realizations retained by a complex
+reflection group model. For an irreducible nontrivial marked realization,
+return `[G]`. A constructor realization of a pure trivial type returns an empty
+vector. Return `nothing` when no component decomposition is supplied.
 
 The component groups keep their own presentation fields. Use
 [`complex_reflection_group_component_embeddings`](@ref) for the exact maps
@@ -294,7 +322,9 @@ function components(G::MatGroup)
     return get_attribute(G, :complex_reflection_group_components)
   end
   group_type = complex_reflection_group_type(G)
-  if group_type !== nothing && is_irreducible(group_type)
+  if group_type !== nothing &&
+      is_irreducible(group_type) &&
+      !is_trivial(group_type)
     return [G]
   end
   return nothing
@@ -303,27 +333,49 @@ end
 """
     complex_reflection_group_component_embeddings(G::MatGroup)
 
-Return the exact coefficient-field embeddings from the original component
-realizations of `G` into `base_ring(G)`, or `nothing` if no component
-decomposition is supplied.
+Return the exact coefficient-field embeddings from the original nontrivial
+component realizations of `G` into `base_ring(G)`, or `nothing` if no component
+decomposition is supplied. A constructor realization of a pure trivial type
+returns an empty vector.
 """
 function complex_reflection_group_component_embeddings(G::MatGroup)
   if has_attribute(G, :complex_reflection_group_component_embeddings)
     return get_attribute(G, :complex_reflection_group_component_embeddings)
   end
   group_type = complex_reflection_group_type(G)
-  if group_type !== nothing && is_irreducible(group_type)
+  if group_type !== nothing &&
+      is_irreducible(group_type) &&
+      !is_trivial(group_type)
     return [id_hom(base_ring(G))]
   end
   return nothing
 end
 
 # Convenience constructors
-complex_reflection_group(i::Int, model::Symbol=:default) = complex_reflection_group(ComplexReflectionGroupType(i), model)
+complex_reflection_group(
+    ; fixed_space_dimension::IntegerUnion=0, model::Symbol=:default
+  ) = complex_reflection_group(
+    ComplexReflectionGroupType(; fixed_space_dimension), model
+  )
 
-complex_reflection_group(m::Int, p::Int, n::Int, model::Symbol=:default) = complex_reflection_group(ComplexReflectionGroupType(m,p,n), model)
+complex_reflection_group(
+    i::Int, model::Symbol=:default; fixed_space_dimension::IntegerUnion=0
+  ) = complex_reflection_group(
+    ComplexReflectionGroupType(i; fixed_space_dimension), model
+  )
 
-complex_reflection_group(X::Vector, model::Symbol=:default) = complex_reflection_group(ComplexReflectionGroupType(X), model)
+complex_reflection_group(
+    m::Int, p::Int, n::Int, model::Symbol=:default;
+    fixed_space_dimension::IntegerUnion=0
+  ) = complex_reflection_group(
+    ComplexReflectionGroupType(m, p, n; fixed_space_dimension), model
+  )
+
+complex_reflection_group(
+    X::Vector, model::Symbol=:default; fixed_space_dimension::IntegerUnion=0
+  ) = complex_reflection_group(
+    ComplexReflectionGroupType(X; fixed_space_dimension), model
+  )
 
 
 ############################################################################################
@@ -332,7 +384,7 @@ complex_reflection_group(X::Vector, model::Symbol=:default) = complex_reflection
 """
     complex_reflection_group_type(G::MatGroup)
 
-Return the assigned essential complex reflection group type of `G`, or
+Return the assigned complex reflection group type of `G`, or
 `nothing` if none is assigned. For an irreducible group, this means its
 `GL(n, C)`-conjugacy class, represented by its normalized Shephard--Todd label.
 This getter does not try to recognize an arbitrary matrix group.
@@ -344,6 +396,20 @@ function complex_reflection_group_type(G::MatGroup)
   return nothing
   # this should be upgraded later to work with a general matrix group (identifying the
   # type from scratch is not so easy though)
+end
+
+"""
+    fixed_space_dimension(G::MatGroup)
+
+Return the fixed-space dimension recorded by the assigned complex reflection
+group type of `G`, or `nothing` if no type is assigned.
+
+This getter does not compute a fixed space or recognize the type from the
+matrices of `G`.
+"""
+function fixed_space_dimension(G::MatGroup)
+  group_type = complex_reflection_group_type(G)
+  return group_type === nothing ? nothing : fixed_space_dimension(group_type)
 end
 
 """
@@ -398,7 +464,14 @@ function complex_reflection_group_dual(W::MatGroup)
   if group_type === nothing && !is_complex_reflection_group(W)
     error("Group is not a complex reflection group")
   end
-  WD = matrix_group([transpose(matrix(w^-1)) for w in gens(W)])
+  K = base_ring(W)
+  n = degree(W)
+  matspace = matrix_space(K, n, n)
+  dual_generators = elem_type(matspace)[]
+  for w in gens(W)
+    push!(dual_generators, matspace(transpose(matrix(w^-1))))
+  end
+  WD = matrix_group(K, n, dual_generators)
   group_model = complex_reflection_group_model(W)
 
   set_attribute!(WD, :order, group_type === nothing ? order(W) : order(group_type))
@@ -432,17 +505,29 @@ function complex_reflection_group_dual(W::MatGroup)
     set_reflection_hyperplane_orbit_marking!(WD, dual_marking)
   end
 
-  component_groups = components(W)
-  if component_groups !== nothing && length(component_groups) > 1
+  # Only propagate an explicitly retained component decomposition.  The
+  # fallback `components(W) == [W]` for an irreducible group must not recurse.
+  if has_attribute(W, :complex_reflection_group_components)
+    component_groups = get_attribute(W, :complex_reflection_group_components)
+    dual_component_groups = complex_reflection_group_dual.(component_groups)
+    component_embeddings = complex_reflection_group_component_embeddings(W)
     set_attribute!(
       WD,
       :complex_reflection_group_components,
-      complex_reflection_group_dual.(component_groups),
+      dual_component_groups,
     )
     set_attribute!(
       WD,
       :complex_reflection_group_component_embeddings,
-      complex_reflection_group_component_embeddings(W),
+      component_embeddings,
+    )
+    set_attribute!(
+      WD,
+      :complex_reflection_group_mapped_components,
+      [
+        map_entries(embedding, group) for
+        (embedding, group) in zip(component_embeddings, dual_component_groups)
+      ],
     )
   end
 

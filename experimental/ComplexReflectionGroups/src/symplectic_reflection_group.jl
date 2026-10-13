@@ -35,7 +35,9 @@ function symplectic_doubling(G::MatGroup{T}) where {T <: QQAlgFieldElem}
     push!(generators, doubled_generator)
   end
 
-  doubled_group = matrix_group(generators)
+  # Supplying the base field and degree is essential when `G` is trivial and
+  # consequently has no generators (including in ambient dimension zero).
+  doubled_group = matrix_group(K, 2*n, generators)
 
   identity_block = identity_matrix(K, n)
   primal_embedding = zero_matrix(K, n, 2*n)

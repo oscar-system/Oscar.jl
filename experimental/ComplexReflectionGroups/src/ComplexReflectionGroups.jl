@@ -52,6 +52,7 @@ export degrees
 export distinguished_reflection
 export distinguished_reflections
 export eigenvalue
+export fixed_space_dimension
 export hyperplane
 export hyperplane_basis
 export hyperplane_inclusion

@@ -1,9 +1,20 @@
 # Tests the type catalogue, concrete models, and reflection geometry.
 @testset "Complex reflection groups" begin
 
+    function fixed_space_dimension_from_generators(W)
+        n = degree(W)
+        isempty(gens(W)) && return n
+        K = base_ring(W)
+        identity = identity_matrix(K, n)
+        equations = reduce(hcat, [matrix(g) - identity for g in gens(W)])
+        return n - rank(equations)
+    end
+
     @testset "Reflection group types" begin
         trivial_type = ComplexReflectionGroupType([])
         @test rank(trivial_type) == 0
+        @test fixed_space_dimension(trivial_type) == 0
+        @test degree(trivial_type) == 0
 
         product_type = complex_reflection_group_type([4, (2, 1, 3)])
         @test rank(product_type) == 5
@@ -26,6 +37,253 @@
         @test all(
             is_equivalent(complex_reflection_group_type(W), G4_type) for W in G4_models
         )
+    end
+
+    @testset "Ambient reflection group types" begin
+        trivial_zero = complex_reflection_group_type()
+        trivial_one = complex_reflection_group_type(1, 1, 1)
+        trivial_two = complex_reflection_group_type(; fixed_space_dimension=2)
+
+        @test trivial_zero == complex_reflection_group_type([])
+        @test trivial_one ==
+              complex_reflection_group_type(; fixed_space_dimension=1)
+        @test trivial_two ==
+              complex_reflection_group_type([(1, 1, 1), (1, 1, 1)])
+        @test_throws ArgumentError complex_reflection_group_type(
+            4; fixed_space_dimension=-1
+        )
+        @test complex_reflection_group_type(7, 7, 1) == trivial_one
+        @test complex_reflection_group_type(
+            [(1, 1, 1), 4]; fixed_space_dimension=2
+        ) == complex_reflection_group_type(4; fixed_space_dimension=3)
+        @test is_trivial(trivial_zero)
+        @test is_trivial(trivial_one)
+        @test is_trivial(trivial_two)
+        @test !is_irreducible(trivial_zero)
+        @test is_irreducible(trivial_one)
+        @test !is_irreducible(trivial_two)
+        @test is_primitive(trivial_one)
+        @test !is_imprimitive(trivial_one)
+        @test_throws ArgumentError coxeter_number(trivial_one)
+        @test length(Set([trivial_zero, trivial_one, trivial_two])) == 3
+        @test rank.([trivial_zero, trivial_one, trivial_two]) == [0, 0, 0]
+        @test fixed_space_dimension.([trivial_zero, trivial_one, trivial_two]) ==
+              [0, 1, 2]
+        @test degree.([trivial_zero, trivial_one, trivial_two]) == [0, 1, 2]
+        @test isempty(degrees(trivial_zero))
+        @test degrees(trivial_one) == [1]
+        @test degrees(trivial_two) == [1, 1]
+        @test isempty(codegrees(trivial_zero))
+        @test codegrees(trivial_one) == [-1]
+        @test codegrees(trivial_two) == [-1, -1]
+        @test exponents(trivial_two) == [0, 0]
+        @test coexponents(trivial_two) == [0, 0]
+        @test number_of_hyperplanes(trivial_two) == 0
+        @test number_of_reflections(trivial_two) == 0
+        @test order(center(trivial_two)) == 1
+
+        symmetric_reflection_type = complex_reflection_group_type(1, 1, 3)
+        symmetric_permutation_type = complex_reflection_group_type(
+            1, 1, 3; fixed_space_dimension=1
+        )
+        @test symmetric_permutation_type ==
+              direct_product(symmetric_reflection_type, trivial_one)
+        @test !is_equivalent(
+            symmetric_reflection_type, symmetric_permutation_type
+        )
+        @test rank(symmetric_reflection_type) ==
+              rank(symmetric_permutation_type) == 2
+        @test fixed_space_dimension(symmetric_reflection_type) == 0
+        @test fixed_space_dimension(symmetric_permutation_type) == 1
+        @test degree(symmetric_reflection_type) == 2
+        @test degree(symmetric_permutation_type) == 3
+        @test order(symmetric_reflection_type) ==
+              order(symmetric_permutation_type) == 6
+        @test degrees(symmetric_reflection_type) == [2, 3]
+        @test degrees(symmetric_permutation_type) == [1, 2, 3]
+        @test codegrees(symmetric_reflection_type) == [0, 1]
+        @test codegrees(symmetric_permutation_type) == [-1, 0, 1]
+
+        irreducible_dihedral_type = complex_reflection_group_type(6, 6, 2)
+        reducible_dihedral_type = complex_reflection_group_type(
+            [(1, 1, 3), (2, 1, 1)]
+        )
+        @test order(irreducible_dihedral_type) ==
+              order(reducible_dihedral_type) == 12
+        @test rank(irreducible_dihedral_type) == 2
+        @test rank(reducible_dihedral_type) == 3
+        @test degree(irreducible_dihedral_type) == 2
+        @test degree(reducible_dihedral_type) == 3
+        @test is_irreducible(irreducible_dihedral_type)
+        @test !is_irreducible(reducible_dihedral_type)
+        @test !is_equivalent(
+            irreducible_dihedral_type, reducible_dihedral_type
+        )
+
+        fixed_G4_type = complex_reflection_group_type(
+            4; fixed_space_dimension=2
+        )
+        @test rank(fixed_G4_type) == 2
+        @test fixed_space_dimension(fixed_G4_type) == 2
+        @test degree(fixed_G4_type) == 4
+        @test degrees(fixed_G4_type) == [1, 1, 4, 6]
+        @test codegrees(fixed_G4_type) == [-1, -1, 0, 2]
+        @test exponents(fixed_G4_type) == [0, 0, 3, 5]
+        @test coexponents(fixed_G4_type) == [0, 0, 1, 3]
+        @test length(degrees(fixed_G4_type)) == degree(fixed_G4_type)
+        @test length(codegrees(fixed_G4_type)) == degree(fixed_G4_type)
+        @test prod(degrees(fixed_G4_type); init=ZZ(1)) == order(fixed_G4_type)
+        @test sum(exponents(fixed_G4_type); init=ZZ(0)) ==
+              number_of_reflections(fixed_G4_type)
+        @test sum(coexponents(fixed_G4_type); init=ZZ(0)) ==
+              number_of_hyperplanes(fixed_G4_type)
+        @test number_of_hyperplanes(fixed_G4_type) == 4
+        @test number_of_reflections(fixed_G4_type) == 8
+        @test order(center(fixed_G4_type)) == 2
+
+        product_with_fixed_space = direct_product([
+            complex_reflection_group_type(4; fixed_space_dimension=1),
+            complex_reflection_group_type(8; fixed_space_dimension=2),
+        ])
+        @test product_with_fixed_space ==
+              complex_reflection_group_type([4, 8]; fixed_space_dimension=3)
+        @test number_of_components(product_with_fixed_space) == 2
+        @test fixed_space_dimension(product_with_fixed_space) == 3
+        @test rank(product_with_fixed_space) == 4
+        @test degree(product_with_fixed_space) == 7
+
+        @test is_well_generated(complex_reflection_group_type(6, 6, 2))
+        @test is_well_generated(complex_reflection_group_type(8, 8, 3))
+        @test is_well_generated(complex_reflection_group_type(6, 1, 3))
+        @test !is_well_generated(complex_reflection_group_type(6, 3, 2))
+        @test !is_well_generated(complex_reflection_group_type(4, 2, 3))
+    end
+
+    @testset "Ambient matrix realizations" begin
+        trivial_types = [
+            complex_reflection_group_type(),
+            complex_reflection_group_type(1, 1, 1),
+            complex_reflection_group_type(; fixed_space_dimension=2),
+        ]
+        trivial_groups = complex_reflection_group.(trivial_types)
+        @test complex_reflection_group_type(complex_reflection_group(
+            ; fixed_space_dimension=2
+        )) == last(trivial_types)
+
+        for (n, T, W) in zip(0:2, trivial_types, trivial_groups)
+            @test base_ring(W) === QQ
+            @test degree(W) == n
+            @test isempty(gens(W))
+            @test order(W) == 1
+            @test complex_reflection_group_type(W) == T
+            @test fixed_space_dimension(W) == n
+            @test isempty(complex_reflection_group_model(W))
+            @test isempty(components(W))
+            @test isempty(complex_reflection_group_component_embeddings(W))
+            @test fixed_space_dimension_from_generators(W) == n
+            @test invariant_hermitian_form(W) == identity_matrix(QQ, n)
+            @test isempty(reflection_hyperplane_orbits(W))
+            @test isempty(reflection_classes(W))
+            @test isempty(reflection_library(W))
+            @test isempty(complex_reflections(W))
+
+            WD = complex_reflection_group_dual(W)
+            @test degree(WD) == n
+            @test isempty(gens(WD))
+            @test order(WD) == 1
+            @test complex_reflection_group_type(WD) == T
+            @test isempty(complex_reflection_group_model(WD))
+            @test complex_reflection_group_dual_source(WD) === W
+            @test isempty(components(WD))
+            @test fixed_space_dimension_from_generators(WD) == n
+
+            doubled_group = symplectic_reflection_group(W)
+            @test degree(doubled_group) == 2*n
+            @test isempty(gens(doubled_group))
+            @test order(doubled_group) == 1
+            @test symplectic_doubling_source(doubled_group) === W
+            @test symplectic_doubling_source_type(doubled_group) == T
+            @test symplectic_doubling_source_model(doubled_group) == Symbol[]
+            @test complex_reflection_group_type(doubled_group) === nothing
+            @test is_symplectic_reflection_group(doubled_group)
+            primal_embedding, dual_embedding =
+                symplectic_doubling_block_embeddings(doubled_group)
+            @test size(primal_embedding) == (n, 2*n)
+            @test size(dual_embedding) == (n, 2*n)
+            @test size(gram_matrix(symplectic_form(doubled_group))) ==
+                  (2*n, 2*n)
+        end
+
+        symmetric_reflection_type = complex_reflection_group_type(1, 1, 3)
+        symmetric_permutation_type = complex_reflection_group_type(
+            1, 1, 3; fixed_space_dimension=1
+        )
+        symmetric_reflection_group = complex_reflection_group(
+            symmetric_reflection_type
+        )
+        symmetric_permutation_group = complex_reflection_group(
+            symmetric_permutation_type
+        )
+        @test complex_reflection_group_type(complex_reflection_group(
+            1, 1, 3; fixed_space_dimension=1
+        )) == symmetric_permutation_type
+        @test degree(symmetric_reflection_group) == 2
+        @test degree(symmetric_permutation_group) == 3
+        @test fixed_space_dimension_from_generators(
+            symmetric_reflection_group
+        ) == 0
+        @test fixed_space_dimension_from_generators(
+            symmetric_permutation_group
+        ) == 1
+        @test complex_reflection_group_type(symmetric_permutation_group) ==
+              symmetric_permutation_type
+        @test length(components(symmetric_permutation_group)) == 1
+        @test degree(only(components(symmetric_permutation_group))) == 2
+        @test length(complex_reflections(symmetric_reflection_group)) == 3
+        @test length(complex_reflections(symmetric_permutation_group)) == 3
+
+        fixed_G4_type = complex_reflection_group_type(
+            4; fixed_space_dimension=2
+        )
+        fixed_G4 = complex_reflection_group(fixed_G4_type, :LT)
+        @test degree(fixed_G4) == 4
+        @test fixed_space_dimension_from_generators(fixed_G4) == 2
+        @test complex_reflection_group_type(fixed_G4) == fixed_G4_type
+        @test complex_reflection_group_model(fixed_G4) == [:LT]
+        @test length(components(fixed_G4)) == 1
+        @test degree(only(components(fixed_G4))) == 2
+        @test length(complex_reflection_group_component_embeddings(fixed_G4)) == 1
+        @test invariant_hermitian_form(fixed_G4) ==
+              identity_matrix(base_ring(fixed_G4), 4)
+        @test length(reflection_hyperplane_orbits(fixed_G4)) == 1
+        @test dim(first(reflection_hyperplanes(
+            only(reflection_hyperplane_orbits(fixed_G4))
+        ))) == 3
+        @test length(reflection_classes(fixed_G4)) == 2
+        @test length(complex_reflections(fixed_G4)) == 8
+
+        fixed_G4_dual = complex_reflection_group_dual(fixed_G4)
+        @test degree(fixed_G4_dual) == 4
+        @test complex_reflection_group_type(fixed_G4_dual) == fixed_G4_type
+        @test fixed_space_dimension_from_generators(fixed_G4_dual) == 2
+        @test length(components(fixed_G4_dual)) == 1
+        @test degree(only(components(fixed_G4_dual))) == 2
+        @test length(reflection_hyperplane_orbits(fixed_G4_dual)) == 1
+
+        irreducible_dihedral_group = complex_reflection_group(6, 6, 2)
+        reducible_dihedral_group = complex_reflection_group(
+            [(1, 1, 3), (2, 1, 1)]
+        )
+        @test order(irreducible_dihedral_group) ==
+              order(reducible_dihedral_group) == 12
+        @test degree(irreducible_dihedral_group) == 2
+        @test degree(reducible_dihedral_group) == 3
+        @test fixed_space_dimension_from_generators(
+            irreducible_dihedral_group
+        ) == 0
+        @test fixed_space_dimension_from_generators(
+            reducible_dihedral_group
+        ) == 0
     end
 
     @testset "Type-level reflection data" begin
@@ -56,6 +314,31 @@
         @test is_cyclotomic
         @test conductor == 12
         @test complex_reflection_group_model(cyclotomic_group) == [:CHEVIE, :CHEVIE]
+
+        fixed_cyclotomic_group = complex_reflection_group(
+            [4, 8], :CHEVIE; fixed_space_dimension=1
+        )
+        fixed_cyclotomic_type = complex_reflection_group_type(
+            [4, 8]; fixed_space_dimension=1
+        )
+        @test degree(fixed_cyclotomic_group) == 5
+        @test complex_reflection_group_type(fixed_cyclotomic_group) ==
+              fixed_cyclotomic_type
+        @test fixed_space_dimension_from_generators(fixed_cyclotomic_group) == 1
+        @test degree.(components(fixed_cyclotomic_group)) == [2, 2]
+        @test length(complex_reflection_group_component_embeddings(
+            fixed_cyclotomic_group
+        )) == 2
+        @test length(reflection_hyperplane_orbits(fixed_cyclotomic_group)) ==
+              length(reflection_hyperplane_orbits(fixed_cyclotomic_type))
+        fixed_cyclotomic_dual = complex_reflection_group_dual(
+            fixed_cyclotomic_group
+        )
+        @test degree(fixed_cyclotomic_dual) == 5
+        @test fixed_space_dimension_from_generators(fixed_cyclotomic_dual) == 1
+        @test degree.(components(fixed_cyclotomic_dual)) == [2, 2]
+        @test length(reflection_hyperplane_orbits(fixed_cyclotomic_dual)) ==
+              length(reflection_hyperplane_orbits(fixed_cyclotomic_type))
 
         tower_group = complex_reflection_group([4, 8], :LT)
         factors = components(tower_group)
@@ -131,7 +414,7 @@
         @test !is_unitary(W, zero_matrix(K, degree(W), degree(W)))
         nonhermitian_matrix = matrix(K, 2, 2, [1 1; 0 1])
         @test !is_unitary(W, nonhermitian_matrix)
-        algebraic_closure_identity = identity_matrix(QQBar, 2)
+        algebraic_closure_identity = identity_matrix(algebraic_closure(QQ), 2)
         @test is_unitary(algebraic_closure_identity)
         @test is_unitary(algebraic_closure_identity, algebraic_closure_identity)
         @test is_unitary(matrix_group([algebraic_closure_identity]))

@@ -1,12 +1,11 @@
-# This file implements types of essential complex reflection groups following
-# the classification of Shephard & Todd (1954).
+# This file implements types of complex reflection groups following the
+# classification of Shephard & Todd (1954).
 #
 # The type of an irreducible reflection group G <= GL_n(C) is its conjugacy
-# class in GL_n(C). For an essential reducible group, the type is the unordered
-# product of the types of its irreducible factors. This is finer than the
-# isomorphism type of the underlying abstract group. The present object does not
-# encode a trivial fixed summand, and therefore does not describe a nonessential
-# ambient embedding.
+# class in GL_n(C). In general, the type is determined by the dimension of the
+# fixed space and the unordered product of the types of the nontrivial
+# irreducible factors. This is finer than the isomorphism type of the underlying
+# abstract group.
 #
 # References:
 #
@@ -21,27 +20,43 @@
 const ComplexReflectionGroupComponent = Union{Int, Tuple{Int, Int, Int}}
 
 """
-    ComplexReflectionGroupType
+    ComplexReflectionGroupType(; fixed_space_dimension=0)
+    ComplexReflectionGroupType(types::Vector; fixed_space_dimension=0)
+    ComplexReflectionGroupType(i::Int; fixed_space_dimension=0)
+    ComplexReflectionGroupType(m::Int, p::Int, n::Int;
+                               fixed_space_dimension=0)
 
-The type of an essential finite complex reflection group, written as a
-normalized product of irreducible types.
+The type of a finite complex reflection group as a complex linear group.
 
 For an irreducible group `G` in `GL(n, C)`, its type is its conjugacy class in
 `GL(n, C)`. The Shephard--Todd symbols stored here are classification labels for
-these conjugacy classes. For a reducible essential group, the unordered product
-of its irreducible types determines its type. This object stores neither a
-concrete matrix representative nor a basis or reference marking.
+the nontrivial irreducible conjugacy classes. In general, the type is the pair
+consisting of the dimension of the fixed space and the unordered product of the
+nontrivial irreducible types. It therefore distinguishes ambient realizations
+that differ by a trivial summand.
 
-A nonessential realization has an additional trivial fixed summand. Its ambient
-conjugacy class also depends on the dimension of that summand, which is not
-recorded here.
+The keyword `fixed_space_dimension` supplies a trivial summand in addition to
+any trivial one-dimensional factors occurring in `types`. This object stores no
+concrete matrix representative, basis, coefficient field, or reference
+marking.
+
+The label `(1, 1, n)` for `n >= 2` denotes the essential reflection
+representation of the symmetric group, of degree `n - 1`. Its permutation
+representation has one additional fixed dimension. A label `(m, m, 1)` is the
+trivial one-dimensional representation and is normalized by adding one to the
+fixed-space dimension.
 """
 struct ComplexReflectionGroupType
   type::Tuple{Vararg{ComplexReflectionGroupComponent}}
+  fixed_space_dimension::Int
 
   # Argument checking Cannot be more specific than Vector for the constructor argument
   # since [ 4, (4,1,4) ] is of type Vector{Any}
-  function ComplexReflectionGroupType(type::Vector)
+  function ComplexReflectionGroupType(
+      type::Vector; fixed_space_dimension::IntegerUnion=0
+    )
+    @req fixed_space_dimension >= 0 "The fixed-space dimension must be nonnegative"
+    fixed_dimension = Int(fixed_space_dimension)
 
     # The normalized type with unique labels (see below)
     typenorm = ComplexReflectionGroupComponent[]
@@ -77,8 +92,10 @@ struct ComplexReflectionGroupType
           m = div(m,p)
           tnorm = (m,1,1)
           if m == 1
-            # This is the trivial group
-            continue #avoids adding this type as component
+            # The trivial group in dimension one is an irreducible trivial
+            # representation, hence contributes one fixed dimension.
+            fixed_dimension += 1
+            continue
           elseif m == 2 # (2,1,1) = (1,1,2)
             tnorm = (1,1,2)
           end
@@ -90,13 +107,19 @@ struct ComplexReflectionGroupType
 
     # The order of the irreducible factors carries no mathematical information.
     sort!(typenorm; by=t -> isa(t, Int) ? (1,t,0,0) : (0,t[1],t[2],t[3]))
-    return new(Tuple(typenorm))
+    return new(Tuple(typenorm), fixed_dimension)
   end
 end
 
-Base.:(==)(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType) = G1.type == G2.type
-Base.isequal(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType) = isequal(G1.type, G2.type)
-Base.hash(G::ComplexReflectionGroupType, h::UInt) = hash(G.type, hash(:ComplexReflectionGroupType, h))
+Base.:(==)(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType) =
+  G1.type == G2.type &&
+  fixed_space_dimension(G1) == fixed_space_dimension(G2)
+Base.isequal(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType) =
+  isequal(G1.type, G2.type) &&
+  isequal(fixed_space_dimension(G1), fixed_space_dimension(G2))
+Base.hash(G::ComplexReflectionGroupType, h::UInt) = hash(
+  (G.type, fixed_space_dimension(G)), hash(:ComplexReflectionGroupType, h)
+)
 
 # Printing
 function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
@@ -104,7 +127,12 @@ function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
   counter = 0
   N = length(G.type)
   if N == 0
-    print(io,"trivial")
+    print(
+      io,
+      "trivial in dimension ",
+      fixed_space_dimension(G),
+    )
+    return
   end
   for t in G.type
     print(io,"G")
@@ -118,45 +146,105 @@ function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
       print(io, " x ")
     end
   end
+  if fixed_space_dimension(G) > 0
+    print(
+      io,
+      " with ",
+      fixed_space_dimension(G),
+      "-dimensional fixed space",
+    )
+  end
 end
 
 # Convenience constructors
-ComplexReflectionGroupType(i::Int) = ComplexReflectionGroupType(convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [i]))
-ComplexReflectionGroupType(m::Int, p::Int, n::Int) = ComplexReflectionGroupType(convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [(m,p,n)]))
-ComplexReflectionGroupType(t::Tuple{Int,Int,Int}) = ComplexReflectionGroupType(convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [t]))
+ComplexReflectionGroupType(; fixed_space_dimension::IntegerUnion=0) =
+  ComplexReflectionGroupType(
+    ComplexReflectionGroupComponent[]; fixed_space_dimension
+  )
+ComplexReflectionGroupType(i::Int; fixed_space_dimension::IntegerUnion=0) =
+  ComplexReflectionGroupType(
+    convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [i]);
+    fixed_space_dimension,
+  )
+ComplexReflectionGroupType(
+    m::Int, p::Int, n::Int; fixed_space_dimension::IntegerUnion=0
+  ) = ComplexReflectionGroupType(
+    convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [(m,p,n)]);
+    fixed_space_dimension,
+  )
+ComplexReflectionGroupType(
+    t::Tuple{Int,Int,Int}; fixed_space_dimension::IntegerUnion=0
+  ) = ComplexReflectionGroupType(
+    convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [t]);
+    fixed_space_dimension,
+  )
 
 # Non-camel versions
-complex_reflection_group_type(i::Int) = ComplexReflectionGroupType(i)
-complex_reflection_group_type(m::Int, p::Int, n::Int) = ComplexReflectionGroupType(m,p,n)
-complex_reflection_group_type(t::Tuple{Int,Int,Int}) = ComplexReflectionGroupType(t)
-complex_reflection_group_type(X::Vector) =
-ComplexReflectionGroupType(X)
+complex_reflection_group_type(; fixed_space_dimension::IntegerUnion=0) =
+  ComplexReflectionGroupType(; fixed_space_dimension)
+complex_reflection_group_type(i::Int; fixed_space_dimension::IntegerUnion=0) =
+  ComplexReflectionGroupType(i; fixed_space_dimension)
+complex_reflection_group_type(
+    m::Int, p::Int, n::Int; fixed_space_dimension::IntegerUnion=0
+  ) = ComplexReflectionGroupType(m, p, n; fixed_space_dimension)
+complex_reflection_group_type(
+    t::Tuple{Int,Int,Int}; fixed_space_dimension::IntegerUnion=0
+  ) = ComplexReflectionGroupType(t; fixed_space_dimension)
+complex_reflection_group_type(
+    X::Vector; fixed_space_dimension::IntegerUnion=0
+  ) = ComplexReflectionGroupType(X; fixed_space_dimension)
 
 # Triviality
 function is_trivial(G::ComplexReflectionGroupType)
   return length(G.type) == 0
 end
 
-# Array of irreducible components
+"""
+    fixed_space_dimension(G::ComplexReflectionGroupType)
+
+Return the dimension of the subspace fixed pointwise by the represented
+reflection group.
+"""
+fixed_space_dimension(G::ComplexReflectionGroupType) = G.fixed_space_dimension
+
+"""
+    components(G::ComplexReflectionGroupType)
+
+Return the nontrivial irreducible reflection-group factors of `G` in canonical
+order. The trivial summand is recorded separately by
+[`fixed_space_dimension`](@ref).
+"""
 function components(G::ComplexReflectionGroupType)
-  return [ ComplexReflectionGroupType(t) for t in G.type ]
+  return [ComplexReflectionGroupType(t) for t in G.type]
 end
 
+"""
+    number_of_components(G::ComplexReflectionGroupType)
+
+Return the number of nontrivial irreducible reflection-group factors of `G`.
+"""
 function number_of_components(G::ComplexReflectionGroupType)
   return length(G.type)
 end
 
+"""
+    is_irreducible(G::ComplexReflectionGroupType)
+
+Return whether the represented complex linear group acts irreducibly.
+
+In particular, the trivial representation is irreducible precisely in ambient
+dimension one.
+"""
 function is_irreducible(G::ComplexReflectionGroupType)
-
-  return length(G.type) == 1
-
+  return (length(G.type) == 1 && fixed_space_dimension(G) == 0) ||
+         (isempty(G.type) && fixed_space_dimension(G) == 1)
 end
 
 """
     is_equivalent(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType)
 
-Return whether `G1` and `G2` describe the same conjugacy type of essential
-complex reflection group.
+Return whether `G1` and `G2` describe the same `GL(V)`-conjugacy type of complex
+reflection group.
 """
 function is_equivalent(G1::ComplexReflectionGroupType, G2::ComplexReflectionGroupType)
   return G1 == G2
@@ -185,7 +273,11 @@ function order(G::ComplexReflectionGroupType)
   return ord
 end
 
-# Rank
+"""
+    rank(G::ComplexReflectionGroupType)
+
+Return the dimension of the support of `G`.
+"""
 function rank(G::ComplexReflectionGroupType)
   N = ZZ(0)
 
@@ -210,9 +302,19 @@ function rank(G::ComplexReflectionGroupType)
   return N
 end
 
+"""
+    degree(G::ComplexReflectionGroupType)
+
+Return the dimension of the ambient reflection representation.
+"""
+degree(G::ComplexReflectionGroupType) =
+  Int(rank(G)) + fixed_space_dimension(G)
+
 # Imprimitivity
 function is_imprimitive(G::ComplexReflectionGroupType)
-  @req is_irreducible(G) "Imprimitivity is defined only for irreducible nontrivial types"
+  @req is_irreducible(G) "Imprimitivity is defined only for irreducible types"
+
+  is_trivial(G) && return false
 
   t = G.type[1]
   if isa(t, Int) #exceptionals are primitive
@@ -237,13 +339,23 @@ function is_primitive(G::ComplexReflectionGroupType)
   return !is_imprimitive(G)
 end
 
+"""
+    direct_product(X::Vector{ComplexReflectionGroupType})
+    direct_product(G1::ComplexReflectionGroupType,
+                   G2::ComplexReflectionGroupType)
+
+Return the type of the block-diagonal direct product. Both the nontrivial
+irreducible factors and the fixed-space dimensions are combined.
+"""
 function direct_product(X::Vector{ComplexReflectionGroupType})
   type = ComplexReflectionGroupComponent[]
+  fixed_dimension = 0
   for G in X
     append!(type, G.type)
+    fixed_dimension += fixed_space_dimension(G)
   end
 
-  return ComplexReflectionGroupType(type)
+  return ComplexReflectionGroupType(type; fixed_space_dimension=fixed_dimension)
 
 end
 
@@ -289,7 +401,7 @@ function is_well_generated(G::ComplexReflectionGroupType)
       m = t[1]
       p = t[2]
       n = t[3]
-      if !(m == 1 || p == 1)
+      if !(p == 1 || p == m)
         return false
       end
     end
@@ -300,7 +412,7 @@ end
 
 function degrees(G::ComplexReflectionGroupType)
 
-  degrees = Vector{Int}()
+  degrees = fill(ZZ(1), fixed_space_dimension(G))
 
   # Lehrer & Taylor (2009), Table D.3 (p 275)
   excdegrees =
@@ -364,7 +476,7 @@ end
 
 function codegrees(G::ComplexReflectionGroupType)
 
-  codegrees = Vector{Int}()
+  codegrees = fill(ZZ(-1), fixed_space_dimension(G))
 
   # Lehrer & Taylor (2009), Table D.3 (p 275)
   exccodegrees =
@@ -536,7 +648,7 @@ end
 
 function coxeter_number(G::ComplexReflectionGroupType)
 
-  @req is_irreducible(G) "The Coxeter number is defined only for irreducible nontrivial types"
+  @req is_irreducible(G) && !is_trivial(G) "The Coxeter number is defined only for irreducible nontrivial types"
 
   return div(number_of_reflections(G) + number_of_hyperplanes(G), rank(G))
 
@@ -632,7 +744,7 @@ function center(G::ComplexReflectionGroupType)
   # of the degrees.
   # See Thiel (2014), Proposition 13.32
   for C in components(G)
-    append!(orders,gcd(degrees(C)))
+    push!(orders, gcd(degrees(C)))
   end
 
   return abelian_group(orders)
