@@ -14,37 +14,37 @@ that also satisfy the `additional_inequalities`.
 function get_lattice_points_of_weightspace(
   root_weights::Vector{RootSpaceElem},
   weight::RootSpaceElem,
-  additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}}
+  additional_inequalities::Vector{Tuple{Vector{QQFieldElem},QQFieldElem}},
 )
   # calculate all integer solutions to the following linear program:
   # [       |                 |       ]       [   |   ]      [    |    ]
   # [root_weights[1]...root_weights[k]]   *   [  res  ]   =  [  weight ]
   # [       |                 |       ]       [   |   ]      [    |    ]
+  # plus additional_inequalities,
   # where res[i] >= 0 for all i
   n = length(root_weights)
   m = rank(root_system(weight))
 
   # equalities
-  A_eq = zero_matrix(QQ, m , n)
-  b_eq = [zero(QQ) for _ in 1:(m)]
+  A_eq = zero_matrix(QQ, m, n)
+  b_eq = [zero(QQ) for _ in 1:m]
   for i in 1:n
     A_eq[1:m, i] = transpose(coefficients(root_weights[i]))
   end
   b_eq[1:m] = view(coefficients(weight), 1, :)
 
- 
   A_ineq = zero_matrix(QQ, n + length(additional_inequalities), n)
   b_ineq = [zero(QQ) for _ in 1:(n + length(additional_inequalities))]
-  
+
   # non-negativity
   A_ineq[1:n, 1:n] = -identity_matrix(QQ, n)
 
   # additional_inequalities
   for (i, ineq) in enumerate(additional_inequalities)
-    A_ineq[n+i, :] = ineq[1]
-    b_ineq[n+i] = ineq[2]
+    A_ineq[n + i, :] = ineq[1]
+    b_ineq[n + i] = ineq[2]
   end
- 
+
   sol = Vector{ZZRingElem}.(lattice_points(polyhedron((A_ineq, b_ineq), (A_eq, b_eq))))
   return sol
 end
@@ -104,11 +104,11 @@ function compute_additional_inequalities(
 
   zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
   n = length(bir_sequence)
-  inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
+  inequalities = Tuple{Vector{QQFieldElem},QQFieldElem}[]
   for coord in zero_coordinates
     lhs = [zero(QQ) for _ in 1:n]
     lhs[coord] = 1
-    rhs = 0
+    rhs = zero(QQ)
     push!(inequalities, (lhs, rhs))
   end
   return inequalities
