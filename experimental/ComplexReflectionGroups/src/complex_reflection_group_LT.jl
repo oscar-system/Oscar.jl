@@ -15,6 +15,182 @@
 # code there are several transpose operation for the final generators.
 ###########################################################################################
 
+# Construct reflections directly in OSCAR's right-action convention. For a row root a,
+# the matrix is I - (1-zeta)/(a*conj(a)^t) * conj(a)^t*a; scaling a changes nothing.
+# See Lehrer--Taylor, Definition 1.17 and equation (1.18) (p. 11), and
+# Definition 8.18 (p. 147).
+function _lt_root_group(K, roots, eigenvalues=fill(K(-1), length(roots)))
+  V = vector_space(K, length(first(roots)))
+  return matrix_group([
+    matrix(unitary_reflection(V(root), K(zeta)))
+    for (root, zeta) in zip(roots, eigenvalues)
+  ])
+end
+
+function _lt_coordinate_root(K, d::Int, i::Int)
+  root = fill(zero(K), d)
+  root[i] = one(K)
+  return root
+end
+
+function _lt_adjacent_roots(K, n::Int, d::Int=n)
+  return [
+    _lt_coordinate_root(K, d, i) - _lt_coordinate_root(K, d, i + 1)
+    for i in 1:n-1
+  ]
+end
+
+function _lt_d_roots(K, n::Int, d::Int=n)
+  roots = _lt_adjacent_roots(K, n, d)
+  push!(roots, _lt_coordinate_root(K, d, n - 1) + _lt_coordinate_root(K, d, n))
+  return roots
+end
+
+# All coordinates in the constructions below refer to an orthonormal basis.
+# The identifications with ST numbers are Lehrer--Taylor, Table D.2 (p. 273).
+function _complex_reflection_group_LT_higher_rank(n::Int)
+  if n == 24
+    # J_3^(4): B_3 and the orbit of (lambda, lambda, 2), §7.6.2, pp. 108--109.
+    R, x = polynomial_ring(QQ)
+    K, lambda = number_field(x^2 + x + 2, "lambda")
+    roots = _lt_adjacent_roots(K, 3)
+    push!(roots, K.([0, 0, 1]), K.([lambda, lambda, 2]))
+    return _lt_root_group(K, roots)
+  elseif n in (25, 26, 32)
+    # L_3, M_3, L_4: §8.5.3--5.5, p. 149. The order-three reflections have
+    # eigenvalue omega as in Definition 8.18. Lemmas 8.23--8.24 (p. 150) give
+    # L_3 from the first three roots and L_4 by adjoining (0,1,-1,-1).
+    # Adjoining a transposition to L_3 gives M_3.
+    R, x = polynomial_ring(QQ)
+    K, omega = number_field(x^2 + x + 1, "omega")
+    d = n == 32 ? 4 : 3
+    roots = [
+      _lt_coordinate_root(K, d, 1),
+      _lt_coordinate_root(K, d, 2),
+      vcat(K.([1, 1, 1]), fill(zero(K), d - 3)),
+    ]
+    eigenvalues = fill(omega, 3)
+    if n == 26
+      # Keep the order-two hyperplane orbit first, followed by the ternary orbit.
+      pushfirst!(roots, K.([1, -1, 0]))
+      pushfirst!(eigenvalues, K(-1))
+    elseif n == 32
+      push!(roots, K.([0, 1, -1, -1]))
+      push!(eigenvalues, omega)
+    end
+    return _lt_root_group(K, roots, eigenvalues)
+  elseif n in (27, 30)
+    # J_3^(5) and H_4: §7.6.3, pp. 110--111. The three H_3 roots are those
+    # of Theorem 8.10 (p. 144); the H_4 extension is Theorem 8.15 (p. 146).
+    R, x = polynomial_ring(QQ)
+    K, tau = number_field(x^2 - x - 1, "tau")
+    if n == 27
+      R, x = polynomial_ring(K)
+      K, omega = number_field(x^2 + x + 1, "omega")
+      tau = K(tau)
+      roots = [
+        K.([0, 1, 0]), K.([1, tau, inv(tau)]), K.([1, 0, 0]),
+        K.([tau + omega, inv(tau) * omega - 1, 0]),
+      ]
+    else
+      roots = [
+        K.([0, 1, 0, 0]), K.([1, tau, inv(tau), 0]), K.([1, 0, 0, 0]),
+        K.([1, 1, 1, 1]),
+      ]
+    end
+    return _lt_root_group(K, roots)
+  elseif n == 28
+    # F_4, §7.6.2, p. 109. These are a simple system in the displayed line
+    # system: the first two roots are long and the last two are short.
+    return _lt_root_group(QQ, [
+      QQ.([0, 1, -1, 0]), QQ.([0, 0, 1, -1]), QQ.([0, 0, 0, 1]),
+      (1//2) .* QQ.([1, -1, -1, -1]),
+    ])
+  elseif n in (29, 31)
+    # N_4 and O_4, §7.6.2, pp. 109--110: respectively D_4^(4) and B_4^(4),
+    # with the orbit of the line (1,1,1,1) adjoined. Its scalar (1+i)/2 is
+    # immaterial for the reflection. The additional coordinate reflection in
+    # O_4 enlarges G(4,4,4) to G(4,2,4), not to G(4,1,4).
+    R, x = polynomial_ring(QQ)
+    K, i = number_field(x^2 + 1, "i")
+    roots = _lt_adjacent_roots(K, 4)
+    push!(roots, K.([1, -i, 0, 0]), K.([1, 1, 1, 1]))
+    if n == 31
+      push!(roots, K.([1, 0, 0, 0]))
+    end
+    return _lt_root_group(K, roots)
+  elseif n in (33, 34)
+    # K_5 and K_6, §7.6.1, pp. 107--108. Use the alternate K_6 realization
+    # consisting of D_6^(2) and the orbit of (1,1,1,1,1,theta). For K_5 use
+    # the book's orthonormal five-dimensional realization, not an arbitrary
+    # basis of its six-dimensional hyperplane.
+    R, x = polynomial_ring(QQ)
+    K, omega = number_field(x^2 + x + 1, "omega")
+    if n == 33
+      R, x = polynomial_ring(K)
+      K, sqrt2 = number_field(x^2 - 2, "sqrt2")
+      omega = K(omega)
+      theta = omega - omega^2
+      roots = _lt_d_roots(K, 4, 5)
+      push!(roots, K.([0, 0, 0, 0, 1]), K.([1, 1, 1, theta, sqrt2]))
+    else
+      theta = omega - omega^2
+      roots = _lt_d_roots(K, 6)
+      push!(roots, K.([1, 1, 1, 1, 1, theta]))
+    end
+    return _lt_root_group(K, roots)
+  elseif n in (35, 36, 37)
+    # E_6, E_7, E_8, §7.6.1, pp. 106--107. E_8 is D_8 plus the orbit of
+    # (1,...,1). For E_6 take the subsystem orthogonal to e6-e7,e7-e8, and
+    # use (e6+e7+e8)/sqrt(3) as the sixth orthonormal coordinate. For E_7
+    # take the subsystem orthogonal to e7-e8 and use (e7+e8)/sqrt(2).
+    # These are coordinate permutations of the E_6 subsystem in the book and
+    # one of its equivalent E_7 subsystems; the omitted directions are fixed.
+    if n == 35
+      R, x = polynomial_ring(QQ)
+      K, sqrt3 = number_field(x^2 - 3, "sqrt3")
+      roots = _lt_d_roots(K, 5, 6)
+      push!(roots, K.([1, 1, 1, 1, 1, sqrt3]))
+    elseif n == 36
+      R, x = polynomial_ring(QQ)
+      K, sqrt2 = number_field(x^2 - 2, "sqrt2")
+      roots = _lt_d_roots(K, 6, 7)
+      push!(roots, K.([0, 0, 0, 0, 0, 0, 1]), K.([1, 1, 1, 1, 1, 1, sqrt2]))
+    else
+      K = QQ
+      roots = _lt_d_roots(K, 8)
+      push!(roots, fill(one(K), 8))
+    end
+    return _lt_root_group(K, roots)
+  end
+  error("Invalid exceptional Shephard--Todd number")
+end
+
+# Restrict the A_(n-1) permutation realization (§7.5, p. 104) to the sum-zero
+# subspace. A Householder reflection H in u=(1,...,1,1-sqrt(n)) sends the row
+# (1,...,1) to sqrt(n)*e_n. Its first n-1 rows are therefore an orthonormal
+# basis of the sum-zero subspace. This exact basis is derived using the reflection
+# formula in Definition 1.17, equation (1.18) (p. 11); it needs only Q(sqrt(n)).
+function _lt_symmetric_group(n::Int)
+  if n == 2
+    return matrix_group([matrix(QQ, 1, 1, [-1])])
+  end
+  square, sqrt_n = is_square_with_sqrt(ZZ(n))
+  if square
+    K = QQ
+    sqrt_n = QQ(sqrt_n)
+  else
+    R, x = polynomial_ring(QQ)
+    K, sqrt_n = number_field(x^2 - n, "sqrt$n")
+  end
+  V = vector_space(K, n)
+  u = fill(one(K), n)
+  u[n] -= sqrt_n
+  H = matrix(unitary_reflection(V(u)))
+  roots = [[H[i, j] - H[i + 1, j] for j in 1:n-1] for i in 1:n-1]
+  return _lt_root_group(K, roots)
+end
+
 function complex_reflection_group_LT(n::Int)
 
   if n == 4
@@ -435,9 +611,8 @@ function complex_reflection_group_LT(n::Int)
 
     refls = Set([unitary_reflection(l) for l in lines])
 
-    # I guessed the roots of generating reflections from the proof of
-    # Theorem 8.10 (page 144).
-    # The line system H3 is the star-closure of the following lines.
+    # The proof of Theorem 8.10 (page 144) gives these generating roots:
+    # the line system H3 is the star-closure of the following lines.
     a = V([0,1,0])
     b = 1//2*V([K(1),tau,tau^-1])
     p = V([1,0,0])
@@ -453,6 +628,10 @@ function complex_reflection_group_LT(n::Int)
 
     set_attribute!(W, :complex_reflections, refls)
 
+  elseif 24 <= n <= 37
+
+    W = _complex_reflection_group_LT_higher_rank(n)
+
   else
 
     error("LT model not yet implemented")
@@ -466,15 +645,16 @@ end
 function complex_reflection_group_LT(t::Tuple)
   (m,p,n) = t
 
-  # See Lehrer & Taylor (2009), p 35-36
+  # G(m,p,n) is defined in Lehrer--Taylor, §2.2, pp. 24--25.
 
   # For the symmetric group case we do not want permutation matrices
   # since this is not an irreducible reflection representation
   if m == 1 && p == 1
-    error("LT model not Specified for symmetric group case")
+    return _lt_symmetric_group(n)
   end
 
-  # See Lehrer & Taylor (2009), p 35-36
+  # Reflection generators: Lehrer--Taylor, Lemma 2.8 and Proposition 2.10,
+  # pp. 26--27. Their row-action matrices are decorated permutation matrices.
   K, z = cyclotomic_field(m)
   matspace = matrix_space(K, n, n)
 

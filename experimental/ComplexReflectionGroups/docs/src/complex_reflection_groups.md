@@ -410,9 +410,15 @@ Hermitian form. Changing the model does not change the conjugacy type.
 
 The named models are `:LT`, `:CHEVIE`, and `:Magma`. The Lehrer--Taylor models
 [LT09](@cite) emphasize standard-unitary matrices and explicit algebraic numbers;
-not every type has an implemented `:LT` model. CHEVIE [Mic15](@cite) includes the
-arithmetic models of Marin and Michel [MM10](@cite). The Magma models [BCP97](@cite)
-use algebraic-integer matrix entries. For a nontrivial component, the default is
+they are described in [Lehrer--Taylor standard-unitary models](@ref crg-lt-models).
+CHEVIE [Mic15](@cite) includes the arithmetic models of Marin and Michel
+[MM10](@cite). The Magma models [BCP97](@cite) use algebraic-integer matrix entries
+in cyclotomic presentation fields. These fields contain the character field but
+need not equal it. The Magma matrices generally do not preserve the standard
+Hermitian form; this is a different objective from the LT models. See the
+[Magma handbook, "Construction of Finite Complex Reflection Groups"](https://magma.maths.usyd.edu.au/magma/handbook/text/1229),
+entries `ShephardTodd` and `ComplexRootMatrices`, for its arithmetic construction
+and invariant Hermitian forms. For a nontrivial component, the default is
 `:Magma`, except for the symmetric reflection representations, where it is `:CHEVIE`.
 
 For $G_4$, compare the Lehrer--Taylor and CHEVIE models:
@@ -494,6 +500,272 @@ julia> gens(W)
  [z_3 0; -z_3-1 1]
  [1 z_3+1; 0 z_3]
 ```
+
+### [Lehrer--Taylor standard-unitary models](@id crg-lt-models)
+
+The model `:LT` is available for every complex reflection group type. Its matrices
+preserve the standard Hermitian form
+
+```math
+(v,w)=v\overline w^{\mathsf T},
+\qquad A\overline A^{\mathsf T}=I.
+```
+
+The construction follows the explicit matrices and root-line systems of
+[LT09](@cite). The fields retain named algebraic numbers, using relative
+extensions when several numbers are needed. These are presentation fields for
+standard-unitary coordinates, not necessarily the smallest fields of definition.
+In particular, passing from an integral root basis to an orthonormal basis can
+enlarge the coefficient field. The ring-of-definition column of [LT09](@cite),
+Table D.2, p. 273, therefore must not be read as a list of coefficient rings for
+standard-unitary matrices.
+
+#### From roots to matrices
+
+If a nonzero root has row coordinates $a$ and its reflection has nontrivial
+eigenvalue $\zeta$, the standard-unitary reflection matrix is
+
+```math
+R(a,\zeta)
+=I-\frac{1-\zeta}{a\overline a^{\mathsf T}}
+  \overline a^{\mathsf T}a.
+```
+
+This is [LT09](@cite), equation (1.18), p. 11, in OSCAR's row-action convention.
+The root line is the $\zeta$-eigenspace, its orthogonal complement is fixed, and
+$R(a,\zeta)\overline{R(a,\zeta)}^{\mathsf T}=I$ because
+$\zeta\overline\zeta=1$. Rescaling $a$ does not change the matrix. Consequently,
+roots need not be normalized before calling `unitary_reflection`.
+
+For the involutive line systems, use $\zeta=-1$. For the higher-rank ternary systems use
+$\zeta=\omega$, where $\omega=e^{2\pi i/3}$; see [LT09](@cite), Definition 8.18,
+p. 147. A ternary root line contributes both $R(a,\omega)$ and its square as
+reflections. The mixed system $M_3$ combines involutive and ternary roots.
+These choices are also the eigenvalue convention used by the LT realization's
+reflection marking.
+
+For example, the ternary line system $L_3$ consists of the three coordinate axes
+and the nine lines spanned by $(1,\omega^i,\omega^j)$ for $0\le i,j<3$.
+Its reflection group is $G_{25}$; see [LT09](@cite), §8.5.3, p. 149,
+Lemma 8.23, p. 150, and Table D.2, p. 273. The reflection with root $(1,1,1)$ is
+
+```math
+R((1,1,1),\omega)
+=I_3+\frac{\omega-1}{3}
+\begin{pmatrix}1&1&1\\1&1&1\\1&1&1\end{pmatrix}.
+```
+
+```jldoctest
+julia> K, z = cyclotomic_field(3, "z");
+
+julia> a = free_module(K, 3)([1, 1, 1]);
+
+julia> s = unitary_reflection(a, z);
+
+julia> matrix(s) == identity_matrix(K, 3) + (z - 1) // 3 * matrix(K, [1 1 1; 1 1 1; 1 1 1])
+true
+
+julia> (is_unitary(s), order(s))
+(true, 3)
+
+julia> W = complex_reflection_group(25, :LT);
+
+julia> (degree(W), order(W), is_unitary(W))
+(3, 648, true)
+
+julia> all(g -> order(g) == 3, gens(W))
+true
+```
+
+#### Exceptional groups of rank two
+
+For $G_4,\ldots,G_{22}$ the generating matrices are the transposes of the
+matrices in [LT09](@cite), §§6.2--6.4 and Tables 6.1--6.3, pp. 85--90. Set
+$\tau=(1+\sqrt5)/2$ and $\zeta_5=e^{2\pi i/5}$, so
+$\tau=1+\zeta_5+\zeta_5^{-1}$. The native presentation fields are as follows:
+
+| Shephard--Todd types | Native LT presentation field | Source in [LT09](@cite) |
+| :--- | :--- | :--- |
+| $G_4,G_5,G_6,G_7$ | $\mathbb Q(i,\omega)$ | §6.2, Table 6.1, pp. 85--86 |
+| $G_8$ | $\mathbb Q(i)$ | §6.3, Table 6.2, pp. 87--88 |
+| $G_9,G_{12},G_{13}$ | $\mathbb Q(i,\sqrt2)$ | §6.3, Table 6.2, pp. 87--88 |
+| $G_{10}$ | $\mathbb Q(i,\omega)$ | §6.3, Table 6.2, pp. 87--88 |
+| $G_{11},G_{14},G_{15}$ | $\mathbb Q(i,\omega,\sqrt2)$ | §6.3, Table 6.2, pp. 87--88 |
+| $G_{16},G_{17}$ | $\mathbb Q(i,\tau,\zeta_5)$ | §6.4, Table 6.3, pp. 89--90 |
+| $G_{18},G_{19}$ | $\mathbb Q(i,\tau,\zeta_5,\omega)$ | §6.4, Table 6.3, pp. 89--90 |
+| $G_{20},G_{21}$ | $\mathbb Q(i,\tau,\omega)$ | §6.4, Table 6.3, pp. 89--90 |
+| $G_{22}$ | $\mathbb Q(i,\tau)$ | §6.4, Table 6.3, pp. 89--90 |
+
+The occurrences of $\tau$ in the fields containing $\zeta_5$ are deliberate:
+although algebraically redundant, the tower displays the real and cyclotomic
+quantities appearing in the matrices separately.
+
+#### Exceptional groups of higher rank
+
+For $G_{23},\ldots,G_{37}$ the construction uses the root-line systems of
+[LT09](@cite), §7.6, pp. 105--111, and §8.5, pp. 147--149. Their correspondence
+with Shephard--Todd types is Table D.2, p. 273. Put
+$\lambda=-(1+i\sqrt7)/2$, so $\lambda^2+\lambda+2=0$, and
+$\theta=\omega-\omega^2=i\sqrt3$. The fields below are those of the
+implemented orthonormal-coordinate realizations:
+
+| Type | LT line system | Native LT presentation field | Coordinate construction in [LT09](@cite) |
+| :--- | :--- | :--- | :--- |
+| $G_{23}$ | $H_3$ | $\mathbb Q(\tau)$ | §7.6.3, p. 110; generating roots in Theorem 8.10, p. 144 |
+| $G_{24}$ | $J_3^{(4)}$ | $\mathbb Q(\lambda)$ | §7.6.2, pp. 108--109 |
+| $G_{25}$ | $L_3$ | $\mathbb Q(\omega)$ | §8.5.3, p. 149; Lemma 8.23, p. 150 |
+| $G_{26}$ | $M_3$ | $\mathbb Q(\omega)$ | §8.5.5, p. 149 |
+| $G_{27}$ | $J_3^{(5)}$ | $\mathbb Q(\tau,\omega)$ | §7.6.3, pp. 110--111 |
+| $G_{28}$ | $F_4$ | $\mathbb Q$ | §7.6.2, p. 109 |
+| $G_{29}$ | $N_4$ | $\mathbb Q(i)$ | §7.6.2, p. 109 |
+| $G_{30}$ | $H_4$ | $\mathbb Q(\tau)$ | §7.6.3, p. 110; Theorem 8.15, p. 146 |
+| $G_{31}$ | $O_4$ | $\mathbb Q(i)$ | §7.6.2, pp. 109--110 |
+| $G_{32}$ | $L_4$ | $\mathbb Q(\omega)$ | §8.5.4, p. 149; Lemma 8.24, p. 150 |
+| $G_{33}$ | $K_5$ | $\mathbb Q(\omega,\sqrt2)$ | §7.6.1, pp. 107--108, five-dimensional variant |
+| $G_{34}$ | $K_6$ | $\mathbb Q(\omega)$ | §7.6.1, p. 107 |
+| $G_{35}$ | $E_6$ | $\mathbb Q(\sqrt3)$ | §7.6.1, pp. 106--107, followed by orthonormal restriction |
+| $G_{36}$ | $E_7$ | $\mathbb Q(\sqrt2)$ | §7.6.1, p. 106, followed by orthonormal restriction |
+| $G_{37}$ | $E_8$ | $\mathbb Q$ | §7.6.1, p. 106 |
+
+The generating reflections come from small sets of roots in these published
+finite line systems. Their conjugacy orbits recover every line in the system;
+for the mixed system $M_3$ and for $F_4$, both line orbits are included.
+Conjugating a seed reflection transports its root line and preserves its
+nontrivial eigenvalue. Thus the generated group contains the reflection
+associated with every line and is exactly $W(L)$, not merely a group with the
+same order. Table D.2 identifies its linear conjugacy type. These source-based
+generating sets are not asserted to be minimal.
+
+For $F_4$, root rescaling removes the square roots used to normalize short roots
+in the book, so the reflection matrices are rational. For $K_5$, the book's
+five-dimensional variant uses roots of the form
+$\tfrac12(1,1,1,\theta,\sqrt2)$, explaining the real quadratic extension.
+
+The $E_6$ and $E_7$ line systems are initially described inside the
+eight-dimensional $E_8$ realization. Their matrices must act on their supports,
+of dimensions six and seven, rather than retain a fixed complement. The LT
+constructor takes the $E_6$ subsystem orthogonal to $e_6-e_7,e_7-e_8$, with
+orthonormal basis
+$e_1,\ldots,e_5,(e_6+e_7+e_8)/\sqrt3$, and the $E_7$ subsystem orthogonal to
+$e_7-e_8$, with orthonormal basis
+$e_1,\ldots,e_6,(e_7+e_8)/\sqrt2$. These are equivalent to the subsystems
+described in [LT09](@cite), §7.6.1, pp. 106--107, by the transitivity on
+lines and on three-stars established there. The radicals in the table come
+from the orthonormal restriction, not from the rational root systems in an
+arbitrary root basis. In particular, `degree` is the degree of the specified
+irreducible type:
+
+```jldoctest
+julia> W = complex_reflection_group(35, :LT);
+
+julia> (degree(W), rank(complex_reflection_group_type(W)), is_unitary(W))
+(6, 6, true)
+
+julia> absolute_degree(base_ring(W))
+2
+```
+
+#### Monomial and symmetric groups
+
+For $m>1$, the LT realization of $G(m,p,n)$ is the standard monomial
+representation over $\mathbb Q(\zeta_m)$. Permutation matrices and diagonal
+matrices with root-of-unity entries preserve the standard form. The generating
+reflections are those of [LT09](@cite), Lemma 2.8 and Proposition 2.10,
+pp. 26--27; see also the monomial construction in §2.2, pp. 24--25.
+The type normalization treats rank-one and reducible overlaps as described in
+[Types and classification](@ref crg-types).
+
+For the label `G(1,1,n)`, the LT realization is the essential symmetric
+representation on the sum-zero subspace. Starting from the permutation action
+of [LT09](@cite), Example 1.14, p. 11, and the $A_{n-1}$ line system of
+§7.5, p. 104, choose orthonormal coordinates as follows. For $n>2$, put
+
+```math
+u=(1,\ldots,1,1-\sqrt n),
+\qquad
+H=I_n-\frac{2}{u u^{\mathsf T}}u^{\mathsf T}u.
+```
+
+This is the orthogonal reflection with root $u$, using equation (1.18), p. 11.
+It sends $(1,\ldots,1)$ to $\sqrt n\,e_n$. Hence the first $n-1$ rows of $H$
+form an orthonormal basis of the sum-zero subspace. If $B$ is the matrix of
+these rows and $P_i$ is the permutation matrix of $(i,i+1)$, the generators are
+
+```math
+B P_i B^{\mathsf T},\qquad 1\le i<n.
+```
+
+This orthonormalization is derived from the book's reflection formula; it is
+not a displayed coordinate basis from the book. The resulting presentation
+field is $\mathbb Q(\sqrt n)$, and is just $\mathbb Q$ when $n$ is a square.
+The case $n=2$ is realized directly by the rational matrix $(-1)$, and $n=1$
+is the trivial line specified by the type convention. For example,
+$S_4^{\mathrm{ref}}$ has a rational standard-unitary model:
+
+```jldoctest
+julia> W = complex_reflection_group(1, 1, 4, :LT);
+
+julia> (degree(W), order(W), is_unitary(W))
+(3, 24, true)
+
+julia> base_ring(W) === QQ
+true
+```
+
+### [Flattening an LT presentation field](@id crg-lt-flat)
+
+The keyword `field_presentation=:absolute` replaces the native coefficient
+field by an isomorphic absolute simple number field. The default,
+`field_presentation=:native`, keeps the readable LT tower whenever possible.
+An already absolute simple field, or the rational field, needs no conversion.
+Flattening changes neither the basis nor the generating transformations; it
+applies the field isomorphism to every matrix entry. It is also not a
+minimization of the field of definition, and does not promise a canonical or
+small defining polynomial.
+
+The symbols `:LT_flat` and `Symbol("LT-flat")` are convenience aliases for
+`:LT` with `field_presentation=:absolute`. The model remains `:LT`, including
+its reflection marking. In Julia, the literal `:LT-flat` would be parsed as
+subtraction, so use one of the valid spellings above.
+
+For a flattened irreducible realization, `components` retains the native
+realization, and `complex_reflection_group_component_embeddings` gives its
+field isomorphism to the flattened field. Thus named algebraic numbers in the
+tower can still be transported in either direction. For $G_4$:
+
+```jldoctest crg_flat
+julia> W = complex_reflection_group(4, :LT; field_presentation=:absolute);
+
+julia> native = only(components(W));
+
+julia> phi = only(complex_reflection_group_component_embeddings(W));
+
+julia> (absolute_degree(base_ring(native)), absolute_degree(base_ring(W)))
+(4, 4)
+
+julia> all(map_entries(phi, matrix(g)) == matrix(h) for (g, h) in zip(gens(native), gens(W)))
+true
+
+julia> all(map_entries(inv(phi), matrix(h)) == matrix(g) for (g, h) in zip(gens(native), gens(W)))
+true
+
+julia> (is_unitary(W), order(W))
+(true, 24)
+
+julia> complex_reflection_group_model(W)
+1-element Vector{Symbol}:
+ :LT
+```
+
+Complex conjugation is transported compatibly with the field isomorphism:
+if $\phi:K\to F$ is the map from the native to the absolute field, then
+$\overline{\phi(x)}=\phi(\overline x)$. Consequently the standard Hermitian
+form is still invariant. This compatibility is essential: an arbitrary field
+embedding is not a change of presentation for a specified complex realization.
+
+The keyword is also available for the other named models and for reducible
+types. In a product, the final common coefficient field is absolute, while the
+original component fields and their exact embeddings remain available.
 
 ### Products and fixed summands
 

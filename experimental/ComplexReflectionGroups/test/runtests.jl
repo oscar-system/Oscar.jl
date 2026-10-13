@@ -377,6 +377,191 @@
               number_of_reflections(complex_reflection_group_type(compositum_group))
     end
 
+    @testset "Absolute coefficient-field presentations" begin
+        # Field isomorphisms transport the LT matrices and their reference marking.
+        flat = complex_reflection_group(4, :LT; field_presentation=:absolute)
+        native = only(components(flat))
+        embedding = only(complex_reflection_group_component_embeddings(flat))
+        @test base_ring(native) isa Hecke.RelSimpleNumField
+        @test base_ring(flat) isa AbsSimpleNumField
+        @test absolute_degree(base_ring(flat)) == 4
+        @test domain(embedding) === base_ring(native)
+        @test codomain(embedding) === base_ring(flat)
+        @test complex_reflection_group_model(flat) == [:LT]
+        @test complex_reflection_group_type(flat) == complex_reflection_group_type(4)
+        @test is_unitary(flat)
+        @test is_one(invariant_hermitian_form(flat))
+        conjugation_native = complex_conjugation(base_ring(native))
+        conjugation_flat = complex_conjugation(base_ring(flat))
+        for (g, h) in zip(gens(native), gens(flat))
+            @test map_entries(embedding, matrix(g)) == matrix(h)
+            @test map_entries(inv(embedding), matrix(h)) == matrix(g)
+            @test all(
+                conjugation_flat(embedding(x)) == embedding(conjugation_native(x))
+                for x in matrix(g)
+            )
+        end
+        for (C, D) in zip(reflection_classes(native), reflection_classes(flat))
+            @test reflection_class_type(C) == reflection_class_type(D)
+            @test Set(map_entries(embedding, matrix(s)) for s in elements(C)) ==
+                  Set(matrix(s) for s in elements(D))
+        end
+
+        for alias in (:LT_flat, Symbol("LT-flat"))
+            W = complex_reflection_group(4, alias)
+            @test base_ring(W) isa AbsSimpleNumField
+            @test complex_reflection_group_model(W) == [:LT]
+            @test is_unitary(W)
+        end
+        for W in (
+            complex_reflection_group(; fixed_space_dimension=2, field_presentation=:absolute),
+            complex_reflection_group(4, 2, 2, :LT; field_presentation=:absolute),
+            complex_reflection_group([4, 8], :LT; field_presentation=:absolute),
+            complex_reflection_group(
+                complex_reflection_group_type([4, 8]; fixed_space_dimension=1), :LT;
+                field_presentation=:absolute,
+            ),
+        )
+            @test base_ring(W) isa Union{QQField, AbsSimpleNumField}
+            @test is_unitary(W)
+            @test fixed_space_dimension_from_generators(W) == fixed_space_dimension(W)
+            component_embeddings = complex_reflection_group_component_embeddings(W)
+            @test all(codomain(f) === base_ring(W) for f in component_embeddings)
+            @test all(
+                domain(f) === base_ring(C) for
+                (f, C) in zip(component_embeddings, components(W))
+            )
+            @test sum(number_of_hyperplanes, reflection_hyperplane_orbits(W); init=0) ==
+                  number_of_hyperplanes(complex_reflection_group_type(W))
+        end
+        for (types, field_degree) in (([4, 16], 16), ([27, 33], 8))
+            W = complex_reflection_group(types, :LT; field_presentation=:absolute)
+            @test base_ring(W) isa AbsSimpleNumField
+            @test absolute_degree(base_ring(W)) == field_degree
+            @test is_unitary(W)
+            conjugation = complex_conjugation(base_ring(W))
+            for (C, f) in zip(components(W), complex_reflection_group_component_embeddings(W))
+                source_conjugation = complex_conjugation(base_ring(C))
+                @test all(
+                    conjugation(f(x)) == f(source_conjugation(x))
+                    for g in gens(C) for x in matrix(g)
+                )
+            end
+        end
+        @test_throws ArgumentError complex_reflection_group(
+            4, :LT; field_presentation=:unknown
+        )
+    end
+
+    @testset "Higher-rank Lehrer--Taylor models" begin
+        # Independently tabulated line counts and stabilizer orders: LT09, Table D.2, p. 273.
+        dimensions = [3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 6, 6, 7, 8]
+        orbit_data = [
+            [(2, 21)], [(3, 12)], [(2, 9), (3, 12)], [(2, 45)],
+            [(2, 12), (2, 12)], [(2, 40)], [(2, 60)], [(2, 60)],
+            [(3, 40)], [(2, 45)], [(2, 126)], [(2, 36)], [(2, 63)], [(2, 120)],
+        ]
+        for n in 24:37
+            W = complex_reflection_group(n, :LT)
+            @test degree(W) == dimensions[n - 23]
+            @test is_unitary(W)
+            @test is_one(invariant_hermitian_form(W))
+            orbits = reflection_hyperplane_orbits(W)
+            @test [(pointwise_stabilizer_order(O), length(O)) for O in orbits] ==
+                  orbit_data[n - 23]
+            @test sum(length, reflection_classes(W)) ==
+                  sum((e - 1)*h for (e, h) in orbit_data[n - 23])
+            if n in (25, 26, 32)
+                K = base_ring(W)
+                omega = gen(K)
+                @test all(
+                    eigenvalue(complex_reflection(representative(O))) == omega
+                    for O in orbits if pointwise_stabilizer_order(O) == 3
+                )
+            end
+        end
+
+        # Explicit root-basis changes intertwine the LT and arithmetic Magma generators.
+        for n in (25, 28, 32, 35, 36)
+            W = complex_reflection_group(n, :LT)
+            M = complex_reflection_group(n, :Magma)
+            K = base_ring(W)
+            if n == 28
+                embedding = id_hom(QQ)
+                basis_change = matrix(QQ, [
+                    0 1 -1 0; 0 0 1 -1; 0 0 0 1; 1//2 -1//2 -1//2 -1//2
+                ])
+                indices = [1, 2, 3, 4]
+            elseif n in (25, 32)
+                omega = gen(K)
+                theta = omega - omega^2
+                embedding = hom(base_ring(M), K, omega)
+                if n == 25
+                    basis_change = matrix(K, [theta 0 0; 1 1 1; 0 theta 0])
+                    indices = [1, 3, 2]
+                else
+                    basis_change = matrix(K, [
+                        theta 0 0 0; -1 -1 -1 0; 0 theta 0 0; 0 -1 1 1
+                    ])
+                    indices = [1, 3, 2, 4]
+                end
+            else
+                embedding = hom(QQ, K)
+                radical = gen(K)
+                if n == 35
+                    basis_change = matrix(K, [
+                        1 -1 0 0 0 0;
+                        0 0 0 1 -1 0;
+                        0 1 -1 0 0 0;
+                        0 0 1 -1 0 0;
+                        0 0 0 1 1 0;
+                        -1//2 -1//2 -1//2 -1//2 -1//2 -radical//2
+                    ])
+                    indices = [1, 4, 2, 3, 5, 6]
+                else
+                    basis_change = matrix(K, [
+                        -1//2 -1//2 -1//2 -1//2 -1//2 -1//2 -radical//2;
+                        0 0 0 0 1 -1 0;
+                        0 0 0 0 1 1 0;
+                        0 0 0 1 -1 0 0;
+                        0 0 1 -1 0 0 0;
+                        0 1 -1 0 0 0 0;
+                        1 -1 0 0 0 0 0
+                    ])
+                    indices = [8, 5, 6, 4, 3, 2, 1]
+                end
+            end
+            @test !is_zero(det(basis_change))
+            @test length(gens(M)) == length(indices)
+            @test all(
+                map_entries(embedding, matrix(g))*basis_change ==
+                basis_change*matrix(gens(W)[j])
+                for (g, j) in zip(gens(M), indices)
+            )
+        end
+
+        for n in (2, 3, 4, 5, 6, 9)
+            W = complex_reflection_group(1, 1, n, :LT)
+            raw = matrix_group(gens(W))
+            @test degree(W) == n - 1
+            @test order(raw) == factorial(ZZ(n))
+            @test is_unitary(W)
+            @test (base_ring(W) isa QQField) == (n == 2 || is_square(ZZ(n)))
+            if !(base_ring(W) isa QQField)
+                @test absolute_degree(base_ring(W)) == 2
+            end
+            @test fixed_space_dimension_from_generators(W) == 0
+            @test length(only(reflection_hyperplane_orbits(W))) == binomial(n, 2)
+            generators = gens(W)
+            @test all(is_one(g^2) for g in generators)
+            @test all(is_one((generators[i]*generators[i + 1])^3) for i in 1:(n - 2))
+            @test all(
+                is_one((generators[i]*generators[j])^2)
+                for i in 1:(n - 1) for j in (i + 2):(n - 1)
+            )
+        end
+    end
+
     @testset "Concrete reflection data" begin
         W = complex_reflection_group(11, :LT)
         K = base_ring(W)
@@ -680,11 +865,6 @@
 
     for model in [:CHEVIE, :Magma, :LT]
         for n=4:37
-
-            #LT not yet implemented for n > 23
-            if model == :LT && n > 23
-                continue
-            end
 
             W = complex_reflection_group(n, model)
             W_copy = matrix_group(gens(W))

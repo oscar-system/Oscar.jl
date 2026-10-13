@@ -265,6 +265,20 @@ const _LT_EXCEPTIONAL_ORBIT_GENERATOR_INDICES = (
   (1, 2),     # G21
   (1,),       # G22
   (1,),       # G23
+  (1,),       # G24
+  (1,),       # G25
+  (1, 2),     # G26: involutory and ternary line systems (LT09, p. 149)
+  (1,),       # G27
+  (1, 3),     # G28: long and short simple roots (LT09, p. 109)
+  (1,),       # G29
+  (1,),       # G30
+  (1,),       # G31
+  (1,),       # G32
+  (1,),       # G33
+  (1,),       # G34
+  (1,),       # G35
+  (1,),       # G36
+  (1,),       # G37
 )
 
 const _MAGMA_EXCEPTIONAL_ORBIT_GENERATOR_INDICES = (
@@ -305,7 +319,7 @@ const _MAGMA_EXCEPTIONAL_ORBIT_GENERATOR_INDICES = (
 )
 
 function _exceptional_model_orbit_generator_indices(type::Int, model::Symbol)
-  if model == :LT && 4 <= type <= 23
+  if model == :LT && 4 <= type <= 37
     return _LT_EXCEPTIONAL_ORBIT_GENERATOR_INDICES[type - 3]
   elseif model == :Magma && 4 <= type <= 37
     return _MAGMA_EXCEPTIONAL_ORBIT_GENERATOR_INDICES[type - 3]

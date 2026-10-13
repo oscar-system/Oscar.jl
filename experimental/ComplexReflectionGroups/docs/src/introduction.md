@@ -15,7 +15,9 @@ implemented here.
   [Polynomial invariants](@ref crg-invariants).
 * Choose matrix models suited to the computation: standard-unitary Lehrer--Taylor
   models, CHEVIE models, or Magma models. Work with their exact coefficient fields,
-  including relative number-field towers. See [Matrix realizations](@ref crg-models).
+  including readable relative towers and absolute simple presentations. See
+  [Matrix realizations](@ref crg-models) and the complete list of
+  [Lehrer--Taylor models](@ref crg-lt-models).
 * Compute reflecting hyperplanes, their group orbits, and conjugacy classes of
   reflections. Their type-level labels are shared by the built-in models; their
   representatives are matrices in the chosen realization. See

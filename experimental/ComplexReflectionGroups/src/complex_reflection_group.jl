@@ -138,27 +138,34 @@ function _absolute_common_field(fields)
   return common_field, embeddings
 end
 
-function _common_field(fields)
+function _common_field(fields; field_presentation::Symbol=:native)
   existing_data = _existing_common_field(fields)
-  if existing_data !== nothing
-    return existing_data
+  data = if existing_data !== nothing
+    existing_data
+  else
+    cyclotomic_data = _cyclotomic_common_field(fields)
+    cyclotomic_data === nothing ? _absolute_common_field(fields) : cyclotomic_data
   end
-  cyclotomic_data = _cyclotomic_common_field(fields)
-  if cyclotomic_data !== nothing
-    return cyclotomic_data
+  common_field, embeddings = data
+  if field_presentation == :absolute &&
+      !(common_field isa Union{QQField, AbsSimpleNumField})
+    absolute_field, to_presentation = absolute_simple_field(common_field)
+    to_absolute = inv(to_presentation)
+    return absolute_field, [compose(f, to_absolute) for f in embeddings]
   end
-  return _absolute_common_field(fields)
+  return common_field, embeddings
 end
 
 function _block_diagonal_product(
-    groups::Vector{MatGroup}; fixed_space_dimension::Int=0
+    groups::Vector{MatGroup}; fixed_space_dimension::Int=0,
+    field_presentation::Symbol=:native
   )
   @assert fixed_space_dimension >= 0
 
   common_field, embeddings = if isempty(groups)
     QQ, Any[]
   else
-    _common_field(base_ring.(groups))
+    _common_field(base_ring.(groups); field_presentation)
   end
   mapped_groups = [
     map_entries(embedding, group) for (embedding, group) in zip(embeddings, groups)
@@ -191,15 +198,17 @@ function _block_diagonal_product(
 end
 
 """
-    complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
-    complex_reflection_group(; fixed_space_dimension=0, model=:default)
+    complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default;
+                             field_presentation=:native)
+    complex_reflection_group(; fixed_space_dimension=0, model=:default,
+                             field_presentation=:native)
     complex_reflection_group(i::Int, model::Symbol=:default;
-                             fixed_space_dimension=0)
+                             fixed_space_dimension=0, field_presentation=:native)
     complex_reflection_group(m::Int, p::Int, n::Int,
                              model::Symbol=:default;
-                             fixed_space_dimension=0)
+                             fixed_space_dimension=0, field_presentation=:native)
     complex_reflection_group(types::Vector, model::Symbol=:default;
-                             fixed_space_dimension=0)
+                             fixed_space_dimension=0, field_presentation=:native)
 
 Construct an exact matrix representative of a known complex reflection group
 type. The available named models are `:CHEVIE`, `:LT`, and `:Magma`;
@@ -208,12 +217,35 @@ are put into a common exact coefficient field and their original presentation
 fields and embeddings are retained. A fixed summand is represented by an
 identity block preceding the nontrivial component blocks.
 
+The `:LT` models preserve the standard Hermitian form and follow the
+orthonormal realizations in [LT09](@cite), Chapters 6--8; see the
+[Lehrer--Taylor models](@ref crg-lt-models) for precise constructions and
+coefficient fields. The arithmetic `:Magma` models need not preserve the
+standard form.
+
+With `field_presentation=:native`, retain a tower presentation when possible.
+With `field_presentation=:absolute`, transport the same matrices to an absolute
+simple number field (or `QQ`); this does not change their basis or minimize
+their field of definition. The aliases `:LT_flat` and `Symbol("LT-flat")`
+select `:LT` with an absolute presentation. Model labels remain `:LT`, and
+[`components`](@ref) and
+[`complex_reflection_group_component_embeddings`](@ref) retain the original
+component realizations and their exact maps into the resulting field.
+
 This is a type-aware constructor, not a recognition routine for arbitrary
 matrix groups. Pure trivial types, including the zero-dimensional type, are
 represented by a generator-free matrix group over `QQ`.
 """
-function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
+function complex_reflection_group(
+    G::ComplexReflectionGroupType, model::Symbol=:default;
+    field_presentation::Symbol=:native
+  )
 
+  @req field_presentation in (:native, :absolute) "Unknown coefficient-field presentation"
+  if model in (:LT_flat, Symbol("LT-flat"))
+    model = :LT
+    field_presentation = :absolute
+  end
   @req model in (:default, :CHEVIE, :LT, :Magma) "Specified model not found"
 
   # this will be the list of matrix groups corresponding to the components of G
@@ -271,14 +303,16 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
   end
 
   fixed_dimension = fixed_space_dimension(G)
-  if length(component_groups) == 1 && fixed_dimension == 0
+  if length(component_groups) == 1 && fixed_dimension == 0 &&
+      (field_presentation == :native ||
+       base_ring(component_groups[1]) isa Union{QQField, AbsSimpleNumField})
     # treat this as a special case because direct_product([G]) will have type direct
     # product which looks weird for a single group.
     return component_groups[1]
   else
     matgrp, component_embeddings, mapped_component_groups =
       _block_diagonal_product(
-        component_groups; fixed_space_dimension=fixed_dimension
+        component_groups; fixed_space_dimension=fixed_dimension, field_presentation
       )
 
     set_attribute!(matgrp, :order, order(G))
@@ -353,28 +387,31 @@ end
 
 # Convenience constructors
 complex_reflection_group(
-    ; fixed_space_dimension::IntegerUnion=0, model::Symbol=:default
+    ; fixed_space_dimension::IntegerUnion=0, model::Symbol=:default,
+    field_presentation::Symbol=:native
   ) = complex_reflection_group(
-    ComplexReflectionGroupType(; fixed_space_dimension), model
+    ComplexReflectionGroupType(; fixed_space_dimension), model; field_presentation
   )
 
 complex_reflection_group(
-    i::Int, model::Symbol=:default; fixed_space_dimension::IntegerUnion=0
+    i::Int, model::Symbol=:default; fixed_space_dimension::IntegerUnion=0,
+    field_presentation::Symbol=:native
   ) = complex_reflection_group(
-    ComplexReflectionGroupType(i; fixed_space_dimension), model
+    ComplexReflectionGroupType(i; fixed_space_dimension), model; field_presentation
   )
 
 complex_reflection_group(
     m::Int, p::Int, n::Int, model::Symbol=:default;
-    fixed_space_dimension::IntegerUnion=0
+    fixed_space_dimension::IntegerUnion=0, field_presentation::Symbol=:native
   ) = complex_reflection_group(
-    ComplexReflectionGroupType(m, p, n; fixed_space_dimension), model
+    ComplexReflectionGroupType(m, p, n; fixed_space_dimension), model; field_presentation
   )
 
 complex_reflection_group(
-    X::Vector, model::Symbol=:default; fixed_space_dimension::IntegerUnion=0
+    X::Vector, model::Symbol=:default; fixed_space_dimension::IntegerUnion=0,
+    field_presentation::Symbol=:native
   ) = complex_reflection_group(
-    ComplexReflectionGroupType(X; fixed_space_dimension), model
+    ComplexReflectionGroupType(X; fixed_space_dimension), model; field_presentation
   )
 
 
