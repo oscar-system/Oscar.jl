@@ -67,6 +67,11 @@ end
 
 Return the diagonal action of `T` with weights given by `W`.
 
+The matrix `W` has one row for each coordinate of the vector space on which `T` acts, and
+$m$ = `rank(T)` columns: if the $i$-th row is $(w_1, \dots, w_m)$, then
+$t = (t_1, \dots, t_m) \in T$ multiplies the $i$-th coordinate by $t_1^{w_1} \cdots t_m^{w_m}$.
+If $m = 1$, then `W` may also be a vector.
+
 # Examples
 ```jldoctest
 julia> T = torus_group(QQ,2);
@@ -88,13 +93,12 @@ end
 function weights_from_matrix(n::Int, W::Union{ZZMatrix,Matrix{<:Integer},Vector{<:Int}})
   V = Vector{Vector{ZZRingElem}}()
   if W isa Vector
-    n == 1 || error("Incompatible weights")
+    @req n == 1 "a vector of weights requires a torus of rank 1"
     for i in 1:length(W)
       push!(V, [ZZRingElem(W[i])])
     end
   else
-    n == ncols(W) || error("Incompatible weights")
-    #assume columns = G.group[2]
+    @req n == ncols(W) "the weight matrix must have rank(T) = $n columns and one row per coordinate"
     for i in 1:nrows(W)
       push!(V, [ZZRingElem(W[i, j]) for j in 1:ncols(W)])
     end
