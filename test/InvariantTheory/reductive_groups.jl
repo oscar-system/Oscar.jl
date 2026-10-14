@@ -29,6 +29,11 @@
   FI_rep1 = fundamental_invariants(R_rep1)
   @test length(FI_rep1) == 1
 
+  #the null cone ideal is Hilbert's ideal, in the polynomial ring of the invariant ring
+  N = null_cone_ideal(R_rep1)
+  @test base_ring(N) === polynomial_ring(R_rep1)
+  @test N == ideal(FI_rep1)
+
   #same rep mat as in rep1, only without multinomial coefficients.
   M = matrix(
     S,
@@ -73,7 +78,10 @@
   end
 
   #no invariants of positive degree
-  @test is_empty(fundamental_invariants(invariant_ring(representation_on_forms(G, 1))))
+  R_V1 = invariant_ring(representation_on_forms(G, 1))
+  @test is_empty(fundamental_invariants(R_V1))
+  @test is_zero(null_cone_ideal(R_V1))
+  @test base_ring(null_cone_ideal(R_V1)) === polynomial_ring(R_V1)
 
   #the representation matrix maps the coefficients of f to those of f(Z*x)
   Zv = [2 3; 1 2]

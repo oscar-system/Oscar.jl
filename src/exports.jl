@@ -1361,6 +1361,7 @@ export normalization_with_delta
 export normalize!
 export normalized_volume
 export normalizer
+export null_cone_ideal
 export nullity
 export number_of_atlas_groups
 export number_of_combinations

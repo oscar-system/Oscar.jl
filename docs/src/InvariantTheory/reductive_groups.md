@@ -98,6 +98,12 @@ If `RG` is the invariant ring $k[x_1, \dots, x_n]^G$ of a linearly reductive gro
 reynolds_operator(R::RedGroupInvarRing, f::MPolyRingElem)
 ```
 
+## The Null Cone
+
+```@docs
+null_cone_ideal(RG::RedGroupInvarRing)
+```
+
 ## Fundamental Systems of Invariants
 
 ```@docs
