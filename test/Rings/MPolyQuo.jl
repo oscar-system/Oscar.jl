@@ -358,6 +358,27 @@ end
   @test Oscar.HasGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasRingFlattening
 end
 
+@testset "quotients of polynomial rings in 0 variables" begin
+  # Normal forms, for which Singular needs at least one variable
+  P, _ = polynomial_ring(QQ, 0)
+  Q, _ = quo(P, ideal(P, [zero(P)]))
+  @test !iszero(Q(1))
+  @test Q(1) != Q(2)
+  @test Q(2) * Q(3) == Q(6)
+  @test hash(Q(2) * Q(3)) == hash(Q(6))
+  Q, _ = quo(P, ideal(P, [P(3)]))
+  @test iszero(Q(1))
+  @test Q(1) == Q(2)
+
+  P, _ = polynomial_ring(ZZ, 0)
+  Q, _ = quo(P, ideal(P, [P(3)]))
+  @test !iszero(Q(4))
+  @test Q(5) == Q(2)
+  @test hash(Q(5)) == hash(Q(2))
+  Q, _ = quo(P, ideal(P, [P(4), P(6)]))
+  @test Q(3) == Q(1)
+end
+
 @testset "Tensor product" begin
   R, x = polynomial_ring(QQ, 3, :x)
   S, y = polynomial_ring(QQ, 4, :y)
