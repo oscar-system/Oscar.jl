@@ -1045,6 +1045,7 @@ export is_principal
 export is_probable_prime
 export is_projective
 export is_projective_space
+export is_pseudo_reflection
 export is_pure
 export is_q_cartier
 export is_q_gorenstein
