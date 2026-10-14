@@ -10,3 +10,6 @@ from [Bra25](@cite) for computing (pseudo-)bases of their centers and centroids.
 
 Stable and maintained but not under active development.
 
+## Contact
+See the contact section in `experimental/CliffordAlgOrd/docs/src/introduction.md`.
+
