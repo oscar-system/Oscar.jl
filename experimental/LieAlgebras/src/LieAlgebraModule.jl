@@ -1016,17 +1016,22 @@ function exterior_power(
   R = coefficient_ring(V)
   dim_E = binomial(dim(V), k)
   ind_map = collect(combinations(1:dim(V), k))
+  index_of = Dict{Vector{Int},Int}(collect(Int, I) => i for (i, I) in enumerate(ind_map))
 
-  T, _ = tensor_power(V, k; cached)
-  E_to_T_mat = zero_matrix(R, dim_E, dim(T))
-  T_to_E_mat = zero_matrix(R, dim(T), dim_E)
-  for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
-    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
-    E_to_T_mat[i, j] = R(sgn)//factorial(k)
-    T_to_E_mat[j, i] = R(sgn)
-  end
-  transformation_matrices = map(1:dim(L)) do i
-    E_to_T_mat * transformation_matrix(T, i) * T_to_E_mat
+  # x acts as a derivation: x * (e_I) = sum_m e_{i_1} ^ ... ^ (x * e_{i_m}) ^ ... ^ e_{i_k}
+  transformation_matrices = map(1:dim(L)) do l
+    T_l = transformation_matrix(V, l)
+    M = zero_matrix(R, dim_E, dim_E)
+    for (r, I) in enumerate(ind_map), (m, i_m) in enumerate(I), j in 1:dim(V)
+      c = T_l[i_m, j]
+      iszero(c) && continue
+      j != i_m && j in I && continue # repeated factor
+      J = collect(Int, I)
+      J[m] = j
+      p = sortperm(J)
+      M[r, index_of[J[p]]] += sign(AbstractAlgebra.Perm(p, false)) * c
+    end
+    M
   end
 
   s = if k == 0
@@ -1146,17 +1151,21 @@ function symmetric_power(
   R = coefficient_ring(V)
   dim_S = binomial(dim(V) + k - 1, k)
   ind_map = collect(multicombinations(dim(V), k))
+  index_of = Dict{Vector{Int},Int}(collect(Int, I) => i for (i, I) in enumerate(ind_map))
 
-  T, _ = tensor_power(V, k; cached)
-  S_to_T_mat = zero_matrix(R, dim_S, dim(T))
-  T_to_S_mat = zero_matrix(R, dim(T), dim_S)
-  for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
-    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
-    S_to_T_mat[i, j] += R(1)//factorial(k)
-    T_to_S_mat[j, i] = R(1)
-  end
-  transformation_matrices = map(1:dim(L)) do i
-    S_to_T_mat * transformation_matrix(T, i) * T_to_S_mat
+  # x acts as a derivation: x * (e_I) = sum_m e_{i_1} * ... * (x * e_{i_m}) * ... * e_{i_k}
+  transformation_matrices = map(1:dim(L)) do l
+    T_l = transformation_matrix(V, l)
+    M = zero_matrix(R, dim_S, dim_S)
+    for (r, I) in enumerate(ind_map), (m, i_m) in enumerate(I), j in 1:dim(V)
+      c = T_l[i_m, j]
+      iszero(c) && continue
+      J = collect(Int, I)
+      J[m] = j
+      sort!(J)
+      M[r, index_of[J]] += c
+    end
+    M
   end
 
   s = if k == 0
