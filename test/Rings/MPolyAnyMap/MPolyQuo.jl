@@ -240,6 +240,7 @@ end
   F, _ = polynomial_ring(GF(2), [:y])
   @test is_one(hom(Q, F, elem_type(F)[])(Q(3)))
   @test is_one(hom(Q, F, a -> F(a), elem_type(F)[])(Q(3)))
+  @test is_one(hom(Q, GF(2), elem_type(GF(2))[])(Q(3)))
   @test_throws "not well-defined" hom(Q, T, elem_type(T)[])
   @test_throws "not well-defined" hom(Q, T, a -> T(a), elem_type(T)[])
 

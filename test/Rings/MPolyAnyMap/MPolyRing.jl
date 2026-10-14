@@ -192,4 +192,18 @@ end
       to multivariate polynomial ring in 1 variable over QQ
     with map on coefficients
       Map: QQ -> QQ"""
+
+  Qi, i = quadratic_field(-1)
+  P, _ = polynomial_ring(Qi, 0)
+  T, _ = polynomial_ring(Qi, [:z])
+  M = matrix_ring(Qi, 2)
+  @test hom(P, T, x -> x, elem_type(T)[])(P(i)) == T(i)
+  @test hom(P, T, hom(Qi, Qi, -i), elem_type(T)[])(P(i)) == T(-i)
+  @test hom(P, M, elem_type(M)[])(P(i)) == M(i)
+
+  P, _ = polynomial_ring(ZZ, 0)
+  F = GF(2)
+  @test is_one(hom(P, F, elem_type(F)[])(P(3)))
+  @test is_one(hom(P, F, a -> F(a), elem_type(F)[])(P(3)))
+  @test is_one(hom(P, F, MapFromFunc(ZZ, F, F), elem_type(F)[])(P(3)))
 end

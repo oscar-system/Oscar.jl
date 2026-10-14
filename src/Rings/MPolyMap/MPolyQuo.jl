@@ -4,13 +4,6 @@
 #
 ################################################################################
 
-# Evaluate `f` at `vals` with the result in `S`. AbstractAlgebra's `evaluate`
-# reads the result's parent off `vals[1]`, so it rejects an empty `vals`.
-function _evaluate_in(S::NCRing, f::MPolyRingElem, vals::Vector)
-  is_empty(vals) && return S(constant_coefficient(f))
-  return evaluate(f, vals)
-end
-
 function _check_imgs_quo(R, S::NCRing, imgs, coeff_map = nothing)
   n = length(imgs)
   for i in 1:n, j in 1:(i - 1)
