@@ -1,7 +1,9 @@
 # Invariants of Tori
-In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $T =(K^{\ast})^m$ will be a torus of rank $m$
-over a field $K$. To compute invariants of diagonal torus actions, OSCAR makes use of Algorithm 4.3.1  in [DK15](@cite) which,
-in particular, relies on algorithmic means from polyhedral geometry.
+
+In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $T = (K^{\ast})^m$ will be a torus of rank $m$ over a field $K$.
+
+In principle, invariants of diagonal torus actions can be computed with Derksen's algorithm from the [previous section](@ref "Invariants of Linearly Reductive Groups").
+OSCAR instead uses Algorithm 4.3.1 in [DK15](@cite), which relies on polyhedral geometry and, as the authors put it, "is simpler and more efficient".
 
 ## Creating Invariant Rings
 
