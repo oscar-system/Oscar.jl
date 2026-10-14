@@ -107,7 +107,6 @@ export _is_tensor_power
 export _is_tensor_product
 
 include("Types.jl")
-include("Combinatorics.jl")
 
 include("CoxeterGroup.jl")
 include("DynkinDiagram.jl")
