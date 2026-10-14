@@ -365,7 +365,7 @@ mutable struct PowerProductCache{RingType,T}
 end
 
 # These are objects that carry information about a linearly reductive group.
-# As of now it is only implemented for SLn, its direct products and tensors.
+# As of now it is only implemented for SLm, its direct products and tensors.
 mutable struct LinearlyReductiveGroup
   field::Field
   group::Tuple{Symbol,Int}
