@@ -46,8 +46,11 @@ struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
 end
 
 function Base.deepcopy_internal(x::BasicGAPGroupElem, dict::IdDict)
+  haskey(dict, x) && return dict[x]
   X = Base.deepcopy_internal(GapObj(x), dict)
-  return BasicGAPGroupElem(x.parent, X)
+  xx = BasicGAPGroupElem(x.parent, X)
+  dict[x] = xx
+  return xx
 end
 
 """

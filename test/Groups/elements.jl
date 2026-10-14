@@ -260,6 +260,9 @@ end
      @test isdefined(c, :X)
      @test GAP.Obj(c) == GAP.Obj(m)
 
+     c = deepcopy([ m, m ])
+     @test c[1] === c[2]
+
      @test deepcopy([one(g)]) == [one(g)]
    end
 end
