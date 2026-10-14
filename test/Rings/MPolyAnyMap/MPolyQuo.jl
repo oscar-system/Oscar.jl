@@ -242,4 +242,18 @@ end
   @test is_one(hom(Q, F, a -> F(a), elem_type(F)[])(Q(3)))
   @test_throws "not well-defined" hom(Q, T, elem_type(T)[])
   @test_throws "not well-defined" hom(Q, T, a -> T(a), elem_type(T)[])
+
+  P, _ = polynomial_ring(QQ, 0)
+  Q, _ = quo(P, ideal(P, [zero(P)]))
+  T, _ = polynomial_ring(QQ, [:z])
+  @test sprint(show, "text/plain", hom(Q, T, elem_type(T)[])) == """
+    Ring homomorphism
+      from quotient of multivariate polynomial ring by ideal (0)
+      to multivariate polynomial ring in 1 variable over QQ"""
+  @test sprint(show, "text/plain", hom(Q, T, identity_map(QQ), elem_type(T)[])) == """
+    Ring homomorphism
+      from quotient of multivariate polynomial ring by ideal (0)
+      to multivariate polynomial ring in 1 variable over QQ
+    with map on coefficients
+      Map: QQ -> QQ"""
 end
