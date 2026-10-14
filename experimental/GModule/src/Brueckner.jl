@@ -485,24 +485,17 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   #I'd like preimage(mH2_K, image(s)[1])
   is, mis = image(s)
   ih, mih = image(mH2_K)
-  b, mb = intersect(is, ih) #mb: b -> is
+  b, mb = intersect(ih, is) #mb: b -> is
   k, mk = kernel(mH2_K)
-  H2, mH2 = sub(H2, vcat([preimage(is, mb(g)) for g = gens(b)], map(mk, gens(k))))
+  gns = [preimage(mH2_K, mih(mb(g))) for g = gens(b)]
+  if ngens(k) > 0
+    append!(gns, map(mk, gens(k)))
+  end
+  H2, mH2 = sub(H2, gns)
   @show H2
   z = mH2*z
   mH2_K = mH2*mH2_K
  
- #= 
-  ImH2 = image(mH2_K)
-  Is, mIs = image(s)
-  H2, mH2 = intersect(ImH2[1], Is)
-  @show H2
-  z = mH2*ImH2[2]*pseudo_inv(mH2_K)*z
-  mH2_K = mH2*ImH2[2]
-  @show z
- =#
- 
-
   function _process(h; is_trivial::Bool = false, limit::Int)
     @assert !is_trivial
     @show h
