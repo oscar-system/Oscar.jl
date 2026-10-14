@@ -179,24 +179,30 @@
     @test length(F) == length(FT)
     @test all(f -> subalgebra_membership_homogeneous(f, FT)[1], F)
   end
+  ringg, z = polynomial_ring(QQ, :z => 1:4)
+  G = linearly_reductive_group(ideal([z[1] * z[2] - 1, z[3] * z[4] - 1]))
+  M = diagonal_matrix(ringg, [z[1], z[3], z[2] * z[4], z[2] * z[3]])
+  IT = invariant_ring(representation_from_weights(torus_group(QQ, 2), [1 0; 0 1; -1 -1; -1 1]))
+  RG = invariant_ring(polynomial_ring(IT), representation_reductive_group(G, M))
+  @test issetequal(fundamental_invariants(RG), fundamental_invariants(IT))
 
-  #SL(2) over symmetric forms of degree 4:
+  #SLm with and without the Reynolds operator
   g = linearly_reductive_group(:SL, 2, QQ)
-  r = representation_on_forms(g, 4)
-  #with reynolds operator we get 2 fundamental invariants:
-  rg = invariant_ring(r)
-  FF = fundamental_invariants(rg)
-  @test length(FF) == 2
-  @test all(h -> is_invariant(h, r), FF)
-  #without the Reynolds operator we get invariants of the same degrees:
-  M = representation_matrix(r)
-  ringg = parent(M[1, 1])
-  z = gens(ringg)
-  f = z[1] * z[4] - z[2] * z[3] - 1
-  G = linearly_reductive_group(ideal([f]))
-  R = representation_reductive_group(G, M)
-  RG = invariant_ring(R)
-  F = fundamental_invariants(RG)
-  @test map(total_degree, F) == map(total_degree, FF)
-  @test all(h -> is_invariant(h, R), F)
+  r4 = representation_on_forms(g, 4)
+  for r in [
+    representation_on_forms(g, 3),
+    r4,
+    Oscar._direct_sum(representation_on_forms(g, 2), representation_on_forms(g, 2)),
+    representation_on_forms(linearly_reductive_group(:SL, 3, QQ), 2),
+  ]
+    rg = invariant_ring(r)
+    FF = fundamental_invariants(rg)
+    @test all(h -> is_invariant(h, r), FF)
+    G = linearly_reductive_group(defining_ideal(group(r)))
+    R = representation_reductive_group(G, representation_matrix(r))
+    F = fundamental_invariants(invariant_ring(polynomial_ring(rg), R))
+    @test length(F) == length(FF)
+    @test all(f -> subalgebra_membership_homogeneous(f, FF)[1], F)
+  end
+  @test length(fundamental_invariants(invariant_ring(r4))) == 2
 end
