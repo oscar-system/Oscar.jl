@@ -11,6 +11,12 @@
 #           subgroup chain (U_i)_(0<=i<=k)
 #           transversals (S_i)_(0<i<=k) of R(U_i\U_i-1)
 
+# O(1) zero-cost parent caster: skips GAP Schreier-Sims membership sifting
+@inline function reparent(G::PermGroup, x::PermGroupElem)
+  parent(x) === G ? x : Oscar.PermGroupElem(G, x.X)
+end
+
+
 function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
   sprev = L[1]
   for s in L
@@ -48,6 +54,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   for (a, st) in Sprev.DSt
+    inv_a := inv(a)
     seen = IndexedSet{PermGroupElem}()
     for t in T
       t in seen && continue
@@ -70,7 +77,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
       DSt[d] = st2
       for u in Sta
-        tt = Tmap(d*u*inv(a))
+        tt = Tmap(reparent(Aprev, d*u*inv_a))
         push!(seen, tt)
         Im[tt*a] = (d, u)
         # @assert tt*a*inv(u)*inv(d) in A
