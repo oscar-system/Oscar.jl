@@ -20,6 +20,7 @@
   @test ncols(representation_matrix(rep1)) == 3
   @test group(rep1) == G
   @test vector_space_dim(rep1) == 3
+  @test sprint(show, rep1) == "Representation of degree 3 of linearly reductive group"
 
   R_rep1 = invariant_ring(rep1)
   FI_rep1 = fundamental_invariants(R_rep1)
@@ -104,6 +105,7 @@
   #example in the derksen book
   T = torus_group(QQ, 1)
   r = representation_from_weights(T, [-3, -1, 1, 2])
+  @test sprint(show, r) == "Representation of degree 4 of torus group"
   I = invariant_ring(r)
   f = fundamental_invariants(I)
   @test length(f) == 6

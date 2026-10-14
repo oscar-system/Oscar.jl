@@ -152,8 +152,7 @@ function Base.show(io::IO, R::RepresentationTorusGroup)
   if is_terse(io)
     print(io, "Representation of torus group")
   else
-    # I don't know what else to print here
-    print(io, "Representation of torus group")
+    print(io, "Representation of degree ", length(weights(R)), " of torus group")
   end
 end
 
