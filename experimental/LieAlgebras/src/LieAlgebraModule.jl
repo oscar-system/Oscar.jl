@@ -1052,10 +1052,11 @@ function exterior_power(
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
+    # the coefficients of a wedge product are the maximal minors of the coefficient rows
+    A = reduce(vcat, [_matrix(a) for a in as]; init=zero_matrix(R, 0, dim(V)))
     mat = zero_matrix(R, 1, dim_E)
-    for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
-      mat[1, i] +=
-        sgn * prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R))
+    for (m, _, J) in minors_iterator_with_position(A, k)
+      mat[1, index_of[J]] = m
     end
     return E(mat)
   end
@@ -1203,11 +1204,21 @@ function symmetric_power(
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
+    # multiply out one factor at a time, with coefficients indexed by sorted index vectors
+    coeffs = Dict{Vector{Int},elem_type(R)}(Int[] => one(R))
+    for a in as
+      next = Dict{Vector{Int},elem_type(R)}()
+      for (I, c) in coeffs, j in 1:dim(V)
+        is_zero_entry(a.mat, 1, j) && continue
+        J = copy(I)
+        insert!(J, searchsortedfirst(J, j), j)
+        next[J] = get(next, J, zero(R)) + c * a.mat[1, j]
+      end
+      coeffs = next
+    end
     mat = zero_matrix(R, 1, dim_S)
-    for (i, _inds) in enumerate(ind_map), inds in unique(permutations(_inds))
-      mat[1, i] += prod(
-        as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R)
-      )
+    for (I, c) in coeffs
+      mat[1, index_of[I]] = c
     end
     return S(mat)
   end
