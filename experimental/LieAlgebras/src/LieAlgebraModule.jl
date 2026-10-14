@@ -1023,9 +1023,9 @@ function exterior_power(
     T_l = transformation_matrix(V, l)
     M = zero_matrix(R, dim_E, dim_E)
     for (r, I) in enumerate(ind_map), (m, i_m) in enumerate(I), j in 1:dim(V)
-      c = T_l[i_m, j]
-      iszero(c) && continue
+      is_zero_entry(T_l, i_m, j) && continue
       j != i_m && j in I && continue # repeated factor
+      c = T_l[i_m, j]
       J = collect(Int, I)
       J[m] = j
       p = sortperm(J)
@@ -1158,8 +1158,8 @@ function symmetric_power(
     T_l = transformation_matrix(V, l)
     M = zero_matrix(R, dim_S, dim_S)
     for (r, I) in enumerate(ind_map), (m, i_m) in enumerate(I), j in 1:dim(V)
+      is_zero_entry(T_l, i_m, j) && continue
       c = T_l[i_m, j]
-      iszero(c) && continue
       J = collect(Int, I)
       J[m] = j
       sort!(J)
