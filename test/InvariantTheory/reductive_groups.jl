@@ -109,6 +109,7 @@
   r = representation_from_weights(T, [-3, -1, 1, 2])
   @test sprint(show, r) == "Representation of degree 4 of torus group"
   @test_throws ArgumentError representation_from_weights(T, [-3 -1 1 2])
+  @test weights(representation_from_weights(T, ZZ.([-3, -1, 1, 2]))) == weights(r)
   @test_throws ArgumentError representation_from_weights(torus_group(QQ, 2), [1, -1])
   I = invariant_ring(r)
   f = fundamental_invariants(I)

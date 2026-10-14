@@ -23,7 +23,7 @@ base_ring(T::TorusGroup)
 ```
 
 ```@docs
-representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
+representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:IntegerUnion}, Vector{<:IntegerUnion}})
 ```
 
 ```@docs

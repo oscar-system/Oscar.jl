@@ -63,7 +63,7 @@ function Base.show(io::IO, G::TorusGroup)
 end
 
 @doc raw"""
-    representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
+    representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:IntegerUnion}, Vector{<:IntegerUnion}})
 
 Return the diagonal action of `T` with weights given by `W`.
 
@@ -83,14 +83,16 @@ Representation
 ```
 """
 function representation_from_weights(
-  G::TorusGroup, W::Union{ZZMatrix,Matrix{<:Integer},Vector{<:Int}}
+  G::TorusGroup, W::Union{ZZMatrix,Matrix{<:IntegerUnion},Vector{<:IntegerUnion}}
 )
   n = rank(G)
   V = weights_from_matrix(n, W)
   return RepresentationTorusGroup(G, V)
 end
 
-function weights_from_matrix(n::Int, W::Union{ZZMatrix,Matrix{<:Integer},Vector{<:Int}})
+function weights_from_matrix(
+  n::Int, W::Union{ZZMatrix,Matrix{<:IntegerUnion},Vector{<:IntegerUnion}}
+)
   V = Vector{Vector{ZZRingElem}}()
   if W isa Vector
     @req n == 1 "a vector of weights requires a torus of rank 1"
