@@ -371,7 +371,7 @@ mutable struct LinearlyReductiveGroup
   group::Tuple{Symbol,Int}
   defining_ideal::MPolyIdeal
   reynolds_operator::Function
-  canonical_representation::MatElem
+  natural_representation::MatElem
 
   function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
     @req sym === :SL && characteristic(fld) == 0 "Only SL in characteristic 0 is implemented so far"
@@ -388,7 +388,7 @@ mutable struct LinearlyReductiveGroup
     G.group = (sym, m)
     G.reynolds_operator = reynolds_slm
     M = transpose(matrix(pring, m, m, gens(pring)))
-    G.canonical_representation = M
+    G.natural_representation = M
     G.defining_ideal = ideal([det(M) - 1])
     #base ring of M has to be the same as the representation matrix when that is created later.
     return G

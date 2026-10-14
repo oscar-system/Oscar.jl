@@ -91,8 +91,7 @@ linearly_reductive_group(I::MPolyIdeal) = LinearlyReductiveGroup(I)
 
 base_ring(G::LinearlyReductiveGroup) = G.field
 defining_ideal(G::LinearlyReductiveGroup) = G.defining_ideal
-canonical_representation(G::LinearlyReductiveGroup) = G.canonical_representation
-natural_representation(G::LinearlyReductiveGroup) = G.canonical_representation
+natural_representation(G::LinearlyReductiveGroup) = G.natural_representation
 group_type(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[1] : nothing
 group_dim(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[2] : nothing
 
@@ -139,7 +138,7 @@ end
 
 function representation_reductive_group(G::LinearlyReductiveGroup)
   @req group_type(G) === :SL "Only implemented for SLm"
-  M = canonical_representation(G)
+  M = natural_representation(G)
   return RepresentationLinearlyReductiveGroup(G, M)
 end
 
@@ -435,7 +434,7 @@ function inv_generators(
   xyz = gens(mixed_ring_xy)
   mapp = hom(R, mixed_ring_xy, xyz)
   new_rep_mat = matrix(mixed_ring_xy, n, n, [mapp(M[i, j]) for i in 1:n, j in 1:n])
-  det_ = det(G.canonical_representation)
+  det_ = det(natural_representation(G))
   mapp_ = hom(parent(det_), mixed_ring_xy, xyz[((2 * n) + 1):end])
   new_det = mapp_(det_)
 
@@ -549,7 +548,7 @@ function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyR
   group_ring = base_ring(X.rep_mat)
   map2 = hom(group_ring, R, gens(R)[(2 * n + 1):(2 * n + m^2)])
   new_rep_mat = map_entries(map2, X.rep_mat)
-  new_det = map2(det(G.canonical_representation))
+  new_det = map2(det(natural_representation(G)))
   f = X.reynolds_v(new_elem, new_rep_mat, new_det, m)
   reverse_map = hom(R, vector_ring, vcat(gens(vector_ring), [0 for i in 1:(n + m^2)]))
   return reverse_map(f)

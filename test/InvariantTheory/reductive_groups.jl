@@ -14,8 +14,7 @@
   @test Oscar.group_type(G) == :SL
   @test Oscar.group_dim(G) == 2
   @test defining_ideal(G) == ideal([z[1, 1] * z[2, 2] - z[2, 1] * z[1, 2] - 1])
-  @test ncols(Oscar.canonical_representation(G)) == 2
-  @test Oscar.natural_representation(G) == Oscar.canonical_representation(G)
+  @test Oscar.natural_representation(G) == matrix(S, z)
 
   rep1 = representation_on_forms(G, 2)
   @test ncols(representation_matrix(rep1)) == 3
