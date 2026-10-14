@@ -103,8 +103,8 @@ Return the linearly reductive group $G$ whose points are the zeros of `I`. The g
 is defined over the coefficient field $k$ of `base_ring(I)`.
 
 It is not checked that `I` defines a linearly reductive group. No Reynolds operator is
-known for $G$, so [`fundamental_invariants(RG::RedGroupInvarRing)`](@ref) uses linear
-algebra instead.
+known for $G$, so [`fundamental_invariants(RG::RedGroupInvarRing, algorithm::Symbol = :default)`](@ref)
+uses linear algebra instead.
 
 # Examples
 The torus $K^{\ast}$, as the hyperbola $z_1 z_2 = 1$:
@@ -377,16 +377,25 @@ representation(R::RedGroupInvarRing) = R.representation
 coefficient_ring(R::RedGroupInvarRing) = R.field
 
 @doc raw"""
-    fundamental_invariants(RG::RedGroupInvarRing)
+    fundamental_invariants(RG::RedGroupInvarRing, algorithm::Symbol = :default)
 
 Return a system of fundamental invariants for `RG`.
 
-The function computes generators of Hilbert's null-cone ideal as in Derksen's algorithm
-[Der99](@cite). If a Reynolds operator is known (for groups created from a symbol such as
-`:SL`), it applies it to these generators. Otherwise (for groups given by their defining
-ideal), it computes, by linear algebra, a basis of the invariants in each degree of a
-generator of the null-cone ideal, and keeps those which are not polynomials in invariants
-of smaller degree.
+The result is cached, so calling this function again with argument `RG`
+will be fast and give the same result.
+
+# Implemented Algorithms
+
+Both algorithms compute generators of Hilbert's null-cone ideal as in Derksen's algorithm
+[Der99](@cite). Then
+- `algorithm = :reynolds` applies the Reynolds operator to these generators. This needs a
+  known Reynolds operator, that is, a group created from a symbol such as `:SL`.
+- `algorithm = :linear_algebra` computes, by linear algebra, a basis of the invariants in
+  each degree of a generator of the null-cone ideal, and keeps those which are not
+  polynomials in invariants of smaller degree.
+
+By default, the function uses `:reynolds` if a Reynolds operator is known, and
+`:linear_algebra` otherwise (for groups given by their defining ideal).
 
 # Examples
 ```jldoctest
@@ -402,10 +411,16 @@ julia> fundamental_invariants(RG)
 
 ```
 """
-function fundamental_invariants(z::RedGroupInvarRing)
+function fundamental_invariants(z::RedGroupInvarRing, algorithm::Symbol=:default)
   if !isdefined(z, :fundamental)
+    if algorithm === :default
+      algorithm = _has_reynolds_operator(group(z)) ? :reynolds : :linear_algebra
+    end
+    @req algorithm in (:reynolds, :linear_algebra) "unsupported algorithm :$algorithm"
+    @req algorithm === :linear_algebra || _has_reynolds_operator(group(z)) "no Reynolds operator is known for this group"
+
     b, M = proj_of_image_ideal(z)
-    if _has_reynolds_operator(group(z))
+    if algorithm === :reynolds
       z.fundamental = inv_generators(
         null_cone_ideal(z), group(z), polynomial_ring(z), M, z.reynolds_operator
       )

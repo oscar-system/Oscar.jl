@@ -210,6 +210,7 @@
     representation_from_weights(torus_group(QQ, 2), [1 0; 0 1; -1 -1; -1 1])
   )
   RG = invariant_ring(polynomial_ring(IT), representation_reductive_group(G, M))
+  @test_throws ArgumentError fundamental_invariants(RG, :reynolds)
   @test issetequal(fundamental_invariants(RG), fundamental_invariants(IT))
 
   #SLm with and without the Reynolds operator
@@ -222,13 +223,12 @@
     representation_on_forms(linearly_reductive_group(:SL, 3, QQ), 2),
   ]
     rg = invariant_ring(r)
-    FF = fundamental_invariants(rg)
+    FF = fundamental_invariants(rg, :reynolds)
     @test all(h -> is_invariant(h, r), FF)
-    G = linearly_reductive_group(defining_ideal(group(r)))
-    R = representation_reductive_group(G, representation_matrix(r))
-    F = fundamental_invariants(invariant_ring(polynomial_ring(rg), R))
+    F = fundamental_invariants(invariant_ring(polynomial_ring(rg), r), :linear_algebra)
     @test length(F) == length(FF)
     @test all(f -> subalgebra_membership_homogeneous(f, FF)[1], F)
   end
   @test length(fundamental_invariants(invariant_ring(r4))) == 2
+  @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
 end

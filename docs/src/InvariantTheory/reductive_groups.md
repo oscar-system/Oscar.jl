@@ -100,7 +100,7 @@ reynolds_operator(R::RedGroupInvarRing, f::MPolyRingElem)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(RG::RedGroupInvarRing)
+fundamental_invariants(RG::RedGroupInvarRing, algorithm::Symbol = :default)
 ```
 
 ## Invariant Rings as Affine Algebras
