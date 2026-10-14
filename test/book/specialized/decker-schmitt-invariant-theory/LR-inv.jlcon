@@ -1,6 +1,6 @@
 julia> G = linearly_reductive_group(:SL, 2, QQ)
 Linearly reductive group SL2
-  over QQ
+  defined over QQ
 
 julia> r = representation_on_forms(G, 2)
 Representation
