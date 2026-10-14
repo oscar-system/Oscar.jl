@@ -169,6 +169,17 @@
   R = representation_reductive_group(G, diagonal_matrix(ringg, [z[1], z[1]]))
   @test is_empty(fundamental_invariants(invariant_ring(R)))
 
+  #tori given by their ideal agree with the torus algorithm
+  for w in [[-3, -1, 1, 2], [1, 1, -1, -1], [2, -1, -1]]
+    IT = invariant_ring(representation_from_weights(torus_group(QQ, 1), w))
+    M = diagonal_matrix(ringg, [a >= 0 ? z[1]^a : z[2]^-a for a in w])
+    RG = invariant_ring(polynomial_ring(IT), representation_reductive_group(G, M))
+    F = fundamental_invariants(RG)
+    FT = fundamental_invariants(IT)
+    @test length(F) == length(FT)
+    @test all(f -> subalgebra_membership_homogeneous(f, FT)[1], F)
+  end
+
   #SL(2) over symmetric forms of degree 4:
   g = linearly_reductive_group(:SL, 2, QQ)
   r = representation_on_forms(g, 4)
