@@ -370,7 +370,6 @@ mutable struct LinearlyReductiveGroup
   field::Field
   group::Tuple{Symbol,Int}
   defining_ideal::MPolyIdeal
-  reynolds_operator::Function
   natural_representation::MatElem
 
   function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
@@ -388,7 +387,6 @@ mutable struct LinearlyReductiveGroup
     G.field = fld
     @req m^2 == ngens(pring) "ring not compatible"
     G.group = (sym, m)
-    G.reynolds_operator = reynolds_slm
     M = transpose(matrix(pring, m, m, gens(pring)))
     G.natural_representation = M
     G.defining_ideal = ideal([det(M) - 1])
