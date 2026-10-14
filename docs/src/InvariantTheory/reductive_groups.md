@@ -43,7 +43,7 @@ In OSCAR, the basic set-up for a linearly reductive group in the context of Derk
 function `linearly_reductive_group`. At current state, this only supports rational actions of  the special linear group
 $\text{SL}_m$ in characteristic zero (for $m \geq 2$, $\text{SL}_m$ is not linearly reductive in positive
 characteristic). For the action of this group by linear
-substitution on, say, $n$-ary forms of degree $d$, an explicit Reynolds operator is
+substitution on $m$-ary forms of degree $d$, an explicit Reynolds operator is
 given by Cayley's Omega-process. We show this at work later in this section.
 
 

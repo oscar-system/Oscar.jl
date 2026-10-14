@@ -1,10 +1,11 @@
 @doc raw"""
-    torus_group(K::Field, m::Int)
+    torus_group(k::Field, m::Int)
 
-Return the torus $(K^{\ast})^m$.
+Return the torus $(K^{\ast})^m$ defined over `k`, where $K$ is an algebraic closure of `k`.
 
 !!! note
-    In the context of computing invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $K$ and $m$.
+    In the context of computing invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $k$ and $m$.
+
 # Examples
 ```jldoctest
 julia> T = torus_group(QQ,2)
@@ -12,7 +13,7 @@ Torus of rank 2
   over QQ
 ```
 """
-torus_group(F::Field, n::Int) = TorusGroup(F, n)
+torus_group(k::Field, m::Int) = TorusGroup(k, m)
 
 @doc raw"""
     rank(T::TorusGroup)
