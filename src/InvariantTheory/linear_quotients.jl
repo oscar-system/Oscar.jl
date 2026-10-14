@@ -516,7 +516,7 @@ To get a map from `group(G)` to the grading group of the returned ring, use
     isomorphism of the grading group, see [Sch24](@cite).
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> K, a = cyclotomic_field(4, :a);
 
 julia> r = K[0 -1; 1 0]; s = K[a 0; 0 inv(a)];
