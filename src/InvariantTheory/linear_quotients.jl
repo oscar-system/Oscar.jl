@@ -530,19 +530,19 @@ julia> R, RtoS = cox_ring(L);
 julia> R
 Quotient
   of multivariate polynomial ring in 3 variables over K graded by
-    t[1] -> [1 1]
-    t[2] -> [1 0]
-    t[3] -> [0 1]
-  by ideal (1//4*t[1]^2 - 1//4*t[2]^2 + t[3]^2)
+    t[1] -> [0 1]
+    t[2] -> [1 1]
+    t[3] -> [1 0]
+  by ideal (t[1]^2 + 1//4*t[2]^2 - 1//4*t[3]^2)
 
 julia> RtoS
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (1//4*t[1]^2 - 1//4*t[2]^2 + t[3]^2)
+  from quotient of multivariate polynomial ring by ideal (t[1]^2 + 1//4*t[2]^2 - 1//4*t[3]^2)
   to graded multivariate polynomial ring in 2 variables over K
 defined by
-  t[1] -> -x[1]^2 + x[2]^2
-  t[2] -> x[1]^2 + x[2]^2
-  t[3] -> x[1]*x[2]
+  t[1] -> x[1]*x[2]
+  t[2] -> -x[1]^2 + x[2]^2
+  t[3] -> x[1]^2 + x[2]^2
 ```
 """
 function cox_ring(
