@@ -116,6 +116,12 @@
   I = invariant_ring(representation_from_weights(T, [1, 1, -1, -1]))
   X = gens(polynomial_ring(I))
   @test issetequal(fundamental_invariants(I), [X[i] * X[j] for i in 1:2 for j in 3:4])
+  I = invariant_ring(representation_from_weights(T, [1, -1, 1, -1]))
+  X = gens(polynomial_ring(I))
+  @test issetequal(fundamental_invariants(I), [X[i] * X[j] for i in (1, 3) for j in (2, 4)])
+  I = invariant_ring(representation_from_weights(T, [1, 1, -1, -1, -1]))
+  X = gens(polynomial_ring(I))
+  @test issetequal(fundamental_invariants(I), [X[i] * X[j] for i in 1:2 for j in 3:5])
   I = invariant_ring(representation_from_weights(T, [2, 2, -1, -1]))
   X = gens(polynomial_ring(I))
   @test issetequal(
