@@ -54,7 +54,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   for (a, st) in Sprev.DSt
-    inv_a := inv(a)
+    inv_a = inv(a)
     seen = IndexedSet{PermGroupElem}()
     for t in T
       t in seen && continue
