@@ -34,6 +34,9 @@ weights(r::RepresentationTorusGroup)
 group(r::RepresentationTorusGroup)
 ```
 
+If `r` is a representation of a torus on $V$, then `degree(r)` and `vector_space_dim(r)` refer
+to the dimension $n$ of $V$.
+
 ### Constructor for Invariant Rings
 
 ```@docs

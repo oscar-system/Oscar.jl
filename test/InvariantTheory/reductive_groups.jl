@@ -22,6 +22,7 @@
   @test ncols(representation_matrix(rep1)) == 3
   @test group(rep1) == G
   @test vector_space_dim(rep1) == 3
+  @test degree(rep1) == 3
   @test sprint(show, rep1) == "Representation of degree 3 of linearly reductive group"
 
   R_rep1 = invariant_ring(rep1)
@@ -118,6 +119,7 @@
   T = torus_group(QQ, 1)
   r = representation_from_weights(T, [-3, -1, 1, 2])
   @test sprint(show, r) == "Representation of degree 4 of torus group"
+  @test degree(r) == vector_space_dim(r) == 4
   @test_throws ArgumentError representation_from_weights(T, [-3 -1 1 2])
   @test weights(representation_from_weights(T, ZZ.([-3, -1, 1, 2]))) == weights(r)
   @test_throws ArgumentError representation_from_weights(torus_group(QQ, 2), [1, -1])

@@ -147,6 +147,9 @@ Torus of rank 2
 """
 group(R::RepresentationTorusGroup) = R.group
 
+vector_space_dim(R::RepresentationTorusGroup) = length(weights(R))
+degree(R::RepresentationTorusGroup) = vector_space_dim(R)
+
 function Base.show(io::IO, ::MIME"text/plain", R::RepresentationTorusGroup)
   io = pretty(io)
   println(io, "Representation")
@@ -159,7 +162,7 @@ function Base.show(io::IO, R::RepresentationTorusGroup)
   if is_terse(io)
     print(io, "Representation of torus group")
   else
-    print(io, "Representation of degree ", length(weights(R)), " of torus group")
+    print(io, "Representation of degree ", degree(R), " of torus group")
   end
 end
 

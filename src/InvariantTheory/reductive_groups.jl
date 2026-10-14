@@ -169,6 +169,7 @@ representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem) =
 group(R::RepresentationLinearlyReductiveGroup) = R.group
 representation_matrix(R::RepresentationLinearlyReductiveGroup) = R.rep_mat
 vector_space_dim(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
+degree(R::RepresentationLinearlyReductiveGroup) = vector_space_dim(R)
 
 @doc raw"""
     representation_on_forms(G::LinearlyReductiveGroup, d::Int)
@@ -229,7 +230,7 @@ function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
     print(io, "Representation of linearly reductive group")
   else
     print(
-      io, "Representation of degree ", vector_space_dim(R), " of linearly reductive group"
+      io, "Representation of degree ", degree(R), " of linearly reductive group"
     )
   end
 end

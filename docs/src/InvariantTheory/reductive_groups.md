@@ -74,8 +74,9 @@ If `G` is a group returned by `linearly_reductive_group`, then
 
 If `r` is a representation of `G`, then
 
-- `group(r)` refers to $G$, and
-- `representation_matrix(r)` to the matrix specifying $\rho$.
+- `group(r)` refers to $G$,
+- `representation_matrix(r)` to the matrix specifying $\rho$, and
+- `degree(r)` and `vector_space_dim(r)` to the dimension $n$ of $V$.
 
 ### Constructors for Invariant Rings
 
