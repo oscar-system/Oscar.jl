@@ -220,6 +220,17 @@ end
      end
    end
 
+   # elements represented by straight line programs on the GAP side
+   F = free_group(2)
+   x, y = gens(F)
+   rels = [x^7, y^9, x*y*x^-1*y^-1]
+   G, _ = quo(F, rels)
+   is_finite(G)
+   elms = elements(G)
+   pos = findall(x -> GAP.Globals.IsStraightLineProgElm(GAP.Globals.UnderlyingElement(GapObj(x))), elms)
+   @test length(pos) > 0
+   map(g -> map_word(g, gens(symmetric_group(4))), elms[pos])
+
    # empty list of generators
    @test map_word([], [], init = 0) == 0        # `init` is returned
    @test map_word([], [2, 3], init = 0) == 0    # `init` is returned

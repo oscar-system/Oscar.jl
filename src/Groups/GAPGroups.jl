@@ -2250,13 +2250,6 @@ function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimg
     slp = GAP.getbangindex(gX, 2)::GapObj
     F = GAP.getbangproperty(GAPWrap.FamilyObj(GapObj(g)), :freeGroup)::GapObj
     ggens = GAPWrap.GeneratorsOfGroup(F)::GapObj
-    if isa(genimgs[1], Map)
-      res = GAP.Globals.ResultOfStraightLineProgram(slp, ggens)
-      @assert GAPWrap.IsLetterAssocWordRep(res)
-      ll = Vector{Int}(GAPWrap.LetterRepAssocWord(gX))
-      return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
-    end
-
     imgs = GapObj(map(i -> GAP.Globals.MappedWord(i, ggens, GapObj(genimgs)), seeds))
     # Evaluate the straight line program.
     return GAP.Globals.ResultOfStraightLineProgram(slp, imgs)

@@ -68,5 +68,16 @@
       end
     end
 
+    @testset "Serialization of partial toric Betti cache" begin
+      P2 = projective_space(NormalToricVariety, 2)
+      @test betti_number(P2, 2) == 1
+      cached_betti_numbers = ZZRingElem[-1, 1, -1]
+      @test get_attribute(P2, :betti_numbers) == cached_betti_numbers
+
+      test_save_load_roundtrip(path, P2) do loaded
+        @test get_attribute(loaded, :betti_numbers) == cached_betti_numbers
+      end
+    end
+
   end
 end

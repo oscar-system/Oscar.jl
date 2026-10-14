@@ -125,7 +125,8 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
                                                redo::Bool=false,
                                                _set_nice_mono::Bool=true,
                                                try_small::Bool=true,
-                                               use_everything::Bool=true
+                                               use_everything::Bool=true,
+                                               use_weyl::Bool=true
 )
   # look in the cache
   if !redo && isdefined(L, :automorphism_group_generators)
@@ -140,7 +141,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   # corner cases
   @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) <= 2
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything, use_weyl)
     _gens = L.automorphism_group_generators
     return matrix_group(_gens)
   end
@@ -157,7 +158,7 @@ function Hecke._assert_has_automorphisms_ZZLat(L::ZZLat;
   end
   
   if algorithm == :direct
-    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything)
+    Hecke.__assert_has_automorphisms(L; depth, bacher_depth, redo, try_small, use_everything, use_weyl)
     _gens = L.automorphism_group_generators
     G = matrix_group(_gens)
     if _set_nice_mono

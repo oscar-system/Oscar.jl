@@ -183,10 +183,7 @@ julia> map(describe, all_groups_with_class_number(1:4, !is_abelian))
 ```
 """
 function all_groups_with_class_number(L...)
-   @req !isempty(L) "must specify at least one filter"
-   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
-      L = (number_of_conjugacy_classes => L[1], L[2:end]...)
-   end
+   L = _expand_key_shorthand(L, number_of_conjugacy_classes)
    gapargs = translate_group_library_args(L)
    K = GAP.Globals.AllSmallClassNrGroups(gapargs...)
 

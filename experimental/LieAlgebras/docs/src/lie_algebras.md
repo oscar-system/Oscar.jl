@@ -1,9 +1,9 @@
 # Lie algebras
 
-Lie algebras in OSCAR are currently always finite dimensional, and represented by two different types,
-namely `LinearLieAlgebra{C}` and `AbstractLieAlgebra{C}`, depending on whether a matrix
-representation is available or not.
-Both types are subtypes of `LieAlgebra{C}`. Similar to other types in OSCAR, each Lie algebra
+Lie algebras in OSCAR are currently always finite dimensional, and represented by the types
+`LinearLieAlgebra{C}` and `AbstractLieAlgebra{C}`, depending on whether a matrix
+representation is available or not, and by `DirectSumLieAlgebra{C}` for direct sums of Lie algebras.
+All of them are subtypes of `LieAlgebra{C}`. Similar to other types in OSCAR, each Lie algebra
 type has a corresponding element type.
 The type parameter `C` is the element type of the coefficient ring. 
 
@@ -83,6 +83,12 @@ general_linear_lie_algebra(R::Field, n::Int)
 special_linear_lie_algebra(R::Field, n::Int)
 special_orthogonal_lie_algebra
 symplectic_lie_algebra
+```
+
+## Direct sums
+
+```@docs
+direct_sum(::Vector{<:LieAlgebra{C}}) where {C<:FieldElem}
 ```
 
 ## Relation to GAP Lie algebras

@@ -33,9 +33,6 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
              # not a proper julia input file
              "specialized/fang-fourier-monomial-bases/sl7-cases.jlcon",
              "specialized/fang-fourier-monomial-bases/gap.jlcon",
-
-             # disabled temporarily due to polymake db downtime
-             "specialized/kuehne-schroeter-matroids/realization_space.jlcon",
             ]
 
   dispsize = (40, 130)
@@ -158,9 +155,12 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       @static if VERSION > v"1.13.0-DEV.1328"
         # disable automatic bracket on recent nightly
         options.auto_insert_closing_bracket = false
-        @static if VERSION > v"1.14.0-DEV.2080"
-          options.hint_tab_completes = false
-        end
+      end
+      @static if VERSION > v"1.14.0-DEV.2080"
+        options.hint_tab_completes = false
+      end
+      @static if VERSION > v"1.14.0-DEV.3212"
+        options.semantic_prompts = false
       end
       repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
       repl.options = options

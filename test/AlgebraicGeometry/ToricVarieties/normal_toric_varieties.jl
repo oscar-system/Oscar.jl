@@ -94,3 +94,30 @@
     end
   end
 end
+
+@testset "Hodge and Betti numbers of toric varieties" begin
+  X = domain(blow_up(projective_space(NormalToricVariety, 2), 1))
+  @test betti_numbers(X) == ZZRingElem[1, 0, 2, 0, 1]
+  @test hodge_numbers(X) == matrix(ZZ, [1 0 0; 0 2 0; 0 0 1])
+  @test hodge_number(X, 1, 1) == 2
+  @test hodge_number(X, 1, 0) == 0
+
+  Y = weighted_projective_space(NormalToricVariety, [1, 1, 2])
+  @test betti_numbers(Y) == ZZRingElem[1, 0, 1, 0, 1]
+  @test hodge_numbers(Y) == matrix(ZZ, [1 0 0; 0 1 0; 0 0 1])
+end
+
+@testset "Hodge and Betti number exceptions" begin
+  P2 = projective_space(NormalToricVariety, 2)
+  for (p, q) in ((-1, 0), (3, 0), (0, -1), (0, 3))
+    @test_throws ArgumentError hodge_number(P2, p, q)
+  end
+
+  noncomplete = affine_space(NormalToricVariety, 2)
+  nonsimplicial = normal_toric_variety(normal_fan(cross_polytope(3)))
+  for v in (noncomplete, nonsimplicial)
+    @test_throws ArgumentError betti_numbers(v)
+    @test_throws ArgumentError hodge_number(v, 0, 0)
+    @test_throws ArgumentError hodge_numbers(v)
+  end
+end

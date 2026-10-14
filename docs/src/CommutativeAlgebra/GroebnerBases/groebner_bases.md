@@ -327,10 +327,6 @@ triggers a version of the Hilbert driven Gröbner basis algorithm which proceeds
    to the extended ordering. Return the dehomogenization of this basis
    with respect to the extra variable.
 
-If the characteristic of $K$ is zero,  by semi-continuity of the Hilbert function,
-it is sufficient to perform step 3 for the reduction of $I$ modulo a conveniently
-chosen prime number rather than for $I$ itself.
-
 !!! note
     If appropriate weights and/or the Hilbert function with respect to appropriate weights
     are already known to the user, this information can be entered when calling the Hilbert

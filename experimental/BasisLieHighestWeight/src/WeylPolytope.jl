@@ -5,41 +5,45 @@ function convert_lattice_points_to_monomials(
 end
 
 @doc raw"""
-    get_lattice_points_of_weightspace(root_weights::Vector{Vector{QQFieldElem}}, weight::Vector{QQFieldElem}, zero_coordinates::Vector{Int})
+    get_lattice_points_of_weightspace(root_weights::Vector{RootSpaceElem}, weight::RootSpaceElem, additional_inequalities::Vector{Tuple{Vector{QQFieldElem}, QQFieldElem}})
 
-
-Calculates all lattice points in a given weightspace for a Lie algebra highest weight module.
-This is equivalent to finding $\mathbb{Z}$-linear combinations of `root_weights` that equal `weight`,
-where the coordinates in `zero_coordinates` are set to zero.
-All weights are given as coefficients to the simple roots $\alpha_i$.
+Calculate all lattice points in a given weightspace for a Lie algebra highest weight module.
+This is equivalent to finding $\mathbb{Z}_{\geq 0}$-linear combinations of `root_weights` that equal `weight`,
+that also satisfy the `additional_inequalities`.
 """
 function get_lattice_points_of_weightspace(
   root_weights::Vector{RootSpaceElem},
   weight::RootSpaceElem,
-  zero_coordinates::Vector{Int},
+  additional_inequalities::Vector{Tuple{Vector{QQFieldElem},QQFieldElem}},
 )
   # calculate all integer solutions to the following linear program:
   # [       |                 |       ]       [   |   ]      [    |    ]
   # [root_weights[1]...root_weights[k]]   *   [  res  ]   =  [  weight ]
   # [       |                 |       ]       [   |   ]      [    |    ]
+  # plus additional_inequalities,
   # where res[i] >= 0 for all i
   n = length(root_weights)
   m = rank(root_system(weight))
 
   # equalities
-  A_eq = zero_matrix(QQ, m + length(zero_coordinates), n)
-  b_eq = [zero(QQ) for _ in 1:(m + length(zero_coordinates))]
+  A_eq = zero_matrix(QQ, m, n)
+  b_eq = [zero(QQ) for _ in 1:m]
   for i in 1:n
     A_eq[1:m, i] = transpose(coefficients(root_weights[i]))
   end
   b_eq[1:m] = view(coefficients(weight), 1, :)
-  for (j, i) in enumerate(zero_coordinates)
-    A_eq[m + j, i] = 1
-  end
+
+  A_ineq = zero_matrix(QQ, n + length(additional_inequalities), n)
+  b_ineq = [zero(QQ) for _ in 1:(n + length(additional_inequalities))]
 
   # non-negativity
-  A_ineq = -identity_matrix(QQ, n)
-  b_ineq = [zero(QQ) for _ in 1:n]
+  A_ineq[1:n, 1:n] = -identity_matrix(QQ, n)
+
+  # additional_inequalities
+  for (i, ineq) in enumerate(additional_inequalities)
+    A_ineq[n + i, :] = ineq[1]
+    b_ineq[n + i] = ineq[2]
+  end
 
   sol = Vector{ZZRingElem}.(lattice_points(polyhedron((A_ineq, b_ineq), (A_eq, b_eq))))
   return sol
@@ -71,4 +75,41 @@ function compute_zero_coordinates(
     end
   end
   return zero_coordinates
+end
+
+function compute_additional_inequalities(
+  bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
+)
+  #=
+  # This does not work yet in all cases, but it is a good start for follow-up work. Until then, do the previous heuristic.
+  n = length(bir_sequence)
+  R = root_system(bir_sequence)
+  gram_mat = cartan_matrix(R) - identity_matrix(QQ, rank(R))
+  inequalities = Tuple{Vector{QQFieldElem}, QQFieldElem}[]
+  for i in n:-1:1
+    bir_seq_i = operator_as_root(bir_sequence, i)
+    rhs = dot(coefficients(dual(bir_seq_i)), coefficients(highest_weight)) # maybe something with coroot?
+    lhs = [zero(QQ) for _ in 1:n]
+    for k in 1:i-1 #k<i
+      lhs[k] = 0
+    end
+    lhs[i] = 1 #k=i
+    for k in i+1:n #k>i
+      lhs[k] = dot(coefficients(dual(bir_seq_i)) * gram_mat, coefficients(operator_as_root(bir_sequence, k)))
+    end
+    push!(inequalities, (lhs, rhs))
+  end
+  return inequalities
+  =#
+
+  zero_coordinates = compute_zero_coordinates(bir_sequence, highest_weight)
+  n = length(bir_sequence)
+  inequalities = Tuple{Vector{QQFieldElem},QQFieldElem}[]
+  for coord in zero_coordinates
+    lhs = [zero(QQ) for _ in 1:n]
+    lhs[coord] = 1
+    rhs = zero(QQ)
+    push!(inequalities, (lhs, rhs))
+  end
+  return inequalities
 end

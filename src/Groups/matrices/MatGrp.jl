@@ -623,7 +623,7 @@ julia> m = matrix(x)
 [0   1]
 
 julia> x == m
-false
+ERROR: function == is not implemented for arguments
 
 julia> x == g(m)
 true
