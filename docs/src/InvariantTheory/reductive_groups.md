@@ -56,6 +56,14 @@ linearly_reductive_group(sym::Symbol, m::Int, R::MPolyRing)
 ```
 
 ```@docs
+linearly_reductive_group(I::MPolyIdeal)
+```
+
+```@docs
+representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem)
+```
+
+```@docs
 representation_on_forms(G::LinearlyReductiveGroup, d::Int)
 ```
 
