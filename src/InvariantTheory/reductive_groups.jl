@@ -255,33 +255,26 @@ end
 
 @doc raw"""
     invariant_ring(r::RepresentationLinearlyReductiveGroup)
-
-Return the invariant ring under the action defined by the representation `r` on an implicitly generated polynomial ring of appropriate dimension.
-
-# Examples
-```jldoctest
-julia> G = linearly_reductive_group(:SL, 2, QQ);
-
-julia> r = representation_on_forms(G, 2);
-
-julia> RG = invariant_ring(r)
-Invariant ring
-  of graded multivariate polynomial ring in 3 variables over QQ
-  under group action of linearly reductive group SL(2,QQ)
-```
-"""
-invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGroupInvarRing(R)
-
-@doc raw"""
     invariant_ring(R::MPolyDecRing, r::RepresentationLinearlyReductiveGroup)
 
-Return the invariant subring of `R` under the action induced by the representation of `r` on `R`.
+Return the invariant ring of the linearly reductive group represented by `r`.
+
+The polynomial ring `R` on which the group acts can be supplied as a first argument,
+in case an existing ring should be used.
+
+!!! note
+    The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `fundamental_invariants` function).
 
 # Examples
 ```jldoctest
 julia> G = linearly_reductive_group(:SL, 3, QQ);
 
 julia> r = representation_on_forms(G, 3);
+
+julia> RG = invariant_ring(r)
+Invariant ring
+  of graded multivariate polynomial ring in 10 variables over QQ
+  under group action of linearly reductive group SL(3,QQ)
 
 julia> S, x = graded_polynomial_ring(QQ, :x => 1:10);
 
@@ -291,6 +284,8 @@ Invariant ring
   under group action of linearly reductive group SL(3,QQ)
 ```
 """
+invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGroupInvarRing(R)
+
 invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) =
   RedGroupInvarRing(R, ring)
 

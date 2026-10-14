@@ -74,10 +74,6 @@ If `r` is a representation of `G`, then
 invariant_ring(r::RepresentationLinearlyReductiveGroup)
 ```
 
-```@docs
-invariant_ring(R::MPolyDecRing, r::RepresentationLinearlyReductiveGroup)
-```
-
 ## Basic Data Associated to Invariant Rings
 
 If `RG` is the invariant ring $k[x_1, \dots, x_n]^G$ of a linearly reductive group $G$, then
