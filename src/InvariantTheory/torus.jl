@@ -10,7 +10,7 @@ Return the torus $(K^{\ast})^m$ defined over `k`, where $K$ is an algebraic clos
 ```jldoctest
 julia> T = torus_group(QQ,2)
 Torus of rank 2
-  over QQ
+  defined over QQ
 ```
 """
 torus_group(k::Field, m::Int) = TorusGroup(k, m)
@@ -48,7 +48,7 @@ base_ring(G::TorusGroup) = G.field
 function Base.show(io::IO, ::MIME"text/plain", G::TorusGroup)
   io = pretty(io)
   println(io, "Torus of rank ", rank(G))
-  print(terse(io), Indent(), "over ", Lowercase(), base_ring(G))
+  print(terse(io), Indent(), "defined over ", Lowercase(), base_ring(G))
   print(io, Dedent())
 end
 
@@ -58,7 +58,7 @@ function Base.show(io::IO, G::TorusGroup)
   else
     io = pretty(io)
     print(io, "Torus of rank ", rank(G))
-    print(terse(io), " over ", Lowercase(), base_ring(G))
+    print(terse(io), " defined over ", Lowercase(), base_ring(G))
   end
 end
 
@@ -78,7 +78,7 @@ julia> T = torus_group(QQ,2);
 
 julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1])
 Representation
-  of torus of rank 2 over QQ
+  of torus of rank 2 defined over QQ
   with weights Vector{ZZRingElem}[[-1, 1], [-1, 1], [2, -2], [0, -1]]
 ```
 """
@@ -142,7 +142,7 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 
 julia> group(r)
 Torus of rank 2
-  over QQ
+  defined over QQ
 ```
 """
 group(R::RepresentationTorusGroup) = R.group
@@ -180,7 +180,7 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 julia> RT = invariant_ring(r)
 Invariant ring
   of graded multivariate polynomial ring in 4 variables over QQ
-  under group action of torus of rank 2 over QQ
+  under group action of torus of rank 2 defined over QQ
 ```
 """
 invariant_ring(R::RepresentationTorusGroup) = TorGroupInvarRing(R)

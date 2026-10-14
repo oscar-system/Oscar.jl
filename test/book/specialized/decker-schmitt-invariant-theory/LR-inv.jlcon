@@ -29,7 +29,7 @@ x[1]*x[4]*x[8]*x[10] - x[1]*x[4]*x[9]^2 - x[1]*x[5]*x[7]*x[10] + x[1]*x[5]*x[8]*
 
 julia> T = torus_group(QQ,2)
 Torus of rank 2
-  over QQ
+  defined over QQ
 
 julia> r = representation_from_weights(T, [1 0; 0 1; -1 -1; -1 1]);
 
