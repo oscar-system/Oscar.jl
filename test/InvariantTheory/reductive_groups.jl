@@ -74,6 +74,16 @@
   #no invariants of positive degree
   @test is_empty(fundamental_invariants(invariant_ring(representation_on_forms(G, 1))))
 
+  #the representation matrix maps the coefficients of f to those of f(Z*x)
+  Zv = [2 3; 1 2]
+  M = representation_matrix(representation_on_forms(G, 3))
+  MZ = map_entries(e -> evaluate(e, QQ.(vec(Zv))), M)
+  Rt, t = polynomial_ring(QQ, :t => 1:2)
+  c = [1, 2, 3, 4]
+  f = sum(c[i + 1] * binomial(3, i) * t[1]^(3 - i) * t[2]^i for i in 0:3)
+  g = evaluate(f, Zv * t)
+  @test MZ * c == [coeff(g, [3 - i, i]) // binomial(3, i) for i in 0:3]
+
   #forms of a degree whose factorial exceeds the range of Int
   M = representation_matrix(representation_on_forms(G, 21))
   @test M[1, 2] == 21 * z[1, 1]^20 * z[2, 1]

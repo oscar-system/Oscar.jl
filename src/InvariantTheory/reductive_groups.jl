@@ -131,6 +131,8 @@ substitution on $m$-ary forms of degree $d$.
 !!! note
     In accordance with classical papers, an $m$-ary form of degree $d$ is written as a linear combination
     of the basis with elements $\binom{d}{I}x^I$. Here, $I = (i_1, \dots, i_m)\in\mathbb Z_{\geq 0}^m$ with $i_1+\dots +i_m =d$.
+    If $Z \in \text{SL}_m$, then the representation matrix, evaluated at $Z$, maps the coefficient
+    vector of a form $f$ with respect to this basis to that of $f(Zx)$.
 
 # Examples
 ```jldoctest
