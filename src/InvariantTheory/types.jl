@@ -463,7 +463,7 @@ end
     z.group = G
     z.field = K
     z.poly_ring = poly_ring
-    if isdefined(group(R), :group)
+    if _has_reynolds_operator(group(R))
       z.reynolds_operator = reynolds_v_slm
     end
     return z
@@ -480,7 +480,7 @@ end
     z.group = G
     z.field = K
     z.poly_ring = ring
-    if isdefined(group(R), :group)
+    if _has_reynolds_operator(group(R))
       z.reynolds_operator = reynolds_v_slm
     end
     return z

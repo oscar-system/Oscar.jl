@@ -95,6 +95,10 @@ natural_representation(G::LinearlyReductiveGroup) = G.natural_representation
 group_type(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[1] : nothing
 group_dim(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[2] : nothing
 
+# Whether we know a Reynolds operator for G. This is the case for SLm (Cayley's
+# Omega process), but not for a group given only by its defining ideal.
+_has_reynolds_operator(G::LinearlyReductiveGroup) = group_type(G) === :SL
+
 ################################################################################
 #
 #  Representations of linearly reductive groups
@@ -331,7 +335,7 @@ julia> fundamental_invariants(RG)
 function fundamental_invariants(z::RedGroupInvarRing)
   if !isdefined(z, :fundamental)
     b, M = proj_of_image_ideal(z)
-    if isdefined(group(z), :group)
+    if _has_reynolds_operator(group(z))
       z.fundamental = inv_generators(
         null_cone_ideal(z), group(z), polynomial_ring(z), M, z.reynolds_operator
       )
