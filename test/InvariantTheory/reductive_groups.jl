@@ -138,6 +138,7 @@
   T = torus_group(QQ, 2)
   r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1])
   RT = invariant_ring(r)
+  @test coefficient_ring(RT) === QQ
   A, _ = affine_algebra(RT)
   @test ngens(modulus(A)) == 1
 

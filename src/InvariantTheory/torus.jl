@@ -104,6 +104,8 @@ end
 @doc raw"""
     weights(r::RepresentationTorusGroup)
 
+Return the weights of `r`, one for each coordinate of the vector space on which the torus acts diagonally.
+
 # Examples
 ```jldoctest
 julia> T = torus_group(QQ,2);
@@ -180,6 +182,7 @@ invariant_ring(R::RepresentationTorusGroup) = TorGroupInvarRing(R)
 polynomial_ring(R::TorGroupInvarRing) = R.poly_ring
 group(R::TorGroupInvarRing) = R.group
 representation(R::TorGroupInvarRing) = R.representation
+coefficient_ring(R::TorGroupInvarRing) = R.field
 
 @doc raw"""
     fundamental_invariants(RT::TorGroupInvarRing)

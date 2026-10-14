@@ -26,6 +26,10 @@ representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer},
 ```
 
 ```@docs
+weights(r::RepresentationTorusGroup)
+```
+
+```@docs
 group(r::RepresentationTorusGroup)
 ```
 
@@ -35,13 +39,19 @@ group(r::RepresentationTorusGroup)
 invariant_ring(r::RepresentationTorusGroup)
 ```
 
+## Basic Data Associated to Invariant Rings
+
+If `RT` is the invariant ring $K[x_1, \dots, x_n]^T$ of a torus $T$, then
+
+- `group(RT)` refers to $T$,
+- `coefficient_ring(RT)` to $K$, and
+- `polynomial_ring(RT)` to $K[x_1, \dots, x_n]$.
 
 ## Fundamental Systems of Invariants
 
 ```@docs
 fundamental_invariants(RT::TorGroupInvarRing)
 ```
-
 
 ## Invariant Rings as Affine Algebras
 
