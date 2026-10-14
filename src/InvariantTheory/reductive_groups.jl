@@ -557,6 +557,7 @@ end
 Return the image of `f` under the Reynolds operator corresponding to `RG`.
 
 # Examples
+We compute the degree-4 invariant of ternary cubics found by Aronhold [Aro58](@cite).
 ```jldoctest
 julia> G = linearly_reductive_group(:SL, 3, QQ);
 
