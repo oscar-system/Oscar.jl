@@ -473,27 +473,17 @@ end
 function _induced_map_on_power(
   D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
 )
-  TD = type == :tensor ? D : get_attribute(D, :embedding_tensor_power)::typeof(D)
-  TC = type == :tensor ? C : get_attribute(C, :embedding_tensor_power)::typeof(C)
-
   mat = reduce(
     kronecker_product,
     [matrix(h) for _ in 1:power];
     init=identity_matrix(coefficient_ring(C), 1),
   )
-  TD_to_TC = hom(TD, TC, mat; check=false)
-
   if type == :tensor
-    return TD_to_TC
-  else
-    D_to_TD = get_attribute(
-      D, :embedding_tensor_power_embedding
-    )::LieAlgebraModuleHom{typeof(D),typeof(TD)}
-    TC_to_C = get_attribute(
-      C, :embedding_tensor_power_projection
-    )::LieAlgebraModuleHom{typeof(TC),typeof(C)}
-    return D_to_TD * TD_to_TC * TC_to_C
+    return hom(D, C, mat; check=false)
   end
+  TD, D_to_TD, _ = _tensor_power_embedding(D)
+  TC, _, TC_to_C = _tensor_power_embedding(C)
+  return D_to_TD * hom(TD, TC, mat; check=false) * TC_to_C
 end
 
 @doc raw"""
