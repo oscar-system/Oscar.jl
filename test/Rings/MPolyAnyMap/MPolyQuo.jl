@@ -223,3 +223,23 @@ end
   end
 
 end
+
+@testset "MPolyAnyMap/MPolyQuoRing without generators" begin
+  # maps out of a quotient of a polynomial ring in 0 variables
+  Qi, i = quadratic_field(-1)
+  P, _ = polynomial_ring(Qi, 0)
+  Q, _ = quo(P, ideal(P, [zero(P)]))
+  T, _ = polynomial_ring(Qi, [:z])
+  @test hom(Q, T, elem_type(T)[])(Q(i)) == T(i)
+  @test hom(Q, T, elem_type(T)[]; check = false)(Q(i)) == T(i)
+  @test hom(Q, T, hom(Qi, Qi, -i), elem_type(T)[])(Q(i)) == T(-i)
+  @test hom(Q, Q, elem_type(Q)[])(Q(i)) == Q(i)
+
+  P, _ = polynomial_ring(ZZ, 0)
+  Q, _ = quo(P, ideal(P, [P(2)]))
+  F, _ = polynomial_ring(GF(2), [:y])
+  @test is_one(hom(Q, F, elem_type(F)[])(Q(3)))
+  @test is_one(hom(Q, F, a -> F(a), elem_type(F)[])(Q(3)))
+  @test_throws "not well-defined" hom(Q, T, elem_type(T)[])
+  @test_throws "not well-defined" hom(Q, T, a -> T(a), elem_type(T)[])
+end
