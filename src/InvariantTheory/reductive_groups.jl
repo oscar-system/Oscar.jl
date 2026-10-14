@@ -13,7 +13,7 @@
 #
 ################################################################################
 
-# As of now, linearly reductive groups are only implemented for SLn, its direct
+# As of now, linearly reductive groups are only implemented for SLm, its direct
 # products and tensors.
 
 function Base.show(io::IO, ::MIME"text/plain", G::LinearlyReductiveGroup)
@@ -73,9 +73,9 @@ Currently, the supported options for `sym` are:
 
 # Examples
 ```jldoctest
-julia> S, z = polynomial_ring(QQ, :c=> (1:2, 1:2));
+julia> S, c = polynomial_ring(QQ, :c => (1:2, 1:2));
 
-julia> G = linearly_reductive_group(:SL,2,S)
+julia> G = linearly_reductive_group(:SL, 2, S)
 Linearly reductive group SL2
   defined over QQ
 
