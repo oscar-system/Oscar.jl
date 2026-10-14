@@ -318,6 +318,13 @@ coefficient_ring(R::RedGroupInvarRing) = R.field
 
 Return a system of fundamental invariants for `RG`.
 
+The function computes generators of Hilbert's null-cone ideal as in Derksen's algorithm
+[Der99](@cite). If a Reynolds operator is known (for groups created from a symbol such as
+`:SL`), it applies it to these generators. Otherwise (for groups given by their defining
+ideal), it computes, by linear algebra, a basis of the invariants in each degree of a
+generator of the null-cone ideal, and keeps those which are not polynomials in invariants
+of smaller degree.
+
 # Examples
 ```jldoctest
 julia> G = linearly_reductive_group(:SL, 2, QQ);
