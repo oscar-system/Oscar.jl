@@ -394,11 +394,13 @@ mutable struct LinearlyReductiveGroup
     return G
   end
 
-  function LinearlyReductiveGroup(I::MPolyIdeal) #defined by just the ideal
-    #no checks
+  # Whether I defines a linearly reductive group cannot be checked.
+  function LinearlyReductiveGroup(I::MPolyIdeal)
+    fld = coefficient_ring(base_ring(I))
+    @req fld isa Field "the coefficients of the defining ideal must lie in a field"
     G = new()
     G.defining_ideal = I
-    G.field = base_ring(base_ring(I))
+    G.field = fld
     return G
   end
 end

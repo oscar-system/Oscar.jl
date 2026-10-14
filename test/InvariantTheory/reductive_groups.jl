@@ -187,6 +187,9 @@
   #a torus acting with weights 1, 1 has no invariants of positive degree
   ringg, z = polynomial_ring(QQ, :z => 1:2)
   G = linearly_reductive_group(ideal([z[1] * z[2] - 1]))
+  @test base_ring(G) === QQ
+  Zz, w = polynomial_ring(ZZ, :w => 1:2)
+  @test_throws ArgumentError linearly_reductive_group(ideal([w[1] * w[2] - 1]))
   R = representation_reductive_group(G, diagonal_matrix(ringg, [z[1], z[1]]))
   @test is_empty(fundamental_invariants(invariant_ring(R)))
 
