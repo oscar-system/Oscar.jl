@@ -382,7 +382,9 @@ function image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
   return ideal(mixed_ring_xy, ideal_vect), new_rep_mat
 end
 
-#computing I_{\Bar{B}}
+# Return the ideal I_{\Bar{B}} of the closure of B = {(v, rho(g)v) | v in V, g in G}
+# in V x V, and the representation matrix with z replaced by zz. Both live in the
+# ring K[x, y, zz] of image_ideal; the generators of the ideal involve only x and y.
 function proj_of_image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
   W = image_ideal(G, rep_mat)
   mixed_ring_xy = base_ring(W[2])
