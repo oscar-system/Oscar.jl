@@ -835,7 +835,7 @@ julia> typeof(x)
 QQMPolyRingElem
 
 julia> p
-Map defined by a julia-function with inverse
+Map defined by a Julia function with inverse
   from multivariate polynomial ring in 2 variables over QQ
   to quotient of multivariate polynomial ring by ideal (x^2 - y^3, x - y)
 

@@ -93,6 +93,14 @@ function _matches_group_library_filters(G::GAPGroup, args::Tuple)
    return true
 end
 
+# A leading integer or vector of integers among the filters of a group
+# library abbreviates `key => value`.
+function _expand_key_shorthand(L::Tuple, key)
+   @req !isempty(L) "must specify at least one filter"
+   (L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}) || return L
+   return (key => L[1], L[2:end]...)
+end
+
 # check whether the input of all_small_group is valid (see below)
 function translate_group_library_args(args::Tuple; filter_attrs::Dict = _group_filter_attrs)
    gapargs = []

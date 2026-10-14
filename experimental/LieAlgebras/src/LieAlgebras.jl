@@ -108,7 +108,6 @@ export _is_tensor_product
 
 include("Types.jl")
 include("Combinatorics.jl")
-include("Util.jl")
 
 include("CoxeterGroup.jl")
 include("DynkinDiagram.jl")

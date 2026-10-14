@@ -113,8 +113,10 @@ function __init__()
      "primgrp",  # primitive groups library
      "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
+     "sglppow",  # small groups library extension
      "smallclassnr", # library of groups with few conjugacy classes
      "smallgrp", # small groups library
+     "sotgrps",  # small groups library extension
      "transgrp", # transitive groups library
      "wedderga", # provides a function to compute Schur indices
      ]

@@ -202,10 +202,7 @@ julia> all_small_groups(1:10, !is_abelian)
 ```
 """
 function all_small_groups(L...)
-   @req !isempty(L) "must specify at least one filter"
-   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
-      L = (order => L[1], L[2:end]...)
-   end
+   L = _expand_key_shorthand(L, order)
    gapargs = translate_group_library_args(L)
    K = GAP.Globals.AllSmallGroups(gapargs...)
 

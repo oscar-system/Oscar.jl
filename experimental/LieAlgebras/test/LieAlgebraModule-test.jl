@@ -237,6 +237,11 @@
               Oscar.LieAlgebras.transformation_matrix(V, i),
             1:dim(L),
           )
+
+          # the dual of v has the same coefficients w.r.t. the dual basis
+          v = V(rand(-10:10, dim(V)))
+          @test dual_V(v) == dual_V(coefficients(v))
+          @test_throws ArgumentError dual_dual_V(v)
         end
 
         @testset "direct_sum" begin

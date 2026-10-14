@@ -103,7 +103,7 @@ end
     (I::LieAlgebraIdeal{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `I` with coefficient vector `v`.
-Fail, if `Int` cannot be coerced into the base ring of `I`.
+Fail, if `Int` cannot be coerced into the coefficient ring of `I`.
 """
 function (I::LieAlgebraIdeal)(v::AbstractVector{Int})
   return I(coefficient_ring(I).(v))
@@ -212,7 +212,7 @@ function bracket(
   I1::LieAlgebraIdeal{C,LieT}, I2::LieAlgebraIdeal{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req base_lie_algebra(I1) === base_lie_algebra(I2) "Incompatible Lie algebras."
-  return ideal(base_lie_algebra(I1), [x * y for x in gens(I1) for y in gens(I2)])
+  return ideal(base_lie_algebra(I1), [x * y for x in basis(I1) for y in basis(I2)])
 end
 
 function bracket(
