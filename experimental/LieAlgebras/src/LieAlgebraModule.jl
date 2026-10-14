@@ -1255,48 +1255,6 @@ function symmetric_power(
   return S, mult_map
 end
 
-# Embedding of an exterior or symmetric power into the tensor power together with
-# the projection back; only needed to lift homomorphisms, so computed on demand
-@attr Tuple{
-  typeof(P),
-  LieAlgebraModuleHom{typeof(P),typeof(P)},
-  LieAlgebraModuleHom{typeof(P),typeof(P)},
-} function _tensor_power_embedding(
-  P::LieAlgebraModule
-)
-  R = coefficient_ring(P)
-  @req characteristic(R) == 0 "Characteristic must be zero."
-  if ((fl, V, k) = _is_exterior_power(P); fl)
-    T, _ = tensor_power(V, k; cached=false)
-    P_to_T_mat = zero_matrix(R, dim(P), dim(T))
-    T_to_P_mat = zero_matrix(R, dim(T), dim(P))
-    for (i, I) in enumerate(combinations(1:dim(V), k)),
-      (inds, sgn) in permutations_with_sign(I)
-
-      j = _tensor_basis_index(inds, dim(V))
-      P_to_T_mat[i, j] = R(sgn)//factorial(k)
-      T_to_P_mat[j, i] = R(sgn)
-    end
-  elseif ((fl, V, k) = _is_symmetric_power(P); fl)
-    T, _ = tensor_power(V, k; cached=false)
-    P_to_T_mat = zero_matrix(R, dim(P), dim(T))
-    T_to_P_mat = zero_matrix(R, dim(T), dim(P))
-    for (i, I) in enumerate(multicombinations(dim(V), k)), inds in permutations(I)
-      j = _tensor_basis_index(inds, dim(V))
-      P_to_T_mat[i, j] += R(1)//factorial(k)
-      T_to_P_mat[j, i] = R(1)
-    end
-  else
-    throw(ArgumentError("Module must be an exterior or symmetric power"))
-  end
-  return (T, hom(P, T, P_to_T_mat; check=false), hom(T, P, T_to_P_mat; check=false))
-end
-
-# index of e_{inds[1]} ⊗ ... ⊗ e_{inds[k]} in the basis of the k-th tensor power of V
-function _tensor_basis_index(inds, dimV::Int)
-  return 1 + sum((ind - 1) * dimV^(m - 1) for (m, ind) in enumerate(reverse(inds)); init=0)
-end
-
 ######################## Tensor powers ########################
 
 # cache storage

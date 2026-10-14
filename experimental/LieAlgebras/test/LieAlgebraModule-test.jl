@@ -378,14 +378,6 @@
 
               as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
               @test E(as) == map(as)
-
-              T, E_to_T, T_to_E = Oscar.LieAlgebras._tensor_power_embedding(E)
-              @test T == tensor_power(V, k)[1]
-              @test domain(E_to_T) === E
-              @test codomain(E_to_T) === T
-              @test domain(T_to_E) === T
-              @test codomain(T_to_E) === E
-              @test compose(E_to_T, T_to_E) == id_hom(E)
             end
           end
         end
@@ -434,14 +426,6 @@
 
               as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
               @test S(as) == map(as)
-
-              T, S_to_T, T_to_S = Oscar.LieAlgebras._tensor_power_embedding(S)
-              @test T == tensor_power(V, k)[1]
-              @test domain(S_to_T) === S
-              @test codomain(S_to_T) === T
-              @test domain(T_to_S) === T
-              @test codomain(T_to_S) === S
-              @test compose(S_to_T, T_to_S) == id_hom(S)
             end
           end
         end
