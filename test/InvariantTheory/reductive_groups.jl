@@ -82,7 +82,7 @@
   c = [1, 2, 3, 4]
   f = sum(c[i + 1] * binomial(3, i) * t[1]^(3 - i) * t[2]^i for i in 0:3)
   g = evaluate(f, Zv * t)
-  @test MZ * c == [coeff(g, [3 - i, i]) // binomial(3, i) for i in 0:3]
+  @test MZ * c == [coeff(g, [3 - i, i])//binomial(3, i) for i in 0:3]
 
   #forms of a degree whose factorial exceeds the range of Int
   M = representation_matrix(representation_on_forms(G, 21))
@@ -203,7 +203,9 @@
   ringg, z = polynomial_ring(QQ, :z => 1:4)
   G = linearly_reductive_group(ideal([z[1] * z[2] - 1, z[3] * z[4] - 1]))
   M = diagonal_matrix(ringg, [z[1], z[3], z[2] * z[4], z[2] * z[3]])
-  IT = invariant_ring(representation_from_weights(torus_group(QQ, 2), [1 0; 0 1; -1 -1; -1 1]))
+  IT = invariant_ring(
+    representation_from_weights(torus_group(QQ, 2), [1 0; 0 1; -1 -1; -1 1])
+  )
   RG = invariant_ring(polynomial_ring(IT), representation_reductive_group(G, M))
   @test issetequal(fundamental_invariants(RG), fundamental_invariants(IT))
 

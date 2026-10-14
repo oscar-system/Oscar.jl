@@ -178,7 +178,9 @@ function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
   if is_terse(io)
     print(io, "Representation of linearly reductive group")
   else
-    print(io, "Representation of degree ", vector_space_dim(R), " of linearly reductive group")
+    print(
+      io, "Representation of degree ", vector_space_dim(R), " of linearly reductive group"
+    )
   end
 end
 
