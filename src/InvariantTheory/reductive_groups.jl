@@ -171,7 +171,7 @@ end
 function _direct_sum(
   X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup
 )
-  @req group(X) === group(Y) "not compatible"
+  @req group(X) === group(Y) "the representations must be of the same group"
   G = group(X)
   R = base_ring(defining_ideal(G))
   Mat = block_diagonal_matrix(
@@ -184,7 +184,7 @@ function _direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
   n = length(V)
   G = group(V[1])
   for i in 2:n
-    @req G === group(V[i]) "not compatible"
+    @req G === group(V[i]) "the representations must be of the same group"
   end
   R = base_ring(defining_ideal(G))
   Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(V[i])) for i in 1:n])
@@ -194,7 +194,7 @@ end
 function _tensor_product(
   X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup
 )
-  @req group(X) === group(Y) "not compatible"
+  @req group(X) === group(Y) "the representations must be of the same group"
   Mat = kronecker_product(representation_matrix(X), representation_matrix(Y))
   return RepresentationLinearlyReductiveGroup(group(X), Mat)
 end
@@ -202,7 +202,7 @@ end
 function _tensor_product(V::Vector{RepresentationLinearlyReductiveGroup})
   n = length(V)
   for i in 2:n
-    @req group(V[1]) === group(V[i]) "not compatible"
+    @req group(V[1]) === group(V[i]) "the representations must be of the same group"
   end
   Mat = representation_matrix(V[1])
   for i in 2:n
