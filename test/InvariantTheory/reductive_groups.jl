@@ -15,6 +15,8 @@
   @test Oscar.group_dim(G) == 2
   @test defining_ideal(G) == ideal([z[1, 1] * z[2, 2] - z[2, 1] * z[1, 2] - 1])
   @test Oscar.natural_representation(G) == matrix(S, z)
+  @test_throws ArgumentError linearly_reductive_group(:GL, 2, QQ)
+  @test_throws ArgumentError linearly_reductive_group(:SL, 2, GF(5))
 
   rep1 = representation_on_forms(G, 2)
   @test ncols(representation_matrix(rep1)) == 3

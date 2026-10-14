@@ -367,14 +367,13 @@ end
 # These are objects that carry information about a linearly reductive group.
 # As of now it is only implemented for SLn, its direct products and tensors.
 mutable struct LinearlyReductiveGroup
-  field::Field #characteristic zero. implement check?
+  field::Field
   group::Tuple{Symbol,Int}
   defining_ideal::MPolyIdeal
   reynolds_operator::Function
   natural_representation::MatElem
 
   function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
-    @req sym === :SL && characteristic(fld) == 0 "Only SL in characteristic 0 is implemented so far"
     R, _ = polynomial_ring(fld, :z => (1:m, 1:m); cached=false)
     return LinearlyReductiveGroup(sym, m, R)
   end
@@ -382,7 +381,10 @@ mutable struct LinearlyReductiveGroup
   function LinearlyReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
     G = new()
     fld = base_ring(pring)
-    @req sym === :SL && characteristic(fld) == 0 "Only SL in characteristic 0 is implemented so far"
+    @req sym === :SL "only :SL is supported"
+    # By Nagata, a group is linearly reductive in characteristic p > 0 only if
+    # its identity component is a torus.
+    @req characteristic(fld) == 0 "the field must have characteristic 0, as SLm is not linearly reductive in positive characteristic for m >= 2"
     G.field = fld
     @req m^2 == ngens(pring) "ring not compatible"
     G.group = (sym, m)
