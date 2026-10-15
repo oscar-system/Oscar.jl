@@ -231,6 +231,17 @@ end
 
 monomial_basis(A::MonoidAlgebra, g::FinGenAbGroupElem) = monomial_basis(A.algebra, g)
 
+# The first element of `monomial_basis(A, g)`, cached per degree since
+# `monomial_basis` enumerates lattice points via polymake.
+function _monomial_of_degree(A::MonoidAlgebra, g::FinGenAbGroupElem)
+  cache = get_attribute!(Dict{Vector{ZZRingElem},MPolyDecRingElem}, A, :monomial_of_degree)
+  key = ZZRingElem[g[i] for i in 1:ngens(parent(g))]
+  return get!(() -> monomial_basis(A, g)[1], cache, key)
+end
+
+_monomial_of_degree(A::MonoidAlgebra, a::Vector{<:IntegerUnion}) =
+  _monomial_of_degree(A, grading_group(A)(a))
+
 evaluate(a::MonoidAlgebraElem, vals::Vector) = evaluate(underlying_element(a),vals) 
 
 is_homogeneous(a::MonoidAlgebraElem) = is_homogeneous(underlying_element(a))
