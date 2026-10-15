@@ -361,17 +361,26 @@ invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) =
 @attr Tuple{
   MPolyIdeal{mpoly_type(FldT)},dense_matrix_type(mpoly_type(FldT))
 } function proj_of_image_ideal(R::RedGroupInvarRing{FldT}) where {FldT}
-  Z = representation(R)
-  return proj_of_image_ideal(group(Z), Z.rep_mat)
+  return proj_of_image_ideal(representation(R))
 end
 
 # Hilbert's ideal in the ring K[x, y, zz] of proj_of_image_ideal, where the
-# Reynolds operator is applied.
+# Reynolds operator is applied: by Derksen, it is obtained by setting y = 0.
 @attr ideal_type(PolyRingT) function _null_cone_ideal_xyz(
   R::RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
 ) where {FldT,PolyRingElemT,PolyRingT}
-  I, _ = proj_of_image_ideal(R)
-  return _null_cone_ideal(I, vector_space_dim(representation(R)))
+  b, _ = proj_of_image_ideal(R)
+  n = degree(representation(R))
+  mixed_ring_xy = base_ring(b)
+  xyz = gens(mixed_ring_xy)
+  V = vcat(xyz[1:n], zeros(mixed_ring_xy, n), xyz[(2 * n + 1):end])
+  mixed_ring_graded, _ = grade(mixed_ring_xy)
+  mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
+  I = ideal(
+    mixed_ring_graded, elem_type(mixed_ring_graded)[mapp(evaluate(f, V)) for f in gens(b)]
+  )
+  # the ring is passed as there are no generators if I is zero
+  return ideal(mixed_ring_graded, minimal_generating_set(I))
 end
 
 @doc raw"""
@@ -485,15 +494,15 @@ function Base.show(io::IO, R::RedGroupInvarRing)
   end
 end
 
-#computing the graph Gamma from Derksens paper
-function image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
+# Return the ideal of the graph {(v, rho(g)v, g) | v in V, g in G} in the ring
+# K[x, y, zz], where zz are the coordinates of G, and the representation matrix
+# with z replaced by zz.
+function image_ideal(r::RepresentationLinearlyReductiveGroup)
+  G = group(r)
+  rep_mat = representation_matrix(r)
   R = base_ring(rep_mat)
   n = ncols(rep_mat)
-  if isdefined(G, :group)
-    m = (group_dim(G))^2
-  else
-    m = ngens(base_ring(defining_ideal(G)))
-  end
+  m = ngens(R)
   mixed_ring_xy, x, y, zz = polynomial_ring(
     base_ring(G), :x => 1:n, :y => 1:n, :zz => 1:m; cached=false
   )
@@ -510,29 +519,10 @@ end
 # Return the ideal I_{\Bar{B}} of the closure of B = {(v, rho(g)v) | v in V, g in G}
 # in V x V, and the representation matrix with z replaced by zz. Both live in the
 # ring K[x, y, zz] of image_ideal; the generators of the ideal involve only x and y.
-function proj_of_image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
-  W = image_ideal(G, rep_mat)
-  mixed_ring_xy = base_ring(W[2])
-  n = ncols(rep_mat)
-  return eliminate(W[1], gens(mixed_ring_xy)[((2 * n) + 1):end]), W[2]
-end
-
-#this function gets the null cone ideal, given by a minimal generating set.
-#the generators may or may not be invariant.
-#to do this we evaluate what is returned from proj_of_image_ideal at y = 0 
-#ie at gens(basering)[n+1:2*n] = [0 for i in 1:n]
-function _null_cone_ideal(X::MPolyIdeal, n::Int)
-  mixed_ring_xy = base_ring(X)
-  #evaluate at gens(mixed_ring_xy)[n+1:2*n] = 0
-  xyz = gens(mixed_ring_xy)
-  V = vcat(xyz[1:n], [0 for i in 1:n], xyz[(2 * n + 1):end])
-  ev_gbasis = [evaluate(f, V) for f in gens(X)]
-  #grading starts here. In the end, our invariant ring is graded.
-  mixed_ring_graded, _ = grade(mixed_ring_xy)
-  mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
-  I = ideal(mixed_ring_graded, elem_type(mixed_ring_graded)[mapp(f) for f in ev_gbasis])
-  # the ring is passed as there are no generators if I is zero
-  return ideal(mixed_ring_graded, minimal_generating_set(I))
+function proj_of_image_ideal(r::RepresentationLinearlyReductiveGroup)
+  I, M = image_ideal(r)
+  n = degree(r)
+  return eliminate(I, gens(base_ring(I))[(2 * n + 1):end]), M
 end
 
 # Computing the invariant generators of the null cone by applying reynolds
