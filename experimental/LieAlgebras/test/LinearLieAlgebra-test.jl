@@ -43,6 +43,16 @@
     @test_throws ArgumentError lie_algebra([zero_matrix(QQ, 2, 3)])
   end
 
+  @testset "constructor checks" begin
+    # `check=true` rejects linearly dependent and non-closed matrix bases
+    e = matrix(QQ, [0 1; 0 0])
+    f = matrix(QQ, [0 0; 1 0])
+    @test_throws ArgumentError lie_algebra(QQ, 2, [e, 2 * e], [:e, :e2])
+    @test_throws ArgumentError lie_algebra(QQ, 2, [e, f], [:e, :f])
+    @test lie_algebra(QQ, 2, [e, f], [:e, :f]; check=false) isa LinearLieAlgebra
+    @test dim(lie_algebra(QQ, 2, [e, f, e * f - f * e], [:e, :f, :h])) == 3
+  end
+
   @testset "conformance tests" begin
     @testset "0-dim Lie algebra /QQ" begin
       L = lie_algebra(QQ, 0, QQMatrix[], Symbol[])

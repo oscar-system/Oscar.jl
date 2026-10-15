@@ -75,7 +75,7 @@ end
 Check whether the Lie algebra module element `v` is zero.
 """
 function iszero(v::LieAlgebraModuleElem)
-  return iszero(coefficients(v))
+  return iszero(_matrix(v))
 end
 
 @inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
@@ -87,8 +87,8 @@ end
 
 Return the coefficients of `v` with respect to [`basis(::LieAlgebraModule)`](@ref).
 """
-function coefficients(v::LieAlgebraModuleElem)
-  return collect(_matrix(v))[1, :]
+function coefficients(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
+  return C[_matrix(v)[1, i] for i in 1:dim(parent(v))]
 end
 
 @doc raw"""
@@ -437,21 +437,26 @@ function Base.hash(V::LieAlgebraModule, h::UInt)
   h = hash(dim(V), h)
   h = hash(symbols(V), h)
   h = hash(base_lie_algebra(V), h)
-  h = hash(transformation_matrices(V), h)
+  h = hash(_transformation_matrices_hash(V), h)
   return xor(h, b)
+end
+
+# cached, as the matrices never change and every element hash goes through here
+@attr UInt function _transformation_matrices_hash(V::LieAlgebraModule)
+  return hash(transformation_matrices(V))
 end
 
 function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:FieldElem}
   check_parent(v1, v2)
-  return coefficients(v1) == coefficients(v2)
+  return _matrix(v1) == _matrix(v2)
 end
 
 function Base.hash(v::LieAlgebraModuleElem, h::UInt)
   b = 0x723913014484513a % UInt
   h = hash(parent(v), h)
-  h = hash(coefficients(v), h)
+  h = hash(_matrix(v), h)
   return xor(h, b)
 end
 
@@ -1016,17 +1021,22 @@ function exterior_power(
   R = coefficient_ring(V)
   dim_E = binomial(dim(V), k)
   ind_map = collect(combinations(1:dim(V), k))
+  index_of = Dict{Vector{Int},Int}(collect(Int, I) => i for (i, I) in enumerate(ind_map))
 
-  T, _ = tensor_power(V, k; cached)
-  E_to_T_mat = zero_matrix(R, dim_E, dim(T))
-  T_to_E_mat = zero_matrix(R, dim(T), dim_E)
-  for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
-    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
-    E_to_T_mat[i, j] = R(sgn)//factorial(k)
-    T_to_E_mat[j, i] = R(sgn)
-  end
-  transformation_matrices = map(1:dim(L)) do i
-    E_to_T_mat * transformation_matrix(T, i) * T_to_E_mat
+  # x acts as a derivation: x * (e_I) = sum_m e_{i_1} ^ ... ^ (x * e_{i_m}) ^ ... ^ e_{i_k}
+  transformation_matrices = map(1:dim(L)) do l
+    T_l = transformation_matrix(V, l)
+    M = zero_matrix(R, dim_E, dim_E)
+    for (r, I) in enumerate(ind_map), (m, i_m) in enumerate(I), j in 1:dim(V)
+      is_zero_entry(T_l, i_m, j) && continue
+      j != i_m && j in I && continue # repeated factor
+      c = T_l[i_m, j]
+      J = collect(Int, I)
+      J[m] = j
+      p = sortperm(J)
+      M[r, index_of[J[p]]] += sign(AbstractAlgebra.Perm(p, false)) * c
+    end
+    M
   end
 
   s = if k == 0
@@ -1044,16 +1054,14 @@ function exterior_power(
 
   E = LieAlgebraModule{C}(L, dim_E, transformation_matrices, s; check=false)
 
-  E_to_T = hom(E, T, E_to_T_mat; check=false)
-  T_to_E = hom(T, E, T_to_E_mat; check=false)
-
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
+    # the coefficients of a wedge product are the maximal minors of the coefficient rows
+    A = reduce(vcat, [_matrix(a) for a in as]; init=zero_matrix(R, 0, dim(V)))
     mat = zero_matrix(R, 1, dim_E)
-    for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
-      mat[1, i] +=
-        sgn * prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R))
+    for (m, _, J) in minors_iterator_with_position(A, k)
+      mat[1, index_of[J]] = m
     end
     return E(mat)
   end
@@ -1083,9 +1091,6 @@ function exterior_power(
     :is_exterior_power => (V, k),
     :wedge_pure_function => mult_map,
     :wedge_generator_decompose_function => inv_mult_map,
-    :embedding_tensor_power => T,
-    :embedding_tensor_power_embedding => E_to_T,
-    :embedding_tensor_power_projection => T_to_E,
   )
 
   cached && (_exterior_powers(V)[k] = (E, mult_map))
@@ -1152,17 +1157,21 @@ function symmetric_power(
   R = coefficient_ring(V)
   dim_S = binomial(dim(V) + k - 1, k)
   ind_map = collect(multicombinations(dim(V), k))
+  index_of = Dict{Vector{Int},Int}(collect(Int, I) => i for (i, I) in enumerate(ind_map))
 
-  T, _ = tensor_power(V, k; cached)
-  S_to_T_mat = zero_matrix(R, dim_S, dim(T))
-  T_to_S_mat = zero_matrix(R, dim(T), dim_S)
-  for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
-    j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
-    S_to_T_mat[i, j] += R(1)//factorial(k)
-    T_to_S_mat[j, i] = R(1)
-  end
-  transformation_matrices = map(1:dim(L)) do i
-    S_to_T_mat * transformation_matrix(T, i) * T_to_S_mat
+  # x acts as a derivation: x * (e_I) = sum_m e_{i_1} * ... * (x * e_{i_m}) * ... * e_{i_k}
+  transformation_matrices = map(1:dim(L)) do l
+    T_l = transformation_matrix(V, l)
+    M = zero_matrix(R, dim_S, dim_S)
+    for (r, I) in enumerate(ind_map), (m, i_m) in enumerate(I), j in 1:dim(V)
+      is_zero_entry(T_l, i_m, j) && continue
+      c = T_l[i_m, j]
+      J = collect(Int, I)
+      J[m] = j
+      sort!(J)
+      M[r, index_of[J]] += c
+    end
+    M
   end
 
   s = if k == 0
@@ -1197,17 +1206,24 @@ function symmetric_power(
 
   S = LieAlgebraModule{C}(L, dim_S, transformation_matrices, s; check=false)
 
-  S_to_T = hom(S, T, S_to_T_mat; check=false)
-  T_to_S = hom(T, S, T_to_S_mat; check=false)
-
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
+    # multiply out one factor at a time, with coefficients indexed by sorted index vectors
+    coeffs = Dict{Vector{Int},elem_type(R)}(Int[] => one(R))
+    for a in as
+      next = Dict{Vector{Int},elem_type(R)}()
+      for (I, c) in coeffs, j in 1:dim(V)
+        is_zero_entry(a.mat, 1, j) && continue
+        J = copy(I)
+        insert!(J, searchsortedfirst(J, j), j)
+        next[J] = get(next, J, zero(R)) + c * a.mat[1, j]
+      end
+      coeffs = next
+    end
     mat = zero_matrix(R, 1, dim_S)
-    for (i, _inds) in enumerate(ind_map), inds in unique(permutations(_inds))
-      mat[1, i] += prod(
-        as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R)
-      )
+    for (I, c) in coeffs
+      mat[1, index_of[I]] = c
     end
     return S(mat)
   end
@@ -1237,9 +1253,6 @@ function symmetric_power(
     :is_symmetric_power => (V, k),
     :mult_pure_function => mult_map,
     :mult_generator_decompose_function => inv_mult_map,
-    :embedding_tensor_power => T,
-    :embedding_tensor_power_embedding => S_to_T,
-    :embedding_tensor_power_projection => T_to_S,
   )
 
   cached && (_symmetric_powers(V)[k] = (S, mult_map))

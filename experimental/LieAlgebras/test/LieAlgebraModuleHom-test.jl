@@ -18,6 +18,11 @@
       ],
     )
     @test is_welldefined(h)
+
+    # swapping two basis vectors of the standard module is not a homomorphism
+    v1, v2, v3 = basis(V1)
+    @test_throws ArgumentError hom(V1, V1, [v2, v1, v3])
+    @test !is_welldefined(hom(V1, V1, [v2, v1, v3]; check=false))
   end
 
   @testset "Image and kernel" begin

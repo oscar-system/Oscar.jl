@@ -11,8 +11,6 @@ using Oscar:
   MapHeader,
   set_root_system_type!
 
-import Random
-
 # not importet in Oscar
 using AbstractAlgebra:
   ProductIterator, _number_of_direct_product_factors, ordinal_number_string
@@ -107,7 +105,6 @@ export _is_tensor_power
 export _is_tensor_product
 
 include("Types.jl")
-include("Combinatorics.jl")
 
 include("CoxeterGroup.jl")
 include("DynkinDiagram.jl")
