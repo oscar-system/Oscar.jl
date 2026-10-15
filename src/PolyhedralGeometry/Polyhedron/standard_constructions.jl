@@ -1437,7 +1437,7 @@ end
 
 @doc raw"""
     rand_dual_bounding_body([rng::AbstractRNG,] P::Polyhedron{T}, m::Int, l::Int=1;
-    precision=nothing, seed=nothing) where {T<:Union{QQFieldElem,Float64}}
+    precision=nothing, seed=nothing) where {T<:scalar_types}
 
 Construct a random polytope which approximates the polytope $P \subset \mathbb{R}^d$ from
 the outside. Let $V$ be the set of vertices of $P$. To this end, $m$ random directions
@@ -1447,7 +1447,7 @@ is formed, where $t_u$ is the $l$-th smallest value of $\langle u, v \rangle$ fo
 $v \in V$. The result is the intersection of these $2m$ halfspaces. The polyhedron $P$
 must be bounded.
 
-The result has the same scalar type as $P$. For a `Polyhedron{QQFieldElem}` the directions
+The result has the same scalar type as $P$. For a `Polyhedron{<:FieldElem}` the directions
 are the points of [`rand_spherical_polytope`](@ref) with the default distribution
 `:uniform`, which polymake computes via floating point numbers of the given `precision`
 and converts to rational points close to the unit sphere. Then the result is computed in
@@ -1490,19 +1490,19 @@ true
 """
 function rand_dual_bounding_body(
   rng::AbstractRNG, P::Polyhedron{T}, m::Int, l::Int=1; precision=nothing
-) where {T<:Union{QQFieldElem,Float64}}
+) where {T<:scalar_types}
   d = ambient_dim(P)
   @req m > d "number of directions must be larger than the dimension"
   @req is_bounded(P) "polyhedron must be bounded"
-  V = vertices(P)
-  n = length(V)
+  pts = matrix(vertices(P))
+  n = nrows(pts)
   @req 1 <= l <= n "l must be between 1 and the number of vertices"
-  pts = [V[i][j] for i in 1:n, j in 1:d]
-  U = _random_unit_vectors(T, rng, m, d, precision)
+  cf = coefficient_field(P)
+  U = matrix(cf, _random_unit_vectors(T, rng, m, d, precision))
   A = vcat(U, -U)
   D = pts * transpose(A)
-  b = [partialsort(D[:, j], l) for j in 1:(2 * m)]
-  return polyhedron(coefficient_field(P), -A, -b)::Polyhedron{T}
+  b = partialsort.(eachcol(D), l)
+  return polyhedron(cf, -A, -b)::Polyhedron{T}
 end
 
 rand_dual_bounding_body(P::Polyhedron, m::Int, l::Int=1; precision=nothing, seed=nothing) =
@@ -1518,7 +1518,7 @@ function _random_unit_vectors(::Type{Float64}, rng::AbstractRNG, m::Int, d::Int,
 end
 
 function _random_unit_vectors(
-  ::Type{QQFieldElem}, rng::AbstractRNG, m::Int, d::Int, precision
+  ::Type{<:FieldElem}, rng::AbstractRNG, m::Int, d::Int, precision
 )
   # the unit sphere is {-1, 1}, and rand_dual_bounding_body uses both directions anyway
   d == 1 && return ones(QQFieldElem, m, 1)
