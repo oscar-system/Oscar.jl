@@ -47,7 +47,6 @@ oscardir = joinpath(@__DIR__, "..")
 
 files_and_dirs_to_be_formatted = [
   "src/InvariantTheory",
-  "test/InvariantTheory",
   "src/PolyhedralGeometry",
   "test/PolyhedralGeometry",
   "src/LieTheory",
@@ -58,6 +57,7 @@ files_and_dirs_to_be_formatted = [
   "experimental/BasisLieHighestWeight",
   "experimental/ExperimentalTemplate",
   "experimental/ExteriorAlgebra",
+  "experimental/InvariantTheory",
   "experimental/LieAlgebras",
   "experimental/LinearAlgebraicGroups",
   "experimental/LinearQuotients",
