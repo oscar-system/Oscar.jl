@@ -470,32 +470,6 @@ function hom_tensor(
   return hom(V, W, mat; check=false)
 end
 
-function _induced_map_on_power(
-  D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
-)
-  TD = type == :tensor ? D : get_attribute(D, :embedding_tensor_power)::typeof(D)
-  TC = type == :tensor ? C : get_attribute(C, :embedding_tensor_power)::typeof(C)
-
-  mat = reduce(
-    kronecker_product,
-    [matrix(h) for _ in 1:power];
-    init=identity_matrix(coefficient_ring(C), 1),
-  )
-  TD_to_TC = hom(TD, TC, mat; check=false)
-
-  if type == :tensor
-    return TD_to_TC
-  else
-    D_to_TD = get_attribute(
-      D, :embedding_tensor_power_embedding
-    )::LieAlgebraModuleHom{typeof(D),typeof(TD)}
-    TC_to_C = get_attribute(
-      C, :embedding_tensor_power_projection
-    )::LieAlgebraModuleHom{typeof(TC),typeof(C)}
-    return D_to_TD * TD_to_TC * TC_to_C
-  end
-end
-
 @doc raw"""
     exterior_power(h::LieAlgebraModuleHom, k::Int; domain::LieAlgebraModule, codomain::LieAlgebraModule) -> LieAlgebraModuleHom
 
@@ -517,7 +491,14 @@ function exterior_power(
   @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
-  return _induced_map_on_power(domain, codomain, h, k, :ext)
+  # a wedge product of basis vectors maps to the wedge product of their images
+  imgs = [h(v) for v in basis(domain_base)]
+  return hom(
+    domain,
+    codomain,
+    [codomain(Tuple(imgs[i] for i in I)) for I in combinations(1:length(imgs), k)];
+    check=false,
+  )
 end
 
 @doc raw"""
@@ -541,7 +522,14 @@ function symmetric_power(
   @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
-  return _induced_map_on_power(domain, codomain, h, k, :sym)
+  # a monomial in basis vectors maps to the monomial in their images
+  imgs = [h(v) for v in basis(domain_base)]
+  return hom(
+    domain,
+    codomain,
+    [codomain(Tuple(imgs[i] for i in I)) for I in multicombinations(length(imgs), k)];
+    check=false,
+  )
 end
 
 @doc raw"""
@@ -565,5 +553,9 @@ function tensor_power(
   @req domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
-  return _induced_map_on_power(domain, codomain, h, k, :tensor)
+  mat = reduce(
+    kronecker_product, [matrix(h) for _ in 1:k];
+    init=identity_matrix(coefficient_ring(codomain), 1),
+  )
+  return hom(domain, codomain, mat; check=false)
 end
