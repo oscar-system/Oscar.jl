@@ -173,6 +173,14 @@ end
         #end
     end
   end
+
+  # Catch different parents among the weights
+  G = abelian_group([0, 0])
+  H = abelian_group([0])
+  W = [2*G[1]+G[2], H[1]]
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  @test_throws ArgumentError grade(R, W)
+  @test_throws ArgumentError filtrate(R, W, <)
 end
 
 @testset "Coercion" begin
