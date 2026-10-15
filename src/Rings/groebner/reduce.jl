@@ -462,6 +462,12 @@ end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
   @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
+  if is_zero(ngens(base_ring(J)))
+    P = base_ring(J)
+    U = _univariate_ideal(J)
+    S = base_ring(U)
+    return [P(constant_coefficient(g)) for g in normal_form([S(constant_coefficient(f)) for f in A], U)]
+  end
   if is_normal_form_f4_applicable(J, ordering)
     res = _normal_form_f4(A, J)
   else

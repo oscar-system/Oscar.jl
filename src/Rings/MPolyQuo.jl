@@ -742,12 +742,8 @@ function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   R  = parent(f)
   OR = oscar_origin_ring(R)
   if is_zero(ngens(OR))
-    # Singular rings need a variable, so reduce modulo the same constants in kk[t]
-    T = get_attribute!(R, :univariate_quotient) do
-      S, _ = polynomial_ring(coefficient_ring(OR), 1; cached = false)
-      quo(S, ideal(S, [S(constant_coefficient(g)) for g in gens(modulus(R))]))[1]
-    end
-    f.f = OR(constant_coefficient(simplify(T(constant_coefficient(f.f))).f))
+    # Singular rings need a variable, which normal_form works around
+    f.f = normal_form(f.f, modulus(R))
     f.simplified = true
     return f
   end

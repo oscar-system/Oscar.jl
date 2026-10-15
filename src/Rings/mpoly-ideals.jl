@@ -1683,6 +1683,7 @@ false
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
   @req parent(f) === base_ring(I) "Polynomial `f` and ideal `I` do not belong to the same polynomial ring."
+  is_zero(ngens(base_ring(I))) && return is_zero(normal_form(f, I))
   Sx = singular_polynomial_ring(I, ordering)
   return Singular.iszero(Singular.reduce(Sx(f), singular_groebner_generators(I, ordering)))
 end
@@ -1925,11 +1926,19 @@ julia> dim(I)
 """
 dim(I::MPolyIdeal) = krull_dim(I)
 
+# Singular rings need a variable, so treat an ideal of kk[] as one of kk[t]
+function _univariate_ideal(I::MPolyIdeal)
+  return get_attribute!(I, :univariate_ideal) do
+    S, _ = polynomial_ring(coefficient_ring(I), 1; cached = false)
+    ideal(S, [S(constant_coefficient(g)) for g in gens(I)])
+  end
+end
+
 function krull_dim(I::MPolyIdeal)
   if I.dim === nothing
     @req is_noetherian(coefficient_ring(I)) "Krull dimension is only supported for Noetherian rings."
-    if is_zero(ngens(base_ring(I))) # Catch a boundary case
-      I.dim = krull_dim(coefficient_ring(base_ring(I)))
+    if is_zero(ngens(base_ring(I)))
+      I.dim = krull_dim(_univariate_ideal(I)) - 1
     else
       I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
     end
