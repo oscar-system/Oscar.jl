@@ -406,7 +406,7 @@
       @test n_facets(dbb) <= 40
       
       pqb = n_gon(7)
-      dbbqb = rand_dual_bounding_body(Oscar.get_seeded_rng(), pqb, 10)
+      dbbpqb = rand_dual_bounding_body(Oscar.get_seeded_rng(), pqb, 10)
       @test dbbpqb isa Polyhedron{QQBarFieldElem}
       @test issubset(pqb, dbbpqb)
       @test n_facets(dbbpqb) <= 20
