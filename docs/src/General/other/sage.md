@@ -112,6 +112,14 @@ so most of the differences are differences between these two languages.
   package
   [Singular.jl](https://github.com/oscar-system/Singular.jl).
 
+- **GAP can call back into OSCAR.**
+  SageMath calls GAP and Singular, but they cannot call SageMath.
+  In OSCAR, the interface to GAP works in both directions: GAP code can
+  call any Julia function, see [GAP Integration](@ref).
+  This makes it possible, for example, to take a GAP package and
+  replace some of its functions by Julia code, while the rest of the
+  package keeps working unchanged.
+
 ## Common SageMath functions and their OSCAR counterparts
 
 ### Lists
