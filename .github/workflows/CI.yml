@@ -120,6 +120,8 @@ jobs:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
+          # most test time is compilation; -O1 cuts the short suite by 25%
+          optimize: '1'
       - name: Archive stats
         if: matrix.depwarn == ''
         uses: actions/upload-artifact@v7
@@ -176,6 +178,7 @@ jobs:
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
+          optimize: '1'
       - name: Archive stats
         uses: actions/upload-artifact@v7
         continue-on-error: true
@@ -275,7 +278,7 @@ jobs:
             Pkg.instantiate()'
       - name: "Run doctests"
         run: |
-          julia ${{ matrix.julia-version == '1.10' && '--code-coverage' || '' }} \
+          julia -O1 ${{ matrix.julia-version == '1.10' && '--code-coverage' || '' }} \
             --project=docs --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
               using Documenter
               include("docs/documenter_helpers.jl")
