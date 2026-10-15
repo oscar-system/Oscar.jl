@@ -210,6 +210,20 @@ end
   @test is_isomorphic(D, abelian_group([0]))
 end
 
+@testset "Graded polynomial ring in 0 variables" begin
+  # the grading group cannot be read off generator degrees here
+  P, _ = polynomial_ring(QQ, 0)
+  for (R, x) in [graded_polynomial_ring(QQ, :t => 1:0),
+                 graded_polynomial_ring(QQ, :t => 1:0; weights = Int[]),
+                 grade(P),
+                 grade(P, Int[])]
+    @test ngens(R) == 0
+    @test isempty(x)
+    @test is_z_graded(R)
+    @test degree(one(R)) == zero(grading_group(R))
+  end
+end
+
 @testset "Monomial bases and homogeneous components with torsion" begin
   S, (u, v) = graded_polynomial_ring(QQ, [:u, :v])
   @test monomial_basis(S, 2) == [v^2, u * v, u^2]

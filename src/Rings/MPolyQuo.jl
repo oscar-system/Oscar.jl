@@ -741,6 +741,12 @@ function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   f.simplified && return f
   R  = parent(f)
   OR = oscar_origin_ring(R)
+  if is_zero(ngens(OR))
+    # Singular rings need a variable, which normal_form works around
+    f.f = normal_form(f.f, modulus(R))
+    f.simplified = true
+    return f
+  end
   SR = singular_origin_ring(R)
   G  = singular_origin_groebner_basis(R)
   g  = f.f
