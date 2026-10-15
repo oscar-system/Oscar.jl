@@ -24,9 +24,11 @@ Return `true` if `h` is a well-defined homomorphism of Lie algebra modules.
 This function is used internally when calling `hom` with `check=true`.
 """
 function is_welldefined(h::LieAlgebraModuleHom)
-  V1 = domain(h)
-  for x in basis(base_lie_algebra(V1)), v in basis(V1)
-    x * h(v) == h(x * v) || return false
+  # h(x * v) = x * h(v) for all v reads T1_x * M = M * T2_x for the right actions
+  M = matrix(h)
+  for (T1, T2) in
+      zip(transformation_matrices(domain(h)), transformation_matrices(codomain(h)))
+    T1 * M == M * T2 || return false
   end
   return true
 end

@@ -11,8 +11,6 @@ using Oscar:
   MapHeader,
   set_root_system_type!
 
-import Random
-
 # not importet in Oscar
 using AbstractAlgebra:
   ProductIterator, _number_of_direct_product_factors, ordinal_number_string

@@ -90,8 +90,8 @@ end
 
 Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
-function coefficients(x::LieAlgebraElem)
-  return collect(_matrix(x))[1, :]
+function coefficients(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  return C[_matrix(x)[1, i] for i in 1:dim(parent(x))]
 end
 
 @doc raw"""
@@ -206,7 +206,7 @@ end
 Return `x`. Fails if `x` is not an element of `L`.
 """
 function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:FieldElem}
-  @req L === parent(x) "Incompatible modules."
+  @req L === parent(x) "Incompatible Lie algebras."
   return x
 end
 
@@ -527,24 +527,24 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
   if dim(L) <= 1
     # L is abelian and hence nilpotent
   elseif characteristic(L) == 0
+    # if L is not nilpotent, some x_i or x_i + x_j is not ad-nilpotent [Gra00; Prop. 2.7.2]
     for x in basis(L)
       !is_ad_nilpotent(x) && return x
     end
-    for (i, x) in enumerate(basis(L))
-      for (j, y) in enumerate(basis(L))
-        i > j && continue
-        xy = x * y
-        !is_ad_nilpotent(xy) && return xy
-      end
+    for (i, x) in enumerate(basis(L)), (j, y) in enumerate(basis(L))
+      i < j || continue
+      xy = x + y
+      !is_ad_nilpotent(xy) && return xy
     end
   else # characteristic > 0
     x = basis(L, 1)
     !is_ad_nilpotent(x) && return x
     K = sub(L, [x]; is_basis=true)
     while dim(K) < dim(L)
-      # find an element b in L \ K with [b,K]⊆K
+      # find an element b in L \ K with [b,K]⊆K;
+      # all elements of K are ad-nilpotent [Gra00; Prop. 2.7.1], hence N is larger than K
       N = normalizer(L, K)
-      b = basis(N, findfirst(!in(K), basis(N)))
+      b = basis(N, findfirst(!in(K), basis(N))::Int)
       !is_ad_nilpotent(b) && return b
       K = sub(L, [basis(K); b]; is_basis=true)
     end

@@ -119,6 +119,8 @@ function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
     return "sl_$n"
   elseif type == :special_orthogonal
     return "so_$n"
+  elseif type == :symplectic
+    return "sp_$n"
   end
   return nothing
 end
@@ -257,8 +259,8 @@ Construct the Lie algebra over the field `R` with basis `basis` and basis elemen
 given by `s`. The basis elements must be square matrices of size `n`.
 
 We require `basis` to be linearly independent, and to contain the Lie bracket of any
-two basis elements in its span (this is currently not checked).
-Setting `check=false` disables these checks (once they are in place).
+two basis elements in its span.
+Setting `check=false` disables these checks.
 
 # Examples
 ```jldoctest

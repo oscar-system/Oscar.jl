@@ -28,6 +28,11 @@
       V = abstract_module(L, 2, sc)
       @test dim(V) == 2
       lie_algebra_module_conformance_test(L, V)
+
+      # `check=true` rejects matrices that are not compatible with the bracket
+      bad = [identity_matrix(QQ, 2) for _ in 1:3]
+      @test_throws ArgumentError abstract_module(L, 2, bad)
+      @test abstract_module(L, 2, bad; check=false) isa LieAlgebraModule
     end
 
     @testset "λ = [2,1,0] of sl_4(QQ)" begin
