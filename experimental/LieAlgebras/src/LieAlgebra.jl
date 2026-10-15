@@ -494,7 +494,7 @@ end
   for (i, adxi) in enumerate(adjoint_matrices(L))
     for (j, adxj) in enumerate(adjoint_matrices(L))
       i > j && continue # killing form is symmetric
-      val = tr(adxi * adxj)
+      val = trace_of_product(adxi, adxj)
       A[j, i] = A[i, j] = val
     end
   end
