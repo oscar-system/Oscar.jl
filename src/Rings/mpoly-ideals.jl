@@ -1684,8 +1684,8 @@ false
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
   @req parent(f) === base_ring(I) "Polynomial `f` and ideal `I` do not belong to the same polynomial ring."
   is_zero(ngens(base_ring(I))) && return is_zero(normal_form(f, I))
-  Sx = singular_polynomial_ring(I, ordering)
-  return Singular.iszero(Singular.reduce(Sx(f), singular_groebner_generators(I, ordering)))
+  G = singular_groebner_generators(I, ordering)
+  return Singular.iszero(Singular.reduce(base_ring(G)(f), G))
 end
 Base.:in(f::MPolyRingElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
