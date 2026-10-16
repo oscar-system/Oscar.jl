@@ -554,9 +554,7 @@ function cox_ring(
   Grefl, GrefltoG = _subgroup_of_pseudo_reflections(L)
   H, HtoG = derived_subgroup(G)
   # Compute H*Grefl
-  H = matrix_group(
-    base_ring(G), degree(G), vcat(map(HtoG, gens(H)), map(GrefltoG, gens(Grefl)))
-  )
+  H, _ = sub(G, vcat(map(HtoG, gens(H)), map(GrefltoG, gens(Grefl))))
   A, GtoA = class_group(L)
 
   RH = invariant_ring(H)
