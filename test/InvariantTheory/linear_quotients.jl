@@ -131,4 +131,39 @@ end
       degree(gen(R, i))
   end
   @test is_zero(modulus(R))
+
+  # The example published with the article
+  # M. Belotti, M. Joswig, C. Meroni, V. Schleis, J. Schmitt
+  # "Algebraic and geometric computations in OSCAR"
+  # SIAM News, 56 (2023), no. 7, 9–10
+  # See the Jupyter notebook
+  # https://github.com/micjoswig/oscar-notebooks/blob/master/SIAM-News/Cox_rings_of_linear_quotients.ipynb
+  K, a = cyclotomic_field(6, :a)
+  S3 = matrix_group(matrix(K, 4, 4, [ a^2 0 0 0;
+                                    0 a^-2 0 0;
+                                    0 0 a^-2 0;
+                                    0 0 0 a^2 ]),
+                  matrix(K, 4, 4, [ 0 1 0 0;
+                                    1 0 0 0;
+                                    0 0 0 1;
+                                    0 0 1 0 ]))
+  L = linear_quotient(S3)
+  B, BtoR = cox_ring(L)
+  @test ngens(B) == 12
+  @test grading_group(B).snf == ZZRingElem[2]
+  A, GtoA = class_group(L)
+  @test A === grading_group(B)
+
+  # The matrix s generates Ab(S_3), so the action of this matrix determines the
+  # grading in the Cox ring:
+  # If f^s == f, then deg(f) == 0; if f^s == -f, then deg(f) == 1.
+  s = S3(matrix(K, 4, 4, [ 0 1 0 0 ; 1 0 0 0 ; 0 0 0 1 ; 0 0 1 0 ]))
+  for i in 1:ngens(B)
+    f = BtoR(B[i])
+    if is_zero(degree(B[i]))
+      @test f^s == f
+    else
+      @test f^s == -f
+    end
+  end
 end
