@@ -10,6 +10,7 @@
 
   function MPolyDecRing(R::S, D::FinGenAbGroup, d::Vector{FinGenAbGroupElem}) where {S}
     @req !(R isa MPolyDecRing) "cannot grade polynomial ring which is already decorated"
+    @req all(x -> D === parent(x), d) "parent of weights does not match given group or weights have different parents"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -20,6 +21,7 @@
   end
   function MPolyDecRing(R::S, D::FinGenAbGroup, d::Vector{FinGenAbGroupElem}, lt) where {S}
     @req !(R isa MPolyDecRing) "cannot filter polynomial ring which is already decorated"
+    @req all(x -> D === parent(x), d) "parent of weights does not match given group or weights have different parents"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
