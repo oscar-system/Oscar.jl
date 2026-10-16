@@ -173,6 +173,28 @@ on the right cosets of `G`.
   return G.s^-1*G.t^-1
 end
 
+@doc raw"""
+    defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
+
+Return whether the elements `s` and `t` of a permutation group define a valid 
+transitive coset action for ``{\rm SL}_2(\mathbb{Z})``.
+
+# Examples
+```jldoctest
+
+julia> Sym = symmetric_group(3);
+
+julia> s = Sym(cperm([2, 3])); t = Sym(cperm([1, 2]));
+
+julia> defines_coset_action_s_t(s, t)
+true
+
+julia> s_bad = Sym(cperm([1, 2, 3])); # Order 3 contradicts S^4 = 1
+
+julia> defines_coset_action_s_t(s_bad, t)
+false
+```
+"""
 function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
   isone(s^4) || return false
   isone((s^3*t)^3) || return false
