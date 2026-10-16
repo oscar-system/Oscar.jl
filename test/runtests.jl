@@ -54,7 +54,9 @@ end
 
 # setting the global julia seed does not work for distributed processes
 # the RNG is task-local and each '@everywhere' runs in a separate task...
-# to make sure we seed the main process we run this again
+# to make sure we seed the main process we run this again;
+# `set_seed!` also fixes the test file order below
+Oscar.set_seed!(seed)
 Oscar.randseed!(seed)
 
 # Enable GC logging to help track down certain GC related issues.
