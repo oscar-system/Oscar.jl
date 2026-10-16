@@ -231,16 +231,29 @@ end
 
 monomial_basis(A::MonoidAlgebra, g::FinGenAbGroupElem) = monomial_basis(A.algebra, g)
 
-# The first element of `monomial_basis(A, g)`, cached per degree since
-# `monomial_basis` enumerates lattice points via polymake.
-function _monomial_of_degree(A::MonoidAlgebra, g::FinGenAbGroupElem)
-  cache = get_attribute!(Dict{Vector{ZZRingElem},MPolyDecRingElem}, A, :monomial_of_degree)
-  key = ZZRingElem[g[i] for i in 1:ngens(parent(g))]
-  return get!(() -> monomial_basis(A, g)[1], cache, key)
+# Return `only(monomial_basis(A, a))` for `a ∈ Q` without enumerating the
+# lattice points of the fiber of `a`, as `monomial_basis` does: since Q is
+# normal, `a - deg(x_i)` lies in Q iff it lies in the cone of Q, and for
+# `a ≠ 0` some generator `x_i` passes this test.
+function _monomial_of_degree(A::MonoidAlgebra, a::Vector{Int})
+  halfspaces = facets(cone(A))
+  degs = [degree(Vector{Int}, x) for x in gens(A.algebra)]
+  u = zeros(Int, length(degs))
+  while !is_zero(a)
+    i = findfirst(d -> all(a - d in h for h in halfspaces), degs)
+    @req !isnothing(i) "degree must lie in the monoid"
+    a = a - degs[i]
+    u[i] += 1
+  end
+  return _standard_monomial(A.algebra, u)
 end
 
-_monomial_of_degree(A::MonoidAlgebra, a::Vector{<:IntegerUnion}) =
-  _monomial_of_degree(A, grading_group(A)(a))
+_standard_monomial(R::MPolyRing, u::Vector{Int}) = prod(gens(R) .^ u)
+
+# all monomials of the same degree are equal in the toric ring R, so the
+# normal form of one is the unique standard monomial of that degree
+_standard_monomial(R::MPolyQuoRing, u::Vector{Int}) =
+  normal_form(_standard_monomial(base_ring(R), u), modulus(R))
 
 evaluate(a::MonoidAlgebraElem, vals::Vector) = evaluate(underlying_element(a),vals) 
 
@@ -309,23 +322,23 @@ parent_type(
 # TODO: Finish implementation of the ring interface! 
 
 @doc raw"""
-    prime_to_face(kQ::Union{MPolyRing,MPolyQuoRing}, zonotope::Polyhedron, F::Polyhedron)
+    prime_to_face(kQ::Union{MPolyRing,MPolyQuoRing}, zonotope_monomials::Vector, F::Polyhedron)
 
 Let kQ be a monoid algebra over some semigroup $Q$. Given a face $F$ of the cone $C = \RR_{\geq 0}Q$ of the monoid algebra kQ,
 return the corresponding homogeneous prime ideal
 
 $P_F = k\{Q\setminus F\}.$
 
-The zonotope is the Minkowski sum of all primitive integer vectors along rays of $Q$. 
+Here `zonotope_monomials` holds the pairs $(a, x^a)$ for the lattice points $a$ of the zonotope,
+the Minkowski sum of all primitive integer vectors along rays of $Q$.
 """
 function prime_to_face(
-  kQ::Union{MPolyRing,MPolyQuoRing}, zonotope::Polyhedron, F::Polyhedron
+  kQ::Union{MPolyRing,MPolyQuoRing}, zonotope_monomials::Vector, F::Polyhedron
 )
   gens = Vector{MPolyDecRingElem}()
-  for lp in lattice_points(zonotope)
+  for (lp, x) in zonotope_monomials
     if !(lp in F) #check if lattice point is in F
-      a_v = [a_p for a_p in lp]
-      push!(gens, monomial_basis(kQ, a_v)[1])
+      push!(gens, x)
     end
   end
   return ideal(kQ, gens)
@@ -350,7 +363,8 @@ function get_faces_of_polyhedral_cone(
   for i in 0:dim(P)
     append!(P_faces, faces(P, i))
   end
-  return [FaceQ(prime_to_face(kQ, zonotope, F), F) for F in P_faces]
+  zonotope_monomials = [(lp, monomial_basis(kQ, Vector(lp))[1]) for lp in lattice_points(zonotope)]
+  return [FaceQ(prime_to_face(kQ, zonotope_monomials, F), F) for F in P_faces]
 end
 
 # given a polyhedral cone, this function returns the hyperplanes bounding it

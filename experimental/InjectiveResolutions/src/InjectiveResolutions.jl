@@ -230,18 +230,6 @@ function Base.show(io::IO, Ji::IndecInj)
     )
 end
 
-# faces of Q whose intersection with the face H ∩ Q is only the origin;
-# independent of the degree, so cached per hyperplane
-function _faces_meeting_hyperplane_in_origin(kQ::MonoidAlgebra, H::HyperplaneQ)
-  cache = get_attribute!(
-    Dict{HyperplaneQ,Vector{Polyhedron}}, kQ, :faces_meeting_hyperplane_in_origin
-  )
-  return get!(cache, H) do
-    F = intersect(H.hyperplane, cone(kQ))
-    return Polyhedron[f.poly for f in faces(kQ) if dim(intersect(f.poly, F)) == 0]
-  end
-end
-
 @doc raw"""
     generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
 
@@ -259,18 +247,21 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
   @assert torsion_free_rank(grading_group(kQ)) == length(a)
   @assert H in hyperplanes(kQ)
 
+  #get faces of Q intersecting F = H ∩ Q only in the origin, i.e. faces without a ray in H
+  D = Vector{Polyhedron}()
+  for f in kQ.faces
+    if !any(r in H.hyperplane for r in rays(f.poly))
+      push!(D, f.poly)
+    end
+  end
+
   B = Vector{Vector{Int}}()
-  rhs = H.A*a + H.b
-  PaF = polyhedron(H.A, rhs) #a + RR h
-  for d in _faces_meeting_hyperplane_in_origin(kQ, H)
+  PaF = polyhedron(H.A, H.A*a+H.b) #a + RR h
+  for d in D
     I = intersect(PaF, d) #(a + RR H)\cap RR_+D
     if dim(I) >= 0
-      # keep the lattice points outside of PaF; testing the inequalities
-      # directly avoids one polymake call per point
-      B_d = [
-        p for p in lattice_points(I + kQ.zonotope[1]) if
-        any(sum(H.A[i, j]*p[j] for j in eachindex(p)) > rhs[i] for i in eachindex(rhs))
-      ]
+      #lattice points not on a + H
+      B_d = [p for p in lattice_points(I + kQ.zonotope[1]) if !(p in PaF)]
       append!(B, B_d)
     end
   end
@@ -509,21 +500,6 @@ function evaluate(
   return evaluate(underlying_element(f), vals)
 end
 
-# Decide whether (b + F) ∩ (g + Q) ≠ ∅. As F is a face of the cone Q, this
-# holds iff b - g ∈ Q - F; the H-representation of Q - F is cached per face.
-function _meets_shifted_cone(kQ::MonoidAlgebra, p_F::FaceQ, b::Vector{Int}, g::Vector{Int})
-  T = Tuple{QQMatrix,Vector{QQFieldElem},QQMatrix,Vector{QQFieldElem}}
-  cache = get_attribute!(Dict{FaceQ,T}, kQ, :cone_minus_face)
-  A, c, E, e = get!(cache, p_F) do
-    P = cone(kQ) + (-1)*p_F.poly
-    return (halfspace_matrix_pair(facets(P))..., halfspace_matrix_pair(affine_hull(P))...)
-  end
-  v = b - g
-  row_times_v(M, i) = sum(M[i, j]*v[j] for j in eachindex(v); init=zero(QQ))
-  return all(row_times_v(A, i) <= c[i] for i in eachindex(c)) &&
-    all(row_times_v(E, i) == e[i] for i in eachindex(e))
-end
-
 @doc raw"""
     coefficients(N::SubquoModule, p_F::FaceQ)
 
@@ -548,6 +524,9 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
 
   R = relations(N) #get all relations of N
 
+  # (deg(b) + F) ∩ (deg(g) + Q) ≠ ∅ iff deg(g) - deg(b) ∈ F - Q
+  F_minus_Q = p_F.poly + (-1)*cone(kQ)
+
   lambda = Vector{Vector{elem_type(k)}}()
   for b in Bp
     #get coefficient vector of w.r.t. generators of M
@@ -561,11 +540,11 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
     deg_b = degree(Vector{Int}, b)
     G_b = Vector{SubquoModuleElem}()
     for g_N in filter(!is_zero, gens(N))
-      if _meets_shifted_cone(kQ, p_F, deg_b, degree(Vector{Int}, g_N))
+      if degree(Vector{Int}, g_N) - deg_b in F_minus_Q
         push!(G_b, g_N)
       end
     end
-    x_Gb = [_monomial_of_degree(kQ, degree(g)) for g in G_b]
+    x_Gb = [_monomial_of_degree(kQ, degree(Vector{Int}, g)) for g in G_b]
     _N = sub(ambient_free_module(N), [ambient_representative(g) for g in G_b])[1]
 
     #get all b-relevant relations w.r.t. F
@@ -573,8 +552,8 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
     C_bF = Vector{Vector{elem_type(k)}}()
     for r in R
       #check (deg(b) + F)\cap (deg(r) + Q) ≠ ∅
-      if _meets_shifted_cone(kQ, p_F, deg_b, degree(Vector{Int}, r))
-        x_r = _monomial_of_degree(kQ, degree(r))
+      if degree(Vector{Int}, r) - deg_b in F_minus_Q
+        x_r = _monomial_of_degree(kQ, degree(Vector{Int}, r))
         a = lcm(x_Gb..., x_r)
         _r = (a//x_r).num*r #well-defined since a is lcm
 
@@ -720,11 +699,7 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
   G_W = Vector{MPolyDecRingElem}()
   for b in B_i
     for bb in b
-      a_v = Vector{ZZRingElem}()
-      for a in bb
-        push!(a_v, a)
-      end
-      push!(G_W, _monomial_of_degree(kQ, a_v))
+      push!(G_W, _monomial_of_degree(kQ, bb))
     end
   end
   return ideal(kQ, G_W)
@@ -801,8 +776,9 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
     m, n = size(_lambda)
     lambda = zero(_lambda)
     for i in 1:m
+      x_i = _monomial_of_degree(kQ, degree(Vector{Int}, Mi[i]))
       for j in 1:n
-        lambda[i, j] = _monomial_of_degree(kQ, degree(Mi[i])) * _lambda[i, j]
+        lambda[i, j] = x_i * _lambda[i, j]
       end
     end
 
