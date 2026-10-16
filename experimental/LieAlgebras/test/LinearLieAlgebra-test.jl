@@ -43,6 +43,22 @@
     @test matrix_repr(L(identity_matrix(QQ, 3); check=false)) != identity_matrix(QQ, 3)
   end
 
+  @testset "membership of matrices" begin
+    L = special_linear_lie_algebra(QQ, 3)
+    # matrix representations of elements of `L` lie in `L`
+    for _ in 1:10
+      x = LieAlgebraElem(L, rand(-10:10, dim(L)))
+      @test matrix_repr(x) in L
+    end
+    # other matrices do not
+    @test !(identity_matrix(QQ, 3) in L)
+    # matrices of wrong size or over a different field are rejected
+    @test_throws ArgumentError zero_matrix(QQ, 2, 2) in L
+    K1, _ = cyclotomic_field(4)
+    K2, _ = cyclotomic_field(5)
+    @test_throws ArgumentError identity_matrix(K2, 3) in special_linear_lie_algebra(K1, 3)
+  end
+
   @testset "conformance tests" begin
     @testset "0-dim Lie algebra /QQ" begin
       L = lie_algebra(QQ, 0, QQMatrix[], Symbol[])
