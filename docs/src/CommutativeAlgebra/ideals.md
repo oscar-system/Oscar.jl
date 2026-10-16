@@ -156,6 +156,7 @@ $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k
 ```@docs
 saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; iteration::Bool=false) where T
 saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+torus_saturation(I::MPolyIdeal)
 ```
 
 ### Elimination
