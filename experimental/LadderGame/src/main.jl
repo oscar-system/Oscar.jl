@@ -194,7 +194,7 @@ function _get_rep(g::PermGroupElem, S::LadderStep)
   dprev = one(F[1].A)
   uprev = dprev
   for s in F
-    p = s.is_up_step ? dprev : (s.Tmap(domain(s.Tmap)(g*inv(dprev*uprev)))) * dprev
+    p = s.is_up_step ? dprev : s.Tmap(reparent(domain(s.Tmap), g*inv(dprev*uprev))) * dprev
     (d, u) = s.Im[p]
     dprev = d
     uprev = u*uprev
