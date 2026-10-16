@@ -136,15 +136,27 @@ end
 ###############################################################################
 
 @doc raw"""
-    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
+    (L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
 
 Return the element of `L` whose matrix representation corresponds to `x`.
+
 If no such element exists, an error is thrown.
 With `check=false` this is not verified and `x` is assumed to lie in the span of `matrix_repr_basis(L)`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> x = L(matrix(QQ, [1 2; 3 -1]))
+2*e_1_2 + 3*f_1_2 + h_1
+
+julia> matrix_repr(x)
+[1    2]
+[3   -1]
+```
 """
-function coerce_to_lie_algebra_elem(
-  L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true
-) where {C<:FieldElem}
+function (L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true) where {C<:FieldElem}
+  @req base_ring(x) == coefficient_ring(L) "Incompatible base rings."
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
   pivots, lgs_pivots_inv, lgs = _matrix_repr_basis_pivot_data(L)
   v = matrix(
@@ -218,7 +230,7 @@ function bracket(
   x_mat = matrix_repr(x; copy=false)
   y_mat = matrix_repr(y; copy=false)
   z_mat = x_mat * y_mat - y_mat * x_mat
-  z = coerce_to_lie_algebra_elem(L, z_mat; check=false)
+  z = L(z_mat; check=false)
   z.matrix_repr = z_mat
   return z
 end

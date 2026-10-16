@@ -23,7 +23,7 @@ characteristic(L::LieAlgebra)
 ## Special functions for `LinearLieAlgebra`s
 
 ```@docs
-coerce_to_lie_algebra_elem(::LinearLieAlgebra{C}, ::MatElem{C}) where {C<:FieldElem}
+(L::LinearLieAlgebra{C})(x::MatElem{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:FieldElem}
 matrix_repr(::LinearLieAlgebraElem{C}) where {C<:FieldElem}
