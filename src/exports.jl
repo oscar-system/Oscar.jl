@@ -1783,7 +1783,7 @@ export subalgebra_membership
 export subalgebra_membership_homogeneous
 export subgroup
 export subgroup_classes
-export subgroup_of_pseudo_reflections
+export subgroup_of_pseudo_reflections # needed as it is used in the OSCAR book
 export subquo_type
 export subquotient
 export subscheme
