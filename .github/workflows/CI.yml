@@ -427,6 +427,11 @@ jobs:
         uses: julia-actions/setup-julia@v3
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
+      # julia-buildpkg does not precompile; without this, the tests would
+      # precompile into the writable depot and never load caches from the
+      # read-only one
+      - name: Precompile
+        run: julia --project=. -e 'using Pkg; Pkg.precompile()'
       # The read-only mount lives in a private mount namespace, so other jobs
       # and the depot's file modes are unaffected. The outer unshare is root in
       # its namespace and may mount; the inner one maps back to our own uid.
