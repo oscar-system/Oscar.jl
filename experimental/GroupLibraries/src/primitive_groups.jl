@@ -77,3 +77,47 @@ function _pairs(S::GroupLibrarySelection{PrimitiveGroupsLibrary}, d)
     G in _ConsumingGapIterator(it)
   )
 end
+
+################################################################################
+#
+#  Information
+#
+################################################################################
+
+# the publications that determined the primitive groups of degree `d`
+_primitive_groups_references(d::Int) = ["PrimGrp", d < 2500 ? "Ron05" : "CQR11"]
+
+const _PRIMITIVE_GROUPS_FILTERS = Any[order, transitivity, is_simple, is_solvable]
+
+function information(::PrimitiveGroupsLibrary)
+  lines = [
+    "PrimGrp $(_gap_package_version("primgrp")): degree less than 4096",
+  ]
+  references = ["PrimGrp", "Ron05", "CQR11", "DM88", "Sho92", "The97", "EH03", "RU03"]
+  return LibraryInformation("Library of primitive groups"; lines, references)
+end
+
+function information(L::PrimitiveGroupsLibrary, d::IntegerUnion)
+  d = Int(d)
+  title = "Primitive groups of degree $d"
+  has_groups(L, d) || return LibraryInformation(title; lines=["not available"])
+  lines = [
+    _count_line(number_of_primitive_groups(d), "group"),
+    _filters_line(_PRIMITIVE_GROUPS_FILTERS),
+    "identify: " * _availability_line(has_identification(L, d)),
+  ]
+  return LibraryInformation(
+    title; lines, references=_primitive_groups_references(d), filters=_PRIMITIVE_GROUPS_FILTERS
+  )
+end
+
+function information(L::PrimitiveGroupsLibrary, id::Tuple{IntegerUnion,IntegerUnion})
+  d, i = Int(id[1]), Int(id[2])
+  G = GapObj(L[d, i])
+  lines = ["group $i of the $(number_of_primitive_groups(d)) groups of degree $d"]
+  GAP.Globals.HasName(G)::Bool && push!(lines, "name: " * String(GAP.Globals.Name(G)))
+  push!(lines, "O'Nan-Scott type: " * String(GAP.Globals.ONanScottType(G)))
+  return LibraryInformation(
+    "Primitive group ($d, $i)"; lines, references=_primitive_groups_references(d)
+  )
+end
