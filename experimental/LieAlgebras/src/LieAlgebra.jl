@@ -56,7 +56,7 @@ function basis(L::LieAlgebra, i::Int)
   R = coefficient_ring(L)
   v = zero_matrix(R, 1, dim(L))
   v[1, i] = one(R)
-  return L(v)
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
@@ -117,7 +117,7 @@ function getindex(x::LieAlgebraElem, i::Int)
 end
 
 function Base.deepcopy_internal(x::LieAlgebraElem, dict::IdDict)
-  return parent(x)(deepcopy_internal(_matrix(x), dict))
+  return LieAlgebraElem(parent(x), deepcopy_internal(_matrix(x), dict))
 end
 
 function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
@@ -268,35 +268,35 @@ end
 ###############################################################################
 
 function Base.:-(x::LieAlgebraElem{C}) where {C<:FieldElem}
-  return parent(x)(-_matrix(x))
+  return LieAlgebraElem(parent(x), -_matrix(x))
 end
 
 function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
-  return parent(x1)(_matrix(x1) + _matrix(x2))
+  return LieAlgebraElem(parent(x1), _matrix(x1) + _matrix(x2))
 end
 
 function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
-  return parent(x1)(_matrix(x1) - _matrix(x2))
+  return LieAlgebraElem(parent(x1), _matrix(x1) - _matrix(x2))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(_matrix(x) * c)
+  return LieAlgebraElem(parent(x), _matrix(x) * c)
 end
 
 function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
-  return parent(x)(_matrix(x) * c)
+  return LieAlgebraElem(parent(x), _matrix(x) * c)
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(c * _matrix(x))
+  return LieAlgebraElem(parent(x), c * _matrix(x))
 end
 
 function Base.:*(c::U, x::LieAlgebraElem) where {U<:RationalUnion}
-  return parent(x)(c * _matrix(x))
+  return LieAlgebraElem(parent(x), c * _matrix(x))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:FieldElem}
@@ -353,7 +353,7 @@ function center(L::LieAlgebra)
   end
 
   ker = kernel(mat; side=:left)
-  return ideal(L, L.(eachrow(ker)); is_basis=true)
+  return ideal(L, [LieAlgebraElem(L, row) for row in eachrow(ker)]; is_basis=true)
 end
 
 @doc raw"""
@@ -373,7 +373,7 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
 
   c_basis = kernel(mat; side=:left)
   c_dim = nrows(c_basis)
-  return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+  return sub(L, [LieAlgebraElem(L, c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
 @doc raw"""
@@ -614,7 +614,7 @@ function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
   n = dim(L)
   A = adjoint_matrix(x)^n
   ker = kernel(A; side=:left)
-  basis = L.(eachrow(ker))
+  basis = [LieAlgebraElem(L, row) for row in eachrow(ker)]
   L0adx = sub(L, basis; is_basis=true)
   return L0adx
 end

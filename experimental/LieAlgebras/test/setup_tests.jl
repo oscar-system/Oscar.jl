@@ -55,10 +55,16 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(L))
-        x1 = @inferred L(coeffs)
-        x2 = @inferred L(coefficient_ring(L).(coeffs))
-        x3 = @inferred L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
-        x4 = @inferred L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
+        x1 = @inferred LieAlgebraElem(L, coeffs)
+        @test x1 == @inferred L(coeffs)
+        x2 = @inferred LieAlgebraElem(L, coefficient_ring(L).(coeffs))
+        @test x2 == @inferred L(coefficient_ring(L).(coeffs))
+        x3 = @inferred LieAlgebraElem(L, matrix(coefficient_ring(L), 1, dim(L), coeffs))
+        @test x3 == @inferred L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
+        x4 = @inferred LieAlgebraElem(
+          L, sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs))
+        )
+        @test x4 == @inferred L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
         x5 = @inferred L(x1)
         @test x1 == x2
         @test x1 == x3
