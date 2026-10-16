@@ -153,7 +153,7 @@ function coerce_to_lie_algebra_elem(
   )
   m = v * lgs_pivots_inv
   check && @req m * lgs == _vec_row(x) "Matrix is not in the span of the basis."
-  return L(m)
+  return LieAlgebraElem(L, m)
 end
 
 # Flatten `x` into a `1 x (nrows * ncols)` matrix.
