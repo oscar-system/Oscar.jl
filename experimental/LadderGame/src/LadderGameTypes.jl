@@ -99,6 +99,7 @@ end
 # SubgroupLadder stores Vector{LadderStep}
 mutable struct SubgroupLadder <: AbstractVector{LadderStep}
   S::Vector{LadderStep}
+  G::PermGroup
 
   function SubgroupLadder(S::Vector{LadderStep})
     L = new(S)
@@ -120,7 +121,11 @@ function SubgroupLadder(S::Vector{PermGroup})
   return SubgroupLadder(LS)
 end
 
-data(L::SubgroupLadder) = L.S
+_ambient_group(L::SubgroupLadder) = L.G::PermGroup
+Base.parent(S::LadderStep) = S.F.parent::SubgroupLadder
+_ambient_group(S::LadderStep) = _ambient_group(parent(S))
+
+data(L::SubgroupLadder) = L.S::Vector{LadderStep}
 
 ################################################################################
 #

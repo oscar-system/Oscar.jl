@@ -155,8 +155,9 @@ function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::Transvers
   last_tUU = PermGroupElem[ one(C[end][1]) ]
 
   tU = IndexedSet([ one(codomain(Tm)) ]) # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
+
   for i in (length(C)-1):-1:1
-    map!(C[i][1], last_tUU, last_tUU)
+    map!(x -> reparent(C[i][1],x), last_tUU, last_tUU)
     tUU = copy(last_tUU)
 
     U = _my_intersect(C[i][1], V)
@@ -167,7 +168,7 @@ function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::Transvers
         push!(tV, x)
         length(tU)*length(tV) == length(last_tUU)*length(C[i][2]) && break
       else
-        xx = Tm(domain(Tm)(x^inv(conj)))
+        xx = Tm(reparent(domain(Tm), x^inv(conj)))
         if ~(xx in tU)
           push!(tU, xx)
           push!(tUU, x)
