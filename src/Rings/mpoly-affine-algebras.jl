@@ -1018,9 +1018,7 @@ false
  @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
 
  sI = singular_generators(I.gens, negdegrevlex(gens(R)))
- res = Singular.LibHomolog.isCM(sI)
- if res == 1 return true end
- return false
+ return Singular.LibHomolog.isCM(sI) == 1
 end
 
 ##############################################################################
@@ -1408,11 +1406,12 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
     begin
       newSR = l[1][i][1]::Singular.PolyRing
       newOR, _ = polynomial_ring(br, symbols(newSR), cached=false)
-      newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
+      newiso = OscarSingularPolyRingMap(newOR, newSR, _cached_iso_oscar_singular_coeff_ring(br))
+      newA, newAmap = quo(newOR, ideal(newOR, [preimage(newiso, g) for g in gens(l[1][i][2][:norid])]))
       set_attribute!(newA, :is_normal=>true)
-      newgens = newOR.(gens(l[1][i][2][:normap]))
+      newgens = [preimage(newiso, g) for g in gens(l[1][i][2][:normap])]
       _hom = hom(A, newA, newA.(newgens))
-      idgens = base_ring(A).(gens(l[2][i]))
+      idgens = gens(ideal(base_ring(A), l[2][i]))
       (newA, _hom, (A(idgens[end]), ideal(A, idgens)))
     end
     for i in 1:length(l[1])]
@@ -1583,8 +1582,8 @@ function noether_normalization(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
  l = Singular.LibAlgebra.noetherNormal(singular_generators(I))
- i1 = [R(x) for x = gens(l[1])]
- i2 = [R(x) for x = gens(l[2])]
+ i1 = gens(ideal(R, l[1]))
+ i2 = gens(ideal(R, l[2]))
  m = matrix([[coeff(x, y) for y = gens(R)] for x = i1])
  mi = inv(m)
  ###mi_arr = [collect(matrix([gens(R)])*map_entries(R, mi))[i] for i in 1:ngens(R)]
@@ -1661,7 +1660,8 @@ function integral_basis(f::MPolyRingElem, i::Int; algorithm::Symbol = :normal_lo
 
   @req isone(coeff(f, [i], [degree(f, i)])) "The input polynomial must be monic as a polynomial in $(gen(R,i))"
 
-  SR = singular_poly_ring(R)
+  iso = iso_oscar_singular_poly_ring(R)
+  SR = codomain(iso)
 
   if !(base_ring(SR) isa Singular.Rationals ||
        base_ring(SR) isa Singular.N_ZpField ||
@@ -1672,10 +1672,10 @@ function integral_basis(f::MPolyRingElem, i::Int; algorithm::Symbol = :normal_lo
 
   @req is_irreducible(f) "The input polynomial must be irreducible"
 
-  l = Singular.LibIntegralbasis.integralBasis(SR(f), i, "isIrred", options...)
+  l = Singular.LibIntegralbasis.integralBasis(iso(f), i, "isIrred", options...)
   A, p = quo(R, ideal(R, [f]))
   ###return (R(l[2]), R.(gens(l[1])))
-  return (p(R(l[2])), [p(R(x)) for x in gens(l[1])])
+  return (p(preimage(iso, l[2])), [p(preimage(iso, x)) for x in gens(l[1])])
 end
 
 ##############################################################################

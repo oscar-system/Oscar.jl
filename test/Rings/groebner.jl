@@ -160,6 +160,14 @@ end
     @test normal_form(a^2+b, I) == -b^2+b
 end
 
+@testset "reduce graded" begin
+    # remainders of inhomogeneous polynomials in a graded ring are inhomogeneous
+    R, (a, b) = graded_polynomial_ring(QQ, [:a, :b])
+    @test reduce(a^2 + b + 1, [a^2]) == b + 1
+    q, r = reduce_with_quotients(a^2 + b + 1, [a^2])
+    @test r == b + 1
+end
+
 @testset "groebner leading ideal" begin
    R, (t, x, y, z) = polynomial_ring(QQ, [:t, :x, :y, :z])
 
