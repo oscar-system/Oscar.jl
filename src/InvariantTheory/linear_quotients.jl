@@ -85,7 +85,7 @@ function class_group(L::LinearQuotient)
   end
 
   G = group(L)
-  H, _ = subgroup_of_pseudo_reflections(G)
+  H, _ = _subgroup_of_pseudo_reflections(L)
   if !is_trivial(H)
     K, GtoK = quo(G, H)
   else
@@ -135,6 +135,14 @@ function subgroup_of_pseudo_reflections(G::MatGroup)
   return normal_closure(G, H)
 end
 
+function _subgroup_of_pseudo_reflections(L::LinearQuotient)
+  if isdefined(L, :reflection_subgroup)
+    return L.reflection_subgroup
+  end
+  L.reflection_subgroup = subgroup_of_pseudo_reflections(group(L))
+  return L.reflection_subgroup
+end
+
 ################################################################################
 #
 #  Singularities
@@ -181,7 +189,7 @@ true
 ```
 """
 function has_canonical_singularities(L::LinearQuotient)
-  @req is_trivial(subgroup_of_pseudo_reflections(group(L))[1]) "Only implemented for groups not containing pseudo-reflections"
+  @req is_trivial(_subgroup_of_pseudo_reflections(L)[1]) "Only implemented for groups not containing pseudo-reflections"
   # The result does not depend on the choice of root of unity
   zeta = fixed_root_of_unity(L)
   cc = conjugacy_classes(group(L))
@@ -210,7 +218,7 @@ false
 ```
 """
 function has_terminal_singularities(L::LinearQuotient)
-  @req is_trivial(subgroup_of_pseudo_reflections(group(L))[1]) "Only implemented for groups not containing pseudo-reflections"
+  @req is_trivial(_subgroup_of_pseudo_reflections(L)[1]) "Only implemented for groups not containing pseudo-reflections"
   # The result does not depend on the choice of root of unity
   zeta = fixed_root_of_unity(L)
   cc = conjugacy_classes(group(L))
@@ -543,7 +551,7 @@ function cox_ring(
   L::LinearQuotient; algo_gens::Symbol=:default, algo_rels::Symbol=:groebner_basis
 )
   G = group(L)
-  Grefl, GrefltoG = subgroup_of_pseudo_reflections(G)
+  Grefl, GrefltoG = _subgroup_of_pseudo_reflections(L)
   H, HtoG = derived_subgroup(G)
   # Compute H*Grefl
   H = matrix_group(
