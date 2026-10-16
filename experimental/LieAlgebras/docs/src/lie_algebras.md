@@ -24,6 +24,7 @@ characteristic(L::LieAlgebra)
 
 ```@docs
 (L::LinearLieAlgebra{C})(x::MatElem{C}) where {C<:FieldElem}
+Base.in(::MatElem{C}, ::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:FieldElem}
 matrix_repr(::LinearLieAlgebraElem{C}) where {C<:FieldElem}
