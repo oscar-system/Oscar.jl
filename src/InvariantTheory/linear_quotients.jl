@@ -179,6 +179,7 @@ true
 ```
 """
 function has_canonical_singularities(L::LinearQuotient)
+  @req is_trivial(subgroup_of_pseudo_reflections(group(L))[1]) "Only implemented for groups not containing pseudo-reflections"
   # The result does not depend on the choice of root of unity
   zeta = fixed_root_of_unity(L)
   cc = conjugacy_classes(group(L))
@@ -207,6 +208,7 @@ false
 ```
 """
 function has_terminal_singularities(L::LinearQuotient)
+  @req is_trivial(subgroup_of_pseudo_reflections(group(L))[1]) "Only implemented for groups not containing pseudo-reflections"
   # The result does not depend on the choice of root of unity
   zeta = fixed_root_of_unity(L)
   cc = conjugacy_classes(group(L))
