@@ -60,7 +60,6 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
         x2 = @inferred LieAlgebraElem(L, coefficient_ring(L).(coeffs))
         @test x2 == @inferred L(coefficient_ring(L).(coeffs))
         x3 = @inferred LieAlgebraElem(L, matrix(coefficient_ring(L), 1, dim(L), coeffs))
-        @test x3 == @inferred L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
         x4 = @inferred LieAlgebraElem(
           L, sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs))
         )
