@@ -431,6 +431,12 @@ end
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 
+# Right and left scalar multiplication agree over a commutative base ring;
+# `T <: RingElem` excludes the PBW algebras, which are left modules only.
+# `a::Any` here would make `b1*b2` for two module elements recurse.
+*(b::SubquoModuleElem{T}, a::RingElem) where {T <: RingElem} = a*b
+*(b::SubquoModuleElem{T}, a::Integer) where {T <: RingElem} = a*b
+
 function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
