@@ -12,7 +12,8 @@ as the properties of the complex linear quotient, so the quotient over $\mathbb 
     For many computations, we require that the base field `base_ring(G)` contains
     a primitive root of unity of order `exponent(G)`.
     If your chosen field is 'too small', you can change the base field with
-    `map_entries(L, G)`, where `L` is the larger field.
+    `map_entries(L, G)`, where `L` is the larger field, provided both fields were
+    created using [`cyclotomic_field`](@ref).
 
 ## Constructor
 
