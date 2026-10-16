@@ -1669,7 +1669,7 @@ function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) 
   k == 0 && return [(sub(V, [])[1], G)]
   if order(G)>1
     gens_mat = matrix.(small_generating_set(G))
-  else 
+  else
     gens_mat = [identity_matrix(F,n)]
   end
   res = Hecke.orbit_representatives_and_stabilizers_mod_2(gens_mat, k; group_order=order(G))
@@ -1746,4 +1746,133 @@ function _orbit_representatives_and_stabilizers_GLn(K::T, n::Int, k::Int) where 
     push!(_gens, E)
   end
   return rep, _gens
+end
+
+
+# Support for computing orbits along with Schreier information for further computations
+
+
+
+function Oscar.gset(D::SchreierData)
+  return D.gset
+end
+function Oscar.gens(D::SchreierData)
+  return gens(acting_group(D.gset))
+end
+function Oscar.gen(D::SchreierData, i::Int)
+  return gen(acting_group(D.gset), i)
+end
+function invgens(D::SchreierData{T}) where T
+  return D.inverse_gens::Vector{eltype(T)}
+end
+function invgen(D::SchreierData{T}, i::Int) where T
+  return D.inverse_gens[i]::eltype(T)
+end
+function schreier_value(D::SchreierData{T,S}, u::S) where {T,S}
+  return D.schreier_dict[u]
+end
+
+
+
+
+
+# For each element omega of Omega, we can obtain a Shreier vector.
+# This is a vector w of integers such that
+# `action_function(omega, map_word(w, gens(H)) == r` and
+# `action_function(r, map_word(reverse(w), inverse_gens(H))) = omega`
+# NOTE need to make sure this is type stable
+function schreier_word_and_rep(D::SchreierData{T,S}, omega::S) where {T,S}
+  fun = action_function(gset(D))
+  w = Int[]
+  u = omega
+  i = schreier_value(D, u)
+  while i != -1
+    push!(w, i)
+    u = fun(u, invgen(D, i))::S
+    # u = u^invgen(D, i)
+    i = schreier_value(D, u)
+  end
+  return w, u
+end
+
+function schreier_element(D::SchreierData{T,S}, omega::S) where {T,S}
+  w, _ = schreier_word_and_rep(D, omega)
+  return map_word(reverse!(w), gens(D))::eltype(T)
+end
+function schreier_inverse(D::SchreierData{T,S}, omega::S) where {T,S}
+  w, _ = schreier_word_and_rep(D, omega)
+  return map_word(w, invgens(D))::eltype(T)
+end
+
+
+# This will compute orbit reps along with their stabilizers,
+# and also return a map that will send any element o of Omega
+# to its corresponding orbit rep r, along with a group element
+# sending r to o.
+function orbits_with_schreier_data(Omega::GSet{T,S}) where {T,S}
+  H = acting_group(Omega)
+  fun = action_function(Omega)
+  n = length(Omega)
+
+  group_gens = gens(H)
+
+  # We compute the orbits as in `orbit_via_Julia`,
+  # but for all orbits, and do some additional bookkeeping
+  # to obtain the Schreier trees for each orbit.
+  orbs = Oscar.GSetByElements{T,S}[]
+  schreier = Dict{S,Int}()
+  sizehint!(schreier, n)
+
+  for omega in Omega
+    haskey(schreier, omega) && continue
+    schreier[omega] = -1
+    o = IndexedSet([omega])
+    for u in o
+      for (i, h) in enumerate(group_gens)
+        v = fun(u, h)::S
+        haskey(schreier, v) && continue
+        push!(o, v)
+        schreier[v] = i
+      end
+    end
+    push!(orbs, as_gset(H, fun, o))
+  end
+
+  set_attribute!(Omega, :orbits => orbs)
+  return orbs, SchreierData(Omega, schreier)
+end
+
+
+# We can compute stabilizers using the Schreier data
+# if it is already computed
+function orbit_representatives_and_stabilizers(Omega::GSet{T,S}, D::SchreierData{T,S}) where {T,S}
+  H = acting_group(Omega)
+  fun = action_function(Omega)
+  orbs = orbits(Omega)
+  stabs = T[]
+  sizehint!(stabs, length(orbs))
+
+  for o in orbs
+    r = representative(o)
+    stab_gens = eltype(T)[]
+    st = sub(H, stab_gens)[1]
+
+    target_order = divexact(order(H), length(o))
+    for u in o
+      tau_u = schreier_element(D, u)
+      for h in gens(D)
+        v = fun(u, h)::S
+        invtau_v = schreier_inverse(D, v)
+        elt = tau_u * h * invtau_v
+        elt in st && continue
+        push!(stab_gens, elt)
+        st = sub(H, stab_gens)[1]
+        order(st) == target_order && (@goto complete)
+      end
+    end
+    @label complete
+    push!(stabs, st)
+  end
+
+  return stabs
 end

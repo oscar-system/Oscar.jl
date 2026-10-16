@@ -1261,3 +1261,25 @@ end
     return res
   end
 end
+
+################################################################################
+#
+#  Shreier Tree support
+#
+################################################################################
+
+# TODO : should `inverse_gens` be attached as a attribute to `acting_group(gset)`?
+#        and then we would just get invgens from there?
+mutable struct SchreierData{T, S, G<:GSet{T,S}}
+  gset::G
+  # group_gens::Vector
+  inverse_gens::Vector
+  schreier_dict::Dict{S, Int}
+
+  function SchreierData(Omega::GSet{T,S}, D::Dict{S,Int}) where {T,S}
+    data = new{T, S, typeof(Omega)}(Omega, [inv(g) for g in gens(acting_group(Omega))], D)
+    return data
+  end
+end
+
+# TODO function Base.show(io::IO, ::MIME"text/plain", D::SchreierData)
