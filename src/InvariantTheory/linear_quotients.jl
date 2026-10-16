@@ -230,27 +230,17 @@ function fixed_root_of_unity(L::LinearQuotient)
 
   e = exponent(Int, group(L))
   K = base_ring(L)
-  if is_one(e)
-    L.root_of_unity = (one(K), e)
+
+  if e == 1
+    L.root_of_unity = (K(1), e)
   elseif e == 2
     L.root_of_unity = (K(-1), e)
   else
-    K isa AbsSimpleNumField || throw(Hecke.NotImplemented())
-    fl, l = Hecke.is_cyclotomic_type(K)
-    fl || throw(Hecke.NotImplemented())
-    if is_odd(l)
-      ll = 2l
-    else
-      ll = l
-    end
-    fl, q = divides(ll, e)
+    x, f = Hecke.torsion_units_gen_order(K)
+    fl, q = divides(f, e)
     fl || error("$(base_ring(L)) does not contain a $(e)-th root of unity")
-    if is_odd(l)
-      zeta = (-gen(K))^q
-    else
-      zeta = gen(K)^q
-    end
-    L.root_of_unity = (zeta, e)
+
+    L.root_of_unity = (x^q, e)
   end
   return L.root_of_unity
 end
