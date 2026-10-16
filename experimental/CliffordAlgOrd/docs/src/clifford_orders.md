@@ -154,19 +154,19 @@ is_odd(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
 ## [Center, centroid and quadratic discriminant](@id centerandcentroid_cliffordo)
 
 Similar to the [field case](@ref centerandcentroid_clifford), the *centroid* of the even lattice ``L = (L,q)``
-(or of ``C = C(L)``), denoted by ``\mathcal{Z}(L)``, is the centraliser of ``C_0(L)`` in ``C``. Thus, we have
+(or of ``C = C(L)``), denoted by ``\mathcal{Z}(L)``, is the centralizer of ``C_0(L)`` in ``C``. Thus, we have
 ``\mathcal{Z}(L) = \mathcal{Z}(V) \cap C(L)``. Unless ``n = \mathrm{dim}(V) = \mathrm{rank}(L) = 0``, in which
 case ``C(L) = C_0(L) = \mathcal{Z}(L) \cong \mathcal{O}_K``, the centroid is always an ``\mathcal{O}_K``-order
 in the separable quadratic ``K``-algebra ``\mathcal{Z}(V)``. This means that
 ```math
 \mathcal{Z}(L) = \mathcal{O}_K\cdot 1_C \oplus \mathfrak{a}x
 ```
-with a fractional ideal ``\mathfrak{a}`` and some root ``x \in C(V)`` of the polynomial ``X^2 - \mathfrak{t}X + \mathfrak{n} \in K[X]``,
-where ``\mathfrak{t} \in \mathfrak{a}^{-1}`` and ``\mathfrak{n} \in \mathfrak{a}^{-2}``. Every such quadratic ``\mathcal{O}_K``-order
+with a fractional ideal ``\mathfrak{a}`` and some root ``x \in C(V)`` of the polynomial ``X^2 - sX + m \in K[X]``,
+where ``s \in \mathfrak{a}^{-1}`` and ``m \in \mathfrak{a}^{-2}``. Every such quadratic ``\mathcal{O}_K``-order
 ``\Lambda`` contains a unique maximal orthogonal suborder, denoted by ``\Lambda^o``, where orthogonal means that
-one can choose ``\mathfrak{t} = 0`` in the above representation and maximal is meant with respect to set inclusion.
+one can choose ``s = 0`` in the above representation and maximal is meant with respect to set inclusion.
 If we write ``\Lambda^o = \mathcal{O}_K \cdot 1_\Lambda \oplus \mathfrak{b}z`` with ``z \in K\Lambda``
-satisfying ``z^2 = d \in K^\times``, then ``\mathcal{Z}(L)^o`` is determined as an ``\mathcal{O}_K``-algebra
+satisfying ``z^2 = d \in K^\times``, then ``\Lambda^o`` is determined as an ``\mathcal{O}_K``-algebra
 up to isomorphism by the fractional ideal ``\mathfrak{b}^2 d`` and the ``K``-square class of ``d``. The pair
 ``(\mathfrak{b}^2 d, d(K^\times)^2)`` is called the *quadratic discriminant* of ``\Lambda``.
 
@@ -193,7 +193,7 @@ Just as in the field case, the behavior of the center and the centroid heavily d
   In this case, the generator of the centroid can be chosen from ``C_1(L)`` such that it has a trace of zero. Furthermore,
   the centroid coincides with the center of the Clifford order, ``Z(C) = \mathcal{Z}(L)``.
 
-For Clifford orders over ``\mathcal{O}_K \neq \Z`` we provide the following methods:
+For Clifford orders over ``\mathcal{O}_K \neq \mathbb{Z}`` we provide the following methods:
 
 ```@docs
 pseudo_basis_of_center(::CliffordOrder)
