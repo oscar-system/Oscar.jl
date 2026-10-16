@@ -1358,7 +1358,11 @@ function isomorphism(::Type{T}, M::S; on_gens::Bool=false) where T <: Union{FPGr
    end::MapFromFunc{S, T}
 end
 
-function change_group_type_doc(typeCamelCase::String, func_snake_case::String, example_group_show::String)
+function change_group_type_doc(typeCamelCase::String, func_snake_case::String,
+                               example_group_show::String, example_group_gens::String...)
+  # detailed printing of the example group: its one line description, plus the
+  # generator lines indented relative to it
+  example_group_detailed = join([example_group_show, example_group_gens...], "\n  ")
   """
       $(typeCamelCase)(G::T) where T <: Union{Group, FinGenAbGroup}
       $(func_snake_case)(G::T) where T <: Union{Group, FinGenAbGroup}
@@ -1375,6 +1379,7 @@ function change_group_type_doc(typeCamelCase::String, func_snake_case::String, e
   ```jldoctest
   julia> G = dihedral_group(6)
   Pc group of order 6
+    with 2 generators f1, f2
 
   julia> iso = isomorphism($(typeCamelCase), G)
   Group homomorphism
@@ -1382,7 +1387,7 @@ function change_group_type_doc(typeCamelCase::String, func_snake_case::String, e
     to $(lowercasefirst(example_group_show))
 
   julia> $(func_snake_case)(G)
-  $(example_group_show)
+  $(example_group_detailed)
 
   julia> codomain(iso) === ans
   true
@@ -1390,24 +1395,32 @@ function change_group_type_doc(typeCamelCase::String, func_snake_case::String, e
   """
 end
 
-@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6")
+@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6",
+                           "with 2 generators F1, F2", "and 3 relators")
 FPGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6")
+@doc change_group_type_doc("FPGroup", "fp_group", "Finitely presented group of order 6",
+                           "with 2 generators F1, F2", "and 3 relators")
 fp_group(G::Union{Group, FinGenAbGroup}) = FPGroup(G)
 
-@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6")
+@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6",
+                           "with 2 generators F1, F2")
 SubFPGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6")
+@doc change_group_type_doc("SubFPGroup", "Oscar.sub_fp_group", "Sub-finitely presented group of order 6",
+                           "with 2 generators F1, F2")
 sub_fp_group(G::Union{Group, FinGenAbGroup}) = SubFPGroup(G)
 
-@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6")
+@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6",
+                           "with 2 generators f1, f2")
 PcGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6")
+@doc change_group_type_doc("PcGroup", "pc_group", "Pc group of order 6",
+                           "with 2 generators f1, f2")
 pc_group(G::Union{Group, FinGenAbGroup}) = PcGroup(G)
 
-@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6")
+@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6",
+                           "with 2 generators f1, f2")
 SubPcGroup(G::Union{Group, FinGenAbGroup})
-@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6")
+@doc change_group_type_doc("SubPcGroup", "Oscar.sub_pc_group", "Sub-pc group of order 6",
+                           "with 2 generators f1, f2")
 sub_pc_group(G::Union{Group, FinGenAbGroup}) = SubPcGroup(G)
 
 @doc change_group_type_doc("PermGroup", "permutation_group", "Permutation group of degree 3 and order 6")
@@ -1480,12 +1493,16 @@ generators, the number of relators, and the relator lengths.
 ```jldoctest
 julia> F = free_group(3)
 Free group of rank 3
+  with 3 generators f1, f2, f3
 
 julia> G = quo(F, [gen(F,1)])[1]
 Finitely presented group of infinite order
+  with 3 generators 1, f2, f3
+  and 1 relator
 
 julia> simplified_fp_group(G)[1]
 Finitely presented group of infinite order
+  with 2 generators f2, f3
 ```
 """
 function simplified_fp_group(G::FPGroup)
