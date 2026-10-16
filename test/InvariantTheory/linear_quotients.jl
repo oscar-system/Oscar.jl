@@ -24,17 +24,17 @@
   @test has_canonical_singularities(L)
   @test !has_terminal_singularities(L)
 
+  g = diagonal_matrix([a, a, a])
+  G = matrix_group(g)
+  L = linear_quotient(G)
+  @test !has_canonical_singularities(L)
+  @test !has_terminal_singularities(L)
+
   g = diagonal_matrix([QQ(-1), QQ(-1), QQ(-1), QQ(-1)])
   G = matrix_group(g)
   L = linear_quotient(G)
   @test has_canonical_singularities(L)
   @test has_terminal_singularities(L)
-
-  g = diagonal_matrix([QQ(-1)])
-  G = matrix_group(g)
-  L = linear_quotient(G)
-  @test !has_canonical_singularities(L)
-  @test !has_terminal_singularities(L)
 
   # An example containing pseudo-reflections
   K, a = cyclotomic_field(6, "a")
