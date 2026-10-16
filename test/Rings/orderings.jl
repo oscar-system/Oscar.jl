@@ -344,7 +344,8 @@ end
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
       @test O == monomial_ordering(R, Oscar.singular(O))
-      @test O == monomial_ordering(R, Singular.ordering(Oscar.singular_poly_ring(R, O)))
+      iso = Oscar.iso_oscar_singular_poly_ring(R, O)
+      @test O == monomial_ordering(R, Singular.ordering(codomain(iso)))
    end
 
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))

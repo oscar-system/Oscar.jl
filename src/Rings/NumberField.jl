@@ -191,10 +191,8 @@ function reduce!(a::NfNSGenElem)
   K = parent(a)
   I = defining_ideal(K)
   GS = singular_groebner_generators(I, false, false)
-  Sx = base_ring(GS)
-  f = a.f
-  R = base_ring(I)
-  a.f = R(reduce(Sx(f), GS))
+  iso = _sing_iso(I, base_ring(GS))
+  a.f = preimage(iso, reduce(iso(a.f), GS))
   return a
 end
 
@@ -547,7 +545,7 @@ function basis(K::NfNSGen; copy::Bool = true)
     if iszero(s)
       error("ideal was not zero-dimensional")
     end
-    B = elem_type(K)[K(base_ring(I)(x)) for x = gens(s)]
+    B = elem_type(K)[K(x) for x = gens(ideal(base_ring(I), s))]
     if !isone(B[1])
       i = findfirst(isone, B)
       B[1], B[i] = B[i], B[1]
