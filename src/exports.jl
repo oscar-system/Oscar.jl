@@ -764,6 +764,7 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
+export has_canonical_singularities
 export has_edge
 export has_groups_with_class_number
 export has_groups_with_class_number_identification
@@ -772,6 +773,7 @@ export has_perfect_groups
 export has_preimage_with_preimage
 export has_primitive_groups
 export has_small_groups
+export has_terminal_singularities
 export has_torusfactor
 export has_transitive_groups
 export has_vertex
@@ -1042,6 +1044,7 @@ export is_principal
 export is_probable_prime
 export is_projective
 export is_projective_space
+export is_pseudo_reflection
 export is_pure
 export is_q_cartier
 export is_q_gorenstein
@@ -1180,6 +1183,7 @@ export linear_equation_matrix
 export linear_halfspace
 export linear_hyperplane
 export linear_inequality_matrix
+export linear_quotient
 export linear_span
 export linear_symmetries
 export linear_system
@@ -1779,6 +1783,7 @@ export subalgebra_membership
 export subalgebra_membership_homogeneous
 export subgroup
 export subgroup_classes
+export subgroup_of_pseudo_reflections # needed as it is used in the OSCAR book
 export subquo_type
 export subquotient
 export subscheme
