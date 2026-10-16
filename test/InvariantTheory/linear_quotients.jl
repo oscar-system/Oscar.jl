@@ -20,6 +20,9 @@
   K, a = cyclotomic_field(6, "a")
   g = diagonal_matrix([a^2, a^2, a^2])
   G = matrix_group(g)
+  @test Oscar.age(G(g), (a, 6)) == 1
+  @test Oscar.age(G(g), (a^2, 3)) == 1
+  @test Oscar.age(G(g), (a^5, 6)) == 2
   L = linear_quotient(G)
   @test has_canonical_singularities(L)
   @test !has_terminal_singularities(L)
@@ -32,6 +35,7 @@
 
   g = diagonal_matrix([QQ(-1), QQ(-1), QQ(-1), QQ(-1)])
   G = matrix_group(g)
+  @test Oscar.age(G(g), (QQ(-1), 2)) == 2
   L = linear_quotient(G)
   @test has_canonical_singularities(L)
   @test has_terminal_singularities(L)
