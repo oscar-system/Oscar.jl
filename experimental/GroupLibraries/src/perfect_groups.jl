@@ -61,3 +61,41 @@ end
 function has_identification(::PerfectGroupsLibrary, n::IntegerUnion)
   return has_perfect_group_identification(Int(n))
 end
+
+################################################################################
+#
+#  Information
+#
+################################################################################
+
+# the publications that determined the perfect groups of order `n`
+_perfect_groups_references(n::Int) = ["PerfGrp", n < 10^6 ? "HP89" : "Hul22"]
+
+function information(::PerfectGroupsLibrary)
+  lines = ["PerfGrp $(_gap_package_version("perfgrp")): order less than 2 * 10^6"]
+  return LibraryInformation(
+    "Library of perfect groups"; lines, references=["PerfGrp", "HP89", "Hul22"]
+  )
+end
+
+function information(L::PerfectGroupsLibrary, n::IntegerUnion)
+  n = Int(n)
+  title = "Perfect groups of order $n"
+  has_groups(L, n) || return LibraryInformation(title; lines=["not available"])
+  lines = [
+    _count_line(number_of_perfect_groups(n), "group"),
+    "identify: " * _availability_line(has_identification(L, n)),
+  ]
+  return LibraryInformation(title; lines, references=_perfect_groups_references(n))
+end
+
+function information(L::PerfectGroupsLibrary, id::Tuple{IntegerUnion,IntegerUnion})
+  n, i = Int(id[1]), Int(id[2])
+  @req has_groups(L, n) "perfect groups of order $n are not available"
+  N = number_of_perfect_groups(n)
+  @req 1 <= i <= N "there are only $N perfect groups of order $n, not $i"
+  lines = ["group $i of the $N groups of order $n"]
+  return LibraryInformation(
+    "Perfect group ($n, $i)"; lines, references=_perfect_groups_references(n)
+  )
+end

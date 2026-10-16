@@ -159,6 +159,50 @@ end
     @test first(find(P, 3, !is_abelian)) isa PermGroup
   end
 
+  # every library describes itself, the groups with a given key and single
+  # groups, and cites entries of Oscar's bibliography
+  @testset "information about the data" begin
+    bib = Oscar._bibliography()
+    @testset for (L, k, id) in [
+      (small_groups_library(), 96, (96, 3)),
+      (small_groups_library(), 512, (512, 7)),
+      (transitive_groups_library(), 12, (12, 5)),
+      (primitive_groups_library(), 10, (10, 1)),
+      (perfect_groups_library(), 7200, (7200, 2)),
+      (groups_with_class_number_library(), 6, (6, 2)),
+    ]
+      for I in (information(L), information(L, k), information(L, id))
+        @test !isempty(references(I))
+        @test all(key -> haskey(bib, key), references(I))
+        @test startswith(sprint(show, MIME"text/plain"(), I), sprint(show, I))
+      end
+      attrs = Oscar._filter_attrs(L)
+      attrs === nothing || @test issubset(precomputed_filters(information(L, k)), keys(attrs))
+    end
+
+    overview(I) = sprint(show, MIME"text/plain"(), I)
+    I = information(transitive_groups_library(), 12)
+    @test precomputed_filters(I) == [order, transitivity, is_primitive]
+    @test occursin("301 groups", overview(I))
+    @test occursin("not available", overview(information(transitive_groups_library(), 64)))
+    @test occursin("which are not available", overview(information(small_groups_library(), 1024)))
+    @test_throws ArgumentError information(perfect_groups_library(), (60, 2))
+    @test_throws ArgumentError information(small_groups_library(), (8, 6))
+
+    # the identifiers of the same group in the other libraries
+    C = groups_with_class_number_library()
+    @test occursin("small group (24, 12)", overview(information(C, identify(C, symmetric_group(4)))))
+
+    # with a SmallGrp that describes how the groups of an order are arranged
+    if Oscar._small_groups_record(512) !== nothing
+      I = information(small_groups_library(), 512)
+      @test precomputed_filters(I) == [is_abelian, is_nilpotent, is_supersolvable, is_solvable]
+      @test occursin("rank 2 and p-class 3", overview(I))
+      @test "EO99" in references(I)
+      @test occursin("in the range 2 - 10", overview(information(small_groups_library(), (512, 7))))
+    end
+  end
+
   # only the GAP package SOTGrps provides the groups of order 2662
   @testset "small groups from SOTGrps" begin
     L = small_groups_library()

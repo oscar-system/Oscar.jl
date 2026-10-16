@@ -91,3 +91,68 @@ function _first(S::GroupLibrarySelection{TransitiveGroupsLibrary}, d)
   G = GAP.Globals.OneTransitiveGroup(GAP.Globals.NrMovedPoints, d, S.gaprest...)
   return G === GAP.Globals.fail ? nothing : PermGroup(G, d)
 end
+
+################################################################################
+#
+#  Information
+#
+################################################################################
+
+# the publications that determined the transitive groups of degree `d`
+function _transitive_groups_references(d::Int)
+  refs = ["TransGrp"]
+  d <= 15 && push!(refs, "CHM98")
+  if d <= 11
+    push!(refs, "BM83")
+  elseif d == 12
+    push!(refs, "Roy87")
+  elseif d in (14, 15)
+    push!(refs, "But93")
+  elseif 16 <= d <= 30
+    append!(refs, ["Hul96", "Hul05"])
+  elseif d == 32
+    push!(refs, "CH08")
+  elseif 34 <= d <= 46
+    push!(refs, "HR20")
+  elseif d == 48
+    push!(refs, "HRT22")
+  end
+  return refs
+end
+
+const _TRANSITIVE_GROUPS_FILTERS = Any[order, transitivity, is_primitive]
+
+function information(::TransitiveGroupsLibrary)
+  lines = [
+    "TransGrp $(_gap_package_version("transgrp")): degree at most 48;",
+    "  the data for the degrees 32 and 48 are not installed with OSCAR",
+  ]
+  references = [
+    "TransGrp", "CHM98", "BM83", "Roy87", "But93", "Hul96", "Hul05", "CH08", "HR20", "HRT22"
+  ]
+  return LibraryInformation("Library of transitive groups"; lines, references)
+end
+
+function information(L::TransitiveGroupsLibrary, d::IntegerUnion)
+  d = Int(d)
+  title = "Transitive groups of degree $d"
+  has_groups(L, d) || return LibraryInformation(title; lines=["not available"])
+  lines = [
+    _count_line(number_of_transitive_groups(d), "group"),
+    _filters_line(_TRANSITIVE_GROUPS_FILTERS),
+    "identify: " * _availability_line(has_identification(L, d)),
+  ]
+  return LibraryInformation(
+    title; lines, references=_transitive_groups_references(d), filters=_TRANSITIVE_GROUPS_FILTERS
+  )
+end
+
+function information(L::TransitiveGroupsLibrary, id::Tuple{IntegerUnion,IntegerUnion})
+  d, i = Int(id[1]), Int(id[2])
+  G = GapObj(L[d, i])
+  lines = ["group $i of the $(number_of_transitive_groups(d)) groups of degree $d"]
+  GAP.Globals.HasName(G)::Bool && push!(lines, "name: " * String(GAP.Globals.Name(G)))
+  return LibraryInformation(
+    "Transitive group ($d, $i)"; lines, references=_transitive_groups_references(d)
+  )
+end

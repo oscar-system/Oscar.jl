@@ -99,3 +99,87 @@ function _count(S::GroupLibrarySelection{<:GroupsWithClassNumberLibrary}, k)
   # answered from tables if the order is the only further filter
   return GAP.Globals.NrSmallClassNrGroups(_gap_selection(S, k)...)
 end
+
+################################################################################
+#
+#  Information
+#
+################################################################################
+
+# the publications that determined the groups with `k` conjugacy classes
+function _groups_with_class_number_references(k::Int)
+  refs = ["SmallClassNr"]
+  if k <= 5
+    append!(refs, ["Mil11", "Bur11"])
+  elseif k <= 7
+    push!(refs, "Pol68")
+  elseif k == 8
+    push!(refs, "Kos74")
+  elseif k == 9
+    push!(refs, "OS76")
+  elseif k <= 11
+    push!(refs, "V-LV-L85")
+  elseif k == 12
+    push!(refs, "V-LV-L86")
+  elseif k <= 14
+    push!(refs, "VS07")
+  end
+  return refs
+end
+
+const _GROUPS_WITH_CLASS_NUMBER_FILTERS = Any[order]
+
+function information(::GroupsWithClassNumberLibrary)
+  lines = [
+    "SmallClassNr $(_gap_package_version("smallclassnr")): at most 14 conjugacy classes",
+  ]
+  references = [
+    "SmallClassNr", "Lan03", "Mil11", "Bur11", "Pol68", "Kos74", "OS76", "V-LV-L85",
+    "V-LV-L86", "VS07",
+  ]
+  return LibraryInformation("Library of groups with given class number"; lines, references)
+end
+
+function information(L::GroupsWithClassNumberLibrary, k::IntegerUnion)
+  k = Int(k)
+  title = "Groups with $k conjugacy classes"
+  has_groups(L, k) || return LibraryInformation(title; lines=["not available"])
+  lines = [
+    _count_line(number_of_groups_with_class_number(k), "group"),
+    _filters_line(_GROUPS_WITH_CLASS_NUMBER_FILTERS),
+    "identify: " * _availability_line(has_identification(L, k)),
+  ]
+  return LibraryInformation(
+    title;
+    lines,
+    references=_groups_with_class_number_references(k),
+    filters=_GROUPS_WITH_CLASS_NUMBER_FILTERS,
+  )
+end
+
+# the identifiers of a group in the other libraries, as GAP's SmallClassNr knows them
+const _CLASS_NUMBER_CONVERSIONS = [
+  ("small group", :IdClassNrToIdGroup),
+  ("perfect group", :IdClassNrToPerfGrp),
+  ("primitive group", :IdClassNrToPrimGrp),
+  ("transitive group", :IdClassNrToTransGrp),
+]
+
+function information(L::GroupsWithClassNumberLibrary, id::Tuple{IntegerUnion,IntegerUnion})
+  k, i = Int(id[1]), Int(id[2])
+  @req has_groups(L, k) "groups with $k conjugacy classes are not available"
+  N = number_of_groups_with_class_number(k)
+  @req 1 <= i <= N "there are only $N groups with $k classes, not $i"
+  lines = ["group $i of the $N groups with $k conjugacy classes"]
+  for (name, f) in _CLASS_NUMBER_CONVERSIONS
+    x = getproperty(GAP.Globals, f)(k, i)
+    x === GAP.Globals.fail || push!(lines, "$name ($(x[1]), $(x[2]))")
+  end
+  x = GAP.Globals.IdClassNrToAtlasName(k, i)
+  x === GAP.Globals.fail || push!(lines, "Atlas group " * String(x))
+  return LibraryInformation(
+    "Group ($k, $i) with $k conjugacy classes";
+    lines,
+    references=_groups_with_class_number_references(k),
+  )
+end

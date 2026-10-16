@@ -24,6 +24,14 @@ has_number_of_groups
 has_identification
 ```
 
+## Information about the data
+
+```@docs
+information
+references
+precomputed_filters
+```
+
 ## Available libraries
 
 ```@docs
