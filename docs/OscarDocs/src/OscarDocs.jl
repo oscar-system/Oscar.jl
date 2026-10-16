@@ -1,13 +1,19 @@
 #
-# This file is included by docs/make.jl and by a helper function
-# in src/utils/docs.jl
+# Driver for building the OSCAR manual and for running its doctests.
 #
-module BuildDoc
+# This package deliberately does *not* depend on Oscar: Oscar is always passed
+# in as a `Module` argument. That keeps the whole OSCAR dependency graph out of
+# the environment providing this package, so that environment need not be
+# re-resolved whenever OSCAR's dependencies change. See `Oscar.docs_env`.
+#
+module OscarDocs
 
-using Documenter, DocumenterCitations, JSON
+using Documenter, DocumenterCitations
 
-include("documenter_helpers.jl")
 include("citation_style.jl")
+include("documenter_helpers.jl")
+include("doctest.jl")
+include("preview.jl")
 
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
@@ -89,11 +95,58 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   return result
 end
 
-function doit(
+# The revision a package's sources correspond to, used for the "source" links in
+# the manual. `Pkg.dependencies()` would be the obvious tool, but it lists the
+# dependencies of the active project only, and OSCAR itself is not among those
+# when the manual is built from OSCAR's own project.
+function package_revision(pkg::Module)
+  dir = Base.pkgdir(pkg)
+  # `.git` is a file, not a directory, in worktrees and submodules
+  if dir !== nothing && ispath(joinpath(dir, ".git"))
+    try
+      return readchomp(`git -C $dir rev-parse HEAD`)
+    catch
+      # not a usable checkout, fall through to the version number
+    end
+  end
+  return "v$(pkgversion(pkg))"
+end
+
+@doc """
+    build(Oscar::Module; doctest=false, warnonly=true, local_build=true,
+                         open_browser=true, start_server=false)
+
+Build the OSCAR manual. See `Oscar.@build_doc` for a description of the
+keyword arguments.
+"""
+function build(
   Oscar::Module;
-  warnonly=false,
-  local_build::Bool=false,
-  doctest::Union{Bool,Symbol}=true,
+  doctest::Union{Bool,Symbol}=false,
+  warnonly=true,
+  local_build::Bool=true,
+  open_browser::Bool=true,
+  start_server::Bool=false,
+)
+  doctest === false || setup_doctest_stats(Oscar)
+  with_docs_terminal(Oscar) do
+    _build(Oscar; doctest, warnonly, local_build)
+  end
+
+  if start_server
+    start_doc_preview_server(Oscar; open_browser)
+  elseif open_browser
+    open_doc(Oscar)
+  end
+
+  return nothing
+end
+
+# Always reached through `build`, which owns the defaults.
+function _build(
+  Oscar::Module;
+  warnonly,
+  local_build::Bool,
+  doctest::Union{Bool,Symbol},
 )
   oscardir = Base.pkgdir(Oscar)
 
@@ -162,20 +215,11 @@ function doit(
     end
   end
 
-  function get_rev(uuid::Base.UUID)
-    deps = Documenter.Pkg.dependencies()
-    @assert haskey(deps, uuid)
-    if !isnothing(deps[uuid].git_revision)
-      return deps[uuid].git_revision
-    else
-      return "v$(deps[uuid].version)"
-    end
-  end
-  aarev = get_rev(Base.PkgId(Oscar.AbstractAlgebra).uuid)
-  nemorev = get_rev(Base.PkgId(Oscar.Nemo).uuid)
-  heckerev = get_rev(Base.PkgId(Oscar.Hecke).uuid)
-  singularrev = get_rev(Base.PkgId(Oscar.Singular).uuid)
-  oscarrev = get_rev(Base.PkgId(Oscar).uuid)
+  aarev = package_revision(Oscar.AbstractAlgebra)
+  nemorev = package_revision(Oscar.Nemo)
+  heckerev = package_revision(Oscar.Hecke)
+  singularrev = package_revision(Oscar.Singular)
+  oscarrev = package_revision(Oscar)
 
   cd(joinpath(oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true, warn=false)
@@ -221,13 +265,20 @@ function doit(
     dstbase = normpath(oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
-  
-  # postprocessing, for the search index
-  docspath = normpath(joinpath(oscardir, "docs"))
+
+  patch_search_index(Oscar, doc, local_build)
+end
+
+# Documenter indexes every page it finds below `docs/src`, including the ones we
+# only symlinked in. Restrict the index to the pages actually listed in
+# `doc.main`.
+function patch_search_index(Oscar::Module, doc, local_build::Bool)
+  JSON = Oscar.JSON
+  docspath = normpath(Base.pkgdir(Oscar), "docs")
   @info "Patching search index."
   # extract valid json from search_index.js
   run(pipeline(`sed -n '2p;3q' $(joinpath(docspath, "build", "search_index.js"))`, stdout=(joinpath(docspath, "build", "search_index.json")))) # imperfect file, but JSON parses it
-  
+
   # extract paths from doc
   filelist=String[]
   docmain = doc
@@ -252,16 +303,16 @@ function doit(
   iosearchindex = open(joinpath(docspath, "build", "search_index.json"), "r")
   searchindex = JSON.parse(iosearchindex)
   close(iosearchindex)
-  
+
   newsearchindex = []
-  
+
   for item in searchindex
     if split(item["location"], "#")[1] in filelist
       push!(newsearchindex, item)
     end
   end
-  
-  
+
+
   # combine this to valid javascript again, and overwrite input
   ionewsearchindex = open(joinpath(docspath, "build", "search_index.js"), "w")
   write(ionewsearchindex, """var documenterSearchIndex = {"docs":\n""")
@@ -273,6 +324,4 @@ function doit(
   rm(joinpath(docspath, "build", "search_index.json"))
 end
 
-end # module BuildDoc
-
-using .BuildDoc
+end # module OscarDocs
