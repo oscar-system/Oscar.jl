@@ -81,6 +81,9 @@ end
 function __maps_variables_to_variables(img_gens::Vector, C)
   # C is codomain
 
+  # `C` may lack `gens`; `_maps_variables_to_variables` special-cases 0 generators
+  is_empty(img_gens) && return Int[]
+
   # this is a dirty implicit check, that the codomain is of a useful type for
   # everything to make sense
   # proper check would be to see if C isa MPolyRing etc
@@ -119,14 +122,18 @@ function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
   println(terse(io), f)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(f))
-  println(io, "to ", Lowercase(), codomain(f))
-  println(io, Dedent(), "defined by", Indent())
+  print(io, "to ", Lowercase(), codomain(f))
   R = domain(f)
   g = gens(R)
-  for i in 1:(ngens(R)-1)
-    println(io, g[i], " -> ", f(g[i]))
+  if !is_empty(g)
+    println(io)
+    println(io, Dedent(), "defined by", Indent())
+    for i in 1:(ngens(R)-1)
+      println(io, g[i], " -> ", f(g[i]))
+    end
+    print(io, g[end], " -> ", f(g[end]))
   end
-  print(io, g[end], " -> ", f(g[end]), Dedent())
+  print(io, Dedent())
   # the last print statement must not add a new line
   phi = coefficient_map(f)
   if !(phi isa Nothing)
@@ -164,6 +171,13 @@ function _coerce(S, img_gens)
     @req eltype(_img_gens) === elem_type(S) "Elements cannot be coerced into the codomain"
     return _img_gens::Vector{elem_type(S)}
   end
+end
+
+# Evaluate `f` at `vals` with the result in `S`. AbstractAlgebra's `evaluate`
+# reads the result's parent off `vals[1]`, so it rejects an empty `vals`.
+function _evaluate_in(S::NCRing, f::MPolyRingElem, vals::Vector)
+  is_empty(vals) && return S(constant_coefficient(f))
+  return evaluate(f, vals)
 end
 
 # The following is used when the domain is graded
