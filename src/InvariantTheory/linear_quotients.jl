@@ -501,7 +501,7 @@ contained in `G`. By a theorem of Arzhantsev--Gaifullin [AG10](@cite), the Cox
 ring is graded isomorphic to the invariant ring of the group `H[G,G]`, where
 `[G,G]` is the derived subgroup of `G`.
 We use ideas from [DK17](@cite) to find homogeneous generators of the invariant ring.
-To get a map from `group(G)` to the grading group of the returned ring, use
+To get a map from `group(L)` to the grading group of the returned ring, use
 [`class_group`](@ref).
 
 !!! note "Choice of root of unity"
