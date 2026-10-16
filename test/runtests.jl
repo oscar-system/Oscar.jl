@@ -52,10 +52,8 @@ end
 # we now set seed before every test, if applicable, in every worker separately
 # in test_module()
 
-# setting the global julia seed does not work for distributed processes
-# the RNG is task-local and each '@everywhere' runs in a separate task...
-# to make sure we seed the main process we run this again;
-# `set_seed!` also fixes the test file order below
+# We need to seed the main process to make sure the test-order is derived from a seeded RNG.
+# For all tests running on workers the seeding is done by `test_module`.
 Oscar.set_seed!(seed)
 Oscar.randseed!(seed)
 
