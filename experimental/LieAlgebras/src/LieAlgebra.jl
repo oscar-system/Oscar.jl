@@ -1,5 +1,9 @@
 # To be implemented by subtypes:
 # Mandatory:
+#   MyLieAlgebraElem{C}(L::MyLieAlgebra{C}, mat::MatElem{C}) -> MyLieAlgebraElem{C}
+#     - inner constructor; the default struct constructor suffices
+#     - `mat` is the `1 x dim(L)` coefficient row
+#     - no sanity checks, `LieAlgebraElem(L, mat)` does them
 #   parent_type(::Type{MyLieAlgebraElem{C}}) = MyLieAlgebra{C}
 #   elem_type(::Type{MyLieAlgebra{C}}) = MyLieAlgebraElem{C}
 #   parent(x::MyLieAlgebraElem{C}) -> MyLieAlgebra{C}
@@ -159,24 +163,69 @@ function (L::LieAlgebra)()
 end
 
 @doc raw"""
+    LieAlgebraElem(L::LieAlgebra{C}, v::AbstractVector{Int}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector `v`.
+
+Fail, if `Int` cannot be coerced into the coefficient ring of `L`.
+"""
+function LieAlgebraElem(L::LieAlgebra, v::AbstractVector{Int})
+  return LieAlgebraElem(L, coefficient_ring(L).(v))
+end
+
+@doc raw"""
+    LieAlgebraElem(L::LieAlgebra{C}, v::AbstractVector{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector `v`.
+"""
+function LieAlgebraElem(L::LieAlgebra{C}, v::AbstractVector{C}) where {C<:FieldElem}
+  @req length(v) == dim(L) "Length of vector does not match dimension."
+  mat = matrix(coefficient_ring(L), 1, length(v), v)
+  return elem_type(L)(L, mat)
+end
+
+@doc raw"""
+    LieAlgebraElem(L::LieAlgebra{C}, mat::MatElem{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector equivalent to
+the $1 \times \dim(L)$ matrix `mat`.
+"""
+function LieAlgebraElem(L::LieAlgebra{C}, mat::MatElem{C}) where {C<:FieldElem}
+  @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
+  return elem_type(L)(L, mat)
+end
+
+@doc raw"""
+    LieAlgebraElem(L::LieAlgebra{C}, v::SRow{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector `v`.
+"""
+function LieAlgebraElem(L::LieAlgebra{C}, v::SRow{C}) where {C<:FieldElem}
+  mat = dense_row(v, dim(L))
+  return elem_type(L)(L, mat)
+end
+
+@doc raw"""
     (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
+
 Fail, if `Int` cannot be coerced into the coefficient ring of `L`.
+This is a shorthand for [`LieAlgebraElem(L, v)`](@ref LieAlgebraElem(::LieAlgebra, ::AbstractVector{Int})).
 """
 function (L::LieAlgebra)(v::AbstractVector{Int})
-  return L(coefficient_ring(L).(v))
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
     (L::LieAlgebra{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraElem(L, v)`](@ref LieAlgebraElem(::LieAlgebra{C}, ::AbstractVector{C}) where {C<:FieldElem}).
 """
 function (L::LieAlgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
-  @req length(v) == dim(L) "Length of vector does not match dimension."
-  mat = matrix(coefficient_ring(L), 1, length(v), v)
-  return elem_type(L)(L, mat)
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
@@ -184,20 +233,22 @@ end
 
 Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
+
+This is a shorthand for [`LieAlgebraElem(L, mat)`](@ref LieAlgebraElem(::LieAlgebra{C}, ::MatElem{C}) where {C<:FieldElem}).
 """
 function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
-  @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
-  return elem_type(L)(L, mat)
+  return LieAlgebraElem(L, mat)
 end
 
 @doc raw"""
     (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraElem(L, v)`](@ref LieAlgebraElem(::LieAlgebra{C}, ::SRow{C}) where {C<:FieldElem}).
 """
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:FieldElem}
-  mat = dense_row(v, dim(L))
-  return elem_type(L)(L, mat)
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
