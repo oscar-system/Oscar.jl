@@ -298,6 +298,19 @@
      ],
   ],
 
+  "F-Theory Tools" => [
+     "FTheoryTools/introduction.md",
+     "FTheoryTools/weierstrass.md",
+     "FTheoryTools/tate.md",
+     "FTheoryTools/hypersurface.md",
+     "FTheoryTools/literature.md",
+     "FTheoryTools/qsm_models.md",
+     "FTheoryTools/generalities.md",
+     "FTheoryTools/resolving_singularities.md",
+     "FTheoryTools/g4.md",
+     "FTheoryTools/family_of_spaces.md",
+  ],
+
   "Tropical Geometry" => [
      "TropicalGeometry/intro.md",
      "TropicalGeometry/semiring.md",
