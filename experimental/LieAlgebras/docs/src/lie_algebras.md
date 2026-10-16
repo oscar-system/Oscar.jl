@@ -44,8 +44,7 @@ LieAlgebraElem(::LieAlgebra{C}, ::SRow{C}) where {C<:FieldElem}
 and fails otherwise.
 
 `(L::LieAlgebra{C})(v)` is a shorthand for `LieAlgebraElem(L, v)`.
-`v` can be of type `Vector{C}`, `Vector{Int}`, `SRow{C}`,
-or `MatElem{C}` (of size $1 \times \dim(L)$).
+`v` can be of type `Vector{C}`, `Vector{Int}`, or `SRow{C}`.
 
 
 ## Arithmetics

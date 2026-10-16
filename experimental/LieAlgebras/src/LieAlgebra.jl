@@ -229,18 +229,6 @@ function (L::LieAlgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
-
-Return the element of `L` with coefficient vector equivalent to
-the $1 \times \dim(L)$ matrix `mat`.
-
-This is a shorthand for [`LieAlgebraElem(L, mat)`](@ref LieAlgebraElem(::LieAlgebra{C}, ::MatElem{C}) where {C<:FieldElem}).
-"""
-function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
-  return LieAlgebraElem(L, mat)
-end
-
-@doc raw"""
     (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
