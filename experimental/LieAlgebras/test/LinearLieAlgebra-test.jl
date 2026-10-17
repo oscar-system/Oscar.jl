@@ -51,6 +51,20 @@
     @test_throws ArgumentError lie_algebra(QQMatrix[])
     @test_throws ArgumentError lie_algebra([identity_matrix(QQ, 2), identity_matrix(QQ, 3)])
     @test_throws ArgumentError lie_algebra([zero_matrix(QQ, 2, 3)])
+
+    # with a given field, the entries are mapped into it
+    e = matrix(ZZ, [0 1 0; 0 0 1; 0 0 0])
+    f = matrix(ZZ, [0 0 0; 2 0 0; 0 2 0])
+    L = @inferred lie_algebra(QQ, [e, f])
+    @test matrix_repr_basis(L) ==
+      matrix_repr_basis(lie_algebra(map_entries.(Ref(QQ), [e, f])))
+    @test dim(@inferred lie_algebra(GF(2), [e, f])) == 1
+    @test_throws ArgumentError lie_algebra(QQ, ZZMatrix[])
+
+    # with a given degree, the list of generators may be empty
+    @test dim(@inferred lie_algebra(QQ, 2, QQMatrix[])) == 0
+    @test_throws ArgumentError lie_algebra(QQ, 3, [e, f])
+    @test dim(lie_algebra(QQ, 3, map_entries.(Ref(QQ), [e, f]))) == 3
   end
 
   @testset "construction from matrices" begin
