@@ -431,12 +431,21 @@ jobs:
           version: "1.12"
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
-      # julia-buildpkg does not precompile; without this, the tests would
-      # precompile into the writable depot and never load caches from the
-      # read-only one. The caches are only reused if --check-bounds matches
-      # in both steps.
+      # Install and precompile everything the tests load into the depot that
+      # becomes read-only, so that the tests load it from there. The test
+      # environment resolves other versions than the package environment, so
+      # set it up via Pkg.test and stop before the tests run. The caches are
+      # only reused if --check-bounds matches in both steps.
       - name: Precompile
-        run: julia --project=. --check-bounds=yes -e 'using Pkg; Pkg.precompile()'
+        run: |
+          julia --project=. --check-bounds=yes -e '
+            using Pkg
+            struct Stop <: Exception end
+            try
+                Pkg.test(test_fn = () -> (Pkg.precompile(); throw(Stop())))
+            catch e
+                e isa Stop || rethrow()
+            end'
       # The read-only mount lives in a private mount namespace, so other jobs
       # and the depot's file modes are unaffected. The outer unshare is root in
       # its namespace and may mount; the inner one maps back to our own uid.
