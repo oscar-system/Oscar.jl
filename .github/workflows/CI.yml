@@ -433,9 +433,10 @@ jobs:
         uses: julia-actions/julia-buildpkg@v1
       # julia-buildpkg does not precompile; without this, the tests would
       # precompile into the writable depot and never load caches from the
-      # read-only one
+      # read-only one. The caches are only reused if --check-bounds matches
+      # in both steps.
       - name: Precompile
-        run: julia --project=. -e 'using Pkg; Pkg.precompile()'
+        run: julia --project=. --check-bounds=yes -e 'using Pkg; Pkg.precompile()'
       # The read-only mount lives in a private mount namespace, so other jobs
       # and the depot's file modes are unaffected. The outer unshare is root in
       # its namespace and may mount; the inner one maps back to our own uid.
@@ -449,7 +450,7 @@ jobs:
           unshare --user --map-root-user --mount -- sh -c '
             mount --bind "$1" "$1" && mount -o remount,bind,ro "$1" &&
             exec unshare --user --map-user="$2" --map-group="$3" -- \
-              julia --project=. -e "using Pkg; Pkg.test()"' \
+              julia --project=. -e "using Pkg; Pkg.test(julia_args=[\"--check-bounds=yes\"])"' \
             sh "$ro" "$(id -u)" "$(id -g)"
 
 # adapted from gap-system/gap
