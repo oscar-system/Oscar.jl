@@ -413,9 +413,17 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test-dual-depot:
-    # Build into the runner's depot, then run the tests with that depot mounted
-    # read-only behind a fresh writable one. Guards against errors like
-    # https://github.com/oscar-system/GAP.jl/issues/1371
+    # Simulates the system-wide install from
+    # https://www.oscar-system.org/install/generic/: packages, artifacts and
+    # precompile caches live in a shared depot that users cannot write to,
+    # behind each user's own depot. Catches code that writes into the shared
+    # depot, like AtlasRep in https://github.com/oscar-system/GAP.jl/issues/1371.
+    #
+    # The runner's depot plays the shared one: everything is installed and
+    # precompiled into it, then the tests run with it mounted read-only behind
+    # a fresh writable depot. Oscar itself is the writable checkout, not a depot
+    # package, so writes into its own source tree go unnoticed.
+    # History: #5961, #6394.
     name: Run testsuite with a dual depot
     if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
     runs-on: [RPTU, Linux, normal-memory]
