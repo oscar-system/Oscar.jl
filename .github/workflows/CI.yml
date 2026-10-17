@@ -417,8 +417,7 @@ jobs:
     # read-only behind a fresh writable one. Guards against errors like
     # https://github.com/oscar-system/GAP.jl/issues/1371
     name: Run testsuite with a dual depot
-    # TODO: drop the pull_request trigger before merging
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
     runs-on: [RPTU, Linux, normal-memory]
     continue-on-error: true
     steps:
