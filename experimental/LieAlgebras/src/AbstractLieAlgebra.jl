@@ -96,7 +96,7 @@ function bracket(
       vec = addmul!(vec, _struct_consts(L)[i, j], cxi * cyj)
     end
   end
-  return L(vec)
+  return LieAlgebraElem(L, vec)
 end
 
 ###############################################################################

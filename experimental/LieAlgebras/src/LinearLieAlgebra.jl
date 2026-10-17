@@ -136,24 +136,69 @@ end
 ###############################################################################
 
 @doc raw"""
-    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
+    (L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
 
 Return the element of `L` whose matrix representation corresponds to `x`.
+
 If no such element exists, an error is thrown.
 With `check=false` this is not verified and `x` is assumed to lie in the span of `matrix_repr_basis(L)`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> x = L(matrix(QQ, [1 2; 3 -1]))
+2*e_1_2 + 3*f_1_2 + h_1
+
+julia> matrix_repr(x)
+[1    2]
+[3   -1]
+```
 """
-function coerce_to_lie_algebra_elem(
-  L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true
-) where {C<:FieldElem}
+function (L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true) where {C<:FieldElem}
+  m = _coefficient_row(L, x)
+  check && @req _is_in_span(L, x, m) "Matrix is not in the span of the basis."
+  return LieAlgebraElem(L, m)
+end
+
+@doc raw"""
+    in(x::MatElem{C}, L::LinearLieAlgebra{C}) -> Bool
+
+Return `true` if `x` is the matrix representation of an element of `L`, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> matrix(QQ, [1 2; 3 -1]) in L
+true
+
+julia> identity_matrix(QQ, 2) in L
+false
+```
+"""
+function Base.in(x::MatElem{C}, L::LinearLieAlgebra{C}) where {C<:FieldElem}
+  return _is_in_span(L, x, _coefficient_row(L, x))
+end
+
+# Coefficient row of `x` with respect to `matrix_repr_basis(L)`, assuming `x` lies in their span.
+function _coefficient_row(L::LinearLieAlgebra{C}, x::MatElem{C}) where {C<:FieldElem}
+  @req base_ring(x) == coefficient_ring(L) "Incompatible base rings."
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
-  pivots, lgs_pivots_inv, lgs = _matrix_repr_basis_pivot_data(L)
+  pivots, lgs_pivots_inv, _ = _matrix_repr_basis_pivot_data(L)
   v = matrix(
     coefficient_ring(L), 1, dim(L),
     C[x[div(k - 1, L.n) + 1, rem(k - 1, L.n) + 1] for k in pivots],
   )
-  m = v * lgs_pivots_inv
-  check && @req m * lgs == _vec_row(x) "Matrix is not in the span of the basis."
-  return L(m)
+  return v * lgs_pivots_inv
+end
+
+# Whether `x` equals the matrix with coefficient row `m = _coefficient_row(L, x)`.
+function _is_in_span(
+  L::LinearLieAlgebra{C}, x::MatElem{C}, m::MatElem{C}
+) where {C<:FieldElem}
+  _, _, lgs = _matrix_repr_basis_pivot_data(L)
+  return m * lgs == _vec_row(x)
 end
 
 # Flatten `x` into a `1 x (nrows * ncols)` matrix.
@@ -207,7 +252,7 @@ function bracket(
   L = parent(x)
   x_mat = matrix_repr(x)
   y_mat = matrix_repr(y)
-  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat; check=false)
+  return L(x_mat * y_mat - y_mat * x_mat; check=false)
 end
 
 ###############################################################################
