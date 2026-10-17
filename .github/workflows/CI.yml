@@ -26,7 +26,7 @@ on:
       dualdepot:
         type: boolean
         default: false
-        description: Run test suite in dual depot runner
+        description: Run test suite with a dual depot
 
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
@@ -413,36 +413,44 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test-dual-depot:
-    # run tests in dual depot runner, where the RO depot has most of the depot, and the RW depot is
-    # only for running the tests
-    # this helps guard against errors like https://github.com/oscar-system/GAP.jl/issues/1371
-    # JULIA_DEPOT_RO and JULIA_DEPOT_RW are env vars defined in the systemd unit
-    name: Run testsuite in a dual depot runnner
-    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
-    runs-on: [RPTU,dual-depot]
+    # Build into the runner's depot, then run the tests with that depot mounted
+    # read-only behind a fresh writable one. Guards against errors like
+    # https://github.com/oscar-system/GAP.jl/issues/1371
+    name: Run testsuite with a dual depot
+    # TODO: drop the pull_request trigger before merging
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
+    runs-on: [RPTU, Linux, normal-memory]
     continue-on-error: true
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
-      # setup first depot
-      - name: Set RO Depot
-        run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RO" >> $GITHUB_ENV
       - name: Set up julia
         uses: julia-actions/setup-julia@v3
+        with:
+          # 1.13 hits a StackOverflowError in the tests, see #6391
+          version: "1.12"
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
-      # mark RO depot as RO
-      - name: Mark first depot as RO
-        run: chmod -Rv a-w $JULIA_DEPOT_PATH
-      # set second depot
-      - name: Make RW depot
-        # this assumes that the second variable in $GITHUB_ENV wins!
-        # we don't know for sure!
-        run: echo "JULIA_DEPOT_PATH=$JULIA_DEPOT_RW:$JULIA_DEPOT_RO" >> $GITHUB_ENV
-      - name: "set test subgroup"
-        run: echo "OSCAR_TEST_SUBSET=short" >> $GITHUB_ENV
+      # julia-buildpkg does not precompile; without this, the tests would
+      # precompile into the writable depot and never load caches from the
+      # read-only one
+      - name: Precompile
+        run: julia --project=. -e 'using Pkg; Pkg.precompile()'
+      # The read-only mount lives in a private mount namespace, so other jobs
+      # and the depot's file modes are unaffected. The outer unshare is root in
+      # its namespace and may mount; the inner one maps back to our own uid.
       - name: Run tests
-        uses: julia-actions/julia-runtest@latest
+        env:
+          OSCAR_TEST_SUBSET: short
+        run: |
+          ro=$JULIA_DEPOT_PATH
+          mkdir -p "$RUNNER_TEMP/depot-rw"
+          export JULIA_DEPOT_PATH=$RUNNER_TEMP/depot-rw:$ro
+          unshare --user --map-root-user --mount -- sh -c '
+            mount --bind "$1" "$1" && mount -o remount,bind,ro "$1" &&
+            exec unshare --user --map-user="$2" --map-group="$3" -- \
+              julia --project=. -e "using Pkg; Pkg.test()"' \
+            sh "$ro" "$(id -u)" "$(id -g)"
 
 # adapted from gap-system/gap
   slack-notification:
