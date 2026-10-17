@@ -1,3 +1,61 @@
+# These will be used to keep track of subgroup transversals
+# and related coset membership testing
+# (following the description of "test functions"
+# in the literature)
+
+abstract type AbstractTestFunction end
+
+
+
+mutable struct GAPTransversalTest <: AbstractTestFunction
+  T::Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}
+  Tvec::Vector{PermGroupElem}
+  domain::PermGroup
+  ambient::PermGroup
+end
+
+function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup = G)
+  T = right_transversal(G, H)
+  Tvec = PermGroupElem[ reparent(ambient, t) for t in T ]
+  return GAPTransversalTest(T, Tvec, G, ambient)
+end
+
+# Oscar.elements(tf::GAPTransversalTest) = tf.Tvec
+coset_rep(tf::GAPTransversalTest, x::PermGroupElem) = tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
+
+
+
+mutable struct FunctionTest{F} <: AbstractTestFunction
+  f::F   # maps to coset rep
+  Tvec::Vector{PermGroupElem}
+  domain::PermGroup
+  ambient::PermGroup
+end
+
+function FunctionTest(Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup = parent(first(Tvec))) where F
+  tf = FunctionTest{F}(f, copy(Tvec), parent(first(Tvec)), ambient)
+  set_ambient!(tf, ambient)
+  return tf
+end
+
+# Oscar.elements(tf::FunctionTest) = tf.Tvec
+coset_rep(tf::FunctionTest, x::PermGroupElem) = reparent(tf.ambient, tf.f(reparent(tf.domain, x)))
+
+
+
+
+Oscar.elements(tf::AbstractTestFunction) = tf.Tvec
+Oscar.domain(tf::AbstractTestFunction) = tf.domain
+_ambient_group(tf::AbstractTestFunction) = tf.ambient
+function set_ambient!(tf::AbstractTestFunction, G::PermGroup)
+  map!(x -> reparent(G, x), tf.Tvec, tf.Tvec)
+  tf.ambient = G
+  return tf
+end
+
+
+
+
 mutable struct TransversalChain
   C::Vector{Tuple{PermGroup, Vector{PermGroupElem}}}
 end
@@ -46,8 +104,10 @@ mutable struct LadderStep
   Aprev::PermGroup
   A::PermGroup
 
-  T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}}
-  Tmap::MapFromFunc{PermGroup, PermGroup}
+  test::AbstractTestFunction
+
+  # T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}}
+  # Tmap::MapFromFunc{PermGroup, PermGroup}
 
   DSt::Dict{PermGroupElem, TransversalChain}
 
@@ -102,7 +162,8 @@ mutable struct SubgroupLadder <: AbstractVector{LadderStep}
   G::PermGroup
 
   function SubgroupLadder(S::Vector{LadderStep})
-    L = new(S)
+    @req !isempty(S) "Ladder must be nonempty"
+    L = new(S, S[1].A)
     for (i, s) in enumerate(L)
       s.F = view(L, 1:i)
     end
@@ -111,6 +172,7 @@ mutable struct SubgroupLadder <: AbstractVector{LadderStep}
 end
 
 function SubgroupLadder(S::Vector{PermGroup})
+  @req !isempty(S) "Ladder must be nonempty"
   LS = LadderStep[]
   isempty(S) && return new(LS)
   push!(LS, LadderStep(first(S), first(S)))

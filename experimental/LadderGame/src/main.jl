@@ -30,9 +30,8 @@ end
 
 function _ladder_start!(S::LadderStep, U::PermGroup)
   # @assert S.A == S.Aprev "Initial ladder step must be trivial"
-  if !isdefined(S, :T)
-    S.T = [one(S.A)]
-    S.Tmap = map_from_func(S.A, S.A, x -> one(S.A))
+  if !isdefined(S, :test)
+    S.test = FunctionTest([one(S.A)], x -> one(S.A); ambient = _ambient_group(S))
   end
   # isdefined(S, :T) || (S.T = [one(S.A)])
   # isdefined(S, :Tmap) || (S.Tmap = map_from_func(S.A, S.A, x -> one(S.A)))
@@ -44,11 +43,12 @@ end
 function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   A = S.A
   Aprev = S.Aprev
-  if !isdefined(S, :T)
-    S.T = right_transversal(S.Aprev, S.A)
-    S.Tmap = map_from_func(S.Aprev, S.Aprev, x -> S.T[index_of_coset(S.T, x)])
+  G = _ambient_group(S)
+
+  if !isdefined(S, :test)
+    S.test = GAPTransversalTest(S.Aprev, S.A; ambient = _ambient_group(S))
   end
-  (T, Tmap) = (S.T, S.Tmap)
+  T = elements(S.test)
 
   DSt = Dict{PermGroupElem, TransversalChain}()
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
@@ -67,7 +67,8 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       # @assert st[1][1] == S2
       # @assert S2 == _my_intersect(U, Aprev^d)
 
-      st2, Sta = _induce_chain(S1, Tmap, st ; conj=d)
+      st2, Sta = _induce_chain(S1, S.test, st ; conj=d)
+      map!(x -> reparent(U, x), Sta, Sta)
 
       # not used in calculation
       # @assert length(Sta) == index(S2, S1)
@@ -77,7 +78,7 @@ function down_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 
       DSt[d] = st2
       for u in Sta
-        tt = Tmap(reparent(Aprev, d*u*inv_a))
+        tt = coset_rep(S.test, d*reparent(G, u)*inv_a)
         push!(seen, tt)
         Im[tt*a] = (d, u)
         # @assert tt*a*inv(u)*inv(d) in A
@@ -95,17 +96,14 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
   A = S.A
   Aprev = S.Aprev
 
-  if !isdefined(S, :T)
-    S.T = right_transversal(S.A, S.Aprev)
-    S.Tmap = map_from_func(S.A, S.A, x -> S.T[index_of_coset(S.T, x)])
+  if !isdefined(S, :test)
+    S.test = GAPTransversalTest(S.A, S.Aprev; ambient = _ambient_group(S))
   end
-  (T, Tmap) = (S.T, S.Tmap)
+  T = elements(S.test)
 
   DSt = Dict{PermGroupElem, TransversalChain}()
   Im = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
-  # seen = PermGroupElem[]
-  # store = PermGroupElem[]
   cls_store = Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}()
 
   for (a, st) in Sprev.DSt
@@ -146,7 +144,7 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
 end
 
 # This gives a transversal chain
-function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::TransversalChain ; conj=one(C[1][1]))
+function _induce_chain(V::PermGroup, tf::AbstractTestFunction, C::TransversalChain ; conj=one(C[1][1]))
   # Tm is a transversal map for C[1][1]/V
   # @assert is_subset(V, C[1][1])
 
@@ -154,7 +152,7 @@ function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::Transvers
 
   last_tUU = PermGroupElem[ one(C[end][1]) ]
 
-  tU = IndexedSet([ one(codomain(Tm)) ]) # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
+  tU = IndexedSet([ one(_ambient_group(tf)) ]) # magma version: { Tm(one(parent(codomain(Tm)))^inv(conj)) } but why???
 
   for i in (length(C)-1):-1:1
     map!(x -> reparent(C[i][1],x), last_tUU, last_tUU)
@@ -168,7 +166,7 @@ function _induce_chain(V::PermGroup, Tm::Map{PermGroup, PermGroup}, C::Transvers
         push!(tV, x)
         length(tU)*length(tV) == length(last_tUU)*length(C[i][2]) && break
       else
-        xx = Tm(reparent(domain(Tm), x^inv(conj)))
+        xx = coset_rep(tf, reparent(parent(conj), x)^inv(conj))
         if ~(xx in tU)
           push!(tU, xx)
           push!(tUU, x)
@@ -190,11 +188,11 @@ end
 # Recursive recognition method
 function _get_rep(g::PermGroupElem, S::LadderStep)
   F = _get_previous_steps(S)
+  ambient = _ambient_group(S)
 
-  dprev = one(F[1].A)
-  uprev = dprev
+  dprev, uprev = F[1].Im[one(ambient)]
   for s in F
-    p = s.is_up_step ? dprev : s.Tmap(reparent(domain(s.Tmap), g*inv(dprev*uprev))) * dprev
+    p = s.is_up_step ? dprev : coset_rep(s.test, g*inv(dprev*uprev)) * dprev
     (d, u) = s.Im[p]
     dprev = d
     uprev = u*uprev
