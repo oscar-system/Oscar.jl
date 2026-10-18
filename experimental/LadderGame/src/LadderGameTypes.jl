@@ -20,7 +20,6 @@ function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup = G)
   return GAPTransversalTest(T, Tvec, G, ambient)
 end
 
-# Oscar.elements(tf::GAPTransversalTest) = tf.Tvec
 _coset_rep(tf::GAPTransversalTest, x::PermGroupElem) = tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
 
 
@@ -38,9 +37,7 @@ function FunctionTest(Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup = pa
   return tf
 end
 
-# Oscar.elements(tf::FunctionTest) = tf.Tvec
 _coset_rep(tf::FunctionTest, x::PermGroupElem) = reparent(tf.ambient, tf.f(reparent(tf.domain, x)))
-
 
 
 coset_rep(tf::AbstractTestFunction, x::PermGroupElem) = _coset_rep(tf, x)::PermGroupElem
@@ -69,8 +66,6 @@ function Base.show(io::IO, tf::FunctionTest)
     print(io, "Combinatorial test function with ", ItemQuantity(length(elements(tf)), "element"))
   end
 end
-
-
 
 
 mutable struct TransversalChain
@@ -113,27 +108,13 @@ end
 get_transversal_chain(U::PermGroup) = TransversalChain(U)
 
 
-
-
-
-
-
 @attributes mutable struct LadderStep
   is_up_step::Bool
-
   Aprev::PermGroup
   A::PermGroup
-
   test::AbstractTestFunction
-
-  # T::Union{Vector{PermGroupElem}, Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}}
-  # Tmap::MapFromFunc{PermGroup, PermGroup}
-
   DSt::Dict{PermGroupElem, TransversalChain}
-
-
   Im::Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}
-
   F
 
   function LadderStep(Aprev::PermGroup, A::PermGroup)
@@ -142,18 +123,18 @@ get_transversal_chain(U::PermGroup) = TransversalChain(U)
     elseif is_subset(A, Aprev)
       u = false
     else
-      # throw an error
+      error("Aprev and A must satisfy an inclusion relation")
     end
     return new(u, Aprev, A)
   end
 
-  function LadderStep(A::PermGroup, Aprev::PermGroup, T::Vector, Tmap::Map)
+  function LadderStep(A::PermGroup, Aprev::PermGroup, test::AbstractTestFunction)
     if is_subset(Aprev, A)
       u = true
     elseif is_subset(A, Aprev)
       u = false
     else
-      # throw an error
+      error("Aprev and A must satisfy an inclusion relation")
     end
     return new(u, Aprev, A, T, Tmap)
   end
@@ -166,8 +147,6 @@ function Base.getproperty(S::LadderStep, s::Symbol)
     return getfield(S, s)
   end
 end
-
-
 
 function _get_previous_steps(S::LadderStep)
   return S.F
@@ -217,7 +196,6 @@ end
 function SubgroupLadder(S::Vector{PermGroup})
   @req !isempty(S) "Ladder must be nonempty"
   LS = LadderStep[]
-  isempty(S) && return new(LS)
   push!(LS, LadderStep(first(S), first(S)))
   for i in 2:length(S)
     push!(LS, LadderStep(S[i-1], S[i]))
@@ -275,18 +253,6 @@ function Base.getindex(L::SubgroupLadder, i::IntegerUnion)
   return getindex(data(L), Int(i))
 end
 
-# I don't think we want to support this
-# function Base.setindex!(L::SubgroupLadder, s::LadderStep, i::IntegerUnion)
-#   return setindex!(data(L), s, Int(i))
-# end
-
 function Base.copy(L::SubgroupLadder)
   return SubgroupLadder(copy(data(L)))
 end
-
-# function Base.push!(L::SubgroupLadder, s::LadderStep)
-#   # require or assert that this is actually a step
-#   @req last(L).A == s.Aprev "Incompatible LadderStep"
-#   push!(L.S, s)
-#   return L
-# end
