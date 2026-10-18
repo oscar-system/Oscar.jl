@@ -147,7 +147,7 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
   save_data_array(s) do
     for i in 1:length(p)
       save_data_array(s) do 
-        save_object(s, map(string, exponent_vector(p, i)))
+        save_object(s, exponent_vector(p, i))
         save_object(s, coeff(p, i))
       end
     end
@@ -161,7 +161,7 @@ function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPoly
     for c in coefficients(p)
       exponent_vector, index = iterate(exponent_vectors_gen, index)
       save_data_array(s) do
-        save_object(s, map(string, exponent_vector))
+        save_object(s, exponent_vector)
         save_object(s, c)
       end
     end
