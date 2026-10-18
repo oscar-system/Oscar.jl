@@ -72,22 +72,12 @@ mutable struct TransversalChain
   C::Vector{Tuple{PermGroup, Vector{PermGroupElem}}}
 end
 
-data(T::TransversalChain) = T.C
-
-function Base.size(T::TransversalChain)
-  return size(data(T))
-end
-
-function Base.length(T::TransversalChain)
-  return length(data(T))
-end
-
-Base.firstindex(T::TransversalChain) = 1
-Base.lastindex(T::TransversalChain) = length(T)
-
-function Base.getindex(T::TransversalChain, i::IntegerUnion)
-  return getindex(data(T), Int(i))
-end
+@inline data(T::TransversalChain) = T.C
+@inline Base.size(T::TransversalChain) = size(data(T))
+@inline Base.length(T::TransversalChain) = length(data(T))
+@inline Base.firstindex(T::TransversalChain) = 1
+@inline Base.lastindex(T::TransversalChain) = length(T)
+@inline Base.getindex(T::TransversalChain, i::IntegerUnion) = getindex(data(T), Int(i))
 
 
 function TransversalChain(U::PermGroup)
@@ -148,9 +138,8 @@ function Base.getproperty(S::LadderStep, s::Symbol)
   end
 end
 
-function _get_previous_steps(S::LadderStep)
-  return S.F
-end
+@inline _get_previous_steps(S::LadderStep) =  S.F
+
 
 
 function Base.show(io::IO, ::MIME"text/plain", S::LadderStep)
@@ -208,7 +197,7 @@ _ambient_group(L::SubgroupLadder) = L.G::PermGroup
 Base.parent(S::LadderStep) = S.F.parent::SubgroupLadder
 _ambient_group(S::LadderStep) = _ambient_group(parent(S))
 
-data(L::SubgroupLadder) = L.S::Vector{LadderStep}
+@inline data(L::SubgroupLadder) = L.S::Vector{LadderStep}
 
 function Base.show(io::IO, ::MIME"text/plain", L::SubgroupLadder)
   @show_name(io, L)
@@ -238,21 +227,9 @@ end
 #
 ################################################################################
 
-function Base.size(L::SubgroupLadder)
-  return size(data(L))
-end
-
-function Base.length(L::SubgroupLadder)
-  return length(data(L))
-end
-
-Base.firstindex(L::SubgroupLadder) = 1
-Base.lastindex(L::SubgroupLadder) = length(L)
-
-function Base.getindex(L::SubgroupLadder, i::IntegerUnion)
-  return getindex(data(L), Int(i))
-end
-
-function Base.copy(L::SubgroupLadder)
-  return SubgroupLadder(copy(data(L)))
-end
+@inline Base.size(L::SubgroupLadder) =  size(data(L))
+@inline Base.length(L::SubgroupLadder) = length(data(L))
+@inline Base.firstindex(L::SubgroupLadder) = 1
+@inline Base.lastindex(L::SubgroupLadder) = length(L)
+@inline Base.getindex(L::SubgroupLadder, i::IntegerUnion) = getindex(data(L), Int(i))
+@inline Base.copy(L::SubgroupLadder) = SubgroupLadder(copy(data(L)))
