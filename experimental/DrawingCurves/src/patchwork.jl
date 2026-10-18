@@ -1,5 +1,5 @@
 function _patchworks2polynomial(
-  hs::Polymake.BigObject; t=QQ(1, 2), points::Union{AbstractMatrix,String,Nothing}=nothing
+  hs::Polymake.BigObject; t=QQ(1, 2), points::Union{AbstractMatrix,String,Nothing,ZZMatrix}=nothing
 )
   R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]; cached=false)
   return _patchworks2polynomial(hs, R; t, points)
@@ -8,7 +8,7 @@ function _patchworks2polynomial(
   hs::Polymake.BigObject,
   R::MPolyRing;
   t=QQ(1, 2),
-  points::Union{AbstractMatrix,String,Nothing}=nothing,
+  points::Union{AbstractMatrix,String,Nothing,ZZMatrix}=nothing,
 )
   pws = Polymake._lookup_multi(hs, "PATCHWORK")
 
@@ -23,6 +23,8 @@ function _patchworks2polynomial(
     elseif points isa String
       pts = matrix(ZZ, Polymake.load(points))
       pts = pts[:, 2:end]
+    elseif points isa ZZMatrix
+      pts = points
     end
     @req ncols(pts) == 2 "Wrong embedding dimension for points"
   end
