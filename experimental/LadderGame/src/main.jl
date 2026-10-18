@@ -1,4 +1,3 @@
-
 # Compute A\G/U
 # TODO indices should start at 1...
 # we need: a subgroup ladder L = (A_i)_(0<=i<=a)
@@ -24,8 +23,16 @@ function ladder_game!(L::SubgroupLadder, G::PermGroup, U::PermGroup)
     s.is_up_step ? up_step(s, sprev, U) : down_step(s, sprev, U)
     sprev = s
   end
-  # TODO want to return double cosets and sizes, as in /src/Groups/cosets.jl/double_cosets
-  return keys(L[end].DSt)
+  A = L[end].A
+  res = GroupDoubleCoset{PermGroup, PermGroupElem}[]
+  for (g, chain) in L[end].DSt
+    C = GroupDoubleCoset(G, A, U, g)
+    stab_order = order(data(chain)[1][1])
+    n = divexact(order(A), stab_order) * order(U)
+    C.size[] = ZZRingElem(n)
+    push!(res, C)
+  end
+  return res
 end
 
 function _ladder_start!(S::LadderStep, U::PermGroup)
@@ -130,8 +137,9 @@ function up_step(S::LadderStep, Sprev::LadderStep, U::PermGroup)
       is_one(t) && (Im[a] = (rep, rep_u*inv(ut)))
     end
     if new
-      StTC = TransversalChain([[ (_my_intersect(A^rep, U), tt) ]; data(st)])
-      DSt[rep] = StTC
+      rep_ = rep::PermGroupElem
+      StTC = TransversalChain([[ (_my_intersect(A^rep_, U), tt) ]; data(st)])
+      DSt[rep_] = StTC
 
       # @assert index(StTC[1][1], StTC[2][1]) == length(tt)
     end
@@ -281,4 +289,48 @@ function _my_intersect(V::AbstractVector{PermGroup})
   L = GapObj(V; recursive = true)
   K = Oscar.GAPWrap.Intersection(L)
   return Oscar._as_subgroup(V[1], K)[1]
+end
+
+
+
+
+
+
+# NOTE don't use this as-is
+# TODO make this our own, optimize, needs to use up-steps when relevant
+
+
+
+# Find a subgroup Anext with Aprev > Anext >= A, reducing the index as much as
+# convenient, by finding block systems of Aprev acting on cosets of A.
+# Falls back to A itself if the action is primitive (no further splitting possible).
+function find_good_descent_step(Aprev::PermGroup, A::PermGroup; max_step_index::Int = 10000)
+  idx = index(Aprev, A)
+  idx <= max_step_index && return A
+
+  c = right_coset(A, one(Aprev))
+  Omega = orbit(Aprev, c)
+
+  B = blocks(Omega)
+  block = representative(B)
+
+  # primitive edge case: no nontrivial block system exists,
+  # no further splitting possible via this method
+  length(block) == 1 && return A
+
+  Anext, _ = stabilizer(B, block)
+  return Anext
+end
+
+
+
+function build_strong_ladder(G::PermGroup, A::PermGroup; max_step_index::Int = 10_000)
+  groups = PermGroup[G]
+  Aprev = G
+  while Aprev != A
+    Anext = find_good_descent_step(Aprev, A; max_step_index)
+    push!(groups, Anext)
+    Aprev = Anext
+  end
+  return SubgroupLadder(groups)
 end

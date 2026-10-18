@@ -21,7 +21,7 @@ function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup = G)
 end
 
 # Oscar.elements(tf::GAPTransversalTest) = tf.Tvec
-coset_rep(tf::GAPTransversalTest, x::PermGroupElem) = tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
+_coset_rep(tf::GAPTransversalTest, x::PermGroupElem) = tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
 
 
 
@@ -39,18 +39,35 @@ function FunctionTest(Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup = pa
 end
 
 # Oscar.elements(tf::FunctionTest) = tf.Tvec
-coset_rep(tf::FunctionTest, x::PermGroupElem) = reparent(tf.ambient, tf.f(reparent(tf.domain, x)))
+_coset_rep(tf::FunctionTest, x::PermGroupElem) = reparent(tf.ambient, tf.f(reparent(tf.domain, x)))
 
 
 
-
-Oscar.elements(tf::AbstractTestFunction) = tf.Tvec
-Oscar.domain(tf::AbstractTestFunction) = tf.domain
-_ambient_group(tf::AbstractTestFunction) = tf.ambient
+coset_rep(tf::AbstractTestFunction, x::PermGroupElem) = _coset_rep(tf, x)::PermGroupElem
+Oscar.elements(tf::AbstractTestFunction) = tf.Tvec::Vector{PermGroupElem}
+Oscar.domain(tf::AbstractTestFunction) = tf.domain::PermGroup
+_ambient_group(tf::AbstractTestFunction) = tf.ambient::PermGroup
 function set_ambient!(tf::AbstractTestFunction, G::PermGroup)
   map!(x -> reparent(G, x), tf.Tvec, tf.Tvec)
   tf.ambient = G
   return tf
+end
+
+
+function Base.show(io::IO, tf::GAPTransversalTest)
+  if is_terse(io)
+    print(io, "Coset-sifting test function")
+  else
+    print(io, "Coset-sifting test function with ", ItemQuantity(length(elements(tf)), "element"))
+  end
+end
+
+function Base.show(io::IO, tf::FunctionTest)
+  if is_terse(io)
+    print(io, "Combinatorial test function")
+  else
+    print(io, "Combinatorial test function with ", ItemQuantity(length(elements(tf)), "element"))
+  end
 end
 
 
@@ -98,7 +115,10 @@ get_transversal_chain(U::PermGroup) = TransversalChain(U)
 
 
 
-mutable struct LadderStep
+
+
+
+@attributes mutable struct LadderStep
   is_up_step::Bool
 
   Aprev::PermGroup
@@ -153,11 +173,34 @@ function _get_previous_steps(S::LadderStep)
   return S.F
 end
 
-# function _set_previous_steps!(S::LadderStep, )
+
+function Base.show(io::IO, ::MIME"text/plain", S::LadderStep)
+  @show_name(io, S)
+  @show_special(io, MIME"text/plain"(), S)
+  dir = S.is_up_step ? "up-step" : "down-step"
+  println(io, "Ladder $dir")
+  io = pretty(io)
+  println(io, Indent(), Lowercase(), S.Aprev)
+  print(io, "-> ", Lowercase(), S.A)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, S::LadderStep)
+  @show_name(io, S)
+  @show_special(io, S)
+  if is_terse(io)
+    print(io, "Ladder step")
+  else
+    dir = S.is_up_step ? "up" : "down"
+    print(io, "Ladder $dir-step ")
+    print(terse(pretty(io)), Lowercase(), S.Aprev, " -> ", Lowercase(), S.A)
+  end
+end
+
 
 
 # SubgroupLadder stores Vector{LadderStep}
-mutable struct SubgroupLadder <: AbstractVector{LadderStep}
+@attributes mutable struct SubgroupLadder <: AbstractVector{LadderStep}
   S::Vector{LadderStep}
   G::PermGroup
 
@@ -177,7 +220,7 @@ function SubgroupLadder(S::Vector{PermGroup})
   isempty(S) && return new(LS)
   push!(LS, LadderStep(first(S), first(S)))
   for i in 2:length(S)
-    push!(L, LadderStep(S[i-1], S[i]))
+    push!(LS, LadderStep(S[i-1], S[i]))
   end
 
   return SubgroupLadder(LS)
@@ -188,6 +231,28 @@ Base.parent(S::LadderStep) = S.F.parent::SubgroupLadder
 _ambient_group(S::LadderStep) = _ambient_group(parent(S))
 
 data(L::SubgroupLadder) = L.S::Vector{LadderStep}
+
+function Base.show(io::IO, ::MIME"text/plain", L::SubgroupLadder)
+  @show_name(io, L)
+  @show_special(io, MIME"text/plain"(), L)
+  println(io, "Subgroup ladder of length ", length(L))
+  io = pretty(io)
+  print(io, Indent(), "from ", Lowercase())
+  print(io, _ambient_group(L))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, L::SubgroupLadder)
+  @show_name(io, L)
+  @show_special(io, L)
+  if is_terse(io)
+    print(io, "Subgroup ladder")
+  else
+    print(io, "Subgroup ladder of length ", length(L), " from ")
+    print(terse(pretty(io)), Lowercase(), _ambient_group(L))
+  end
+end
+
 
 ################################################################################
 #
