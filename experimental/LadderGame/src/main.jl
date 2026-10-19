@@ -282,8 +282,17 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
   return SubgroupLadder(L)
 end
 
+function graph_edge_ladder(n::IntegerUnion)
+  m = binomial(n,2)
+  G = symmetric_group(m)
+  U = image(action_homomorphism(gset(symmetric_group(n), [Set([1,2])])))[1]
+  k = div(m,2)
+  L = young_subgroup_ladder([k,m-k])
+  return L, G, U
+end
 
-function _my_intersect(G1::PermGroup, V::Oscar.GAPGroup...)
+
+function _my_intersect(G1::PermGroup, V::PermGroup...)
   return _my_intersect([G1, V...])
 end
 
@@ -293,7 +302,11 @@ function _my_intersect(V::AbstractVector{PermGroup})
   return Oscar._as_subgroup(V[1], K)[1]
 end
 
-
+function _my_intersect(G1::PermGroup, G2::PermGroup)
+  is_subset(G1, G2) && return G1
+  is_subset(G2, G1) && return G2
+  return _my_intersect([G1, G2])
+end
 
 
 
