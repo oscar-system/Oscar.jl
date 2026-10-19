@@ -25,6 +25,7 @@ end
 # avoid extra workers if we run booktests only
 const numprocs = test_subset == :book ?  1 : parse(Int, numprocs_str)
 
+println(numprocs)
 if numprocs >= 2
   println("Adding worker processes")
   # heap size hint for each worker depending on the number of workers and total memory
