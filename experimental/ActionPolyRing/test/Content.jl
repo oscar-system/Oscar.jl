@@ -30,6 +30,17 @@
       tRi(differential_polynomial_ring(S, 2, action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))]))[1])
     end
 
+    @testset "divexact by zero" begin
+      for R in (difference_polynomial_ring(ZZ, 2, 3)[1],
+                differential_polynomial_ring(QQ, 2, 3)[1],
+                difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
+        for check in (true, false)
+          @test_throws DivideError divexact(one(R), zero(R); check)
+          @test_throws DivideError divexact(zero(R), zero(R); check)
+        end
+      end
+    end
+
   end
 
   @testset "Check types" begin
@@ -308,7 +319,7 @@
             @test !is_unit(dpr())
             @test is_constant(dpr())
             @test is_univariate(dpr())
-            @test_throws ErrorException inv(dpr())
+            @test_throws DivideError inv(dpr())
             @test_throws ArgumentError trailing_coefficient(dpr())
             @test_throws ArgumentError trailing_term(dpr())
             @test_throws ArgumentError trailing_monomial(dpr())
@@ -574,7 +585,7 @@
             @test !is_unit(dpr())
             @test is_constant(dpr())
             @test is_univariate(dpr())
-            @test_throws ErrorException inv(dpr())
+            @test_throws DivideError inv(dpr())
             @test_throws ArgumentError trailing_coefficient(dpr())
             @test_throws ArgumentError trailing_term(dpr())
             @test_throws ArgumentError trailing_monomial(dpr())
