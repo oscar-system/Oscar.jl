@@ -51,6 +51,7 @@ jobs:
           - '1.10'
           - '1.12'
           - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -229,6 +230,7 @@ jobs:
           - '1.10'
           - '1.12'
           - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os:
           - 'ubuntu-latest'
@@ -313,6 +315,7 @@ jobs:
           - '1.10'
           - '1.12'
           - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os: ['ubuntu-latest']
 
@@ -377,6 +380,7 @@ jobs:
           - '1.10'
           - '1.12'
           - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os: ['ubuntu-latest']
     env:
