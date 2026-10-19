@@ -190,14 +190,43 @@ end
   end
 end
 
+
+# When extending a subgroup ladder with a "down" step, need to ensure that we still have a strong subgroup ladder. (See Koch Theorem 6.5.2)
+function _is_valid_strong_down_extension(Aprev::PermGroup, A::PermGroup, C::PermGroup)
+  D = _my_intersect(A, C)
+  return index(Aprev, C) == index(A, D), D
+end
+
+function extend_ladder_down!(S::Vector{LadderStep}, A::PermGroup, C::PermGroup)
+  Aprev = S[end].A
+  @req is_subset(A, Aprev) "A must be a subgroup of the previous group"
+  is_strong, D = _is_valid_strong_down_extension(Aprev, A, C)
+  @req is_strong "This does not give a valid strong subgroup ladder"
+  push!(S, LadderStep(Aprev, A))
+  return D
+end
+
+function extend_ladder_up!(S::Vector{LadderStep}, A::PermGroup, C::PermGroup)
+  Aprev = S[end].A
+  @req is_subset(Aprev, A) "A must contain the previous group"
+  push!(S, LadderStep(Aprev, A))
+  return C
+end
+
+function extend_ladder!(S::Vector{LadderStep}, A::PermGroup, C::PermGroup)
+  Aprev = S[end].A
+  is_subset(A, Aprev) && return extend_ladder_down!(S, A, C)
+  is_subset(Aprev, A) && return extend_ladder_up!(S, A, C)
+  error("A and the previous group must satisfy an inclusion relation")
+end
+
 function SubgroupLadder(S::Vector{PermGroup})
   @req !isempty(S) "Ladder must be nonempty"
-  LS = LadderStep[]
-  push!(LS, LadderStep(first(S), first(S)))
+  C = first(S)
+  LS = LadderStep[LadderStep(C, C)]
   for i in 2:length(S)
-    push!(LS, LadderStep(S[i-1], S[i]))
+    C = extend_ladder!(LS, S[i], C)
   end
-
   return SubgroupLadder(LS)
 end
 

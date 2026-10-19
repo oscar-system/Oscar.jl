@@ -339,7 +339,7 @@ end
 
 
 
-function build_strong_ladder(G::PermGroup, A::PermGroup; max_step_index::Int = 10_000)
+function build_strong_ladder(G::PermGroup, A::PermGroup; max_step_index::Int = 10000)
   groups = PermGroup[G]
   Aprev = G
   while Aprev != A
