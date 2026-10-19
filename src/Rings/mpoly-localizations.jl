@@ -1191,6 +1191,8 @@ function divexact(p::T, q::T; check::Bool=false) where {T<:MPolyLocRingElem}
   W = parent(p)
   S = inverted_set(W)
   parent(q) == W || error("incompatible rings")
+  # 0 is a unit only in the zero ring
+  iszero(q) && !is_trivial(W) && throw(DivideError())
   a = numerator(p)
   b = denominator(p)
   c = numerator(q)
