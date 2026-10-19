@@ -97,6 +97,14 @@ end
 
 get_transversal_chain(U::PermGroup) = TransversalChain(U)
 
+function Base.show(io::IO, T::TransversalChain)
+  if is_terse(io)
+    print(io, "Transversal chain")
+  else
+    print(io, "Transversal chain of length ", length(T))
+  end
+end
+
 
 @attributes mutable struct LadderStep
   is_up_step::Bool
@@ -204,8 +212,9 @@ function Base.show(io::IO, ::MIME"text/plain", L::SubgroupLadder)
   @show_special(io, MIME"text/plain"(), L)
   println(io, "Subgroup ladder of length ", length(L))
   io = pretty(io)
-  print(io, Indent(), "from ", Lowercase())
-  print(io, _ambient_group(L))
+  print(io, Indent())
+  println(io, "from ", Lowercase(), _ambient_group(L))
+  print(io, "to ", Lowercase(), L[end].A)
   print(io, Dedent())
 end
 
@@ -217,9 +226,10 @@ function Base.show(io::IO, L::SubgroupLadder)
   else
     print(io, "Subgroup ladder of length ", length(L), " from ")
     print(terse(pretty(io)), Lowercase(), _ambient_group(L))
+    print(io, " to ")
+    print(terse(pretty(io)), Lowercase(), L[end].A)
   end
 end
-
 
 ################################################################################
 #
