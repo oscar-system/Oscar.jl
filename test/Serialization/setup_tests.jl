@@ -21,10 +21,13 @@ if !isdefined(Main, :mrdi_schema)
 end
 
 if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
-  function test_save_load_roundtrip(func, path, original::T;
+  # compiled once instead of once per tested type and closure
+  function test_save_load_roundtrip(func, path, original;
                                     params=nothing, check_func=nothing,
                                     serializer::Oscar.Serialization.OscarSerializer=Oscar.Serialization.JSONSerializer(),
-                                    kw...) where {T}
+                                    kw...)
+    @nospecialize func original params check_func
+    T = typeof(original)
     is_multi_file = serializer isa Oscar.Serialization.MultiFileSerializer
     is_multi_file_ref_serializer = serializer isa Oscar.Serialization.MultiFileRefSerializer
 
