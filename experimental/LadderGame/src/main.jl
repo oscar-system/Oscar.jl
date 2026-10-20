@@ -291,6 +291,21 @@ function graph_edge_ladder(n::IntegerUnion)
   return L, G, U
 end
 
+function graph_edge_ladder_full(n::IntegerUnion)
+  m = binomial(n,2)
+  G = symmetric_group(m)
+  U = image(action_homomorphism(gset(symmetric_group(n), [Set([1,2])])))[1]
+  k = div(m,2)
+  L = young_subgroup_ladder([1,m-1])
+  return L, G, U
+end
+
+function total_graph_count(n::IntegerUnion)
+  L, G, U = graph_edge_ladder_full(n)
+  ladder_game!(L, G, U)
+  return 1 + sum(length(S.DSt) for S in L if length(orbits(S.A)) in (1, 2))
+end
+
 
 function _my_intersect(G1::PermGroup, V::PermGroup...)
   return _my_intersect([G1, V...])
