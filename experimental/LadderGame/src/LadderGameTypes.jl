@@ -9,12 +9,12 @@
 # domain(tf): the domain of coset_rep
 # _ambient_group(tf): returns from coset_rep are reparented to here (if necessary)
 # set_ambient(tf, G): change the ambient group to G
-# _sibling_lt(tf, x, y): returns whether sibling elements x,y in elements(tf)
+# sibling_lt(tf, x, y): returns whether sibling elements x,y in elements(tf)
 # satisfy the relation x<y with respect to some predetermined total ordering
 # (important: this will only be meaningful for x,y having a common parent at the previous step of the subgroup ladder;
 # the total ordering on elements(tf) will be determined recursively utilizing this previous step,
 # and this `sibling_lt` method will be used as a tie-breaker.)
-# A user can provide a custom `_sibling_lt` by setting a `:sibling_order` attribute on the corresponding `LadderStep`.
+# A user can provide a custom `sibling_lt` by setting a `:sibling_order` attribute on the corresponding `LadderStep`.
 
 
 abstract type AbstractTestFunction end
@@ -66,12 +66,16 @@ function set_ambient!(tf::AbstractTestFunction, G::PermGroup)
 end
 
 function _index_lookup(tf::AbstractTestFunction)
-  get!(tf.__index_cache) do
-    Dict(a => i for (i, a) in enumerate(elements(tf)))
+  if isempty(tf.__index_cache)
+    for (i, a) in enumerate(elements(tf))
+      tf.__index_cache[a] = i
+    end
   end
+  return tf.__index_cache
 end
 
-function _sibling_lt(tf::AbstractTestFunction, x::PermGroupElem, y::PermGroupElem)
+
+function sibling_lt(tf::AbstractTestFunction, x::PermGroupElem, y::PermGroupElem)
   idx = _index_lookup(tf)
   return idx[x] < idx[y]
 end
@@ -151,7 +155,7 @@ end
     return new(u, Aprev, A)
   end
 
-  function LadderStep(A::PermGroup, Aprev::PermGroup, test::AbstractTestFunction)
+  function LadderStep(Aprev::PermGroup, A::PermGroup, test::AbstractTestFunction)
     if is_subset(Aprev, A)
       u = true
     elseif is_subset(A, Aprev)
@@ -159,7 +163,7 @@ end
     else
       error("Aprev and A must satisfy an inclusion relation")
     end
-    return new(u, Aprev, A, T, Tmap)
+    return new(u, Aprev, A, test)
   end
 end
 
