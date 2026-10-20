@@ -441,8 +441,11 @@ jobs:
       # Install and precompile everything the tests load into the depot that
       # becomes read-only, so that the tests load it from there. The test
       # environment resolves other versions than the package environment, so
-      # set it up via Pkg.test and stop before the tests run. The caches are
-      # only reused if --check-bounds matches in both steps.
+      # set it up via Pkg.test and stop before the tests run.
+      #
+      # Caches are only reused if --check-bounds matches. Pkg.test sets
+      # --check-bounds=yes on Julia 1.12 but not on 1.13, so both steps pass it
+      # explicitly.
       - name: Precompile
         run: |
           julia --project=. --check-bounds=yes -e '
@@ -460,14 +463,14 @@ jobs:
         env:
           OSCAR_TEST_SUBSET: short
         run: |
-          ro=$JULIA_DEPOT_PATH
+          ro=${JULIA_DEPOT_PATH%:}
           mkdir -p "$RUNNER_TEMP/depot-rw"
-          export JULIA_DEPOT_PATH=$RUNNER_TEMP/depot-rw:$ro
-          unshare --user --map-root-user --mount -- sh -c '
-            mount --bind "$1" "$1" && mount -o remount,bind,ro "$1" &&
-            exec unshare --user --map-user="$2" --map-group="$3" -- \
-              julia --project=. -e "using Pkg; Pkg.test(julia_args=[\"--check-bounds=yes\"])"' \
-            sh "$ro" "$(id -u)" "$(id -g)"
+          # the trailing colon appends Julia's bundled depot
+          export JULIA_DEPOT_PATH=$RUNNER_TEMP/depot-rw:$ro:
+          unshare --user --map-root-user --mount -- sh -c "
+            mount --bind -o ro '$ro' '$ro' &&
+            exec unshare --user --map-user=$(id -u) --map-group=$(id -g) -- \
+              julia --project=. -e 'using Pkg; Pkg.test(julia_args=[\"--check-bounds=yes\"])'"
 
 # adapted from gap-system/gap
   slack-notification:
