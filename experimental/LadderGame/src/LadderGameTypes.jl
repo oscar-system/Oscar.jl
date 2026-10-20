@@ -62,6 +62,7 @@ _ambient_group(tf::AbstractTestFunction) = tf.ambient::PermGroup
 function set_ambient!(tf::AbstractTestFunction, G::PermGroup)
   map!(x -> reparent(G, x), tf.Tvec, tf.Tvec)
   tf.ambient = G
+  empty!(tf.__index_cache)
   return tf
 end
 
