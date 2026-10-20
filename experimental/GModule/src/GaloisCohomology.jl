@@ -3544,9 +3544,6 @@ function local_galois_groups(k::AbsSimpleNumField; all::Bool = false)
     !(f in poss_orders) && continue
     psandfs[f] = p
     delete!(poss_orders, f)
-    if p > 2^10
-      error("something off")
-    end
   end
 
   for g = G
