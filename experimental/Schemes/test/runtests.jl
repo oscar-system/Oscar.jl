@@ -1,6 +1,9 @@
 # more tests are in `test/AlgebraicGeometry/Schemes/`
 # and in `/test/AlgebraicGeometry/ToricVarieties/`
 #
+
+include("DeterminantalGerm.jl")
+
 @testset "Blowups in existing rays" begin
   c = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
   ntv = normal_toric_variety(c)
