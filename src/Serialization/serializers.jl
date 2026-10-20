@@ -276,7 +276,9 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int})
   s.key = key
 end
 
-function load_node(f::Function, s::DeserializerState,
+# `f` is a fresh closure at almost every call site; specializing on it
+# compiles this function once per closure type.
+Base.@nospecializeinfer function load_node(@nospecialize(f::Function), s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
   if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
     return load_ref(s)
@@ -295,7 +297,7 @@ function load_node(f::Function, s::DeserializerState,
   return result
 end
 
-function load_array_node(f::Function, s::DeserializerState,
+Base.@nospecializeinfer function load_array_node(@nospecialize(f::Function), s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
   load_node(s, key) do array
     [load_node(x -> f((i, x)), s, i) for (i, _) in enumerate(array)]

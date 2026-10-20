@@ -864,6 +864,7 @@ true
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
+  @nospecialize params type
   s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
     id = s.obj[:id]
