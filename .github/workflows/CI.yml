@@ -440,22 +440,16 @@ jobs:
         uses: julia-actions/julia-buildpkg@v1
       # Install and precompile everything the tests load into the depot that
       # becomes read-only, so that the tests load it from there. The test
-      # environment resolves other versions than the package environment, so
-      # set it up via Pkg.test and stop before the tests run.
-      #
-      # Caches are only reused if --check-bounds matches. Pkg.test sets
-      # --check-bounds=yes on Julia 1.12 but not on 1.13, so both steps pass it
-      # explicitly.
+      # environment resolves other versions than the package environment, and
+      # caches are only reused with the same flags, so let Pkg.test set it up
+      # exactly as in the next step, but run an empty test file.
       - name: Precompile
         run: |
-          julia --project=. --check-bounds=yes -e '
-            using Pkg
-            struct Stop <: Exception end
-            try
-                Pkg.test(test_fn = () -> (Pkg.precompile(); throw(Stop())))
-            catch e
-                e isa Stop || rethrow()
-            end'
+          # the trailing colon appends Julia's bundled depot
+          export JULIA_DEPOT_PATH=${JULIA_DEPOT_PATH%:}:
+          echo > test/runtests.jl
+          julia --project=. -e 'using Pkg; Pkg.test()'
+          git checkout -- test/runtests.jl
       # The read-only mount lives in a private mount namespace, so other jobs
       # and the depot's file modes are unaffected. The outer unshare is root in
       # its namespace and may mount; the inner one maps back to our own uid.
@@ -465,12 +459,11 @@ jobs:
         run: |
           ro=${JULIA_DEPOT_PATH%:}
           mkdir -p "$RUNNER_TEMP/depot-rw"
-          # the trailing colon appends Julia's bundled depot
           export JULIA_DEPOT_PATH=$RUNNER_TEMP/depot-rw:$ro:
           unshare --user --map-root-user --mount -- sh -c "
             mount --bind -o ro '$ro' '$ro' &&
             exec unshare --user --map-user=$(id -u) --map-group=$(id -g) -- \
-              julia --project=. -e 'using Pkg; Pkg.test(julia_args=[\"--check-bounds=yes\"])'"
+              julia --project=. -e 'using Pkg; Pkg.test()'"
 
 # adapted from gap-system/gap
   slack-notification:
