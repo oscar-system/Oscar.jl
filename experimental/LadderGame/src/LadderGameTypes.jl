@@ -3,8 +3,21 @@
 # (following the description of "test functions"
 # in the literature)
 
-abstract type AbstractTestFunction end
+# Required interface for tf::AbstractTestFunction:
+# elements(tf): returns a vector of distinct coset representatives representing the transversal
+# coset_rep(tf, x): returns an object from elements(tf) representing the coset containing x
+# domain(tf): the domain of coset_rep
+# _ambient_group(tf): returns from coset_rep are reparented to here (if necessary)
+# set_ambient(tf, G): change the ambient group to G
+# _sibling_lt(tf, x, y): returns whether sibling elements x,y in elements(tf)
+# satisfy the relation x<y with respect to some predetermined total ordering
+# (important: this will only be meaningful for x,y having a common parent at the previous step of the subgroup ladder;
+# the total ordering on elements(tf) will be determined recursively utilizing this previous step,
+# and this `sibling_lt` method will be used as a tie-breaker.)
+# A user can provide a custom `_sibling_lt` by setting a `:sibling_order` attribute on the corresponding `LadderStep`.
 
+
+abstract type AbstractTestFunction end
 
 
 mutable struct GAPTransversalTest <: AbstractTestFunction
@@ -12,6 +25,7 @@ mutable struct GAPTransversalTest <: AbstractTestFunction
   Tvec::Vector{PermGroupElem}
   domain::PermGroup
   ambient::PermGroup
+  __index_cache::Dict{PermGroupElem,Int}
 end
 
 function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup = G)
@@ -29,6 +43,7 @@ mutable struct FunctionTest{F} <: AbstractTestFunction
   Tvec::Vector{PermGroupElem}
   domain::PermGroup
   ambient::PermGroup
+  __index_cache::Dict{PermGroupElem,Int}
 end
 
 function FunctionTest(Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup = parent(first(Tvec))) where F
@@ -50,6 +65,16 @@ function set_ambient!(tf::AbstractTestFunction, G::PermGroup)
   return tf
 end
 
+function _index_lookup(tf::AbstractTestFunction)
+  get!(tf.__index_cache) do
+    Dict(a => i for (i, a) in enumerate(elements(tf)))
+  end
+end
+
+function _sibling_lt(tf::AbstractTestFunction, x::PermGroupElem, y::PermGroupElem)
+  idx = _index_lookup(tf)
+  return idx[x] < idx[y]
+end
 
 function Base.show(io::IO, tf::GAPTransversalTest)
   if is_terse(io)
@@ -148,6 +173,11 @@ end
 
 @inline _get_previous_steps(S::LadderStep) =  S.F
 
+function sibling_lt(S::LadderStep, x::PermGroupElem, y::PermGroupElem)
+  f = get_attribute(S, :sibling_order, nothing)
+  f !== nothing && return f(x, y)
+  return sibling_lt(S.test, x, y)   # fall back to the test function's own default
+end
 
 
 function Base.show(io::IO, ::MIME"text/plain", S::LadderStep)
