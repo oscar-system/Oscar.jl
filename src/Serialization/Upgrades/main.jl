@@ -169,16 +169,14 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
 
   if type_name in ["Vector", "Set", "Matrix"]
     subtype = dict["_type"]["params"]
-    upgraded_entries = Dict{String, Any}[]
     upgraded_entry = nothing
-    for entry in dict["data"]
+    dict["data"] = upgrade_entries(dict["data"]) do entry
       upgraded_entry = upgrade(s, Dict{String, Any}("_type" => subtype, "data" => entry))
-      push!(upgraded_entries, upgraded_entry)
+      return upgraded_entry["data"]
     end
     if !isnothing(upgraded_entry)
       dict["_type"]["params"] = upgraded_entry["_type"]
     end
-    dict["data"] = [u_e["data"] for u_e in upgraded_entries]
   elseif type_name == "MultiDimArray"
     subtype = dict["_type"]["params"]["subtype_params"]
     upgraded_entries = Dict{String, Any}[]
@@ -240,24 +238,26 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
           value_params[k] = upgraded_entry["_type"]
         end
       else
-        upgraded_entry = nothing
-        upgraded_pairs = Tuple[]
-        for (k, v) in dict["data"]
+        first_pair = nothing
+        function upgrade_pair(k, v)
           upgraded_v = upgrade(s, Dict{String, Any}("_type" => value_params, "data" => v))
           upgraded_k = upgrade(s, Dict{String, Any}("_type" => key_params, "data" => k))
-          push!(upgraded_pairs, (upgraded_k, upgraded_v))
+          isnothing(first_pair) && (first_pair = (upgraded_k, upgraded_v))
+          return Any[upgraded_k["data"], upgraded_v["data"]]
         end
         if key_params in ["Symbol", "Base.Int", "String"]
-          dict["data"] = Dict{String, Any}()
-          for (upgraded_k, upgraded_v) in upgraded_pairs
-            dict["data"][upgraded_k["data"]] = upgraded_v["data"]
+          upgraded_data = Dict{String, Any}()
+          for (k, v) in dict["data"]
+            upgraded_k, upgraded_v = upgrade_pair(k, v)
+            upgraded_data[upgraded_k] = upgraded_v
           end
+          dict["data"] = upgraded_data
         else
-          dict["data"] = map(x -> [x[1]["data"], x[2]["data"]], upgraded_pairs)
+          # non-string keys are stored as an array of [key, value] pairs
+          dict["data"] = upgrade_entries(((k, v),) -> upgrade_pair(k, v), dict["data"])
         end
 
-        if !isempty(upgraded_pairs)
-          first_pair = first(upgraded_pairs)
+        if !isnothing(first_pair)
           dict["_type"]["params"]["key_params"] = first_pair[1]["_type"]
           dict["_type"]["params"]["value_params"] = first_pair[2]["_type"]
         end
@@ -364,6 +364,68 @@ function effective_upgrade_version(format_version::VersionNumber)
   base = Base.thispatch(format_version)
   base_num = findfirst(s -> version(s) == base, upgrade_scripts)
   return version(upgrade_scripts[base_num+n_upgrades-1])
+end
+
+################################################################################
+# Parsing files for upgrading
+
+# Large arrays without nested objects (e.g. polynomial terms) are kept as raw JSON
+# and only parsed when an upgrade script accesses them. This keeps the memory
+# needed for upgrading close to the file size.
+mutable struct RawJSONArray <: AbstractVector{Any}
+  text::String
+  parsed::Union{Nothing, Vector{Any}}
+end
+
+function parsed(v::RawJSONArray)
+  if isnothing(v.parsed)
+    v.parsed = JSON.parse(v.text)
+    # the text is never read once parsed, so free it
+    v.text = ""
+  end
+  return v.parsed
+end
+
+Base.size(v::RawJSONArray) = size(parsed(v))
+Base.getindex(v::RawJSONArray, i::Int) = parsed(v)[i]
+Base.setindex!(v::RawJSONArray, x, i::Int) = (parsed(v)[i] = x)
+JSON.StructUtils.lower(::JSON.JSONStyle, v::RawJSONArray) = isnothing(v.parsed) ? JSON.JSONText(v.text) : v.parsed
+
+const raw_array_min_size = 2^16
+
+# Applies `f` to each entry of a container's data. For a raw array the entries
+# are parsed and written back one at a time, so the result stays raw.
+function upgrade_entries(f::Function, data)
+  data isa RawJSONArray && isnothing(data.parsed) || return map(f, data)
+  io = IOBuffer()
+  write(io, '[')
+  is_first = true
+  foreach(JSON.lazy(data.text)) do entry
+    is_first || write(io, ',')
+    is_first = false
+    JSON.json(io, f(upgrade_parse(entry)))
+  end
+  write(io, ']')
+  return RawJSONArray(String(take!(io)), nothing)
+end
+
+function upgrade_parse(x::JSON.LazyValues)
+  T = JSON.gettype(x)
+  if T == JSON.JSONTypes.OBJECT
+    obj = JSON.Object{String, Any}()
+    foreach(x) do (k, v)
+      obj[String(k)] = upgrade_parse(v)
+    end
+    return obj
+  elseif T == JSON.JSONTypes.ARRAY
+    text = JSON.parse(x, JSON.JSONText).value
+    sizeof(text) < raw_array_min_size && return JSON.parse(text)
+    occursin('{', text) || return RawJSONArray(text, nothing)
+    arr = Any[]
+    foreach(v -> push!(arr, upgrade_parse(v)), x)
+    return arr
+  end
+  return x[]
 end
 
 ################################################################################
