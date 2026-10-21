@@ -195,7 +195,7 @@ mutable struct AbstractVarietyMap{V1<:AbstractVarietyT,V2<:AbstractVarietyT} <: 
   function AbstractVarietyMap(
     X::V1, Y::V2, l::Vector, f_pushforward=nothing
   ) where {V1<:AbstractVarietyT,V2<:AbstractVarietyT}
-    f_pullback = hom(chow_ring(Y), chow_ring(X), l; check=true)
+    f_pullback = hom(chow_ring(Y), chow_ring(X), l; check=true) ### TODO: graded of degree 0
     AbstractVarietyMap(X, Y, f_pullback, f_pushforward)
   end
 end
