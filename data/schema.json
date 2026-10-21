@@ -39,6 +39,9 @@
         },
         {
           "type": "null"
+        },
+        {
+          "type": "number"
         }
       ]
     },

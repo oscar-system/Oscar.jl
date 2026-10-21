@@ -31,11 +31,21 @@ end
 # ZZRingElem
 @register_serialization_type ZZRingElem
 
+
+function save_object(s::SerializerState, x::ZZRingElem)
+  if (1 - 2^53 <= x <= 2^53 -1 )
+    save_data_basic(s, Int(x))
+  else
+    save_data_basic(s, x)
+  end
+end
+
 load_object(s::DeserializerState, ::TypeAndParams{ZZRingElem, ZZRing}) = load_object(s, ZZRingElem)
 
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do
-    return ZZRingElem(load_json(s, String))
+    node_is_string(s) && return ZZRingElem(load_json(s, String))
+    return ZZRingElem(load_json(s, Int))
   end::ZZRingElem
 end
 
@@ -76,8 +86,10 @@ end
 
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
   load_node(s) do
-    parse(T, load_json(s, String))
-  end
+    # small integers are stored as JSON numbers, everything else as strings
+    node_is_string(s) && return parse(T, load_json(s, String))
+    return load_json(s, T)
+  end::T
 end
 
 @register_serialization_type PosInf
