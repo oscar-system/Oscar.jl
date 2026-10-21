@@ -249,12 +249,10 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
   @assert torsion_free_rank(grading_group(kQ)) == length(a)
   @assert H in hyperplanes(kQ)
 
-  F = intersect(H.hyperplane, kQ.cone)
-
-  #get faces of Q intersecting F only origin in Q
+  #get faces of Q intersecting F = H ∩ Q only in the origin, i.e. faces without a ray in H
   D = Vector{Polyhedron}()
   for f in kQ.faces
-    if dim(intersect(f.poly, F)) == 0
+    if !any(r in H.hyperplane for r in rays(f.poly))
       push!(D, f.poly)
     end
   end
@@ -264,10 +262,8 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
   for d in D
     I = intersect(PaF, d) #(a + RR H)\cap RR_+D
     if dim(I) >= 0
-      B_d = [
-        a for
-        a in lattice_points(I + kQ.zonotope[1]) if (dim(intersect(convex_hull(a), PaF)) < 0)
-      ]
+      #lattice points not on a + H
+      B_d = [p for p in lattice_points(I + kQ.zonotope[1]) if !(p in PaF)]
       append!(B, B_d)
     end
   end
@@ -530,6 +526,9 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
 
   R = relations(N) #get all relations of N
 
+  # (deg(b) + F) ∩ (deg(g) + Q) ≠ ∅ iff deg(g) - deg(b) ∈ F - Q
+  F_minus_Q = p_F.poly + (-1)*cone(kQ)
+
   lambda = Vector{Vector{elem_type(k)}}()
   for b in Bp
     #get coefficient vector of w.r.t. generators of M
@@ -540,15 +539,14 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
     # c_b = [only(AbstractAlgebra.coefficients(_c_b[i])) for i in 1:ngens(N)]
 
     #get all relevant generators of N, i.e., check (deg(b) + F) \cap (deg(g) + Q) ≠ ∅
-    b_p = convex_hull(degree(Vector{Int}, b))
+    deg_b = degree(Vector{Int}, b)
     G_b = Vector{SubquoModuleElem}()
     for g_N in filter(!is_zero, gens(N))
-      g_p = convex_hull(degree(Vector{Int}, g_N))
-      if dim(intersect(b_p + p_F.poly, g_p + kQ.cone)) >= 0
+      if degree(Vector{Int}, g_N) - deg_b in F_minus_Q
         push!(G_b, g_N)
       end
     end
-    x_Gb = [monomial_basis(kQ, degree(g))[1] for g in G_b]
+    x_Gb = [_monomial_of_degree(kQ, degree(Vector{Int}, g)) for g in G_b]
     _N = sub(ambient_free_module(N), [ambient_representative(g) for g in G_b])[1]
 
     #get all b-relevant relations w.r.t. F
@@ -556,9 +554,8 @@ function coefficients(N::SubquoModule{T}, p_F::FaceQ) where {T <: MonoidAlgebraE
     C_bF = Vector{Vector{elem_type(k)}}()
     for r in R
       #check (deg(b) + F)\cap (deg(r) + Q) ≠ ∅
-      r_p = convex_hull(degree(Vector{Int}, r))
-      if dim(intersect(b_p + p_F.poly, r_p + kQ.cone)) >= 0
-        x_r = monomial_basis(kQ, degree(r))[1]
+      if degree(Vector{Int}, r) - deg_b in F_minus_Q
+        x_r = _monomial_of_degree(kQ, degree(Vector{Int}, r))
         a = lcm(x_Gb..., x_r)
         _r = (a//x_r).num*r #well-defined since a is lcm
 
@@ -704,11 +701,7 @@ function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
   G_W = Vector{MPolyDecRingElem}()
   for b in B_i
     for bb in b
-      a_v = Vector{ZZRingElem}()
-      for a in bb
-        push!(a_v, a)
-      end
-      push!(G_W, monomial_basis(kQ.algebra, a_v)[1])
+      push!(G_W, _monomial_of_degree(kQ, bb))
     end
   end
   return ideal(kQ, G_W)
@@ -766,7 +759,6 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
   kQ = base_ring(M)
   @req is_normal(kQ) "monoid algebra must be normal"
 
-  R_Q = kQ.algebra
   Mi = M # current module in resolution
 
   #initialize
@@ -786,8 +778,9 @@ function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{I
     m, n = size(_lambda)
     lambda = zero(_lambda)
     for i in 1:m
+      x_i = _monomial_of_degree(kQ, degree(Vector{Int}, Mi[i]))
       for j in 1:n
-        lambda[i, j] = monomial_basis(R_Q, degree(Mi[i]))[1] * _lambda[i, j]
+        lambda[i, j] = x_i * _lambda[i, j]
       end
     end
 
