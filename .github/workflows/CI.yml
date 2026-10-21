@@ -120,6 +120,9 @@ jobs:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
+        env:
+          # GC logging only on the latest release and on nightlies
+          OSCAR_GC_LOGGING: ${{ (matrix.julia-version == '1.13' || endsWith(matrix.julia-version, 'nightly')) && 'true' || 'false' }}
       - name: Archive stats
         if: matrix.depwarn == ''
         uses: actions/upload-artifact@v7
