@@ -98,7 +98,7 @@ function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
   remotecall_eval(Main, id, :(using Oscar))
   push!(wp.wids, id) # update the list of associated workers
-  return push!(wp.wp, a)
+  return push!(wp.wp, id)
 end
 
 # Take a worker from the pool; this marks it as being busy.
