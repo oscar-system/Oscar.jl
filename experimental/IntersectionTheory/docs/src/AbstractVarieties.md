@@ -78,7 +78,8 @@ projective_bundle(F::AbstractBundle; symbol::String = "z")
 ```
 
 ```@docs
-flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
+flag_bundle(F::AbstractBundle, dims::Int...; gens_names::String = "c",
+                     pushforward_algorithm::Symbol=:monic)
 ```
 
 ### Further standard varieties
