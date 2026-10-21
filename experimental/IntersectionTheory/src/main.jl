@@ -3243,10 +3243,10 @@ Quotient
     c[2, 3] -> [3]
   by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
 
-julia> c21 = gens(RFV)[1]
-c[1, 1]
+julia> c21 = gens(RFV)[2]
+c[2, 1]
 
-julia> f = hom(RP3, RFV, [-c11])
+julia> f = hom(RP3, RFV, [c21])
 Ring homomorphism
   from quotient of multivariate polynomial ring by ideal (h^4)
   to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
