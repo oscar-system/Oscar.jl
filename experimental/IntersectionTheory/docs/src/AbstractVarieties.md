@@ -84,15 +84,15 @@ flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
 ### Further standard varieties
 
 ```@docs
+zero_locus_section(F::AbstractBundle; class::Bool = false)
+```
+
+```@docs
 complete_intersection(X::AbstractVariety, degs::Int...)
 ```
 
 ```@docs
 abstract_quadric(n::Int; base::Ring = QQ)
-```
-
-```@docs
-zero_locus_section(F::AbstractBundle; class::Bool = false)
 ```
 
 ```@docs
@@ -116,6 +116,8 @@ abstract_cayley_plane(; base::Ring = QQ)
 ```@docs
 abstract_cayley_grassmannian(; base::Ring = QQ)
 ```
+
+### Products and blow-ups
 
 !!! note
     Products and blow-ups are described elsewhere.
@@ -172,11 +174,11 @@ cotangent_bundle(X::AbstractVariety)
 ```
 
 ```@docs
-canonical_class(X::AbstractVariety)
+canonical_bundle(X::AbstractVariety)
 ```
 
 ```@docs
-canonical_bundle(X::AbstractVariety)
+canonical_class(X::AbstractVariety)
 ```
 
 ```@docs
