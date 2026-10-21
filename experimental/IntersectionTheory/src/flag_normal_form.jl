@@ -35,7 +35,7 @@ function _FlagBundleReducer(A::Ring, ranks::Vector{Int}, chern::Vector;
   starts = ends - ranks
   stages = Vector{Vector{T}}(undef, length(ranks))
   a = vcat(T[one(P)], T[P(_flag_coefficient(A(b))) for b in chern])
-  for i in reverse(eachindex(ranks))
+  for i in reverse(eachindex(ranks)) # find stage_coefficients
     stages[i] = a
     q, m = starts[i], ranks[i]
     # Monic polynomial division, written as truncated Chern convolution.

@@ -4269,6 +4269,9 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; gens_names::String = 
     Fl.point = pullback(p, point_class(X)) * AFl(section)
   end
 
+  p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
+  Fl.O1 = p.O1
+
   if isdefined(X, :T)
     Fl.T = pullback(p, tangent_bundle(X)) + tangent_bundle(p)
   end
