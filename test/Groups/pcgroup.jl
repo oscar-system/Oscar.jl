@@ -207,6 +207,19 @@ end
 
   @test hash(b) == hash(one(G))
   @test hash(a) == hash(a_bar)
+  @test hash(G(a)) == hash(a)
+
+  # GAP stores these elements with 8, 16 resp. 32 bits per syllable
+  for G in [small_group(1536, 100),
+            abelian_group(PcGroup, fill(2, 300)),
+            cyclic_group(PcGroup, 65537)]
+    x = rand(G)
+    y = rand(G)
+    @test hash(x * y) == hash(inv(inv(y) * inv(x)))
+    @test hash(x * y) != hash(x * y * G[1])
+    hash(x)
+    @test (@allocated hash(x)) == 0
+  end
 
   # infinite polycyclic groups
   G = abelian_group(PcGroup, [5, 0])
@@ -215,6 +228,22 @@ end
 
   @test hash(G[1]^0) == hash(one(G))
   @test hash(a) == hash(a_bar)
+
+  # exponents beyond immediate integers, of both signs
+  G = abelian_group(PcGroup, [0, 0])
+  e = ZZ(2)^100
+  for a in [G[1]^e * G[2]^-e, G[1]^-e * G[2]^e]
+    @test hash(a) == hash(a^2 * inv(a))
+    @test hash(a) != hash(a * G[1])
+  end
+  @test hash(G[1]^e) != hash(G[1]^-e)
+  x = G[1]
+  hash(x)
+  @test (@allocated hash(x)) == 0
+
+  # lists not in plain representation are hashed like plain lists
+  h = Oscar._hash_gap_int_list(GAP.evalstr("[1, 2, 3]"), UInt(0))
+  @test Oscar._hash_gap_int_list(GAP.evalstr("[1..3]"), UInt(0)) == h
 
   # case for finite and infinite pcgroups
   G = abelian_group(PcGroup, [2, 0])

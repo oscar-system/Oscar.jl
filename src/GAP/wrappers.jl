@@ -253,6 +253,7 @@ GAP.@wrap IsMatrix(x::GapObj)::Bool
 GAP.@wrap IsMatrixGroup(x::GapObj)::Bool
 GAP.@wrap IsMatrixObj(x::GapObj)::Bool
 GAP.@wrap IsMatrixOrMatrixObj(x::Any)::Bool
+GAP.@wrap IsNBitsPcWordRep(x::Any)::Bool
 GAP.@wrap IsNaturalAlternatingGroup(x::Any)::Bool
 GAP.@wrap IsNaturalSymmetricGroup(x::Any)::Bool
 GAP.@wrap IsNilpotentGroup(x::Any)::Bool
@@ -270,6 +271,7 @@ GAP.@wrap IsPcpGroup(x::Any)::Bool
 GAP.@wrap IsPerfectGroup(x::Any)::Bool
 GAP.@wrap IsPermGroup(x::Any)::Bool
 GAP.@wrap IsPGroup(x::Any)::Bool
+GAP.@wrap IsPlistRep(x::Any)::Bool
 GAP.@wrap IsPolynomial(x::Any)::Bool
 GAP.@wrap IsPolynomialRing(x::Any)::Bool
 GAP.@wrap IsPrimeField(x::Any)::Bool
@@ -369,6 +371,7 @@ GAP.@wrap PermList(x::GapObj)::GapObj
 GAP.@wrap PermutationCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PermutationOp(x::Any, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap PlainListCopy(x::GapObj)::GapObj
 GAP.@wrap PolynomialByExtRep(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj)::GapObj
 GAP.@wrap PolynomialRing(x::GapObj, y::Int)::GapObj
