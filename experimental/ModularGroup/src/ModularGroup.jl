@@ -181,7 +181,10 @@ transitive coset action for ``{\rm SL}_2(\mathbb{Z})``.
 
 # Examples
 ```jldoctest
+<<<<<<< HEAD
 
+=======
+>>>>>>> modular_group
 julia> Sym = symmetric_group(3);
 
 julia> s = Sym(cperm([2, 3])); t = Sym(cperm([1, 2]));
