@@ -39,9 +39,11 @@
     @test !is_complete(F0)
     @test length(rays(F0)) == 3
     @test n_rays(F1) == 3
+    @test n_rays_modulo_lineality(F1) == 3
     @test dim(F1) == 2
     @test ambient_dim(F1) == 3
     @test n_rays(F2) == 0
+    @test n_rays_modulo_lineality(F2) == 2
     @test lineality_dim(F2) == 1
     RMLF2 = rays_modulo_lineality(F2)
     @test length(RMLF2[:rays_modulo_lineality]) == 2

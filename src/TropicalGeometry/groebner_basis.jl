@@ -60,6 +60,27 @@ end
 #
 ################################################################################
 @doc raw"""
+    simulate_valuation(ord::MonomialOrdering, S::MPolyRing, nu::TropicalSemiringMap)
+
+If `nu` is trivial, return `ord`.  Otherwise, given a monomial ordering `ord`
+on a polynomial ring `R` with variables x1, ..., xn over a valued field
+with tropical semiring map `nu`, and a polynomial ring `S` with variables
+tsim, x1, ..., xn, return an extended monomial ordering on `S` such that:
+- named monomial orderings are preserved (e.g. `lex(R))` becomes `lex(S)`),
+- matrix (and weight) orderings are extended by prepending a zero column
+  (or entry) for the new variable `tsim`.
+
+# NOTE
+- Note that this function is meant to be called on the tiebreaker of a tropical
+  term order
+- In the non-trivial valuation case, the returned ordering is the same as the
+  returned ordering of `homogenize_pre_tropicalization(ord, S)`
+"""
+simulate_valuation(ord::MonomialOrdering, S::MPolyRing, ::TropicalSemiringMap) = homogenize_pre_tropicalization(ord.o, S)
+simulate_valuation(ord::MonomialOrdering, ::MPolyRing, ::TropicalSemiringMap{<:Ring, Nothing, <:Union{typeof(min),typeof(max)}}) = ord
+
+
+@doc raw"""
     simulate_valuation(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{QQFieldElem})
 
 Given an ideal `I` in variables x1, ..., xn over a field with a tropical semiring map `nu` and a weight vector `w`, return an ideal `sI` in variables tsim, x1, ..., xn and a weight vector `sw` such that tropical Groebner bases of `I` with respect to a weight vectors `w` correspond to standard bases of `sI` with respect to `sw`.
@@ -75,7 +96,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+2*x2,x2+2*x3]);
 
 julia> Oscar.simulate_valuation(I,nu_2,w)
-(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 ```
 
@@ -92,7 +113,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+s*x2,x2+s*x3]);
 
 julia> Oscar.simulate_valuation(I,nu_s,w)
-(Ideal (tsim + s, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (tsim + s, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 ```
 """
@@ -126,12 +147,17 @@ function simulate_valuation(
 
     # prepend 1 to -w or +w and scale until integral
     sw = conventionType==typeof(min) ? vcat(-one(QQ),-w) : vcat(-one(QQ),w)
-    sw .*= lcm(denominator.(w))
+    sw = Int.(lcm(denominator.(w))*sw)
 
-    # Optimization: if I is homogeneous, translate latter entries of sw by ones vector until strictly negative
-    if all(is_homogeneous(g) for g in gens(I))
-
-        sw[2:end] .-= 1+maximum(w[2:end])
+    # optimizations for I homogeneous,
+    # in which case we are allowed to translate the latter entries of sw by the all ones vector
+    if all(is_homogeneous.(gens(I)))
+        # make sw strictly negative
+        sw[2:end] .-= 1+maximum(sw[2:end])
+        # if latter entries of sw do fit in Int16, minimize their absolute value
+        if any(sw[2:end] .< typemin(Int16))
+            sw[2:end] .-= div(maximum(sw[2:end])-minimum(sw[2:end]),2)
+        end
     end
 
     return ideal(S,sG), sw
@@ -154,11 +180,17 @@ function simulate_valuation(
     if conventionType==typeof(min)
         w = -w
     end
-    w = lcm(denominator.(w))*w
+    w = Int.(lcm(denominator.(w))*w)
 
-    # Optimization: if I is homogeneous, translate w by the ones vector until strictly positive
-    if all(is_homogeneous(g) for g in gens(I))
-        w .+= 1-minimum(w)
+    # optimizations for I homogeneous,
+    # in which case which we are allowed to translate w by the all ones vector
+    if all(is_homogeneous.(gens(I)))
+        # make w strictly positive
+        w .-= 1+minimum(w)
+        # if entries of w do fit in Int16, minimize their absolute value
+        if any(w .> typemax(Int16))
+            w .-= div(maximum(w)-minimum(w),2)
+        end
     end
 
     return I, w
@@ -258,7 +290,7 @@ julia> w = QQFieldElem[0,0,0];
 julia> I = ideal([x1+2*x2,x2+2*x3]);
 
 julia> sI, sw = Oscar.simulate_valuation(I,nu_2,w)
-(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), QQFieldElem[-1, -1, -1, -1])
+(Ideal (-tsim + 2, tsim*x2 + x1, tsim*x3 + x2), [-1, -1, -1, -1])
 
 julia> Oscar.desimulate_valuation(gens(sI),nu_2,Kx)
 2-element Vector{QQMPolyRingElem}:
@@ -308,12 +340,12 @@ julia> w = [0,0];
 
 julia> groebner_basis(I,nu,w)
 2-element Vector{QQMPolyRingElem}:
+ x^3 - 5*x^2*y
  -2*x^2*y + 3*y^3
- 2*x^3 - 2*x^2*y - 12*y^3
 
 ```
 """
-function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
+function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}; tiebreaker=default_ordering(base_ring(I)))
     @req domain(nu) isa Field "valuation must be defined on a field"
     @req domain(nu)==coefficient_ring(I) "coefficient ring of ideal does not match valued field of valuation"
 
@@ -322,14 +354,33 @@ function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVecto
         return G
     end
 
-    requiresHomogenization = !is_trivial(nu) || !all(is_positive,w)
+    isIdealHomogeneous = all(is_homogeneous.(G))
+    isWeightPositive = all(is_positive,w)
+    isValuationTrivial = is_trivial(nu)
+
+    requiresHomogenization = true
+    if isIdealHomogeneous
+        requiresHomogenization = false
+    end
+    if isValuationTrivial && isWeightPositive
+        requiresHomogenization = false
+    end
+
     if requiresHomogenization
         I,_,dehomogenizationMap = homogenize_pre_tropicalization(I)
         w = vcat(0,w)
+        tiebreaker = homogenize_pre_tropicalization(tiebreaker, base_ring(I))
     end
 
     Isim, wSim = simulate_valuation(I,nu, QQ.(w))
-    oSim = weight_ordering(Int.(wSim),default_ordering(base_ring(Isim)))
+    tiebreakerSim = simulate_valuation(tiebreaker, base_ring(Isim), nu)
+    oSim = weight_ordering(Int.(wSim),tiebreakerSim)
+
+    # Optimization: if I is homogeneous, prepend all ones vector weight ordering
+    if all(is_homogeneous.(gens(Isim)))
+        oSim = weight_ordering(ones(Int,ngens(base_ring(Isim))),oSim)
+    end
+
     Gsim = standard_basis(Isim; ordering = oSim)
     G = desimulate_valuation(gens(Gsim),nu,base_ring(I))
 

@@ -646,14 +646,14 @@ julia> linear_subspaces_on_hypersurface(2,5)
 ```jldoctest
 julia> [lines_on_hypersurface(n) for n=2:10]
 9-element Vector{QQFieldElem}:
- 1
- 27
- 2875
- 698005
- 305093061
- 210480374951
- 210776836330775
- 289139638632755625
+                     1
+                    27
+                  2875
+                698005
+             305093061
+          210480374951
+       210776836330775
+    289139638632755625
  520764738758073845321
 
 ```

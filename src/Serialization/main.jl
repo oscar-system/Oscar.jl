@@ -65,7 +65,7 @@ function serialization_version_info(ns_dict::JSON.Object{String, Any})
   return version_number(version_info)
 end
 
-serialization_version_info(obj::JSON.LazyValue) = serialization_version_info(obj[])
+serialization_version_info(obj::JSON.LazyValue) = version_number(obj[:_ns][:Oscar][2][])
 
 
 function version_number(v_number::String)
@@ -198,15 +198,15 @@ end
 
 A container pairing a Julia type `T` with its contextual parameters `params`.
 
-`TypeAndParams` values are created by [`type_params`](@ref) and consumed by
+`TypeAndParams` values are created by [`type_and_params`](@ref) and consumed by
 `load_object`. The `params` field holds whatever context is needed to
 reconstruct an object of type `T`: a parent ring, a base field, a
 domain/codomain pair, etc.
 
 Access named parameters with `tp[:key]` when `params` is a tuple of `Pair`s.
-Retrieve the raw parameters with `parameters(tp)` and the type with `type(tp)`.
+Retrieve the raw parameters with `params(tp)` and the type with `type(tp)`.
 
-See [`type_params`](@ref) for usage examples.
+See [`type_and_params`](@ref) for usage examples.
 """
 struct TypeAndParams{T, S}
   type::Type{T}
@@ -223,7 +223,7 @@ end
 
 TypeAndParams(T::Type, args::Pair...) = TypeAndParams(T, args)
 
-parameters(tp::TypeAndParams) = tp.params
+params(tp::TypeAndParams) = tp.params
 type(tp::TypeAndParams) = tp.type
 
 function Base.getindex(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
@@ -241,41 +241,9 @@ Base.haskey(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T =
 
 Return a [`TypeAndParams`](@ref) value capturing the type and parent parameters of `obj`.
 
-This is useful when loading a file into the same context as a currently loaded object —
-pass the result directly to [`load`](@ref) so the deserialized object shares the same
-     parent, ring, or domain/codomain as `obj`.
-
-# Examples
-
-Loading a ring homomorphism back into the same rings it was defined over:
-```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
-julia> R, (x, y) = QQ[:x, :y];
-
-julia> S, (a, b) = QQ[:a, :b];
-
-julia> phi = hom(R, S, [a + b, a - b])
-Ring homomorphism
-  from multivariate polynomial ring in 2 variables over QQ
-  to multivariate polynomial ring in 2 variables over QQ
-defined by
-  x -> a + b
-  y -> a - b
-
-julia> save("phi.mrdi", phi)
-
-julia> tp = type_and_params(phi);
-
-julia> phi_loaded = load("phi.mrdi", tp)
-Ring homomorphism
-  from multivariate polynomial ring in 2 variables over QQ
-  to multivariate polynomial ring in 2 variables over QQ
-defined by
-  x -> a + b
-  y -> a - b
-
-julia> domain(phi_loaded) === R && codomain(phi_loaded) === S
-true
-```
+The result can be passed as the second argument to [`load`](@ref) to reconstruct a
+serialized object into the same context as `obj`. See the [`load`](@ref) docstring for
+details and examples.
 """
 type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
@@ -285,7 +253,7 @@ function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
   else
     io = pretty(io)
     print(io, "Type parameters for $T")
-    for param in parameters(tp)
+    for param in params(tp)
       println(io, "")
       print(terse(io), Lowercase(), param)
     end
@@ -298,7 +266,7 @@ function Base.show(io::IO, tp::TypeAndParams{T, S}) where {T, S}
   else
     io = pretty(io)
     print(io, "Type parameters for $T ")
-    print(terse(io), Lowercase(), parameters(tp))
+    print(terse(io), Lowercase(), params(tp))
   end
 end
 
@@ -380,10 +348,10 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams)
     save_object(s, type_encoding, :name)
 
     # params(tp) isa TypeAndParams if the type isa container type
-    if parameters(tp) isa TypeAndParams
-      save_type_and_params(s, parameters(tp), :params)
+    if params(tp) isa TypeAndParams
+      save_type_and_params(s, params(tp), :params)
     else
-      save_typed_object(s, parameters(tp), :params)
+      save_typed_object(s, params(tp), :params)
     end
   end
 end
@@ -402,8 +370,8 @@ function save_type_and_params(s::SerializerState,
 end
 
 function save_type_and_params(s::SerializerState,
-                              tp::TypeAndParams{<:TypeAndParams, <:Tuple{Vararg{Pair}}})
-  for param in parameters(tp)
+                          tp::TypeAndParams{<:TypeAndParams, <:Tuple{Vararg{Pair}}})
+  for param in params(tp)
     save_type_and_params(s, param.second, Symbol(param.first))
   end
 end
@@ -411,7 +379,7 @@ end
 function save_type_and_params(s::SerializerState,
                               tp::TypeAndParams{<:TypeAndParams, <:Tuple})
   save_data_array(s) do 
-    for param in parameters(tp)
+    for param in params(tp)
       save_type_and_params(s, param)
     end
   end
@@ -422,7 +390,7 @@ function save_type_and_params(s::SerializerState,
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in parameters(tp)
+      for param in params(tp)
         if param.second isa Type
           save_object(s, encode_type(param.second), Symbol(param.first))
         elseif !(param.second isa TypeAndParams)
@@ -482,7 +450,7 @@ function load_type_and_params(s::DeserializerState, T::Type)
         if Base.issingletontype(U)
           p = U()
         else
-          p = parameters(load_type_and_params(s, U))
+          p = params(load_type_and_params(s, U))
         end
       # handle cases where type_and_params is a dict of params
       elseif !haskey(s, type_key)
@@ -773,18 +741,24 @@ include("parallel.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false, serializer::OscarSerializer=JSONSerializer())
 
-Save an object `obj` to the given io stream
-respectively to the file `filename`. When used with `with_attrs=true` then the object will
-save it's attributes along with all the attributes of the types used in the object's struct.
-The attributes that will be saved are defined during type registration, see
+Save an object `obj` to the given io stream respectively to the file `filename`.
+When used with `with_attrs=true` the object will save its attributes along with
+all the attributes of the types used in the object's struct. The attributes that
+will be saved are defined during type registration, see
 [`@register_serialization_type`](@ref).
 
-Setting the optional argument `compression` will compress the file using the given
-compression method. The `filename` must have the appropriate file extension for the
-chosen compression method.
+The optional `serializer` argument controls the output format and layout.
+The default `JSONSerializer` writes a single `.mrdi` file. Other serializers
+such as `MultiFileRefSerializer` (multi-file prefix-based) and `LPSerializer` (external LP
+file for linear programs) are available. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+Setting the optional argument `compression` will compress the file using the
+given compression method. The `filename` must have the appropriate file
+extension for the chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
 
 The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
@@ -843,19 +817,46 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; compression::Symbol=:none, kwargs...)
-  dir_name = dirname(filename)
-  # julia dirname does not return "." for plain filenames without any slashes
-  temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
+function save(filename::String, obj::Any;
+              compression::Symbol=:none,
+              serializer::OscarSerializer=JSONSerializer(),
+              kwargs...)
+  if serializer isa MultiFileRefSerializer
+    prefix = if endswith(filename, ".mrdi.gz")
+      chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      chopsuffix(filename, ".mrdi")
+    else
+      filename
+    end
+    main_ext = compression == :gzip ? ".mrdi.gz" : ".mrdi"
+    main_file = prefix * main_ext
+    prefix_dir = isempty(dirname(prefix)) ? pwd() : dirname(prefix)
+
+    inner_serializer = MultiFileRefSerializer(prefix, compression)
+    temp_file = tempname(prefix_dir)
+    if compression == :gzip
+      open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
+        save(file, obj; serializer=inner_serializer, kwargs...)
+      end
+    else
+      open(temp_file, "w") do file
+        save(file, obj; serializer=inner_serializer, kwargs...)
+      end
+    end
+    Base.Filesystem.rename(temp_file, main_file)
+    return nothing
+  end
+  temp_file = tempname(dirname(abspath(filename)))
   
   if compression == :none
     open(temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   elseif compression == :gzip
     @req endswith(filename, ".gz") "For gzip compression the filename should end with .gz"
     open(CodecZlib.GzipCompressorStream, temp_file, "w") do file
-      save(file, obj; kwargs...)
+      save(file, obj; serializer=serializer, kwargs...)
     end
   else
     error("Unsupported compression method: $compression")
@@ -895,11 +896,19 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   file_version = load_node(s) do
     serialization_version_info(s.obj)
   end
-  current_version = version_number(string(get_oscar_serialization_version()[:Oscar][2]))
-  if file_version < current_version
-    jsondict = upgrade(file_version, JSON.parse(s.obj; dicttype=Dict{Symbol, Any}))
+  # A file needs upgrading iff some upgrade script targets a version newer than the
+  # file's effective version. Gate on the newest upgrade script rather than on
+  # VERSION_NUMBER: for DEV builds the file's version string carries a commit hash
+  # (e.g. "1.8.0-DEV-<hash>"), and comparing that against VERSION_NUMBER orders the two
+  # by hash characters rather than by upgrade state, which can wrongly skip upgrades.
+  if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
+    # we need a mutable dictionary
+    #jsondict = copy(s.obj[])
+    jsondict = upgrade(file_version, load_json(s, Dict{String, Any}))
     jsondict_str = JSON.json(jsondict)
-    s = deserializer_open(IOBuffer(jsondict_str), serializer, with_attrs)
+    s = deserializer_open(IOBuffer(jsondict_str),
+                          serializer,
+                          with_attrs)
   end
 
   try
@@ -928,36 +937,46 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
-    load(io::IO, tp::TypeAndParams; with_attrs::Bool=true)
-    load(filename::String, tp::TypeAndParams; with_attrs::Bool=true)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(io::IO, tp::TypeAndParams; with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
+    load(filename::String, tp::TypeAndParams; with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
 
-Load the object stored in the given io stream
-respectively in the file `filename`.
+Load the object stored in the given io stream respectively in the file `filename`.
 
-If `params` is specified, then the root object of the loaded data
-either will attempt a load using these parameters. In the case of rings this
-results in setting its parent, or in the case of a container of ring types such as
-`Vector` or `Tuple`, then the parent of the entries will be set using their
- `params`.
+If `params` is specified, then the root object of the loaded data will attempt a
+load using these parameters. In the case of rings this results in setting its
+parent, or in the case of a container of ring types such as `Vector` or `Tuple`,
+the parent of the entries will be set using their `params`.
 
-If a type `T` is given then attempt to load the root object of the data
-being loaded with this type; if this fails, an error is thrown.
+If a type `T` is given then attempt to load the root object of the data being
+loaded with this type; if this fails, an error is thrown.
 
 If `with_attrs=true` the object will be loaded with attributes available from
 the file (or serialized data).
 
-If the file was created with setting the `compression` argument, and the filename
-has the appropriate file extension, then the file will be decompressed on-the-fly automatically.
+The optional `serializer` argument must match the one used when saving. Pass the
+same serializer instance (e.g. `MultiFileRefSerializer()` or `LPSerializer(basepath)`)
+that was used with `save`. See the
+[serialization documentation](@ref serialization) for details and examples.
+
+If the file was created with `compression=:gzip` and the filename ends in `.gz`,
+the file will be decompressed on-the-fly automatically.
 
 See [`save`](@ref).
 
 ## Using `TypeAndParams` directly
 
-Use [`type_and_params`](@ref) on an already-loaded object to capture its type and parent context,
-then pass the result to `load` — the deserialized object will share the same parent ring,
-domain/codomain, or other context as the original.
+Call [`type_and_params`](@ref) on an already-loaded object to capture its type and
+parent context, then pass the result as the second argument to `load`. The root object
+of the file is reconstructed using the supplied context (`TypeAndParams`) taken from a given
+loaded object instead of the one stored in the file.
+
+Because the context is taken from the supplied `TypeAndParams`, the type and parameters
+stored in the file's `_type` branch are not used for the root object. In particular, any
+UUID-based parameter references stored there (the file's `_refs` for the root's parent
+context) are ignored — the supplied parameters are used instead. Only the object's `data`
+branch is read from the file.
 
 ```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> R, x = QQ[:x]
@@ -973,6 +992,45 @@ x^2 - x + 1
 
 julia> parent(p_loaded) === R
 true
+```
+
+Loading a ring homomorphism back into the same rings it was defined over:
+```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
+julia> R, (x, y) = QQ[:x, :y];
+
+julia> S, (a, b) = QQ[:a, :b];
+
+julia> phi = hom(R, S, [a + b, a - b])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  x -> a + b
+  y -> a - b
+
+julia> save("phi.mrdi", phi)
+
+julia> U, (u, v) = QQ[:u, :v];
+
+julia> T, (z, w) = QQ[:z, :w];
+
+julia> psi = hom(U, T, [w,  - z])
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  u -> w
+  v -> -z
+
+julia> tp = type_and_params(psi);
+
+julia> load("phi.mrdi", type_and_params(psi))
+Ring homomorphism
+  from multivariate polynomial ring in 2 variables over QQ
+  to multivariate polynomial ring in 2 variables over QQ
+defined by
+  u -> z + w
+  v -> z - w
 ```
 
 # Examples
@@ -1021,6 +1079,7 @@ function load(io::IO, tp::TypeAndParams;
   end
 end
 
+
 function load(io::IO; params::Any=nothing, type::Any=nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
   _load_with_state(io, serializer, with_attrs) do s
@@ -1034,7 +1093,7 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
         tp_inner = load_node(s, type_key) do
           load_type_and_params(s, U)
         end
-        params = parameters(tp_inner)
+        params = tp_inner.params
       end
       load_object(s, TypeAndParams(type, params), :data)
     else
@@ -1055,14 +1114,36 @@ function load(filename::String, tp::TypeAndParams; kwargs...)
   end
 end
 
-function load(filename::String; kwargs...)
-  if endswith(filename, ".gz")
+function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
+  if serializer isa MultiFileRefSerializer
+    if endswith(filename, ".mrdi.gz")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi.gz")
+    elseif endswith(filename, ".mrdi")
+      main_file = filename
+      prefix = chopsuffix(filename, ".mrdi")
+    else
+      prefix = filename
+      main_gz = prefix * ".mrdi.gz"
+      main_file = isfile(main_gz) ? main_gz : prefix * ".mrdi"
+    end
+    compression = endswith(main_file, ".gz") ? :gzip : :none
+    if compression == :gzip
+      open(CodecZlib.GzipDecompressorStream, main_file) do file
+        return load(file; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
+      end
+    else
+      open(main_file) do file
+        return load(file; serializer=MultiFileRefSerializer(prefix), kwargs...)
+      end
+    end
+  elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   else
     open(filename) do file
-      return load(file; kwargs...)
+      return load(file; serializer=serializer, kwargs...)
     end
   end
 end

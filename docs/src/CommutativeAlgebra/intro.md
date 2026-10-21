@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Introduction](@id commutative_algebra)
 
 The commutative algebra part of OSCAR provides functionality for dealing with

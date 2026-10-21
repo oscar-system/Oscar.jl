@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Galois Theory
 
 Let `K` be a finite (separable) field extension of `k`. Then, in contrast to most of 

@@ -20,6 +20,26 @@ Abelian group element [1]
 divisor_class(tdc::ToricDivisorClass) = tdc.class
 
 @doc raw"""
+    coefficients(tdc::ToricDivisorClass)
+
+Return the coefficients of the chosen toric divisor representative of `tdc`.
+"""
+coefficients(tdc::ToricDivisorClass) = coefficients(toric_divisor(tdc))
+
+@doc raw"""
+    picard_class(tdc::ToricDivisorClass)
+
+Return the element of the Picard group represented by the Cartier divisor class
+`tdc`. An error is raised if `tdc` is not Cartier.
+"""
+function picard_class(tdc::ToricDivisorClass)
+  picard_to_class = map_from_picard_group_to_class_group(toric_variety(tdc))
+  has_picard_class, class = has_preimage_with_preimage(picard_to_class, divisor_class(tdc))
+  @req has_picard_class "The toric divisor class must be Cartier to define a Picard class"
+  return class
+end
+
+@doc raw"""
     toric_variety(tdc::ToricDivisorClass)
 
 Return the toric variety on which the toric divisor class `tdc` is defined.

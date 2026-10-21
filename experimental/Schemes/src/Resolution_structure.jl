@@ -660,10 +660,11 @@ function weak_to_strong_desingularization(phi::BlowUpSequence)
 end
 
 function _principalize_curve(I::AbsIdealSheaf)
-  I_bad,b = _data_of_failing_hironaka(I)
+
+  dim(I) == 1 || error("IdealSheaf does not describe a curve.")
+
 
 # ADD OTHER FRAGMENT HERE IN SEPARATE PR....
-
 end
 
 function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
@@ -953,7 +954,7 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding)
   Delta_dict = IdDict{AbsAffineScheme,Ideal}()
 
   for U in affine_charts(W)
-    XU, inc_U = sub(U,I(U))
+    _, inc_U = sub(U,I(U)) 
     Cov,Chart_dict = find_refinement_with_local_system_of_params(U)
     Delta_dict[U] = (_delta_ideal_for_order(CoveredClosedEmbedding(inc_U), Cov, Chart_dict))(U)
   end
@@ -983,7 +984,7 @@ end
 
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
        ambient_param_data::IdDict{<:AbsAffineScheme,
-                                 <: Tuple{Vector{Int64},Vector{Int64},<:RingElem}};
+                                  <:Tuple{Vector{Int64},Vector{Int64},<:RingElem}};
        check::Bool=true)
 
   W = codomain(inc)                                
@@ -991,6 +992,8 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
 #  @check is_equidimensional(W) "codomain of embedding needs to be equidimensional"
   I_X = small_generating_set(image_ideal(inc))         # ideal sheaf describing X on W
 
+  ## run through all charts, compute the jacobian matrices w.r.t. the respective system of parameters
+  ## and flatten the matrix to append it to gens(I)
   Delta_dict = IdDict{AbsAffineScheme,Ideal}()
   for U in Cov
     I = I_X(U)
@@ -999,27 +1002,7 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
       continue
     end
 
-    amb_row,amb_col,h = ambient_param_data[U]
-    mod_gens = lifted_numerator.(gens(modulus(OO(U))))
-    R = ambient_coordinate_ring(U)
-    JM = jacobian_matrix(R, mod_gens)
-    if length(amb_col) < length(mod_gens)
-      JM_essential = JM[:, amb_col]
-    else
-      JM_essential = JM
-    end
-    submat_for_minor = JM[amb_row, amb_col]
-    Ainv, h2 = pseudo_inv(submat_for_minor)
-    h == h2 || error("inconsistent input data")
-    JM_essential = JM_essential * Ainv
-    I_gens = lifted_numerator.(gens(I))
-    JI = jacobian_matrix(I_gens)
-    result_mat = h*JI
-    for i in 1:length(amb_col)
-      for j in 1:ncols(result_mat)
-        result_mat[:,j] = result_mat[:,j] - [JM_essential[k,i] * JI[amb_row[i],j] for k in 1:nrows(JM_essential)]
-      end
-    end
+    result_mat = _jacobian_matrix_wrt_system_of_param(U,I,ambient_param_data[U];check=false)
     Ivec = copy(gens(I))
     append!(Ivec,[a for a in OO(U).(collect(result_mat))])
     Delta_dict[U] = ideal(OO(U),Ivec)
@@ -1027,7 +1010,67 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
 
   return small_generating_set(IdealSheaf(W,Delta_dict))
 end
- 
+
+##############################################################################################
+#  jacobian matrix with respect to a consistent choice of local system of parameters on a    #
+#  sufficiently small chart                                                                  #
+##############################################################################################
+function _jacobian_matrix_wrt_system_of_param(W::AbsAffineScheme{<:Any, <:MPolyRing}, I::Ideal,
+                    ambient_param_data::Tuple{Vector{Int64},Vector{Int64},<:RingElem};
+       check::Bool=true)
+  return jacobian_matrix(OO(W),gens(I))
+end
+
+function  _jacobian_matrix_wrt_system_of_param(W::AbsAffineScheme{<:Any, <:MPolyLocRing}, I::Ideal,
+                    ambient_param_data::Tuple{Vector{Int64},Vector{Int64},<:RingElem};
+       check::Bool=true)
+  I_gens = lifted_numerator.(gens(I))
+  return jacobian_matrix(base_ring(OO(W)),I_gens)
+end
+
+function _jacobian_matrix_wrt_system_of_param(W::AbsAffineScheme,I::Ideal,
+                    ambient_param_data::Tuple{Vector{Int64},Vector{Int64},<:RingElem};
+       check::Bool=true)
+
+  @check is_smooth(W) "ambient space W needs to be smooth"
+  @check base_ring(I) == OO(W) "ideal not defined in the correct ring"
+
+  ## non-trivial ambient scheme W
+  R = base_ring(OO(W))
+  I_X = small_generating_set(ideal(R,lifted_numerator.(gens(I))))
+                                                     # ideal sheaf describing X on W by ideal in OOP
+  mod_gens = lifted_numerator.(gens(modulus(OO(W)))) # generators of ideal of W
+  amb_row,amb_col,h = ambient_param_data             # data of specific invertible minor
+
+  ## set up pseudoinverse of jacobian matrix of generators of W
+  JM = jacobian_matrix(R, mod_gens)
+  if length(amb_col) < length(mod_gens)
+      JM_essential = JM[:, amb_col]
+  else
+      JM_essential = JM
+  end
+  submat_for_minor = JM[amb_row, amb_col]
+  Ainv, h2 = pseudo_inv(submat_for_minor)
+
+  ## sanity check make sure that we are inverting the right minor
+  h == h2 || error("inconsistent input data")
+  JM_essential = JM_essential * Ainv                 # appropriate submatrix transformed to h*unit_matrix
+                                                     ## TODO: should be cached!!
+
+  ## now do Gaussian reduction on I_gens w.r.t. JM_essential
+  I_gens = lifted_numerator.(gens(I))
+  JI = jacobian_matrix(I_gens)
+  result_mat = h*JI                                  # h is a unit (we only have h*unit_matrix, not unit_matrix)
+
+  for i in 1:length(amb_col)
+    for j in 1:ncols(result_mat)
+      result_mat[:,j] = result_mat[:,j] - [JM_essential[k,i] * JI[amb_row[i],j] for k in 1:nrows(JM_essential)]
+    end
+  end
+
+  return result_mat
+end
+
 ########################################################################
 # test for snc                                                         #
 ########################################################################

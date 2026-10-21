@@ -452,8 +452,8 @@ Return the Gromov-Witten invariant $N_d^{(d_1, \dots, d_k)}$, where $d_1, \dots,
 ```jldoctest
 julia> [gromov_witten_invariant(d, 5) for d in 1:3]
 3-element Vector{QQFieldElem}:
- 2875
- 4876875//8
+       2875
+    4876875//8
  8564575000//27
 
 ```
@@ -496,8 +496,8 @@ Return the instanton number $\tilde{n}_d^{(d_1, \dots, d_k)}$, where $d_1, \dots
 ```jldoctest
 julia> [instanton_number(d, 5) for d in 1:3]
 3-element Vector{QQFieldElem}:
- 2875
- 609250
+      2875
+    609250
  317206375
 
 ```

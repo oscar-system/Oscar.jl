@@ -972,10 +972,23 @@ end
 end
 
 @testset "Slack ideal" begin
-  PS = prism(simplex(2))
+  # The ouput depends on the ordering of the vertices and facets of the input
+  # polytope. Reordering results in a permutation of the variables. Depending
+  # on the convex hull algorithm used we may ge a different ordering of the
+  # vertices or facets. To avoid this issue, we load the polytope from file
+  # with the vertices and facets already computed.
+  PS = polyhedron(Polymake.load(joinpath(@__DIR__, "data", "prism_over_simplex.poly")))
   SI = slack_ideal(PS)
   R = base_ring(SI)
-  desired = load(joinpath(@__DIR__, "data", "prism_slack_ideal.mrdi"); params=R)
+  x = gens(R)
+  desired = ideal(
+    R,
+    [
+      x[3] * x[6] * x[10] * x[11] - x[4] * x[5] * x[9] * x[12],
+      x[1] * x[6] * x[8] * x[11] - x[2] * x[5] * x[7] * x[12],
+      x[1] * x[4] * x[8] * x[9] - x[2] * x[3] * x[7] * x[10],
+    ],
+  )
   @test SI == desired
-  @test_throws AssertionError slack_ideal(QQ[:x, :y][1], PS)
+  @test_throws ArgumentError slack_ideal(QQ[:x, :y][1], PS)
 end

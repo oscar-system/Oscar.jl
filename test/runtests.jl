@@ -48,8 +48,10 @@ end
 
 @everywhere using Test
 @everywhere using Oscar
-@everywhere Oscar.set_seed!($seed)
-@everywhere Oscar.randseed!($seed)
+
+# we now set seed before every test, if applicable, in every worker separately
+# in test_module()
+
 # setting the global julia seed does not work for distributed processes
 # the RNG is task-local and each '@everywhere' runs in a separate task...
 # to make sure we seed the main process we run this again
@@ -109,6 +111,7 @@ test_subsets = Dict(
                                "experimental/FTheoryTools/test/singular_loci.jl",
                                "experimental/FTheoryTools/test/paper_tests.jl",
                                "experimental/DoubleAndHyperComplexes/test/min_k_tester.jl",
+                               "experimental/DoubleAndHyperComplexes/test/LeGreuelFormulaOnStratifiedSpaces.jl",
                               ],
 
                     :long  => [
@@ -144,7 +147,8 @@ test_subsets = Dict(
                      :book => [
                                "test/book/test.jl",
                      ],
-  :oscar_db => ["experimental/OscarDB/test/runtests.jl"]
+                 :oscar_db => ["experimental/OscarDB/test/runtests.jl"],
+                     :exts => ["experimental/Extensions/test/runtests.jl"]
 )
 
 tests_on_main = Dict(
@@ -196,7 +200,7 @@ end
 # otherwise, is essentially a serial loop
 merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
                               println("Starting tests for $x")
-                              Oscar.test_module(x; new=false, timed=true, tempproject=false)
+                              Oscar.test_module(x; new=false, timed=true, tempproject=false, seed=seed)
                             end))
 
 
@@ -208,11 +212,12 @@ else
   print_stats(stdout, stats; max=10)
 end
 if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
-  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H-%M-%S"`)
+  metadata = Oscar._test_stats_metadata()
+  timestamp = metadata.timestamp
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
-  commitHash = readchomp(`git rev-parse --verify --short HEAD`)
-  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(test_subset)_$(commitHash).csv"
+  commitHash = metadata.commit
+  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(replace("$test_subset", '_' => '-'))_$(commitHash).csv"
   open(joinpath(pkgdir(Oscar), statsFileName), "a") do io
     println(io, "path,time,ctime,rctime,gctime,alloc")
     DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in stats), ",")

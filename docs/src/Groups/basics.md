@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Basics](@id basics_of_groups)
 
 ## [Elements of groups](@id elements_of_groups)

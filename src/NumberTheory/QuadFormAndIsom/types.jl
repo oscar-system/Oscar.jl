@@ -1,3 +1,9 @@
+###############################################################################
+#
+#  Basic types
+#
+###############################################################################
+
 @doc raw"""
     QuadSpaceWithIsom
 
@@ -265,6 +271,12 @@ Finite quadratic module of order 3
   end
 end
 
+#####################################################################
+#
+#  Enumeration context
+#
+#####################################################################
+
 mutable struct ZZLatWithIsomEnumCtX
   # what we want now
   power::Int
@@ -289,5 +301,126 @@ mutable struct ZZLatWithIsomEnumCtX
   
   function ZZLatWithIsomEnumCtX()
     return new()
+  end
+end
+
+###############################################################################
+#
+#  Gluing factory
+#
+###############################################################################
+
+@doc raw"""
+    ZZLatGluingCtx
+
+A context object which stores the results of some orbits and stabilizers
+computations for some ``p``-subgroups of a given type.
+
+It should be used in the following way: ``q`` is a fixed `TorQuadModule` and
+``V`` is a submodule given by conditions which are fixed in the context (i.e.
+``V`` is a given torsion part of the kernel of a fixed endomorphism of ``q``).
+
+The pair ``(q, V)`` is represented by an index `i::Int`. Then, for every prime
+number `p` and every non-increasing vector of positive integers `subtype`, the
+dictionary `orb_and_stab` records the result of the computations of orbits
+representatives and stabilizers for the $p$-subgroups of ``V`` of $p$-type
+`subtype` under the action of
+- the orthogonal group of the quadratic form on `q` -> key `(i, true, p, subtype)`,
+- the orthogonal group of the bilinear form on `q` -> key `(i, false, p, subtype)`.
+
+In large computations, an object of type `ZZLatGluingCtx` should be used with a
+tuple of integers `vi` indicating the index `i` to use for each of the two
+given `TorQuadModule` (with the condition module ``V`` fixed by the context).
+
+!!! warning
+    To avoid caching too much data, it is important that the condition module
+    ``V`` is fixed by the context. If it changes, it is better not to use
+    such context object since the overall procedure might miss some cases and
+    thus return the wrong output.
+"""
+struct ZZLatGluingCtx
+  orb_and_stab::Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}
+
+  function ZZLatGluingCtx()
+    orb_and_stab = Dict{Tuple{Int, Bool, ZZRingElem, Vector{Int}}, Vector{Tuple{TorQuadModuleMap, GAPGroupHomomorphism}}}()
+    return new(orb_and_stab)
+  end
+end
+
+@doc raw"""
+    ZZLatGluing
+
+Type for a representative of a double coset of glue maps between two
+discriminant forms ``q_1`` and ``q_2``, under the action some groups
+``G_1 \subset GL(q_1)`` and ``G_2 \subset GL(q_2)``. It consists of:
+- a glue map ``\gamma\colon H_1\to H_2``,
+- the inverse glue map of ``H_2\to H_1``,
+- the embedding ``H_1 \to q_1``,
+- the embedding of the ``G_1``-stabilizer of ``H_1`` inside ``G_1``,
+- the embedding ``H_2 \to q_2``,
+- the embedding of the ``G_2``-stabilizer of ``H_2`` inside ``G_2``.
+"""
+struct ZZLatGluing
+  glue_map::TorQuadModuleMap
+  inv_glue_map::TorQuadModuleMap
+  glue_group_left::TorQuadModuleMap
+  stabilizer_left::GAPGroupHomomorphism
+  glue_group_right::TorQuadModuleMap
+  stabilizer_right::GAPGroupHomomorphism
+
+  function ZZLatGluing(x...)
+    return new(x...)
+  end
+end
+
+@doc raw"""
+    ZZLatGluingFactory
+
+A factory object for computations of glue maps. It stores two `TorQuadModule`
+and a subgroup of their orthogonal group (as finite bilinear module). A context
+object `ZZLatGluingCtx` can be added to it to avoid some redundant computations
+on large scale project.
+"""
+mutable struct ZZLatGluingFactory
+  # Necessary input
+  ambient_modules::NTuple{2, TorQuadModule} # Discriminant forms of the lattices to glue
+  local_classifying_groups::NTuple{2, AutomorphismGroup{TorQuadModule}} # By default the orthogonal groups of the ambient modules
+
+  # Context
+  Ctx::ZZLatGluingCtx
+  vertex_identification::NTuple{2, Int}
+  par::Symbol # :even, :odd or :both
+
+  # Edge conditions
+  glue_order::Set{ZZRingElem} # Possible orders of a glue group
+  glue_elementary_divisors::Set{Vector{ZZRingElem}} # Possible elementary divisors of a glue groups
+  genus_over::Set{ZZGenus} # Possible genus of an overlattice
+  form_over::Set{QQMatrix} # Possible Gram matrix normal form of discriminant group overlattice
+
+  # Internal preparation
+  conditions_modules::NTuple{2, TorQuadModuleMap} # Where the glue groups should be taken
+  glue_group_parent_snf::Vector{ZZRingElem} # Glue groups are isomorphic to a subgroup of an abelian group with such elementary divisors
+  primes_of_interest::Set{ZZRingElem} # Only primes which could divide the order of a glue group
+  local_gluings_primary::Dict{ZZRingElem, Dict{Vector{Int}, Vector{ZZLatGluing}}} # Intermediate storage for local gluings at some prime, and glue group of certain type
+
+  function ZZLatGluingFactory(
+    module_left::TorQuadModule,
+    module_right::TorQuadModule,
+  )
+    z = new((module_left, module_right))
+    return z
+  end
+end
+
+struct ZZLatGluingAmbient
+  D::TorQuadModule
+  j1::TorQuadModuleMap
+  j2::TorQuadModuleMap
+  OD::AutomorphismGroup{TorQuadModule}
+  k1::GAPGroupHomomorphism
+  k2::GAPGroupHomomorphism
+
+  function ZZLatGluingAmbient(x...)
+    return new(x...)
   end
 end

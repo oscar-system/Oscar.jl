@@ -124,7 +124,7 @@ end
 end
 
 @testset "base change" begin
-  kk, pr = quo(ZZ, 5)
+  kk, pr = residue_field(ZZ, 5)
   IP1 = covered_scheme(projective_space(ZZ, 1))
   C = default_covering(IP1)
   G = first(values(gluings(C)))

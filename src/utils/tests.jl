@@ -1,3 +1,14 @@
+function _test_stats_metadata(git_info::AbstractDict=_get_oscar_git_info())
+  if haskey(git_info, :commit) && haskey(git_info, :date)
+    timestamp = replace(git_info[:date][1:19], " " => "T", ":" => "-")
+    commit = git_info[:commit][1:7]
+    return (; timestamp, commit)
+  end
+
+  timestamp = Base.Libc.strftime("%Y-%m-%dT%H-%M-%S", time())
+  return (; timestamp, commit="v$(VERSION_NUMBER)")
+end
+
 function _timed_include(str::String, mod::Module=Main; has_ctime_stat=(VERSION > v"1.11.0"))
   has_ctime_stat || (compile_elapsedtimes = Base.cumulative_compile_time_ns())
   stats = @timed Base.include(identity, mod, str)
@@ -181,7 +192,7 @@ This only works for `new=false`.
 
 For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
-function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[])
+function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, seed=-1, ignore=[])
   with_unicode(false) do
     julia_exe = Base.julia_cmd()
     project_path = Base.active_project()
@@ -226,6 +237,11 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
 
       try
         for entry in testlist
+          if seed != -1
+            println("Setting seed to $(seed)")
+            Oscar.set_seed!(seed)
+            Oscar.randseed!(seed)
+          end
           dir = dirname(entry)
           if isfile(joinpath(dir, "setup_tests.jl"))
             Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))

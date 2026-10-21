@@ -109,6 +109,37 @@ end
      @test maximal_supersolvable_quotient(PermGroup, G)[1] isa PermGroup
    end
    @test maximal_supersolvable_quotient(free_group(1))[1] isa FPGroup
+
+   # Switching to `PcGroup` must yield a *full* pc group, also when GAP
+   # returns the quotient on noncanonical pc generators (see above) and the
+   # image has fewer generators than the pc sequence, as for cyclic groups
+   # of order p*q^2.
+   F = free_group(2)
+   x, y = gens(F)
+   for (G, n) in [(quo(F, [x^7, y^9, comm(x, y)])[1], 63),
+                  (quo(F, [x^4, y^3, comm(x, y)])[1], 12),
+                  (abelian_group(FPGroup, [63]), 63),
+                  (codomain(isomorphism(FPGroup, small_group(24, 1))), 8)]
+     Q, epi = maximal_abelian_quotient(PcGroup, G)
+     @test Q isa PcGroup
+     @test Oscar._is_full_pc_group(GapObj(Q))
+     @test order(Q) == n
+     @test abelian_invariants(Q) == abelian_invariants(G)
+     @test domain(epi) === G && codomain(epi) === Q
+     @test is_surjective(epi)
+   end
+
+   H = maximal_abelian_quotient(abelian_group(FPGroup, [63]))[1]
+   @test H isa SubPcGroup
+   for Q in [codomain(isomorphism(PcGroup, H)),
+             maximal_abelian_quotient(PcGroup, H)[1],
+             maximal_supersolvable_quotient(PcGroup, H)[1],
+             quo(PcGroup, H, trivial_subgroup(H)[1])[1]]
+     @test Q isa PcGroup
+     @test Oscar._is_full_pc_group(GapObj(Q))
+     @test order(Q) == 63
+   end
+
 end
 
 @testset "Relators" begin
@@ -184,6 +215,11 @@ end
 
    @test G([1 => 2, 2 => -3]) == G[1]^2 * G[2]^-3
    @test_throws MethodError S([1 => 2])
+
+   # quotient of non-free FPGroup by list of relators
+   rels = [gen(G, 1)^2]
+   G2, f2 = quo(G, rels)
+   @test free_group(G2) === free_group(G)
 
    S = symmetric_group(4)
    G,f = quo(S, [cperm(S,[1,3,2])])

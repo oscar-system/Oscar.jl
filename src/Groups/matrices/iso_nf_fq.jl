@@ -118,7 +118,7 @@ function _isomorphic_group_over_finite_field(G::MatGroup{T}; min_char::Int = 3) 
     # map from Gap_Gp to Gap_G
     invfun = x -> GapObj(preimg_bare(x))
 
-    Gap_mp = GAP.Globals.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
+    Gap_mp = GAPWrap.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
     GAP.Globals.SetNiceMonomorphism(Gap_G, Gap_mp)
     GAP.Globals.SetIsHandledByNiceMonomorphism(Gap_G, true)
   end

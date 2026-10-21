@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Affine Algebras and Their Ideals](@id affine_algebras)
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.

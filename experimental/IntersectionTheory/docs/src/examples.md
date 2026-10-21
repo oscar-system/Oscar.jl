@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Illustrating examples from enumerative geometry
 
 ## How many lines in $\mathbb P^3$ meet four general lines in $\mathbb P^3$?
@@ -244,8 +238,8 @@ julia> P3 = abstract_projective_space(3);
 
 julia> [euler_characteristic(OO(P3, n)) for n in 0:6]
 7-element Vector{QQFieldElem}:
- 1
- 4
+  1
+  4
  10
  20
  35
