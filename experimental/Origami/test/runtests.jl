@@ -58,6 +58,57 @@
   @test are_equivalent(o4, o5) == true
 end
 
+@testset "SL(2,Z) action" begin
+  o = origami(cperm([1, 6, 4, 7, 5, 3], [2, 8]), cperm([1, 4, 5, 3, 8, 2, 6]))
+  S = matrix(ZZ, [0 -1; 1 0])
+  T = matrix(ZZ, [1 1; 0 1])
+
+  @test action_sl2(identity_matrix(ZZ, 2), o) == o
+  @test action_sl2(S, o) == action_s(o)
+  @test action_sl2(T, o) == action_t(o)
+  @test action_sl2(inv(S), o) == action_s_inv(o)
+  @test action_sl2(inv(T), o) == action_t_inv(o)
+  @test action_sl2(-one(S), o) == action_s(action_s(o))
+  # The doctest matrix is the word S*T, applied from the right.
+  @test action_sl2(ZZ[0 -1; 1 1], o) == action_s(action_t(o))
+  @test action_sl2(ZZ[0 -1; 1 1], o) ==
+        origami(cperm([1, 4, 6, 8], [5, 7]), cperm([1, 6, 4, 7, 5, 3], [2, 8]))
+
+  # Agree with GAP's ActionOfSL2, including quotients that truncate toward zero.
+  for A in (
+      ZZ[0 -1; 1 1],
+      matrix(ZZ, [1 0; -4 1]),
+      matrix(ZZ, [2 1; 1 1]),
+      matrix(ZZ, [-3 2; -2 1]),
+      matrix(ZZ, [5 -3; 2 -1]),
+      matrix(ZZ, [1 0; -3 1]),
+      S^3 * T^-5 * S * T^2,
+    )
+    gap_o = GAP.Globals.ActionOfSL2(GapObj(A), GapObj(o))
+    d = GAP.Globals.DegreeOrigami(gap_o)::Int
+    G = symmetric_group(d)
+    h = PermGroupElem(G, GAP.Globals.HorizontalPerm(gap_o))
+    v = PermGroupElem(G, GAP.Globals.VerticalPerm(gap_o))
+    @test action_sl2(A, o) == origami(h, v; check=false)
+  end
+
+  # T^N for an exponent that does not fit in an Int. The decomposition of
+  # [1 0; -N 1] is the word S*T^N*S^{-1}.
+  N = ZZ(2)^100
+  o1 = action_s_inv(o)
+  h = horizontal_perm(o1)
+  steps = Int(mod(N, order(Int, h)))
+  expected = o1
+  for _ in 1:steps
+    expected = action_t(expected)
+  end
+  expected = action_s(expected)
+  @test action_sl2(matrix(ZZ, [1 0; -N 1]), o) == expected
+
+  @test_throws ArgumentError action_sl2(matrix(ZZ, [1 0; 0 -1]), o)
+  @test_throws ArgumentError action_sl2(identity_matrix(ZZ, 3), o)
+end
+
 @testset "Listing strata" begin
   include("stratum_lists.jl")
   actual_strat_list = origamis([1, 1, 1, 1], 8)

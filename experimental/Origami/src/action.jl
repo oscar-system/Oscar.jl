@@ -88,6 +88,12 @@ end
     action_sl2(A::ZZMatrix,o::Origami)
 
 This function computes ``\texttt{A} \cdot \texttt{o}``, where `A` is a matrix in ``{\rm SL}_2(\mathbb{Z})`` and `o` is an origami.
+The matrix is decomposed into a word in the generators
+```math
+S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad
+T = \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix},
+```
+as by [`s_t_decomposition`](@ref), and the letters of that word are applied from the right.
 
 # Examples
 ```jldoctest
@@ -99,14 +105,43 @@ Origami ((1,4,6,8)(5,7),(1,6,4,7,5,3)(2,8), 8)
 ```
 """
 function action_sl2(A::ZZMatrix, o::Origami)
-  @req is_one(det(A)) "matrix has to be an element of SL2(Z)"
+  @req size(A) == (2, 2) && isone(det(A)) "matrix has to be an element of SL2(Z)"
 
-  # TODO implement this in Oscar when implementing the modular subgroup pkg
-  # because this is really slow and ugly
-  gap_origami = GAP.Globals.ActionOfSL2(GapObj(A), GapObj(o))
-  d = GAP.Globals.DegreeOrigami(gap_origami)::Int
-  G = symmetric_group(d)
-  h = PermGroupElem(G, GAP.Globals.HorizontalPerm(gap_origami))
-  v = PermGroupElem(G, GAP.Globals.VerticalPerm(gap_origami))
-  return origami(h, v; check=false)
+  # Syllables of `S` (generator 1) and `T` (generator 2), read from the right,
+  # so that a product acts on the left. This is GAP's `ActionOfSL2`.
+  for (gen, exp) in Iterators.reverse(syllables(s_t_decomposition(A)))
+    o = _action_sl2_syllable(o, gen, exp)
+  end
+  return o
+end
+
+# One syllable `gen^exp`. `T^e` sends `(h, v)` to `(h, h^{-e} * v)` and `S` has
+# order 4, which is the same action as one letter of the syllable at a time.
+function _action_sl2_syllable(o::Origami, gen::Int, exp::ZZRingElem)
+  if gen == 2
+    iszero(exp) && return o
+    h = horizontal_perm(o)
+    v = vertical_perm(o)
+    return origami(h, _origami_perm_pow(h, -exp) * v; check=false)
+  end
+  @req gen == 1 "word must be a word in two generators"
+  r = mod(exp, 4)
+  if iszero(r)
+    return o
+  elseif isone(r)
+    return action_s(o)
+  elseif r == 2
+    return action_s(action_s(o))
+  else
+    return action_s_inv(o)
+  end
+end
+
+# `^(::GAPGroupElem, ::Int)` only accepts GAP immediate integers, and the
+# generic `ZZRingElem` power needs `mul!`, which permutations do not support.
+function _origami_perm_pow(p::PermGroupElem, e::ZZRingElem)
+  if fits(Int, e) && abs(e) < (ZZ(1) << 60)
+    return p^Int(e)
+  end
+  return group_element(parent(p), (GapObj(p)^GapObj(BigInt(e)))::GapObj)
 end
