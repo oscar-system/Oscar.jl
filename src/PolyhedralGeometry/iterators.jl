@@ -48,7 +48,6 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     _parent_or_coefficient_field(::Type{TT}, po::$T{<:TT}) where {TT<:FieldElem} =
       coefficient_field(po)
-    _find_elem_type(po::$T) = elem_type(coefficient_field(po))
 
     function Base.similar(
       bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}},
@@ -188,7 +187,7 @@ Return the `$($Hlin)` `H(a)`, which is given by a vector `a` such that
 
     coefficient_field(h::$Habs) = base_ring(h.a)
 
-    _find_elem_type(h::$Habs) = elem_type(coefficient_field(h))
+    _find_elem_type(::Type{<:$Habs{T}}) where {T} = T
     _parent_or_coefficient_field(::Type{T}, h::$Habs{<:T}) where {T<:FieldElem} =
       coefficient_field(h)
   end

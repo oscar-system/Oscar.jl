@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Wreath Macdonald polynomials
 
 The existence, integrality and positivity of wreath Macdonald polynomials

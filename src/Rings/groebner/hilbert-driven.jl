@@ -12,17 +12,27 @@ Return a Gröbner basis of `I` with respect to `destination_ordering`.
     See the corresponding section of the OSCAR documentation for some details.
 
 !!! note
-    All weights must be positive. If no weight vector is entered by the user, all weights 
-    are set to 1. An error is thrown if the generators of `I` are not homogeneous with 
-    respect to the corresponding (weighted) degree.  
+    The destination ordering must be global.
 
 !!! note
-    If $R$ denotes the parent ring of $I$, and $p, q\in\mathbb Z[t]$ are polynomials
+    All weights must be positive. If no weight vector is entered by the user, all weights 
+    are set to 1. An error is thrown if the generators of `I` are not homogeneous with 
+    respect to the corresponding (weighted) degree. The Hilbert driven Gröbner basis algorithm
+    can also be called via the function `groebner_basis`: use `algorithm = :hilbert`.
+    Then, the algorithm first tries to find an appropriate weight vector for the given ideal.
+    If no such vector exists, the algorithm proceeds via homogenization and dehomogenization.
+
+!!! note
+    If $R$ is the parent ring of $I$, and $p, q\in\mathbb Z[t]$ are polynomials
     such that $p/q$ represents the Hilbert series of $R/I$ as a rational function with 
     denominator $q = (1-t^{w_1})\cdots (1-t^{w_n}),$ where $n$ is the number of variables 
     of $R$, and $w_1, \dots, w_n$ are the assigned weights, then `hilbert_numerator` is 
-    meant to be $p$. If this numerator is not entered by the user, it will be computed 
-    internally.
+    meant to be $p$.
+
+!!! warning
+    If `hilbert_numerator` is set by the user, the function does NOT check
+    whether it is a valid numerator for the given data. If `hilbert_numerator`
+    is not set by the user, it will be computed internally.
 
 # Examples
 ```jldoctest
@@ -93,44 +103,36 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
                                        complete_reduction::Bool = false,
                                        weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
                                        hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
+
+  ord_dest = destination_ordering
+  haskey(I.gb, ord_dest) && return I.gb[ord_dest]
   
-  all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
   isa(coefficient_ring(I), AbstractAlgebra.Field) || error("The underlying coefficient ring of I must be a field.")
-  ordering = destination_ordering
-  is_global(ordering) || error("Destination ordering must be global.")
-  haskey(I.gb, ordering) && return I.gb[ordering]
+  is_global(ord_dest) || error("Destination ordering must be global.")
+  all(f -> _is_homogeneous(f, weights), gens(I)) || error("I must be given by generators homogeneous with respect to the given weights.")
+
+  R = base_ring(I)
+  ord_start = all(isone, weights) ? degrevlex(R) : wdegrevlex(R, weights)
   if isnothing(hilbert_numerator)
-    if isempty(I.gb)
-      J = iszero(characteristic(base_ring(I))) ? _mod_rand_prime(I) : I
-      G = standard_basis(J, ordering=wdegrevlex(base_ring(J), weights))
-    else
-      G = standard_basis(I)
-    end
-
-    if characteristic(base_ring(I)) > 0 && ordering == wdegrevlex(base_ring(I), weights)
-      return G
-    end
+    G = standard_basis(I, ordering = ord_start)
     h = Singular.hilbert_series(singular_generators(G, G.ord), weights)
-
   else
-    # Quoting from the documentation of Singular.hilbert_series:
-    # The coefficient vector is returned as a `Vector{Int32}`, and the last element is not actually part of the coefficients of Q(t).
-    # what?
     h = (Int32).([coeff(hilbert_numerator, i) for i in 0:degree(hilbert_numerator)+1])
+    #TODO Is this still needed? Should we handle this differently?
   end
 
-  singular_I_gens = singular_generators(I.gens, ordering)
+  singular_I_gens = singular_generators(I.gens, ord_dest)
   singular_ring = base_ring(singular_I_gens)
-  J = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
-  i  = Singular.std_hilbert(J, h, (Int32).(weights),
+  SI = Singular.Ideal(singular_ring, gens(singular_I_gens)...)
+  GBS  = Singular.std_hilbert(SI, h, (Int32).(weights),
                             complete_reduction = complete_reduction)
-  GB = IdealGens(base_ring(I), i, complete_reduction)
+  GB = IdealGens(base_ring(I), GBS, complete_reduction)
   GB.isGB = true
-  GB.ord = ordering
+  GB.ord = ord_dest
   if isdefined(GB.gensBiPolyArray, :S)
     GB.gensBiPolyArray.S.isGB  = true
   end
-  I.gb[destination_ordering] = GB
+  I.gb[ord_dest] = GB
   return GB
 end
 

@@ -11,7 +11,10 @@ not provide names for the generators, the standard names e_i are used for
 the standard unit vectors.
 """
 function FreeMod(R::AdmissibleOFPModuleRing, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
-  return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
+   function symb_fun()
+    return [Symbol("$name[$i]") for i=1:n]
+  end
+  return FreeMod{elem_type(R)}(n, R, symb_fun) 
 end
 
 function FreeMod(R::AdmissibleOFPModuleRing, names::Vector{String}; cached::Bool=false)

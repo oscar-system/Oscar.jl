@@ -21,6 +21,11 @@
       F2, (a2,) = Singular.FunctionField(kk, vcat(symb, ["b"])) # one more gen
       F3, (a3,) = Singular.FunctionField(Singular.Fp(5), symb) # different char
 
+      coeff_iso = Oscar.iso_oscar_singular_coeff_ring(F)
+      @test codomain(coeff_iso) isa Singular.N_FField
+      @test preimage(coeff_iso, coeff_iso(a)) == a
+      @test preimage(coeff_iso, coeff_iso(inv(a))) == inv(a)
+
       # @test singular_coeff_ring(F) === F1
       @test F(a1) == a
       @test F1(a) == a1

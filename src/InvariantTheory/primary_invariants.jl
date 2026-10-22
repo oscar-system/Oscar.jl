@@ -299,7 +299,7 @@ a positive integer to `ensure_minimality`. This leads to an early cancelation of
 loops in the algorithm and the described minimality of the degrees is not
 guaranteed anymore. A smaller (positive) value of `ensure_minimality` corresponds
 to an earlier cancelation. However, the default value `ensure_minimality = 0`
-corresponds to no cancelation.
+corresponds to no cancellation.
 
 # Examples
 ```jldoctest

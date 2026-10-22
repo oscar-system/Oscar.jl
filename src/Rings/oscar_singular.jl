@@ -38,6 +38,10 @@ Singular ring `S[x_1,...,x_n]` with `R` isomorphic to `S`.
 """
 iso_oscar_singular_poly_ring
 
+#############################################################################
+#
+# Coefficient rings
+#
 abstract type OscarSingularCoefficientRingMap{D, C} <: Map{D, C, Any, Any} end
 
 domain(f::OscarSingularCoefficientRingMap) = f.R
@@ -57,7 +61,10 @@ function preimage(f::OscarSingularCoefficientRingMap, x)
   return domain(f)(x)
 end
 
+#############################################################################
+#
 # generic catchall 
+#
 struct OscarSingularCoefficientRingMapGeneric{D,C} <: OscarSingularCoefficientRingMap{D,C} 
   R::D
   S::C
@@ -108,10 +115,6 @@ function iso_oscar_singular_coeff_ring(R::AbsSimpleNumField)
   return OscarSingularCoefficientRingMapGeneric(R, SK)
 end
 
-# Conversion from GF(p, n), small p, to Singular.N_AlgExtField,
-# the code for the conversion is present in Singular.jl/src/number/n_algExt.jl
-# via parent object call overloading, so we wrap it here anyway.
-
 # GF(p, n), small p
 function iso_oscar_singular_coeff_ring(F::fqPolyRepField) 
   # TODO: the Fp(Int(char)) can throw
@@ -129,7 +132,48 @@ function iso_oscar_singular_coeff_ring(F::fqPolyRepField)
   return OscarSingularCoefficientRingMapGeneric(F, SF)
 end
 
+# Conversion between an Oscar finite field `K` and a Singular algebraic
+# extension `SK` of F_p, both presented by the same minimal polynomial.
+# `c(i)` returns the i-th coordinate in the power basis as an integer.
+function _singular_algext_elem(SK::Singular.N_AlgExtField, c, d::Int)
+  Sa = gen(SK)
+  res = SK(c(0))
+  var = one(SK)
+  for i in 1:d-1
+    var = mul!(var, Sa)
+    res = addmul!(res, SK(c(i)), var)
+  end
+  return res
+end
+
+function _oscar_finite_field_elem(K::Field, a::Singular.n_algExt)
+  SF = parent(Singular.modulus(parent(a)))
+  SFa = SF(a)
+  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
+  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  @assert isone(denSa)
+  res = zero(K)
+  Ka = gen(K)
+  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
+    res += K(Int(c))*Ka^e[1]
+  end
+  return res
+end
+
+function image(f::OscarSingularCoefficientRingMapGeneric{fqPolyRepField}, a::fqPolyRepFieldElem)
+  parent(a) !== domain(f) && error("Element not in domain")
+  return _singular_algext_elem(codomain(f), i -> coeff(a, i), degree(domain(f)))
+end
+
+function preimage(f::OscarSingularCoefficientRingMapGeneric{fqPolyRepField}, a::Singular.n_algExt)
+  parent(a) !== codomain(f) && error("Element not in codomain")
+  return _oscar_finite_field_elem(domain(f), a)
+end
+
+#############################################################################
+#
 # Finite field (FqField)
+#
 struct OscarSingularCoefficientRingMapFqField{D} <: OscarSingularCoefficientRingMap{FqField, D}
   R::FqField
   S::D
@@ -195,14 +239,8 @@ function image(f::OscarSingularCoefficientRingMapFqField, a::FqFieldElem)
     return codomain(f)(a)
   end
 
-  #Here we apply the (SF::Singular.N_AlgExtField)(a::FqFieldElem) conversion from mpoly.jl
-  if isdefined(f, :iso)
-    b = codomain(f)(preimage(f.iso, a))
-  else
-    b = codomain(f)(a)
-  end
-  @assert parent(b) == codomain(f)
-  return b
+  b = isdefined(f, :iso) ? preimage(f.iso, a) : a
+  return _singular_algext_elem(codomain(f), i -> lift(ZZ, coeff(b, i)), degree(parent(b)))
 end
 
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_FieldElem)
@@ -218,17 +256,14 @@ end
 function preimage(f::OscarSingularCoefficientRingMapFqField, a::Singular.n_algExt)
   parent(a) !== codomain(f) && error("Element not in codomain")
 
-  #Here we apply the (K::FqField)(a::Singular.n_algExt) conversion from mpoly.jl
-  if isdefined(f, :iso)
-    b = image(f.iso, domain(f.iso)(a))
-  else
-    b = domain(f)(a)
-  end
-  @assert parent(b) == domain(f)
-  return b
+  isdefined(f, :iso) || return _oscar_finite_field_elem(domain(f), a)
+  return image(f.iso, _oscar_finite_field_elem(domain(f.iso), a))
 end
 
+#############################################################################
+#
 # fraction field of polynomial rings over QQ and Fp
+#
 struct OscarSingularCoefficientRingMapFractionField{U, V, W, X} <: OscarSingularCoefficientRingMap{U, V}
   R::U
   S::V
@@ -317,11 +352,14 @@ function preimage(f::OscarSingularCoefficientRingMapFractionField, a::Singular.n
   F = domain(f)
   R = base_ring(F)
   n, d = Singular.n_transExt_to_spoly.([numerator(a), denominator(a)]; cached = false)
-  return divexact(map_coefficients(x -> preimage(f.g, x), n; parent = R),
-                  map_coefficients(x -> preimage(f.g, x), d; parent = R))
+  return F(map_coefficients(x -> preimage(f.g, x), n; parent = R),
+           map_coefficients(x -> preimage(f.g, x), d; parent = R))
 end
 
+#############################################################################
+#
 # rational function field
+#
 struct OscarSingularCoefficientRingMapRationalFunctionField{D, C, W} <: OscarSingularCoefficientRingMap{D, C}
   R::D
   S::C
@@ -343,8 +381,20 @@ function preimage(f::OscarSingularCoefficientRingMapRationalFunctionField, a)
   return domain(f)(preimage(f.g, a))
 end
 
-# Singular polynomial ring
+# All Singular rings created for one Oscar ring must share their coefficient
+# ring, so isos between them stay composable (see `_iso_with_codomain`).
+const _coeff_ring_iso_cache = AbstractAlgebra.WeakKeyIdDict{Any, Any}()
 
+function _cached_iso_oscar_singular_coeff_ring(R::Ring)
+  # immutable rings (QQ, ZZ) cannot be weak keys; their Singular rings are cached anyway
+  ismutable(R) || return iso_oscar_singular_coeff_ring(R)
+  return get!(() -> iso_oscar_singular_coeff_ring(R), _coeff_ring_iso_cache, R)
+end
+
+#############################################################################
+#
+# Singular polynomial ring
+#
 struct OscarSingularPolyRingMap{D, C, W} <: Map{D, C, Any, Any}
   R::D
   S::C
@@ -356,6 +406,8 @@ domain(f::OscarSingularPolyRingMap) = f.R
 codomain(f::OscarSingularPolyRingMap) = f.S
 
 (f::OscarSingularPolyRingMap)(x) = image(f, x)
+
+_coeff_iso(f::OscarSingularPolyRingMap) = f.f
 
 # some helper function shared with singlar_poly_ring
 
@@ -398,14 +450,14 @@ function _create_singular_poly_ring(S, Rx, ord::MonomialOrdering)
 end
 
 function iso_oscar_singular_poly_ring(Rx::MPolyRing; keep_ordering::Bool = false)
-  fcoeff = iso_oscar_singular_coeff_ring(base_ring(Rx))
+  fcoeff = _cached_iso_oscar_singular_coeff_ring(base_ring(Rx))
   S = codomain(fcoeff)
   Sx = _create_singular_poly_ring(S, Rx; keep_ordering)
   return OscarSingularPolyRingMap(Rx, Sx, fcoeff)
 end
 
 function iso_oscar_singular_poly_ring(Rx::MPolyRing, ord::Union{Symbol, Singular.sordering, MonomialOrdering})
-  fcoeff = iso_oscar_singular_coeff_ring(base_ring(Rx))
+  fcoeff = _cached_iso_oscar_singular_coeff_ring(base_ring(Rx))
   S = codomain(fcoeff)
   Sx = _create_singular_poly_ring(S, Rx, ord)
   return OscarSingularPolyRingMap(Rx, Sx, fcoeff)
@@ -429,8 +481,27 @@ function preimage(f::OscarSingularPolyRingMap, a; check::Bool = true)
   return finish(g)
 end
 
-# Quotient rings
+# Singular rings for the same Oscar ring differ only in their ordering and share
+# the coefficient ring, so an iso onto one yields an iso onto the others.
+function _iso_with_codomain(f::OscarSingularPolyRingMap, Sx::Singular.PolyRing)
+  codomain(f) === Sx && return f
+  @req base_ring(Sx) === base_ring(codomain(f)) "coefficient rings must agree"
+  @req symbols(Sx) == symbols(codomain(f)) "variables must agree"
+  return OscarSingularPolyRingMap(domain(f), Sx, f.f)
+end
 
+# iso from `R` onto `Sx`, which must have been created by `iso_oscar_singular_poly_ring(R, ...)`
+function _iso_onto(R::MPolyRing, Sx::Singular.PolyRing)
+  fcoeff = _cached_iso_oscar_singular_coeff_ring(coefficient_ring(R))
+  @req base_ring(Sx) === codomain(fcoeff) "Singular ring was not created for this ring"
+  @req ngens(Sx) == ngens(R) "number of variables must agree"
+  return OscarSingularPolyRingMap(R, Sx, fcoeff)
+end
+
+#############################################################################
+#
+# Quotient rings
+#
 struct OscarSingularPolyRingQuoMap{D, C, W} <: Map{D, C, Any, Any}
   R::D
   S::C
@@ -445,12 +516,12 @@ function (f::OscarSingularPolyRingQuoMap)(a)
   return image(f, a)
 end
 
+# cached, as it is needed for every conversion of an element of `R`
 function _iso_oscar_singular_poly_ring(R::MPolyQuoRing)
-  _groebner_basis(R)
-  Rorig = base_ring(R)
-  f = iso_oscar_singular_poly_ring(Rorig)
-  @assert base_ring(codomain(f)) === base_ring(R.SQR)
-  return OscarSingularPolyRingQuoMap(R, R.SQR, f)
+  return get_attribute!(R, :iso_oscar_singular_poly_ring) do
+    _groebner_basis(R)
+    return OscarSingularPolyRingQuoMap(R, R.SQR, _iso_onto(base_ring(R), R.SQR))
+  end::OscarSingularPolyRingQuoMap
 end
 
 function image(f::OscarSingularPolyRingQuoMap, b::MPolyQuoRingElem)
@@ -467,9 +538,18 @@ function image(f::OscarSingularPolyRingQuoMap, b::MPolyRingElem)
   return image(f, domain(f)(b))
 end
 
-function preimage(f::OscarSingularPolyRingQuoMap, a::Singular.spoly)
-  @assert parent(a) === codomain(f)
+function preimage(f::OscarSingularPolyRingQuoMap, a::Singular.spoly; check::Bool = true)
+  check && (parent(a) === codomain(f) || error("Element not in codomain"))
   return domain(f)(preimage(f.f, a; check = false))
+end
+
+function _iso_with_codomain(f::OscarSingularPolyRingQuoMap, Sx::Singular.PolyRing)
+  @req codomain(f) === Sx "quotient rings support only one Singular ring"
+  return f
+end
+
+function _iso_onto(Q::MPolyQuoRing, Sx::Singular.PolyRing)
+  return _iso_with_codomain(iso_oscar_singular_poly_ring(Q), Sx)
 end
 
 iso_oscar_singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = _iso_oscar_singular_poly_ring(Q)

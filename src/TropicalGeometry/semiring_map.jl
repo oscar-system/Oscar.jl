@@ -306,3 +306,81 @@ function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt
     c *= uniformizer_in_field(nu)^(-t_adic_valuation(c,uniformizer(nu)))
     return evaluate(numerator(c),0)
 end
+
+
+
+#################################################################################
+#
+# tropical semiring maps for puiseux polynomials
+#
+#################################################################################
+
+
+@doc raw"""
+    tropical_semiring_map(R::PuiseuxMPolyRing, t::PuiseuxMPolyRingElem, minOrMax::Union{typeof(min),typeof(max)}=min)
+
+Return a map `nu` from `R` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and and `nu(c)=+/-val(c)` for `c` non-zero, where `val` denotes the `t`-adic valuation with uniformizer `t`.  Requires `R` to be a puiseux polynomial ring in a single variable `t`.
+
+# Examples
+```jldoctest
+julia> Kt, (t,) = puiseux_polynomial_ring(QQ,["t"]);
+
+julia> nu = tropical_semiring_map(Kt,t)
+Map into Min tropical semiring encoding the t-adic valuation on Multivariate polynomial ring in 1 variable over multivariate Laurent polynomial ring
+
+julia> nu(t)
+(1)
+
+julia> nu(0)
+infty
+
+julia> nu = tropical_semiring_map(Kt,t,max)
+Map into Max tropical semiring encoding the t-adic valuation on Multivariate polynomial ring in 1 variable over multivariate Laurent polynomial ring
+
+julia> nu(t)
+(-1)
+
+julia> nu(0)
+-infty
+
+```
+"""
+function tropical_semiring_map(R::PuiseuxMPolyRing, t::PuiseuxMPolyRingElem, minOrMax::Union{typeof(min),typeof(max)}=min)
+    @req ngens(R) == 1 "The tropical_semiring_map is only implemented for Puiseux polynomial rings in one variable."
+    @req t == first(gens(R)) "The uniformizer must be the generator of the Puiseux polynomial ring."
+
+    valuedField = nothing
+    uniformizerField = nothing
+    valuedRing = R
+    uniformizerRing = t
+    residueField = coefficient_ring(R)
+    tropicalSemiring = tropical_semiring(minOrMax)
+    return TropicalSemiringMap{typeof(R),typeof(t),typeof(minOrMax)}(
+        valuedField,
+        uniformizerField,
+        valuedRing,
+        uniformizerRing,
+        residueField,
+        tropicalSemiring)
+end
+
+# Print string
+function Base.show(io::IO, nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax}) where {MinOrMax<:Union{typeof(min),typeof(max)}}
+    print(io, "Map into $(tropical_semiring(nu)) encoding the $(uniformizer(nu))-adic valuation on $(Oscar.valued_ring(nu))")
+end
+
+# Mapping an element of the valued field or ring to the tropical semiring
+function (nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax})(c::Union{RingElem,Integer,Rational}) where MinOrMax<:Union{typeof(min),typeof(max)}
+    # return tropical zero if c is zero and valuation otherwise
+    iszero(c) && return zero(tropical_semiring(nu))
+    # preserve_ordering ensures that valuation is negated if convention(nu)==max
+    return tropical_semiring(nu)(valuation(valued_ring(nu)(c)); preserve_ordering=true)
+end
+
+# Mapping an element of the valued field or ring to the residue field
+function initial(c::PuiseuxMPolyRingElem, nu::TropicalSemiringMap{<:PuiseuxMPolyRing,<:PuiseuxMPolyRingElem,MinOrMax}) where MinOrMax<:Union{typeof(min),typeof(max)}
+    # return residue field zero if c is zero and the correct non-zero residue otherwise
+    iszero(c) && return zero(residue_field(nu))
+    C = collect(coefficients(c))
+    return last(C)
+end

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Invariants of Tori
 In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $T =(K^{\ast})^m$ will be a torus of rank $m$
 over a field $K$. To compute invariants of diagonal torus actions, OSCAR makes use of Algorithm 4.3.1  in [DK15](@cite) which,

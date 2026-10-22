@@ -359,6 +359,11 @@ function rand(W::MPolyQuoLocRing, v1::AbstractUnitRange{Int}, v2::AbstractUnitRa
   return W(rand(localized_ring(W), v1, v2, v3))
 end
 
+### Conformance test element generation
+function ConformanceTests.generate_element(W::MPolyQuoLocRing)
+  return rand(W, 0:3, 0:4, 0:3)
+end
+
 ########################################################################
 # Elements of localizations of polynomial algebras                     #
 ########################################################################
@@ -585,6 +590,8 @@ function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoRingEle
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
+is_nilpotent(f::MPolyQuoLocRingElem) = radical_membership(lifted_numerator(f), saturated_ideal(modulus(parent(f))))
+
 function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
   iszero(f) && return true
   # The next block is basically useless when the coefficient ring is
@@ -807,20 +814,10 @@ end
 # * Division routines can be used for the ring R[S⁻¹] with subsequent
 #   conversion. 
 
-function Base.:(/)(a::Oscar.IntegerUnion, b::MPolyQuoLocRingElem)
-  success, c = divides(parent(b), b)
-  !success && error("$b does not divide $a")
-  return c
-end
-
 function Base.:(/)(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   success, c = divides(a, b)
   !success && error("$b does not divide $a")
   return c
-end
-
-function divexact(a::Oscar.IntegerUnion, b::MPolyQuoLocRingElem; check::Bool=true)
-  return a/b
 end
 
 function divexact(a::T, b::T; check::Bool=true) where {T<:MPolyQuoLocRingElem}
@@ -878,6 +875,8 @@ zero(W::MPolyQuoLocRing)= W(zero(base_ring(W)))
 
 elem_type(::Type{MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+
+is_exact_type(::Type{<:MPolyQuoLocRingElem}) = true
 
 
 @doc raw"""
@@ -2395,7 +2394,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
       done = true
       break
     end
-    V_gens = vcat(V_gens, [m for m in monomials_of_degree(R, d) if !(m in lead_I)])
+    append!(V_gens, inc)
     d = d + 1
   end
 

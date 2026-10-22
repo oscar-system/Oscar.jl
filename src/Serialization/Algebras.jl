@@ -14,7 +14,7 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:FreeAssociativeAlgebra, <:Ring})
   gens = load_object(s, Vector{Symbol}, :symbols)
-  return free_associative_algebra(parameters(tp), gens)[1]
+  return free_associative_algebra(params(tp), gens)[1]
 end
 
 # Free associative algebra element serialization
@@ -34,7 +34,7 @@ function save_object(s::SerializerState, f::FreeAssociativeAlgebraElem)
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:FreeAssociativeAlgebraElem, <:FreeAssociativeAlgebra})
-  parent_algebra = parameters(tp)
+  parent_algebra = params(tp)
   coeff_type = elem_type(base_ring(parent_algebra))
   elem = MPolyBuildCtx(parent_algebra)
 

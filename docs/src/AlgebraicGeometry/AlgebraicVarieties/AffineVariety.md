@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Affine Varieties
 An affine variety is an algebraic set such that $X(K)$ is irreducible for $k \subseteq K$ an algebraic closure.
 See [Affine Algebraic Sets](@ref).

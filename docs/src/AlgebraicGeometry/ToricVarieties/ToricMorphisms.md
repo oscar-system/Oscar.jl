@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # ToricMorphisms
 
 A class of morphisms among toric varieties are described by certain lattice morphisms.

@@ -1,14 +1,3 @@
-@attributes mutable struct GroupRecognitionTree{T <: GAPGroup}
-  input_group::T
-  gap_tree::GapObj
-
-  function GroupRecognitionTree{T}(G::GAPGroup, gap_tree::GapObj) where T
-     @req G isa PermGroup || G isa MatGroup "only matrix and permutation groups are supported"
-     res = new{T}(G, gap_tree)
-     return res
-  end
-end
-
 GapObj(tree::GroupRecognitionTree) = tree.gap_tree
 
 

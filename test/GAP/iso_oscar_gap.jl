@@ -27,8 +27,8 @@
    a = -one(R)
    @test f(a) == -f(one(R))
    C = codomain(f)
-   a = -GAP.Globals.One(C)
-   @test preimage(f, a) == -preimage(f, GAP.Globals.One(C))
+   a = -GAPWrap.One(C)
+   @test preimage(f, a) == -preimage(f, GAPWrap.One(C))
 end
 
 @testset "finite fields" begin
@@ -51,7 +51,7 @@ end
          p2 = next_prime(p)
          @test_throws ErrorException f(GF(p2)(1))
          @test_throws ErrorException image(f, GF(p2)(1))
-         @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
+         @test_throws ErrorException preimage(f, GAPWrap.Z(GAP.Obj(p2)))
       end
    end
 
@@ -97,7 +97,7 @@ end
          p2 = next_prime(p)
          @test_throws ErrorException f(GF(p2)(1))
          @test_throws ErrorException image(f, GF(p2)(1))
-         @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
+         @test_throws ErrorException preimage(f, GAPWrap.Z(GAP.Obj(p2)))
       end
    end
 end
@@ -118,7 +118,7 @@ end
    p2 = next_prime(p)
    @test_throws ErrorException f(GF(p2)(1))
    @test_throws ErrorException image(f, GF(p2)(1))
-   @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
+   @test_throws ErrorException preimage(f, GAPWrap.Z(GAP.Obj(p2)))
 end
 
 @testset "another large non-prime field (fqPolyRepField)" begin
@@ -141,7 +141,7 @@ end
    p2 = next_prime(p)
    @test_throws ErrorException f(GF(p2)(1))
    @test_throws ErrorException image(f, GF(p2)(1))
-   @test_throws ErrorException preimage(f, GAP.Globals.Z(GAP.Obj(p2)))
+   @test_throws ErrorException preimage(f, GAPWrap.Z(GAP.Obj(p2)))
 end
 
 @testset "field of rationals, ring of integers" begin
@@ -160,7 +160,7 @@ end
     @test_throws ErrorException image(iso, 1)
     @test_throws ErrorException iso(GF(2)(1))
     @test_throws ErrorException image(iso, GF(2)(1))
-    @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException preimage(iso, GAPWrap.Z(2))
   end
 end
 
@@ -187,7 +187,7 @@ end
       end
       @test_throws ErrorException f(cyclotomic_field(2)[2])
       @test_throws ErrorException image(f, cyclotomic_field(2)[2])
-      @test_throws ErrorException preimage(f, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(f, GAPWrap.Z(2))
    end
 
    K, a = cyclotomic_field(10, "a")
@@ -274,7 +274,7 @@ end
   end
   @test_throws ErrorException iso(cyclotomic_field(2)[2])
   @test_throws ErrorException image(iso, cyclotomic_field(2)[2])
-  @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+  @test_throws ErrorException preimage(iso, GAPWrap.Z(2))
 end
 
 @testset "univariate polynomial rings" begin
@@ -300,7 +300,7 @@ end
       @test map_entries(inv(iso), map_entries(iso, m)) == m
       @test_throws ErrorException iso(polynomial_ring(R, :y)[1]())
       @test_throws ErrorException image(iso, polynomial_ring(R, :y)[1]())
-      @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(iso, GAPWrap.Z(2))
    end
 end
 
@@ -326,6 +326,6 @@ end
       @test map_entries(inv(iso), map_entries(iso, m)) == m
       @test_throws ErrorException iso(polynomial_ring(R, [:y])[1]())
       @test_throws ErrorException image(iso, polynomial_ring(R, [:y])[1]())
-      @test_throws ErrorException preimage(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException preimage(iso, GAPWrap.Z(2))
    end
 end

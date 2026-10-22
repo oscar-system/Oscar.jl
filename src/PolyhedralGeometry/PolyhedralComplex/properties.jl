@@ -691,6 +691,29 @@ function f_vector(PC::PolyhedralComplex)
 end
 
 @doc raw"""
+    n_minimal_faces(PC::PolyhedralComplex)
+
+Return the number of minimal faces of `PC`.
+
+# Examples
+An infinite cylinder over a 2-cube.  The 2-cube has four vertices, which yields
+4 minimal faces of the cylinder.
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 1 1 0; 0 1 0];
+
+julia> IM = incidence_matrix([[1,2,3,4]]);
+
+julia> L = [0 0 1];
+
+julia> PC = polyhedral_complex(IM, VR, Int[], L);
+
+julia> n_minimal_faces(PC)
+4
+```
+"""
+n_minimal_faces(PC::PolyhedralComplex) = _n_vertices(PC)
+
+@doc raw"""
     n_rays(PC::PolyhedralComplex)
 
 Return the number of rays of `PC`.
@@ -711,6 +734,33 @@ julia> n_rays(PC)
 """
 n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_rays(PC) : 0
 _n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)::Int
+
+@doc raw"""
+    n_rays_modulo_lineality(PC::PolyhedralComplex)
+
+Return the number of rays of `PC` modulo lineality.
+
+# Examples
+The shifted normal fan of a 2-cube in 3-space.  The latter lies in a
+2-dimensional subspace and has 4 maximal proper faces. Accordingly, its
+(shifted) normal fan has a 1-dimenional lineality space modulo which it has 4
+rays.
+
+```jldoctest
+julia> C = convex_hull([0 0 0; 1 0 0; 1 1 0; 0 1 0])
+Polyhedron in ambient dimension 3
+
+julia> PC = polyhedral_complex(normal_fan(C)) + QQFieldElem[1,1,1]
+Polyhedral complex in ambient dimension 3
+
+julia> n_rays(PC)
+0
+
+julia> n_rays_modulo_lineality(PC)
+4
+```
+"""
+n_rays_modulo_lineality(PC::PolyhedralComplex) = _n_rays(PC)
 
 @doc raw"""
     n_vertices(PC::PolyhedralComplex)

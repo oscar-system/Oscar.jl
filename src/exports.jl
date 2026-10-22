@@ -356,6 +356,7 @@ export bump!
 export canonical_bundle
 export canonical_divisor
 export canonical_divisor_class
+export canonical_form
 export canonical_isomorphism
 export canonical_matrix
 export cartan_bilinear_form
@@ -388,6 +389,7 @@ export character_lattice
 export character_parameters
 export character_table
 export character_table_complex_reflection_group
+export character_table_of_direct_product
 export character_table_rational
 export character_table_wreath_symmetric
 export character_to_rational_function
@@ -512,6 +514,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_graph
 export cycle_length
 export cycle_matroid
 export cycle_structure
@@ -747,10 +750,12 @@ export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
 export groebner_basis_modular
+export groebner_basis_signature_based
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
 export group_with_class_number
+export group_with_class_number_identification
 export gset
 export h_star_polynomial
 export h_vector
@@ -762,6 +767,7 @@ export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_edge
 export has_groups_with_class_number
+export has_groups_with_class_number_identification
 export has_nonempty_intersection
 export has_perfect_groups
 export has_preimage_with_preimage
@@ -1301,10 +1307,12 @@ export n_gon
 export n_maximal_cells
 export n_maximal_cones
 export n_maximal_polyhedra
+export n_minimal_faces
 export n_points
 export n_polyhedra
 export n_pseudovertices
 export n_rays
+export n_rays_modulo_lineality
 export n_vertices
 export name
 export names_of_fusion_sources
@@ -1414,6 +1422,7 @@ export orders_perfect_groups
 export ordinary_table
 export orthogonal_components
 export orthogonal_group
+export orthogonal_group_bilinear
 export orthogonal_sign
 export outdegree
 export outneighbors
@@ -1447,6 +1456,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export permute_nodes!
 export petersen_graph
 export phylogenetic_tree
 export picard_class
@@ -1592,6 +1602,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_action_homomorphism
 export regular_character
 export regular_triangulation
 export regular_triangulations
@@ -1850,7 +1861,7 @@ export twist
 export twisting_sheaf
 export two_sided_ideal
 export type
-export type_params
+export type_and_params
 export underlying_gluing
 export underlying_module
 export underlying_presheaf
@@ -1858,6 +1869,7 @@ export underlying_quotient
 export underlying_word
 export undirected_component
 export uniform_matroid
+export unimodular_primitive_extensions
 export unit
 export unitary_group
 export units_of

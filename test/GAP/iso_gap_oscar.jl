@@ -2,7 +2,7 @@
   @testset "order $n" for n in [ 2, 3, 65536, ZZRingElem(2)^64 ]
     gap_n = GAP.Obj(n)
     R = GAP.Globals.mod(GAP.Globals.Integers, gap_n)
-    y = GAP.Globals.One(R)
+    y = GAPWrap.One(R)
     x = 2*y
     iso = Oscar.iso_gap_oscar(R)
     ox = iso(x)
@@ -28,9 +28,9 @@ end
   # On the Oscar side, consider fields of order less than 2^64 and larger ones.
   @testset "with characteristic $p" for p in [ 5, 65537, next_prime(ZZRingElem(2)^64) ]
     gap_p = GAP.Obj(p)
-    F = GAP.Globals.GF(gap_p)
-    x = GAP.Globals.Z(gap_p)
-    y = GAP.Globals.One(F)
+    F = GAPWrap.GF(gap_p)
+    x = GAPWrap.Z(gap_p)
+    y = GAPWrap.One(F)
     iso = Oscar.iso_gap_oscar(F)
     ox = iso(x)
     oy = iso(y)
@@ -42,8 +42,8 @@ end
       @test oxi + oy == iso(xi + y)
     end
     p2 = next_prime(p)
-    @test_throws ErrorException iso(GAP.Globals.Z(GAP.Obj(p2)))
-    @test_throws ErrorException image(iso, GAP.Globals.Z(GAP.Obj(p2)))
+    @test_throws ErrorException iso(GAPWrap.Z(GAP.Obj(p2)))
+    @test_throws ErrorException image(iso, GAPWrap.Z(GAP.Obj(p2)))
     @test_throws ErrorException preimage(iso, GF(p2)(1))
   end
 end
@@ -58,9 +58,9 @@ end
   @testset "with characteristic $p" for p in [5, 65537, next_prime(ZZRingElem(2)^64)]
     gap_p = GAP.Obj(p)
     @testset "with degree $d" for d in 2:3
-      F = GAP.Globals.GF(gap_p, d)
+      F = GAPWrap.GF(gap_p, d)
       x = GAP.Globals.PrimitiveElement(F)
-      y = GAP.Globals.One(F)
+      y = GAPWrap.One(F)
       iso = Oscar.iso_gap_oscar(F)
       ox = iso(x)
       oy = iso(y)
@@ -72,7 +72,7 @@ end
         @test oxi + oy == iso(xi + y)
       end
       p2 = next_prime(p)
-      o = GAP.Globals.One(GAP.Globals.GF(GAP.Obj(p2)))
+      o = GAPWrap.One(GAPWrap.GF(GAP.Obj(p2)))
       @test_throws ErrorException iso(o)
       @test_throws ErrorException image(iso, o)
       @test_throws ErrorException preimage(iso, GF(p2)(1))
@@ -106,8 +106,8 @@ end
       @test oxi + oy == iso(xi + y)
     end
     @test_throws ErrorException preimage(iso, 1)
-    @test_throws ErrorException iso(GAP.Globals.Z(2))
-    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException iso(GAPWrap.Z(2))
+    @test_throws ErrorException image(iso, GAPWrap.Z(2))
     @test_throws ErrorException preimage(iso, GF(2)(1))
   end
 end
@@ -116,7 +116,7 @@ end
   @testset "with conductor $N" for N in [ 3, 4, 45 ]
     F = GAP.Globals.CF(N)
     x = GAP.Globals.E(N)
-    y = GAP.Globals.One(F)
+    y = GAPWrap.One(F)
     iso = Oscar.iso_gap_oscar(F)
     ox = iso(x)
     oy = iso(y)
@@ -127,8 +127,8 @@ end
       @test oxi == ox^i
       @test oxi + oy == iso(xi + y)
     end
-    @test_throws ErrorException iso(GAP.Globals.Z(2))
-    @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+    @test_throws ErrorException iso(GAPWrap.Z(2))
+    @test_throws ErrorException image(iso, GAPWrap.Z(2))
     @test_throws ErrorException preimage(iso, cyclotomic_field(2)[2])
   end
 end
@@ -142,7 +142,7 @@ end
        GAP.evalstr( "Field( [ EC(19) ] )" ) ]  # not a quadratic field
 
      x = GAP.Globals.GeneratorsOfField(F)[1]
-     y = GAP.Globals.One(F)
+     y = GAPWrap.One(F)
      iso = Oscar.iso_gap_oscar(F)
      @test iso === Oscar.iso_gap_oscar(F)  # test that everything gets cached
      ox = iso(x)
@@ -165,7 +165,7 @@ end
 
      F = GAP.Globals.AlgebraicExtension( QQG, iso(pol))
      x = GAP.Globals.GeneratorsOfField(F)[1]
-     y = GAP.Globals.One(F)
+     y = GAPWrap.One(F)
      f = Oscar.iso_gap_oscar(F)
      @test f === Oscar.iso_gap_oscar(F)  # test that everything gets cached
      ox = f(x)
@@ -184,12 +184,12 @@ end
 #    ["1", "Sqrt(5)", "Sqrt(-7)", "E(5)"]
 #TODO: cyclotomic fields should support `GeneratorsOfAlgebraWithOne`
 
-     F = GAP.Globals.Field(GAP.evalstr(genstr))
-     matF = GAP.Globals.Image(GAP.Globals.IsomorphismMatrixAlgebra(F))
+     F = GAPWrap.Field(GAP.evalstr(genstr))
+     matF = GAPWrap.Image(GAP.Globals.IsomorphismMatrixAlgebra(F))
      mats = GAP.Globals.GeneratorsOfAlgebra(matF)
      F = GAP.Globals.FieldByMatrices(mats)
      x = GAP.Globals.GeneratorsOfField(F)[1]
-     y = GAP.Globals.One(F)
+     y = GAPWrap.One(F)
 #TODO: output of `FieldByMatrices` should support `IsFinite`
 GAP.Globals.SetIsFinite(F, false)
      f = Oscar.iso_gap_oscar(F)
@@ -214,27 +214,27 @@ end
     y = iso(x)
     @test x == preimage(iso, y)
   end
-  @test_throws ErrorException iso(GAP.Globals.Z(2))
-  @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+  @test_throws ErrorException iso(GAPWrap.Z(2))
+  @test_throws ErrorException image(iso, GAPWrap.Z(2))
   @test_throws ErrorException preimage(iso, cyclotomic_field(2)[2])
 end
 
 @testset "univariate polynomial rings" begin
    baserings = [GAP.Globals.Rationals,
                 GAP.Globals.Integers,
-                GAP.Globals.GF(2),
-                GAP.Globals.GF(2, 3),
+                GAPWrap.GF(2),
+                GAPWrap.GF(2, 3),
                ]
    @testset for R in baserings
-      PR = GAP.Globals.PolynomialRing(R)
+      PR = GAPWrap.PolynomialRing(R)
       x = GAP.Globals.Indeterminate(R)
       iso = Oscar.iso_gap_oscar(PR)
       for pol in [zero(x), one(x), x, x^3+x+1]
          img = iso(pol)
          @test preimage(iso, img) == pol
       end
-      @test_throws ErrorException iso(GAP.Globals.Z(2))
-      @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException iso(GAPWrap.Z(2))
+      @test_throws ErrorException image(iso, GAPWrap.Z(2))
       @test_throws ErrorException preimage(iso, polynomial_ring(QQ, :y)[1]())
    end
 end
@@ -242,19 +242,19 @@ end
 @testset "multivariate polynomial rings" begin
    baserings = [GAP.Globals.Rationals,
                 GAP.Globals.Integers,
-                GAP.Globals.GF(2),
-                GAP.Globals.GF(2, 3),
+                GAPWrap.GF(2),
+                GAPWrap.GF(2, 3),
                ]
    @testset for R in baserings
-      PR = GAP.Globals.PolynomialRing(R, 3)
+      PR = GAPWrap.PolynomialRing(R, 3)
       x, y, z = GAP.Globals.GeneratorsOfAlgebraWithOne(PR)
       iso = Oscar.iso_gap_oscar(PR)
       for pol in [zero(x), one(x), x, x^3+x+1, x*y+z+1]
          img = iso(pol)
          @test preimage(iso, img) == pol
       end
-      @test_throws ErrorException iso(GAP.Globals.Z(2))
-      @test_throws ErrorException image(iso, GAP.Globals.Z(2))
+      @test_throws ErrorException iso(GAPWrap.Z(2))
+      @test_throws ErrorException image(iso, GAPWrap.Z(2))
       @test_throws ErrorException preimage(iso, polynomial_ring(QQ, :y)[1]())
    end
 end

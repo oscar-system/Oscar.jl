@@ -338,8 +338,8 @@ function *(a::AbsLocalizedRingElem{RT, RET, MST}, b::RET) where {RT, RET <: Ring
   return b*a
 end
 
-function Base.:(/)(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem)
-  return divexact(parent(b)(a), b)
+function divexact(a::Oscar.IntegerUnion, b::AbsLocalizedRingElem; check::Bool=true)
+  return divexact(parent(b)(a), b; check)
 end
 
 function Base.:(/)(a::T, b::T) where {T<:AbsLocalizedRingElem}

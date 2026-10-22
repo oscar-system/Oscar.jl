@@ -206,10 +206,7 @@ julia> all_primitive_groups(degree => 3:5, is_abelian)
 ```
 """
 function all_primitive_groups(L...)
-   @req !isempty(L) "must specify at least one filter"
-   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
-      L = (degree => L[1], L[2:end]...)
-   end
+   L = _expand_key_shorthand(L, degree)
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllPrimitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]

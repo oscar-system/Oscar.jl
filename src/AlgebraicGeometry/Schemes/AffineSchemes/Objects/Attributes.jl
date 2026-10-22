@@ -717,8 +717,7 @@ end
 
 # internal workhorse, not user-facing
 function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
-  empty = AbsAffineScheme[]
-  result = empty
+  result = AbsAffineScheme[]
   is_zero(ngens(OO(X))) && return result # Shortcut needed to avoid creating polynomial rings with zero variables
   I = saturated_ideal(modulus(OO(X)))
 
@@ -744,7 +743,7 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
-    one(OO(X)) in JX && return empty
+    one(OO(X)) in JX && return AbsAffineScheme[]
     return [subscheme(X, J)]
   else
 # if reducible, determine pairwise intersection loci
@@ -759,9 +758,9 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     end
 # and singular loci of components
     for Y in components
-      result = vcat(result, singular_locus(Y)[1])
+      push!(result, singular_locus(Y)[1])
     end
-  #one(OO(X)) in result && return empty
+  #one(OO(X)) in result && return AbsAffineScheme[]
   end
   return result
 end
