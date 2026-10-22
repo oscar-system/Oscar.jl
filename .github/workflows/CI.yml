@@ -92,12 +92,27 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v3
-        id: julia-cache
+      # Artifacts, package sources and registries are the same for all jobs,
+      # so the jobs share one cache for them. Compiled packages depend on the
+      # Julia version, the flags and the environment, so each job has its own.
+      - name: "Cache artifacts and packages"
+        uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          cache-name: julia-cache-depot;workflow=${{ github.workflow }};arch=${{ runner.arch }}
           include-matrix: false
+          cache-compiled: false
+          cache-scratchspaces: false
+          cache-logs: false
+      - name: "Cache compiled packages"
+        uses: julia-actions/cache@v3
+        if: runner.environment != 'self-hosted'
+        with:
+          cache-name: julia-cache-compiled;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-artifacts: false
+          cache-packages: false
+          cache-registries: false
       - name: "Clean polymake scratchspace for self-hosted macOS runners"
         if: runner.environment == 'self-hosted'
         run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
@@ -161,12 +176,24 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v3
-        id: julia-cache
+      - name: "Cache artifacts and packages"
+        uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          cache-name: julia-cache-depot;workflow=${{ github.workflow }};arch=${{ runner.arch }}
           include-matrix: false
+          cache-compiled: false
+          cache-scratchspaces: false
+          cache-logs: false
+      - name: "Cache compiled packages"
+        uses: julia-actions/cache@v3
+        if: runner.environment != 'self-hosted'
+        with:
+          cache-name: julia-cache-compiled;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-artifacts: false
+          cache-packages: false
+          cache-registries: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "set test subgroup"
@@ -256,12 +283,24 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v3
-        id: julia-cache
+      - name: "Cache artifacts and packages"
+        uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          cache-name: julia-cache-depot;workflow=${{ github.workflow }};arch=${{ runner.arch }}
           include-matrix: false
+          cache-compiled: false
+          cache-scratchspaces: false
+          cache-logs: false
+      - name: "Cache compiled packages"
+        uses: julia-actions/cache@v3
+        if: runner.environment != 'self-hosted'
+        with:
+          cache-name: julia-cache-compiled;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-artifacts: false
+          cache-packages: false
+          cache-registries: false
       - name: "Clean polymake scratchspace for self-hosted macOS runners"
         if: runner.environment == 'self-hosted'
         run: rm -rf $JULIA_DEPOT_PATH/scratchspaces/d720cf60-89b5-51f5-aff5-213f193123e7
@@ -342,10 +381,22 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v3
+      - name: "Cache artifacts and packages"
+        uses: julia-actions/cache@v3
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          cache-name: julia-cache-depot;workflow=${{ github.workflow }};arch=${{ runner.arch }}
           include-matrix: false
+          cache-compiled: false
+          cache-scratchspaces: false
+          cache-logs: false
+      - name: "Cache compiled packages"
+        uses: julia-actions/cache@v3
+        with:
+          cache-name: julia-cache-compiled;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-artifacts: false
+          cache-packages: false
+          cache-registries: false
           cache-scratchspaces: false
       - name: "Fill OscarDB container"
         run: |
@@ -391,10 +442,22 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v3
+      - name: "Cache artifacts and packages"
+        uses: julia-actions/cache@v3
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          cache-name: julia-cache-depot;workflow=${{ github.workflow }};arch=${{ runner.arch }}
           include-matrix: false
+          cache-compiled: false
+          cache-scratchspaces: false
+          cache-logs: false
+      - name: "Cache compiled packages"
+        uses: julia-actions/cache@v3
+        with:
+          cache-name: julia-cache-compiled;workflow=${{ github.workflow }};job=${{ github.job }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-artifacts: false
+          cache-packages: false
+          cache-registries: false
           cache-scratchspaces: false
       - name: "Inject HomotopyContinuation as test dependencies"
         continue-on-error: true
