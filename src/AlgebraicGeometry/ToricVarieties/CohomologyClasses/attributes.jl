@@ -203,6 +203,8 @@ julia> polynomial(R_quo, cc)
 """
 function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
   p = polynomial(c)
+  # rebuilding p term by term reduces after every product and power
+  parent(p) === ring && return p
   if iszero(p)
     return zero(ring)
   end
