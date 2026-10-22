@@ -49,8 +49,8 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -227,8 +227,8 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os:
           - 'ubuntu-latest'
@@ -311,8 +311,8 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os: ['ubuntu-latest']
 
@@ -375,8 +375,8 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os: ['ubuntu-latest']
     env:
