@@ -153,6 +153,9 @@ jobs:
           - '1.10'
           - 'pre'
           - 'nightly'
+    env:
+      # GC logging only on prereleases and nightlies
+      OSCAR_GC_LOGGING: ${{ (matrix.julia-version == 'pre' || endsWith(matrix.julia-version, 'nightly')) && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -335,6 +338,8 @@ jobs:
     env:
       OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
       OSCAR_TEST_SUBSET: "oscar_db"
+      # GC logging only on nightlies
+      OSCAR_GC_LOGGING: ${{ endsWith(matrix.julia-version, 'nightly') && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
       - name: "Set up Julia"
@@ -384,6 +389,8 @@ jobs:
         os: ['ubuntu-latest']
     env:
       OSCAR_TEST_SUBSET: "exts"
+      # GC logging only on nightlies
+      OSCAR_GC_LOGGING: ${{ endsWith(matrix.julia-version, 'nightly') && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@v7
       - name: "Set up Julia"
