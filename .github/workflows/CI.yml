@@ -57,11 +57,11 @@ jobs:
         depwarn: [ '' ]
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
-          - julia-version: '1.10'
+          - julia-version: '1.13'
             group: 'short'
             os: [Linux, RPTU, high-memory]
             depwarn: 'depwarn=error'
-          - julia-version: '1.10'
+          - julia-version: '1.13'
             group: 'long'
             os: [Linux, RPTU, normal-memory]
             depwarn: 'depwarn=error'
@@ -121,8 +121,8 @@ jobs:
           coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
         env:
-          # GC logging only on the latest release and on nightlies
-          OSCAR_GC_LOGGING: ${{ (matrix.julia-version == '1.13' || endsWith(matrix.julia-version, 'nightly')) && 'true' || 'false' }}
+          # GC logging only on the depwarn jobs and on nightlies
+          OSCAR_GC_LOGGING: ${{ (matrix.depwarn == 'depwarn=error' || endsWith(matrix.julia-version, 'nightly')) && 'true' || 'false' }}
       - name: Archive stats
         if: matrix.depwarn == ''
         uses: actions/upload-artifact@v7
@@ -238,7 +238,7 @@ jobs:
         depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
-          - julia-version: '1.10'
+          - julia-version: '1.13'
             os: 'ubuntu-latest'
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
