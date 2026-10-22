@@ -210,7 +210,7 @@ function add_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) whe
     end
   end
   
-  return merge(+, pd1, pd2) 
+  return mergewith(+, pd1, pd2)
 end
 
 function multiply_terms(pd1::Dict{Vector{Int64}, U}, pd2::Dict{Vector{Int64}, U}) where {U <: Union{FieldElem, QQMPolyRingElem}}
