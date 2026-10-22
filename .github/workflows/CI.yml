@@ -93,8 +93,9 @@ jobs:
         with:
           version: ${{ matrix.julia-version }}
       # Artifacts, package sources and registries are the same for all jobs,
-      # so the jobs share one cache for them. Compiled packages depend on the
-      # Julia version, the flags and the environment, so each job has its own.
+      # so the jobs share one cache for them; a failed job may lack some, so
+      # only successful jobs save it. Compiled packages depend on the Julia
+      # version, the flags and the environment, so each job has its own.
       - name: "Cache artifacts and packages"
         uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
@@ -104,6 +105,7 @@ jobs:
           cache-compiled: false
           cache-scratchspaces: false
           cache-logs: false
+          save-always: false
       - name: "Cache compiled packages"
         uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
@@ -185,6 +187,7 @@ jobs:
           cache-compiled: false
           cache-scratchspaces: false
           cache-logs: false
+          save-always: false
       - name: "Cache compiled packages"
         uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
@@ -292,6 +295,7 @@ jobs:
           cache-compiled: false
           cache-scratchspaces: false
           cache-logs: false
+          save-always: false
       - name: "Cache compiled packages"
         uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
@@ -389,6 +393,7 @@ jobs:
           cache-compiled: false
           cache-scratchspaces: false
           cache-logs: false
+          save-always: false
       - name: "Cache compiled packages"
         uses: julia-actions/cache@v3
         with:
@@ -450,6 +455,7 @@ jobs:
           cache-compiled: false
           cache-scratchspaces: false
           cache-logs: false
+          save-always: false
       - name: "Cache compiled packages"
         uses: julia-actions/cache@v3
         with:
