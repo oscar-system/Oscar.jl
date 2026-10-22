@@ -37,7 +37,7 @@ action_s(o::Origami)
 action_t(o::Origami)
 action_s_inv(o::Origami)
 action_t_inv(o::Origami)
-action_sl2(A::ZZMatrix,o::Origami)
+action_sl2(A::ZZMatrix, o::Origami)
 ```
 
 ## Cyclic torus covers

@@ -85,7 +85,7 @@ function action_s_inv(o::Origami)
 end
 
 @doc raw"""
-    action_sl2(A::ZZMatrix,o::Origami)
+    action_sl2(A::ZZMatrix, o::Origami)
 
 This function computes ``\texttt{A} \cdot \texttt{o}``, where `A` is a matrix in ``{\rm SL}_2(\mathbb{Z})`` and `o` is an origami.
 The matrix is decomposed into a word in the generators
