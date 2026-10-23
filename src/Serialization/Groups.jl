@@ -162,11 +162,17 @@ function save_object(s::SerializerState, G::FPGroup)
     X = GapObj(G)
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
     @assert GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
-    Xnames = GAP.getbangproperty(elfam, :names)::GapObj
-    @req GAPWrap.IsFinite(Xnames) "free groups of infinite rank are not supported"
     save_data_dict(s) do
-      # (rank and) names of generators
-      names = Vector{String}(Xnames)
+      # (rank and) names of generators;
+      # for infinite rank, the names of the first generators
+      # and the prefix for the names of the others
+      Xnames = GAP.getbangproperty(elfam, :names)::GapObj
+      if GAPWrap.IsFinite(Xnames)
+        names = Vector{String}(Xnames)
+      else
+        save_object(s, string(GAP.getbangindex(Xnames, 1)::GapObj), :nameprefix)
+        names = Vector{String}(GAP.getbangindex(Xnames, 2)::GapObj)
+      end
       save_object(s, names, :names)
       # the internal representation of elements
       if GAP.Globals.IsSyllableWordsFamily(elfam)::Bool
@@ -200,10 +206,13 @@ function load_object(s::DeserializerState, ::Type{FPGroup}, ::Nothing)
     # Create a new full free group.
     wfilt = getproperty(GAP.Globals, _word_filters_inv[load_object(s, Symbol, :rep)])::GapObj
 
-    init = load_node(s, :names) do names
-      GapObj(names; recursive = true)
+    init = GapObj(load_object(s, Vector{String}, :names); recursive = true)
+    if haskey(s, :nameprefix)
+      prefix = GapObj(load_object(s, String, :nameprefix))
+      G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)::GapObj
+    else
+      G = GAPWrap.FreeGroup(wfilt, init)
     end
-    G = GAPWrap.FreeGroup(wfilt, init)
     res = FPGroup(G)
     res.free_group = res
     return res

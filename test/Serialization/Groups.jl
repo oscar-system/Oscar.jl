@@ -109,9 +109,19 @@
        @test loadedw[1] == loadedv[1]
        @test parent(loadedw[1]) === parent(loadedv[1])
 
-      # free groups of infinite rank are not supported
-      X = GAP.Globals.FreeGroup(GAP.Globals.infinity, GapObj("f"), GapObj(["a", "b"]; recursive = true))
-      @test_throws "infinite rank" save(joinpath(path, "inf"), Oscar._oscar_group(X))
+      # free groups of infinite rank
+      for init in [["a", "b"], String[]]
+        X = GAP.Globals.FreeGroup(GAP.Globals.infinity, GapObj("f"), GapObj(init; recursive = true))
+        Finf = Oscar._oscar_group(X)
+        Xgens = GAPWrap.GeneratorsOfGroup(X)
+        x = Oscar.group_element(Finf, Xgens[1]) * Oscar.group_element(Finf, Xgens[3])
+        filenamex = joinpath(path, "inf")
+        save(filenamex, x)
+        Oscar.reset_global_serializer_state()
+        loaded = load(filenamex)
+        @test string(loaded) == string(x)
+        @test !is_finitely_generated(parent(loaded))
+      end
     end
 
     @testset "Finitely generated abelian groups and their homomorphisms" begin
