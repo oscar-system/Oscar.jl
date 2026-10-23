@@ -346,7 +346,7 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
 end
 
 function conjugate_dominant_weight!(w::WeightLatticeElem)
-  # w will be dominant once all fundamental weights have a positive coefficient,
+  # w will be dominant once all fundamental weights have a non-negative coefficient,
   # so search for negative coefficients and make them positive by applying the corresponding reflection.
   s = 1
   while s <= rank(parent(w))

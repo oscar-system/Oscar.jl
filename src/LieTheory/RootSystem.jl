@@ -181,7 +181,7 @@ end
 
 function Base.hash(R::RootSystem, h::UInt)
   # even though we don't have a == method for RootSystem, we add a hash method
-  # to make hashing of RootSpaceElem and WeightLattice more deterministic
+  # to make hashing of objects depending on a RootSystem more deterministic
   b = 0xeb5362118dea2a0e % UInt
   h = hash(cartan_matrix(R), h)
   return xor(b, h)
@@ -1602,8 +1602,9 @@ end
 @doc raw"""
     _positive_roots_and_reflections(cartan_matrix::ZZMatrix) -> Vector{Vector{ZZRingElem}}, Vector{Vector{ZZRingElem}}, Matrix{UInt64}
 
-Compute the positive roots, the positive coroots, and a matrix `refl` of size $m \times n$,
+Compute the minimal roots, their coroots, and a matrix `refl` of size $m \times n$,
 where $m$ is the rank of the root system and $n$ is the number of minimal roots.
+In finite type, the minimal roots are exactly the positive roots.
 
 The minimal roots and coroots are given as coefficient vectors w.r.t. the simple roots and simple coroots, respectively.
 The minimal roots are indexed by `1:n`, with the first `m` of them corresponding
