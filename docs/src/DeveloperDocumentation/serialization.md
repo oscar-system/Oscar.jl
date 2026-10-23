@@ -484,25 +484,25 @@ The typical structure of an upgrade function is:
 ```julia
 push!(upgrade_scripts_set, UpgradeScript(
   v"X.Y.Z",
-  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{String, Any})
     # 1. Recurse into containers and nested objects first
     upgrade_recursive(upgrade_X_Y_Z, s, dict)
 
     # 2. Determine the type name of the current node
-    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
-      type_name = dict[:_type][:name]
+    if dict["_type"] isa AbstractDict && haskey(dict["_type"], "name")
+      type_name = dict["_type"]["name"]
     else
-      type_name = dict[:_type]
+      type_name = dict["_type"]
     end
 
     # 3. Apply type-specific transformations
     if type_name == "MyType"
       # rename a field in the data
-      dict[:data][:new_field] = pop!(dict[:data], :old_field)
+      dict["data"]["new_field"] = pop!(dict["data"], "old_field")
     elseif type_name == "AnotherType"
       # change type parameter structure
-      old_params = dict[:_type][:params]
-      dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
+      old_params = dict["_type"]["params"]
+      dict["_type"]["params"] = Dict{Symbol, Any}("renamed" => old_params["original"])
     end
 
     return dict
