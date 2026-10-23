@@ -906,6 +906,67 @@ true
 """
 representatives_of_hermitian_type(::Union{ZZLat, ZZGenus}, ::Union{ZZPolyRingElem, QQPolyRingElem}, ::Int)
 
+# Return whether the genus of `H` is small and none of its trace lattices
+# passes the root test. Called behind an inference barrier, so that the
+# enumeration and the mass compile only when they run.
+function _hermitian_genus_fails_root_test(H::HermLat)
+  gr = genus_representatives(H; max=20)
+  #certify that we have enumerated the entire genus
+  mass(H) == sum([1//automorphism_group_order(Hi) for Hi in gr];init=QQ(0)) || return false
+  return all(2==minimum(trace_lattice_with_isometry(i)[1]) for i in gr)
+end
+
+# The isometry is +- id: enumerate the Z-genus. Called behind an inference
+# barrier, so that its large call tree compiles only when it runs.
+function _representatives_of_hermitian_type_plus_minus_id(
+    G::ZZGenus,
+    chi::Union{ZZPolyRingElem, QQPolyRingElem},
+    discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}};
+    first::Bool,
+    genusDB,
+    update_genusDB::Bool,
+    root_test::Bool,
+    info_depth::Int,
+    _local::Bool,
+    invariant_function,
+  )
+  allow_info = get_verbosity_level(:ZZLatWithIsom) >= info_depth
+  reps = ZZLatWithIsom[]
+  rG = rank(G)
+  !is_zero(chi(1)*chi(-1)) && return reps
+  f = is_zero(chi(1)) ? identity_matrix(QQ, rG) : -identity_matrix(QQ, rG)
+  # the discriminant annihilator is of local nature, we can test before the genus 
+  T = representative(G)
+  Tf = integer_lattice_with_isometry(T, f)
+  _, f_on_disc = discriminant_group(Tf)
+  if !is_annihilated(f_on_disc, discriminant_annihilator)
+    return reps
+  end
+  # local conditions are okay, enumerate the genus
+  allow_info && !_local && println("Enumerate Z-genus $G")
+  repre = oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local, invariant_function)
+  if root_test && _local && signature_pair(G)[1]==0 && rank(G)<=12
+    if numerator(mass(G))==1 && mass(G) == 1//automorphism_group_order(T)
+      # T is unique in its genus, we can do the root test even when working locally 
+      minimum(T) == 2 && return reps 
+    end
+    # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
+    if rank(G) <= 6 && scale(G) == 1
+      repre1 = oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=30, _local=false, invariant_function)
+      if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
+        return reps 
+      end
+    end
+  end 
+  allow_info && !_local && println("$(length(repre)) representative(s)")
+  while !is_empty(repre)
+    LL = pop!(repre)
+    push!(reps, integer_lattice_with_isometry(LL, f; check=false, ambient_representation=false))
+    first && return reps
+  end
+  return reps
+end
+
 function representatives_of_hermitian_type(
     G::ZZGenus,
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
@@ -947,38 +1008,7 @@ function representatives_of_hermitian_type(
   d_chi = degree(chi)
   # In that case the isometry is +- id, so we do not need hermitian genera.
   if isone(d_chi)
-    !is_zero(chi(1)*chi(-1)) && return reps
-    f = is_zero(chi(1)) ? identity_matrix(QQ, rG) : -identity_matrix(QQ, rG)
-    # the discriminant annihilator is of local nature, we can test before the genus 
-    T = representative(G)
-    Tf = integer_lattice_with_isometry(T, f)
-    _, f_on_disc = discriminant_group(Tf)
-    if !is_annihilated(f_on_disc, discriminant_annihilator)
-      return reps
-    end
-    # local conditions are okay, enumerate the genus
-    allow_info && !_local && println("Enumerate Z-genus $G")
-    repre = oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=first ? 1 : inf, _local, invariant_function)
-    if root_test && _local && signature_pair(G)[1]==0 && rank(G)<=12
-      if numerator(mass(G))==1 && mass(G) == 1//automorphism_group_order(T)
-        # T is unique in its genus, we can do the root test even when working locally 
-        minimum(T) == 2 && return reps 
-      end
-      # genus enumeraiton is so cheap, that we can just enumerate and see if there is a good lattice 
-      if rank(G) <= 6 && scale(G) == 1
-        repre1 = oscar_genus_representatives(G; genusDB, update_genusDB, root_test, info_depth, max_lat=30, _local=false, invariant_function)
-        if all(minimum(i)==2 for i in repre1) && mass(G) == sum(1//automorphism_group_order(i) for i in repre1; init=QQ(0))
-          return reps 
-        end
-      end
-    end 
-    allow_info && !_local && println("$(length(repre)) representative(s)")
-    while !is_empty(repre)
-      LL = pop!(repre)
-      push!(reps, integer_lattice_with_isometry(LL, f; check=false, ambient_representation=false))
-      first && return reps
-    end
-    return reps
+    return Base.inferencebarrier(_representatives_of_hermitian_type_plus_minus_id)(G, chi, discriminant_annihilator; first, genusDB, update_genusDB, root_test, info_depth, _local, invariant_function)::Vector{ZZLatWithIsom}
   end
 
   # Polynomial must be symmetric
@@ -1075,13 +1105,7 @@ function representatives_of_hermitian_type(
     else 
       if root_test && rank(H) <= 4 && signature_pair(G)[1]==0
         # see if it is an easy genus 
-        gr = genus_representatives(H; max=20)
-        if mass(H) == sum([1//automorphism_group_order(Hi) for Hi in gr];init=QQ(0)) #certify that we have enumerated the entire genus
-          if all(2==minimum(trace_lattice_with_isometry(i)[1]) for i in gr)
-            # no one passed the root test
-            continue
-          end 
-        end 
+        Base.inferencebarrier(_hermitian_genus_fails_root_test)(H)::Bool && continue
       end
       push!(reps, integer_lattice_with_isometry(M, fM; check=false))
     end
