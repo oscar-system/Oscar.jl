@@ -1052,10 +1052,6 @@ end
 
 gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
-function trace_product(M::T, N::T) where T <: MatElem
-  return sum((M[i:i, :] * N[:, i:i])[1,1] for i=1:nrows(M))
-end
-
 #=
  On characters (in char 0)
  ========================
@@ -1133,7 +1129,7 @@ end
         i = pos(G[g]*G[h])
         have[i] && continue
         have[i] = true
-        chr[i] = (Cls[i], K(trace_product(M[g], M[h])))
+        chr[i] = (Cls[i], K(trace_of_product(M[g], M[h])))
       end
     end
     for i = 1:length(Cls)
