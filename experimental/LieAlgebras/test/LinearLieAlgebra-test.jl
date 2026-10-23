@@ -63,6 +63,15 @@
     L = lie_algebra(QQ, 3, [e, f, h], [:e, :f, :h]; is_basis=true)
     @test matrix_repr_basis(L) == [e, f, h]
     @test_throws ArgumentError lie_algebra(QQ, 3, [e, f], [:e, :f]; is_basis=true)
+
+    # with a given field, the entries are mapped into it
+    e = matrix(ZZ, [0 1 0; 0 0 1; 0 0 0])
+    f = matrix(ZZ, [0 0 0; 2 0 0; 0 2 0])
+    L = @inferred lie_algebra(QQ, [e, f])
+    @test matrix_repr_basis(L) ==
+      matrix_repr_basis(lie_algebra(map_entries.(Ref(QQ), [e, f])))
+    @test dim(@inferred lie_algebra(GF(2), [e, f])) == 1
+    @test_throws ArgumentError lie_algebra(QQ, ZZMatrix[])
   end
 
   @testset "construction from matrices" begin
