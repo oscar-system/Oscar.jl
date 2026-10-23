@@ -177,7 +177,7 @@ end
 # reads the result's parent off `vals[1]`, so it rejects an empty `vals`.
 function _evaluate_in(S::NCRing, f::MPolyRingElem, vals::Vector)
   is_empty(vals) && return S(constant_coefficient(f))
-  return evaluate(f, vals)
+  return S(evaluate(f, vals))
 end
 
 # The following is used when the domain is graded
