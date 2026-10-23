@@ -608,6 +608,11 @@ Return `x` as a list of indices of simple reflections, in reduced form.
 
 This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
 
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the Weyl group element.
+    Mutating the returned object will lead to undefined behavior.
+
 # Examples
 
 ```jldoctest
