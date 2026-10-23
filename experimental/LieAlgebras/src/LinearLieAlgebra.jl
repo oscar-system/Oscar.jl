@@ -301,7 +301,7 @@ end
 
 function change_base_ring(R::Field, L::LinearLieAlgebra)
   basis = map(b -> change_base_ring(R, b), matrix_repr_basis(L))
-  return lie_algebra(R, L.n, basis, symbols(L); check=false)
+  return lie_algebra(R, L.n, basis, symbols(L); is_basis=true, check=false)
 end
 
 ###############################################################################
@@ -443,8 +443,7 @@ end
 function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:LinearLieAlgebra}
   @req n >= 0 "Dimension must be non-negative."
   basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
-  s = ["x_$(i)" for i in 1:n]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis; is_basis=true, check=false)
   set_attribute!(L, :is_abelian => true)
   return L
 end
@@ -480,7 +479,7 @@ julia> matrix_repr_basis(L)
 function general_linear_lie_algebra(R::Field, n::Int)
   basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
   s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis, s; is_basis=true, check=false)
   set_attribute!(L, :type => :general_linear)
   return L
 end
@@ -520,7 +519,9 @@ function special_linear_lie_algebra(R::Field, n::Int)
   s_e = ["e_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_f = ["f_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_h = ["h_$(i)" for i in 1:(n - 1)]
-  L = lie_algebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h]; check=false)
+  L = lie_algebra(
+    R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h]; is_basis=true, check=false
+  )
   set_attribute!(L, :type => :special_linear)
   return L
 end
@@ -612,8 +613,7 @@ function special_orthogonal_lie_algebra(R::Field, n::Int, gram::MatElem)
   basis = _lie_algebra_basis_from_form(R, n, form)
   dim = length(basis)
   @assert characteristic(R) != 0 || dim == div(n^2 - n, 2)
-  s = ["x_$(i)" for i in 1:dim]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis; is_basis=true, check=false)
   set_attribute!(L, :type => :special_orthogonal, :form => form)
   return L
 end
@@ -697,8 +697,7 @@ function symplectic_lie_algebra(R::Field, n::Int, gram::MatElem)
   basis = _lie_algebra_basis_from_form(R, n, form)
   dim = length(basis)
   @assert characteristic(R) != 0 || dim == div(n^2 + n, 2)
-  s = ["x_$(i)" for i in 1:dim]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis; is_basis=true, check=false)
   set_attribute!(L, :type => :symplectic, :form => form)
   return L
 end
