@@ -31,7 +31,7 @@ end
 function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup = G)
   T = right_transversal(G, H)
   Tvec = PermGroupElem[ reparent(ambient, t) for t in T ]
-  return GAPTransversalTest(T, Tvec, G, ambient)
+  return GAPTransversalTest(T, Tvec, G, ambient, Dict{PermGroupElem,Int}())
 end
 
 _coset_rep(tf::GAPTransversalTest, x::PermGroupElem) = tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
@@ -47,7 +47,7 @@ mutable struct FunctionTest{F} <: AbstractTestFunction
 end
 
 function FunctionTest(Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup = parent(first(Tvec))) where F
-  tf = FunctionTest{F}(f, copy(Tvec), parent(first(Tvec)), ambient)
+  tf = FunctionTest{F}(f, copy(Tvec), parent(first(Tvec)), ambient, Dict{PermGroupElem,Int}())
   set_ambient!(tf, ambient)
   return tf
 end
