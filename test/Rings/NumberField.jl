@@ -137,6 +137,9 @@
     @test parent(bb) === K
     @test b !== bb
 
+    bb = deepcopy([b, b])
+    @test bb[1] === bb[2]
+
     # In place operations
     for i in 1:10
       b = rand(K, -2:2)
