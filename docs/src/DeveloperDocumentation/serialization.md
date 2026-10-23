@@ -352,6 +352,27 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
 end
 ```
 
+Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
+`save_data_dict`. Otherwise you will get a key override error.
+
+### Registering types in other packages
+
+Besides defining methods, `@register_serialization_type` adds the type to
+global tables of OSCAR. Changes to these tables made while a package is
+precompiled are lost, so in a package depending on OSCAR, calling the macro at
+the top level leads to a `KeyError` on `save` in later sessions.
+Instead, call it from the package's `__init__` function:
+
+```julia
+function __init__()
+  # evaluating into a closed module breaks precompilation of dependent packages
+  if ccall(:jl_generating_output, Cint, ()) == 0 # `!Base.generating_output()` on Julia ≥ 1.11
+    @eval @register_serialization_type MyType
+    @eval @register_serialization_type MyParentType uses_id
+  end
+end
+```
+
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
@@ -484,25 +505,25 @@ The typical structure of an upgrade function is:
 ```julia
 push!(upgrade_scripts_set, UpgradeScript(
   v"X.Y.Z",
-  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{String, Any})
     # 1. Recurse into containers and nested objects first
     upgrade_recursive(upgrade_X_Y_Z, s, dict)
 
     # 2. Determine the type name of the current node
-    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
-      type_name = dict[:_type][:name]
+    if dict["_type"] isa AbstractDict && haskey(dict["_type"], "name")
+      type_name = dict["_type"]["name"]
     else
-      type_name = dict[:_type]
+      type_name = dict["_type"]
     end
 
     # 3. Apply type-specific transformations
     if type_name == "MyType"
       # rename a field in the data
-      dict[:data][:new_field] = pop!(dict[:data], :old_field)
+      dict["data"]["new_field"] = pop!(dict["data"], "old_field")
     elseif type_name == "AnotherType"
       # change type parameter structure
-      old_params = dict[:_type][:params]
-      dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
+      old_params = dict["_type"]["params"]
+      dict["_type"]["params"] = Dict{Symbol, Any}("renamed" => old_params["original"])
     end
 
     return dict

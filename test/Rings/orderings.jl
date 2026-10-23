@@ -344,7 +344,8 @@ end
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
       @test O == monomial_ordering(R, Oscar.singular(O))
-      @test O == monomial_ordering(R, Singular.ordering(Oscar.singular_poly_ring(R, O)))
+      iso = Oscar.iso_oscar_singular_poly_ring(R, O)
+      @test O == monomial_ordering(R, Singular.ordering(codomain(iso)))
    end
 
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))
@@ -403,6 +404,16 @@ end
    O9 = matrix_ordering([x, y], [1 2; 1 2]; check = false) * lex(gens(R))
    @test monomial_ordering(R, Oscar.singular(O9)) == O9
    @test Oscar.singular(O9) isa Singular.sordering
+
+   # weights Singular's Wp/wp/Ws/ws blocks reject fall back to a matrix ordering
+   for O10 in (wdeglex(gens(R), [0, 1, 2, 3, 4]),
+               wdegrevlex(gens(R), [-1, 1, 2, 3, 4]),
+               negwdeglex(gens(R), [0, 1, 2, 3, 4]))
+      @test monomial_ordering(R, Oscar.singular(O10)) == O10
+      @test startswith(string(Oscar.singular(O10)), "ordering_M(")
+   end
+   I = ideal(R, [x^2 - y, x*y])
+   @test all(in(I), gens(standard_basis(I; ordering = wdegrevlex(gens(R), [-1, 1, 2, 3, 4]))))
 end
 
 @testset "Polynomial Ordering misc bugs" begin

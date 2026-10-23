@@ -29,14 +29,12 @@ function lie_algebra_simple_module_struct_consts_gap(
 
   struct_consts = Matrix{sparse_row_type(C)}(undef, dimL, dimV)
   for i in 1:dimL, j in 1:dimV
-    struct_consts[i, j] = sparse_row(
-      R,
-      Tuple{Int,elem_type(R)}[
-        (k, R(c)) for (k, c) in enumerate(
-          map(c -> preimage(isoR, c), GAPWrap.Coefficients(basisV, basisL[i]^basisV[j]))
-        ) if !iszero(c)
-      ],
-    )
+    entries = Tuple{Int,elem_type(R)}[]
+    for (k, c) in enumerate(GAPWrap.Coefficients(basisV, basisL[i]^basisV[j]))
+      # only convert the non-zeros, `iszero` is a GAP call unless `c` is a Julia integer
+      !iszero(c) && push!(entries, (k, preimage(isoR, c)))
+    end
+    struct_consts[i, j] = sparse_row(R, entries)
   end
 
   return struct_consts
