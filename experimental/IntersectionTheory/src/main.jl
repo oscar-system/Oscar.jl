@@ -33,7 +33,6 @@ AbstractBundle of rank 12 on AbstractVariety of dim 4
 
 julia> C = 5*OO(P4, 3)
 AbstractBundle of rank 5 on AbstractVariety of dim 4
-
 julia> F = B - A - C
 AbstractBundle of rank 2 on AbstractVariety of dim 4
 
@@ -1390,6 +1389,8 @@ cotangent_bundle(X::AbstractVariety) = dual(tangent_bundle(X))
 
 If `X` has been given a tangent bundle, return the canonical class of `X`.
 
+That is, return the first Chern class of the canonical bundle on `X`.
+
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
@@ -1416,6 +1417,9 @@ julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
 julia> canonical_bundle(P2) == det(cotangent_bundle(P2))
+true
+
+julia> chern_class(canonical_bundle(P2), 1) == chern_class(cotangent_bundle(P2), 1)
 true
 
 ```
@@ -1900,6 +1904,9 @@ Quotient
     h -> [1]
     H -> [1]
   by ideal (h^3, H^4)
+
+julia> polarization(P2xP3)
+h + H
 
 ```
 """
@@ -3236,10 +3243,10 @@ Quotient
     c[2, 3] -> [3]
   by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
 
-julia> c11 = gens(RFV)[1]
-c[1, 1]
+julia> c21 = gens(RFV)[2]
+c[2, 1]
 
-julia> f = hom(RP3, RFV, [-c11])
+julia> f = hom(RP3, RFV, [c21])
 Ring homomorphism
   from quotient of multivariate polynomial ring by ideal (h^4)
   to quotient of multivariate polynomial ring by ideal (-c[1, 1]*c[2, 3], -c[1, 1]*c[2, 2] - c[2, 3], -c[1, 1]*c[2, 1] - c[2, 2], -c[1, 1] - c[2, 1])
@@ -4093,18 +4100,28 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
 end
 
 @doc raw"""
-    flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
-    flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
+    function flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c",
+                     pushforward_algorithm::Symbol=:monic)
+    function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c",
+                     pushforward_algorithm::Symbol = :monic)
 
 Given integers, say, $d_1, \dots, d_{k}, n$ with $0 < d_1 < \dots < d_{k} < n$ or a vector of such integers,
 and given an abstract bundle $E$ of rank $n$, return the abstract flag bundle of nested sequences
 of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 
+# Implemented Algorithms
+The default algorithm (`Symbol = :monic`) for computing the pushforward of cycle classes
+from a flag bundle is the algorithm by Grayson, , and Stillman, see [GSS22](@cite). 
+Alternatively (`Symbol = :gysin`), use
+
+
+There are two
+
 !!! note
     Entering the number $n$ can be omitted since this number can be recovered as the rank of $E$.
 
 !!! note
-    The string `symbol` specifies how to print the generators of the Chow ring.
+    The string `symbols` specifies how to print the generators of the Chow ring.
 
 !!! note
     Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $d_1, \dots, d_k$
@@ -4121,9 +4138,6 @@ of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
     $\prod_{i = 1}^{k+1} \mathrm{c}(\mathcal{SQ}_i) = \mathrm{c}(\pi^\ast E),$
 
     where $c$ stands for taking the total Chern class. See [Gro58](@cite).
-
-!!! note
-    For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite).
 
 # Examples
 ```jldoctest
@@ -4171,107 +4185,93 @@ julia> sum(pullback(pi, chern_class(T, i)) for i = 0:4)
 
 ```
 """
-function flag_bundle(F::AbstractBundle, dims::Int...; symbol::String="c")
-  flag_bundle(F, collect(dims), symbol=symbol)
+function flag_bundle(F::AbstractBundle, dims::Int...; gens_names::String = "c",
+                     pushforward_algorithm::Symbol=:monic)
+  flag_bundle(F, Int[dims...]; gens_names = gens_names, pushforward_algorithm = pushforward_algorithm)
 end
 
-function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
+function flag_bundle(F::AbstractBundle, dims::Vector{Int}; gens_names::String = "c",
+                     pushforward_algorithm::Symbol = :monic)
+  _flag_check_algorithm(pushforward_algorithm)
   X, n = parent(F), rank(F)
   !(n isa Int) && error("expect rank to be an integer")
-
-  # compute the ranks of successive subquotients and the relative dimension
-
-  if dims[end] < n # the last dim can be omitted
-    dims = vcat(dims, [n])
+  @req n isa Int && n > 0 "Expected a bundle of positive integer rank"
+  @req all(d -> 0 < d <= n, dims) "Flag dimensions must lie between 1 and the bundle rank"
+  @req all(i -> dims[i] < dims[i + 1], 1:(length(dims) - 1)) "Flag dimensions must be strictly increasing"
+  dims = copy(dims)
+  if isempty(dims) || dims[end] < n
+    push!(dims, n)
   end
   l = length(dims)
-  ranks = pushfirst!([dims[i + 1]-dims[i] for i in 1:(l - 1)], dims[1])
-  @assert all(>(0), ranks) && dims[end] <= n
-  d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:(l - 1))
+  ranks = diff(vcat([0], dims))
+  d = sum(ranks .* (dims - ranks))
 
-  # construct the (numerical) Chow-ring (Grothendieck, Seminaire Chevalley, tome 3 (1985))
+  # construct the Chow-ring (Grothendieck, Seminaire Chevalley, tome 3 (1985))
 
   # 1. implement the generators
 
   R = chow_ring(X)
-  if R isa MPolyQuoRing
-    PR = base_ring(R)
-  else
-    PR = R
-  end
-  syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i, r) in enumerate(ranks)])
-  w = reduce(vcat, [1:r for r in ranks])
-  append!(w, gradings(R))
+  PR = R isa MPolyQuoRing ? base_ring(R) : R
+  syms = reduce(vcat, [_parse_symbol(gens_names, i, 1:r) for (i, r) in enumerate(ranks)])
+  w = vcat(reduce(vcat, [1:r for r in ranks]), weights(Int, R))
   R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(
     X.base, syms, symbols(PR); weights=w
   )
   PRtoR1 = hom(PR, R1, imgs_in_R1)
 
   # 2. implement the relations
+  # Keep the public quotient presentation and its ordering. Relative monic
+  # reduction has its own ordering and accepts ANY representative in R1.
 
   c = [1+sum(gens_for_rels_R1[(dims[i] + 1):dims[i + 1]]) for i in 1:(l - 1)]
   pushfirst!(c, 1+sum(gens_for_rels_R1[1:dims[1]]))
-  Rx, x = R1[:x]
-  fi = PRtoR1(total_chern_class(F).f)[0:n]
-  f = sum(fi[i + 1].f * x^(n-i) for i in 0:n)
-  gi = prod(c)[0:n]
-  g = sum(gi[i + 1].f * x^(n-i) for i in 0:n)
-  rels = [R1(coeff(mod(f, g), i)) for i in 0:(n - 1)]
+  cF = total_chern_class(F)
+  difference = PRtoR1(R isa MPolyQuoRing ? lift(cF) : cF) - prod(c)
+  rels = [difference[i] for i in n:-1:1]
   if R isa MPolyQuoRing
-    rels = vcat(PRtoR1.(gens(R.I)), rels)
+    rels = vcat(PRtoR1.(gens(modulus(R))), rels)
   end
   AFl = quo(R1, ideal(rels))[1]
-  c = AFl.(c)
 
-  # construct the abstract variety
+  # 3. construct the abstract variety
 
-  Fl = AbstractVariety(X.dim + d, AFl)
-  Fl.bundles = [AbstractBundle(Fl, r, ci) for (r, ci) in zip(ranks, c)]
+  Fl = AbstractVariety(dim(X) + d, AFl)
+  Fl.bundles = [AbstractBundle(Fl, r, AFl(ci)) for (r, ci) in zip(ranks, c)]
+  D = _FlagBundleData(R, ranks, [chern_class(F, j) for j in 1:n];
+                      names = syms, algorithm = pushforward_algorithm)
+  set_attribute!(Fl, :flag_bundle_data => D)
+  section = prod(gens_for_rels_R1[dims[i]]^(dims[i] - ranks[i]) for i in 1:l)
 
-  # constructing the projection map
+  # 3.1. constructing the structure map
 
-  # 1. pullback
+  # 3.1.1 pullback
 
   p_star = Fl.(imgs_in_R1)
 
-  # 2. pushforward ([GSS22](@cite) Theorem 2.15, Corollary 5.3)
+  # 3.1.2. pushforward ([GSS22](@cite) Theorem 2.15, Corollary 5.3)
 
-  ME = _matrix_of_exponents(ranks)
-  nl = size(ME)[1]
-  wcs = reduce(vcat, [1:r for r in ranks])
-  Rcs, _ = graded_polynomial_ring(base(X), syms; weights=wcs)
-  RcstoR1 = Oscar.hom(Rcs, R1, gens_for_rels_R1)
-  gs = [monomial(Rcs, [Int(ME[i, j]) for j in 1:n]) for i in nl:-1:1]
-  gs = [RcstoR1(gs[i]) for i in 1:length(gs)]
-  ds = [degree(Int, gs[i]) for i in 1:1:nl]
-  dm = argmax(ds)
-  fm = hom(R, AFl, p_star)
-  p_push = x -> X(_find_sect(fm, gs)(simplify(x).f)[dm])
+  p_push = x -> _flag_bundle_pushforward(Fl, x, D.default_algorithm)
+  p_push = MapFromFunc(AFl, R, p_push)
 
-  ### old approach to push forward
-  ###  R1toR = hom(R1, R, vcat(repeat([R()], n), gens(R)))
-  ###  section = prod(top_chern_class(E)^sum(dims[i]) for (i, E) in enumerate(Fl.bundles[2:end]))
-  ###  p_push = x -> (@warn("possibly wrong ans"); X(R1toR(div(simplify(x).f, simplify(section).f))))
+  # 3.1.3 putting things together
 
-  p_push = MapFromFunc(Fl.ring, X.ring, p_push)
   p = AbstractVarietyMap(Fl, X, p_star, p_push)
+  if l == 1
+    p.T = AbstractBundle(Fl, 0, one(AFl))
+  else
+    p.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in (i + 1):l]) for i in 1:(l - 1))
+  end
   Fl.structure_map = p
 
-  if isdefined(X, :point)
-    Fl.point = AFl(PRtoR1(X.point.f) * gs[dm])
-  end
+  # 4. further data
 
-  ### old approach to point class
-  ###if isdefined(X, :point)
-  ###Fl.point = PRtoR1(X.point.f) * section
-  ###end
+  if isdefined(X, :point)
+    Fl.point = pullback(p, point_class(X)) * AFl(section)
+  end
 
   p.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.O1 = p.O1
 
-  p.T = sum(
-    dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in (i + 1):l]) for i in 1:(l - 1)
-  )
   if isdefined(X, :T)
     Fl.T = pullback(p, tangent_bundle(X)) + tangent_bundle(p)
   end
@@ -4279,7 +4279,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   set_attribute!(
     Fl, :description => "Relative flag abstract_variety Flag$(tuple(dims...)) for $F"
   )
-  set_attribute!(Fl, :section => AFl(gs[dm]))
+  set_attribute!(Fl, :section => AFl(section))
   get_attribute(X, :alg) == true && set_attribute!(Fl, :alg => true)
 
   l == 2 && set_attribute!(Fl, :grassmannian => :relative)
@@ -4346,102 +4346,6 @@ function section_class(f::AbstractVarietyMap)
   get_attribute(domain(f), :section)
 end
 
-###########################################################
-#helper functions above
-###########################################################
-
-function _matrix_of_exponents(ni::Vector{Int})
-  n = sum(ni)
-  r = length(ni)
-  A = zero_matrix(ZZ, n, n)
-  b = zero_matrix(ZZ, n, 1)
-
-  C = zero_matrix(ZZ, r, n)
-  d = zero_matrix(ZZ, r, 1)
-  s = 0
-  for i in 1:r
-    for j in 1:ni[i]
-      C[i, j + s] = 1
-    end
-    s += ni[i]
-    d[i] = n-sum(ni[i:r])
-  end
-
-  C = vcat(-C, identity_matrix(ZZ, n))
-  d = vcat(-d, zero_matrix(ZZ, n, 1))
-
-  return solve_mixed(A, b, C, d)
-end
-
-function _find_sect(F::Oscar.AffAlgHom, gs::Vector) # see function present_finite_extension_ring
-  A, B = F.domain, F.codomain
-  a, b = ngens(A), ngens(B)
-
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i in 1:a]
-  else
-    BR = B
-    M = [F(gens(A)[i]) for i in 1:a]
-  end
-
-  @assert base_ring(AR) == base_ring(BR)
-
-  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
-  C, _ = quo(BR, I)
-  @assert gs[end] == 1 # the last one should always be 1
-  g = length(gs)
-
-  R, _ = tensor_product(BR, AR; use_product_ordering=true)
-  ba = gens(R)
-  ARtoR = Oscar.hom(AR, R, ba[(b + 1):end])
-  BRtoR = Oscar.hom(BR, R, ba[1:b])
-  RtoAR = Oscar.hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
-  gs_lift = [BRtoR(g) for g in gs]
-
-  # compute the ideal J of the graph of F
-
-  Rels = [ba[b + i]-BRtoR(m) for (i, m) in enumerate(M)]
-  if isdefined(A, :I)
-    for g in gens(A.I)
-      push!(Rels, ARtoR(g))
-    end
-  end
-  if isdefined(B, :I)
-    for g in gens(B.I)
-      push!(Rels, BRtoR(g))
-    end
-  end
-  J = ideal(R, Rels) # the ideal of the graph of F
-  W = vcat(
-    BR isa MPolyDecRing ? weights(Int, BR) : fill(1, ngens(BR)),
-    AR isa MPolyDecRing ? weights(Int, AR) : fill(1, ngens(AR)),
-  )
-  try
-    fglm(J; start_ordering=wdegrevlex(R, W), destination_ordering=default_ordering(R))
-  catch e
-    if !(e isa ErrorException && e.msg == "Dimension of corresponding ideal must be zero.")
-      rethrow(e)
-    end
-  end
-  V = groebner_basis(J)
-
-  sect =
-    x -> (y=reduce(BRtoR(x), gens(V); complete_reduction=true);
-      ans=elem_type(AR)[];
-      for i in 1:g
-        q = div(y, gs_lift[i])
-        push!(ans, RtoAR(q))
-        y -= q * gs_lift[i]
-      end; ans)
-  return sect
-end
-
 ###############################################################################
 #
 #
@@ -4452,3 +4356,6 @@ end
 function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
   return [string(symbol, "[", n, ", ", i, "]") for i in I]
 end
+
+
+
