@@ -139,7 +139,7 @@ end
 @doc raw"""
     WeightLatticeElem(P::WeightLattice, vec::Vector{<:IntegerUnion}) -> WeightLatticeElem
 
-Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of corresponding root system.
+Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of the corresponding root system.
 """
 function WeightLatticeElem(P::WeightLattice, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), v))
@@ -324,7 +324,7 @@ end
 
 Return the coefficient of the `i`-th fundamental weight in `w`.
 
-This can be also accessed via `w[i]`.
+This can also be accessed via `w[i]`.
 """
 function coeff(w::WeightLatticeElem, i::Int)
   return w.vec[i]

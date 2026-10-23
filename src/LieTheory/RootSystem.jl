@@ -950,7 +950,7 @@ end
 
 Return the coefficient of the `i`-th simple root in `r`.
 
-This can be also accessed via `r[i]`.
+This can also be accessed via `r[i]`.
 """
 function coeff(r::RootSpaceElem, i::Int)
   return r.vec[i]
@@ -989,7 +989,7 @@ end
 @doc raw"""
     height(r::RootSpaceElem) -> QQFieldElem
 
-For a root `r`, returns the height of `r`, i.e. the sum of the coefficients of the simple roots.
+Return the height of the root `r`, i.e. the sum of the coefficients of the simple roots.
 If `r` is not a root, the return value is arbitrary.
 """
 function height(r::RootSpaceElem)
@@ -1360,7 +1360,7 @@ end
 
 Return the coefficient of the `i`-th simple coroot in `r`.
 
-This can be also accessed via `r[i]`.
+This can also be accessed via `r[i]`.
 """
 function coeff(r::DualRootSpaceElem, i::Int)
   return r.vec[i]
@@ -1400,7 +1400,7 @@ end
 @doc raw"""
     height(r::DualRootSpaceElem) -> QQFieldElem
 
-For a coroot `r`, returns the height of `r`, i.e. the sum of the coefficients of the simple coroots.
+Return the height of the coroot `r`, i.e. the sum of the coefficients of the simple coroots.
 If `r` is not a coroot, the return value is arbitrary.
 """
 function height(r::DualRootSpaceElem)
