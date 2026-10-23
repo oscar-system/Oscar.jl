@@ -1045,7 +1045,7 @@ function representatives_of_hermitian_type(
     phi = inv(isomorphism(PermGroup, GKQ)) # Want a GAPGroup to create a gset
     # We have a mathematical left action to put into a right action -> double inverse
     omega = gset(domain(phi), (G, g) -> _action_on_genus(G, j(phi(inv(g)))), gene)
-    gene = representative.(orbits(omega))
+    gene = eltype(gene)[representative(o) for o in orbits(omega)]
   end
 
   allow_info && !_local &&  println("All possible hermitian genera $G  $min_poly: $(length(gene))")
@@ -1281,7 +1281,7 @@ function representatives_of_hermitian_type(
       GKQ, j = automorphism_group(K)
       phi = inv(isomorphism(PermGroup, GKQ))
       omega = gset(domain(phi), (G, g) -> _action_on_genus(G, j(phi(inv(g)))), gene)
-      gene = representative.(orbits(omega))
+      gene = eltype(gene)[representative(o) for o in orbits(omega)]
     end
 
     allow_info && println("All possible hermitian genera: $(length(gene))")
