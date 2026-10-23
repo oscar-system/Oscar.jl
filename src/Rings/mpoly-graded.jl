@@ -8,28 +8,34 @@
   hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
-  function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
+  function MPolyDecRing(R::S, D::FinGenAbGroup, d::Vector{FinGenAbGroupElem}) where {S}
     @req !(R isa MPolyDecRing) "cannot grade polynomial ring which is already decorated"
+    @req all(x -> D === parent(x), d) "parent of weights does not match given group or weights have different parents"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
-    r.D = parent(d[1])
+    r.D = D
     r.d = d
-    r.is_fine_graded = is_free(parent(d[1])) && (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
+    r.is_fine_graded = is_free(D) && (rank(D) == ngens(R)) && (d == gens(D))
     return r
   end
-  function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
+  function MPolyDecRing(R::S, D::FinGenAbGroup, d::Vector{FinGenAbGroupElem}, lt) where {S}
     @req !(R isa MPolyDecRing) "cannot filter polynomial ring which is already decorated"
+    @req all(x -> D === parent(x), d) "parent of weights does not match given group or weights have different parents"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
-    r.D = parent(d[1])
+    r.D = D
     r.d = d
     r.lt = lt
-    r.is_fine_graded = is_free(parent(d[1])) &&  (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
+    r.is_fine_graded = is_free(D) &&  (rank(D) == ngens(R)) && (d == gens(D))
     return r
   end
 end
+
+# a ring without variables needs the grading group passed explicitly
+MPolyDecRing(R, d::Vector{FinGenAbGroupElem}) = MPolyDecRing(R, parent(d[1]), d)
+MPolyDecRing(R, d::Vector{FinGenAbGroupElem}, lt) = MPolyDecRing(R, parent(d[1]), d, lt)
 
 generator_degrees(S::MPolyDecRing) = S.d
 is_fine_graded(S::MPolyDecRing) = S.is_fine_graded
@@ -124,7 +130,7 @@ end
 
 function decorate(R::MPolyRing)
   A = abelian_group([0])
-  S = MPolyDecRing(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
+  S = MPolyDecRing(R, A, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
   return S, map(R, gens(R))
 end
 
@@ -177,13 +183,13 @@ function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)
   A = abelian_group([0])
   set_attribute!(A, :show_elem => show_special_elem_grad)
-  S = MPolyDecRing(R, [i*A[1] for i = W])
+  S = MPolyDecRing(R, A, [i*A[1] for i = W])
   return S, map(S, gens(R))
 end
 
 function grade(R::MPolyRing)
   A = abelian_group([0])
-  S = MPolyDecRing(R, [1*A[1] for i = 1: ngens(R)])
+  S = MPolyDecRing(R, A, [1*A[1] for i = 1: ngens(R)])
   return S, map(S, gens(R))
 end
 
@@ -229,7 +235,7 @@ function grade(R::MPolyRing, W::AbstractVector{<:AbstractVector{<:IntegerUnion}}
 
   A = abelian_group(zeros(Int, n))
   set_attribute!(A, :show_elem => show_special_elem_grad)
-  S = MPolyDecRing(R, [A(w) for w = W])
+  S = MPolyDecRing(R, A, [A(w) for w = W])
   return S, map(S, gens(R))
 end
 
@@ -238,7 +244,7 @@ function grade(R::MPolyRing, W::Union{ZZMatrix, AbstractMatrix{<:IntegerUnion}})
   A = abelian_group(zeros(Int, size(W, 1)))
   set_attribute!(A, :show_elem => show_special_elem_grad)
   ###S = MPolyDecRing(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
-  S = MPolyDecRing(R, [A(W[:, i]) for i = 1:size(W, 2)])
+  S = MPolyDecRing(R, A, [A(W[:, i]) for i = 1:size(W, 2)])
   return S, map(S, gens(R))
 end
 
@@ -631,7 +637,7 @@ end
 function filtrate(R::MPolyRing, v::Vector{Int})
   A = abelian_group([0])
   set_attribute!(A, :show_elem => show_special_elem_grad)
-  S = MPolyDecRing(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
+  S = MPolyDecRing(R, A, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
   return S, map(S, gens(R))
 end
 
@@ -1612,7 +1618,7 @@ S_[1 1] of dim 6
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
-Map defined by a julia-function with inverse
+Map defined by a Julia function with inverse
   from S_[1 1] of dim 6
   to graded multivariate polynomial ring in 5 variables over QQ
 
@@ -2681,13 +2687,13 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # side if we have one
     G = first(values(I.gb))
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
     ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   end
 end
 

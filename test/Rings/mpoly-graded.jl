@@ -173,6 +173,14 @@ end
         #end
     end
   end
+
+  # Catch different parents among the weights
+  G = abelian_group([0, 0])
+  H = abelian_group([0])
+  W = [2*G[1]+G[2], H[1]]
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  @test_throws ArgumentError grade(R, W)
+  @test_throws ArgumentError filtrate(R, W, <)
 end
 
 @testset "Coercion" begin
@@ -208,6 +216,20 @@ end
   R, (x,y) = graded_polynomial_ring(QQ, [:x, :y])
   D = grading_group(R)
   @test is_isomorphic(D, abelian_group([0]))
+end
+
+@testset "Graded polynomial ring in 0 variables" begin
+  # the grading group cannot be read off generator degrees here
+  P, _ = polynomial_ring(QQ, 0)
+  for (R, x) in [graded_polynomial_ring(QQ, :t => 1:0),
+                 graded_polynomial_ring(QQ, :t => 1:0; weights = Int[]),
+                 grade(P),
+                 grade(P, Int[])]
+    @test ngens(R) == 0
+    @test isempty(x)
+    @test is_z_graded(R)
+    @test degree(one(R)) == zero(grading_group(R))
+  end
 end
 
 @testset "Monomial bases and homogeneous components with torsion" begin

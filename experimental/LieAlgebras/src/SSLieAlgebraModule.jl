@@ -231,7 +231,7 @@ function dominant_character(
 end
 
 function dominant_character(
-  T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
@@ -242,7 +242,7 @@ function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return dominant_character(R, WeightLatticeElem(R, hw))
 end
 
-function dominant_character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+function dominant_character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
   return dominant_character(T, R, WeightLatticeElem(R, hw))
 end
 
@@ -250,7 +250,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
   return dominant_character(Int, R, hw)
 end
 
-function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
+function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
@@ -310,7 +310,7 @@ function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
-function _action_matrices_on_weights(W::WeylGroup)
+@attr Vector{ZZMatrix} function _action_matrices_on_weights(W::WeylGroup)
   R = root_system(W)
   return map(1:rank(R)) do i
     x = gen(W, i)
@@ -375,7 +375,7 @@ function character(L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUn
 end
 
 function character(
-  T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
@@ -386,7 +386,7 @@ function character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return character(R, WeightLatticeElem(R, hw))
 end
 
-function character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+function character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
   return character(T, R, WeightLatticeElem(R, hw))
 end
 
@@ -394,7 +394,7 @@ function character(R::RootSystem, hw::WeightLatticeElem)
   return character(Int, R, hw)
 end
 
-function character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
+function character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   dom_char = dominant_character(T, R, hw)
@@ -675,7 +675,7 @@ function demazure_character(
 end
 
 function demazure_character(
-  T::DataType,
+  T::Type,
   L::LieAlgebra,
   w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
@@ -692,7 +692,7 @@ function demazure_character(
 end
 
 function demazure_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w::Vector{<:IntegerUnion},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
@@ -707,7 +707,7 @@ function demazure_character(
 end
 
 function demazure_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w::WeightLatticeElem,
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
@@ -759,7 +759,7 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  T::DataType,
+  T::Type,
   L::LieAlgebra,
   w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
@@ -778,7 +778,7 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w1::Vector{<:IntegerUnion},
   w2::Vector{<:IntegerUnion},
@@ -797,7 +797,7 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w1::WeightLatticeElem,
   w2::WeightLatticeElem,

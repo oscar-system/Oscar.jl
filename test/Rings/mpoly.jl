@@ -680,6 +680,32 @@ end
   @test dim(R) == 2
 end
 
+@testset "ideals in polynomial rings in 0 variables" begin
+  # Singular needs at least one variable for these
+  P, _ = polynomial_ring(QQ, 0)
+  I = ideal(P, [zero(P)])
+  @test dim(I) == 0
+  @test isempty(groebner_basis(I))
+  @test normal_form(P(2), I) == P(2)
+  @test !(P(2) in I)
+  @test zero(P) in I
+  I = ideal(P, [P(3)])
+  @test dim(I) == -inf
+  @test dim(quo(P, I)[1]) == -inf
+  @test collect(groebner_basis(I; complete_reduction = true)) == [one(P)]
+  @test is_zero(normal_form(P(2), I))
+  @test P(2) in I
+
+  P, _ = polynomial_ring(ZZ, 0)
+  @test dim(ideal(P, [zero(P)])) == 1
+  @test dim(ideal(P, [one(P)])) == -inf
+  I = ideal(P, [P(4), P(6)])
+  @test dim(I) == 0
+  @test collect(groebner_basis(I)) == [P(2)]
+  @test P(8) in I
+  @test !(P(3) in I)
+end
+
 @testset "principally generated ideals" begin
   R, (x, y) = QQ[:x, :y]
   I1 = ideal(R, [x])

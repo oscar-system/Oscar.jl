@@ -9,15 +9,15 @@ Let ``R`` be a ring and ``(M,q)`` a quadratic ``R``-module, i.e. ``M`` is an ``R
 that carries an ``R``-valued quadratic form ``q.`` For a positive integer ``m``, we write
 ``\underline{m} = \lbrace 1, \ldots, m \rbrace``.
 
-A *Clifford algebra* for ``(M,q)`` is a pair ``(C,g)``, that consists of an associative
+A *Clifford algebra* for ``(M,q)`` is a pair ``(C,g)`` consisting of an associative
 unital ``R``-algebra ``C`` and an ``R``-module homomorphism
-``g : M \rightarrow C`` such that ``g(x)^2 = q(x) \cdot 1_C``, for all ``x \in M``, which
-has the following universal property:
+``g : M \rightarrow C`` satisfying ``g(x)^2 = q(x) \cdot 1_C``, for all ``x \in M``, with
+the following universal property:
 For any other pair ``(B,f)`` of an associative unital ``R``-algebra ``B`` and an ``R``-module homomorphism
 ``f : M \rightarrow B`` with ``f(x)^2 = q(x) \cdot 1_B`` for all ``x \in M``, there exists a unique
 ``R``-algebra homomorphism ``h : C \rightarrow B`` such that ``f = h \circ g``.
 
-!!! note "Existence, uniqueness of the Clifford algebra and injectiveness of g"
+!!! note "Existence, uniqueness of the Clifford algebra"
     Since the Clifford algebra of a quadratic ``R``-module ``M = (M,q)`` is defined via a universal
     property, the Clifford algebra ``C = C(M)`` is unique up to isomorphism of ``R``-algebras. The
     Clifford algebra can be constructed as a quotient of the free associative ``R``-algebra on a
@@ -41,14 +41,14 @@ More specifically, if
 ```math
 (e_i \mid i \in \underline{n})
 ```
-is a ``K``-basis of ``V``, then a ``K``-basis of ``\mathcal{C}`` is given by
+is a ``K``-basis of ``V``, then a ``K``-basis of ``C`` is given by
 ```math
 (e_I \mid I \subseteq \underline{n}),
 ```
 with ``e_I = e_{i_1} \ldots e_{i_k}``, where ``I = \lbrace i_1, \ldots, i_k \rbrace``,
 ``i_1 < \ldots < i_k`` for some ``0 \leq k \leq n``. For example, we have
 ```math
-e_\emptyset = 1_\mathcal{C}, \quad e_{\lbrace 1 \rbrace} = e_1, \quad e_{\lbrace 1,3,4 \rbrace } = e_1 e_3 e_4, \quad etc.
+e_\emptyset = 1_C, \quad e_{\lbrace 1 \rbrace} = e_1, \quad e_{\lbrace 1,3,4 \rbrace } = e_1 e_3 e_4, \quad \text{etc}.
 ```
 From now on, we will drop the brackets in the indices, so we simply write ``e_{1,3,4}`` instead of ``e_{\lbrace 1,3,4 \rbrace}`` and so on.
 
@@ -62,7 +62,7 @@ Note that the (free) quadratic ``K``-space ``V`` of rank ``n`` is determined up 
 by a symmetric ``n \times n``-matrix with entries in ``K`` and main diagonal in ``2K`` (this is
 trivially satisfied as ``K`` has characteristic zero). This matrix
 ``G`` coincides with the Gram matrix (with respect to some fixed basis) of the so-called
-*polarisation*, the symmetric bilinear form on ``V`` defined by
+*polarization*, the symmetric bilinear form on ``V`` defined by
 ```math
 b_q(x,y) = q(x + y) - q(x) - q(y), \quad x,y \in V.
 ```
@@ -81,8 +81,8 @@ basis ``(e_i \mid i \in \underline{n} )`` of ``V`` then the following relations 
 
 ## [Lattices and orders over Dedekind domains](@id latticesandordersoverdedekinddomains)
 
-Let ``R`` be a Dedekind domain in characteristic zero that is not a field with field of
-fractions ``K``. All fractional ideals of ``R`` are implicitly assumed to be non-zero.
+Let ``R`` be a Dedekind domain in characteristic zero that is not a field and let ``K``
+denote its field of fractions. All fractional ideals of ``R`` are implicitly assumed to be non-zero.
 Given a ``K``-space ``V`` an ``R``-lattice is a finitely generated ``R``-submodule ``L``
 of ``V``. The lattice ``L`` is called *full* in ``V`` if it contains a ``K``-basis of ``V``,
 i.e. if ``KL = V``. Equivalently, an ``R``-lattice is a finitely generated projective
@@ -94,7 +94,7 @@ It is well known that every ``R``-lattice ``L`` has a pseudo-basis, which is a f
 ``(e_i, \mathfrak{a}_i)_{i \in \underline{n}}``, where the ``\mathfrak{a}_i`` are fractional
 ideals of ``R`` and ``(e_i \mid i \in \underline{n})`` is a ``K``-basis of ``V``, such that
 ```math
-L = \bigoplus\sum\limits_{i = 1}^n \mathfrak{a}_i e_i.
+L = \bigoplus\limits_{i = 1}^n \mathfrak{a}_i e_i.
 ```
 The rank ``n`` of ``L`` is well-defined and ``n = \mathrm{rank}(L) = \mathrm{dim}(V)``.
 
