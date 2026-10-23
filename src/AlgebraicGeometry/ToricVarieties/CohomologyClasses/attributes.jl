@@ -151,7 +151,7 @@ julia> polynomial(cc)
 polynomial(c::CohomologyClass) = c.p
 
 @doc raw"""
-    polynomial(c::CohomologyClass, ring::MPolyQuoRing)
+    polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 
 Return the polynomial in `ring` corresponding
 to the cohomology class `c`.
