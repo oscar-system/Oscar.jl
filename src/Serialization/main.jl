@@ -357,7 +357,7 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams)
 end
 
 function save_type_and_params(s::SerializerState,
-                          ::TypeAndParams{T, Nothing}) where T
+                              ::TypeAndParams{T, Nothing}) where T
   type_encoding = encode_type(T)
   if reverse_type_map[type_encoding] isa Dict
     save_data_dict(s) do
@@ -377,7 +377,7 @@ function save_type_and_params(s::SerializerState,
 end
 
 function save_type_and_params(s::SerializerState,
-                          tp::TypeAndParams{<:TypeAndParams, <:Tuple})
+                              tp::TypeAndParams{<:TypeAndParams, <:Tuple})
   save_data_array(s) do 
     for param in params(tp)
       save_type_and_params(s, param)
@@ -386,7 +386,7 @@ function save_type_and_params(s::SerializerState,
 end
 
 function save_type_and_params(s::SerializerState,
-                          tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T
+                              tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
