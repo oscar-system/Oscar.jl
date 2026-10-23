@@ -148,7 +148,7 @@ function is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)
       end
 
       # mat[i,j] != 0 or mat[j,i] != 0, so both entries must be < 0
-      if mat[i, j] >= 0 || mat[j, i] >= 0
+      if !is_negative_entry(mat, i, j) || !is_negative_entry(mat, j, i)
         return false
       end
     end
@@ -460,13 +460,12 @@ i.e., one of
 - `G_2`.
 """
 function is_cartan_type(fam::Symbol, rk::Int)
-  fam in [:A, :B, :C, :D, :E, :F, :G] || return false
-  fam == :A && rk >= 1 && return true
-  fam == :B && rk >= 2 && return true
-  fam == :C && rk >= 2 && return true
-  fam == :D && rk >= 4 && return true
-  fam == :E && rk in [6, 7, 8] && return true
-  fam == :F && rk == 4 && return true
-  fam == :G && rk == 2 && return true
+  fam == :A && return rk >= 1
+  fam == :B && return rk >= 2
+  fam == :C && return rk >= 2
+  fam == :D && return rk >= 4
+  fam == :E && return rk in (6, 7, 8)
+  fam == :F && return rk == 4
+  fam == :G && return rk == 2
   return false
 end

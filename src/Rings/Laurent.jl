@@ -1,15 +1,17 @@
 import AbstractAlgebra.Generic: LaurentMPolyWrapRing, LaurentMPolyWrap
 import AbstractAlgebra: LaurentMPolyRing, LaurentMPolyRingElem
 
-@attributes mutable struct LaurentMPolyAnyMap{D, C} <: Map{D, C, Map, LaurentMPolyAnyMap}
+@attributes mutable struct LaurentMPolyAnyMap{D, C, T} <: Map{D, C, Map, LaurentMPolyAnyMap}
   R::D
   S::C
+  coeff_map::T
   image_of_gens
   data # map from _polyringquo(R) -> C
+  temp_ring
   
-  function LaurentMPolyAnyMap(R::D, S::C, image_of_gens) where {D, C}
+  function LaurentMPolyAnyMap(R::D, S::C, coeff_map::T, image_of_gens) where {D, C, T}
     @assert all(x -> parent(x) === S, image_of_gens)
-    return new{D, C}(R, S, image_of_gens)
+    return new{D, C, T}(R, S, coeff_map, image_of_gens)
   end
 end
 
@@ -140,7 +142,7 @@ function image(f::_LaurentMPolyBackend, g::LaurentMPolyAnyMap)
   Q = codomain(f)
   _images = (g.image_of_gens)
   __images = append!(copy(_images), inv.(_images))
-  return hom(Q, codomain(g), __images, check = false)
+  return hom(Q, codomain(g), coefficient_map(g), __images, check = false)
 end
 
 ################################################################################
@@ -153,17 +155,52 @@ domain(f::LaurentMPolyAnyMap) = f.R
 
 codomain(f::LaurentMPolyAnyMap) = f.S
 
+coefficient_map(f::LaurentMPolyAnyMap) = f.coeff_map
+
+# Reuse the temporary parent when the coefficient map has a known codomain.
+function temp_ring(f::LaurentMPolyAnyMap{<:Any, <:Any, <:Map})
+  if isdefined(f, :temp_ring)
+    return f.temp_ring::AbstractAlgebra.laurent_mpoly_ring_type(codomain(coefficient_map(f)))
+  end
+  S, = laurent_polynomial_ring(codomain(coefficient_map(f)), nvars(domain(f)); cached = false)
+  f.temp_ring = S
+  return S
+end
+
+temp_ring(f::LaurentMPolyAnyMap) = nothing
+
 function hom(R::LaurentMPolyRing, S::Ring, images::Vector; check::Bool = true)
+  return hom(R, S, nothing, images; check)
+end
+
+@doc raw"""
+    hom(R::LaurentMPolyRing, S::Ring, coeff_map, images::Vector; check::Bool = true)
+    hom(R::LaurentMPolyRing, S::Ring, images::Vector; check::Bool = true)
+
+Return the homomorphism from `R` to `S` with coefficient map `coeff_map`
+and the given images of the variables. If no coefficient map is given,
+use the canonical map. If `check` is `true`, check that the images are units.
+"""
+function hom(R::LaurentMPolyRing, S::Ring, coeff_map, images::Vector; check::Bool = true)
   @req length(images) == nvars(R) "Wrong number of images"
   if check
     @req all(is_unit, images) "Images of generators must be units"
   end
   _images = S.(images)
-  return LaurentMPolyAnyMap(R, S, _images)
+  return LaurentMPolyAnyMap(R, S, coeff_map, _images)
 end
 
 function image(f::LaurentMPolyAnyMap{D, C}, g::LaurentMPolyRingElem) where {D, C}
   @req parent(g) === domain(f) "Element not in domain of map"
+  # Map coefficients before substituting the variables.
+  if coefficient_map(f) !== nothing
+    S = temp_ring(f)
+    if S === nothing
+      g = map_coefficients(coefficient_map(f), g; cached = false)
+    else
+      g = map_coefficients(coefficient_map(f), g; parent = S)
+    end
+  end
   return evaluate(g, f.image_of_gens::Vector{elem_type(C)})
 end
 
@@ -225,9 +262,7 @@ end
 
 function in(x::LaurentMPolyRingElem, I::LaurentMPolyIdeal)
   R = parent(x)
-  if parent(x) !== base_ring(I)
-    return false
-  end
+  R !== base_ring(I) && return false
   f = _polyringquo(R)
   return f(x) in f(I)
 end

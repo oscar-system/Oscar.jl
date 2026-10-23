@@ -90,8 +90,8 @@ end
 
 Return the coefficients of `x` with respect to [`basis(::LieAlgebra)`](@ref).
 """
-function coefficients(x::LieAlgebraElem)
-  return collect(_matrix(x))[1, :]
+function coefficients(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  return C[_matrix(x)[1, i] for i in 1:dim(parent(x))]
 end
 
 @doc raw"""
@@ -162,7 +162,7 @@ end
     (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
-Fail, if `Int` cannot be coerced into the base ring of `L`.
+Fail, if `Int` cannot be coerced into the coefficient ring of `L`.
 """
 function (L::LieAlgebra)(v::AbstractVector{Int})
   return L(coefficient_ring(L).(v))
@@ -206,7 +206,7 @@ end
 Return `x`. Fails if `x` is not an element of `L`.
 """
 function (L::LieAlgebra{C})(x::LieAlgebraElem{C}) where {C<:FieldElem}
-  @req L === parent(x) "Incompatible modules."
+  @req L === parent(x) "Incompatible Lie algebras."
   return x
 end
 
@@ -362,7 +362,7 @@ end
     lower_central_series(L::LieAlgebra) -> Vector{LieAlgebraIdeal}
 
 Return the lower central series of `L`, i.e. the sequence of ideals
-$L^{(0)} = L$, $L^{(i + 1)} = [L, L^{(i)}]$.
+$L^{0} = L$, $L^{i + 1} = [L, L^{i}]$.
 """
 function lower_central_series(L::LieAlgebra)
   curr = ideal(L)
@@ -494,7 +494,7 @@ end
   for (i, adxi) in enumerate(adjoint_matrices(L))
     for (j, adxj) in enumerate(adjoint_matrices(L))
       i > j && continue # killing form is symmetric
-      val = tr(adxi * adxj)
+      val = trace_of_product(adxi, adxj)
       A[j, i] = A[i, j] = val
     end
   end
@@ -527,24 +527,24 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
   if dim(L) <= 1
     # L is abelian and hence nilpotent
   elseif characteristic(L) == 0
+    # if L is not nilpotent, some x_i or x_i + x_j is not ad-nilpotent [Gra00; Prop. 2.7.2]
     for x in basis(L)
       !is_ad_nilpotent(x) && return x
     end
-    for (i, x) in enumerate(basis(L))
-      for (j, y) in enumerate(basis(L))
-        i > j && continue
-        xy = x * y
-        !is_ad_nilpotent(xy) && return xy
-      end
+    for (i, x) in enumerate(basis(L)), (j, y) in enumerate(basis(L))
+      i < j || continue
+      xy = x + y
+      !is_ad_nilpotent(xy) && return xy
     end
   else # characteristic > 0
     x = basis(L, 1)
     !is_ad_nilpotent(x) && return x
     K = sub(L, [x]; is_basis=true)
     while dim(K) < dim(L)
-      # find an element b in L \ K with [b,K]⊆K
+      # find an element b in L \ K with [b,K]⊆K;
+      # all elements of K are ad-nilpotent [Gra00; Prop. 2.7.1], hence N is larger than K
       N = normalizer(L, K)
-      b = basis(N, findfirst(!in(K), basis(N)))
+      b = basis(N, findfirst(!in(K), basis(N))::Int)
       !is_ad_nilpotent(b) && return b
       K = sub(L, [basis(K); b]; is_basis=true)
     end
@@ -1096,17 +1096,16 @@ function abelian_lie_algebra(R::Field, n::Int)
 end
 
 @doc raw"""
-    lie_algebra(gapL::GapObj, s::Vector{<:VarName}) -> LieAlgebra{elem_type(R)}
+    lie_algebra(gapL::GapObj, s::Vector{<:VarName}) -> LieAlgebra
 
-Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
+Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis elements are named by `s`,
 or by `x_i` by default.
 We require `gapL` to be a finite-dimensional GAP Lie algebra. The return type is dependent on
 properties of `gapL`, in particular, whether GAP knows about a matrix representation.
-
 """
 function lie_algebra(
   gapL::GapObj,
-  s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
+  s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)],
 )
   @req GAPWrap.IsLieAlgebra(gapL) "input must be a Lie algebra."
   if GAPWrap.IsFiniteDimensional(gapL)

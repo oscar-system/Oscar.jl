@@ -52,16 +52,18 @@ end
 # we now set seed before every test, if applicable, in every worker separately
 # in test_module()
 
-# setting the global julia seed does not work for distributed processes
-# the RNG is task-local and each '@everywhere' runs in a separate task...
-# to make sure we seed the main process we run this again
+# We need to seed the main process to make sure the test-order is derived from a seeded RNG.
+# For all tests running on workers the seeding is done by `test_module`.
+Oscar.set_seed!(seed)
 Oscar.randseed!(seed)
 
 # Enable GC logging to help track down certain GC related issues.
-# Note that several test files need to temporarily disable and then
-# re-enable this. If we need to disable this globally, those files
-# need to be adjusted as well.
-@everywhere GC.enable_logging(true)
+# CI only does this for a few julia versions to keep the logs readable.
+if get(ENV, "OSCAR_GC_LOGGING", "false") == "true"
+  # `_AuxDocTest` needs `GC.logging_enabled` to restore the state
+  @assert isdefined(GC, :logging_enabled) "OSCAR_GC_LOGGING requires julia 1.11 or later"
+  @everywhere GC.enable_logging(true)
+end
 
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest

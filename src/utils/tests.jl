@@ -136,7 +136,8 @@ macro _AuxDocTest(data::Expr)
       end,
     )
     else
-      esc(:(GC.enable_logging(false)))
+      # cannot restore the previous state, so leave it alone
+      nothing
     end,
     esc(
       quote
@@ -159,7 +160,7 @@ macro _AuxDocTest(data::Expr)
       end,
     )
     else
-      esc(:(GC.enable_logging(true)))
+      nothing
     end,
   )
   Meta.replace_sourceloc!(__source__, result)

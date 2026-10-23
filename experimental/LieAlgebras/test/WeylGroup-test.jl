@@ -5,6 +5,34 @@
 
   _isomorphic_group_on_gens = Oscar.LieAlgebras._isomorphic_group_on_gens
 
+  @testset "exchange_left! and exchange_right! for $fam$rk" for (fam, rk) in [
+    (:A, 3), (:B, 3), (:D, 4), (:G, 2)
+  ]
+    # the exchanged word must represent the same element and start/end with i,
+    # and words must stay untouched if the exchange condition does not apply
+    exchange_left! = Oscar.LieAlgebras.exchange_left!
+    exchange_right! = Oscar.LieAlgebras.exchange_right!
+    W = weyl_group(fam, rk)
+    for _ in 1:10
+      x = rand(W)
+      w = word(x)
+      for i in 1:rk
+        wl = exchange_left!(W, copy(w), UInt8(i))
+        if length(W[i] * x) < length(x)
+          @test wl[1] == i && W(wl) == x
+        else
+          @test wl == w
+        end
+        wr = exchange_right!(W, copy(w), UInt8(i))
+        if length(x * W[i]) < length(x)
+          @test wr[end] == i && W(wr) == x
+        else
+          @test wr == w
+        end
+      end
+    end
+  end
+
   @testset "apply_braid_move!" begin
     @test apply_braid_move!(UInt8[1, 3, 2, 1], (1, 2, 0)) == [3, 1, 2, 1]
     @test apply_braid_move!(UInt8[2, 3, 1, 4], (2, 2, 0)) == [2, 1, 3, 4]

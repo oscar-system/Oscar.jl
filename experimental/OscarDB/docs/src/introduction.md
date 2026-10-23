@@ -64,7 +64,7 @@ Alternatively, you can [raise an issue on github](https://www.oscar-system.org/c
 ```@docs
 OscarDB.get_db
 OscarDB.find_one
-OscarDB.find
+OscarDB.find(c::OscarDB.Collection, d::Dict=Dict())
 OscarDB.length(c::OscarDB.Collection, d::Dict=Dict())
 OscarDB.getindex(db::OscarDB.Database, name::AbstractString)
 OscarDB.get_collection_names

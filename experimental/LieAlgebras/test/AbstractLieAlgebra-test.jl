@@ -109,6 +109,20 @@
     return tab
   end
 
+  @testset "constructor checks" begin
+    # `check=true` rejects structure constants that are not anti-symmetric or violate Jacobi
+    sc = sl2_struct_consts(QQ)
+    sc[2, 1, 3] = QQ(1)
+    @test_throws ArgumentError lie_algebra(QQ, sc)
+    sc = Hecke.zeros_array(QQ, 3, 3, 3)
+    sc[1, 2, 3] = QQ(1)
+    sc[2, 1, 3] = QQ(-1)
+    sc[1, 3, 1] = QQ(1)
+    sc[3, 1, 1] = QQ(-1)
+    @test_throws ArgumentError lie_algebra(QQ, sc)
+    @test lie_algebra(QQ, sc; check=false) isa AbstractLieAlgebra
+  end
+
   @testset "conformance tests" begin
     @testset "0-dim Lie algebra /QQ" begin
       L = lie_algebra(QQ, Matrix{sparse_row_type(QQFieldElem)}(undef, 0, 0), Symbol[])

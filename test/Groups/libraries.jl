@@ -7,7 +7,7 @@
    @test number_of_transitive_groups(1) == 1
    @test transitive_group(1, 1) == symmetric_group(1)
    @test transitive_group_identification(symmetric_group(1)) == (1, 1)
-   @test transitive_group_identification(trivial_subgroup(symmetric_group(4))[1]) == (1, 1)
+   @test_throws ArgumentError transitive_group_identification(trivial_subgroup(symmetric_group(4))[1])
    @test all_transitive_groups(1) == [transitive_group(1, 1)]
    @test all_transitive_groups(degree => 1, is_cyclic) == [transitive_group(1, 1)]
    @test all_transitive_groups(degree => 1, !is_cyclic) == PermGroup[]
@@ -28,6 +28,14 @@
       @test count(l -> is_isomorphic(K,l), L) == 1
    end
    @test sort([transitive_group_identification(l) for l in L]) == [(4,i) for i in 1:5]
+
+   # identification refers to the action on 1:degree(G), not on the moved points
+   H = sub(symmetric_group(5), [cperm(1:4)])[1]
+   @test is_transitive(H, moved_points(H))
+   @test_throws ArgumentError transitive_group_identification(H)
+   A = image(action_homomorphism(gset(H, moved_points(H))))[1]
+   @test transitive_group_identification(A) == (4, 1)
+
    @test Set(L) == Set(all_transitive_groups(degree => 4))
    @test [H2] == all_transitive_groups(degree => 4, is_cyclic)
    @test [H4] == all_transitive_groups(degree => 4, !is_cyclic, is_abelian)
@@ -144,6 +152,9 @@ end
    # all_perfect_groups with multiple order specifications
    @test all_perfect_groups(order => 1:5:200, order => 25:50) == all_perfect_groups(order => intersect(1:5:200, 25:50))
 
+   # all_perfect_groups with a filter that is neither a function nor a pair
+   @test_throws ArgumentError all_perfect_groups(60, 5)
+
    # lazy artifact loading
    @test perfect_group(1376256, 1) isa PermGroup
 end
@@ -185,6 +196,15 @@ end
 
    @test issetequal(all_primitive_groups(3:2:9, is_abelian), all_primitive_groups(degree => 3:2:9, is_abelian))
    @test issetequal(all_primitive_groups(9, is_abelian), all_primitive_groups(degree => 9, is_abelian))
+
+   # identification refers to the action on 1:degree(G), not on the moved points
+   @test primitive_group_identification(primitive_group(10, 3)) == (10, 3)
+   H = stabilizer(symmetric_group(5), 1)[1]
+   @test is_primitive(H, moved_points(H))
+   @test_throws ArgumentError primitive_group_identification(H)
+   A = image(action_homomorphism(gset(H, moved_points(H))))[1]
+   @test primitive_group_identification(A) == (4, 2)
+   @test_throws ArgumentError primitive_group_identification(symmetric_group(1))
 end
 
 @testset "Atlas groups" begin
@@ -198,6 +218,14 @@ end
    info2 = all_atlas_group_infos("A5", degree => [5, 6])
    @test length(info1) == 1
    @test length(info2) > length(info1)
+
+   # constituents that occur with multiplicity
+   info = all_atlas_group_infos("M11", degree => 165)
+   @test length(info) == 1
+   @test info[1][:constituents] == [1, 2, 5, 8, 8, 10]
+   t = character_table("M11")
+   @test degree(sum(t[i] for i in info[1][:constituents])) == 165
+   @test length(all_atlas_group_infos("M11")) == number_of_atlas_groups("M11")
 
    # prescribed character of the matrix group
    t = character_table("A5", 2)
@@ -260,6 +288,17 @@ end
      @test order(G) == 60
      @test base_ring(G) == R
    end
+end
+
+@testset "Atlas info overview" begin
+   # without arguments, there is one line for each Atlas group
+   lines = mktemp() do path, io
+     redirect_stdout(show_atlas_info, io)
+     flush(io)
+     readlines(path)
+   end
+   @test count(startswith("M11 "), lines) == 1
+   @test count(startswith("A5 "), lines) == 1
 end
 
 @testset "Atlas subgroups" begin

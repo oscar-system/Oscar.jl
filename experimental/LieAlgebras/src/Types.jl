@@ -38,7 +38,8 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
       ) "Invalid structure constants."
       @req all(iszero, struct_consts[i, i] for i in 1:dimL) "Not anti-symmetric."
       @req all(
-        iszero, struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL, j in 1:dimL
+        iszero,
+        struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL for j in (i + 1):dimL
       ) "Not anti-symmetric."
       @req all(
         iszero,
@@ -54,7 +55,7 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
             row = addmul!(row, k_val, struct_consts[k, j])
           end
           row
-        end for i in 1:dimL, j in 1:dimL, l in 1:dimL
+        end for i in 1:dimL for j in (i + 1):dimL for l in (j + 1):dimL
       ) "Jacobi identity does not hold."
     end
     return new{C}(R, dimL, struct_consts, s)
@@ -93,18 +94,39 @@ end
     L = new{C}(R, n, length(basis), basis, s)
     if check
       @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
-      # TODO: make work
-      # for xi in basis(L), xj in basis(L)
-      #   @req (xi * xj) in L
-      # end
+      # rows of `lgs` are the flattened basis matrices
+      lgs = zero_matrix(R, length(basis), n^2)
+      for (k, b) in enumerate(basis), i in 1:n
+        lgs[k, (i - 1) * n .+ (1:n)] = view(b, i:i, :)
+      end
+      @req rank(lgs) == length(basis) "Basis is not linearly independent."
+      # rows of `rhs` are the flattened commutators of all pairs of basis matrices
+      m = length(basis)
+      rhs = zero_matrix(R, div(m * (m - 1), 2), n^2)
+      r = 0
+      for (j, bj) in enumerate(basis), bi in view(basis, 1:(j - 1))
+        r += 1
+        comm = bi * bj - bj * bi
+        for i in 1:n
+          rhs[r, (i - 1) * n .+ (1:n)] = view(comm, i:i, :)
+        end
+      end
+      @req can_solve(lgs, rhs; side=:left) "Not closed under the bracket."
     end
     return L
   end
 end
 
-struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
+mutable struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
+  mat::MatElem{C} # 1 x dim(parent) coefficient vector w.r.t. basis(parent)
+  matrix_repr::MatElem{C} # parent.n x parent.n matrix, set on demand
+
+  function LinearLieAlgebraElem{C}(
+    L::LinearLieAlgebra{C}, mat::MatElem{C}
+  ) where {C<:FieldElem}
+    return new{C}(L, mat)
+  end
 end
 
 ###############################################################################
@@ -248,7 +270,7 @@ end
   header::MapHeader{T1,T2}
   matrix::MatT
 
-  inverse_isomorphism::LieAlgebraHom{T2,T1}
+  inverse_isomorphism::LieAlgebraHom{T2,T1,MatT}
 
   function LieAlgebraHom(
     L1::LieAlgebra, L2::LieAlgebra, imgs::Vector{<:LieAlgebraElem}; check::Bool=true
@@ -305,8 +327,17 @@ end
     V = new{C,elem_type(L)}(L, dimV, transformation_matrices, s)
     if check
       @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
-      for xi in basis(L), xj in basis(L), v in basis(V)
-        @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
+      # with the right action `v * T_x`, the module axiom reads T_[x,y] = T_y T_x - T_x T_y
+      for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))
+        i < j || continue
+        T_i = transformation_matrices[i]
+        T_j = transformation_matrices[j]
+        T_bracket = sum(
+          c * transformation_matrices[k] for
+          (k, c) in enumerate(coefficients(xi * xj)) if !iszero(c);
+          init=zero(T_i),
+        )
+        @req T_bracket == T_j * T_i - T_i * T_j "Transformation matrices do not define a module."
       end
     end
     return V

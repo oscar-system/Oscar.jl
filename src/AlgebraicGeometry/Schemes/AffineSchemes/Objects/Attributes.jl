@@ -857,15 +857,15 @@ ambient_coordinate_ring(X::AffineScheme{T, T}) where {T<:Field} = base_ring(X)
 
 # TODO: Needed?
 
-ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = RT
+ring_type(::Type{<:AbsAffineScheme{<:Any, RT}}) where {RT} = RT
 ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
-base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
+base_ring_type(::Type{<:AbsAffineScheme{BRT}}) where {BRT} = BRT
 
-poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
-poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
-poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyLocRing{<:Any, <:Any, <:Any, T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
-poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
+poly_type(::Type{<:AbsAffineScheme{<:Any, RT}}) where {RT<:MPolyRing} = elem_type(RT)
+poly_type(::Type{<:AbsAffineScheme{<:Any, <:MPolyQuoRing{T}}}) where T = T
+poly_type(::Type{<:AbsAffineScheme{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, T}}}) where T = T
+poly_type(::Type{<:AbsAffineScheme{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}}}) where T = T
 poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT

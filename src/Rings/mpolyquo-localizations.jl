@@ -293,7 +293,7 @@ Localization
   at complement of maximal ideal of point (0, 0)
 
 julia> iota
-Map defined by a julia-function
+Map defined by a Julia function
   from quotient of multivariate polynomial ring by ideal (2*x^2 - y^3, 2*x^2 - y^5)
   to localization of RQ at complement of maximal ideal
 
@@ -357,6 +357,11 @@ end
 ### generation of random elements 
 function rand(W::MPolyQuoLocRing, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
   return W(rand(localized_ring(W), v1, v2, v3))
+end
+
+### Conformance test element generation
+function ConformanceTests.generate_element(W::MPolyQuoLocRing)
+  return rand(W, 0:3, 0:4, 0:3)
 end
 
 ########################################################################
@@ -584,6 +589,8 @@ function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoRingEle
   lift(f) in inverted_set(L) && return true
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
+
+is_nilpotent(f::MPolyQuoLocRingElem) = radical_membership(lifted_numerator(f), saturated_ideal(modulus(parent(f))))
 
 function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
   iszero(f) && return true
@@ -868,6 +875,8 @@ zero(W::MPolyQuoLocRing)= W(zero(base_ring(W)))
 
 elem_type(::Type{MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 parent_type(::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+
+is_exact_type(::Type{<:MPolyQuoLocRingElem}) = true
 
 
 @doc raw"""
@@ -1448,15 +1457,14 @@ function is_isomorphism(
   C, j1, B_vars = _add_variables_first(A, symbols(B))
   j2 = hom(B, C, B_vars, check=false)
   G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
-  singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
-            symbols(C),
-            ordering=Singular.ordering_dp(1)
-                    *Singular.ordering_dp(nvars(B)-1)
-                    *Singular.ordering_dp(1)
-                    *Singular.ordering_dp(nvars(A)-1))
+  iso = iso_oscar_singular_poly_ring(C, Singular.ordering_dp(1)
+                                        *Singular.ordering_dp(nvars(B)-1)
+                                        *Singular.ordering_dp(1)
+                                        *Singular.ordering_dp(nvars(A)-1))
+  singC = codomain(iso)
   # TODO: adjust this to the orderings used for the previous groebner basis 
   # computations in A and B once such things are respected. 
-  singG = Singular.Ideal(singC, singC.(gens(G)))
+  singG = Singular.Ideal(singC, iso.(gens(G)))
   stdG = Singular.std(singG) 
   
   # Compute the inverse images of the variables of L
@@ -1474,13 +1482,13 @@ function is_isomorphism(
   for i in 1:n
     singp = Singular.reduce(gen(singC, i+1), stdG)
     singp < gen(singC, n+1) || return false
-    p = C(singp)
+    p = preimage(iso, singp)
     # Write p as an element in the very original ring
     #push!(pre_imagesA, evaluate(p, vcat([zero(A) for i in 0:n], gens(A))))
     push!(pre_images, evaluate(p, vcat([zero(V) for i in 0:n], [V(one(R), d1)], V.(gens(R)))))
   end
 
-  invJ = ideal(A, [(p < gen(singC, n+1) ? evaluate(C(p), vcat([zero(A) for i in 0:n], gens(A))) : zero(A)) for p in gens(stdG)])
+  invJ = ideal(A, [(p < gen(singC, n+1) ? evaluate(preimage(iso, p), vcat([zero(A) for i in 0:n], gens(A))) : zero(A)) for p in gens(stdG)])
   # TODO: invJ is already a Groebner basis, but only for the ordering used 
   # in the above elimination.
   # Make sure, this ordering is used again for the sanity check below!
@@ -1537,8 +1545,8 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   I = modulus(L)
   J = modulus(underlying_quotient(L))
   R = base_ring(L)
-  SR = singular_poly_ring(R)
   SJ = singular_generators(J)
+  iso = _sing_iso(J, base_ring(SJ))
 
   # collect the output from elimpart in Singular
   l = Singular.LibPresolve.elimpart(SJ)
@@ -1548,7 +1556,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb; cached = false)
 
   # and the maps to go back and forth
-  subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
+  subst_map_R = hom(R, R, [preimage(iso, a) for a in gens(l[5])], check=false)
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
@@ -1576,7 +1584,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
 
   # the localized map and its inverse
   floc = hom(L, Lnew, Lnew.(f.(gens(R))), check=false)
-  flocinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
+  flocinv = hom(Lnew, L, [L(preimage(iso, a)) for a in gens(l[4]) if !iszero(a)], check=false)
 
   return Lnew, floc, flocinv
 end
@@ -1600,8 +1608,8 @@ function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   R = base_ring(L)
   J = ideal(R, small_generating_set(modulus(L)))
   is_zero(ngens(R)) && return L, id_hom(L), id_hom(L)
-  SR = singular_poly_ring(R)
   SJ = singular_generators(J)
+  iso = _sing_iso(J, base_ring(SJ))
 
   # collect the output from elimpart in Singular
   l = Singular.LibPresolve.elimpart(SJ)
@@ -1611,7 +1619,7 @@ function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
   Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb; cached=false)
 
   # and the maps to go back and forth
-  subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
+  subst_map_R = hom(R, R, [preimage(iso, a) for a in gens(l[5])], check=false)
   imgs = Vector{elem_type(Rnew)}()
   j = 1
   for i in 1:ngens(R)
@@ -1633,7 +1641,7 @@ function simplify(L::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:FieldElem}
 
   # the inverse of the identification map
   fres = hom(L, Lnew, Lnew.(f.(gens(R))), check=false)
-  fresinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
+  fresinv = hom(Lnew, L, [L(preimage(iso, a)) for a in gens(l[4]) if !iszero(a)], check=false)
 
   return Lnew, fres, fresinv
 end

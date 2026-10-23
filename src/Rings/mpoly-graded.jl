@@ -8,28 +8,34 @@
   hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
   multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
 
-  function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
+  function MPolyDecRing(R::S, D::FinGenAbGroup, d::Vector{FinGenAbGroupElem}) where {S}
     @req !(R isa MPolyDecRing) "cannot grade polynomial ring which is already decorated"
+    @req all(x -> D === parent(x), d) "parent of weights does not match given group or weights have different parents"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
-    r.D = parent(d[1])
+    r.D = D
     r.d = d
-    r.is_fine_graded = is_free(parent(d[1])) && (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
+    r.is_fine_graded = is_free(D) && (rank(D) == ngens(R)) && (d == gens(D))
     return r
   end
-  function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
+  function MPolyDecRing(R::S, D::FinGenAbGroup, d::Vector{FinGenAbGroupElem}, lt) where {S}
     @req !(R isa MPolyDecRing) "cannot filter polynomial ring which is already decorated"
+    @req all(x -> D === parent(x), d) "parent of weights does not match given group or weights have different parents"
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
-    r.D = parent(d[1])
+    r.D = D
     r.d = d
     r.lt = lt
-    r.is_fine_graded = is_free(parent(d[1])) &&  (rank(parent(d[1])) == ngens(R)) && (d == gens(parent(d[1])))
+    r.is_fine_graded = is_free(D) &&  (rank(D) == ngens(R)) && (d == gens(D))
     return r
   end
 end
+
+# a ring without variables needs the grading group passed explicitly
+MPolyDecRing(R, d::Vector{FinGenAbGroupElem}) = MPolyDecRing(R, parent(d[1]), d)
+MPolyDecRing(R, d::Vector{FinGenAbGroupElem}, lt) = MPolyDecRing(R, parent(d[1]), d, lt)
 
 generator_degrees(S::MPolyDecRing) = S.d
 is_fine_graded(S::MPolyDecRing) = S.is_fine_graded
@@ -124,7 +130,7 @@ end
 
 function decorate(R::MPolyRing)
   A = abelian_group([0])
-  S = MPolyDecRing(R, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
+  S = MPolyDecRing(R, A, [1*A[1] for i = 1: ngens(R)], (x,y) -> x[1] < y[1])
   return S, map(R, gens(R))
 end
 
@@ -177,13 +183,13 @@ function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)
   A = abelian_group([0])
   set_attribute!(A, :show_elem => show_special_elem_grad)
-  S = MPolyDecRing(R, [i*A[1] for i = W])
+  S = MPolyDecRing(R, A, [i*A[1] for i = W])
   return S, map(S, gens(R))
 end
 
 function grade(R::MPolyRing)
   A = abelian_group([0])
-  S = MPolyDecRing(R, [1*A[1] for i = 1: ngens(R)])
+  S = MPolyDecRing(R, A, [1*A[1] for i = 1: ngens(R)])
   return S, map(S, gens(R))
 end
 
@@ -229,7 +235,7 @@ function grade(R::MPolyRing, W::AbstractVector{<:AbstractVector{<:IntegerUnion}}
 
   A = abelian_group(zeros(Int, n))
   set_attribute!(A, :show_elem => show_special_elem_grad)
-  S = MPolyDecRing(R, [A(w) for w = W])
+  S = MPolyDecRing(R, A, [A(w) for w = W])
   return S, map(S, gens(R))
 end
 
@@ -238,7 +244,7 @@ function grade(R::MPolyRing, W::Union{ZZMatrix, AbstractMatrix{<:IntegerUnion}})
   A = abelian_group(zeros(Int, size(W, 1)))
   set_attribute!(A, :show_elem => show_special_elem_grad)
   ###S = MPolyDecRing(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
-  S = MPolyDecRing(R, [A(W[:, i]) for i = 1:size(W, 2)])
+  S = MPolyDecRing(R, A, [A(W[:, i]) for i = 1:size(W, 2)])
   return S, map(S, gens(R))
 end
 
@@ -631,7 +637,7 @@ end
 function filtrate(R::MPolyRing, v::Vector{Int})
   A = abelian_group([0])
   set_attribute!(A, :show_elem => show_special_elem_grad)
-  S = MPolyDecRing(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
+  S = MPolyDecRing(R, A, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
   return S, map(S, gens(R))
 end
 
@@ -797,7 +803,6 @@ parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, paren
 
 (W::MPolyDecRing)() = MPolyDecRingElem(forget_decoration(W)(), W)
 (W::MPolyDecRing)(i::Int) = MPolyDecRingElem(forget_decoration(W)(i), W)
-(W::MPolyDecRing)(f::Singular.spoly) = MPolyDecRingElem(forget_decoration(W)(f), W)
 
 ### Coercion of elements of the underlying polynomial ring
 # into the graded ring.
@@ -829,12 +834,19 @@ zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 #
 ################################################################################
 
+# Different gradings of the same ring share the element type, so the
+# undecorated operations cannot detect mismatched parents.
 for T in [:(+), :(-), :(*)]
-  @eval ($T)(a::TT,
-             b::TT) where {TT <: MPolyDecRingElem} = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
+  @eval function ($T)(a::TT, b::TT) where {TT <: MPolyDecRingElem}
+    check_parent(a, b)
+    return MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
+  end
 end
 
-divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
+function divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true)
+  check_parent(a, b)
+  return MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
+end
 
 
 ################################################################################
@@ -906,19 +918,40 @@ function factor_squarefree(x::MPolyDecRingElem)
 end
 
 function gcd(x::MPolyDecRingElem, y::MPolyDecRingElem)
+  check_parent(x, y)
   R = parent(x)
   return R(gcd(forget_decoration(x), forget_decoration(y)))
 end
 
 function div(x::MPolyDecRingElem, y::MPolyDecRingElem)
+  check_parent(x, y)
   R = parent(x)
   return R(div(forget_decoration(x), forget_decoration(y)))
 end
 
 function divrem(x::MPolyDecRingElem, y::MPolyDecRingElem)
+  check_parent(x, y)
   R = parent(x)
   q, r = divrem(forget_decoration(x), forget_decoration(y))
   return R(q), R(r)
+end
+
+function divrem(x::T, y::Vector{T}) where {T <: MPolyDecRingElem}
+  foreach(g -> check_parent(x, g), y)
+  R = parent(x)
+  q, r = divrem(forget_decoration(x), map(forget_decoration, y))
+  return T[R(qi) for qi in q], R(r)
+end
+
+function Base.sqrt(x::MPolyDecRingElem; check::Bool=true)
+  return parent(x)(sqrt(forget_decoration(x); check))
+end
+
+is_square(x::MPolyDecRingElem) = is_square(forget_decoration(x))
+
+function AbstractAlgebra.is_square_with_sqrt(x::MPolyDecRingElem)
+  fl, s = AbstractAlgebra.is_square_with_sqrt(forget_decoration(x))
+  return fl, parent(x)(s)
 end
 
 ################################################################################
@@ -927,7 +960,10 @@ end
 #
 ################################################################################
 
-==(a::MPolyDecRingElem, b::MPolyDecRingElem) = forget_decoration(a) == forget_decoration(b)
+function ==(a::MPolyDecRingElem, b::MPolyDecRingElem)
+  check_parent(a, b)
+  return forget_decoration(a) == forget_decoration(b)
+end
 
 ^(a::MPolyDecRingElem, i::Int) = MPolyDecRingElem(forget_decoration(a)^i, parent(a))
 
@@ -947,6 +983,7 @@ total_degree(a::MPolyDecRingElem) = total_degree(forget_decoration(a))
 
 AbstractAlgebra.monomial(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.monomial(forget_decoration(a), i))
 AbstractAlgebra.coeff(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.coeff(forget_decoration(a), i)
+AbstractAlgebra.coeff(a::MPolyDecRingElem, exps::Vector{Int}) = AbstractAlgebra.coeff(forget_decoration(a), exps)
 AbstractAlgebra.term(a::MPolyDecRingElem, i::Int) = parent(a)(AbstractAlgebra.term(forget_decoration(a), i))
 AbstractAlgebra.exponent_vector(a::MPolyDecRingElem, i::Int) = AbstractAlgebra.exponent_vector(forget_decoration(a), i)
 AbstractAlgebra.exponent_vector(a::MPolyDecRingElem, i::Int, ::Type{T}) where T = AbstractAlgebra.exponent_vector(forget_decoration(a), i, T)
@@ -978,13 +1015,6 @@ end
   return degrevlex(R)
 end
 
-function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
-  if !keep_ordering
-    return singular_poly_ring(forget_decoration(R), default_ordering(R))
-  end
-  return singular_poly_ring(forget_decoration(R); keep_ordering)
-end
-
 function iso_oscar_singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
   keep_ordering && return iso_oscar_singular_poly_ring(R, internal_ordering(R))
   return iso_oscar_singular_poly_ring(R, default_ordering(R))
@@ -1002,14 +1032,9 @@ function AbstractAlgebra.exponent_vectors(v, f::MPolyDecRingElem; inplace::Bool=
   return AbstractAlgebra.exponent_vectors(v, forget_decoration(f), inplace=inplace)
 end
 
-function push_term!(M::MPolyBuildCtx{<:MPolyDecRingElem{T, S}}, c::T, expv::Vector{Int}) where {T <: RingElement, S}
-  if iszero(c)
-    return M
-  end
-  len = length(M.poly.f) + 1
-  set_exponent_vector!(M.poly.f, len, expv)
-  setcoeff!(M.poly.f, len, c)
-  return M
+function fit!(f::MPolyDecRingElem, n::Int)
+  fit!(forget_decoration(f), n)
+  return nothing
 end
 
 function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
@@ -1017,10 +1042,24 @@ function set_exponent_vector!(f::MPolyDecRingElem, i::Int, exps::Vector{Int})
   return f
 end
 
-function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
-  f = sort_terms!(M.poly.f)
-  f = combine_like_terms!(M.poly.f)
-  return parent(M.poly)(f)
+function setcoeff!(f::MPolyDecRingElem, i::Int, c)
+  f.f = setcoeff!(forget_decoration(f), i, c)
+  return f
+end
+
+function setcoeff!(f::MPolyDecRingElem, exps::Vector{Int}, c)
+  f.f = setcoeff!(forget_decoration(f), exps, c)
+  return f
+end
+
+function sort_terms!(f::MPolyDecRingElem)
+  f.f = sort_terms!(forget_decoration(f))
+  return f
+end
+
+function combine_like_terms!(f::MPolyDecRingElem)
+  f.f = combine_like_terms!(forget_decoration(f))
+  return f
 end
 
 function jacobian_matrix(f::MPolyDecRingElem)
@@ -1571,7 +1610,7 @@ S_[1 1] of dim 6
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
-Map defined by a julia-function with inverse
+Map defined by a Julia function with inverse
   from S_[1 1] of dim 6
   to graded multivariate polynomial ring in 5 variables over QQ
 
@@ -2640,13 +2679,13 @@ function minimal_generating_set(I::MPolyIdeal{<:MPolyDecRingElem})
     # side if we have one
     G = first(values(I.gb))
     _, sing_min = Singular.mstd(singular_generators(G, G.ord))
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I))
     ring = base_ring(I)
     computed_gb = IdealGens(ring, sing_gb, true)
     I.gb[computed_gb.ord] = computed_gb
-    return filter(!iszero, (R).(gens(sing_min)))
+    return filter(!iszero, gens(ideal(R, sing_min)))
   end
 end
 
