@@ -448,7 +448,7 @@ function _torus_saturation_satstd(I::MPolyIdeal)
   permuted_variables = singular_variables[vcat(collect(2:n), 1)]
   maximal_ideal = Singular.MaximalIdeal(singular_ring, 1)
   for i in n:-1:1
-    # degrevlex with x[i] as the smallest variable
+    # smallest variable
     singular_result = Singular.satstd(singular_result, maximal_ideal)
     if Singular.ngens(singular_result) == 1 && singular_result[1] == one(singular_ring)
       return ideal(R, [one(R)])
