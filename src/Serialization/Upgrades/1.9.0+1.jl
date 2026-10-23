@@ -6,9 +6,9 @@
 # - Polyhedral objects with complex fields: pm_params wrapper flattened to top-level params
 # - Heterogeneous Dict: per-key value type params moved from top-level into value_params dict
 push!(upgrade_scripts_set, UpgradeScript(
-  v"1.8.0+2",
-  function upgrade_1_8_0_2(s::UpgradeState, dict::AbstractDict{String, Any})
-    upgrade_recursive(upgrade_1_8_0_2, s, dict)
+  v"1.9.0+1",
+  function upgrade_1_9_0_1(s::UpgradeState, dict::AbstractDict{String, Any})
+    upgrade_recursive(upgrade_1_9_0_1, s, dict)
 
     if dict["_type"] isa AbstractDict && haskey(dict["_type"], "name")
       type_name = dict["_type"]["name"]
