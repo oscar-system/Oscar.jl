@@ -22,8 +22,11 @@ characteristic(L::LieAlgebra)
 
 ## Special functions for `LinearLieAlgebra`s
 
+`(L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true)` returns the element of `L`
+whose matrix representation is `x`.
+With `check=false`, it is not verified that `x` lies in `L`.
+
 ```@docs
-(L::LinearLieAlgebra{C})(x::MatElem{C}) where {C<:FieldElem}
 Base.in(::MatElem{C}, ::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:FieldElem}
