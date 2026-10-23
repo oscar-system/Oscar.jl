@@ -1237,7 +1237,7 @@ function minimal_denominators(
   if !has_attribute(f, :minimal_denominators) 
     helper_ring(f)
   end
-  return get_attribute!(f, :minimal_denominators)::Vector{elem_type(base_ring_type(domain(f)))}
+  return get_attribute(f, :minimal_denominators)::Vector{elem_type(base_ring_type(domain(f)))}
 end
 
 function helper_eta(

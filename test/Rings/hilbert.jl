@@ -144,3 +144,14 @@ end
   HSRing1,_ = polynomial_ring(ZZ, "t");
   @test is_zero(Oscar.HSNum_abbott(PmodI, HSRing1))
 end
+
+@testset "Hilbert series pivot strategies" begin
+  # all pivot strategies must agree with the default one
+  P, (a, b, c, d) = graded_polynomial_ring(QQ, [:a, :b, :c, :d])
+  Q, _ = quo(P, ideal(P, [a*b, b*c, c*d, a*d, a^2*c]))
+  HSRing = Oscar._hilbert_series_ring(nothing, 1)
+  ref = Oscar.HSNum_abbott(Q, HSRing)
+  for strat in [:bayer_stillman, :simple_power_max, :gcd2simple, :gcd2max, :gcd3simple, :gcd3max]
+    @test Oscar.HSNum_abbott(Q, HSRing; pivot_strategy=strat) == ref
+  end
+end
