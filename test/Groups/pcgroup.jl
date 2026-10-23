@@ -189,6 +189,10 @@ end
 end
 
 @testset "hashing polycyclic group elements" begin
+  # coverage instrumentation makes calls into GAP allocate
+  hash_allocations(x) = @allocated hash(x)
+  skip_allocations = Base.JLOptions().code_coverage != 0
+
   # finite polycyclic groups
   G = small_group(6, 1)
   a = G[1]^5 * G[2]^-4
@@ -217,8 +221,8 @@ end
     y = rand(G)
     @test hash(x * y) == hash(inv(inv(y) * inv(x)))
     @test hash(x * y) != hash(x * y * G[1])
-    hash(x)
-    @test (@allocated hash(x)) == 0
+    hash_allocations(x)
+    @test hash_allocations(x) == 0 skip = skip_allocations
   end
 
   # infinite polycyclic groups
@@ -238,8 +242,8 @@ end
   end
   @test hash(G[1]^e) != hash(G[1]^-e)
   x = G[1]
-  hash(x)
-  @test (@allocated hash(x)) == 0
+  hash_allocations(x)
+  @test hash_allocations(x) == 0 skip = skip_allocations
 
   # lists not in plain representation are hashed like plain lists
   h = Oscar._hash_gap_int_list(GAP.evalstr("[1, 2, 3]"), UInt(0))
