@@ -16,7 +16,7 @@ function _iso_oscar_gap_lie_algebra_functions(
 
   finv = function (x)
     cfs = Vector{GAP.Obj}(GAPWrap.Coefficients(basis_LG, x))
-    return LO([preimage(coeffs_iso, c) for c in cfs])
+    return LieAlgebraElem(LO, [preimage(coeffs_iso, c) for c in cfs])
   end
 
   return (f, finv)

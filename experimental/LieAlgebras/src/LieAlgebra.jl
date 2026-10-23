@@ -1,5 +1,9 @@
 # To be implemented by subtypes:
 # Mandatory:
+#   MyLieAlgebraElem{C}(L::MyLieAlgebra{C}, mat::MatElem{C}) -> MyLieAlgebraElem{C}
+#     - inner constructor; further fields (e.g. caches) stay unset
+#     - `mat` is the `1 x dim(L)` coefficient row
+#     - no sanity checks, `LieAlgebraElem(L, mat)` does them
 #   parent_type(::Type{MyLieAlgebraElem{C}}) = MyLieAlgebra{C}
 #   elem_type(::Type{MyLieAlgebra{C}}) = MyLieAlgebraElem{C}
 #   parent(x::MyLieAlgebraElem{C}) -> MyLieAlgebra{C}
@@ -52,7 +56,7 @@ function basis(L::LieAlgebra, i::Int)
   R = coefficient_ring(L)
   v = zero_matrix(R, 1, dim(L))
   v[1, i] = one(R)
-  return L(v)
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
@@ -113,7 +117,7 @@ function getindex(x::LieAlgebraElem, i::Int)
 end
 
 function Base.deepcopy_internal(x::LieAlgebraElem, dict::IdDict)
-  return parent(x)(deepcopy_internal(_matrix(x), dict))
+  return LieAlgebraElem(parent(x), deepcopy_internal(_matrix(x), dict))
 end
 
 function check_parent(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
@@ -159,45 +163,80 @@ function (L::LieAlgebra)()
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
+    LieAlgebraElem(L::LieAlgebra{C}, v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
+
 Fail, if `Int` cannot be coerced into the coefficient ring of `L`.
 """
-function (L::LieAlgebra)(v::AbstractVector{Int})
-  return L(coefficient_ring(L).(v))
+function LieAlgebraElem(L::LieAlgebra, v::AbstractVector{Int})
+  return LieAlgebraElem(L, coefficient_ring(L).(v))
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
+    LieAlgebraElem(L::LieAlgebra{C}, v::AbstractVector{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
+function LieAlgebraElem(L::LieAlgebra{C}, v::AbstractVector{C}) where {C<:FieldElem}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
+    LieAlgebraElem(L::LieAlgebra{C}, mat::MatElem{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
-function (L::LieAlgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
+function LieAlgebraElem(L::LieAlgebra{C}, mat::MatElem{C}) where {C<:FieldElem}
   @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, mat)
+end
+
+@doc raw"""
+    LieAlgebraElem(L::LieAlgebra{C}, v::SRow{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector `v`.
+"""
+function LieAlgebraElem(L::LieAlgebra{C}, v::SRow{C}) where {C<:FieldElem}
+  mat = dense_row(v, dim(L))
+  return elem_type(L)(L, mat)
+end
+
+@doc raw"""
+    (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector `v`.
+
+Fail, if `Int` cannot be coerced into the coefficient ring of `L`.
+This is a shorthand for [`LieAlgebraElem(L, v)`](@ref LieAlgebraElem(::LieAlgebra, ::AbstractVector{Int})).
+"""
+function (L::LieAlgebra)(v::AbstractVector{Int})
+  return LieAlgebraElem(L, v)
+end
+
+@doc raw"""
+    (L::LieAlgebra{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
+
+Return the element of `L` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraElem(L, v)`](@ref LieAlgebraElem(::LieAlgebra{C}, ::AbstractVector{C}) where {C<:FieldElem}).
+"""
+function (L::LieAlgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
     (L::LieAlgebra{C})(v::SRow{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraElem(L, v)`](@ref LieAlgebraElem(::LieAlgebra{C}, ::SRow{C}) where {C<:FieldElem}).
 """
 function (L::LieAlgebra{C})(v::SRow{C}) where {C<:FieldElem}
-  mat = dense_row(v, dim(L))
-  return elem_type(L)(L, mat)
+  return LieAlgebraElem(L, v)
 end
 
 @doc raw"""
@@ -217,35 +256,35 @@ end
 ###############################################################################
 
 function Base.:-(x::LieAlgebraElem{C}) where {C<:FieldElem}
-  return parent(x)(-_matrix(x))
+  return LieAlgebraElem(parent(x), -_matrix(x))
 end
 
 function Base.:+(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
-  return parent(x1)(_matrix(x1) + _matrix(x2))
+  return LieAlgebraElem(parent(x1), _matrix(x1) + _matrix(x2))
 end
 
 function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldElem}
   check_parent(x1, x2)
-  return parent(x1)(_matrix(x1) - _matrix(x2))
+  return LieAlgebraElem(parent(x1), _matrix(x1) - _matrix(x2))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(_matrix(x) * c)
+  return LieAlgebraElem(parent(x), _matrix(x) * c)
 end
 
 function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
-  return parent(x)(_matrix(x) * c)
+  return LieAlgebraElem(parent(x), _matrix(x) * c)
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
   coefficient_ring(x) != parent(c) && error("Incompatible rings.")
-  return parent(x)(c * _matrix(x))
+  return LieAlgebraElem(parent(x), c * _matrix(x))
 end
 
 function Base.:*(c::U, x::LieAlgebraElem) where {U<:RationalUnion}
-  return parent(x)(c * _matrix(x))
+  return LieAlgebraElem(parent(x), c * _matrix(x))
 end
 
 function Base.:*(x::LieAlgebraElem{C}, y::LieAlgebraElem{C}) where {C<:FieldElem}
@@ -302,7 +341,7 @@ function center(L::LieAlgebra)
   end
 
   ker = kernel(mat; side=:left)
-  return ideal(L, L.(eachrow(ker)); is_basis=true)
+  return ideal(L, [LieAlgebraElem(L, row) for row in eachrow(ker)]; is_basis=true)
 end
 
 @doc raw"""
@@ -322,7 +361,7 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
 
   c_basis = kernel(mat; side=:left)
   c_dim = nrows(c_basis)
-  return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+  return sub(L, [LieAlgebraElem(L, c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
 @doc raw"""
@@ -563,7 +602,7 @@ function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
   n = dim(L)
   A = adjoint_matrix(x)^n
   ker = kernel(A; side=:left)
-  basis = L.(eachrow(ker))
+  basis = [LieAlgebraElem(L, row) for row in eachrow(ker)]
   L0adx = sub(L, basis; is_basis=true)
   return L0adx
 end

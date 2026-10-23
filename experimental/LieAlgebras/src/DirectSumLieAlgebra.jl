@@ -83,13 +83,13 @@ function bracket(
 
     xS_vec = _matrix(x)[:, (offset + 1):(offset + dimS)]
     iszero(xS_vec) && continue
-    xS = S(xS_vec)
+    xS = LieAlgebraElem(S, xS_vec)
     yS_vec = _matrix(y)[:, (offset + 1):(offset + dimS)]
     iszero(yS_vec) && continue
-    yS = S(yS_vec)
+    yS = LieAlgebraElem(S, yS_vec)
     vec[:, (offset + 1):(offset + dimS)] = _matrix(bracket(xS, yS))
   end
-  return D(vec)
+  return LieAlgebraElem(D, vec)
 end
 
 ###############################################################################
