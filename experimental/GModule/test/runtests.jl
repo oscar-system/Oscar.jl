@@ -82,6 +82,34 @@ end
   @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
+@testset "Experimental.gmodule: solvable quotient" begin
+  # `sq` has to reach the maximal solvable quotient: the whole abelianization
+  # first and then every further layer, and it must not report one where there
+  # is none
+  F = free_group(2)
+  G33, _ = quo(F, [F[1]^3, F[2]^3, comm(F[1], F[2])])
+  C63, _ = quo(F, [F[1]^7, F[2]^9, comm(F[1], F[2])])
+  Z2, _ = quo(F, [comm(F[1], F[2])])
+  G27 = codomain(isomorphism(FPGroup, small_group(27, 3)))
+  S3 = codomain(isomorphism(FPGroup, pc_group(symmetric_group(3)), on_gens = true))
+  @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(G33)))) == 9
+  # C7 x C9: GAP's abelianization is not on a canonical pcgs here
+  @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(C63)))) == 63
+  Q = codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(G27)))
+  @test order(Q) == 27
+  @test abelian_invariants(Q) == ZZRingElem[3, 3]
+  # an infinite abelianization admits no maximal finite solvable quotient and no
+  # finite set of usable primes, but bounded steps still work
+  @test_throws ArgumentError Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(Z2))
+  @test_throws ArgumentError Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2))
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2); primes = [2])) == 3
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(F); primes = [2])) == 3
+  # the exact prime set refines Brueckner's estimate from 1.3.1
+  _, mq = maximal_abelian_quotient(PcGroup, S3)
+  @test Oscar.RepPc.find_primes(mq; easy = true) == ZZRingElem[3]
+  @test issubset(Oscar.RepPc.find_primes(mq; easy = true), Oscar.RepPc.find_primes(mq))
+end
+
 @testset "Experimental.gmodule natural G-modules" begin
   # for permutation groups
   G = symmetric_group(3)
@@ -351,4 +379,54 @@ end
   @test multiset(map(dim, reps)) == multiset(Dict(1 => 1, 2 => 2))
   reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3, 4))
   @test multiset(map(dim, reps)) == multiset(Dict(1 => 5))
+end
+
+
+@testset "Experimental.gmodule FreeRes" begin
+  k, a= wildanger_field(3, 13)
+  k = normal_closure(k)
+  k = k[1]
+  I = idele_class_gmodule(k)
+  G = group(I.data[1])
+  ZG = group_algebra(ZZ, G)
+  fr = Oscar.GrpCoh.free_res(ZG; side = :right)
+  h = hom(fr, I.data[1])
+  @test is_isomorphic(abelian_group([6]), quo(kernel(map(h, 2))[1], image(map(h, 1))[1])[1])
+  @test is_isomorphic(abelian_group([1]), quo(kernel(map(h, 1))[1], image(map(h, 0))[1])[1])
+
+  lp = prime_decomposition(maximal_order(k), 13)
+  c,  mc = completion(k, lp[1][1])
+  #to increase precision
+  #from M (minimal to compute cohomology) to N (large enough
+  # for Shafarevich and conductor p^3)
+
+  M = gmodule(c, absolute_base_field(c)) #min prec, cheap for H2
+  #M[1] : module, M[2] : map for automorphism group, M[3] : map for units
+  N = gmodule(c, absolute_base_field(c); conductor = 3) # large enough
+  h = FinGenAbGroupHom(N[3]*pseudo_inv(M[3])) # the projection N ->> M
+  #constructed N -> c -> M
+  zg = Oscar.GrpCoh.free_res(group_algebra(ZZ, group(M[1])); side = :right)
+  hN = hom(zg, N[1]) #hom(ZG, N)
+  hM = hom(zg, M[1]) #hom(ZG, M)
+  hNM = Oscar.GrpCoh.change_module(hN, hM, h) #map between the complexes
+
+  k = kernel(hom(N[1], M[1], h)) # the kernel of N ->> M
+  hk = hom(zg, k[1]) # ... and the hom(ZG, k) complex
+
+  hkN = Oscar.GrpCoh.change_module(hk, hN, k[2].module_map) #k->N map
+  hM[3] #to make sure complex is long enough
+  h2 = quo(kernel(map(hM, 2))[1], image(map(hM, 1))[1]) #H^2(G, M)
+
+  g = [preimage(h2[2], x) for x = gens(h2[1])]
+  g = g[findfirst(!iszero, g)] #this is in the kernel
+  #so we coerce it into the full module
+  #then pull it back to N (where it is not a cycle, but only a chain)
+  z1 = preimage(hNM[2], hM[2](g))
+  z2 = map(hN, 2)(z1) #the differential to map into C^3(N)
+  z2 = preimage(hkN[3], z2) #should actually in C^3(k)
+  z2 = preimage(map(hk, 2), z2) #and in the image of C^2(k)
+  z2 = hkN[2](z2) #back into C^2(N)
+  z = z1 - z2    #this is now a cycle!
+  @test iszero(map(hN, 2)(z))
+  @test hNM[2](z) == hM[2](g)
 end
