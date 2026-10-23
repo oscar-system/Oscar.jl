@@ -203,7 +203,6 @@ julia> polynomial(R_quo, cc)
 """
 function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
   p = polynomial(c)
-  # rebuilding p term by term reduces after every product and power
   parent(p) === ring && return deepcopy(p)
   iszero(p) && return zero(ring)
   R = base_ring(ring)::MPolyRing
@@ -211,9 +210,8 @@ function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
   @assert kk === coefficient_ring(parent(p)) "coefficients must be the same"
   ctx = MPolyBuildCtx(R)
   q = lift(p)::MPolyRingElem
-  for (c, e) in zip(AbstractAlgebra.coefficients(q), AbstractAlgebra.exponent_vectors(q))
-    push_term!(ctx, c, e)
+  for (a, e) in zip(AbstractAlgebra.coefficients(q), AbstractAlgebra.exponent_vectors(q))
+    push_term!(ctx, a, e)
   end
   return ring(finish(ctx))
 end
-
