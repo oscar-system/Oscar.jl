@@ -1083,6 +1083,18 @@ function _graph_maps(G::Graph)
   return Dict(l => getproperty(G, l) for l in labels)
 end
 
+# group the vertices resp. edges of `G` by their label and return the groups as
+# a vector of pairs sorted by label. Sorting is essential: the position of a
+# group determines the color it gets in `_edge_label_to_vertex_label`, so it has
+# to depend on the labeling only and not on the order in which a `Dict` happens
+# to store its keys.
+function _group_by_label(res::Dict{K, Vector{V}}, itr, G_map::GraphMap) where {K, V}
+  for x in itr
+    push!(get!(Vector{V}, res, G_map[x]), x)
+  end
+  return sort!(collect(res); by=first)
+end
+
 # this currently will ignore all other labels
 # it will create a new graph with new vertices and the labelings solely on the vertices
 # allow us to run isomorphism type functions from nauty on this new graph
@@ -1093,12 +1105,10 @@ function _edge_label_to_vertex_label(G::Graph{T}, label::Symbol;
                                      edge_distinguishable::Bool=true) where T <: Union{Directed, Undirected}
   G_map = getproperty(G, label)
   label_type = typeof(G_map[first(edges(G))])
-  vertices_by_label = !isnothing(G_map.vertex_map) ? reduce((a, b) -> mergewith(vcat, a, b),
-                             (Dict(G_map[v] => [v]) for v in 1:n_vertices(G));
-                             init=Dict{label_type, Vector{Int}}()) : Dict(:vertices => collect(1:n_vertices(G)))
-  edges_by_label = reduce((a, b) -> mergewith(vcat, a, b),
-                          (Dict(G_map[e] => [e]) for e in edges(G));
-                          init=Dict{label_type, Vector{Edge}}())
+  vertices_by_label = !isnothing(G_map.vertex_map) ?
+                      _group_by_label(Dict{label_type, Vector{Int}}(), 1:n_vertices(G), G_map) :
+                      [:vertices => collect(1:n_vertices(G))]
+  edges_by_label = _group_by_label(Dict{label_type, Vector{Edge}}(), edges(G), G_map)
   new_vertex_labels = Dict{Int, Int}()
   if edge_distinguishable
     # an edge of a given coloring appears in the nth layer if there is a one in
@@ -1207,7 +1217,7 @@ function _canonical_hash(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          seed::Int=42)
   isnothing(label) && return Polymake._canonical_hash(pm_object(G), seed)::Int
   G_map = getproperty(G, label)
-  isnothing(G_map.edge_map) && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
+  isnothing(G_map.edge_map) && vertex_distinguishable && return Polymake._canonical_hash(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)]), seed)::Int
   new_G = _edge_label_to_vertex_label(G, label;
                                       edge_distinguishable=edge_distinguishable,
                                       vertex_distinguishable=vertex_distinguishable)
@@ -1221,17 +1231,19 @@ function _canonical_perm(G::Graph; label::Union{Nothing, Symbol}=nothing,
                          edge_distinguishable::Bool=true)
   isnothing(label) && return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G)))
 
-  if vertex_distinguishable && edge_distinguishable
-    new_G = _edge_label_to_vertex_label(G, label;
-                                        edge_distinguishable=edge_distinguishable,
-                                        vertex_distinguishable=vertex_distinguishable)
-
-    perm = Polymake._canonical_perm(pm_object(new_G),
-                                    Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
-    # permutation is defined on vertex classes, see _edge_label_to_vertex_label
-    return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
+  G_map = getproperty(G, label)
+  if isnothing(G_map.edge_map) && vertex_distinguishable
+    return Polymake.to_one_based_indexing(Polymake._canonical_perm(pm_object(G), Polymake.Array{Int}([_graph_maps(G)[label][v] for v in 1:n_vertices(G)])))
   end
-  error("unimplemented for either indistinguishable vertex or edge labels")
+
+  new_G = _edge_label_to_vertex_label(G, label;
+                                      edge_distinguishable=edge_distinguishable,
+                                      vertex_distinguishable=vertex_distinguishable)
+
+  perm = Polymake._canonical_perm(pm_object(new_G),
+                                  Polymake.Array{Int}([_graph_maps(new_G)[:edge_to_vertex][v] for v in 1:n_vertices(new_G)]))
+  # permutation is defined on vertex classes, see _edge_label_to_vertex_label
+  return Polymake.to_one_based_indexing(perm)[1:n_vertices(G)]
 end
 
 @doc raw"""
@@ -1286,7 +1298,7 @@ function _canonical_form(G::Graph{T}; label::Union{Nothing, Symbol}=nothing, kwa
   isnothing(label) && return Graph{T}(Polymake._canonical_form(pm_object(G)))
 
   p = _canonical_perm(G; label=label, kwargs...)
-  return _permute_nodes_and_label(G, p, [label])
+  return _permute_nodes_and_labels(G, p, [label])
 end
 
 
@@ -1637,17 +1649,33 @@ julia> is_isomorphic(vertex_edge_graph(cube(3)), dual_graph(cube(3)))
 false
 ```
 """
-function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing) where {T <: Union{Directed, Undirected}}
+function is_isomorphic(g1::Graph{T}, g2::Graph{T}; label::Union{Nothing, Symbol}=nothing,
+                       vertex_distinguishable::Bool=true, edge_distinguishable::Bool=true) where {T <: Union{Directed, Undirected}}
   isnothing(label) && return Polymake.graph.isomorphic(pm_object(g1), pm_object(g2))::Bool
 
-  if isnothing(Oscar._graph_maps(g1)[label].edge_map)
-    !isnothing(Oscar._graph_maps(g2)[label].edge_map) && return false
+  n_vertices(g1) == n_vertices(g2) && n_edges(g1) == n_edges(g2) || return false
+  G_map1 = Oscar._graph_maps(g1)[label]
+  G_map2 = Oscar._graph_maps(g2)[label]
+  isnothing(G_map1.edge_map) == isnothing(G_map2.edge_map) || return false
+  isnothing(G_map1.vertex_map) == isnothing(G_map2.vertex_map) || return false
+
+  isnothing(G_map1.edge_map) && vertex_distinguishable && return _canonical_form(g1; label=label) == _canonical_form(g2; label=label)
+
+  # the vertex labels of the `edge_label_to_vertex` graph only encode the position of a label in
+  # the sorted list of labels, so distinguishable labels also need to agree as sets
+  if vertex_distinguishable && !isnothing(G_map1.vertex_map)
+    Set(G_map1[v] for v in 1:n_vertices(g1)) == Set(G_map2[v] for v in 1:n_vertices(g2)) || return false
   end
-  if isnothing(Oscar._graph_maps(g1)[label].vertex_map)
-    !isnothing(Oscar._graph_maps(g2)[label].vertex_map) && return false
+  if edge_distinguishable && !isnothing(G_map1.edge_map)
+    Set(G_map1[e] for e in edges(g1)) == Set(G_map2[e] for e in edges(g2)) || return false
   end
 
-  error("Not implemented yet")
+  # compare the canonical forms of the gadget graphs, the canonical forms of g1 and g2
+  # keep the original label values and so are not invariant under renaming labels
+  new_g1 = _edge_label_to_vertex_label(g1, label; vertex_distinguishable, edge_distinguishable)
+  new_g2 = _edge_label_to_vertex_label(g2, label; vertex_distinguishable, edge_distinguishable)
+  n_vertices(new_g1) == n_vertices(new_g2) || return false
+  return _canonical_form(new_g1; label=:edge_to_vertex) == _canonical_form(new_g2; label=:edge_to_vertex)
 end
 
 @doc raw"""
@@ -1838,6 +1866,28 @@ function complete_bipartite_graph(n::Int64, m::Int64)
 end
 
 
+@doc raw"""
+    cycle_graph(n::Int)
+
+Return the graph consisting of a single `n`-cycle.
+
+# Examples
+```jldoctest
+julia> g = cycle_graph(4);
+
+julia> collect(edges(g))
+4-element Vector{Edge}:
+ Edge(2, 1)
+ Edge(3, 2)
+ Edge(4, 1)
+ Edge(4, 3)
+```
+"""
+function cycle_graph(n::Int)
+    bigobj = Polymake.graph.cycle_graph(n)
+    return Graph{Undirected}(bigobj.ADJACENCY)
+end
+
 
 @doc raw"""
     visualize(G::Graph{<:Union{Polymake.Directed, Polymake.Undirected}}; backend::Symbol=:default, filename::Union{Nothing, String}=nothing, kwargs...)
@@ -2022,10 +2072,17 @@ end
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Vector{Int}}, undirected_edges::Vector{Vector{Int}}; n_vertices=-1)
     graph_from_edges(::Type{Mixed}, directed_edges::Vector{Edge}, undirected_edges::Vector{Edge}; n_vertices=-1)
+    graph_from_edges(p::Polyhedron)
+    graph_from_edges(::Type{Undirected}, p::Polyhedron)
 
 
-Create a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
-ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
+Create a graph from a vector of edges or from the edges of a polyhedron.
+
+For vector of edges, there is an optional input for number of vertices,
+`graph_from_edges` will ignore any negative integers and throw an error when the
+input is less than the maximum vertex index in edges.
+
+For polyhedron, the return is the same as [`vertex_edge_graph`](@ref).
 
 # Examples
 ```jldoctest
@@ -2058,6 +2115,11 @@ Directed edges:
 (1, 2)(3, 4)
 Undirected edges:
 (3, 2)(4, 1)
+
+julia> graph_from_edges(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+
 ```
 """
 function graph_from_edges(::Type{T},
@@ -2107,6 +2169,16 @@ function graph_from_edges(::Type{Mixed},
                           undirected_edges::EdgeIterator,
                           n_vertices::Int=-1)
   return graph_from_edges(Mixed, collect(directed_edges), collect(undirected_edges), n_vertices)
+end
+
+function graph_from_edges(::Type{Undirected},
+                          p::Polyhedron;
+                          modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
+end
+
+function graph_from_edges(p::Polyhedron; modulo_lineality=false)
+  return vertex_edge_graph(p; modulo_lineality=modulo_lineality)
 end
 
 @doc raw"""

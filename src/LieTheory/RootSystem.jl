@@ -736,7 +736,7 @@ Return the `i`-th fundamental weight of `R`.
 
 This is a more efficient version for `fundamental_weights(R)[i]`.
 
-See also: [`fundamental_weight(::RootSystem)`](@ref).
+See also: [`fundamental_weights(::RootSystem)`](@ref).
 """
 function fundamental_weight(R::RootSystem, i::Int)
   return gen(weight_lattice(R), i)
@@ -1246,14 +1246,14 @@ function zero!(r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), zero!(r.vec))
 end
 
-function add!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
-  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
-  return DualRootSpaceElem(root_system(rr), add!(rr.vec, r1.vec, r2.vec))
-end
-
 function neg!(rr::DualRootSpaceElem, r::DualRootSpaceElem)
   @req root_system(rr) === root_system(r) "parent root system mismatch"
   return DualRootSpaceElem(root_system(rr), neg!(rr.vec, r.vec))
+end
+
+function add!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  return DualRootSpaceElem(root_system(rr), add!(rr.vec, r1.vec, r2.vec))
 end
 
 function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
@@ -1522,7 +1522,7 @@ If `r` is not a simple coroot, the second return value is arbitrary.
 See also: [`is_simple_coroot(::DualRootSpaceElem)`](@ref).
 """
 function is_simple_coroot_with_index(r::DualRootSpaceElem)
-  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
+  i = get(root_system(r).positive_coroots_map, coefficients(r), nothing)
   if isnothing(i) || i > number_of_simple_roots(root_system(r))
     return false, 0
   else
@@ -1573,8 +1573,10 @@ If `r` is a root, this is the coroot corresponding to `r`.
 """
 function dual(r::RootSpaceElem)
   R = root_system(r)
+  iszero(r) && return zero(DualRootSpaceElem, R)
   lr = dot(r, r)
-  coeffs = [dot(simple_root(R, i), simple_root(R, i))//lr * coeff(r, i) for i in 1:rank(R)]
+  bil = bilinear_form(R) # bil[i, i] == dot(simple_root(R, i), simple_root(R, i))
+  coeffs = [bil[i, i]//lr * coeff(r, i) for i in 1:rank(R)]
   return DualRootSpaceElem(R, coeffs)
 end
 
@@ -1587,10 +1589,10 @@ If `r` is a coroot, this is the root corresponding to `r`.
 """
 function dual(r::DualRootSpaceElem)
   R = root_system(r)
+  iszero(r) && return zero(RootSpaceElem, R)
   lr = dot(r, r)
-  coeffs = [
-    dot(simple_coroot(R, i), simple_coroot(R, i))//lr * coeff(r, i) for i in 1:rank(R)
-  ]
+  bil = bilinear_form_of_dual(R) # bil[i, i] == dot(simple_coroot(R, i), simple_coroot(R, i))
+  coeffs = [bil[i, i]//lr * coeff(r, i) for i in 1:rank(R)]
   return RootSpaceElem(R, coeffs)
 end
 
@@ -1607,8 +1609,8 @@ The minimal roots and coroots are given as coefficient vectors w.r.t. the simple
 The minimal roots are indexed by `1:n`, with the first `m` of them corresponding
 to the simple roots, and the other roots sorted by height.
 
-If `beta = alpha_j * s_i` is a minimal root, then `refl_table[i, j]` stores the index of beta, and otherwise `0`.
-Note that `refl_table[i, i] = 0` for every simple root `alpha_i`.
+If `beta = alpha_j * s_i` is a minimal root, then `refl[i, j]` stores the index of beta, and otherwise `0`.
+Note that `refl[i, i] = 0` for every simple root `alpha_i`.
 """
 function _positive_roots_and_reflections(cartan_matrix::ZZMatrix)
   rank, _ = size(cartan_matrix)

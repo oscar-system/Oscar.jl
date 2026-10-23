@@ -228,6 +228,7 @@
         @test parent(loadedv[1]) === loadedv[3]
         @test parent(loadedv[2]) === loadedv[4]
         @test is_subgroup(loadedv[4], loadedv[3])[1]
+        @test full_group(v[4])[1] === v[3]
 
         loadedw = load(filenamew)
         @test parent(loadedv[1]) === parent(loadedw[2])
@@ -254,6 +255,24 @@
       test_save_load_roundtrip(path, g) do loaded
         @test loaded == g
       end
+    end
+
+    @testset "Object identity" begin
+      # Take two Oscar groups that (accidentally) point to the same GAP group.
+      # Serializing and then deserializing them may yield
+      # two Oscar groups that may point to different GAP groups.
+      G = free_group(2)
+      H = Oscar._oscar_group(GapObj(G))
+      @test GapObj(G) === GapObj(H)
+
+      v = (G, H)
+      filenamev = joinpath(path, "v")
+      save(filenamev, v)
+      loaded = load(filenamev)
+      @test loaded === (G, H)
+      Oscar.reset_global_serializer_state()
+      loaded = load(filenamev)
+      @test GapObj(loaded[1]) !== GapObj(loaded[2])
     end
   end
 end

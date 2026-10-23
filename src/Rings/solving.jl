@@ -38,10 +38,12 @@ function real_solutions(::Type{Vector{QQFieldElem}},
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        precision::Int=32,                     # precision of the solution set
+        precision::Int=32,                    # precision of the solution set
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
+    info_level = max(info_level, get_verbosity_level(:AlgebraicSolving))
+    info_level = min(2, info_level)
     AlgebraicSolving.real_solutions(AI,
              initial_hts = initial_hts,
              nr_thrds = nr_thrds,
@@ -62,10 +64,12 @@ function real_solutions(::Type{Vector{Vector{QQFieldElem}}},
                                               # in symbolic preprocessing
         la_option::Int=2,                     # linear algebra option
         info_level::Int=0,                    # info level for print outs
-        precision::Int=32,                     # precision of the solution set
+        precision::Int=32,                    # precision of the solution set
         )
     AI = AlgebraicSolving.Ideal(oscar_generators(I))
 
+    info_level = max(info_level, get_verbosity_level(:AlgebraicSolving))
+    info_level = min(2, info_level)
     AlgebraicSolving.real_solutions(AI,
              initial_hts = initial_hts,
              nr_thrds = nr_thrds,
@@ -100,6 +104,7 @@ is greater than zero an empty array is returned.
 - `max_nr_pairs::Int=0`: maximal number of pairs per matrix, only bounded by minimal degree if `0`.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
 - `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
+  Deprecated, use `set_verbosity_level(:AlgebraicSolving, info_level)` instead.
 - `precision::Int=32`: bit precision for the computed solutions.
 
 # Examples
@@ -138,6 +143,8 @@ function _rational_solutions(
     @assert coefficient_ring(I) == QQ
     AI = AlgebraicSolving.Ideal(gens(I))
 
+    info_level = max(info_level, get_verbosity_level(:AlgebraicSolving))
+    info_level = min(2, info_level)
     AlgebraicSolving.rational_solutions(AI,
              initial_hts = initial_hts,
              nr_thrds = nr_thrds,

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Operations on Module Maps
 
 If module homomorphisms `a` and `b` with `codomain(a) === domain(b)` are given,

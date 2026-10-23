@@ -48,18 +48,22 @@ end
 
 @everywhere using Test
 @everywhere using Oscar
-@everywhere Oscar.set_seed!($seed)
-@everywhere Oscar.randseed!($seed)
-# setting the global julia seed does not work for distributed processes
-# the RNG is task-local and each '@everywhere' runs in a separate task...
-# to make sure we seed the main process we run this again
+
+# we now set seed before every test, if applicable, in every worker separately
+# in test_module()
+
+# We need to seed the main process to make sure the test-order is derived from a seeded RNG.
+# For all tests running on workers the seeding is done by `test_module`.
+Oscar.set_seed!(seed)
 Oscar.randseed!(seed)
 
 # Enable GC logging to help track down certain GC related issues.
-# Note that several test files need to temporarily disable and then
-# re-enable this. If we need to disable this globally, those files
-# need to be adjusted as well.
-@everywhere GC.enable_logging(true)
+# CI only does this for a few julia versions to keep the logs readable.
+if get(ENV, "OSCAR_GC_LOGGING", "false") == "true"
+  # `_AuxDocTest` needs `GC.logging_enabled` to restore the state
+  @assert isdefined(GC, :logging_enabled) "OSCAR_GC_LOGGING requires julia 1.11 or later"
+  @everywhere GC.enable_logging(true)
+end
 
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest
@@ -198,7 +202,7 @@ end
 # otherwise, is essentially a serial loop
 merge!(stats, reduce(merge, pmap(worker_pool, testlist) do x
                               println("Starting tests for $x")
-                              Oscar.test_module(x; new=false, timed=true, tempproject=false)
+                              Oscar.test_module(x; new=false, timed=true, tempproject=false, seed=seed)
                             end))
 
 
@@ -210,11 +214,12 @@ else
   print_stats(stdout, stats; max=10)
 end
 if haskey(ENV, "GITHUB_ACTIONS") || haskey(ENV, "OSCAR_TEST_STATS")
-  timestamp = readchomp(`git show --no-patch --pretty=format:"%ad" --date=format:"%Y-%m-%dT%H-%M-%S"`)
+  metadata = Oscar._test_stats_metadata()
+  timestamp = metadata.timestamp
   platform = Sys.islinux() ? "linux" : "macos"
   juliaVersion = join(split("$VERSION", ".")[1:2], ".")
-  commitHash = readchomp(`git rev-parse --verify --short HEAD`)
-  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(test_subset)_$(commitHash).csv"
+  commitHash = metadata.commit
+  statsFileName = "test-stats_$(timestamp)_$(platform)_$(juliaVersion)_$(replace("$test_subset", '_' => '-'))_$(commitHash).csv"
   open(joinpath(pkgdir(Oscar), statsFileName), "a") do io
     println(io, "path,time,ctime,rctime,gctime,alloc")
     DelimitedFiles.writedlm(io, ((k, v.time, v.ctime, v.rctime, v.gctime, v.alloc) for (k,v) in stats), ",")

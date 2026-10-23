@@ -201,3 +201,11 @@ end
   ok, _ = unimodular_primitive_extensions(genus(L), genus(T); exist_only=true)
   @assert ok
 end
+
+@testset "Fix primitive embeddings even into odd unimodular" begin
+  I = integer_lattice(; gram=QQ[1 0; 0 1])
+  k = integer_lattice(; gram=QQ[2;])
+  ok, r = primitive_embeddings(I, k; check=false)
+  @test ok
+  @test length(r) == 1
+end

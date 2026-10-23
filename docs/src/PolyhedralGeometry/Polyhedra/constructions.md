@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Constructions
 
 The standard way to define a polyhedron is by either giving a
@@ -182,6 +176,7 @@ pseudo_del_pezzo_polytope
 rand01_polytope
 rand_box_polytope
 rand_cyclic_polytope
+rand_dual_bounding_body
 rand_metric
 rand_metric_int
 rand_normal_polytope

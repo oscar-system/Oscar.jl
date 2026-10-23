@@ -1,14 +1,14 @@
 ##  This is a first attempt to implement group characters in Oscar.
-##  
+##
 ##  The idea is that the available GAP objects (groups, character tables,
 ##  class functions) are used in a first step, and that access to character
 ##  values yields `QQAbFieldElem` objects.
-##  
+##
 ##  Once we agree on the functionality and the integration into Oscar,
 ##  this setup can in a second step be replaced by one that uses
 ##  native Julia objects for representing class functions,
 ##  but character tables and groups still have some counterpart in GAP.
-##  
+##
 ##  In a third step, we replace the character table objects by native Julia
 ##  objects.
 
@@ -758,10 +758,10 @@ julia> Oscar.with_unicode() do
 C3
 
  3  1       1       1
-                     
+
    1a      3a      3b
 3P 1a      1a      1a
-                     
+
 χ₁  1       1       1
 χ₂  1      ζ₃ -ζ₃ - 1
 χ₃  1 -ζ₃ - 1      ζ₃
@@ -772,10 +772,10 @@ julia> Oscar.with_unicode() do
 C3
 
  3  1  1  1
-           
+
    1a 3a 3b
 3P 1a 1a 1a
-           
+
 χ₁  1  1  1
 χ₂  1  A  A̅
 χ₃  1  A̅  A
@@ -789,10 +789,10 @@ julia> Oscar.with_unicode() do
 C3
 
     3  1       1       1
-                        
+
       1a      3a      3b
    3P 1a      1a      1a
-    2                   
+    2
 χ₁  +  1       1       1
 χ₂  o  1      ζ₃ -ζ₃ - 1
 χ₃  o  1 -ζ₃ - 1      ζ₃
@@ -803,11 +803,11 @@ julia> Oscar.with_unicode() do
 C3
 
     3  1       1       1
-                        
+
       1a      3a      3b
    2P 1a      3b      3a
    3P 1a      1a      1a
-    d                   
+    d
 χ₁  1  1       1       1
 χ₂  2  1      ζ₃ -ζ₃ - 1
 χ₃  2  1 -ζ₃ - 1      ζ₃
@@ -3769,6 +3769,62 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
 end
 
 @doc raw"""
+    character_table_of_direct_product(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable)
+    tbl1 * tbl2
+
+Return the character table of the direct product of the groups of `tbl1` and
+`tbl2`.
+The values of the irreducible characters of the result are given by the
+Kronecker product of the irreducible characters of `tbl1` and `tbl2`.
+
+Also the syntax `tbl1 * tbl2` is supported.
+
+Note that the result does not store an underlying group.
+
+# Examples
+```jldoctest
+julia> tbl = character_table( "C2" )
+C2
+
+  2  1  1
+         
+    1a 2a
+ 2P 1a 1a
+         
+X_1  1  1
+X_2  1 -1
+
+julia> tbl * tbl
+C2xC2
+
+  2  2  2  2  2
+               
+    1a 2a 2b 2c
+ 2P 1a 1a 1a 1a
+               
+X_1  1  1  1  1
+X_2  1 -1  1 -1
+X_3  1  1 -1 -1
+X_4  1 -1 -1  1
+```
+"""
+function character_table_of_direct_product(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable)
+  p = characteristic(ZZRingElem, tbl1)
+  @req p == characteristic(ZZRingElem, tbl2) "characteristics must be equal"
+  dp = GAP.Globals.CharacterTableDirectProduct(GapObj(tbl1), GapObj(tbl2))::GapObj
+  result = GAPGroupCharacterTable(dp, p)
+  if p != 0
+    ordtbl = GAPGroupCharacterTable(GAP.Globals.OrdinaryCharacterTable(dp), 0)
+    set_attribute!(result, :ordinary_table, ordtbl)
+  end
+
+  return result
+end
+
+Base.:*(tbl1::GAPGroupCharacterTable, tbl2::GAPGroupCharacterTable) = character_table_of_direct_product(tbl1, tbl2)
+
+
+@doc raw"""
     character_table_wreath_symmetric(tbl::GAPGroupCharacterTable, n::Int)
 
 Return the character table of the wreath product (see [`wreath_product`](@ref))
@@ -3787,10 +3843,10 @@ julia> t = character_table_wreath_symmetric(character_table(:Cyclic, 2), 2)
 C2wrS2
 
   2  3  2  3  2  2
-                  
+
     1a 2a 2b 2c 4a
  2P 1a 1a 1a 1a 2b
-                  
+
 X_1  1  1  1 -1 -1
 X_2  2  . -2  .  .
 X_3  1 -1  1 -1  1
@@ -3879,11 +3935,11 @@ Rational character table of alternating group of degree 4
 
   2  2  2  .  .
   3  1  .  1  1
-               
+
     1a 2a 3a 3b
  2P 1a 1a 3b 3a
  3P 1a 2a 1a 1a
-               
+
 X_1  1  1  1  1
 X_2  3 -1  .  .
 X_3  2  2 -1 -1
@@ -3902,7 +3958,7 @@ function _irr(rattbl::GAPGroupCharacterTableRational)
   isdefined(rattbl, :irr) && return rattbl.irr
 
   tbl = character_table(rattbl)
-  info = GAP.Globals.GaloisMat(GAP.Globals.Irr(GapObj(tbl))).galoisfams
+  info = GAP.Globals.GaloisMat(GAPWrap.Irr(GapObj(tbl))).galoisfams
   res = GAPGroupClassFunction[]
   norms = Int[]
   for i in 1:length(info)

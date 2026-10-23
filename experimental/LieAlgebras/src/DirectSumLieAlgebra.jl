@@ -86,7 +86,7 @@ function bracket(
     xS = S(xS_vec)
     yS_vec = _matrix(y)[:, (offset + 1):(offset + dimS)]
     iszero(yS_vec) && continue
-    yS = S(_matrix(y)[:, (offset + 1):(offset + dimS)])
+    yS = S(yS_vec)
     vec[:, (offset + 1):(offset + dimS)] = _matrix(bracket(xS, yS))
   end
   return D(vec)
@@ -112,7 +112,7 @@ AbstractAlgebra._number_of_direct_product_factors(D::DirectSumLieAlgebra) =
   length(D.summands)
 
 function canonical_injection(D::DirectSumLieAlgebra, i::Int)
-  @boundscheck @req 1 <= i <= _number_of_direct_product_factors(D) "Invalid index."
+  @req 1 <= i <= _number_of_direct_product_factors(D) "Invalid index."
   S = D.summands[i]
   mat = Generic.inj_proj_mat(
     coefficient_ring(D), dim(S), dim(D), sum(dim, D.summands[1:(i - 1)]; init=0) + 1
@@ -121,7 +121,7 @@ function canonical_injection(D::DirectSumLieAlgebra, i::Int)
 end
 
 function canonical_projection(D::DirectSumLieAlgebra, i::Int)
-  @boundscheck @req 1 <= i <= _number_of_direct_product_factors(D) "Invalid index."
+  @req 1 <= i <= _number_of_direct_product_factors(D) "Invalid index."
   S = D.summands[i]
   mat = Generic.inj_proj_mat(
     coefficient_ring(D), dim(D), dim(S), sum(dim, D.summands[1:(i - 1)]; init=0) + 1
@@ -162,7 +162,16 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    direct_sum(Ss::Vector{<:LieAlgebra{C}}) -> DirectSumLieAlgebra{C}
+    direct_sum(S::LieAlgebra{C}, Ss::LieAlgebra{C}...) -> DirectSumLieAlgebra{C}
+
+Construct the direct sum of the Lie algebras `Ss`, which must have the same
+coefficient ring. The summands are accessible via `canonical_injection` and
+`canonical_projection`.
+"""
 function direct_sum(Ss::Vector{<:LieAlgebra{C}}) where {C<:FieldElem}
+  @req !isempty(Ss) "Summands must not be empty, or provide the coefficient ring as first argument"
   R = coefficient_ring(Ss[1])
   return direct_sum(R, Ss)
 end

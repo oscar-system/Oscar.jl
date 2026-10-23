@@ -71,7 +71,7 @@ function invariant_function_graph_hash(L::ZZLat; max_size = 6000)
   _v = zero_matrix(kk, 1, r)
   tmp = zero_matrix(kk, r, 1)
   tmp2 = zero_matrix(kk, 1, 1)
-  cv = characteristic_vectors(L)
+  cv = Hecke._characteristic_vectors(L)
   if length(cv) < max_size
     for v in cv
       n = n+1
@@ -147,67 +147,79 @@ function oscar_invariant_function(L::ZZLat)
 end
 
 
-# return all characteristic vectors up to sign
-# unfortunately still to many for a fast graph hash 
-# at least in higher rank
-# the idea follows https://arxiv.org/pdf/2004.14022
+_get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{Matrix{Int}}, canonical_ordering::Vector{Int}) = _get_canonical_form(A, [matrix(ZZ, v) for v in char_vectors_set], canonical_ordering)
+
+function _get_canonical_form(A::ZZMatrix, char_vectors_set::Vector{ZZMatrix}, canonical_ordering::Vector{Int})
+  can_char_vectors_set = transpose(matrix(ZZ, reduce(vcat, char_vectors_set[canonical_ordering])))
+  _, U = hnf_with_transform(can_char_vectors_set) 
+  U_inv = inv(U)
+  return transpose(U_inv)*A*U_inv
+end
+
+_canonical_ordering(cv_set::Vector{Matrix{Int}}, gram::ZZMatrix) = _canonical_ordering(cv_set, Hecke._int_matrix_with_overflow(gram, ZZ(0)))
+
+# Return an ordering of the characteristic vectors `cv_set` which depends only
+# on the isometry class of the lattice with gram matrix `gram`.
+#
+# The characteristic vectors together with their inner products form a complete
+# graph whose vertices are colored by the norms and whose edges are labeled by
+# the inner products. Following section 14 of the nauty manual the edge labels
+# are turned into vertex colors: the label of an edge is written in binary and
+# the edge is inserted into those of the `nlayers` copies of the vertex set
+# which correspond to the bits set. The labels are numbered by decreasing
+# frequency, so the most frequent inner product is encoded by zero, that is, by
+# no edge at all; this keeps the resulting graph small.
+function _canonical_ordering(cv_set::Vector{Matrix{Int}}, gram::Matrix{Int})
+  p = length(cv_set)
+  cv = reduce(vcat, cv_set)
+  prods = (cv*gram)*transpose(cv)
+
+  counts = Dict{Int, Int}()
+  for j in 1:p, i in 1:j-1
+    counts[prods[i, j]] = get(counts, prods[i, j], 0) + 1
+  end
+  labels = sort!(collect(keys(counts)); by = w -> (-counts[w], w))
+  nlayers = length(digits(length(labels)-1; base=2))
+  codes = sort(0:2^nlayers-1; by = c -> (count_ones(c), c))
+  code = Dict{Int, Int}(w => codes[k] for (k, w) in enumerate(labels))
+
+  norms = sort!(unique([prods[i, i] for i in 1:p]))
+  colors = [(l-1)*length(norms) + searchsortedfirst(norms, prods[i, i]) for l in 1:nlayers for i in 1:p]
+
+  g = graph(Undirected, nlayers*p)
+  for j in 1:p, i in 1:j-1
+    c = code[prods[i, j]]
+    while !iszero(c)
+      l = trailing_zeros(c)
+      add_edge!(g, i + l*p, j + l*p)
+      c &= c-1
+    end
+  end
+  for l in 1:nlayers-1, i in 1:p
+    add_edge!(g, i + (l-1)*p, i + l*p)
+  end
+  perm = Polymake._canonical_perm(pm_object(g), Polymake.Array{Int}(colors))
+  # the vertices of the first layer come first in the coloring, hence they are
+  # exactly the first `p` entries of the canonical labeling
+  order = Polymake.to_one_based_indexing(perm)[1:p]
+  @assert isperm(order)
+  return order
+end
+
 """
-    characteristic_vectors(L::ZZLat) -> Vector{ZZMatrix}
-    
-Return a set of characteristic vectors of ``L`` up to sign.
+    canonical_form(L::ZZLat) -> ZZMatrix
+Return the canonical form of ``L``. The form is canonical in the sense, that two isomorphic latticies would have the same canonical form.
 
 We follow ideas of Sikirić, Haensch, Voight and van Woerden [SHVW20](@cite).
 
 !!! note
-    We do not give any guarantees that the characteristic vector set stays the same 
+    We do not give any guarantees that the canonical form stays the same 
     between different versions of Oscar.
 """
-function characteristic_vectors(L::ZZLat)
-  L = lattice(rational_span(L))
-  S1,P1, v1  = Hecke._shortest_vectors_sublattice(L; check=false)
-  cvL = v1
-  B = coordinates(basis_matrix(S1), P1)
-  A = abelian_group(ZZ.(B))
-  BS1 = ZZ.(basis_matrix(S1))
-  done = []
-  for a in A
-    -a in done && continue
-    iszero(a) && continue
-    push!(done,a)
-    v = coordinates(a.coeff*basis_matrix(P1), S1)[1,:]
-    tmp = [matrix(ZZ, 1, degree(S1), (v -  j)*basis_matrix(S1)) for j in Hecke._closest_vectors(S1, v)[2]]
-    append!(cvL, tmp)
-  end
-  if rank(S1) == rank(L)
-    @hassert :Lattice 1 isone(hnf(reduce(vcat, cvL))[1:rank(L),:])
-    return cvL
-  end
-  proj2 = orthogonal_projection(ambient_space(L), basis_matrix(P1))
-  L2 = proj2(L)
-  proj1 = orthogonal_projection(ambient_space(L), basis_matrix(L2))
-  P_Z = ZZ.(solve(basis_matrix(L2), proj2.matrix;side=:left))    
-  # recurse 
-  for a in characteristic_vectors(L2)
-    aL = a*basis_matrix(L2)
-    if a*basis_matrix(L2) in L
-      @assert rank(L) == ncols(aL)
-      push!(cvL, ZZ.(aL))
-      continue
-    end
-    # a vector in L projecting to a
-    vL = solve(P_Z, a; side=:left)
-    w_amb = vL * proj1.matrix
-    w_amb == w_amb * proj1.matrix
-    w = coordinates(w_amb[1,:], P1)
-    if all(isone, denominator.(w))
-      push!(cvL, w*basis_matrix(P1))
-      continue 
-    end
-    _, cv = Hecke._closest_vectors(P1, w)
-    tmp = [ZZ.(aL+matrix(QQ, 1, length(w), w - j) * basis_matrix(P1)) for j in cv]
-    append!(cvL, tmp)
-  end
-  @assert all(rank(L) == ncols(i) for i in cvL)
-  @hassert :Lattice 1 isone(hnf(reduce(vcat, cvL))[1:rank(L),:])
-  return cvL
+function canonical_form(L::ZZLat)
+  L = lll(L) # leaves canonical form unchanged and helps if the basis is badly conditioned
+  gram = matrix(ZZ, gram_matrix(L))
+  char_vectors_set = Hecke._reduced_characteristic_vectors(L)
+  can_order = _canonical_ordering(char_vectors_set, gram)
+  return _get_canonical_form(gram, char_vectors_set, can_order)
 end

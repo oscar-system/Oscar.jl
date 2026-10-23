@@ -1,17 +1,17 @@
 @testset "all tests - Clifford algebras" verbose = true begin
-  mul_with_gen! = Oscar._mul_with_gen! 
- 
+  mul_with_gen! = Oscar._mul_with_gen!
+
   @testset "CliffordAlgebra - conformance tests" begin
     # Over rationals
-    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0])))    
+    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(QQ, QQ[0 1; 1 0])))
     ConformanceTests.test_NCRing_interface(clifford_algebra(rational_span(root_lattice(:A, 3))))
 
     # Over a number field
     K, a = quadratic_field(-5)
-    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(K, K[0 1; 1 0])))    
+    ConformanceTests.test_NCRing_interface(clifford_algebra(quadratic_space(K, K[0 1; 1 0])))
     C = clifford_algebra(quadratic_space(K, K[2*a -1 0; -1 2*a -1; 0 -1 2*a]))
     ConformanceTests.test_NCRing_interface(C)
-  
+
     # Matrices over Clifford Algebras
     M = matrix_ring(C, 2)
     # ConformanceTests.test_NCRing_interface(M) # disabled, see https://github.com/oscar-system/Oscar.jl/issues/5975
@@ -53,7 +53,7 @@
       @test x != y
       y = C(1)
       x[1] = QQ(1)
-      @test x == y 
+      @test x == y
     end
     @testset "functions on elements" begin
       x = C([17])
@@ -147,8 +147,8 @@
       @test x != y
       y = C(1)
       x[1] = K(1)
-      @test x == y 
-    end 
+      @test x == y
+    end
     @testset "functions on elements" begin
       x = C([-1, 1, a, a + 1])
       @test parent(x) == C
@@ -216,7 +216,7 @@
       x = C([-a^2, 2, a + 4, -1])
       coeffs = coefficients(x)
       out = [zero(K) for _ in 1:length(coeffs)]
-      
+
       Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
       @test out == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
 
@@ -268,7 +268,7 @@
       @test_throws ErrorException x * y
       y = C(1)
       x[1] = QQ(1)
-      @test x == y 
+      @test x == y
     end
     @testset "defining relations" begin
       @test e(1) == gens(C)[1]
@@ -321,12 +321,12 @@
       x = C([1, 2, 3, 4])
       coeffs = coefficients(x)
       out = [zero(QQ) for _ in 1:length(coeffs)]
-      
+
       Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
       @test out == QQ.([2 * a, 1, -4 * a, -3])
-      
+
       Oscar._mul_with_gen!(out, coeffs, 2, gram_matrix(C))
-      @test out == QQ.([3 * b, 4 * b, 1, 2]) 
+      @test out == QQ.([3 * b, 4 * b, 1, 2])
     end
     @testset "center and centroid" begin
       @test basis_of_center(C) == [one(C)]
@@ -377,7 +377,7 @@
       @test x != y
       y = C(1)
       x[1] = K(1)
-      @test x == y 
+      @test x == y
     end
     @testset "defining relations" begin
       for i in 1:5, j in 1:5
@@ -466,7 +466,7 @@
 
   #=
   @testset "multiplication helpers on bitvectors" begin
-    
+
     @testset "test shift_entries!" begin
       shift_entries! = Oscar._shift_entries!
       A3, s3 = QQ.([1, 2, 3, 4, 5, 6]), 0
@@ -537,7 +537,7 @@
 
     @testset "test _add_mul_baseelt_with_gen!" begin
       add_mul! = Oscar._add_mul_baseelt_with_gen!
-      
+
       function eval_add_mul(char, i, gram)
         out = [zero(base_ring(gram)) for _ in  1:(1 << ncols(gram))]
         add_mul!(out, one(base_ring(gram)), char, i, gram, 0)

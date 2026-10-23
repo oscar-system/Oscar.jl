@@ -76,7 +76,7 @@ function exterior_algebra(K::Ring, varnames::Vector{Symbol})
   if K isa Field
     # Now construct the fast exteriorAlgebra in Singular;
     # get var names from PBW in case it had "mangled" them.
-    K_singular = singular_coeff_ring(coefficient_ring(R))
+    K_singular = codomain(Oscar._cached_iso_oscar_singular_coeff_ring(coefficient_ring(R)))
     R_singular, _ = Singular.polynomial_ring(K_singular, symbols(PBW))
     SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(
       Singular.libSingular.rCopy(R_singular.ptr)

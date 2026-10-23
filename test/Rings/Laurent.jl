@@ -34,6 +34,37 @@
 end
 
 
+@testset "Laurent coefficient maps" begin
+  # Check coefficient maps on constants and Laurent monomials.
+  K, a = finite_field(2, 2, :a)
+  R, (x, y) = laurent_polynomial_ring(K, [:x, :y])
+  p = a*x^-2 + (a+1)*y^-1 + 1
+  q = x*y^-1 + a
+  for coeff_map in [hom(K, K, a^2), c -> c^2]
+    f = hom(R, R, coeff_map, [y, x])
+    @test domain(f) === R
+    @test codomain(f) === R
+    @test f(p) == a^2*y^-2 + (a+1)^2*x^-1 + 1
+    @test f(R(a)) == R(a^2)
+    @test f(zero(R)) == zero(R)
+    @test f(one(R)) == one(R)
+    @test f(x*y^-1) == y*x^-1
+    @test f(p+q) == f(p)+f(q)
+    @test f(p*q) == f(p)*f(q)
+  end
+  @test_throws ArgumentError hom(R, R, c -> c^2, [x])
+  @test_throws ArgumentError hom(R, R, c -> c^2, [x+1, y])
+
+  B, (t,) = polynomial_ring(QQ, [:t])
+  R, (x, y) = laurent_polynomial_ring(B, [:x, :y])
+  S, (u, v) = laurent_polynomial_ring(QQ, [:u, :v])
+  f = hom(R, S, hom(B, S, [u+v]), [u, v^-1])
+  @test f(t*x^-2 + (t+1)*y + 2) == (u+v)*u^-2 + (u+v+1)*v^-1 + 2
+  @test f(zero(R)) == zero(S)
+  @test f(one(R)) == one(S)
+end
+
+
 @testset "Laurent quotient" begin
   # Quick test
 

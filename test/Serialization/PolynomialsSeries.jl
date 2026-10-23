@@ -239,3 +239,13 @@ end
     end
   end
 end
+
+@testset "ZZIdl serialization" begin
+  mktempdir() do path
+    I = ideal(ZZ, [ZZ(3)])
+    test_save_load_roundtrip(path, I) do loaded
+      @test loaded == I
+      @test loaded == ideal(ZZ, ZZ(3))
+    end
+  end
+end

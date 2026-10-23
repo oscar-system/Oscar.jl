@@ -293,3 +293,61 @@
     @test Polymake.unwrap(Oscar.pm_object(cs).VOLUME) isa QQBarFieldElem
   end
 end
+
+@testset "_guess_fieldelem_type" begin
+  guess = Oscar._guess_fieldelem_type
+
+  NF, sr2 = quadratic_field(2)
+  E, e2 = Hecke.embedded_field(NF, real_embeddings(NF)[2])
+  ENFElem = elem_type(E)
+  qb = sqrt(QQBar(2))
+
+  # integers and rationals in any shape default to the rationals
+  @test guess([0 0; 1 0; 1 1]) == QQFieldElem
+  @test guess([1, 2, 3]) == QQFieldElem
+  @test guess(matrix(ZZ, [1 2; 3 4])) == QQFieldElem
+  @test guess(matrix(QQ, [1 2; 3 4])) == QQFieldElem
+  @test guess(sparse_matrix(QQ, [1 2; 3 4])) == QQFieldElem
+  @test guess(Polymake.Matrix{Polymake.Rational}(2, 2)) == QQFieldElem
+  @test guess(Polymake.Integer(2)) == QQFieldElem
+  @test guess([[1, 2], [3, 4]]) == QQFieldElem
+
+  # no input at all, or input without any type information
+  @test guess() == QQFieldElem
+  @test guess(nothing) == QQFieldElem
+  @test guess(Int[]) == QQFieldElem
+  @test guess(Any[]) == QQFieldElem
+
+  # a larger field wins over the rationals, independently of the argument order
+  @test guess(QQBarFieldElem[1 2; 3 qb]) == QQBarFieldElem
+  @test guess(QQBarFieldElem[1 qb], [1 2]) == QQBarFieldElem
+  @test guess([1 2], QQBarFieldElem[1 qb]) == QQBarFieldElem
+  @test guess(QQBarFieldElem[1 qb], matrix(QQ, [1 2])) == QQBarFieldElem
+  @test guess(QQBarFieldElem[1 qb], matrix(ZZ, [1 2])) == QQBarFieldElem
+  @test guess(matrix(E, [1 2; 3 4])) == ENFElem
+  @test guess([e2, E(1)], [1, 2]) == ENFElem
+
+  # containers without a useful element type are inspected entry by entry
+  @test guess(Any[qb, QQ(1)]) == QQBarFieldElem
+  @test guess(Any[QQ(1), qb]) == QQBarFieldElem
+  @test guess(Vector{Any}[[1, qb], [3, 4]]) == QQBarFieldElem
+  @test guess(([1, 2], [qb, 3])) == QQBarFieldElem
+
+  # inexact input wins over everything else
+  @test guess([1.0 2.0]) == Float64
+  @test guess([1.0], [qb]) == Float64
+  @test guess([qb], [1.0]) == Float64
+
+  # polyhedral objects carry their coefficient field
+  @test guess(vertices(cube(3))) == QQFieldElem
+  @test guess(point_vector(QQ, [1, 2])) == QQFieldElem
+  @test guess(halfspace([1, 2], 3)) == QQFieldElem
+  @test guess(halfspace(E, [e2, 2], 3)) == ENFElem
+  @test guess(vertices(convex_hull(E, [0 0; 1 0; e2 1]))) == ENFElem
+
+  # the common cases are decided by the compiler, without touching any entry
+  let a = [0 0; 1 0; 1 1; 0 1]
+    @test @inferred(guess(a, a, a)) == QQFieldElem
+    @test @allocated(guess(a, a, a)) == 0
+  end
+end

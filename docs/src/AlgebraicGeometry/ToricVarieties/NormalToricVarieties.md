@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Normal Toric Varieties
 
 ## Introduction
@@ -170,8 +164,24 @@ nef_cone(v::NormalToricVariety)
 dim(v::NormalToricVarietyType)
 dim_of_torusfactor(v::NormalToricVarietyType)
 euler_characteristic(v::NormalToricVarietyType)
-betti_number(v::NormalToricVarietyType, i::Int)
 ```
+
+### Betti numbers
+
+```@docs
+betti_number(v::NormalToricVarietyType, i::Int)
+betti_numbers(v::NormalToricVarietyType)
+```
+
+
+### Hodge numbers
+
+```@docs
+hodge_number(v::NormalToricVarietyType, p::Int, q::Int)
+hodge_numbers(v::NormalToricVarietyType)
+print_hodge_diamond(io::IO, v::NormalToricVarietyType)
+```
+
 
 ### Rings and ideals
 

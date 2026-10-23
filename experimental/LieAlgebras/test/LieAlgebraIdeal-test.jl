@@ -68,4 +68,13 @@
       end
     end
   end
+
+  @testset "bracket" begin
+    # [I1, I2] must be computed from bases, not generators; both ideals are sl_4
+    L = general_linear_lie_algebra(QQ, 4)
+    I1 = ideal(L, basis(L, 2)) # E_12
+    I2 = ideal(L, basis(L, 12)) # E_34
+    @test dim(I1) == dim(I2) == 15
+    @test dim(bracket(I1, I2)) == 15
+  end
 end

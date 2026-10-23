@@ -356,6 +356,7 @@ export bump!
 export canonical_bundle
 export canonical_divisor
 export canonical_divisor_class
+export canonical_form
 export canonical_isomorphism
 export canonical_matrix
 export cartan_bilinear_form
@@ -388,6 +389,7 @@ export character_lattice
 export character_parameters
 export character_table
 export character_table_complex_reflection_group
+export character_table_of_direct_product
 export character_table_rational
 export character_table_wreath_symmetric
 export character_to_rational_function
@@ -511,6 +513,7 @@ export cox_variety
 export cperm
 export cross_polytope
 export cube
+export cycle_graph
 export cycle_length
 export cycle_matroid
 export cycle_structure
@@ -746,10 +749,12 @@ export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
 export groebner_basis_modular
+export groebner_basis_signature_based
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
 export group_with_class_number
+export group_with_class_number_identification
 export gset
 export h_star_polynomial
 export h_vector
@@ -761,6 +766,7 @@ export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_edge
 export has_groups_with_class_number
+export has_groups_with_class_number_identification
 export has_nonempty_intersection
 export has_perfect_groups
 export has_preimage_with_preimage
@@ -782,6 +788,9 @@ export hilbert_series_expanded
 export hilbert_series_reduced
 export hirsch_length
 export hirzebruch_surface
+export hodge_number
+export hodge_numbers
+export print_hodge_diamond
 export hom
 export hom_product
 export hom_tensor
@@ -846,6 +855,7 @@ export inner_automorphism_group
 export inner_cartesian_power
 export inner_direct_product
 export inradical
+export instantiate_uov
 export integer_hull
 export integer_lattice_with_isometry
 export integral_basis
@@ -1122,6 +1132,7 @@ export k_skeleton
 export kaehler_differentials
 export katsura
 export kernel
+export keygen
 export klee_minty_cube
 export klein_bottle
 export known_class_fusion
@@ -1189,7 +1200,6 @@ export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
-export map_from_func
 export map_from_picard_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_picard_group
@@ -1550,6 +1560,7 @@ export rand
 export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
+export rand_dual_bounding_body
 export rand_homogeneous
 export rand_metric
 export rand_metric_int
@@ -1689,6 +1700,7 @@ export set_relative_orders!
 export set_theoretic_intersection
 export sets
 export setwise_stabilizer_in_orthogonal_group
+export shake_256
 export shape
 export sheaf_cohomology
 export sheaf_of_rings
@@ -1698,6 +1710,7 @@ export show_atlas_info
 export show_morphism
 export show_morphism_as_map
 export show_subquo
+export sign
 export signed_incidence_matrix
 export signed_permutahedron
 export simple_coroot
@@ -1866,6 +1879,20 @@ export unit
 export unitary_group
 export units_of
 export unwrap
+export uov_1p
+export uov_1p_pkc
+export uov_1p_pkc_skc
+export uov_1s
+export uov_1s_pkc
+export uov_1s_pkc_skc
+export uov_3
+export uov_3_pkc
+export uov_3_pkc_skc
+export uov_5
+export uov_5_pkc
+export uov_5_pkc_skc
+export uov_all
+export uov_open
 export update_gluing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
@@ -1880,6 +1907,7 @@ export variety
 export vector_matrix
 export vector_space_basis
 export vector_space_dim
+export verify
 export vertex_and_ray_indices
 export vertex_edge_graph
 export vertex_figure

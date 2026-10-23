@@ -71,10 +71,7 @@ oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_gener
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
 singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
-singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
-singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
-oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
+singular_origin_ring_iso(Q::MPolyQuoRing) = _groebner_basis(Q) && _sing_iso(Q.I.gb[Q.ordering])
 
 default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 
@@ -248,7 +245,6 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
    @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
    r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
-   r.gens.gensBiPolyArray.O = [R(g) for g in gens(r.gens.gensBiPolyArray.S)]
    B = r.gens
    if length(B) >= 1 && is_graded(R)
      @req all(is_homogeneous, oscar_generators(B)) "The generators of the ideal must be homogeneous"
@@ -302,18 +298,19 @@ end
 
 oscar_generators(I::MPolyQuoIdeal) = oscar_generators(I.gens)
 
+_sing_iso(I::MPolyQuoIdeal) = _sing_iso(I.gens)
+
 function _groebner_basis(a::MPolyQuoIdeal)
   # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gensBiPolyArray.S.isGB = a.gb.isGB = true
   end
+  return a.gb
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
-  _groebner_basis(a)
-
-  return a.gb.gensBiPolyArray.S
+  _groebner_basis(a).gensBiPolyArray.S
 end
 
 @doc raw"""
@@ -661,10 +658,10 @@ function simplify(a::MPolyQuoIdeal)
   Q = base_ring(a)
   R = base_ring(Q)
   red  = reduce(singular_generators(a.gens), singular_quotient_groebner_basis(Q))
-  SQ   = singular_poly_ring(Q)
-  si   = Singular.Ideal(SQ, unique!(gens(red)))
+  iso = _sing_iso(a)
+  si   = Singular.Ideal(codomain(iso), unique!(gens(red)))
   a.gens.gensBiPolyArray.S = si
-  a.gens.gensBiPolyArray.O = [R(g) for g in gens(si)]
+  a.gens.gensBiPolyArray.O = [lift(preimage(iso, g)) for g in gens(si)]
   return a
 end
 
@@ -695,8 +692,8 @@ true
 """
 function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
-  SR = singular_poly_ring(base_ring(b))
-  return Singular.iszero(Singular.reduce(SR(simplify(a)), singular_groebner_generators(b)))
+  iso = _sing_iso(b)
+  return Singular.iszero(Singular.reduce(iso(simplify(a)), singular_groebner_generators(b)))
 end
 
 Base.:in(a::MPolyQuoRingElem, b::MPolyQuoIdeal) = ideal_membership(a, b)
@@ -731,6 +728,7 @@ x^3 + x
 ```
 """
 function simplify(f::MPolyQuoRingElem)
+  f.simplified && return f
   Q = parent(f)::MPolyQuoRing
   P = base_ring(Q)::MPolyRing
   kk = coefficient_ring(P)::Ring
@@ -740,11 +738,16 @@ end
 function _simplify(::HasSingularGroebnerAlgorithm, f::MPolyQuoRingElem)
   f.simplified && return f
   R  = parent(f)
-  OR = oscar_origin_ring(R)
-  SR = singular_origin_ring(R)
+  if is_zero(ngens(base_ring(R)))
+    # Singular rings need a variable, which normal_form works around
+    f.f = normal_form(f.f, modulus(R))
+    f.simplified = true
+    return f
+  end
   G  = singular_origin_groebner_basis(R)
+  iso = singular_origin_ring_iso(R)
   g  = f.f
-  f.f = OR(reduce(SR(g), G))
+  f.f = preimage(iso, reduce(iso(g), G))
   f.simplified = true
   return f::elem_type(R)
 end
@@ -835,7 +838,7 @@ julia> typeof(x)
 QQMPolyRingElem
 
 julia> p
-Map defined by a julia-function with inverse
+Map defined by a Julia function with inverse
   from multivariate polynomial ring in 2 variables over QQ
   to quotient of multivariate polynomial ring by ideal (x^2 - y^3, x - y)
 
@@ -901,17 +904,6 @@ end
 
 function (Q::MPolyQuoRing)(a::MPolyRingElem; check::Bool=false)
   return Q(base_ring(Q)(a))
-end
-
-function (Q::MPolyQuoRing)(a::Singular.spoly)
-  @assert singular_poly_ring(Q) == parent(a)
-  return MPolyQuoRingElem(base_ring(Q)(a), Q)
-end
-
-function (S::Singular.PolyRing)(a::MPolyQuoRingElem)
-  Q = parent(a)
-  @assert singular_poly_ring(Q) == S
-  return S(a.f)
 end
 
 (Q::MPolyQuoRing)(a; check::Bool=false) = MPolyQuoRingElem(base_ring(Q)(a), Q)
@@ -1024,15 +1016,18 @@ function is_zero_divisor(f::MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}})
 end
 
 """
-Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
+Converts a sparse-Singular vector of polynomials to an Oscar sparse row
+over the domain of `iso`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
+function sparse_row(iso::Map, M::Singular.svector{<:Singular.spoly})
+  R = domain(iso)
+  f = _coeff_iso(_iso_with_codomain(iso, base_ring(M)))
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     vi = get!(v, i) do
       MPolyBuildCtx(R)
     end
-    push_term!(vi, base_ring(R)(c), e)
+    push_term!(vi, preimage(f, c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1042,14 +1037,16 @@ end
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 Collect only the column indices in `U`.
 """
-function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
+function sparse_row(iso::Map, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange)
+  R = domain(iso)
+  f = _coeff_iso(_iso_with_codomain(iso, base_ring(M)))
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
     vi = get!(v, i) do
       MPolyBuildCtx(R)
     end
-    push_term!(vi, base_ring(R)(c), e)
+    push_term!(vi, preimage(f, c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1059,11 +1056,11 @@ end
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 Only the row indices (generators) in `V` and the column indices in `U` are converted.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
-  S = sparse_matrix(R)
+function sparse_matrix(iso::Map, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange)
+  S = sparse_matrix(domain(iso))
   for g = 1:Singular.ngens(M)
     (g in V) || continue
-    push!(S, sparse_row(R, M[g], U))
+    push!(S, sparse_row(iso, M[g], U))
   end
   return S
 end
@@ -1071,10 +1068,10 @@ end
 """
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar sparse-matrix.
 """
-function sparse_matrix(R::MPolyRing, M::Singular.Module)
-  S = sparse_matrix(R)
+function sparse_matrix(iso::Map, M::Singular.Module)
+  S = sparse_matrix(domain(iso))
   for g = 1:Singular.ngens(M)
-    push!(S, sparse_row(R, M[g]))
+    push!(S, sparse_row(iso, M[g]))
   end
   S.r = ngens(M)
   S.c = rank(M)
@@ -1084,9 +1081,16 @@ end
 """
 Converts the sparse-Singular matrix (`Module`) row by row to an Oscar dense-matrix.
 """
-function matrix(R::MPolyRing, M::Singular.Module)
-  return matrix(sparse_matrix(R, M))
+function matrix(iso::Map, M::Singular.Module)
+  return matrix(sparse_matrix(iso, M))
 end
+
+# the same over `R`, via the iso from `R` onto the Singular ring of `M`
+sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}) = sparse_row(_iso_onto(R, base_ring(M)), M)
+sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::AbstractUnitRange) = sparse_row(_iso_onto(R, base_ring(M)), M, U)
+sparse_matrix(R::MPolyRing, M::Singular.Module, V::AbstractUnitRange, U::AbstractUnitRange) = sparse_matrix(_iso_onto(R, base_ring(M)), M, V, U)
+sparse_matrix(R::MPolyRing, M::Singular.Module) = sparse_matrix(_iso_onto(R, base_ring(M)), M)
+matrix(R::MPolyRing, M::Singular.Module) = matrix(_iso_onto(R, base_ring(M)), M)
 
 function divides(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   check_parent(a, b)
@@ -1142,12 +1146,11 @@ function _divides_hack(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
   # Make sure that the singular side of this ideal is filled with the correct ordering
   # Get our hands on the actual singular ideal
   Ising = singular_generators(I.gens, o)
-  # ...and the ring
-  Rsing = base_ring(Ising)
-  a_ideal = Singular.Ideal(Rsing, [Rsing(lift(a))])
+  iso = _sing_iso(I, base_ring(Ising))
+  a_ideal = Singular.Ideal(codomain(iso), [iso(lift(a))])
   u_sing, rem = Singular.lift(Ising, a_ideal)
   !iszero(rem) && return false, a
-  return true, A(sparse_matrix(base_ring(A), u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
+  return true, A(sparse_matrix(iso, u_sing, 1:1, ngens(I):ngens(I))[1, ngens(I)])
 end
 
 #TODO: find a more descriptive, meaningful name
@@ -1157,7 +1160,7 @@ function _kbase(Q::MPolyQuoRing)
   if iszero(s)
     error("the vector space dimension of the quotient ring is not finite")
   end
-  return [base_ring(Q)(x) for x = gens(s)]
+  return gens(ideal(base_ring(Q), s))
 end
 
 function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
@@ -1430,173 +1433,142 @@ end
 ################################################################
 
 @doc raw"""
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::Vector{<:IntegerUnion})
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::IntegerUnion)
 
-Given a graded quotient `A` of a multivariate polynomial ring over a field, 
-where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
-that group, return the `g`-graded component of `A` as a standard vector space. Additionally,
-return the embedding of the vector space into `A`.
+Given a quotient `A = R/I` of a polynomial ring `R` over a field `K`,
+graded by a finitely generated abelian group, return the homogeneous
+component of `A` of the specified degree as a `K`-vector space,
+together with its embedding into `A`.
 
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
-
-Given a $\mathbb  Z^m$-graded quotient `A` of a multivariate polynomial ring over a field, 
-and given a vector `g` of $m$ integers, convert `g` into an element of the grading
-group of `A`, and proceed as above.
-
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
-
-Given a $\mathbb  Z$-graded quotient `A` of a multivariate polynomial ring over a field, 
-and given an integer `g`, convert `g` into an element of the grading group of `A`, 
-and proceed as above.
+In general, the degree `d` must be given as an element of the grading group.
+For convenience, the following shorthand inputs are also supported:
+* For a $\mathbb{Z}^m$-grading, an integer vector.
+* For a $\mathbb{Z}$-grading, a single integer.
 
 !!! note
-    If the component is infinite dimensional, an error message will be thrown.
+    The computation first enumerates monomials in the underlying polynomial
+    ring `R`. If the grading group has torsion, it first ignores torsion
+    when enumerating candidates. The sets of candidates must be finite;
+    otherwise, an `InfiniteDimensionError` is thrown. Note that this restriction
+    applies even if the requested homogeneous component of `A` is finite-dimensional.
 
 # Examples
+
+The following example compares the degree-two homogeneous components of
+a $\mathbb{Z}$-graded polynomial ring and one of its quotients:
+
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z])
-(Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
-julia> L = homogeneous_component(R, 2);
+julia> polynomial_component, _ = homogeneous_component(R, 2);
 
-julia> HC = gens(L[1]);
+julia> dim(polynomial_component)
+10
 
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from R_[2] of dim 10
-  to graded multivariate polynomial ring in 4 variables over QQ
+julia> I = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
 
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-z^2
-y*z
-y^2
-x*z
-x*y
-x^2
-w*z
-w*y
-w*x
-w^2
+julia> A, _ = quo(R, I);
 
-julia> PTC = ideal(R, [-x*z + y^2, -w*z + x*y, -w*y + x^2]);
+julia> quotient_component, embedding = homogeneous_component(A, 2);
 
-julia> A, _ = quo(R, PTC);
-
-julia> L = homogeneous_component(A, 2);
-
-julia> HC = gens(L[1]);
-
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from quotient space over QQ with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal (-x*z + y^2, -w*z + x*y, -w*y + x^2)
-
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-z^2
-y*z
-x*z
-w*z
-w*y
-w*x
-w^2
+julia> dim(quotient_component)
+7
 ```
 
+The following example compares homogeneous components of a
+$\mathbb{Z}^2$-graded polynomial ring and a quotient of that ring.
+The degree is specified by an integer vector:
+
 ```jldoctest
-julia> G = abelian_group([0, 0])
-Z^2
+julia> G = abelian_group([0, 0]);
 
-julia> W = [G[1], G[1], G[2], G[2], G[2]];
+julia> g1, g2 = gens(G);
 
-julia> S, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3; weights = W);
+julia> weights = [g1, g1, g2, g2, g2];
 
-julia> L = homogeneous_component(S, [2,1]);
+julia> S, x, y = graded_polynomial_ring(QQ, :x => 1:2, :y => 1:3; weights = weights);
 
-julia> HC = gens(L[1]);
+julia> polynomial_component, _ = homogeneous_component(S, [2, 1]);
 
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from S_[2 1] of dim 9
-  to graded multivariate polynomial ring in 5 variables over QQ
+julia> dim(polynomial_component)
+9
 
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-x[2]^2*y[3]
-x[2]^2*y[2]
-x[2]^2*y[1]
-x[1]*x[2]*y[3]
-x[1]*x[2]*y[2]
-x[1]*x[2]*y[1]
-x[1]^2*y[3]
-x[1]^2*y[2]
-x[1]^2*y[1]
+julia> I = ideal(S, [x[1]*y[1] - x[2]*y[2]]);
 
-julia> I = ideal(S, [x[1]*y[1]-x[2]*y[2]]);
+julia> A, _ = quo(S, I);
 
-julia> A, = quo(S, I);
+julia> quotient_component, embedding = homogeneous_component(A, [2, 1]);
 
-julia> L = homogeneous_component(A, [2,1]);
+julia> dim(quotient_component)
+7
+```
 
-julia> HC = gens(L[1]);
+The following example illustrates a grading group with torsion:
 
-julia> EMB = L[2]
-Map defined by a julia-function with inverse
-  from quotient space over QQ with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal (x[1]*y[1] - x[2]*y[2])
+```jldoctest
+julia> G = abelian_group([0, 2]);
 
-julia> for i in 1:length(HC) println(EMB(HC[i])) end
-x[2]^2*y[3]
-x[2]^2*y[2]
-x[2]^2*y[1]
-x[1]*x[2]*y[3]
-x[1]*x[2]*y[2]
-x[1]^2*y[3]
-x[1]^2*y[2]
+julia> g1, g2 = gens(G);
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]; weights = [g1, g1 + g2]);
+
+julia> A, _ = quo(R, ideal(R, [x^2]));
+
+julia> V, embedding = homogeneous_component(A, G([2, 0]));
+
+julia> dim(V)
+1
+
+julia> embedding(preimage(embedding, A(y^2))) == A(y^2)
+true
 ```
 """
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
-  #TODO: lazy: ie. no enumeration of points
-  #      apparently it is possible to get the number of points faster than the points
-  D = parent(d)
-  @assert D == grading_group(W)
-  R = base_ring(W)
-
-  H, mH = try
+function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
+  @req parent(d) == grading_group(A) "The degree must belong to the grading group"
+  R = base_ring(A)
+  H, embedding = try
     homogeneous_component(R, d)
-  catch e
-    if e isa AbstractAlgebra.InfiniteDimensionError
-      rethrow(AbstractAlgebra.InfiniteDimensionError("The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional"))
-    else
-      rethrow(e)
+  catch err
+    if err isa AbstractAlgebra.InfiniteDimensionError
+      throw(
+        AbstractAlgebra.InfiniteDimensionError(
+          "The preimage of the considered graded component in the underlying polynomial ring is not finite-dimensional",
+        ),
+      )
+    end
+    rethrow()
+  end
+  leading_monomials = gens(leading_ideal(modulus(A)))
+  cache = Dict{typeof(d), typeof(embedding)}()
+  relations = Set{elem_type(H)}()
+  for m in leading_monomials
+    g = degree(m)
+    component_embedding = get!(cache, g) do
+      homogeneous_component(R, d - g)[2]
+    end
+    for x in gens(domain(component_embedding))
+      push!(relations, preimage(embedding, m * component_embedding(x)))
     end
   end
-
-  I = modulus(W)
-  M = gens(leading_ideal(I))
-  cache = Dict{typeof(d), typeof(mH)}()
-  q = Set{elem_type(H)}()
-  for h = M
-    g = degree(h)
-    mI = get!(cache, g) do
-      return homogeneous_component(R, d-g)[2]
-    end
-    for x = gens(domain(mI))
-      push!(q, preimage(mH, h*mI(x)))
-    end
-  end
-
-  s, ms = sub(H, collect(q))
-  Q, mQ = quo(H, s)
-#  set_attribute!(Q, :show => show_homo_comp, :data => (W, d))
-  return Q, MapFromFunc(Q, W, x->W(mH((preimage(mQ, x)))), y->mQ(preimage(mH, y.f)))
+  relation_space, _ = sub(H, collect(relations))
+  Q, projection = quo(H, relation_space)
+  return Q, MapFromFunc(
+    Q, A,
+    x -> A(embedding(preimage(projection, x))),
+    y -> projection(preimage(embedding, y.f)),
+  )
 end
 
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::Vector{<:IntegerUnion})
-  @assert is_zm_graded(W)
-  return homogeneous_component(W, grading_group(W)(g))
+function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::Vector{<:IntegerUnion})
+  @req is_zm_graded(A) "The ring must be Z^m-graded"
+  return homogeneous_component(A, grading_group(A)(d))
 end
 
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, g::IntegerUnion)
-  @assert is_z_graded(W)
-  return homogeneous_component(W, grading_group(W)([g]))
+function homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, d::IntegerUnion)
+  @req is_z_graded(A) "The ring must be Z-graded"
+  return homogeneous_component(A, grading_group(A)([d]))
 end
 
 @doc raw"""
@@ -1692,12 +1664,12 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
   if isdefined(I, :gb)
     _, sing_min = Singular.mstd(singular_generators(I.gb.gens))
-    return filter(!iszero, (Q).(gens(sing_min)))
+    return filter(!iszero, gens(MPolyQuoIdeal(Q, sing_min)))
   else
     sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
     I.gb = IdealGens(base_ring(I), sing_gb, true)
     I.gb.gensBiPolyArray.S.isGB = I.gb.isGB = true
-    return filter(!iszero, (Q).(gens(sing_min)))
+    return filter(!iszero, gens(MPolyQuoIdeal(Q, sing_min)))
   end
 end
 

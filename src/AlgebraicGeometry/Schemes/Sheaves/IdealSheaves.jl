@@ -1440,7 +1440,7 @@ function _separate_disjoint_components(comp::Vector{<:AbsIdealSheaf}; covering::
     if isempty(cof)
       push!(new_patches, U)
     else
-      new_patches = vcat(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
+      append!(new_patches, [PrincipalOpenSubset(U, a) for a in cof])
     end
   end
   new_cov = Covering(new_patches)
@@ -1930,12 +1930,10 @@ function cheap_sub_ideal(II::SumIdealSheaf, U::AbsAffineScheme)
     if U in keys(object_cache(J))
       if has_attribute(J(U),:is_one) && is_one(J(U))
         return J(U)
-      else
-        # sometimes the ideal is obviously one but the attribute not set
-        ngens(J(U))==1 && isone(J(U))
-        return J(U)
-      end      
-    end 
+      end
+      # sometimes the ideal is obviously one but the attribute not set
+      ngens(J(U))==1 && isone(J(U)) && return J(U)
+    end
   end
   return sum(cheap_sub_ideal(J, U) for J in summands(II); init = ideal(OO(U), elem_type(OO(U))[]))
 end

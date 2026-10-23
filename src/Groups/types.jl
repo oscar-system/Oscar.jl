@@ -103,10 +103,10 @@ Symmetric group of degree 6
 @attributes mutable struct PermGroup <: GAPGroup
    X::GapObj
    deg::Int64       # G < Sym(deg)
-   
+
    function PermGroup(G::GapObj)
      @assert GAPWrap.IsPermGroup(G)
-     n = GAPWrap.LargestMovedPoint(G)::Int
+     n = GAPWrap.LargestMovedPoint(G)
      if n == 0
        # We support only positive degrees.
        # (`symmetric_group(0)` yields an error,
@@ -116,9 +116,9 @@ Symmetric group of degree 6
      z = new(G, n)
      return z
    end
-   
+
    function PermGroup(G::GapObj, deg::Int)
-     @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)::Int
+     @assert GAPWrap.IsPermGroup(G) && deg > 0 && deg >= GAPWrap.LargestMovedPoint(G)
      z = new(G, deg)
      return z
    end
@@ -176,9 +176,9 @@ function pc_group(G::GapObj)
 
   # Switch to a full pcp or pc group.
   if GAPWrap.IsPcpGroup(G)
-    return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
+    return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G))::GapObj)
   elseif GAPWrap.IsPcGroup(G)
-    return PcGroup(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
+    return PcGroup(GAP.Globals.PcGroupWithPcgs(GAPWrap.Pcgs(G))::GapObj)
   end
   throw(ArgumentError("G must be in IsPcGroup or IsPcpGroup"))
 end
@@ -1236,6 +1236,12 @@ mutable struct GAP_Collector{T} <: Collector{T}
     return new(n, zeros(T, n), # relative orders undefined
                repeat([Pair{Int, T}[]], n), # default powers are identity
                Matrix{Vector{Pair{Int, T}}}(undef, n, n)) # conjugates undefined
+  end
+
+  function GAP_Collector{T}(n::Int, relorders::Vector{T},
+                            powers::Vector{Vector{Pair{Int, T}}},
+                            conjugates::Matrix{Vector{Pair{Int, T}}}) where T <: IntegerUnion
+    return new(n, relorders, powers, conjugates)
   end
 end
 

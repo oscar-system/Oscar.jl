@@ -7,9 +7,11 @@ by implementing a method for the internal function `mul_cochains`.
 """
 mutable struct DGAlgCohRing{T} <: NCRing
   C::SimplicialCochainComplex
+  CS::SimplifiedComplex
   graded_parts::Vector{SubquoModule{T}}
   volume_form::Tuple{Int, SubquoModuleElem{T}}
   vol_form_inc::SubQuoHom
+  simp_vol_form_inc::SubQuoHom
   small_gens::Dict{Int, Vector{SubquoModuleElem{T}}}
 
 @doc raw"""
@@ -21,9 +23,11 @@ associated cohomology ring.
 """
   function DGAlgCohRing(C::SimplicialCochainComplex)
     T = elem_type(base_ring(C))
-    return new{T}(C)
+    return new{T}(C, simplify(C))
   end
 end
+
+simplified_cochain_complex(A::DGAlgCohRing) = A.CS
 
 @doc raw"""
     mul_cochains(C::AbsHyperComplex, a, p::Int, b, q::Int)
@@ -66,6 +70,11 @@ function graded_parts(A::DGAlgCohRing)
   return A.graded_parts
 end
 
+function simplified_graded_part(A::DGAlgCohRing, i::Int)
+  H, _ = homology(simplified_cochain_complex(A), i)
+  return H
+end
+
 @doc raw"""
     graded_part(A::DGAlgCohRing, i::Int)
 
@@ -90,6 +99,7 @@ mutable struct DGAlgCohRingElem{T} <: NCRingElem
   # to `nothing`. The field `.coeff` is not assigned if it's not needed. 
   homog_elem::Union{SubquoModuleElem{T}, Nothing}
   homog_deg::Union{Int, Nothing}
+  is_zero::Union{Nothing, Bool}
   coeff::Dict{Int, SubquoModuleElem{T}}
 
   # Constructor for homogeneous elements
@@ -98,7 +108,7 @@ mutable struct DGAlgCohRingElem{T} <: NCRingElem
       p::Int, v::SubquoModuleElem{T}
     ) where {T}
     @assert parent(v) === graded_part(A, p)
-    return new{T}(A, v, p)
+    return new{T}(A, v, p, nothing)
   end
 
   # Constructor for mixed elements
@@ -108,14 +118,14 @@ mutable struct DGAlgCohRingElem{T} <: NCRingElem
       check::Bool=true
     ) where {T}
     @check all(parent(v) === graded_part(A, p) for (p, v) in coeff) "degree/element incompatibility"
-    return new{T}(A, nothing, nothing, coeff)
+    return new{T}(A, nothing, nothing, nothing, coeff)
   end
 
   # Constructor for the zero
   function DGAlgCohRingElem(
       A::DGAlgCohRing{T}
     ) where {T}
-    return new{T}(A, nothing, nothing)
+    return new{T}(A, nothing, nothing, true)
   end
 end
 
@@ -136,7 +146,8 @@ Return the homogeneous component of `a` of cohomological degree `p`.
 """
 function graded_part(a::DGAlgCohRingElem, p::Int)
   A = parent(a)
-  is_zero(a) && return zero(graded_part(A, p))
+  # `is_zero` is expensive with integer coefficients.
+  #is_zero(a) && return zero(graded_part(A, p))
   if !isnothing(a.homog_elem)
     p == a.homog_deg || return zero(graded_part(A, p))
     return a.homog_elem
@@ -163,16 +174,20 @@ function (A::DGAlgCohRing)(c::DGAlgCohRingElem)
 end
 
 function is_zero(a::DGAlgCohRingElem)
+  !isnothing(a.is_zero) && return a.is_zero::Bool
   if isnothing(a.homog_elem)
     !isdefined(a, :coeff) && return true
     isempty(a.coeff) && return true
-    return all(iszero(b) for (_, b) in a.coeff)
+    a.is_zero = all(iszero(b) for (_, b) in a.coeff)::Bool
+    return a.is_zero::Bool
   end
-  return is_zero(a.homog_elem)
+  a.is_zero = is_zero(a.homog_elem)
+  return a.is_zero::Bool
 end
 
 function deepcopy_internal(a::DGAlgCohRingElem, d::IdDict)
   result = parent(a)()
+  result.is_zero = a.is_zero
   if !isnothing(a.homog_elem)
     result.homog_elem = deepcopy_internal(a.homog_elem, d)
     result.homog_deg = deepcopy(a.homog_deg)
@@ -210,6 +225,7 @@ function add!(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
         end
       end
       isempty(a.coeff) && return zero(A)
+      a.is_zero = nothing # reset since we have messed with the internals and this has to be reevaluated
       return a
     else # b is homogeneous
       q = b.homog_deg
@@ -225,11 +241,13 @@ function add!(a::DGAlgCohRingElem{T}, b::DGAlgCohRingElem{T}) where {T}
         end
       end
       isempty(a.coeff) && return zero(A)
+      a.is_zero = nothing # reset since we have messed with the internals and this has to be reevaluated
       return a
     end
   else # a is homogeneous
     q = a.homog_deg
     result = zero(A) # we allocate new because we can not delete a.homog_elem
+    result.is_zero = nothing # reset to "not known" as we are messing with the internals
     if isnothing(b.homog_elem) # b is not homogeneous
       result.coeff = deepcopy(b.coeff) # result will not be homogeneously stored
       w = get(result.coeff, q, nothing)
@@ -434,7 +452,8 @@ function generate_homogeneous_element(R::Oscar.DGAlgCohRing{ZZRingElem})
   x = zero(R)
   for i=1:n_gens
     n = rand(-100:100)
-    x = x+n*R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
+    c = R[degree-1,rand(1:length(gens(Oscar.graded_parts(R)[degree])))]
+    x = x+n*c
   end
   return x
 end
@@ -495,9 +514,12 @@ Use `set_volume_form!` to choose a volume form on a `DGAlgCohRing`.
 """
 function integral(a::DGAlgCohRingElem)
   A = parent(a)
-  inc = volume_form_inclusion(A)
+  inc = simplified_volume_form_inclusion(A)
+  s = simplified_cochain_complex(A)
   d, _ = A.volume_form # grabbing the field is OK as the previous call makes sure it's set
-  return preimage(inc, graded_part(a, d))[1]
+  to_s = map_from_original_complex(s)[d]
+  H = simplified_graded_part(A, d)
+  return preimage(inc, H(to_s(repres(graded_part(a, d))); check=false))[1]
 end
 
 function volume_form_inclusion(A::DGAlgCohRing)
@@ -511,14 +533,29 @@ function volume_form_inclusion(A::DGAlgCohRing)
   return A.vol_form_inc
 end
 
+function simplified_volume_form_inclusion(A::DGAlgCohRing)
+  if !isdefined(A, :simp_vol_form_inc)
+    vol = volume_form(A)
+    d = degree(vol)
+    v = graded_part(vol, d)
+    s = simplified_cochain_complex(A)
+    to_s = map_from_original_complex(s)[d]
+    H = simplified_graded_part(A, d)
+    _, inc = sub(H, [H(to_s(repres(v)); check=false)])
+    A.simp_vol_form_inc = inc
+  end
+  return A.simp_vol_form_inc
+end
+
 function small_generating_set(A::DGAlgCohRing{T}, d::Int) where T
   if !isdefined(A, :small_gens)
     A.small_gens = Dict{Int, Vector{SubquoModuleElem{T}}}()
   end
   g = get!(A.small_gens, d) do
+    cs = simplified_cochain_complex(A)
+    phi = map_to_original_complex(cs)[d]
     Hd = graded_part(A, d)
-    M, iso = simplify(Hd)
-    return iso.(gens(M))
+    return [Hd(phi(repres(v)); check=false) for v in gens(simplified_graded_part(A, d))]
   end
   return elem_type(A)[DGAlgCohRingElem(A, d, v) for v in g]
 end

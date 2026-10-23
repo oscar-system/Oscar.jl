@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Borcherds' method for Enriques surfaces
 
 An Enriques surface is a smooth, proper surface $Y$ over a field $k$ 

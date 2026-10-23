@@ -21,7 +21,7 @@ julia> p = x* y^2 + x^2
 x^2 + x*y^2
 
 julia> Expression(p)
-1.0*x*y^2 + 1.0*x^2
+x*y^2 + x^2
 ```
 """
 function Expression(f::QQMPolyRingElem)
@@ -29,7 +29,7 @@ function Expression(f::QQMPolyRingElem)
   # same as the ones in the Oscar polynomial f.
   v = Variable.(symbols(parent(f)))
   # Make the HomotopyContinuation expression
-  return sum(Float64(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f))
+  return sum(Rational(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f); init=Expression(0))
 end
 
 @doc raw"""
@@ -53,22 +53,30 @@ julia> System(I)
 System of length 2
  2 variables: x, y
 
- -1.0*x*y + 1.0*x^2
- -1.0*x + 1.0*y^2
+ -x*y + x^2
+ -x + y^2
 
 julia> System(gens(I))
 System of length 2
  2 variables: x, y
 
- -1.0*x*y + 1.0*x^2
- -1.0*x + 1.0*y^2
+ -x*y + x^2
+ -x + y^2
 ```
 """
-System(I::Vector{QQMPolyRingElem}; args...) = System(Expression.(I); args...)
-System(I::MPolyIdeal{QQMPolyRingElem}; args...) = System(gens(I); args...)
+function System(F::Vector{QQMPolyRingElem}; args...)
+  R = parent(first(F))
+  @req all(f -> parent(f) === R, F) "All polynomials must have the same parent"
+  return HomotopyContinuation.System(Expression.(F); variables=Variable.(symbols(R)), args...)
+end
+
+function System(I::MPolyIdeal{QQMPolyRingElem}; args...)
+  R = base_ring(I)
+  return HomotopyContinuation.System(Expression.(gens(I)); variables=Variable.(symbols(R)), args...)
+end
 
 function Oscar.solve_numerical(I::Vector{QQMPolyRingElem}; show_progress=false, threading=false, args...)
-  return HomotopyContinuation.solve(System(Expression.(I), args...), show_progress=show_progress, threading=threading)
+  return HomotopyContinuation.solve(System(I); show_progress=show_progress, threading=threading, args...)
 end
                                     
 function Oscar.solve_numerical(I::MPolyIdeal{QQMPolyRingElem}; args...)
@@ -94,8 +102,8 @@ julia> witness_set(I)
 Witness set for dimension 1 of degree 4
 ```
 """
-witness_set(I::Vector{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(I); show_progress, args...)
-witness_set(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...) = witness_set(gens(I); show_progress, args...)
+witness_set(F::Vector{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(F); show_progress, args...)
+witness_set(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(I); show_progress, args...)
 
 # currently not working as expected
 #function Oscar.dim_numerical(I::Vector{QQMPolyRingElem})

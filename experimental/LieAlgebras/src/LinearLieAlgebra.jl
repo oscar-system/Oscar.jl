@@ -119,6 +119,8 @@ function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
     return "sl_$n"
   elseif type == :special_orthogonal
     return "so_$n"
+  elseif type == :symplectic
+    return "sp_$n"
   end
   return nothing
 end
@@ -134,17 +136,47 @@ end
 ###############################################################################
 
 @doc raw"""
-    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
+    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
 
 Return the element of `L` whose matrix representation corresponds to `x`.
 If no such element exists, an error is thrown.
+With `check=false` this is not verified and `x` is assumed to lie in the span of `matrix_repr_basis(L)`.
 """
 function coerce_to_lie_algebra_elem(
-  L::LinearLieAlgebra{C}, x::MatElem{C}
+  L::LinearLieAlgebra{C}, x::MatElem{C}; check::Bool=true
 ) where {C<:FieldElem}
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
-  m = coefficient_vector(x, matrix_repr_basis(L))
+  pivots, lgs_pivots_inv, lgs = _matrix_repr_basis_pivot_data(L)
+  v = matrix(
+    coefficient_ring(L), 1, dim(L),
+    C[x[div(k - 1, L.n) + 1, rem(k - 1, L.n) + 1] for k in pivots],
+  )
+  m = v * lgs_pivots_inv
+  check && @req m * lgs == _vec_row(x) "Matrix is not in the span of the basis."
   return L(m)
+end
+
+# Flatten `x` into a `1 x (nrows * ncols)` matrix.
+function _vec_row(x::MatElem)
+  return matrix(base_ring(x), 1, nrows(x) * ncols(x), _vec(transpose(x)))
+end
+
+# `lgs` is the `dim(L) x n^2` matrix with the flattened basis matrices as
+# rows, `pivots` are `dim(L)` column indices such that `lgs[:, pivots]` is
+# invertible, and `lgs_pivots_inv` is the inverse of that submatrix. Hence the
+# coefficient vector of a matrix `x` in the span of the basis is
+# `_vec_row(x)[:, pivots] * lgs_pivots_inv`.
+@attr Tuple{Vector{Int},dense_matrix_type(C),dense_matrix_type(C)} function _matrix_repr_basis_pivot_data(
+  L::LinearLieAlgebra{C}
+) where {C<:FieldElem}
+  lgs = zero_matrix(coefficient_ring(L), dim(L), L.n^2)
+  for (k, b) in enumerate(matrix_repr_basis(L))
+    lgs[k:k, :] = _vec_row(b)
+  end
+  r, ech = rref(lgs)
+  @req r == dim(L) "Basis matrices are linearly dependent."
+  pivots = Int[findfirst(j -> !is_zero_entry(ech, i, j), 1:ncols(ech)) for i in 1:r]
+  return (pivots, inv(lgs[:, pivots]), lgs)
 end
 
 ###############################################################################
@@ -154,11 +186,11 @@ end
 ###############################################################################
 
 @doc raw"""
-    matrix_repr(x::LinearLieAlgebraElem{C}) -> Mat{C}
+    matrix_repr(x::LinearLieAlgebraElem{C}) -> MatElem{C}
 
 Return the Lie algebra element `x` in the underlying matrix representation.
 """
-function Generic.matrix_repr(x::LinearLieAlgebraElem)
+function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:FieldElem}
   L = parent(x)
   mat = zero_matrix(coefficient_ring(L), L.n, L.n)
   tmp = zero(mat)
@@ -175,7 +207,7 @@ function bracket(
   L = parent(x)
   x_mat = matrix_repr(x)
   y_mat = matrix_repr(y)
-  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat)
+  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat; check=false)
 end
 
 ###############################################################################
@@ -227,8 +259,8 @@ Construct the Lie algebra over the field `R` with basis `basis` and basis elemen
 given by `s`. The basis elements must be square matrices of size `n`.
 
 We require `basis` to be linearly independent, and to contain the Lie bracket of any
-two basis elements in its span (this is currently not checked).
-Setting `check=false` disables these checks (once they are in place).
+two basis elements in its span.
+Setting `check=false` disables these checks.
 
 # Examples
 ```jldoctest
@@ -406,8 +438,8 @@ Given a non-degenerate symmetric bilinear form $f$ via its Gram matrix `gram`,
 $\mathfrak{so}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
-If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
-is used, and for $n = 2k + 1$ the form defined by $\begin{matrix} 1 & 0 & 0 \\ 0 & 0 I_k \\ 0 & I_k & 0 \end{matrix}$.
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ I_k & 0 \end{pmatrix}$
+is used, and for $n = 2k + 1$ the form defined by $\begin{pmatrix} 1 & 0 & 0 \\ 0 & 0 & I_k \\ 0 & I_k & 0 \end{pmatrix}$.
 
 # Examples
 ```jldoctest
@@ -499,7 +531,7 @@ Given a non-degenerate skew-symmetric bilinear form $f$ via its Gram matrix `gra
 $\mathfrak{sp}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
-If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ -I_k & 0 \end{pmatrix}$
 is used.
 For odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
 

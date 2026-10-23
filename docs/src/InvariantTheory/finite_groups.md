@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Invariants of Finite Groups
 
 In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $G$ will be a *finite* group.
@@ -102,7 +96,7 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> coefficient_ring(IR)
-Number field with defining polynomial _$^2 + _$ + 1
+Cyclotomic field of order 3 with defining polynomial _$^2 + _$ + 1
   over rational field
 
 julia> R = polynomial_ring(IR)

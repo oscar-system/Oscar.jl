@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Abstract variety maps
 
 An *abstract variety map* $f\colon X \to Y$ encodes a morphism between abstract varieties at the level

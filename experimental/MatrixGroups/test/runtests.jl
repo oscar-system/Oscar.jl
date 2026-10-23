@@ -1,7 +1,7 @@
 @testset "GAP matrix groups" begin
     m = matrix(ZZ, [0 1 ; -1 0])
     gapM = Oscar.MatrixGroups._wrap_for_gap(m)
-    G = GAP.Globals.Group(gapM)
+    G = GAPWrap.Group(gapM)
     GAP.Globals.SetNiceMorphismForJuliaMatrixRepGroup(G)
     @test GAP.Globals.Size(G) == 4
 
@@ -17,8 +17,8 @@
     m2 = matrix(K, [0 1 ; -1 0])
     G = Oscar.MatrixGroups.matrix_group([m1, m2])
     @test GAP.Globals.Size(G) == 8
-    Ggens = GAP.Globals.GeneratorsOfGroup(G)
-    c = GAP.Globals.Centralizer(G, GAP.Globals.Product(Ggens))
+    Ggens = GAPWrap.GeneratorsOfGroup(G)
+    c = GAPWrap.Centralizer(G, GAP.Globals.Product(Ggens))
     @test GAP.Globals.Size(c) == 8
 
     # A5 as a matrix group in characteristic zero
@@ -26,9 +26,9 @@
     m2 = matrix(QQ, [0 1 0 0 ; 0 0 0 1 ; 0 0 1 0 ; 1 0 0 0])
     G = Oscar.MatrixGroups.matrix_group([m1, m2])
     @test GAP.Globals.Size(G) == 60
-    Ggens = GAP.Globals.GeneratorsOfGroup(G)
+    Ggens = GAPWrap.GeneratorsOfGroup(G)
     x = GAP.Globals.Product(Ggens)
-    c = GAP.Globals.Centralizer(G, x)
+    c = GAPWrap.Centralizer(G, x)
     @test GAP.Globals.Size(c) == 5
     iso = GAP.Globals.NiceMonomorphism(G)
     y = GAP.Globals.ImagesRepresentative(iso, x)

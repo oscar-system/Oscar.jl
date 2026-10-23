@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 
 # Toric Divisors
 
@@ -67,6 +61,8 @@ is_very_ample(td::ToricDivisor)
 
 ```@docs
 coefficients(td::ToricDivisor)
+divisor_class(td::ToricDivisor)
+picard_class(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
 toric_variety(td::ToricDivisor)
 ```
