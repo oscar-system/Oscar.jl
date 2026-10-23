@@ -3,11 +3,13 @@ push!(upgrade_scripts_set, UpgradeScript(
   function upgrade_1_8_0(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     # recurse upgrade on containers
     upgrade_recursive(upgrade_1_8_0, s, dict)
+
     if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
       type_name = dict[:_type][:name]
     else
       type_name = dict[:_type]
     end
+
     # Upgrades
     if type_name == "Bool"
       dict[:data] = parse(Bool, dict[:data])

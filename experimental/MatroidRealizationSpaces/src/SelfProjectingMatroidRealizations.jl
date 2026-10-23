@@ -80,7 +80,7 @@ function Base.show(io::IO, ::MIME"text/plain", MR::SelfProjectingMatroidRealizat
   io = Oscar.pretty(io)
   print(io, "The matroid is of rank ", MR.rank, " on ", MR.length_groundset, " elements.\n")
   if !isnothing(realization_space(MR))
-    show(io, MIME("text/plain"),realization_space(MR))
+    show(io, MIME("text/plain"), realization_space(MR))
   else
     print(io, "The computation of the realization space did not terminate.")
   end
