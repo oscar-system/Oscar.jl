@@ -123,7 +123,7 @@ These walk through:
 
 ## Project Status
 
-FTheoryTools is an **experimental** module. Most features are well-tested for **toric** models, with active development
+FTheoryTools is part of OSCAR. Most features are well-tested for **toric** models, with active development
 underway for:
 
 - Support for general base families and schemes

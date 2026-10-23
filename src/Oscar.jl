@@ -324,12 +324,14 @@ include("LieTheory/LieTheory.jl")
 include("Cryptography/keccak.jl")
 include("Cryptography/uov.jl")
 
-# Serialization should always come at the end of Oscar source code
-# but before experimental, any experimental serialization should
-# be written inside the corresponding experimental code sub directory
+# Load serialization before experimental packages and FTheoryTools, which
+# include their own serialization implementations.
 include("Serialization/main.jl")
 
 include("../experimental/Experimental.jl")
+
+# FTheoryTools still needs Schemes and LieAlgebras from experimental.
+include("FTheoryTools/FTheoryTools.jl")
 
 include("deprecations.jl")
 
