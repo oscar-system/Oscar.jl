@@ -247,52 +247,29 @@ end
 
 
 
-#this function computes the minors of a given matrix for the bases in a given list.
-#this list is not reduced, i.e. there are no repetitions but the polynomials are not reduced, i.e. the list might contain x+1 and y-2 and their product
-#in the default case (multiplicatives = false) the function does not make the multiplicativeSet so there might be double entries or products of polynomials in the list.
-function basis_minors(M::MatElem, Bases::Vector{Vector{Int}};multiplicatives::Bool = false)::Vector{<:RingElem}
-    R = base_ring(M);
-    if R isa MPolyQuoRing
-        candidates = [det(M[1:nrows(M),b]) for b in Bases]
-    else
-        candidates = Oscar.sort_by_degree([det(M[1:nrows(M),b]) for b in Bases])
+# Minors of `M` for the given bases, without units and duplicates up to sign.
+# With `multiplicatives`, minors that are products of earlier ones are dropped
+# as well; this is slower. Over quotient rings `powers_of_element` is not
+# available, so the option is ignored there.
+function basis_minors(M::MatElem, Bases::Vector{Vector{Int}}; multiplicatives::Bool = false)
+  R = base_ring(M)
+  candidates = [det(M[1:nrows(M), b]) for b in Bases]
+  # sort_by_degree is not available for quotient ring elements
+  R isa MPolyQuoRing || (candidates = sort_by_degree(candidates))
+  use_mult_set = multiplicatives && !(R isa MPolyQuoRing)
+  ineqs = elem_type(R)[]
+  mult_set = nothing
+  for c in candidates
+    @req !iszero(c) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
+    is_unit(c) && continue
+    (c in ineqs || -c in ineqs) && continue
+    if use_mult_set
+      !isnothing(mult_set) && (c in mult_set || -c in mult_set) && continue
+      mult_set = isnothing(mult_set) ? powers_of_element(c) : product(mult_set, powers_of_element(c))
     end
-    if multiplicatives
-        multiplicativeSet= nothing
-        ineqs = [R(0)]
-        if R isa MPolyQuoRing #in this case one cannot make the multiplicativeSet using the powers_of_element, so currently the simpler choice is used and there might be double entries or products of polynomials in the list - is there a better solution for this?
-            for candidate in candidates
-            @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-                if is_unit(candidate) 
-                elseif !(candidate in ineqs[2:end])&& !(-candidate in ineqs[2:end])
-                    push!(ineqs,R(candidate))
-                end
-            end
-            return ineqs[2:end]
-        end
-        for candidate in candidates
-            @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-            if !is_unit(candidate)
-                if isnothing(multiplicativeSet) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
-                multiplicativeSet = powers_of_element(candidate)
-                    push!(ineqs,R(candidate))
-                elseif !(candidate in ineqs[2:length(ineqs)])&& !(-candidate in ineqs[2:length(ineqs)]) && !(candidate in multiplicativeSet)  && !(-candidate in multiplicativeSet)
-                multiplicativeSet = product(multiplicativeSet,powers_of_element(candidate));
-                    push!(ineqs,R(candidate))
-                end
-            end
-            return ineqs[2:length(ineqs)]
-        end
-    else
-        ineqs = [R(0)]
-        for candidate in candidates
-        @req !iszero(candidate) "A basis has vanishing minor. Please check that the input vector of bases really consists of bases of the matroid given by the columns of the input matrix."
-            if !is_unit(candidate) && !(candidate in ineqs[2:end]) && !(-candidate in ineqs[2:end])
-                push!(ineqs,R(candidate))
-            end
-        end
-        return ineqs[2:end]
-    end
+    push!(ineqs, c)
+  end
+  return ineqs
 end
 
 
@@ -373,8 +350,9 @@ If nothing is given, a choice will be made.
 The keyword argument `check` states whether the matroid will be checked for self-projectivity.
 The default is true.
 
-The keyword argument `multiplicatives` states whether the list of polynomials of basis minors is created as a multiplicative set. 
-The default is false.
+If the keyword argument `multiplicatives` is `true`, minors that are products of
+previously found ones are omitted from the inequations. This is slower but yields
+a shorter list. The default is `false`. The option is ignored over quotient rings.
 
 !!! warning
     This function uses the computation of the `selfprojecting_realization_ideal`.
@@ -434,7 +412,7 @@ function selfprojecting_realization_space(m::Matroid;
   if M == nothing
     Ineqs = inequations(RS)
   else
-    Ineqs = basis_minors(M,bases(m);multiplicatives);
+    Ineqs = basis_minors(M, bases(m); multiplicatives)
   end
   return MatroidRealizationSpaceSelfProjecting(I, Ineqs, R, M, 0, nothing, QQ)
 end

@@ -236,4 +236,15 @@ end
         @test dimension(selfprojecting_realization_space(M5)) == 3
         @test dimension(selfprojecting_realization_space(M6)) == -inf
     end
+    @testset "basis_minors" begin
+        # products of earlier factors are kept by default and dropped with multiplicatives=true
+        m = matroid_from_nonbases([[1,2,3],[4,5,6]],6)
+        M = selfprojecting_realization_matrix(selfprojecting_realization_space(m))
+        x = gens(base_ring(M))
+        factors = [x[2], -x[1], -x[2] + 1, -x[1] + 1]
+        products = [x[1]*x[2] - x[1], x[1]*x[2] - x[1] - x[2] + 1]
+        @test Oscar.basis_minors(M, bases(m)) == vcat(factors, products)
+        @test Oscar.basis_minors(M, bases(m); multiplicatives=true) == factors
+        @test inequations(selfprojecting_realization_space(m; multiplicatives=true)) == factors
+    end
 end
