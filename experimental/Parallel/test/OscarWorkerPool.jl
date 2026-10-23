@@ -45,6 +45,15 @@
            wp,
            [x^2 + d for d in PrimesSet(10000, 11000)])
     end
+
+    # Return a taken worker via `push!`; last, since a failure leaves it taken.
+    @testset "push!" begin
+      id = take!(wp)
+      @test !isready(wp)
+      push!(wp, id)
+      @test isready(wp)
+      pop!(workers(wp)) # `push!` re-listed the worker; `close!` must remove it once
+    end
   end
   sleep(2)
   yield()

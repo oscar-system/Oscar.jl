@@ -1,6 +1,6 @@
 struct ModuleSolveTrait <: AbstractAlgebra.Solve.MatrixNormalFormTrait end
 
-AbstractAlgebra.Solve.matrix_normal_form_type(::Union{MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}) = ModuleSolveTrait()
+AbstractAlgebra.Solve.matrix_normal_form_type(::Type{<:Union{MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}}) = ModuleSolveTrait()
 
 function _module_solve_map(A::MatElem)
   R = base_ring(A)
@@ -132,7 +132,7 @@ end
 
 struct LaurentSolveTrait <: AbstractAlgebra.Solve.MatrixNormalFormTrait end
 
-AbstractAlgebra.Solve.matrix_normal_form_type(::AbstractAlgebra.Generic.LaurentMPolyWrapRing) = LaurentSolveTrait()
+AbstractAlgebra.Solve.matrix_normal_form_type(::Type{<:AbstractAlgebra.Generic.LaurentMPolyWrapRing}) = LaurentSolveTrait()
 
 function _can_solve_laurent(f, A, AA, b, task::Symbol; side::Symbol)
   bb = map_entries(f, b)

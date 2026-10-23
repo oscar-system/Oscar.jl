@@ -2259,7 +2259,7 @@ function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}
 end
 
 function extension_field(f::Generic.Poly{AbsSimpleNumFieldElem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
-  return number_field(f, n; cached = cached)
+  return number_field(f, n; cached = cached, check = check)
 end
 
 #Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = function_field(f, n, cached = cached)
