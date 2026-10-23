@@ -68,7 +68,7 @@ function weyl_group(type1::Tuple{Symbol,Int}, type::Tuple{Symbol,Int}...)
 end
 
 @doc raw"""
-    (W::WeylGroup)(word::Vector{<:Integer}) -> WeylGroupElem
+    (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true) -> WeylGroupElem
 
 Construct a Weyl group element from the given word.
 
@@ -191,7 +191,7 @@ function gen(W::WeylGroup, i::Integer)
 end
 
 @doc raw"""
-    gens(W::WeylGroup) -> WeylGroupElem
+    gens(W::WeylGroup) -> Vector{WeylGroupElem}
 
 Return the simple reflections (with respect to the underlying root system) of `W`.
 

@@ -483,7 +483,7 @@ Return the negative roots of `R`.
 
 The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
 
-See also: [`positive_root(::RootSystem, ::Int)`](@ref).
+See also: [`negative_root(::RootSystem, ::Int)`](@ref).
 
 !!! note
     This function does not return a copy of the asked for object,
@@ -621,7 +621,7 @@ function positive_coroot(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    positive_coroots(R::RootSystem) -> DualRootSpaceElem
+    positive_coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
 
 Return the coroots corresponding to the positive roots of `R`,
 in the order of [`positive_roots(::RootSystem)`](@ref positive_roots).
@@ -665,7 +665,7 @@ function negative_coroot(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    negative_coroots(R::RootSystem) -> DualRootSpaceElem
+    negative_coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
 
 Return the coroots corresponding to the negative roots of `R`,
 in the order of [`negative_roots(::RootSystem)`](@ref negative_roots).
@@ -710,7 +710,7 @@ function simple_coroot(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    simple_coroots(R::RootSystem) -> DualRootSpaceElem
+    simple_coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
 
 Return the coroots corresponding to the simple roots of `R`,
 in the order of [`simple_roots(::RootSystem)`](@ref simple_roots).
