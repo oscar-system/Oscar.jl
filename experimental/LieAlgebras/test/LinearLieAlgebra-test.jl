@@ -19,10 +19,11 @@
     # `check=true` rejects linearly dependent and non-closed matrix bases
     e = matrix(QQ, [0 1; 0 0])
     f = matrix(QQ, [0 0; 1 0])
-    @test_throws ArgumentError lie_algebra(QQ, 2, [e, 2 * e], [:e, :e2])
-    @test_throws ArgumentError lie_algebra(QQ, 2, [e, f], [:e, :f])
-    @test lie_algebra(QQ, 2, [e, f], [:e, :f]; check=false) isa LinearLieAlgebra
-    @test dim(lie_algebra(QQ, 2, [e, f, e * f - f * e], [:e, :f, :h])) == 3
+    @test_throws ArgumentError lie_algebra(QQ, 2, [e, 2 * e], [:e, :e2]; is_basis=true)
+    @test_throws ArgumentError lie_algebra(QQ, 2, [e, f], [:e, :f]; is_basis=true)
+    @test lie_algebra(QQ, 2, [e, f], [:e, :f]; is_basis=true, check=false) isa
+      LinearLieAlgebra
+    @test dim(lie_algebra(QQ, 2, [e, f, e * f - f * e], [:e, :f, :h]; is_basis=true)) == 3
   end
 
   @testset "lie_algebra(gens::Vector{<:MatElem})" begin
@@ -51,6 +52,17 @@
     @test_throws ArgumentError lie_algebra(QQMatrix[])
     @test_throws ArgumentError lie_algebra([identity_matrix(QQ, 2), identity_matrix(QQ, 3)])
     @test_throws ArgumentError lie_algebra([zero_matrix(QQ, 2, 3)])
+
+    # names are given as a vector or as a prefix
+    @test symbols(lie_algebra([e, f], :y)) == [:y_1, :y_2, :y_3]
+    @test symbols(lie_algebra([e, f], [:a, :b, :c])) == [:a, :b, :c]
+    @test_throws ArgumentError lie_algebra([e, f], [:a, :b])
+
+    # with `is_basis=true`, the matrices are kept as basis
+    h = e * f - f * e
+    L = lie_algebra(QQ, 3, [e, f, h], [:e, :f, :h]; is_basis=true)
+    @test matrix_repr_basis(L) == [e, f, h]
+    @test_throws ArgumentError lie_algebra(QQ, 3, [e, f], [:e, :f]; is_basis=true)
   end
 
   @testset "construction from matrices" begin
