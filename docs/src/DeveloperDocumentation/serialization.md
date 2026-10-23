@@ -277,6 +277,24 @@ end
 Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
 `save_data_dict`. Otherwise you will get a key override error.
 
+### Registering types in other packages
+
+Besides defining methods, `@register_serialization_type` adds the type to
+global tables of OSCAR. Changes to these tables made while a package is
+precompiled are lost, so in a package depending on OSCAR, calling the macro at
+the top level leads to a `KeyError` on `save` in later sessions.
+Instead, call it from the package's `__init__` function:
+
+```julia
+function __init__()
+  # evaluating into a closed module breaks precompilation of dependent packages
+  if ccall(:jl_generating_output, Cint, ()) == 0 # `!Base.generating_output()` on Julia ≥ 1.11
+    @eval @register_serialization_type MyType
+    @eval @register_serialization_type MyParentType uses_id
+  end
+end
+```
+
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
