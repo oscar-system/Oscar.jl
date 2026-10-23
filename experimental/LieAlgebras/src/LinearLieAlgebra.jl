@@ -186,18 +186,28 @@ end
 ###############################################################################
 
 @doc raw"""
-    matrix_repr(x::LinearLieAlgebraElem{C}) -> MatElem{C}
+    matrix_repr(x::LinearLieAlgebraElem{C}; copy::Bool=true) -> MatElem{C}
 
 Return the Lie algebra element `x` in the underlying matrix representation.
+
+The matrix is cached in `x`.
+With `copy=false` the cached matrix itself is returned and must not be mutated.
 """
-function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:FieldElem}
-  L = parent(x)
-  mat = zero_matrix(coefficient_ring(L), L.n, L.n)
-  tmp = zero(mat)
-  for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
-    mat = addmul!(mat, b, c, tmp)
+function Generic.matrix_repr(
+  x::LinearLieAlgebraElem{C}; copy::Bool=true
+) where {C<:FieldElem}
+  if !isdefined(x, :matrix_repr)
+    L = parent(x)
+    mat = zero_matrix(coefficient_ring(L), L.n, L.n)
+    tmp = zero(mat)
+    for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
+      iszero(c) && continue
+      mat = addmul!(mat, b, c, tmp)
+    end
+    x.matrix_repr = mat
   end
-  return mat
+  mat = (x.matrix_repr)::dense_matrix_type(C)
+  return copy ? deepcopy(mat) : mat
 end
 
 function bracket(
@@ -205,9 +215,12 @@ function bracket(
 ) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
-  x_mat = matrix_repr(x)
-  y_mat = matrix_repr(y)
-  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat; check=false)
+  x_mat = matrix_repr(x; copy=false)
+  y_mat = matrix_repr(y; copy=false)
+  z_mat = x_mat * y_mat - y_mat * x_mat
+  z = coerce_to_lie_algebra_elem(L, z_mat; check=false)
+  z.matrix_repr = z_mat
+  return z
 end
 
 ###############################################################################
