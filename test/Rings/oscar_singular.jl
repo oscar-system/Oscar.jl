@@ -71,4 +71,54 @@
     f = Oscar.iso_oscar_singular_poly_ring(Rx)
     @test base_ring(codomain(f)) isa Singular.N_FField
   end
+
+  let
+    p = next_prime(ZZ(2)^70)
+    F = GF(p)
+    g = Oscar.iso_oscar_singular_coeff_ring(F)
+    @test characteristic(codomain(g)) == p
+    a = F(ZZ(2)^69 + 123)
+    @test preimage(g, g(a)) == a
+
+    R, (x, y) = polynomial_ring(F, [:x, :y])
+    h = a*x + (F(ZZ(2)^68 + 456))*y + 1
+    phi = Oscar.iso_oscar_singular_poly_ring(R)
+    @test characteristic(base_ring(codomain(phi))) == p
+    @test preimage(phi, phi(h)) == h
+
+    sh = phi((x + a*y + 1)*(x^2 + y + 3))
+    fac = Singular.factor(sh)
+    @test sh == fac.unit*prod(q^e for (q, e) in fac)
+  end
+
+  let
+    # Example/regression, not new Oscar API: Oscar's existing conversion
+    # reaches Singular.jl's concrete univariate Nemo-field callback.
+    p = next_prime(ZZ(2)^70)
+    F, a = finite_field(p, 2, "a")
+    R, (x,) = polynomial_ring(F, [:x])
+    h = (x + a)*(x + 1)^2
+    phi = Oscar.iso_oscar_singular_poly_ring(R)
+    sh = phi(h)
+    @test base_ring(codomain(phi)) isa Singular.N_Field
+
+    Fsh = Singular.factor(sh)
+    @test sh == Fsh.unit*prod(q^e for (q, e) in Fsh)
+
+    # The callback hook is generic, but this concrete callback is not a
+    # multivariate factorization implementation.
+    R, (x, y) = polynomial_ring(F, [:x, :y])
+    h = (x + a)*(y + 1)
+    phi = Oscar.iso_oscar_singular_poly_ring(R)
+    sh = phi(h)
+
+    err = try
+      Singular.factor(sh)
+      nothing
+    catch e
+      e
+    end
+    @test err isa ErrorException
+    @test occursin("coefficient factorization callback is not implemented", sprint(showerror, err))
+  end
 end

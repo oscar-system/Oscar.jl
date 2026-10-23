@@ -440,8 +440,7 @@ end
 singular_coeff_ring(::ZZRing) = Singular.Integers()
 singular_coeff_ring(::QQField) = Singular.Rationals()
 
-# if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_coeff_ring(F::fpField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::fpField) = Singular.Fp(characteristic(F))
 
 function singular_coeff_ring(F::Union{zzModRing, ZZModRing})
   return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]

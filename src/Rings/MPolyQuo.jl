@@ -32,7 +32,11 @@ function _groebner_basis(r::MPolyQuoRing)
   ordering = r.ordering
   groebner_basis(r.I, ordering=ordering)
   SG = singular_generators(r.I.gb[ordering], ordering)
-  r.SQR   = Singular.create_ring_from_singular_ring(Singular.libSingular.rQuotientRing(SG.ptr, base_ring(SG).ptr))
+  SR = base_ring(SG)
+  GC.@preserve SG SR begin
+    ptr = Singular.libSingular.rQuotientRing(SG.ptr, SR.ptr)
+    r.SQR = typeof(SR)(ptr, base_ring(SR), symbols(SR))
+  end
   r.SQRGB = Singular.Ideal(r.SQR, [r.SQR(0)])
   return true
 end
