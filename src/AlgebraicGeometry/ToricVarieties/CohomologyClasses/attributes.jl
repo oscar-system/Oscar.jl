@@ -204,7 +204,7 @@ julia> polynomial(R_quo, cc)
 function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
   p = polynomial(c)
   # rebuilding p term by term reduces after every product and power
-  parent(p) === ring && return deepcopy(c)
+  parent(p) === ring && return deepcopy(p)
   iszero(p) && return zero(ring)
   R = base_ring(ring)::MPolyRing
   kk = coefficient_ring(R)
