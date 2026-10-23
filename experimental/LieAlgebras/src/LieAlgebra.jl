@@ -1,7 +1,7 @@
 # To be implemented by subtypes:
 # Mandatory:
 #   MyLieAlgebraElem{C}(L::MyLieAlgebra{C}, mat::MatElem{C}) -> MyLieAlgebraElem{C}
-#     - inner constructor; the default struct constructor suffices
+#     - inner constructor; further fields (e.g. caches) stay unset
 #     - `mat` is the `1 x dim(L)` coefficient row
 #     - no sanity checks, `LieAlgebraElem(L, mat)` does them
 #   parent_type(::Type{MyLieAlgebraElem{C}}) = MyLieAlgebra{C}
