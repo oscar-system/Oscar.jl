@@ -28,6 +28,12 @@ on:
         default: false
         description: Run test suite in dual depot runner
 
+env:
+  # The target of Julia's official x86_64 binaries. GitHub-hosted runners
+  # differ in CPU from job to job, and a package image built for the native
+  # CPU of one runner is rejected and recompiled on another.
+  HOSTED_JULIA_CPU_TARGET: "generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1);x86-64-v4,-rdrnd,base(1)"
+
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
   actions: write
@@ -92,6 +98,9 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
+      - name: "Build package images for all runner CPUs"
+        if: runner.environment != 'self-hosted'
+        run: echo "JULIA_CPU_TARGET=$HOSTED_JULIA_CPU_TARGET" >> "$GITHUB_ENV"
       # Artifacts, package sources and registries are the same for all jobs,
       # so the jobs share one cache for them; a failed job may lack some, so
       # only successful jobs save it. Compiled packages depend on the Julia
@@ -178,6 +187,9 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
+      - name: "Build package images for all runner CPUs"
+        if: runner.environment != 'self-hosted'
+        run: echo "JULIA_CPU_TARGET=$HOSTED_JULIA_CPU_TARGET" >> "$GITHUB_ENV"
       - name: "Cache artifacts and packages"
         uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
@@ -286,6 +298,9 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
+      - name: "Build package images for all runner CPUs"
+        if: runner.environment != 'self-hosted'
+        run: echo "JULIA_CPU_TARGET=$HOSTED_JULIA_CPU_TARGET" >> "$GITHUB_ENV"
       - name: "Cache artifacts and packages"
         uses: julia-actions/cache@v3
         if: runner.environment != 'self-hosted'
@@ -385,6 +400,8 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
+      - name: "Build package images for all runner CPUs"
+        run: echo "JULIA_CPU_TARGET=$HOSTED_JULIA_CPU_TARGET" >> "$GITHUB_ENV"
       - name: "Cache artifacts and packages"
         uses: julia-actions/cache@v3
         with:
@@ -447,6 +464,8 @@ jobs:
         uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
+      - name: "Build package images for all runner CPUs"
+        run: echo "JULIA_CPU_TARGET=$HOSTED_JULIA_CPU_TARGET" >> "$GITHUB_ENV"
       - name: "Cache artifacts and packages"
         uses: julia-actions/cache@v3
         with:
