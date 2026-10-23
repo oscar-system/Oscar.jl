@@ -685,7 +685,7 @@ function score_equations_ideal(M::GaussianGraphicalModel{Graph{Undirected}}, scv
   detK = phi(det(K_mapped))
   diff_vars = (phi(g) for g in gens(R))
   
-  l_eqs = matrix([derivative(detK, k) + detK * derivative(trace_product, k) for k in diff_vars])
+  l_eqs = matrix([derivative(detK, k) - detK * derivative(trace_product, k) for k in diff_vars])
   I = ideal(reduce(vcat, l_eqs))
   !saturate && return phi_inv(I)
   
