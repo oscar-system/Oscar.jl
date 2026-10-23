@@ -153,10 +153,14 @@ Given two ideals $I, J$ of a ring $R$, the *saturation* of $I$ with respect to $
 
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
+By default, `saturation(I)` saturates with respect to the ideal
+$\langle x_1, \ldots, x_n\rangle$. This differs from saturation with respect to the product
+$x_1 \cdots x_n$, which is provided by `torus_saturation(I)`.
+
 ```@docs
 saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; iteration::Bool=false) where T
 saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
-torus_saturation(I::MPolyIdeal)
+torus_saturation(I::MPolyIdeal; algorithm::Symbol = :satstd)
 ```
 
 ### Elimination
