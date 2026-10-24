@@ -20,11 +20,19 @@ symbols(::LieAlgebraModule)
 
 ## Element constructors
 
+```@docs
+LieAlgebraModuleElem(::LieAlgebraModule, ::AbstractVector{Int})
+LieAlgebraModuleElem(::LieAlgebraModule{C}, ::AbstractVector{C}) where {C<:FieldElem}
+LieAlgebraModuleElem(::LieAlgebraModule{C}, ::MatElem{C}) where {C<:FieldElem}
+LieAlgebraModuleElem(::LieAlgebraModule{C}, ::SRow{C}) where {C<:FieldElem}
+```
+
 `(V::LieAlgebraModule{C})()` returns the zero element of the Lie algebra module `V`.
 
-`(V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C})` returns `v` if `v` is an element of `L`. If `V` is the dual module of the parent of `v`, it returns the dual of `v`. In all other cases, it fails.
+`(V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C})` returns `v` if `v` is an element of `V`. If `V` is the dual module of the parent of `v`, it returns the dual of `v`. In all other cases, it fails.
 
-`(V::LieAlgebraModule{C})(v)` constructs the element of `V` with coefficient vector `v`. `v` can be of type `Vector{C}`, `Vector{Int}`, `SRow{C}`, or `MatElem{C}` (of size $1 \times \dim(L)$).
+`(V::LieAlgebraModule{C})(v)` is a shorthand for `LieAlgebraModuleElem(V, v)`.
+`v` can be of type `Vector{C}`, `Vector{Int}`, or `SRow{C}`.
 
 `(V::LieAlgebraModule{C})(a::Vector{T}) where {T<:LieAlgebraModuleElem{C}})`: If `V` is a direct sum, return its element, where the $i$-th component is equal to `a[i]`.
 If `V` is a tensor product, return the tensor product of the `a[i]`.

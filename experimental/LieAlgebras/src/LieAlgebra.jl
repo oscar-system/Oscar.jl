@@ -189,8 +189,11 @@ end
 
 Return the element of `L` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
+
+`mat` is not copied and must not be modified afterwards.
 """
 function LieAlgebraElem(L::LieAlgebra{C}, mat::MatElem{C}) where {C<:FieldElem}
+  @req mat isa dense_matrix_type(C) "Invalid matrix type."
   @req size(mat) == (1, dim(L)) "Invalid matrix dimensions."
   return elem_type(L)(L, mat)
 end

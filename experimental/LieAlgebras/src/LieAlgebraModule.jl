@@ -56,7 +56,7 @@ function basis(V::LieAlgebraModule, i::Int)
   R = coefficient_ring(V)
   v = zero_matrix(R, 1, dim(V))
   v[1, i] = one(R)
-  return V(v)
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
@@ -110,7 +110,7 @@ function getindex(v::LieAlgebraModuleElem, i::Int)
 end
 
 function Base.deepcopy_internal(v::LieAlgebraModuleElem, dict::IdDict)
-  return parent(v)(deepcopy_internal(_matrix(v), dict))
+  return LieAlgebraModuleElem(parent(v), deepcopy_internal(_matrix(v), dict))
 end
 
 function check_parent(
@@ -253,46 +253,85 @@ function (V::LieAlgebraModule)()
 end
 
 @doc raw"""
-    (V::LieAlgebraModule{C})(v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
-Fails, if `Int` cannot be coerced into the coefficient ring of `V`.
+
+Fail, if `Int` cannot be coerced into the coefficient ring of `V`.
 """
-function (V::LieAlgebraModule)(v::AbstractVector{Int})
-  return V(coefficient_ring(V).(v))
+function LieAlgebraModuleElem(V::LieAlgebraModule, v::AbstractVector{Int})
+  return LieAlgebraModuleElem(V, coefficient_ring(V).(v))
 end
 
 @doc raw"""
-    (V::LieAlgebraModule{C})(v::AbstractVector{C}) -> LieAlgebraModuleElem{C}
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::AbstractVector{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
 """
-function (V::LieAlgebraModule{C})(v::AbstractVector{C}) where {C<:FieldElem}
+function LieAlgebraModuleElem(
+  V::LieAlgebraModule{C}, v::AbstractVector{C}
+) where {C<:FieldElem}
   @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
 end
 
 @doc raw"""
-    (V::LieAlgebraModule{C})(mat::MatElem{C}) -> LieAlgebraModuleElem{C}
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, mat::MatElem{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector equivalent to
 the $1 \times \dim(V)$ matrix `mat`.
+
+`mat` is not copied and must not be modified afterwards.
 """
-function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:FieldElem}
-  @req ncols(v) == dim(V) "Length of vector does not match dimension"
-  @req nrows(v) == 1 "Not a vector in module constructor"
-  return elem_type(V)(V, v)
+function LieAlgebraModuleElem(V::LieAlgebraModule{C}, mat::MatElem{C}) where {C<:FieldElem}
+  @req mat isa dense_matrix_type(C) "Invalid matrix type."
+  @req size(mat) == (1, dim(V)) "Invalid matrix dimensions."
+  return elem_type(V)(V, mat)
+end
+
+@doc raw"""
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::SRow{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector `v`.
+"""
+function LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::SRow{C}) where {C<:FieldElem}
+  mat = dense_row(v, dim(V))
+  return elem_type(V)(V, mat)
+end
+
+@doc raw"""
+    (V::LieAlgebraModule{C})(v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector `v`.
+
+Fail, if `Int` cannot be coerced into the coefficient ring of `V`.
+This is a shorthand for [`LieAlgebraModuleElem(V, v)`](@ref LieAlgebraModuleElem(::LieAlgebraModule, ::AbstractVector{Int})).
+"""
+function (V::LieAlgebraModule)(v::AbstractVector{Int})
+  return LieAlgebraModuleElem(V, v)
+end
+
+@doc raw"""
+    (V::LieAlgebraModule{C})(v::AbstractVector{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraModuleElem(V, v)`](@ref LieAlgebraModuleElem(::LieAlgebraModule{C}, ::AbstractVector{C}) where {C<:FieldElem}).
+"""
+function (V::LieAlgebraModule{C})(v::AbstractVector{C}) where {C<:FieldElem}
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
     (V::LieAlgebraModule{C})(v::SRow{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraModuleElem(V, v)`](@ref LieAlgebraModuleElem(::LieAlgebraModule{C}, ::SRow{C}) where {C<:FieldElem}).
 """
 function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:FieldElem}
-  mat = dense_row(v, dim(V))
-  return elem_type(V)(V, mat)
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
@@ -335,7 +374,7 @@ function (V::LieAlgebraModule{C})(
   elseif ((fl, W) = _is_dual(V); fl)
     @req length(a) == 1 "Invalid input length."
     @req W === parent(only(a)) "Incompatible modules."
-    return V(coefficients(only(a)))
+    return LieAlgebraModuleElem(V, coefficients(only(a)))
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
@@ -384,39 +423,39 @@ end
 ###############################################################################
 
 function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
-  return parent(v)(-_matrix(v))
+  return LieAlgebraModuleElem(parent(v), -_matrix(v))
 end
 
 function Base.:+(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:FieldElem}
   check_parent(v1, v2)
-  return parent(v1)(_matrix(v1) + _matrix(v2))
+  return LieAlgebraModuleElem(parent(v1), _matrix(v1) + _matrix(v2))
 end
 
 function Base.:-(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:FieldElem}
   check_parent(v1, v2)
-  return parent(v1)(_matrix(v1) - _matrix(v2))
+  return LieAlgebraModuleElem(parent(v1), _matrix(v1) - _matrix(v2))
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(_matrix(v) * c)
+  return LieAlgebraModuleElem(parent(v), _matrix(v) * c)
 end
 
 function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
-  return parent(v)(_matrix(v) * c)
+  return LieAlgebraModuleElem(parent(v), _matrix(v) * c)
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(c * _matrix(v))
+  return LieAlgebraModuleElem(parent(v), c * _matrix(v))
 end
 
 function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:RationalUnion}
-  return parent(v)(c * _matrix(v))
+  return LieAlgebraModuleElem(parent(v), c * _matrix(v))
 end
 
 ###############################################################################
@@ -481,7 +520,8 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Fiel
 
   cx = coefficients(x)
   V = parent(v)
-  return V(
+  return LieAlgebraModuleElem(
+    V,
     sum(
       cx[i] * _matrix(v) * transformation_matrix(V, i) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
@@ -929,11 +969,8 @@ function tensor_product(
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == length(Vs) "Length of vector does not match."
     @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
-    mat = zero_matrix(R, 1, dim_tensor_product_V)
-    for (i, inds) in enumerate(ind_map)
-      mat[1, i] += prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds))
-    end
-    return tensor_product_V(mat)
+    vec = C[prod(coeff(as[j], k) for (j, k) in enumerate(inds)) for inds in ind_map]
+    return LieAlgebraModuleElem(tensor_product_V, vec)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1063,7 +1100,7 @@ function exterior_power(
     for (m, _, J) in minors_iterator_with_position(A, k)
       mat[1, index_of[J]] = m
     end
-    return E(mat)
+    return LieAlgebraModuleElem(E, mat)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1214,18 +1251,18 @@ function symmetric_power(
     for a in as
       next = Dict{Vector{Int},elem_type(R)}()
       for (I, c) in coeffs, j in 1:dim(V)
-        is_zero_entry(a.mat, 1, j) && continue
+        is_zero_entry(_matrix(a), 1, j) && continue
         J = copy(I)
         insert!(J, searchsortedfirst(J, j), j)
-        next[J] = get(next, J, zero(R)) + c * a.mat[1, j]
+        next[J] = get(next, J, zero(R)) + c * coeff(a, j)
       end
       coeffs = next
     end
-    mat = zero_matrix(R, 1, dim_S)
+    vec = fill(zero(R), dim_S)
     for (I, c) in coeffs
-      mat[1, index_of[I]] = c
+      vec[index_of[I]] = c
     end
-    return S(mat)
+    return LieAlgebraModuleElem(S, vec)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1350,13 +1387,10 @@ function tensor_power(
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
-    mat = zero_matrix(R, 1, dim_T)
-    for (i, inds) in enumerate(ind_map)
-      mat[1, i] += prod(
-        as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R)
-      )
-    end
-    return T(mat)
+    vec = C[
+      prod(coeff(as[j], k) for (j, k) in enumerate(inds); init=one(R)) for inds in ind_map
+    ]
+    return LieAlgebraModuleElem(T, vec)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}

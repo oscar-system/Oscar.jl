@@ -226,5 +226,5 @@ function load_object(
   s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
 )
   R = coefficient_ring(V)
-  return V(load_object(s, Vector{elem_type(R)}, R))
+  return LieAlgebraModuleElem(V, load_object(s, Vector{elem_type(R)}, R))
 end
