@@ -532,7 +532,7 @@ function print_trace(trace::Trace{T}, start::T) where {T <: AbstractPartition}
     for p in track
         if p in keys(trace)
             println(p, " : ", trace[p])
-            for i in (trance[p])[1]
+            for i in (trace[p])[1]
                 if !(i in track)
                     push!(track, i)
                 end

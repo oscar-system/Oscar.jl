@@ -104,3 +104,11 @@
             spatial_category_costum_rotation
     end
 end
+
+@testset "print_trace" begin
+  p = set_partition([1, 1], [1, 1])
+  _, tr = construct_category([p], 3, true)
+  @test redirect_stdout(devnull) do
+    print_trace(tr, first(keys(tr)))
+  end === nothing
+end
