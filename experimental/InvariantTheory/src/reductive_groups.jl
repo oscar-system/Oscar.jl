@@ -728,6 +728,182 @@ function affine_algebra(R::RedGroupInvarRing)
   return domain(R.presentation), R.presentation
 end
 
+################################################################################
+#
+#  Bases of homogeneous components via the Lie algebra
+#
+################################################################################
+
+@doc raw"""
+    basis(RG::RedGroupInvarRing, d::Int)
+
+Return a basis of the invariants of degree `d` in `RG`.
+
+This is only implemented for $\text{SL}_m$, that is, for a group created by
+`linearly_reductive_group(:SL, m, ...)`.
+
+As $\text{SL}_m$ is connected and $k$ has characteristic 0, the invariants are the
+polynomials annihilated by the action of the Lie algebra $\mathfrak{sl}_m$. They are
+found by linear algebra on the forms of degree `d`, without the Reynolds operator and
+without the elimination in Derksen's algorithm. If the diagonal matrices in
+$\mathfrak{sl}_m$ act diagonally on the variables, as for
+[`representation_on_forms`](@ref), only the monomials of weight 0 are involved.
+
+# Examples
+The invariants of degree 18 of binary quintics, found by Hermite:
+```jldoctest
+julia> G = linearly_reductive_group(:SL, 2, QQ);
+
+julia> RG = invariant_ring(representation_on_forms(G, 5));
+
+julia> [length(basis(RG, d)) for d in 4:4:12]
+3-element Vector{Int64}:
+ 1
+ 2
+ 3
+
+julia> f = only(basis(RG, 18));
+
+julia> length(f)
+848
+```
+"""
+function basis(RG::RedGroupInvarRing, d::Int)
+  @req d >= 0 "the degree must be non-negative"
+  r = representation(RG)
+  G = group(r)
+  @req group_type(G) === :SL "only implemented for SLm"
+  m = group_dim(G)
+  K = base_ring(G)
+  S = polynomial_ring(RG)
+
+  # The E_k = E_(k, k+1) and F_k = E_(k+1, k) generate sl_m as a Lie algebra. A
+  # form of weight 0 under the H_k = E_(k, k) - E_(k+1, k+1) annihilated by all
+  # E_k is a highest weight vector of weight 0, hence invariant. If the H_k do
+  # not act diagonally, take the forms annihilated by all E_k and F_k.
+  MatT = dense_matrix_type(K)
+  H = MatT[
+    _lie_algebra_action(r, k, k) - _lie_algebra_action(r, k + 1, k + 1) for k in 1:(m - 1)
+  ]
+  ops = MatT[_lie_algebra_action(r, k, k + 1) for k in 1:(m - 1)]
+  W = _torus_weights(r, H)
+  if W === nothing
+    append!(ops, [_lie_algebra_action(r, k + 1, k) for k in 1:(m - 1)])
+    exps = [data(c) for c in weak_compositions(d, ngens(S))]
+  else
+    exps = _weight_zero_exponents(W, d)
+  end
+
+  N = _kernel_of_derivations(K, ops, exps)
+  B = elem_type(S)[]
+  for j in 1:ncols(N)
+    ctx = MPolyBuildCtx(S)
+    for i in 1:nrows(N)
+      is_zero(N[i, j]) || push_term!(ctx, N[i, j], exps[i])
+    end
+    f = finish(ctx)
+    push!(B, _remove_content(inv(AbstractAlgebra.leading_coefficient(f)) * f))
+  end
+  return B
+end
+
+# The derivative of rho at the identity in the direction of the matrix unit
+# E_ij, that is, the coefficient of t in rho(1 + t E_ij). For i == j it depends
+# on the representative of rho modulo det - 1, but E_ii - E_jj lies in sl_m and
+# its action does not.
+function _lie_algebra_action(r::RepresentationLinearlyReductiveGroup, i::Int, j::Int)
+  G = group(r)
+  K = base_ring(G)
+  M = representation_matrix(r)
+  Z = natural_representation(G)
+  one_ = [zero(K) for _ in 1:ngens(base_ring(M))]
+  for k in 1:nrows(Z)
+    one_[var_index(Z[k, k])] = one(K)
+  end
+  v = var_index(Z[i, j])
+  n = degree(r)
+  return matrix(K, n, n, [evaluate(derivative(M[a, b], v), one_) for a in 1:n for b in 1:n])
+end
+
+# The weights of the variables under the matrices in H, as the columns of an
+# integer matrix, or nothing if some matrix in H is not diagonal.
+function _torus_weights(r::RepresentationLinearlyReductiveGroup, H::Vector{<:MatElem})
+  all(is_diagonal, H) || return nothing
+  M = representation_matrix(r)
+  W = zeros(Int, degree(r), length(H))
+  for (k, h) in enumerate(H), a in 1:degree(r)
+    # On the one-parameter torus of H[k], M[a, a] is t^w with |w| at most the
+    # total degree of M[a, a]. Search, as not every field converts to ZZ.
+    D = total_degree(M[a, a])
+    w = findfirst(j -> h[a, a] == j, (-D):D)
+    @req w !== nothing "the matrix does not define a representation"
+    W[a, k] = w - D - 1
+  end
+  return W
+end
+
+# The exponent vectors of the monomials of degree d and weight 0, where row a
+# of W holds the weights of variable a.
+function _weight_zero_exponents(W::Matrix{Int}, d::Int)
+  exps = Vector{Int}[]
+  for c in weak_compositions(d, size(W, 1); inplace=true)
+    e = data(c)
+    if all(k -> iszero(sum(e[a] * W[a, k] for a in eachindex(e))), axes(W, 2))
+      push!(exps, copy(e))
+    end
+  end
+  return exps
+end
+
+# Return a matrix over K whose columns span the common kernel of the
+# derivations sum_(a, b) A[a, b] x_b d/dx_a, A in ops, on the span of the
+# monomials with exponent vectors exps.
+function _kernel_of_derivations(K::Field, ops::Vector{<:MatElem}, exps::Vector{Vector{Int}})
+  # One row per operator and monomial in its image. The columns are visited in
+  # order, so each row is sorted, with repeated positions adjacent.
+  row_index = Dict{Tuple{Int,Vector{Int}},Int}()
+  rows = Vector{Tuple{Int,elem_type(K)}}[]
+  for (k, A) in enumerate(ops)
+    nonzeros = [[(b, A[a, b]) for b in 1:ncols(A) if !is_zero(A[a, b])] for a in 1:nrows(A)]
+    for (col, e) in enumerate(exps), a in eachindex(e)
+      e[a] == 0 && continue
+      for (b, c) in nonzeros[a]
+        f = copy(e)
+        f[a] -= 1
+        f[b] += 1
+        i = get!(row_index, (k, f)) do
+          push!(rows, Tuple{Int,elem_type(K)}[])
+          return length(rows)
+        end
+        row = rows[i]
+        if !isempty(row) && row[end][1] == col
+          row[end] = (col, row[end][2] + e[a] * c)
+        else
+          push!(row, (col, e[a] * c))
+        end
+      end
+    end
+  end
+
+  # With one operator (SL2) the matrix is about square, and sparse elimination
+  # over QQ suffers from fill-in: 18 s against 3 s dense for binary septics in
+  # degree 12. With several operators it has about as many times more rows
+  # than columns, many short, and sparse elimination wins: 1 s against 80 s
+  # for ternary quartics in degree 9.
+  if length(ops) == 1
+    D = zero_matrix(K, length(rows), length(exps))
+    for (i, row) in enumerate(rows), (j, c) in row
+      D[i, j] = c
+    end
+  else
+    D = sparse_matrix(K, 0, length(exps))
+    for row in rows
+      push!(D, sparse_row(K, filter(x -> !is_zero(x[2]), row); sort=false))
+    end
+  end
+  return kernel(D; side=:right)
+end
+
 # Algorithm 4.5.1 in [DK15]
 # Compute generators of the invariant ring RG without a Reynolds operator: the
 # invariants of the degrees of the generators of the null cone ideal generate
