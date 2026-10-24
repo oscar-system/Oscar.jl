@@ -579,3 +579,12 @@ end
   @test all(x==iso_inv(iso(x)) for x in gens(L))
 end
 
+
+@testset "quotient of a localized quotient ring by a localized ideal" begin
+  R, (x, y) = QQ[:x, :y]
+  L, _ = localization(R, complement_of_point_ideal(R, [0, 0]))
+  Q, _ = quo(L, ideal(L, [x^2]))
+  W, p = quo(Q, ideal(L, [x]))
+  @test is_zero(p(Q(x)))
+  @test !is_zero(p(Q(y)))
+end

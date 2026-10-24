@@ -583,6 +583,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
 
   Delta = cell[2]   #cell variables
   if isempty(Delta)
+    QQAb, = abelian_closure(QQ)
     return partial_character(zero_matrix(ZZ, 1, nvars(R)), [one(QQAb)], Set{Int64}())
   end
 
@@ -816,7 +817,7 @@ function cellular_associated_primes(I::MPolyIdeal{QQMPolyRingElem}, RQQAb::MPoly
   #output: the set of associated primes of I
   if iszero(I)
      QQAb, = abelian_closure(QQ)
-     RQQAb = polynomial_ring(QQAb, symbols(base_ring(I))); cached = false[1]
+     RQQAb, _ = polynomial_ring(QQAb, symbols(base_ring(I)); cached = false)
      return [ideal(RQQAb, [zero(RQQAb)])]
   end
   if !is_unital(I)

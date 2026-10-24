@@ -2013,6 +2013,7 @@ weights(::Type{Int}, A::MPolyQuoRing{T}) where {T <: MPolyDecRingElem} = weights
 function _graph_ring(F::MPolyAnyMap, ::Type{Val{false}}) # the graded case
   A = domain(F)
   B = codomain(F)
+  K = coefficient_ring(A)
   TR, yT, xT = graded_polynomial_ring(K, symbols(B), symbols(A))
   set_default_ordering!(TR, degrevlex(yT)*degrevlex(xT))
   return TR, yT, xT
