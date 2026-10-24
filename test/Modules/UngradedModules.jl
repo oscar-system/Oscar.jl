@@ -2243,8 +2243,13 @@ end
   @test is_zero(w*zero(R))
   @test w*one(R) == w
 
+  @test v*(1//2) == (1//2)*v
+
   # multiplying two module elements is not scalar multiplication
   @test_throws MethodError w*w
+
+  # operands whose multiplication does not commute are refused, not reversed
+  @test_throws ErrorException v*matrix(R, [x y; y x])
 end
 
 @testset "direct sums of morphisms" begin

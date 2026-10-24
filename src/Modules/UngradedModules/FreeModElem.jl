@@ -259,9 +259,23 @@ function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleOFPModuleRingE
 end
 
 # Right and left scalar multiplication agree over a commutative base ring.
-# The `a::T` method breaks the ambiguity with the non-commutative one below.
-*(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem} = a*b
-*(b::AbstractFreeModElem{T}, a::T) where {T <: RingElem} = a*b
+# `is_right` is the gate, so a base ring that is non-commutative despite being
+# a `RingElem` is rejected in one place.
+function _mul_right(b::OFPModuleElem, a)
+  @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
+  return a*b
+end
+
+# Typed scalars: `a::Any` would reverse the factors for a non-commutative
+# operand such as a matrix. The `a::T` method breaks the ambiguity below.
+*(b::AbstractFreeModElem{T}, a::T)        where {T <: RingElem} = _mul_right(b, a)
+*(b::AbstractFreeModElem{T}, a::RingElem) where {T <: RingElem} = _mul_right(b, a)
+*(b::AbstractFreeModElem{T}, a::Integer)  where {T <: RingElem} = _mul_right(b, a)
+*(b::AbstractFreeModElem{T}, a::Rational) where {T <: RingElem} = _mul_right(b, a)
+
+function *(b::AbstractFreeModElem, a::Any)
+  error("scalar multiplication from the right is not yet supported")
+end
 
 function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleOFPModuleRingElem}
   @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
