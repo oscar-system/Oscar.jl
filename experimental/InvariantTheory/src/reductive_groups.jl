@@ -362,9 +362,9 @@ invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) =
   RedGroupInvarRing(R, ring)
 
 # Cached, as this elimination is the expensive step of Derksen's algorithm.
-@attr Tuple{
-  MPolyIdeal{mpoly_type(FldT)},dense_matrix_type(mpoly_type(FldT))
-} function proj_of_image_ideal(R::RedGroupInvarRing{FldT}) where {FldT}
+@attr MPolyIdeal{mpoly_type(FldT)} function proj_of_image_ideal(
+  R::RedGroupInvarRing{FldT}
+) where {FldT}
   return proj_of_image_ideal(representation(R))
 end
 
@@ -373,7 +373,7 @@ end
 @attr ideal_type(PolyRingT) function _null_cone_ideal_xyz(
   R::RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
 ) where {FldT,PolyRingElemT,PolyRingT}
-  b, _ = proj_of_image_ideal(R)
+  b = proj_of_image_ideal(R)
   n = degree(representation(R))
   mixed_ring_xy = base_ring(b)
   xyz = gens(mixed_ring_xy)
@@ -496,8 +496,7 @@ function Base.show(io::IO, R::RedGroupInvarRing)
 end
 
 # Return the ideal of the graph {(v, rho(g)v, g) | v in V, g in G} in the ring
-# K[x, y, zz], where zz are the coordinates of G, and the representation matrix
-# with z replaced by zz.
+# K[x, y, zz], where zz are the coordinates of G.
 function image_ideal(r::RepresentationLinearlyReductiveGroup)
   G = group(r)
   rep_mat = representation_matrix(r)
@@ -514,16 +513,16 @@ function image_ideal(r::RepresentationLinearlyReductiveGroup)
   new_vars = new_rep_mat * x
   ideal_vect = y - new_vars
   ideal_vect = vcat(ideal_vect, genss)
-  return ideal(mixed_ring_xy, ideal_vect), new_rep_mat
+  return ideal(mixed_ring_xy, ideal_vect)
 end
 
 # Return the ideal I_{\Bar{B}} of the closure of B = {(v, rho(g)v) | v in V, g in G}
-# in V x V, and the representation matrix with z replaced by zz. Both live in the
-# ring K[x, y, zz] of image_ideal; the generators of the ideal involve only x and y.
+# in V x V. It lives in the ring K[x, y, zz] of image_ideal; its generators
+# involve only x and y.
 function proj_of_image_ideal(r::RepresentationLinearlyReductiveGroup)
-  I, M = image_ideal(r)
+  I = image_ideal(r)
   n = degree(r)
-  return eliminate(I, gens(base_ring(I))[(2 * n + 1):end]), M
+  return eliminate(I, gens(base_ring(I))[(2 * n + 1):end])
 end
 
 # Compute generators of the invariant ring RG by applying the Reynolds operator
@@ -735,7 +734,7 @@ end
 # the invariant ring.
 function inv_gens_no_reynolds(RG::RedGroupInvarRing)
   I = _null_cone_ideal_xyz(RG)
-  b, _ = proj_of_image_ideal(RG)
+  b = proj_of_image_ideal(RG)
   ringg = polynomial_ring(RG)
   n = ngens(ringg)
   mixed_ring_xy = base_ring(b)
