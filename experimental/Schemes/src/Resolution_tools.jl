@@ -134,7 +134,7 @@ julia> L[4]
         end
       end
     else
-      l = findfirst(x -> (deg(x) == 1 && is_prime(ideal(OO(U),[x]))), gens(I(U)))
+      l = findfirst(x -> (total_degree(x) == 1 && is_prime(ideal(OO(U),[x]))), gens(I(U)))
       l !== nothing || error("choose hypersurface: random choice not implemented yet")
       p = gen(I(U),l)
     end
@@ -204,7 +204,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
       if has_attribute(ex_divs[a],:A1count)
         ## we already counted A1s
         c = get_attribute(ex_divs[a],:A1count)
-        push!(abs_red_data, (a,M[b,a],c))
+        push!(abs_data, (a,M[b,a],c))
       else
         ## we still need to count A1s
         worse_sing,A1count = curve_sing_A1_or_beyond(ex_divs[a])
@@ -230,7 +230,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
       ## ==> ex_divs[i] not absolutely irreducible and all meet all
         is_sane, mult_i = divides(M[i,j],abs_data[j][2])
         is_sane || error("inconsistency of multiplicities of divisors over k_bar")
-        abs_data[i][2] = mult_i
+        abs_data[i] = (abs_data[i][1], mult_i, abs_data[i][3])
         continue
     end
     ## all else failed, we cannot avoid absolute primary decomposition
