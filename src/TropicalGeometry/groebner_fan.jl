@@ -503,7 +503,7 @@ function groebner_fan(I::MPolyIdeal;
         end
         if return_groebner_bases == true
             if marked_groebner_bases == true
-                push!(output_C,(f,leading_term(f;ordering=ord)))
+                push!(output_C,[(g,leading_term(g;ordering=ord)) for g in GB])
             else
                 push!(output_C,GB)
             end

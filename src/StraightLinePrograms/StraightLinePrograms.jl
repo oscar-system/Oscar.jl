@@ -2,7 +2,7 @@ module StraightLinePrograms
 
 import Base: +, -, *, ^, parent
 
-import ..AbstractAlgebra: evaluate, add!, sub!, mul!, neg!
+import ..AbstractAlgebra: evaluate, add!, sub!, mul!, neg!, divexact
 
 export AbstractSLProgram
 export AtlasSLDecision

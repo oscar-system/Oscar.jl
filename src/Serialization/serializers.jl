@@ -29,8 +29,8 @@ struct MultiFileRefSerializer <: MultiFileSerializer
   ref_files::Vector{String}
 end
 MultiFileRefSerializer() = MultiFileRefSerializer("", :none, String[])
-MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none, String[])
-MultiFileRefSerializer(basepath::String, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
+MultiFileRefSerializer(basepath::AbstractString) = MultiFileRefSerializer(basepath, :none, String[])
+MultiFileRefSerializer(basepath::AbstractString, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
