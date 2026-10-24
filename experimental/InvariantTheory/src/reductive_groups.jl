@@ -441,7 +441,8 @@ Both algorithms compute generators of Hilbert's null-cone ideal as in Derksen's 
   known Reynolds operator, that is, a group created from a symbol such as `:SL`.
 - `algorithm = :linear_algebra` computes, by linear algebra, a basis of the invariants in
   each degree of a generator of the null-cone ideal, and keeps those which are not
-  polynomials in invariants of smaller degree.
+  polynomials in invariants of smaller degree. For $\text{SL}_m$, these bases come from
+  the action of its Lie algebra, see [`basis(RG::RedGroupInvarRing, d::Int)`](@ref).
 
 By default, the function uses `:reynolds` if a Reynolds operator is known, and
 `:linear_algebra` otherwise (for groups given by their defining ideal).
@@ -925,7 +926,11 @@ function inv_gens_no_reynolds(RG::RedGroupInvarRing)
   degrees = sort!(unique!(map(total_degree, gens(I))))
   ans_vect = Vector{elem_type(ringg)}()
   for d in degrees
-    invs = map(phi, basis_no_reynolds(d, n, b))
+    if group_type(group(RG)) === :SL
+      invs = basis(RG, d)
+    else
+      invs = map(phi, basis_no_reynolds(d, n, b))
+    end
     isempty(invs) && continue
     nfs = isempty(ans_vect) ? invs : normal_form(invs, ideal(ringg, ans_vect))
     B = BasisOfPolynomials(ringg)

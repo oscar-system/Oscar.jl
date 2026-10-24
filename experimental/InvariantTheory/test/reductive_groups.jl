@@ -268,13 +268,16 @@
     r4,
     Oscar._direct_sum(representation_on_forms(g, 2), representation_on_forms(g, 2)),
     representation_on_forms(linearly_reductive_group(:SL, 3, QQ), 2),
+    rep_mixed,
   ]
     rg = invariant_ring(r)
     FF = fundamental_invariants(rg, :reynolds)
     @test all(h -> is_invariant(h, r), FF)
     F = fundamental_invariants(invariant_ring(polynomial_ring(rg), r), :linear_algebra)
+    @test all(h -> is_invariant(h, r), F)
     @test length(F) == length(FF)
     @test all(f -> subalgebra_membership_homogeneous(f, FF)[1], F)
+    @test all(f -> subalgebra_membership_homogeneous(f, F)[1], FF)
   end
   @test length(fundamental_invariants(invariant_ring(r4))) == 2
   @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
