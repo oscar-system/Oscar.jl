@@ -221,6 +221,42 @@ function fundamental_invariants(z::TorGroupInvarRing)
   return copy(z.fundamental)
 end
 
+@doc raw"""
+    reynolds_operator(RT::TorGroupInvarRing, f::MPolyRingElem)
+
+Return the image of `f` under the Reynolds operator corresponding to `RT`.
+
+This is the projection onto the invariant monomials: it keeps the terms of `f` whose
+monomial $x^a$ has weight $\sum_i a_i w_i = 0$, where $w_i$ is the weight of $x_i$.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> RT = invariant_ring(r);
+
+julia> X = gens(polynomial_ring(RT));
+
+julia> reynolds_operator(RT, (X[1] + X[2] + X[3] + X[4])^3)
+3*X[1]^2*X[3] + 6*X[1]*X[2]*X[3] + 3*X[2]^2*X[3]
+```
+"""
+function reynolds_operator(R::TorGroupInvarRing, elem::MPolyRingElem)
+  W = weights(representation(R))
+  @req ngens(parent(elem)) == length(W) "the number of variables must be the number of weights"
+  has_weight_zero(a) = all(
+    j -> is_zero(sum(a[i] * W[i][j] for i in eachindex(W); init=zero(ZZ))),
+    1:rank(group(R)),
+  )
+  ctx = MPolyBuildCtx(parent(elem))
+  for (c, a) in zip(coefficients(elem), exponents(elem))
+    has_weight_zero(a) && push_term!(ctx, c, a)
+  end
+  return finish(ctx)
+end
+
 function Base.show(io::IO, ::MIME"text/plain", R::TorGroupInvarRing)
   io = pretty(io)
   println(io, "Invariant ring")

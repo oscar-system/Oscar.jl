@@ -156,6 +156,9 @@
   #all weights of the same sign: only the constants are invariant
   I = invariant_ring(representation_from_weights(T, [1, 2]))
   @test is_empty(fundamental_invariants(I))
+  X = gens(polynomial_ring(I))
+  @test reynolds_operator(I, X[1] * X[2] + 7) == 7
+  @test_throws ArgumentError reynolds_operator(I, one(polynomial_ring(QQ, 3)[1]))
 
   #example from Macaulay2
   T = torus_group(QQ, 2)
@@ -165,6 +168,23 @@
   X = gens(R)
   f = fundamental_invariants(I)
   @test f == [X[1] * X[2] * X[3], X[1]^2 * X[3] * X[4]]
+
+  #the Reynolds operator keeps the terms whose monomials are invariant
+  for (m, W) in [(1, [-3, -1, 1, 2]), (2, [1 0; 0 1; -1 -1; -1 1])]
+    r = representation_from_weights(torus_group(QQ, m), W)
+    RT = invariant_ring(r)
+    X = gens(polynomial_ring(RT))
+    #t = (2, 3) multiplies x^a by 2^b[1]*3^b[2], where b is the weight of x^a
+    t = [prod(QQ(p)^w for (p, w) in zip([2, 3], v)) for v in weights(r)]
+    act = h -> evaluate(h, t .* X)
+    N = 8
+    f = (1 + sum(X))^N
+    g = reynolds_operator(RT, f)
+    @test act(g) == g
+    @test all(u -> act(u) != u, monomials(f - g))
+    FT = fundamental_invariants(RT)
+    @test all(h -> reynolds_operator(RT, h) == h, FT)
+  end
 
   #another example, with affine algebra computation
   T = torus_group(QQ, 2)
