@@ -57,6 +57,12 @@ If `RT` is the invariant ring $k[x_1, \dots, x_n]^T$ of a torus $T$, then
 reynolds_operator(RT::TorGroupInvarRing, f::MPolyRingElem)
 ```
 
+## The Null Cone
+
+```@docs
+null_cone_ideal(RT::TorGroupInvarRing)
+```
+
 ## Fundamental Systems of Invariants
 
 ```@docs
