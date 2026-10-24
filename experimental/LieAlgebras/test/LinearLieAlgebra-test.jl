@@ -127,7 +127,7 @@
 
   @testset "conformance tests" begin
     @testset "0-dim Lie algebra /QQ" begin
-      L = lie_algebra(QQ, 0, QQMatrix[], Symbol[])
+      L = lie_algebra(QQ, 0, QQMatrix[], Symbol[]; is_basis=true)
       lie_algebra_conformance_test(
         L, LinearLieAlgebra{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}
       )
