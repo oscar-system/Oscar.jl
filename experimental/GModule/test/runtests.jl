@@ -352,3 +352,24 @@ end
   reps = Oscar.GModuleFromGap._irred_abelian(G, GF(3, 4))
   @test multiset(map(dim, reps)) == multiset(Dict(1 => 5))
 end
+
+@testset "Experimental.gmodule misc" begin
+  # code paths that used undefined names
+  @test_throws ErrorException irreducible_modules(symmetric_group(3); algo=:foo)
+
+  G = pc_group(symmetric_group(3))
+  M = only(filter(m -> dim(m) == 2, Oscar.RepPc.reps(GF(2, 2), G)))
+  N = Oscar.GModuleFromGap.descent_to(M, embed(GF(2), GF(2, 2)))
+  @test dim(N) == 2
+  @test base_ring(N) == GF(2)
+
+  A = abelian_group([2, 2])
+  C = gmodule(G, [hom(A, A, [A[2], A[1]]), hom(A, A, [A[2], A[1]+A[2]])])
+  q, mq = hom(C, C)
+  @test order(q) == 2
+
+  k, _ = quadratic_field(-5)
+  r = ray_class_field(3*maximal_order(k), n_quo = 2)
+  Gk, _ = automorphism_group(PermGroup, k)
+  @test gmodule(Gk, r) isa GModule
+end
