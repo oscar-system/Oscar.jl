@@ -74,3 +74,9 @@ fundamental_invariants(RT::TorGroupInvarRing)
 ```@docs
 affine_algebra(RT::TorGroupInvarRing)
 ```
+
+## The Hilbert Series
+
+```@docs
+hilbert_series(RT::TorGroupInvarRing)
+```
