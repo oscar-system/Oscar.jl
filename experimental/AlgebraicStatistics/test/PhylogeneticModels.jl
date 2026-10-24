@@ -437,3 +437,8 @@ end
     end
   end
 end
+
+@testset "root of a phylogenetic model" begin
+  tree = graph_from_edges(Directed, [[4, 1], [4, 2], [4, 3]])
+  @test root(phylogenetic_model(cavender_farris_neyman_model(tree))) == 4
+end
