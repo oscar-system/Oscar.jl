@@ -447,7 +447,7 @@ function HSNum_bayer_stillman(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  
   SPP = SimplePPs #filter((t -> (t != BSPivot)), SimplePPs)
   part1 = HSNum_loop(SPP, NonSPP, T, :bayer_stillman)
   ReducedPPs = interreduce([colon(t,BSPivot)  for t in vcat(SPP,NonSPP)])
-  NewSimplePPs, NewNonSimplePPs = SeparateSimplePPs(ReducedPPs)
+  NewSimplePPs, NewNonSimplePPs = separate_simple_pps(ReducedPPs)
   part2 = HSNum_loop(NewSimplePPs, NewNonSimplePPs, T, :bayer_stillman)
   nvars = length(BSPivot)
   return part1 - prod([T[k]^BSPivot[k]  for k in 1:nvars])*part2
@@ -672,7 +672,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
   if length(NonSimplePPs) <= length(NonSimplePPs[1])#=nvars=#
     CC = connected_components(NonSimplePPs)
   else
-    CC = []
+    CC = Vector{Vector{Int}}()
   end
   if length(CC) > 1
     @vprintln :hilbert  1 "HSNum_loop:  --> delegate Splitting case"
@@ -715,7 +715,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
     RecurseSum = vcat(SimplePPs, NonSimplePPs)
     push!(RecurseSum, PivotPP)
     RecurseSum = interreduce(RecurseSum)
-    RecurseSum_SimplePPs_OLD, RecurseSum_NonSimplePPs_OLD = SeparateSimplePPs(RecurseSum)
+    RecurseSum_SimplePPs_OLD, RecurseSum_NonSimplePPs_OLD = separate_simple_pps(RecurseSum)
     RecurseSum_NonSimplePPs = RecurseSum_NonSimplePPs_OLD
     RecurseSum_SimplePPs = RecurseSum_SimplePPs_OLD
   else # use "clever" version:
@@ -745,7 +745,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
     #=SAFE VERSION: simpler but probably slower=#
     RecurseQuot = [colon(t,PivotPP)  for t in vcat(SimplePPs,NonSimplePPs)]
     RecurseQuot = interreduce(RecurseQuot)
-    RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs = SeparateSimplePPs(RecurseQuot)
+    RecurseQuot_SimplePPs, RecurseQuot_NonSimplePPs = separate_simple_pps(RecurseQuot)
   else  # Use "smart version"
     if !PivotIsSimple   # GENERAL CASE (e.g. if not PivotIsSimple)
       # Clever approach (for non-simple pivots) taken from Bigatti 1997 paper (p.247 just after Prop 1 to end of sect 5)
@@ -779,7 +779,7 @@ function HSNum_loop(SimplePPs::Vector{PP}, NonSimplePPs::Vector{PP},  T::Vector{
       NotBM_mixed = interreduce(NotBM_mixed) # cannot easily be "clever" here
       filter!((t -> not_mult_of_any(NotBM_mixed,t)), NotBM_coprime)
       RecurseQuot = vcat(NotBM_coprime, NotBM_mixed) # already interreduced
-      RQ_SimplePPs, RQ_NonSimplePPs = SeparateSimplePPs(RecurseQuot)
+      RQ_SimplePPs, RQ_NonSimplePPs = separate_simple_pps(RecurseQuot)
       RecurseQuot_SimplePPs = RQ_SimplePPs
       RecurseQuot_NonSimplePPs = vcat(BM, RQ_NonSimplePPs)
     else  # Clever approach when PivotIsSimple
