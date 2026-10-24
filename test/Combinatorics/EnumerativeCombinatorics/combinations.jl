@@ -70,6 +70,9 @@
     @test length(c) == binomial(n,k)
     @test all(x->c[Oscar.linear_index(x, n)] == x, combinations(n,k))
     @test all(i->C[i] == c[i], 1:length(c))
+
+    @test Oscar.linear_index(Oscar.combination(5, 2, 3), ZZ(5)) == 3
+    @test Oscar.combination(ZZ(5), ZZ(2), 3) == Combination(ZZRingElem[1, 4])
   end
 
 

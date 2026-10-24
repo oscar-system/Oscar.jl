@@ -19,7 +19,7 @@ function isomorphic_matroid(M::Matroid, gs::GroundsetType)
         error("Sets of different size")
     end
     gs2num = create_gs2num(gs)
-    return Matroid(pm_object(M),gs,gs2num)
+    return Matroid(pm_object(M),collect(gs),gs2num)
 end
 
 
