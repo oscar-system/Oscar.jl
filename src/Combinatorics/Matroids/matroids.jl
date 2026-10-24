@@ -41,7 +41,7 @@ _property_to_gs(M::Matroid, p::Symbol) = _indices_to_gs(_pmset_to_indices(getpro
 Construct a `matroid` from a `polymake` matroid `M` on the default ground set `{1,...,n}`.
 """
 function Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=collect(1:pm_matroid.N_ELEMENTS))
-    return Matroid(pm_matroid, E, create_gs2num(E))
+    return Matroid(pm_matroid, collect(E), create_gs2num(E))
 end
 
 @doc raw"""

@@ -327,7 +327,7 @@ function add_vertex!(mg::MixedGraph)
   vertex_added = add_vertex!(_undirected_component(mg))
 
   if !vertex_added
-    @assert rem_vertex!(_directed_component(mg))
+    @assert rem_vertex!(_directed_component(mg), n_vertices(_directed_component(mg)))
     return false
   end
   return true
@@ -498,7 +498,7 @@ Base.in(i::Int, a::Edge) = (i==src(a) || i==dst(a))
 rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
   rem_edge!(g, src(e), dst(e))
 rem_edge!(mg::MixedGraph, ::Type{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
-  rem_edge!(g, T, src(e), dst(e))
+  rem_edge!(mg, T, src(e), dst(e))
 
 @doc raw"""
     reverse(e::Edge)
@@ -707,7 +707,7 @@ end
 has_edge(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64) = has_edge(_directed_component(mg), source, target)
 has_edge(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64) = has_edge(_undirected_component(mg), source, target)
 
-function has_edge(g::MixedGraph, e::Edge)
+function has_edge(g::MixedGraph, ::Type{T}, e::Edge) where {T <: Union{Directed, Undirected}}
     return has_edge(g, T, src(e), dst(e))
 end
 
