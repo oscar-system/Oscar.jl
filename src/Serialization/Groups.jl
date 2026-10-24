@@ -159,13 +159,13 @@ function save_object(s::SerializerState, G::FPGroup)
     # A full *free* group is represented by the names of the generators,
     # and the information about the GAP filter that defines the internal
     # representation of the elements; there are four such filters.
-    # (Currently we do not support free groups on infinitely many generators.)
     X = GapObj(G)
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
     @assert GAP.Globals.HasIsWholeFamily(X) && GAPWrap.IsWholeFamily(X)
+    Xnames = GAP.getbangproperty(elfam, :names)::GapObj
+    @req GAPWrap.IsFinite(Xnames) "free groups of infinite rank are not supported"
     save_data_dict(s) do
       # (rank and) names of generators
-      Xnames = GAP.getbangproperty(elfam, :names)::GapObj
       names = Vector{String}(Xnames)
       save_object(s, names, :names)
       # the internal representation of elements

@@ -108,6 +108,10 @@
        @test parent(loadedw[3]) !== U
        @test loadedw[1] == loadedv[1]
        @test parent(loadedw[1]) === parent(loadedv[1])
+
+      # free groups of infinite rank are not supported
+      X = GAP.Globals.FreeGroup(GAP.Globals.infinity, GapObj("f"), GapObj(["a", "b"]; recursive = true))
+      @test_throws "infinite rank" save(joinpath(path, "inf"), Oscar._oscar_group(X))
     end
 
     @testset "Finitely generated abelian groups and their homomorphisms" begin
