@@ -61,21 +61,25 @@ push!(upgrade_scripts_set, UpgradeScript(
     pairs = collect(refs)
 
     # auxiliary functions
-    check_finite_rank = function(gapdata)
-      @req !haskey(gapdata, :nameprefix) "free groups of infinite rank are not supported"
+    free_group_data = function(gapdata)
+      # names, the filter identifier, and for infinite rank the name prefix
+      res = Dict{Symbol, Any}(
+              :names => gapdata[:names],
+              :rep => Oscar.Serialization._word_filters[
+                        Symbol(gapdata[:wfilt])])
+      if haskey(gapdata, :nameprefix)
+        res[:nameprefix] = gapdata[:nameprefix]
+      end
+      return res
     end
 
     insert_oscar_free_group = function(pointer, name)
       # no Oscar free group was stored
       oscaruuid = string(uuid4())
       gapdata = refs[Symbol(pointer)][:data]
-      check_finite_rank(gapdata)
       oscarobj = Dict{Symbol, Any}(
                    :_type => "FPGroup",
-                   :data => Dict{Symbol, Any}(
-                     :names => gapdata[:names],
-                     :rep => Oscar.Serialization._word_filters[
-                               Symbol(gapdata[:wfilt])]))
+                   :data => free_group_data(gapdata))
 
       dict[:_refs][Symbol(oscaruuid)] = oscarobj
       push!(pairs, Symbol(oscaruuid) => oscarobj)
@@ -153,13 +157,8 @@ push!(upgrade_scripts_set, UpgradeScript(
           data = gapref[:data]
 
           if haskey(data, :names)
-            # full free group:
-            # transfer the names and the filter identifier.
-            check_finite_rank(data)
-            ref[:data] = Dict{Symbol, Any}(
-                           :names => data[:names],
-                           :rep => Oscar.Serialization._word_filters[
-                                     Symbol(data[:wfilt])])
+            # full free group
+            ref[:data] = free_group_data(data)
 
             replace_type[Dict{Symbol, Any}(:name => name,
                               :params => oldparams)] = name
@@ -225,7 +224,7 @@ push!(upgrade_scripts_set, UpgradeScript(
             else
               freedata = haskey(data, :names) ? data :
                          refs[Symbol(gapref[:_type][:params])][:data]
-              check_finite_rank(freedata)
+              @req !haskey(freedata, :nameprefix) "free groups of infinite rank cannot be viewed as subgroups"
               gens = [[string(i), "1"] for i in 1:length(freedata[:names])]
             end
             ref[:data] = Dict{Symbol, Any}(:gens => gens)

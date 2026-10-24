@@ -143,8 +143,13 @@
     @test full_group(parent(z))[1] === P
 
     Oscar.reset_global_serializer_state()
-    @test_throws "infinite rank" loadold("freeinf.mrdi")
-    @test_throws "infinite rank" loadold("freeinf_elem.mrdi")
+    F = loadold("freeinf.mrdi")
+    @test F isa FPGroup
+    @test !is_finitely_generated(F)
+
+    Oscar.reset_global_serializer_state()
+    x = loadold("freeinf_elem.mrdi")
+    @test string(x) == "a*f3"
     Oscar.reset_global_serializer_state()
   end
 
