@@ -88,3 +88,10 @@ end
   @test compose(phi_star[-1], map(codomain(phi_star), -1)) == compose(map(domain(phi_star), -1), phi_star[-2])
 end
 
+
+@testset "Koszul complex from a vector of graded elements" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+  K = koszul_complex(Oscar.KoszulComplex, gens(S))
+  @test [rank(K[i]) for i in 0:3] == [1, 3, 3, 1]
+  @test all(is_graded(K[i]) for i in 0:3)
+end
