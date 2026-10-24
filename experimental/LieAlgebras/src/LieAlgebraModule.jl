@@ -56,7 +56,7 @@ function basis(V::LieAlgebraModule, i::Int)
   R = coefficient_ring(V)
   v = zero_matrix(R, 1, dim(V))
   v[1, i] = one(R)
-  return V(v)
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
@@ -110,7 +110,7 @@ function getindex(v::LieAlgebraModuleElem, i::Int)
 end
 
 function Base.deepcopy_internal(v::LieAlgebraModuleElem, dict::IdDict)
-  return parent(v)(deepcopy_internal(_matrix(v), dict))
+  return LieAlgebraModuleElem(parent(v), deepcopy_internal(_matrix(v), dict))
 end
 
 function check_parent(
@@ -384,7 +384,7 @@ function (V::LieAlgebraModule{C})(
   elseif ((fl, W) = _is_dual(V); fl)
     @req length(a) == 1 "Invalid input length."
     @req W === parent(only(a)) "Incompatible modules."
-    return V(coefficients(only(a)))
+    return LieAlgebraModuleElem(V, coefficients(only(a)))
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
@@ -433,39 +433,39 @@ end
 ###############################################################################
 
 function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
-  return parent(v)(-_matrix(v))
+  return LieAlgebraModuleElem(parent(v), -_matrix(v))
 end
 
 function Base.:+(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:FieldElem}
   check_parent(v1, v2)
-  return parent(v1)(_matrix(v1) + _matrix(v2))
+  return LieAlgebraModuleElem(parent(v1), _matrix(v1) + _matrix(v2))
 end
 
 function Base.:-(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
 ) where {C<:FieldElem}
   check_parent(v1, v2)
-  return parent(v1)(_matrix(v1) - _matrix(v2))
+  return LieAlgebraModuleElem(parent(v1), _matrix(v1) - _matrix(v2))
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(_matrix(v) * c)
+  return LieAlgebraModuleElem(parent(v), _matrix(v) * c)
 end
 
 function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
-  return parent(v)(_matrix(v) * c)
+  return LieAlgebraModuleElem(parent(v), _matrix(v) * c)
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
-  return parent(v)(c * _matrix(v))
+  return LieAlgebraModuleElem(parent(v), c * _matrix(v))
 end
 
 function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:RationalUnion}
-  return parent(v)(c * _matrix(v))
+  return LieAlgebraModuleElem(parent(v), c * _matrix(v))
 end
 
 ###############################################################################
@@ -530,7 +530,8 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Fiel
 
   cx = coefficients(x)
   V = parent(v)
-  return V(
+  return LieAlgebraModuleElem(
+    V,
     sum(
       cx[i] * _matrix(v) * transformation_matrix(V, i) for
       i in 1:dim(parent(x)) if !iszero(cx[i]);
@@ -982,7 +983,7 @@ function tensor_product(
     for (i, inds) in enumerate(ind_map)
       mat[1, i] += prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds))
     end
-    return tensor_product_V(mat)
+    return LieAlgebraModuleElem(tensor_product_V, mat)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1112,7 +1113,7 @@ function exterior_power(
     for (m, _, J) in minors_iterator_with_position(A, k)
       mat[1, index_of[J]] = m
     end
-    return E(mat)
+    return LieAlgebraModuleElem(E, mat)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1274,7 +1275,7 @@ function symmetric_power(
     for (I, c) in coeffs
       mat[1, index_of[I]] = c
     end
-    return S(mat)
+    return LieAlgebraModuleElem(S, mat)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1405,7 +1406,7 @@ function tensor_power(
         as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R)
       )
     end
-    return T(mat)
+    return LieAlgebraModuleElem(T, mat)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
