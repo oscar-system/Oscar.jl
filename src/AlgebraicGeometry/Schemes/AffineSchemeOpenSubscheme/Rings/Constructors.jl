@@ -183,7 +183,7 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
+    return AffineSchemeOpenSubscheme(X), AffineSchemeOpenSubschemeRingElem[]
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -209,7 +209,7 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
+    return AffineSchemeOpenSubscheme(X), AffineSchemeOpenSubschemeRingElem[]
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -233,7 +233,7 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
+    return AffineSchemeOpenSubscheme(X), AffineSchemeOpenSubschemeRingElem[]
   end
   R = base_ring(parent(f[1]))
   for a in f

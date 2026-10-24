@@ -164,6 +164,7 @@ end
   V = AffineSchemeOpenSubscheme(B, [u, v])
   pres = restrict(p, U, V)
   @test U == preimage(p, V)
+  @test_throws ErrorException restrict(pres, X, B)
 
   g = pullback(pres)
   pullback(pres, u)
@@ -429,3 +430,16 @@ end
   @test parent(one(W) * uu) === PP
 end
 
+
+# complement of a subscheme given by an MPolyQuoLocRing, maximal extension of an empty list
+@testset "complement and maximal_extension corner cases" begin
+  R, (x, y) = QQ[:x, :y]
+  L, _ = localization(R, complement_of_point_ideal(R, [0, 0]))
+  Q, _ = quo(L, ideal(L, [x]))
+  U = complement(spec(R), spec(Q); check=false)
+  @test ambient_scheme(U) == spec(R)
+  @test U == AffineSchemeOpenSubscheme(spec(R), [x])
+  V, h = maximal_extension(spec(R), elem_type(fraction_field(R))[])
+  @test isempty(h)
+  @test V == AffineSchemeOpenSubscheme(spec(R))
+end

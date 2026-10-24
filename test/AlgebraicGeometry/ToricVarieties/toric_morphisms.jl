@@ -6,6 +6,7 @@
   tm3 = toric_identity_morphism(hirzebruch_surface(NormalToricVariety, 4))
   p1p1 = normal_toric_variety(cube(2))
   p2 = projective_space(NormalToricVariety, 2)
+  tm4 = toric_morphism(p2, hom(free_abelian_group(2), free_abelian_group(2), identity_matrix(ZZ, 2)))
 
   @testset "Should fail due to bad arguments (toric morphisms)" begin
     @test_throws ArgumentError tm1 * tm1
@@ -22,6 +23,7 @@
 
   @testset "Basic attributes of toric morphisms" begin
     @test codomain(tm1) === domain(tm2)
+    @test rays(codomain(tm4)) == rays(p2)
     @test matrix(lattice_homomorphism(tm2)) == matrix(ZZ, [[1, 0], [0, 1]])
     @test morphism_on_torusinvariant_weil_divisor_group(tm2).map == identity_matrix(ZZ, 4)
     @test morphism_on_torusinvariant_cartier_divisor_group(tm2).map ==

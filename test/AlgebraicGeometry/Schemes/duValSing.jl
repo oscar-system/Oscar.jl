@@ -15,6 +15,8 @@
   @test decide_du_val_singularity(X,J3)[1][1] == false
   @test has_du_val_singularities(X) == false
   @test decide_du_val_singularity(X2,J1)[1][3] == (:D, 8)
+  R3, (x, y, z) = QQ[:x, :y, :z]
+  @test !is_du_val_singularity(spec(R3, ideal(R3, [x^4+y^4+z^2])), ideal(R3, [x, y, z]))
 
   Rg,(x,y,z,w) = graded_polynomial_ring(QQ,[:x,:y,:z,:w])
   X = proj(Rg)
