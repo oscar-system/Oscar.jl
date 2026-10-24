@@ -177,3 +177,33 @@ end
   phi = hom(R, R, x->zero(L), [x, y])
   @test_throws ErrorException compose(phi, phi)
 end
+
+@testset "MPolyAnyMap/MPolyRing without generators" begin
+  # maps out of a polynomial ring in 0 variables
+  P, _ = polynomial_ring(QQ, 0)
+  T, _ = polynomial_ring(QQ, [:z])
+  @test sprint(show, "text/plain", hom(P, T, elem_type(T)[])) == """
+    Ring homomorphism
+      from multivariate polynomial ring in 0 variables over QQ
+      to multivariate polynomial ring in 1 variable over QQ"""
+  @test sprint(show, "text/plain", hom(P, T, identity_map(QQ), elem_type(T)[])) == """
+    Ring homomorphism
+      from multivariate polynomial ring in 0 variables over QQ
+      to multivariate polynomial ring in 1 variable over QQ
+    with map on coefficients
+      Map: QQ -> QQ"""
+
+  Qi, i = quadratic_field(-1)
+  P, _ = polynomial_ring(Qi, 0)
+  T, _ = polynomial_ring(Qi, [:z])
+  M = matrix_ring(Qi, 2)
+  @test hom(P, T, x -> x, elem_type(T)[])(P(i)) == T(i)
+  @test hom(P, T, hom(Qi, Qi, -i), elem_type(T)[])(P(i)) == T(-i)
+  @test hom(P, M, elem_type(M)[])(P(i)) == M(i)
+
+  P, _ = polynomial_ring(ZZ, 0)
+  F = GF(2)
+  @test is_one(hom(P, F, elem_type(F)[])(P(3)))
+  @test is_one(hom(P, F, a -> F(a), elem_type(F)[])(P(3)))
+  @test is_one(hom(P, F, MapFromFunc(ZZ, F, F), elem_type(F)[])(P(3)))
+end

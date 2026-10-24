@@ -12,9 +12,9 @@ function _check_imgs_quo(R, S::NCRing, imgs, coeff_map = nothing)
   gensI = gens(modulus(R))
   for g in gensI
     if coeff_map !== nothing
-      @req is_zero(evaluate(map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
+      @req is_zero(_evaluate_in(S, map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
     else
-      @req iszero(evaluate(g, imgs)) "Morphism is not well-defined"
+      @req iszero(_evaluate_in(S, g, imgs)) "Morphism is not well-defined"
     end
   end
   return nothing
@@ -25,9 +25,9 @@ function _check_imgs_quo(R, S::Ring, imgs, coeff_map = nothing)
   gensI = gens(modulus(R))
   for g in gensI
     if coeff_map !== nothing
-      @req is_zero(evaluate(map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
+      @req is_zero(_evaluate_in(S, map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
     else
-      @req iszero(evaluate(g, imgs)) "Morphism is not well-defined"
+      @req iszero(_evaluate_in(S, g, imgs)) "Morphism is not well-defined"
     end
   end
 end
@@ -107,7 +107,7 @@ end
 ################################################################################
 
 function _evaluate_plain(F::MPolyAnyMap{<: MPolyQuoRing}, u)
-  return evaluate(lift(u), _images(F))
+  return _evaluate_in(codomain(F), lift(u), _images(F))
 end
 
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyQuoRing, <:MPolyQuoRing}, u)
@@ -115,14 +115,9 @@ function _evaluate_plain(F::MPolyAnyMap{<:MPolyQuoRing, <:MPolyQuoRing}, u)
   # All the simplify calls make it unusable in this case, probably due to the fact that
   # setting `is_reduced` flags does not pay off in such iterative procedures.
   A = codomain(F)
-  # Shortcut needed because the `evaluate` code can not deal with empty lists
-  is_empty(_images(F)) && return codomain(F)(_constant_coefficient(u)) 
-  v = evaluate(lift(u), lift.(_images(F)))
+  v = _evaluate_in(base_ring(A), lift(u), lift.(_images(F)))
   return simplify(A(v))
 end
-
-_constant_coefficient(f::MPolyRingElem) = constant_coefficient(f)
-_constant_coefficient(f::MPolyQuoRingElem) = constant_coefficient(lift(f))
 
 function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
@@ -131,10 +126,10 @@ function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   else
     S = temp_ring(F)
     if S !== nothing
-      return evaluate(map_coefficients(coefficient_map(F), lift(u),
+      return _evaluate_in(codomain(F), map_coefficients(coefficient_map(F), lift(u),
                                                         parent = S), F.img_gens)
     else
-      return evaluate(map_coefficients(coefficient_map(F), lift(u)), F.img_gens)
+      return _evaluate_in(codomain(F), map_coefficients(coefficient_map(F), lift(u)), F.img_gens)
     end
   end
 end
