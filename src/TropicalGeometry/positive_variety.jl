@@ -39,7 +39,7 @@ function positive_tropical_variety(I::MPolyIdeal,nu::TropicalSemiringMap)
             return tropical_variety_binomial(I,nu)
         else
             # binomial ideal not positive, return empty polyhedral complex in the correct ambient dimension
-            return polyhedral_complex(IncidenceMatrix(zeros(Int,0,0)),zero_matrix(QQ,0,ambient_dim(TropL)))
+            return polyhedral_complex(IncidenceMatrix(zeros(Int,0,0)),zero_matrix(QQ,0,ngens(base_ring(I))))
         end
     end
 

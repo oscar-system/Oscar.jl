@@ -12,3 +12,11 @@
     @test n_maximal_polyhedra(TropPlusI) == 1
 
 end
+
+@testset "non-positive binomial ideal" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  nu = tropical_semiring_map(QQ)
+  TropPlusI = positive_tropical_variety(ideal(R, [x+y]), nu)
+  @test ambient_dim(TropPlusI) == 2
+  @test n_maximal_polyhedra(TropPlusI) == 0
+end
