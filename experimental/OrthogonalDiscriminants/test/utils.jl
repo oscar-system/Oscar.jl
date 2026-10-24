@@ -100,3 +100,9 @@ end
         character_table("U3(5)", 2)) == [[1], [2], [3, 4, 5], [6],
         [7, 8]]
 end
+
+@testset "orthogonal discriminant indicator 0 via a quadratic subfield" begin
+  T = character_table(cyclic_group(15))
+  chi = first(x for x in T if degree(x) == 1 && degree(character_field(x)[1]) == 8)
+  @test Oscar.OrthogonalDiscriminants._orthogonal_discriminant_indicator0(chi) == "-15"
+end
