@@ -253,24 +253,72 @@ function (V::LieAlgebraModule)()
 end
 
 @doc raw"""
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector `v`.
+
+Fail, if `Int` cannot be coerced into the coefficient ring of `V`.
+"""
+function LieAlgebraModuleElem(V::LieAlgebraModule, v::AbstractVector{Int})
+  return LieAlgebraModuleElem(V, coefficient_ring(V).(v))
+end
+
+@doc raw"""
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::AbstractVector{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector `v`.
+"""
+function LieAlgebraModuleElem(
+  V::LieAlgebraModule{C}, v::AbstractVector{C}
+) where {C<:FieldElem}
+  @req length(v) == dim(V) "Length of vector does not match dimension."
+  mat = matrix(coefficient_ring(V), 1, length(v), v)
+  return elem_type(V)(V, mat)
+end
+
+@doc raw"""
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, mat::MatElem{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector equivalent to
+the $1 \times \dim(V)$ matrix `mat`.
+"""
+function LieAlgebraModuleElem(V::LieAlgebraModule{C}, mat::MatElem{C}) where {C<:FieldElem}
+  @req mat isa dense_matrix_type(C) "Invalid matrix type."
+  @req size(mat) == (1, dim(V)) "Invalid matrix dimensions."
+  return elem_type(V)(V, mat)
+end
+
+@doc raw"""
+    LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::SRow{C}) -> LieAlgebraModuleElem{C}
+
+Return the element of `V` with coefficient vector `v`.
+"""
+function LieAlgebraModuleElem(V::LieAlgebraModule{C}, v::SRow{C}) where {C<:FieldElem}
+  mat = dense_row(v, dim(V))
+  return elem_type(V)(V, mat)
+end
+
+@doc raw"""
     (V::LieAlgebraModule{C})(v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
-Fails, if `Int` cannot be coerced into the coefficient ring of `V`.
+
+Fail, if `Int` cannot be coerced into the coefficient ring of `V`.
+This is a shorthand for [`LieAlgebraModuleElem(V, v)`](@ref LieAlgebraModuleElem(::LieAlgebraModule, ::AbstractVector{Int})).
 """
 function (V::LieAlgebraModule)(v::AbstractVector{Int})
-  return V(coefficient_ring(V).(v))
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
     (V::LieAlgebraModule{C})(v::AbstractVector{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraModuleElem(V, v)`](@ref LieAlgebraModuleElem(::LieAlgebraModule{C}, ::AbstractVector{C}) where {C<:FieldElem}).
 """
 function (V::LieAlgebraModule{C})(v::AbstractVector{C}) where {C<:FieldElem}
-  @req length(v) == dim(V) "Length of vector does not match dimension."
-  mat = matrix(coefficient_ring(V), 1, length(v), v)
-  return elem_type(V)(V, mat)
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
@@ -278,21 +326,22 @@ end
 
 Return the element of `V` with coefficient vector equivalent to
 the $1 \times \dim(V)$ matrix `mat`.
+
+This is a shorthand for [`LieAlgebraModuleElem(V, mat)`](@ref LieAlgebraModuleElem(::LieAlgebraModule{C}, ::MatElem{C}) where {C<:FieldElem}).
 """
-function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:FieldElem}
-  @req ncols(v) == dim(V) "Length of vector does not match dimension"
-  @req nrows(v) == 1 "Not a vector in module constructor"
-  return elem_type(V)(V, v)
+function (V::LieAlgebraModule{C})(mat::MatElem{C}) where {C<:FieldElem}
+  return LieAlgebraModuleElem(V, mat)
 end
 
 @doc raw"""
     (V::LieAlgebraModule{C})(v::SRow{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
+
+This is a shorthand for [`LieAlgebraModuleElem(V, v)`](@ref LieAlgebraModuleElem(::LieAlgebraModule{C}, ::SRow{C}) where {C<:FieldElem}).
 """
 function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:FieldElem}
-  mat = dense_row(v, dim(V))
-  return elem_type(V)(V, mat)
+  return LieAlgebraModuleElem(V, v)
 end
 
 @doc raw"""
