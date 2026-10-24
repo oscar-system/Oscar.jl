@@ -281,6 +281,8 @@ end
 
 Return the element of `V` with coefficient vector equivalent to
 the $1 \times \dim(V)$ matrix `mat`.
+
+`mat` is not copied and must not be modified afterwards.
 """
 function LieAlgebraModuleElem(V::LieAlgebraModule{C}, mat::MatElem{C}) where {C<:FieldElem}
   @req mat isa dense_matrix_type(C) "Invalid matrix type."
