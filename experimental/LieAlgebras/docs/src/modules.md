@@ -29,7 +29,7 @@ LieAlgebraModuleElem(::LieAlgebraModule{C}, ::SRow{C}) where {C<:FieldElem}
 
 `(V::LieAlgebraModule{C})()` returns the zero element of the Lie algebra module `V`.
 
-`(V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C})` returns `v` if `v` is an element of `L`. If `V` is the dual module of the parent of `v`, it returns the dual of `v`. In all other cases, it fails.
+`(V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C})` returns `v` if `v` is an element of `V`. If `V` is the dual module of the parent of `v`, it returns the dual of `v`. In all other cases, it fails.
 
 `(V::LieAlgebraModule{C})(v)` is a shorthand for `LieAlgebraModuleElem(V, v)`.
 `v` can be of type `Vector{C}`, `Vector{Int}`, or `SRow{C}`.
