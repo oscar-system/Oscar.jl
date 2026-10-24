@@ -967,11 +967,8 @@ function tensor_product(
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == length(Vs) "Length of vector does not match."
     @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
-    mat = zero_matrix(R, 1, dim_tensor_product_V)
-    for (i, inds) in enumerate(ind_map)
-      mat[1, i] += prod(as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds))
-    end
-    return LieAlgebraModuleElem(tensor_product_V, mat)
+    vec = C[prod(coeff(as[j], k) for (j, k) in enumerate(inds)) for inds in ind_map]
+    return LieAlgebraModuleElem(tensor_product_V, vec)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1252,18 +1249,18 @@ function symmetric_power(
     for a in as
       next = Dict{Vector{Int},elem_type(R)}()
       for (I, c) in coeffs, j in 1:dim(V)
-        is_zero_entry(a.mat, 1, j) && continue
+        is_zero_entry(_matrix(a), 1, j) && continue
         J = copy(I)
         insert!(J, searchsortedfirst(J, j), j)
-        next[J] = get(next, J, zero(R)) + c * a.mat[1, j]
+        next[J] = get(next, J, zero(R)) + c * coeff(a, j)
       end
       coeffs = next
     end
-    mat = zero_matrix(R, 1, dim_S)
+    vec = fill(zero(R), dim_S)
     for (I, c) in coeffs
-      mat[1, index_of[I]] = c
+      vec[index_of[I]] = c
     end
-    return LieAlgebraModuleElem(S, mat)
+    return LieAlgebraModuleElem(S, vec)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
@@ -1388,13 +1385,10 @@ function tensor_power(
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
-    mat = zero_matrix(R, 1, dim_T)
-    for (i, inds) in enumerate(ind_map)
-      mat[1, i] += prod(
-        as[j].mat[k]::elem_type(R) for (j, k) in enumerate(inds); init=one(R)
-      )
-    end
-    return LieAlgebraModuleElem(T, mat)
+    vec = C[
+      prod(coeff(as[j], k) for (j, k) in enumerate(inds); init=one(R)) for inds in ind_map
+    ]
+    return LieAlgebraModuleElem(T, vec)
   end
   function my_mult(as::LieAlgebraModuleElem{C}...)
     return my_mult(as)::LieAlgebraModuleElem{C}
