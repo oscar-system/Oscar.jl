@@ -68,3 +68,7 @@
 	@test q_binomial(6,3) == (1+q^2)*(1+q^3)*(1+q+q^2+q^3+q^4)
 
 end
+
+@testset "q_binomial with negative n and ZZRingElem k" begin
+  @test q_binomial(-1, ZZ(2), QQ(2)) == q_binomial(-1, 2, QQ(2))
+end
