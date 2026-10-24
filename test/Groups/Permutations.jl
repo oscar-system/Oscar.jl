@@ -489,4 +489,11 @@ end
 
   @test hash(c) == hash(one(g))
   @test hash(a) == hash(b) # same degree
+
+  # GAP stores `a` with 4 byte images and `b` with 2 byte images
+  g = symmetric_group(70001)
+  a = cperm(g, 1:2, 70000:70001) * cperm(g, 70000:70001)
+  b = g(cperm(1:2))
+  @test a == b
+  @test hash(a) == hash(b)
 end
