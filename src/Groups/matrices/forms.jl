@@ -521,14 +521,8 @@ end
 function Base.:*(f::QuadraticForm, l::FieldElem)
    @req l != 0 "Zero is not admitted"
    @req parent(l)==base_ring(f) "The scalar does not belong to the base ring of the form"
-   if !isdefined(f,:matrix)
-      return SesquilinearForm(l*f.pol, f.descr)
-   else
-      g = QuadraticForm(l*gram_matrix(f), f.descr)
-      if isdefined(f,:pol) g.pol=f.pol end
-#T really???
-      return g
-   end
+   isdefined(f,:matrix) || return QuadraticForm(l*f.pol)
+   return QuadraticForm(l*gram_matrix(f))
 end
 
 Base.:*(l::FieldElem, f::Union{SesquilinearForm, QuadraticForm}) = f*l

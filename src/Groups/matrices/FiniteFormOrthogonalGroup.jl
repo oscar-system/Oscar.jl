@@ -1615,7 +1615,7 @@ function _stabilizer_elementary_odd(
     rank_radicalH::Int,
     rank_radicalHinT::Int
   )    
-  return _stabilizers_elementary_odd(T, Tuple(rankH, det_is_square, rank_radicalH, rank_radicalHinT))[1]
+  return _stabilizers_elementary_odd(T, [(rankH, det_is_square, rank_radicalH, rank_radicalHinT)])[1]
 end
 
 """

@@ -506,6 +506,7 @@ end
    @test solvable_radical(S)[1]==S
    @test torsion_subgroup(S)[1]==S
    @test torsion_subgroup(F)==sub(F,[one(F)])
+   @test p_rump(S, ZZ(2))[1]==alternating_group(4)
    
    S = symmetric_group(5)
    @test solvable_radical(S)==sub(S,[one(S)])
