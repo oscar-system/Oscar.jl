@@ -531,36 +531,18 @@ end
 # (base_ring(I)); the elements returned are in polynomial_ring(RG).
 function inv_generators(RG::RedGroupInvarRing)
   I = _null_cone_ideal_xyz(RG)
-  _, M = proj_of_image_ideal(RG)
-  G = group(RG)
   ringg = polynomial_ring(RG)
-  reynolds_function = RG.reynolds_operator
   genss = gens(I)
   if length(genss) == 0
     return Vector{elem_type(ringg)}()
   end
 
-  #we need the representation matrix and determinant of group matrix to be in basering(I)
-  mixed_ring_xy = parent(genss[1])
-  R = base_ring(M)
-  n = ncols(M)
-  m = G.group[2]
-  xyz = gens(mixed_ring_xy)
-  mapp = hom(R, mixed_ring_xy, xyz)
-  new_rep_mat = matrix(mixed_ring_xy, n, n, [mapp(M[i, j]) for i in 1:n, j in 1:n])
-  det_ = det(natural_representation(G))
-  mapp_ = hom(parent(det_), mixed_ring_xy, xyz[((2 * n) + 1):end])
-  new_det = mapp_(det_)
-
-  #now we apply reynolds operator to genss
-  if group_type(G) === :SL #TODO other types of reductive groups
-    new_gens_wrong_ring = [reynolds_function(g, new_rep_mat, new_det, m) for g in genss]
-  else
-    return nothing
-  end
+  new_gens_wrong_ring = [_reynolds_operator_xyz(representation(RG), g) for g in genss]
 
   #map them to the required ring, ringg.
-  img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, length(xyz) - n))
+  mixed_ring_xy = base_ring(I)
+  n = ngens(ringg)
+  img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, ngens(mixed_ring_xy) - n))
   mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
   new_gens = Vector{elem_type(ringg)}()
   for elemm in new_gens_wrong_ring
@@ -580,6 +562,21 @@ _remove_content(f::MPolyRingElem) = f
 function _remove_content(f::MPolyRingElem{QQFieldElem})
   c = reduce(gcd, coefficients(f); init=zero(QQ))
   return is_zero(c) ? f : inv(c) * f
+end
+
+# Apply the Reynolds operator of group(r) to f in a graded ring K[x, y, z] as in
+# image_ideal, whose last variables z are the coordinates of the group.
+function _reynolds_operator_xyz(
+  r::RepresentationLinearlyReductiveGroup, f::MPolyDecRingElem
+)
+  G = group(r)
+  @req _has_reynolds_operator(G) "no Reynolds operator is known for this group"
+  S = parent(f)
+  M = representation_matrix(r)
+  ztoz = hom(base_ring(M), S, gens(S)[(2 * degree(r) + 1):end])
+  new_det = ztoz(det(natural_representation(G)))
+  # SLm is the only group with a known Reynolds operator
+  return reynolds_v_slm(f, map_entries(ztoz, M), new_det, group_dim(G))
 end
 
 # The Reynolds operator for SLm acting via new_rep_mat.
@@ -659,11 +656,7 @@ function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyR
   )
   map1 = hom(vector_ring, R, gens(R)[1:n])
   new_elem = map1(elem)
-  group_ring = base_ring(X.rep_mat)
-  map2 = hom(group_ring, R, gens(R)[(2 * n + 1):(2 * n + m^2)])
-  new_rep_mat = map_entries(map2, X.rep_mat)
-  new_det = map2(det(natural_representation(G)))
-  f = X.reynolds_v(new_elem, new_rep_mat, new_det, m)
+  f = _reynolds_operator_xyz(X, new_elem)
   reverse_map = hom(R, vector_ring, vcat(gens(vector_ring), [0 for i in 1:(n + m^2)]))
   return reverse_map(f)
 end
