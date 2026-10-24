@@ -1021,7 +1021,7 @@ julia> coefficients(r * x)
     push!(imgs, g)
   end
 
-  G = matrix_group(imgs)
+  G = matrix_group(ZZ, n, imgs)
 
   iso = function (w::WeylGroupElem)
     map_word(w, gens(G); init=one(G))
@@ -1077,7 +1077,7 @@ julia> coefficients(w * x)
     push!(imgs, g)
   end
 
-  G = matrix_group(imgs)
+  G = matrix_group(ZZ, n, imgs)
 
   iso = function (w::WeylGroupElem)
     map_word(w, gens(G); init=one(G))
