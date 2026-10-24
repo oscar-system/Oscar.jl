@@ -468,13 +468,10 @@ function fundamental_invariants(z::RedGroupInvarRing, algorithm::Symbol=:default
     @req algorithm in (:reynolds, :linear_algebra) "unsupported algorithm :$algorithm"
     @req algorithm === :linear_algebra || _has_reynolds_operator(group(z)) "no Reynolds operator is known for this group"
 
-    b, M = proj_of_image_ideal(z)
     if algorithm === :reynolds
-      z.fundamental = inv_generators(
-        _null_cone_ideal_xyz(z), group(z), polynomial_ring(z), M, z.reynolds_operator
-      )
+      z.fundamental = inv_generators(z)
     else
-      z.fundamental = inv_gens_no_reynolds(_null_cone_ideal_xyz(z), b, polynomial_ring(z))
+      z.fundamental = inv_gens_no_reynolds(z)
     end
   end
   return copy(z.fundamental)
@@ -529,16 +526,15 @@ function proj_of_image_ideal(r::RepresentationLinearlyReductiveGroup)
   return eliminate(I, gens(base_ring(I))[(2 * n + 1):end]), M
 end
 
-# Computing the invariant generators of the null cone by applying reynolds
-# operator to gens(I). This is done in K[X,Y] (basering(I)).
-# The elements returned will be in the polynomial K[X] (ringg).
-function inv_generators(
-  I::MPolyIdeal,
-  G::LinearlyReductiveGroup,
-  ringg::MPolyRing,
-  M::MatElem,
-  reynolds_function::Function,
-)
+# Compute generators of the invariant ring RG by applying the Reynolds operator
+# to the generators of the null cone ideal I. This is done in K[x, y, zz]
+# (base_ring(I)); the elements returned are in polynomial_ring(RG).
+function inv_generators(RG::RedGroupInvarRing)
+  I = _null_cone_ideal_xyz(RG)
+  _, M = proj_of_image_ideal(RG)
+  G = group(RG)
+  ringg = polynomial_ring(RG)
+  reynolds_function = RG.reynolds_operator
   genss = gens(I)
   if length(genss) == 0
     return Vector{elem_type(ringg)}()
@@ -741,11 +737,13 @@ function affine_algebra(R::RedGroupInvarRing)
 end
 
 # Algorithm 4.5.1 in [DK15]
-# Compute generators of the invariant ring without a Reynolds operator: the
-# invariants of the degrees of the generators of the null cone ideal I generate
-# the invariant ring. Here b is the ideal returned by proj_of_image_ideal and
-# ringg is the ring in which we must return the invariants.
-function inv_gens_no_reynolds(I::MPolyIdeal, b::MPolyIdeal, ringg::MPolyRing)
+# Compute generators of the invariant ring RG without a Reynolds operator: the
+# invariants of the degrees of the generators of the null cone ideal generate
+# the invariant ring.
+function inv_gens_no_reynolds(RG::RedGroupInvarRing)
+  I = _null_cone_ideal_xyz(RG)
+  b, _ = proj_of_image_ideal(RG)
+  ringg = polynomial_ring(RG)
   n = ngens(ringg)
   mixed_ring_xy = base_ring(b)
   phi = hom(
