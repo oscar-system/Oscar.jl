@@ -496,4 +496,10 @@ end
   b = g(cperm(1:2))
   @test a == b
   @test hash(a) == hash(b)
+
+  # images that do not fit into 2 bytes
+  a = cperm(g, 1:2, 70000:70001)
+  b = cperm(g, 70000:70001) * cperm(g, 1:2)
+  @test a == b
+  @test hash(a) == hash(b)
 end
