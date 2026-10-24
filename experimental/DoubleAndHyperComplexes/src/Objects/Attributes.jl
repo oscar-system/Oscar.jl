@@ -423,7 +423,7 @@ function can_compute_map(c::HyperComplexView, p::Int, I::Tuple)
 end
 
 function has_map(c::HyperComplexView, p::Int, I::Tuple)
-  can_compute_map(c, I) || error("index out of bounds")
+  can_compute_map(c, p, I) || error("index out of bounds")
   i = collect(I)
   j = mapping_matrix(c)*i + offset_vector(c)
   q = findfirst(k->!iszero(mapping_matrix(c)[k, p]), 1:dim(original_complex(c)))
