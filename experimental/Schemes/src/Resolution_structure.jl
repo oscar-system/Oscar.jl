@@ -552,7 +552,9 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   
   ## trivial case: X is already smooth
   if is_one(I_sl)
-    return_value = initialize_blow_up_sequence(identity_blow_up(X))
+    id_X = identity_blow_up(X)
+    maps = [id_X]
+    return_value = BlowUpSequence(maps)
     return_value.resolves_sing = true
     return_value.is_trivial = true
     return_value.is_strong = true

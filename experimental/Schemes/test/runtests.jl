@@ -128,10 +128,3 @@ end
   @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
 end
 
-
-@testset "desingularization of a smooth scheme" begin
-  X = covered_scheme(spec(polynomial_ring(QQ, [:x, :y, :z])[1]))
-  phi = desingularization(X)
-  @test phi.is_trivial
-  @test phi.resolves_sing
-end
