@@ -1377,6 +1377,10 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   return S
 end
 
+function short_right_transversal(G::GAPGroup, H::GAPGroup, s::GAPGroupElem)
+  return elem_type(G)[t for t in right_transversal(G, H) if s in H^t]
+end
+
 # END subgroups conjugation
 
 
@@ -1511,7 +1515,7 @@ true
 """
 function p_rump(G::GAPGroup, p::IntegerUnion)
   @req is_prime(p) "p is not a prime"
-  H = GAPWrap.PRump(GapObj(G), p)
+  H = GAPWrap.PRump(GapObj(G), Int(p))
   return _as_subgroup(G, H)
 end
 
@@ -2133,7 +2137,7 @@ function relators(G::PcGroup)
     @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
     return relators(FPGroup(GAPWrap.Image(f)))
   else
-    return _relators_by_generators(FPGroup(GAPWrap.Image(f)))
+    return _relators_by_generators(G)
   end
 end
 

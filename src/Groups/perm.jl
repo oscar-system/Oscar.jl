@@ -1136,7 +1136,7 @@ Permutation group of degree 5
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
-  return sub(_symmetric_group_cached(n), perms)[1]
+  return sub(_symmetric_group_cached(Int(n)), perms)[1]
 end
 
 @doc raw"""

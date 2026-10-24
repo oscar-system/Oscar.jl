@@ -4059,7 +4059,7 @@ number_of_rows(rattbl::GAPGroupCharacterTableRational) = length(_irr(rattbl))
 
 number_of_columns(rattbl::GAPGroupCharacterTableRational) = number_of_columns(character_table(rattbl))
 
-number_of_conjugacy_classes(tbl::GAPGroupCharacterTableRational) = number_of_conjugacy_classes(character_table(rattbl))
+number_of_conjugacy_classes(rattbl::GAPGroupCharacterTableRational) = number_of_conjugacy_classes(character_table(rattbl))
 
 Base.getindex(tbl::GAPGroupCharacterTableRational, i::Int) = _irr(tbl)[i]
 

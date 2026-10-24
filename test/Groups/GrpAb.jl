@@ -10,6 +10,10 @@
   g = Oscar.restrict_codomain(f)
   @test is_surjective(g)
   @test order(codomain(g)) == 2
+
+  G = abelian_group([2, 3])
+  C = conjugacy_class(G, G[1])
+  @test hash(C) == hash(conjugacy_class(G, G[1]))
 end
 
 @testset "describe for FinGenAbGroup" begin
