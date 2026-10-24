@@ -1,7 +1,7 @@
 #function is_coxeter_matrix(M::ZZMatrix) end
 
 function coxeter_matrix(W::WeylGroup)
-  return cartan_to_coxeter_matrix(cartan_matrix(W))
+  return coxeter_from_cartan_matrix(cartan_matrix(W))
 end
 
 @doc raw"""
