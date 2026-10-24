@@ -148,10 +148,10 @@ cone `tau` in the Orbit-cone-correspondence; see Cox-Little-Schenck,
 Theorem 3.2.6.
 """
 function ideal_sheaf(X::NormalToricVarietyType, tau::Cone)
-  @assert tau in fan(X) "cone must be in the fan of the variety"
+  @assert tau in polyhedral_fan(X) "cone must be in the fan of the variety"
   A = _to_matrix(rays(tau))
   A = matrix(ZZ, rays(tau))
-  (r, K) = kernel(A)
+  K = kernel(A; side=:right)
   w = _colum_vectors_to_rays(K)
   w = vcat(w, -w)
   # TODO: Can we use a direct command instead of this hack?
