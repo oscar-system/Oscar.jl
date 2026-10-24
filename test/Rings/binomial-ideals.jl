@@ -66,6 +66,13 @@
     RQQAb = base_ring(ap[1])
     @test ap[1] == ideal(RQQAb, [RQQAb[3]])
 
+    R, (x, y) = polynomial_ring(QQ, [:x, :y])
+    P = Oscar.partial_character_from_ideal(ideal(R, [x, y]), R)
+    @test is_zero(P.A)
+    @test is_one(only(P.b))
+    ap = cellular_associated_primes(ideal(R, [zero(R)]))
+    @test length(ap) == 1
+    @test is_zero(only(ap))
   end
 
   @testset "Binomial primary decomposition" begin

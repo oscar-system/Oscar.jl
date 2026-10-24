@@ -240,7 +240,7 @@ function quo(
   )
   R = base_ring(L)
   S = inverted_set(L)
-  base_ring(I) = localized_ring(L) || error("ideal does not belong to the correct ring")
+  base_ring(I) === localized_ring(L) || error("ideal does not belong to the correct ring")
   J = pre_saturated_ideal(I)
   W = MPolyQuoLocRing(R, J, S, quo(R, J)[1], localized_ring(L))
   return W, hom(L, W, gens(W), check=false)
