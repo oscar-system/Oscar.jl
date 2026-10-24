@@ -146,6 +146,22 @@ end
   @test degree(base_ring(S)) == 2
 end
 
+# a `MultGrp` has no generating set, so `is_consistent` must not ask for one
+@testset "Experimental.gmodule MultGrp" begin
+  K, a = cyclotomic_field(5)
+  M = Oscar.GrpCoh.MultGrp(K)
+  @test !is_finitely_generated(M)
+  @test !has_gens(M)
+  @test_throws AbstractAlgebra.NotImplementedError gens(M)
+
+  G, mG = automorphism_group(PermGroup, K)
+  D = gmodule(G, [hom(M, M, mG(g)) for g in gens(G)])
+  @test Oscar.GrpCoh.is_consistent(D)
+
+  MI = Oscar.GrpCoh.MultGrp(Hecke.FracIdealSet(maximal_order(K)))
+  @test Oscar.GrpCoh.is_consistent(gmodule(G, [hom(MI, MI, mG(g)) for g in gens(G)]))
+end
+
 @testset "Experimental.gmodule GModule" begin
   k = quadratic_field(10)[1]
   h = hilbert_class_field(k) 
@@ -190,6 +206,28 @@ end
   M, _ = sub(X, [X[1]^2])
   C, c = extension_with_abelian_kernel(X, M)
   @test is_isomorphic(extension(FPGroup, c)[1], X)
+end
+
+@testset "Experimental.gmodule H^1 with assertions" begin
+  M = gmodule(hilbert_class_field(quadratic_field(10)[1]))
+  l = get_assertion_level(:GroupCohomology)
+  set_assertion_level(:GroupCohomology, 1)
+  try
+    @test order(cohomology_group(M, 1)[1]) == 2
+  finally
+    set_assertion_level(:GroupCohomology, l)
+  end
+end
+
+@testset "Experimental.gmodule induced action" begin
+  G = symmetric_group(3)
+  U, mU = sub(G, [cperm(G, [1, 2])])
+  A = abelian_group([0])
+  iC, _ = Oscar.GrpCoh.induce(trivial_gmodule(U, A), mU,
+                              trivial_gmodule(G, A), hom(A, A, [A[1]]))
+  @test all(i -> action(iC, gen(G, i), gens(iC.M)) == map(action(iC)[i], gens(iC.M)),
+            1:ngens(G))
+  @test is_zero(action(iC, gen(G, 1), zero(iC.M)))
 end
 
 @testset "Experimental Schur" begin
