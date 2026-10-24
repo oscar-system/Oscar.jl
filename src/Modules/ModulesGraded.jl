@@ -2522,7 +2522,7 @@ function minimal_betti_table(M::SubquoModule{T}; check::Bool=true) where {T<:MPo
 end
 
 function minimal_betti_table(F::FreeMod{T}; check::Bool=true) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(M); check)
+  return minimal_betti_table(free_resolution(F); check)
 end
 
 function minimal_betti_table(A::MPolyQuoRing{T}; check::Bool=true) where {T<:MPolyDecRingElem}
@@ -3162,7 +3162,7 @@ function change_base_ring(
   domain(f) === base_ring(F) || error("ring map not compatible with the module")
   S = codomain(f)
   r = ngens(F)
-  FS = grade(FreeMod(S, F.S), degree.(gens(F)))
+  FS = grade(FreeMod{elem_type(S)}(r, S, F.S), degree.(gens(F)))
   map = hom(F, FS, gens(FS), f; check=false)
   return FS, map
 end

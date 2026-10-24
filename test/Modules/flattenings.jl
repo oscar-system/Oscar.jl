@@ -42,3 +42,14 @@ end
   @test compose(a, b) == id_hom(domain(a))
   @test compose(b, a) == id_hom(domain(b))
 end
+
+@testset "flattening of a graded free module" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  S, (y,) = polynomial_ring(R, [:y])
+  Sg, _ = grade(S)
+  F = graded_free_module(Sg, 2)
+  FS, phi = change_base_ring(Oscar.RingFlattening(Sg), F)
+  @test ngens(FS) == 2
+  @test is_graded(FS)
+  @test phi(F[1]) == FS[1]
+end
