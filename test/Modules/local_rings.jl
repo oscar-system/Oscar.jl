@@ -20,6 +20,11 @@
   N, _ = quo(F, (ideal(L, [x,y,z])*F)[1])
   @test length(N) == 0
 
+  M1, _ = quo(F, [f*F[1]])
+  res = free_resolution(M1; length=PosInf())
+  @test rank(res[1]) == 1
+  @test rank(res[2]) == 0
+
   @test_throws ErrorException length(F)
 
   A, _ = quo(R, ideal(R, [x^2, y, z]))
