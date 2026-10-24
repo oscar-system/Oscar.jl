@@ -142,3 +142,12 @@ end
   @test_throws ErrorException Oscar.GaloisGrp.extension_field(f)
   @test degree(Oscar.GaloisGrp.extension_field(f; check = false)[1]) == 2
 end
+
+@testset "fixed_field does not depend on the global RNG" begin
+  # the Tschirnhausen transformation must come from fixed_field's own RNG only
+  Qx, x = QQ[:x]
+  G, C = galois_group(x^6 - 2)
+  H = sylow_subgroup(G, 3)[1]
+  pols = [collect(coefficients(defining_polynomial(fixed_field(C, H)))) for i in 1:5]
+  @test allequal(pols)
+end
