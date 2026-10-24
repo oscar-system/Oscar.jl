@@ -8,7 +8,7 @@ EllipticSurface
 ## Constructors
 ```@docs
 elliptic_surface
-kodaira_neron_model(E::EllipticCurve)
+kodaira_neron_model(E::EllipticCurve, euler_characteristic::Int)
 ```
 
 ## Attributes
