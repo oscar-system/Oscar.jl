@@ -254,29 +254,43 @@ function lie_algebra(
 end
 
 function lie_algebra(
-  basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
+  elems::Vector{AbstractLieAlgebraElem{C}}; is_basis::Bool=false, check::Bool=true
 ) where {C<:FieldElem}
-  @req !isempty(basis) "Basis must not be empty, or provide the Lie algebra as first argument"
-  return lie_algebra(parent(basis[1]), basis; check)
+  @req !isempty(elems) "List of elements must not be empty, or provide the Lie algebra as first argument"
+  return lie_algebra(parent(elems[1]), elems; is_basis, check)
 end
 
 function lie_algebra(
-  L::AbstractLieAlgebra{C}, basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
+  L::AbstractLieAlgebra{C},
+  elems::Vector{AbstractLieAlgebraElem{C}};
+  is_basis::Bool=false,
+  check::Bool=true,
 ) where {C<:FieldElem}
-  @req all(parent(x) === L for x in basis) "Elements not compatible."
+  @req all(parent(x) === L for x in elems) "Elements not compatible."
   R = coefficient_ring(L)
-  basis_matrix = if length(basis) == 0
+  if is_basis
+    basis_elems = elems
+  else
+    basis_elems = basis(sub(L, elems))
+    check = false # structure constants of a subalgebra are valid by construction
+  end
+  basis_matrix = if length(basis_elems) == 0
     matrix(R, 0, dim(L), C[])
   else
-    matrix(R, [coefficients(b) for b in basis])
+    matrix(R, [coefficients(b) for b in basis_elems])
   end
-  struct_consts = Matrix{sparse_row_type(R)}(undef, length(basis), length(basis))
-  for (i, bi) in enumerate(basis), (j, bj) in enumerate(basis)
+  if check
+    @req rank(basis_matrix) == length(basis_elems) "Basis is not linearly independent."
+  end
+  struct_consts = Matrix{sparse_row_type(R)}(
+    undef, length(basis_elems), length(basis_elems)
+  )
+  for (i, bi) in enumerate(basis_elems), (j, bj) in enumerate(basis_elems)
     fl, row = can_solve_with_solution(basis_matrix, _matrix(bi * bj); side=:left)
     @req fl "Not closed under the bracket."
     struct_consts[i, j] = sparse_row(row)
   end
-  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis_elems)
   return lie_algebra(R, struct_consts, s; check)
 end
 

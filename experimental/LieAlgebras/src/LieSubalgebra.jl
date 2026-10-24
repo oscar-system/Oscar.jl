@@ -301,7 +301,7 @@ where `L` is the Lie algebra where `S` lives in.
 """
 function lie_algebra(S::LieSubalgebra)
   L = base_lie_algebra(S)
-  LS = lie_algebra(L, basis(S))
+  LS = lie_algebra(L, basis(S); is_basis=true, check=false)
   emb = hom(LS, L, basis(S); check=false)
   return LS, emb
 end
