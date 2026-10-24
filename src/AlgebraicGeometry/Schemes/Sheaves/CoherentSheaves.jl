@@ -428,7 +428,8 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobian_matrix(base_ring(modulus(R)), gens(modulus(R))))))
+  Q = underlying_quotient(R)
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobian_matrix(base_ring(Q), gens(modulus(Q))))))
   M, _ = quo(F, rels)
   return M
 end
@@ -628,7 +629,7 @@ function Base.show(io::IO, M::DirectSumSheaf)
   else
     s = summands(M)
     if is_unicode_allowed() && length(s) > 0
-      for i in 1:length(M) - 1
+      for i in 1:length(s) - 1
         print(io, "$(s[i]) ⊕ ")
       end
       print(io, "$(s[end])")

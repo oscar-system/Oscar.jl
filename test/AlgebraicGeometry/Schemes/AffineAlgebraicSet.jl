@@ -12,6 +12,7 @@
   C1 = geometric_irreducible_components(X1)
   @test length(C1) == 1
   @test C1[1][3]==2
+  @test isempty(geometric_irreducible_components(algebraic_set(ideal(P, [x, x+1]))))
   # rational points
   I = ideal(P, [x^2-1,y-3])
   X = algebraic_set(I)

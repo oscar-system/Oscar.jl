@@ -1121,7 +1121,7 @@ function associated_points(I::AbsIdealSheaf)
         associated_primes_temp[component_index][U] = comp
       else                                                ## more than one match, form union
         target_comp = pop!(matches)
-        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
+        merge!(associated_primes_temp[target_comp], (associated_primes_temp[x] for x in matches)...)
         deleteat!(associated_primes_temp,matches)
         associated_primes_temp[target_comp][U] = comp
       end

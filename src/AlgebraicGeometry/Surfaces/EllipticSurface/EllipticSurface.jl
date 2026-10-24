@@ -53,11 +53,11 @@ function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
 end
 
 @doc raw"""
-    kodaira_neron_model(E::EllipticCurve) -> EllipticSurface
-    
-Return the Kodaira-Neron model of the elliptic curve `E`.
+    kodaira_neron_model(E::EllipticCurve, euler_characteristic::Int) -> EllipticSurface
+
+Return the Kodaira-Neron model of the elliptic curve `E`; see `elliptic_surface`.
 """
-kodaira_neron_model(E::EllipticCurve) = elliptic_surface(E)
+kodaira_neron_model(E::EllipticCurve, euler_characteristic::Int) = elliptic_surface(E, euler_characteristic)
 
 @doc raw"""
     elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
@@ -1129,7 +1129,7 @@ function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
     end
     r = k.(roots(p))
     if length(r) == 0
-      error("not all reducible fibers are visible over $(base_ring(S))")
+      error("not all reducible fibers are visible over $(base_ring(X))")
     end
     @assert length(r) ==1
     rt = r[1]
@@ -1315,7 +1315,9 @@ function fiber_components(X::EllipticSurface, P; algorithm=:exceptional_divisors
     U = default_covering(W)[4]
     (x,y,s) = coordinates(U)
     F = PrimeIdealSheafFromChart(W, U, ideal(s - P[2]))
-  end 
+  else
+    error("point must be normalized")
+  end
   FF = ideal_sheaf(Fcart)
   EE = exceptional_divisors(S)
   EP = filter(E->issubset(FF, E), EE)

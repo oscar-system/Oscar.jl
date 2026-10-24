@@ -194,7 +194,7 @@ geometric_irreducible_components(X::AbsAffineAlgebraicSet{<:Field, <:MPolyRing})
 function geometric_irreducible_components(X::AbsAffineAlgebraicSet{QQField, T} where {T<:MPolyQuoRing})
   I = vanishing_ideal(X)
   if is_one(I) # catch the empty set ... not typestable anyways
-    return AffineAlgebraicSet{QQField, T}[]
+    return AffineAlgebraicSet[]
   end
   Pabs = absolute_primary_decomposition(I)
   return [(algebraic_set(p[2], is_radical=true, check=false), variety(p[3], check=false),p[4]) for p in Pabs]
