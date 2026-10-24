@@ -544,5 +544,5 @@ function Base.hash(T::TorQuadModuleWithIsom, u::UInt)
 end
 
 function Base.:(^)(T::TorQuadModuleWithIsom, n::IntegerUnion)
-  return torsion_quadratic_module_with_isometry(torsion_quadratic_module(T), isometry(T)^n)
+  return torsion_quadratic_module_with_isometry(torsion_quadratic_module(T), isometry(T)^Int(n))
 end

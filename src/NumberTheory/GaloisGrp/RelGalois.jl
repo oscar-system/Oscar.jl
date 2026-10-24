@@ -299,7 +299,7 @@ function galois_group(f::PolyRingElem{AbsSimpleNumFieldElem}, ::QQField)
     @vtime :PolyFactor 2 N = Hecke.Globals.Qx(norm(g))
   else
     @vtime :PolyFactor 2 N = Hecke.norm_mod(g, Zx)
-    @hassert :PolyFactor 1 N == Zx(norm(g))
+    @hassert :PolyFactor 1 N == change_base_ring(ZZ, norm(g); parent = Zx)
   end
 
   while is_constant(N) || !is_squarefree(N)

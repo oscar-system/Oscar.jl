@@ -10,6 +10,9 @@
   Or = Oscar.embedding_in_unimodular_manyroots(NS, 1, 25, primitive=true, even=true)
   OR = Or[4]
   @test rank(root_sublattice(OR)) == 16
+
+  A2 = root_lattice(:A, 2)
+  @test_throws ArgumentError Oscar.embedding_in_unimodular_manyroots(A2, 10, 2; even=false)
 end
 
 
