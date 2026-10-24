@@ -111,6 +111,11 @@
   k = integer_lattice(; gram=QQ[4;])
   I = direct_sum(hyperbolic_plane_lattice(), k)[1]
   @test primitive_embeddings(I, k; classification=:none)[1]
+
+  A1 = root_lattice(:A, 1)
+  ok, reps = primitive_extensions(A2, [A1])
+  @test ok
+  @test length(reps) == length(primitive_extensions(A2, A1)[2])
 end
 
 @testset "Equivariant primitive extensions" begin
@@ -130,6 +135,16 @@ end
   ok, reps = equivariant_primitive_extensions(A2, Fs2; even=false)
   @test ok
   @test length(reps) == 9
+
+  ok, reps = equivariant_primitive_extensions(Fs2, A2; even=false, compute_bar_Gf=true)
+  @test ok
+  @test length(reps) == 9
+
+  Lf = integer_lattice_with_isometry(A2)
+  Mf = integer_lattice_with_isometry(rescale(A2, -1))
+  ok, reps = equivariant_primitive_extensions(Lf, Mf; right_action=isometry_group(A2))
+  @test ok
+  @test length(reps) == length(equivariant_primitive_extensions(Lf, Mf)[2])
 
   # Fix (:equivariant, :plain) case for isometries acting nontrivially
   # on discriminant group

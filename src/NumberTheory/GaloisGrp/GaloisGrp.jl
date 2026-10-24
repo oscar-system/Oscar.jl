@@ -556,7 +556,7 @@ mutable struct SymbolicRootCtx
   end
   function SymbolicRootCtx(f::ZZPolyRingElem, field::AbsSimpleNumField)
     @assert is_monic(f)
-    rt = roots(f, field)
+    rt = roots(field, f)
     return new(f, rt)
   end
 
@@ -1170,8 +1170,8 @@ function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
   end
 end
 
-Hecke.minpoly(R::ZZPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
-Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
+Hecke.minpoly(R::ZZPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra)(gen(R))
+Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra)(gen(R))
 
 struct GroupFilter
   f::Vector{Tuple{Function, String}}
