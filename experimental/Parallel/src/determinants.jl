@@ -83,6 +83,7 @@ end
 # A naive bound for the absolute value of the coefficients of `det(A)` for a matrix
 # over the ring of univariate polynomials
 function _det_height_bound(::Type{Val{:Naive}}, A::MatElem{ZZPolyRingElem})
+  m = nrows(A)
   row_degs = [maximum([degree(a) for a in A[i, :]]; init=0) for i in 1:m]
   max_deg = ZZ(sum(row_degs; init=0))
   # This first bound is for the size of the determinant over ZZ

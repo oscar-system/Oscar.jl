@@ -73,3 +73,9 @@ end
 end
 
   
+
+@testset "determinant with naive height bound" begin
+  Zx, x = polynomial_ring(ZZ, :x)
+  A = matrix(Zx, [x 1; 2 x+1])
+  @test Oscar.det_modular_coeff_rec(A; bound=:Naive) == det(A)
+end
