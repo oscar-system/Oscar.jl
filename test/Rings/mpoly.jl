@@ -131,6 +131,61 @@ end
   @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
 end
 
+# Torus saturation
+@testset "Torus saturation" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  coordinate_product = ideal(R, [x*y*z])
+  maximal_ideal = ideal(R, [x, y, z])
+  algorithms = (:saturation, :bayer, :satstd)
+
+  I = ideal(R, [x^2 - x*y, x*z - y^2])
+  expected = ideal(R, [x - z, y - z])
+  for algorithm in algorithms
+    @test torus_saturation(I; algorithm) == expected
+  end
+  @test torus_saturation(I) == torus_saturation(I; algorithm = :satstd)
+
+  I = ideal(R, [x*y])
+  @test saturation(I, maximal_ideal) == I
+  for algorithm in algorithms
+    @test is_one(torus_saturation(I; algorithm))
+  end
+
+  I = ideal(R, [x*y - 1, x*z])
+  expected = saturation(I, coordinate_product)
+  @test torus_saturation(I; algorithm = :saturation) == expected
+  @test_throws ArgumentError torus_saturation(I)
+  @test_throws ArgumentError torus_saturation(I; algorithm = :bayer)
+  @test_throws ArgumentError torus_saturation(I; algorithm = :satstd)
+  @test_throws ArgumentError torus_saturation(I; algorithm = :unknown)
+
+  zero_ideal = ideal(R, [zero(R)])
+  unit_ideal = ideal(R, [one(R)])
+  for algorithm in algorithms
+    @test torus_saturation(zero_ideal; algorithm) == zero_ideal
+    @test torus_saturation(unit_ideal; algorithm) == unit_ideal
+  end
+
+  S, (a, b, c) = polynomial_ring(GF(7), [:a, :b, :c])
+  K = ideal(S, [a^2 - a*b, a*c - b^2])
+  @test torus_saturation(K) == ideal(S, [a - c, b - c])
+
+  T, (u, v) = polynomial_ring(ZZ, [:u, :v])
+  L = ideal(T, [2*u])
+  @test torus_saturation(L) == ideal(T, [T(2)])
+
+  Z4, _ = residue_ring(ZZ, 4)
+  U, (s, t) = polynomial_ring(Z4, [:s, :t])
+  M = ideal(U, [2*s])
+  @test torus_saturation(M) == ideal(U, [U(2)])
+
+  V, _ = polynomial_ring(QQ, Symbol[])
+  for algorithm in algorithms
+    @test torus_saturation(ideal(V, [zero(V)]); algorithm) == ideal(V, [zero(V)])
+    @test torus_saturation(ideal(V, [one(V)]); algorithm) == ideal(V, [one(V)])
+  end
+end
+
 @testset "Primary decomposition" begin
 
   # primary_decomposition
@@ -756,4 +811,3 @@ end
   @test_throws ArgumentError radical_membership(d, I)
   @test_throws ArgumentError radical_membership(d, J)
 end
-
