@@ -120,9 +120,13 @@ linearly_reductive_group(I::MPolyIdeal) = LinearlyReductiveGroup(I)
 
 base_ring(G::LinearlyReductiveGroup) = G.field
 defining_ideal(G::LinearlyReductiveGroup) = G.defining_ideal
-natural_representation(G::LinearlyReductiveGroup) = G.natural_representation
 group_type(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[1] : nothing
 group_dim(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[2] : nothing
+
+function natural_representation(G::LinearlyReductiveGroup)
+  @req isdefined(G, :natural_representation) "no natural representation is known for a group given by its defining ideal"
+  return G.natural_representation
+end
 
 # Whether we know a Reynolds operator for G. This is the case for SLm (Cayley's
 # Omega process), but not for a group given only by its defining ideal.

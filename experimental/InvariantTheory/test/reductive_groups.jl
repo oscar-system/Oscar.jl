@@ -186,6 +186,7 @@
   G = linearly_reductive_group(ideal([f]))
   @test_throws ArgumentError representation_on_forms(G, 2)
   @test_throws ArgumentError representation_reductive_group(G)
+  @test_throws ArgumentError Oscar.natural_representation(G)
   R = representation_reductive_group(G, M)
   RG = invariant_ring(R)
   F = fundamental_invariants(RG)
