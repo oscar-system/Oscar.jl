@@ -313,10 +313,17 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(V))
-        v1 = @inferred V(coeffs)
-        v2 = @inferred V(coefficient_ring(V).(coeffs))
-        v3 = @inferred V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
-        v4 = @inferred V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
+        v1 = @inferred LieAlgebraModuleElem(V, coeffs)
+        @test v1 == @inferred V(coeffs)
+        v2 = @inferred LieAlgebraModuleElem(V, coefficient_ring(V).(coeffs))
+        @test v2 == @inferred V(coefficient_ring(V).(coeffs))
+        v3 = @inferred LieAlgebraModuleElem(
+          V, matrix(coefficient_ring(V), 1, dim(V), coeffs)
+        )
+        v4 = @inferred LieAlgebraModuleElem(
+          V, sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs))
+        )
+        @test v4 == @inferred V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
         v5 = @inferred V(v1)
         @test v1 == v2
         @test v1 == v3
