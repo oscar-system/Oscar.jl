@@ -208,7 +208,7 @@ function bracket(
   L::LieAlgebra{C}, S::LieSubalgebra{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req L === base_lie_algebra(S) "Incompatible Lie algebras."
-  return sub(sub(L), S)
+  return bracket(sub(L), S)
 end
 
 ###############################################################################
