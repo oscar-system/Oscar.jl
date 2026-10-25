@@ -346,7 +346,14 @@ end
 
 struct LieAlgebraModuleElem{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: AbstractAlgebra.SetElem
   parent::LieAlgebraModule{C,LieT}
-  mat::MatElem{C}
+  mat::MatElem{C} # 1 x dim(parent) coefficient vector w.r.t. basis(parent)
+
+  # no sanity checks, `LieAlgebraModuleElem(V, mat)` does them
+  function LieAlgebraModuleElem{C,LieT}(
+    V::LieAlgebraModule{C,LieT}, mat::MatElem{C}
+  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
+    return new{C,LieT}(V, mat)
+  end
 end
 
 ###############################################################################
