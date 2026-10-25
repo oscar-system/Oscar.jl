@@ -270,12 +270,12 @@
     @test all(f -> subalgebra_membership_homogeneous(f, FF)[1], F)
   end
   @test length(fundamental_invariants(invariant_ring(r4))) == 2
+  @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
 
   #binary quartics: the invariants of degrees 2 and 3 are algebraically independent
   p, q = hilbert_series(invariant_ring(r4))
   t = gen(parent(p))
   @test p * (1 - t^2) * (1 - t^3) == evaluate(q)
-  @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
 end
 
 @testset "Supertype of invariant rings" begin
