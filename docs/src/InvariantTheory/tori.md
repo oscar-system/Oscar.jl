@@ -71,8 +71,8 @@ fundamental_invariants(RT::TorGroupInvarRing)
 
 ## Invariant Rings as Affine Algebras
 
-```@docs
-affine_algebra(RT::TorGroupInvarRing)
+```@docs; canonical=false
+affine_algebra(RG::RedOrTorGroupInvarRing)
 ```
 
 ## The Hilbert Series

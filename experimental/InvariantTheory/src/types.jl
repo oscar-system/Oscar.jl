@@ -149,3 +149,6 @@ end
     return z
   end
 end
+
+# The two types have the same fields; methods on this Union read them
+const RedOrTorGroupInvarRing = Union{RedGroupInvarRing,TorGroupInvarRing}
