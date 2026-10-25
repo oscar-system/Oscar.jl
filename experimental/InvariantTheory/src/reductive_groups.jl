@@ -120,9 +120,13 @@ linearly_reductive_group(I::MPolyIdeal) = LinearlyReductiveGroup(I)
 
 base_ring(G::LinearlyReductiveGroup) = G.field
 defining_ideal(G::LinearlyReductiveGroup) = G.defining_ideal
-natural_representation(G::LinearlyReductiveGroup) = G.natural_representation
 group_type(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[1] : nothing
 group_dim(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[2] : nothing
+
+function natural_representation(G::LinearlyReductiveGroup)
+  @req isdefined(G, :natural_representation) "no natural representation is known for a group given by its defining ideal"
+  return G.natural_representation
+end
 
 # Whether we know a Reynolds operator for G. This is the case for SLm (Cayley's
 # Omega process), but not for a group given only by its defining ideal.
@@ -358,9 +362,9 @@ invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) =
   RedGroupInvarRing(R, ring)
 
 # Cached, as this elimination is the expensive step of Derksen's algorithm.
-@attr Tuple{
-  MPolyIdeal{mpoly_type(FldT)},dense_matrix_type(mpoly_type(FldT))
-} function proj_of_image_ideal(R::RedGroupInvarRing{FldT}) where {FldT}
+@attr MPolyIdeal{mpoly_type(FldT)} function proj_of_image_ideal(
+  R::RedGroupInvarRing{FldT}
+) where {FldT}
   return proj_of_image_ideal(representation(R))
 end
 
@@ -369,7 +373,7 @@ end
 @attr ideal_type(PolyRingT) function _null_cone_ideal_xyz(
   R::RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
 ) where {FldT,PolyRingElemT,PolyRingT}
-  b, _ = proj_of_image_ideal(R)
+  b = proj_of_image_ideal(R)
   n = degree(representation(R))
   mixed_ring_xy = base_ring(b)
   xyz = gens(mixed_ring_xy)
@@ -464,13 +468,10 @@ function fundamental_invariants(z::RedGroupInvarRing, algorithm::Symbol=:default
     @req algorithm in (:reynolds, :linear_algebra) "unsupported algorithm :$algorithm"
     @req algorithm === :linear_algebra || _has_reynolds_operator(group(z)) "no Reynolds operator is known for this group"
 
-    b, M = proj_of_image_ideal(z)
     if algorithm === :reynolds
-      z.fundamental = inv_generators(
-        _null_cone_ideal_xyz(z), group(z), polynomial_ring(z), M, z.reynolds_operator
-      )
+      z.fundamental = inv_generators(z)
     else
-      z.fundamental = inv_gens_no_reynolds(_null_cone_ideal_xyz(z), b, polynomial_ring(z))
+      z.fundamental = inv_gens_no_reynolds(z)
     end
   end
   return copy(z.fundamental)
@@ -495,8 +496,7 @@ function Base.show(io::IO, R::RedGroupInvarRing)
 end
 
 # Return the ideal of the graph {(v, rho(g)v, g) | v in V, g in G} in the ring
-# K[x, y, zz], where zz are the coordinates of G, and the representation matrix
-# with z replaced by zz.
+# K[x, y, zz], where zz are the coordinates of G.
 function image_ideal(r::RepresentationLinearlyReductiveGroup)
   G = group(r)
   rep_mat = representation_matrix(r)
@@ -513,54 +513,35 @@ function image_ideal(r::RepresentationLinearlyReductiveGroup)
   new_vars = new_rep_mat * x
   ideal_vect = y - new_vars
   ideal_vect = vcat(ideal_vect, genss)
-  return ideal(mixed_ring_xy, ideal_vect), new_rep_mat
+  return ideal(mixed_ring_xy, ideal_vect)
 end
 
 # Return the ideal I_{\Bar{B}} of the closure of B = {(v, rho(g)v) | v in V, g in G}
-# in V x V, and the representation matrix with z replaced by zz. Both live in the
-# ring K[x, y, zz] of image_ideal; the generators of the ideal involve only x and y.
+# in V x V. It lives in the ring K[x, y, zz] of image_ideal; its generators
+# involve only x and y.
 function proj_of_image_ideal(r::RepresentationLinearlyReductiveGroup)
-  I, M = image_ideal(r)
+  I = image_ideal(r)
   n = degree(r)
-  return eliminate(I, gens(base_ring(I))[(2 * n + 1):end]), M
+  return eliminate(I, gens(base_ring(I))[(2 * n + 1):end])
 end
 
-# Computing the invariant generators of the null cone by applying reynolds
-# operator to gens(I). This is done in K[X,Y] (basering(I)).
-# The elements returned will be in the polynomial K[X] (ringg).
-function inv_generators(
-  I::MPolyIdeal,
-  G::LinearlyReductiveGroup,
-  ringg::MPolyRing,
-  M::MatElem,
-  reynolds_function::Function,
-)
+# Compute generators of the invariant ring RG by applying the Reynolds operator
+# to the generators of the null cone ideal I. This is done in K[x, y, zz]
+# (base_ring(I)); the elements returned are in polynomial_ring(RG).
+function inv_generators(RG::RedGroupInvarRing)
+  I = _null_cone_ideal_xyz(RG)
+  ringg = polynomial_ring(RG)
   genss = gens(I)
   if length(genss) == 0
     return Vector{elem_type(ringg)}()
   end
 
-  #we need the representation matrix and determinant of group matrix to be in basering(I)
-  mixed_ring_xy = parent(genss[1])
-  R = base_ring(M)
-  n = ncols(M)
-  m = G.group[2]
-  xyz = gens(mixed_ring_xy)
-  mapp = hom(R, mixed_ring_xy, xyz)
-  new_rep_mat = matrix(mixed_ring_xy, n, n, [mapp(M[i, j]) for i in 1:n, j in 1:n])
-  det_ = det(natural_representation(G))
-  mapp_ = hom(parent(det_), mixed_ring_xy, xyz[((2 * n) + 1):end])
-  new_det = mapp_(det_)
-
-  #now we apply reynolds operator to genss
-  if group_type(G) === :SL #TODO other types of reductive groups
-    new_gens_wrong_ring = [reynolds_function(g, new_rep_mat, new_det, m) for g in genss]
-  else
-    return nothing
-  end
+  new_gens_wrong_ring = [_reynolds_operator_xyz(representation(RG), g) for g in genss]
 
   #map them to the required ring, ringg.
-  img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, length(xyz) - n))
+  mixed_ring_xy = base_ring(I)
+  n = ngens(ringg)
+  img_genss = vcat(gens(ringg), Hecke.zeros_array(ringg, ngens(mixed_ring_xy) - n))
   mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
   new_gens = Vector{elem_type(ringg)}()
   for elemm in new_gens_wrong_ring
@@ -580,6 +561,21 @@ _remove_content(f::MPolyRingElem) = f
 function _remove_content(f::MPolyRingElem{QQFieldElem})
   c = reduce(gcd, coefficients(f); init=zero(QQ))
   return is_zero(c) ? f : inv(c) * f
+end
+
+# Apply the Reynolds operator of group(r) to f in a graded ring K[x, y, z] as in
+# image_ideal, whose last variables z are the coordinates of the group.
+function _reynolds_operator_xyz(
+  r::RepresentationLinearlyReductiveGroup, f::MPolyDecRingElem
+)
+  G = group(r)
+  @req _has_reynolds_operator(G) "no Reynolds operator is known for this group"
+  S = parent(f)
+  M = representation_matrix(r)
+  ztoz = hom(base_ring(M), S, gens(S)[(2 * degree(r) + 1):end])
+  new_det = ztoz(det(natural_representation(G)))
+  # SLm is the only group with a known Reynolds operator
+  return reynolds_v_slm(f, map_entries(ztoz, M), new_det, group_dim(G))
 end
 
 # The Reynolds operator for SLm acting via new_rep_mat.
@@ -659,11 +655,7 @@ function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyR
   )
   map1 = hom(vector_ring, R, gens(R)[1:n])
   new_elem = map1(elem)
-  group_ring = base_ring(X.rep_mat)
-  map2 = hom(group_ring, R, gens(R)[(2 * n + 1):(2 * n + m^2)])
-  new_rep_mat = map_entries(map2, X.rep_mat)
-  new_det = map2(det(natural_representation(G)))
-  f = X.reynolds_v(new_elem, new_rep_mat, new_det, m)
+  f = _reynolds_operator_xyz(X, new_elem)
   reverse_map = hom(R, vector_ring, vcat(gens(vector_ring), [0 for i in 1:(n + m^2)]))
   return reverse_map(f)
 end
@@ -737,11 +729,13 @@ function affine_algebra(R::RedGroupInvarRing)
 end
 
 # Algorithm 4.5.1 in [DK15]
-# Compute generators of the invariant ring without a Reynolds operator: the
-# invariants of the degrees of the generators of the null cone ideal I generate
-# the invariant ring. Here b is the ideal returned by proj_of_image_ideal and
-# ringg is the ring in which we must return the invariants.
-function inv_gens_no_reynolds(I::MPolyIdeal, b::MPolyIdeal, ringg::MPolyRing)
+# Compute generators of the invariant ring RG without a Reynolds operator: the
+# invariants of the degrees of the generators of the null cone ideal generate
+# the invariant ring.
+function inv_gens_no_reynolds(RG::RedGroupInvarRing)
+  I = _null_cone_ideal_xyz(RG)
+  b = proj_of_image_ideal(RG)
+  ringg = polynomial_ring(RG)
   n = ngens(ringg)
   mixed_ring_xy = base_ring(b)
   phi = hom(
