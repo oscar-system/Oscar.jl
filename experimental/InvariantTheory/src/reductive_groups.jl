@@ -746,6 +746,38 @@ function affine_algebra(R::RedOrTorGroupInvarRing)
   return domain(R.presentation), R.presentation
 end
 
+@doc raw"""
+    hilbert_series(RG::RedGroupInvarRing)
+    hilbert_series(RG::TorGroupInvarRing)
+
+Return the Hilbert series of `RG` as `hilbert_series` does for the graded affine algebra
+returned by `affine_algebra(RG)`: a pair $(p, q)$ of univariate polynomials such that
+$p/q$ is the Hilbert series, where $q = (1-t^{d_1}) \cdots (1-t^{d_s})$ and
+$d_1, \dots, d_s$ are the degrees of the fundamental invariants.
+
+# Examples
+```jldoctest
+julia> G = linearly_reductive_group(:SL, 2, QQ);
+
+julia> RG = invariant_ring(representation_on_forms(G, 4));
+
+julia> hilbert_series(RG)
+(1, (-t^3 + 1)^1*(-t^2 + 1)^1)
+```
+
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> RT = invariant_ring(r);
+
+julia> hilbert_series(RT)
+(-t^6 + 1, (-t^3 + 1)^3)
+```
+"""
+hilbert_series(R::RedOrTorGroupInvarRing) = hilbert_series(affine_algebra(R)[1])
+
 # Algorithm 4.5.1 in [DK15]
 # Compute generators of the invariant ring RG without a Reynolds operator: the
 # invariants of the degrees of the generators of the null cone ideal generate

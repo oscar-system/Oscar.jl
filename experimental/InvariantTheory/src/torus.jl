@@ -360,25 +360,3 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     end
   end
 end
-
-@doc raw"""
-    hilbert_series(RT::TorGroupInvarRing)
-
-Return the Hilbert series of `RT` as `hilbert_series` does for the graded affine algebra
-returned by `affine_algebra(RT)`: a pair $(p, q)$ of univariate polynomials such that
-$p/q$ is the Hilbert series, where $q = (1-t^{d_1}) \cdots (1-t^{d_s})$ and
-$d_1, \dots, d_s$ are the degrees of the fundamental invariants.
-
-# Examples
-```jldoctest
-julia> T = torus_group(QQ,2);
-
-julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
-
-julia> RT = invariant_ring(r);
-
-julia> hilbert_series(RT)
-(-t^6 + 1, (-t^3 + 1)^3)
-```
-"""
-hilbert_series(R::TorGroupInvarRing) = hilbert_series(affine_algebra(R)[1])

@@ -77,6 +77,6 @@ affine_algebra(RG::RedOrTorGroupInvarRing)
 
 ## The Hilbert Series
 
-```@docs
-hilbert_series(RT::TorGroupInvarRing)
+```@docs; canonical=false
+hilbert_series(RG::RedOrTorGroupInvarRing)
 ```
