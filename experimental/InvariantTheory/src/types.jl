@@ -71,7 +71,7 @@ mutable struct RepresentationLinearlyReductiveGroup
 end
 
 # Invariant rings of linearly reductive groups
-@attributes mutable struct RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
+@attributes mutable struct RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT} <: InvarRing
   field::FldT
   poly_ring::PolyRingT # graded
 
@@ -120,7 +120,7 @@ struct RepresentationTorusGroup
   weights::Vector{Vector{ZZRingElem}}
 end
 
-@attributes mutable struct TorGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
+@attributes mutable struct TorGroupInvarRing{FldT,PolyRingElemT,PolyRingT} <: InvarRing
   field::FldT
   poly_ring::PolyRingT #graded
 

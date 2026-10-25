@@ -272,3 +272,10 @@
   @test length(fundamental_invariants(invariant_ring(r4))) == 2
   @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
 end
+
+@testset "Supertype of invariant rings" begin
+  #the invariant rings of finite groups, linearly reductive groups and tori share a supertype
+  @test Oscar.FinGroupInvarRing <: Oscar.InvarRing
+  @test Oscar.RedGroupInvarRing <: Oscar.InvarRing
+  @test Oscar.TorGroupInvarRing <: Oscar.InvarRing
+end
