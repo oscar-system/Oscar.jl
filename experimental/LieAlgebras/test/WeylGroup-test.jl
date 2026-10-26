@@ -71,6 +71,7 @@
 
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
+    ("rank 0", weyl_group(zero_matrix(ZZ, 0, 0))),
     ("A1", weyl_group(:A, 1)),
     (
       "A3 with non-canonical ordering of simple roots",

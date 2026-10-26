@@ -288,6 +288,9 @@ function _isomorphic_group_on_gens(::Type{PermGroup}, W::WeylGroup)
   R = root_system(W)
   type, ordering = root_system_type_with_ordering(R)
 
+  # rank 0, `inner_direct_product` needs at least one factor
+  isempty(type) && return permutation_group(1, PermGroupElem[])
+
   if length(type) != 1
     # Apply recursion to the irreducible factors
     # Note that the gens of each irreducible factor are in canonical ordering
