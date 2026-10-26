@@ -238,33 +238,32 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
       upgrade_keyed_entries(upgrade, s, dict["_type"]["params"]["entry_params"], dict["data"])
     elseif haskey(dict["_type"]["params"], "value_params")
       value_params = dict["_type"]["params"]["value_params"]
-      begin
-        upgraded_entry = nothing
-        upgraded_pairs = Tuple[]
-        for (k, v) in dict["data"]
-          upgraded_v = upgrade(s, Dict{String, Any}("_type" => value_params, "data" => v))
-          upgraded_k = upgrade(s, Dict{String, Any}("_type" => key_params, "data" => k))
-          push!(upgraded_pairs, (upgraded_k, upgraded_v))
+      upgraded_pairs = Tuple[]
+      for (k, v) in dict["data"]
+        upgraded_v = upgrade(s, Dict{String, Any}("_type" => value_params, "data" => v))
+        upgraded_k = upgrade(s, Dict{String, Any}("_type" => key_params, "data" => k))
+        push!(upgraded_pairs, (upgraded_k, upgraded_v))
+      end
+      if key_params in ["Symbol", "Base.Int", "String"]
+        dict["data"] = Dict{String, Any}()
+        for (upgraded_k, upgraded_v) in upgraded_pairs
+          dict["data"][upgraded_k["data"]] = upgraded_v["data"]
         end
-        if key_params in ["Symbol", "Base.Int", "String"]
-          dict["data"] = Dict{String, Any}()
-          for (upgraded_k, upgraded_v) in upgraded_pairs
-            dict["data"][upgraded_k["data"]] = upgraded_v["data"]
-          end
-        else
-          dict["data"] = map(x -> [x[1]["data"], x[2]["data"]], upgraded_pairs)
-        end
+      else
+        dict["data"] = map(x -> [x[1]["data"], x[2]["data"]], upgraded_pairs)
+      end
 
-        if !isempty(upgraded_pairs)
-          first_pair = first(upgraded_pairs)
-          dict["_type"]["params"]["key_params"] = first_pair[1]["_type"]
-          dict["_type"]["params"]["value_params"] = first_pair[2]["_type"]
-        end
+      if !isempty(upgraded_pairs)
+        first_pair = first(upgraded_pairs)
+        dict["_type"]["params"]["key_params"] = first_pair[1]["_type"]
+        dict["_type"]["params"]["value_params"] = first_pair[2]["_type"]
       end
     else
       # before 1.9.0+1: per-key types next to key_params
       for k in keys(dict["_type"]["params"])
         k == "key_params" && continue
+        # singleton values have no data
+        haskey(dict["data"], k) || continue
         upgraded_entry = upgrade(s, Dict{String, Any}("_type" => dict["_type"]["params"][k],
                                          "data" => dict["data"][k]))
         dict["data"][k] = upgraded_entry["data"]

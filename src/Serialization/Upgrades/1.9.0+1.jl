@@ -1,10 +1,11 @@
 # Upgrades for NamedTuple, IdealGens, FracField, MPolyQuoRing, polyhedral object, and Dict encoding changes:
-# - NamedTuple params changed from {names:[...], tuple_params:[...]} to flat field-name dict
+# - NamedTuple: {names:[...], tuple_params:[...]} with array data changed to
+#   {names:[...], entry_params:{name: type}} with data keyed by name
 # - IdealGens params changed from {base_ring:<typed_obj>, ordering_type:"MonomialOrdering"} to <typed_obj> directly
 # - FracField data no longer stores base_ring (redundant with type params)
 # - MPolyQuoRing params simplified from {base_ring:..., ordering:...} to base_ring directly
 # - Polyhedral objects with complex fields: pm_params wrapper flattened to top-level params
-# - Heterogeneous Dict: per-key value type params moved from top-level into value_params dict
+# - Heterogeneous Dict: per-key value type params moved from top-level into entry_params
 push!(upgrade_scripts_set, UpgradeScript(
   v"1.9.0+1",
   function upgrade_1_9_0_1(s::UpgradeState, dict::AbstractDict{String, Any})
@@ -18,10 +19,14 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     if type_name == "NamedTuple"
       old_params = dict["_type"]["params"]
-      if old_params isa AbstractDict && haskey(old_params, "names")
-        # Use NamedTuple instead of Dict so JSON.json preserves the original field order.
-        names = Tuple(Symbol(n) for n in old_params["names"])
-        dict["_type"]["params"] = NamedTuple{names}(Tuple(old_params["tuple_params"]))
+      if old_params isa AbstractDict && haskey(old_params, "tuple_params")
+        names = old_params["names"]
+        data = get(dict, "data", [])
+        dict["_type"]["params"] = Dict{String, Any}(
+          "names" => names,
+          "entry_params" => Dict{String, Any}(zip(names, old_params["tuple_params"]))
+        )
+        dict["data"] = Dict{String, Any}(zip(names, data))
       end
     elseif type_name == "IdealGens"
       old_params = dict["_type"]["params"]
@@ -40,17 +45,10 @@ push!(upgrade_scripts_set, UpgradeScript(
     elseif type_name == "Dict"
       old_params = dict["_type"]["params"]
       if old_params isa AbstractDict && haskey(old_params, "key_params") && !haskey(old_params, "value_params")
-        value_params = Dict{String, Any}()
-        for k in keys(old_params)
-          k == "key_params" && continue
-          value_params[k] = old_params[k]
-        end
-        if !isempty(value_params)
-          dict["_type"]["params"] = Dict{String, Any}(
-            "key_params" => old_params["key_params"],
-            "value_params" => value_params
-          )
-        end
+        dict["_type"]["params"] = Dict{String, Any}(
+          "key_params" => old_params["key_params"],
+          "entry_params" => filter(kv -> kv.first != "key_params", old_params)
+        )
       end
     elseif type_name in ("Polyhedron", "Cone", "PolyhedralComplex", "PolyhedralFan",
                          "SubdivisionOfPoints", "LinearProgram", "MixedIntegerLinearProgram")
@@ -62,9 +60,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         if pm_params isa AbstractDict && haskey(pm_params, "params")
           inner = pm_params["params"]
           # The Dict upgrade (above) runs on pm_params first (it's a heterogeneous dict),
-          # so property types may already be wrapped in value_params.
-          prop_types = if haskey(inner, "value_params") && inner["value_params"] isa AbstractDict
-            inner["value_params"]
+          # so property types may already be wrapped in entry_params.
+          prop_types = if haskey(inner, "entry_params")
+            inner["entry_params"]
           else
             filter(kv -> kv.first != "key_params", inner)
           end
