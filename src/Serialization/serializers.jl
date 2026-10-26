@@ -251,6 +251,11 @@ function load_json(s::DeserializerState, ::Type{T}) where T
   return JSON.parse(s.obj, T)
 end
 
+# nested objects follow `dicttype`, not `T`
+function load_json(s::DeserializerState, ::Type{T}) where T <: AbstractDict
+  return JSON.parse(s.obj, T; dicttype=T)
+end
+
 
 # general loading of a reference
 

@@ -59,7 +59,7 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(ns_dict::JSON.Object{String, Any})
+function serialization_version_info(ns_dict::AbstractDict{Symbol, Any})
   ns = ns_dict[:_ns]
   version_info = ns[:Oscar][2]
   return version_number(version_info)
@@ -878,7 +878,7 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
     outer_obj = s.obj
     load_node(s, :_ns) do
       if :polymake in propertynames(s.obj)
-        return load_from_polymake(JSON.parse(outer_obj; dicttype=Dict{String, Any}))
+        return load_from_polymake(JSON.parse(outer_obj; dicttype=Dict{Symbol, Any}))
       end
     end
   end
@@ -902,7 +902,7 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   if effective_upgrade_version(file_version) < version(last(upgrade_scripts))
     # we need a mutable dictionary
     #jsondict = copy(s.obj[])
-    jsondict = upgrade(file_version, load_json(s, Dict{String, Any}))
+    jsondict = upgrade(file_version, load_json(s, Dict{Symbol, Any}))
     jsondict_str = JSON.json(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                           serializer,
