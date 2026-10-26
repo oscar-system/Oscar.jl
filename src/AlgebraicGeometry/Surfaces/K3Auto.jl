@@ -1081,6 +1081,8 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
     walls1 = _alg58_short_vector(data, weyl_vector)
   elseif algorithm==:close
     walls1 = _alg58_close_vector(data, weyl_vector)
+  else
+    error("unknown algorithm")
   end
   if length(walls1)==rank(data.S)
     # shortcut which avoids calling Polymake

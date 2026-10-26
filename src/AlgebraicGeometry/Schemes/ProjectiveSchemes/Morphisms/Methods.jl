@@ -171,7 +171,7 @@ with default covering
   end
   # We skip the gluings for the time being.
   # Eventually, they should be made lazy.
-  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsAffineScheme, AbsAffineSchemeMor}, AbsGluing}())
+  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}())
   inherit_gluings!(CC, default_covering(X))
   phi = CoveringMorphism(CC, default_covering(Y), mor_dict, check=false)
   push!(coverings(X), CC)
@@ -238,7 +238,7 @@ end
 function SubquoModule(F::FreeMod, g::Vector{T}, rel::Vector{T}) where {T<:FreeModElem}
   G = SubModuleOfFreeModule(F, g)
   Rel = SubModuleOfFreeModule(F, rel)
-  return SubquoModule(F, G, Rel)
+  return SubquoModule(G, Rel)
 end
 
 ###############################################################################

@@ -94,9 +94,6 @@ function produce_restriction_map(F::AbsPreSheaf, U, V)
   error("method for `produce_restriction_map` must be overwritten for sheaves of type $(typeof(F))")
 end
 
-### Temporary workaround
-produce_restriction_map(F::AbsPreSheaf, U::AbsAffineScheme, V::AbsAffineScheme) = restriction_func(F)(F, U, V)
-
 # An alias for shorter notation
 function (F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType})(
     U::Type1, V::Type2
