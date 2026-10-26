@@ -225,6 +225,13 @@ match the type of the parameters:
 TypeAndParams
 ```
 
+!!! note "Previous convention"
+    Code written for the previous convention, `load_object(s, ::Type{<:T}, params)`
+    with a `Dict{Symbol, Any}` for named parameters and a `Type` for type-only
+    parameters, keeps working: such methods are found when no method for the
+    `TypeAndParams` exists, and calls of the form `load_object(s, T, params)` are
+    translated. New code should use `TypeAndParams`.
+
 #### `save_object` / `load_object`
 
 These functions should be the first functions to be overloaded when
