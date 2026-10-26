@@ -5,7 +5,7 @@
 
   # multi-partitions
   @testset "multipartitions($n, $r)" for n in 0:10, r in 1:5
-    MP = multipartitions(T(n),r)
+    MP = multipartitions(T(n),T(r))
 
     @test allunique(MP)
     @test all(mp -> length(mp) == r, MP)
