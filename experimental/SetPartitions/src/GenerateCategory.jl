@@ -517,21 +517,27 @@ function construct_category(
 end
 
 """
-    print_trace(trace::Trace{T}, start::T) where {T <: AbstractPartition}
+    print_trace([io::IO], trace::Trace{T}, start::T) where {T <: AbstractPartition}
 
-Print the trace of the partition `start` constructed with `construct_category`.
+Print the trace of the partition `start` constructed with `construct_category`
+to `io`, which defaults to `stdout`.
 """
 function print_trace(trace::Trace{T}, start::T) where {T <: AbstractPartition}
+    return print_trace(stdout, trace, start)
+end
+
+function print_trace(io::IO, trace::Trace{T}, start::T) where {T <: AbstractPartition}
     # iterate through trace with breath first search and print it
 
     if !(start in keys(trace))
-        print("(spatial) Partition $(start) not found in trace")
+        kind = start isa SpatialPartition ? "Spatial partition" : "Partition"
+        println(io, kind, " ", start, " not found in trace")
     end
     
     track = [start]
     for p in track
         if p in keys(trace)
-            println(p, " : ", trace[p])
+            println(io, p, " : ", trace[p])
             for i in (trace[p])[1]
                 if !(i in track)
                     push!(track, i)

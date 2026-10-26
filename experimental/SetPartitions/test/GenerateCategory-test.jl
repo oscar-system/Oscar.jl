@@ -117,20 +117,9 @@ end
   @test tr[rr] == ([r], "r")
   @test tr[p] == ([p], "i")
 
-  function captured_trace(start)
-    return mktemp() do _, io
-      redirect_stdout(io) do
-        print_trace(tr, start)
-      end
-      flush(io)
-      seekstart(io)
-      read(io, String)
-    end
-  end
-
-  @test captured_trace(rr) == "$rr : $(tr[rr])\n$r : $(tr[r])\n$p : $(tr[p])\n"
+  @test sprint(print_trace, tr, rr) == "$rr : $(tr[rr])\n$r : $(tr[r])\n$p : $(tr[p])\n"
 
   q = set_partition([1, 1, 1], [1, 1, 1])
   @test !haskey(tr, q)
-  @test captured_trace(q) == "(spatial) Partition $q not found in trace"
+  @test sprint(print_trace, tr, q) == "Partition $q not found in trace\n"
 end
