@@ -106,9 +106,31 @@
 end
 
 @testset "print_trace" begin
+  # rr is built from r, r from the generator p, and p is traced as its own
+  # involution; print_trace must follow the parents of its start partition,
+  # so starting at rr prints these three lines
   p = set_partition([1, 1], [1, 1])
   _, tr = construct_category([p], 3, true)
-  @test redirect_stdout(devnull) do
-    print_trace(tr, first(keys(tr)))
-  end === nothing
+  r = rotate_top_left(p)
+  rr = rotate_top_left(r)
+  @test tr[r] == ([p], "r")
+  @test tr[rr] == ([r], "r")
+  @test tr[p] == ([p], "i")
+
+  function captured_trace(start)
+    return mktemp() do _, io
+      redirect_stdout(io) do
+        print_trace(tr, start)
+      end
+      flush(io)
+      seekstart(io)
+      read(io, String)
+    end
+  end
+
+  @test captured_trace(rr) == "$rr : $(tr[rr])\n$r : $(tr[r])\n$p : $(tr[p])\n"
+
+  q = set_partition([1, 1, 1], [1, 1, 1])
+  @test !haskey(tr, q)
+  @test captured_trace(q) == "(spatial) Partition $q not found in trace"
 end
