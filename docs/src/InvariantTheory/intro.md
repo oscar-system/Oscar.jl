@@ -1,7 +1,7 @@
 # [Introduction](@id invariant_theory)
 
 The invariant theory part of OSCAR provides functionality for computing polynomial invariants
-of group actions, focusing on finite groups, tori, and linearly reductive groups, respectively.
+of group actions, focusing on finite groups, linearly reductive groups, and tori, respectively.
 
 The basic setting in this context consists of a group $G$, a field $K$, a vector space
 $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.

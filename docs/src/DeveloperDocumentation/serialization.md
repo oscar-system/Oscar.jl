@@ -219,7 +219,7 @@ match the type of the parameters:
 
 | `type_and_params` return | `load_object` signature |
 |---|---|
-| `TypeAndParams(T, nothing)` | `load_object(s, tp::TypeAndParams{T})` |
+| `TypeAndParams(T, nothing)` (the default) | `load_object(s, ::Type{<:T})` |
 | `TypeAndParams(T, parent_obj)` | `load_object(s, tp::TypeAndParams{T, ParentType})` |
 | `TypeAndParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}})` |
 
@@ -269,7 +269,7 @@ This will result in a data format that looks like this.
 With the corresponding loading function similar to this.
 
 ```julia
-function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
+function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do i
     if i == 3
       obj3 = load_object(s, Obj3Type, :key1)
@@ -340,7 +340,7 @@ function save_object(s::SerializerState, obj::NewType)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
+function load_object(s::DeserializerState, ::Type{<:NewType})
   load_node(s, :key) do
     info = do_something(load_json(s, String))
     if info
@@ -505,25 +505,25 @@ The typical structure of an upgrade function is:
 ```julia
 push!(upgrade_scripts_set, UpgradeScript(
   v"X.Y.Z",
-  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{String, Any})
+  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{Symbol, Any})
     # 1. Recurse into containers and nested objects first
     upgrade_recursive(upgrade_X_Y_Z, s, dict)
 
     # 2. Determine the type name of the current node
-    if dict["_type"] isa AbstractDict && haskey(dict["_type"], "name")
-      type_name = dict["_type"]["name"]
+    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
+      type_name = dict[:_type][:name]
     else
-      type_name = dict["_type"]
+      type_name = dict[:_type]
     end
 
     # 3. Apply type-specific transformations
     if type_name == "MyType"
       # rename a field in the data
-      dict["data"]["new_field"] = pop!(dict["data"], "old_field")
+      dict[:data][:new_field] = pop!(dict[:data], :old_field)
     elseif type_name == "AnotherType"
       # change type parameter structure
-      old_params = dict["_type"]["params"]
-      dict["_type"]["params"] = Dict{Symbol, Any}("renamed" => old_params["original"])
+      old_params = dict[:_type][:params]
+      dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
     end
 
     return dict
@@ -534,7 +534,10 @@ push!(upgrade_scripts_set, UpgradeScript(
 `upgrade_recursive` handles traversal into containers (`Vector`, `Matrix`,
 `Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
 body of the upgrade function only needs to handle the specific type changes
-introduced in that version.
+introduced in that version. The format it expects for containers depends on the
+version of the running script, available as `s.version`; when an upgrade
+script changes the format of a container, `upgrade_recursive` must branch on
+that version rather than on the keys it finds.
 
 ###### Common patterns
 
@@ -558,7 +561,6 @@ if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
   wrapper = dict[:_type][:params][:wrapper]
   # promote each inner key to the top level
   for (k, v) in wrapper[:params]
-    k === :key_params && continue   # skip Dict metadata if applicable
     dict[:_type][:params][k] = v
   end
   delete!(dict[:_type][:params], :wrapper)

@@ -124,7 +124,7 @@ struct WeightLatticeElem <: AbstractAlgebra.AdditiveGroupElem
   @doc raw"""
       WeightLatticeElem(P::WeightLattice, vec::ZZMatrix) -> WeightLatticeElem
 
-  Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of corresponding root system.
+  Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of the corresponding root system.
 
   `vec` must be a row vector of the same length as the rank of `P`.
   """
@@ -195,7 +195,7 @@ Iterator for reduced expressions of a Weyl group element.
 See [`reduced_expressions(::WeylGroupElem)`](@ref) for the constructor.
 """
 struct ReducedExpressionIterator
-  el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
+  el::WeylGroupElem         # the Weyl group element for which we are searching reduced expressions
   up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s1*s3 and not s3*s1
 end
 

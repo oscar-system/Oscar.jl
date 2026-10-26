@@ -204,8 +204,8 @@ end
 
 function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:NonSimpleNumField, <:PolyRing})
-  params = tp.params
-  def_pols = load_object(s, TypeAndParams(Vector{PolyRingElem}, params), :def_pols)
+  p = params(tp)
+  def_pols = load_object(s, TypeAndParams(Vector{PolyRingElem}, p), :def_pols)
   vars = load_node(s, :vars) do
     return load_json(s, Vector{Symbol})
   end

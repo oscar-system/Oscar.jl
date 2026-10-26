@@ -144,7 +144,7 @@ end
 function load_object(s::DeserializerState, tp::TypeAndParams{<:LieAlgebraElem,<:LieAlgebra})
   L = params(tp)
   R = coefficient_ring(L)
-  return L(load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
+  return LieAlgebraElem(L, load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
 end
 
 ###############################################################################
@@ -244,5 +244,5 @@ function load_object(
 )
   V = params(tp)
   R = coefficient_ring(V)
-  return V(load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
+  return LieAlgebraModuleElem(V, load_object(s, TypeAndParams(Vector{elem_type(R)}, R)))
 end

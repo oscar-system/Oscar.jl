@@ -101,23 +101,23 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
+function load_object(s::DeserializerState, T::Type{<: Vector{S}}) where S
   load_node(s) do
-    if serialize_with_id(params)
-      loaded_v = load_array_node(s; entry_type=params) do _
+    if serialize_with_id(S)
+      loaded_v = load_array_node(s; entry_type=S) do _
         load_ref(s)
       end
     else
-      isempty(s) && return params[]
-      loaded_v = load_array_node(s; entry_type=params) do _
-        load_object(s, params)
+      isempty(s) && return S[]
+      loaded_v = load_array_node(s; entry_type=S) do _
+        load_object(s, S)
       end
     end
     if !isempty(loaded_v)
       elem_T = typeof(first(loaded_v))
       return Vector{elem_T}(loaded_v)
     end
-    return loaded_v::Vector{params}
+    return loaded_v::Vector{S}
   end
 end
 
@@ -306,6 +306,51 @@ function load_object(s::DeserializerState, T::Type{<:Tuple})
 end
 
 ################################################################################
+# Keyed entries, shared by NamedTuple and heterogeneous Dict:
+# the type params of each entry are stored under `entry_params`, keyed by name,
+# and the data is an object keyed by the same names.
+# Singleton values have no data entry and are rebuilt from their type.
+
+function save_entry_params(s::SerializerState, entries)
+  save_data_dict(s, :entry_params) do
+    for (k, tp) in entries
+      save_type_and_params(s, tp, Symbol(k))
+    end
+  end
+end
+
+function load_entry_params(s::DeserializerState, names=nothing)
+  return load_node(s, :entry_params) do
+    ks = isnothing(names) ? propertynames(s.obj) : names
+    return [Symbol(k) => load_node(() -> load_type_and_params(s, decode_type(s)), s, Symbol(k))
+            for k in ks]
+  end
+end
+
+function save_entries(s::SerializerState, entries)
+  save_data_dict(s) do
+    for (k, v) in entries
+      Base.issingletontype(typeof(v)) && continue
+      if serialize_with_id(typeof(v))
+        save_object(s, save_as_ref(s, v), Symbol(k))
+      else
+        save_object(s, v, Symbol(k))
+      end
+    end
+  end
+end
+
+function load_entries(s::DeserializerState, entry_params)
+  return map(entry_params) do (k, tp)
+    T = type(tp)
+    Base.issingletontype(T) && return k => T()
+    return k => load_node(s, Symbol(k)) do
+      serialize_with_id(T) && node_is_string(s) ? load_ref(s) : load_object(s, tp)
+    end
+  end
+end
+
+################################################################################
 # Saving and loading NamedTuple
 @register_serialization_type NamedTuple
 
@@ -313,29 +358,37 @@ function type_and_params(obj::T) where T <: NamedTuple
   return TypeAndParams(T, (x.first => type_and_params(x.second) for x in pairs(obj))...)
 end
 
+function save_type_and_params(s::SerializerState,
+                              tp::TypeAndParams{<:NamedTuple, <:Tuple{Vararg{Pair}}})
+  save_data_dict(s) do
+    save_object(s, encode_type(NamedTuple), :name)
+    save_data_dict(s, :params) do
+      save_data_array(s, :names) do
+        for (k, _) in params(tp)
+          save_object(s, k)
+        end
+      end
+      save_entry_params(s, params(tp))
+    end
+  end
+end
+
 function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})
   return load_node(s, :params) do
-    pairs_list = Pair{Symbol, Any}[]
-    for k in propertynames(s.obj)
-      tp = load_node(s, k) do
-        node_is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
-      end
-      push!(pairs_list, k => tp)
-    end
-    names = Tuple(Symbol(k) for (k, _) in pairs_list)
-    types = Tuple([type(v) for (_, v) in pairs_list])
-    return TypeAndParams(T{names, Tuple{types...}}, pairs_list...)
+    names = load_object(s, Vector{Symbol}, :names)
+    entries = load_entry_params(s, names)
+    types = Tuple{(type(tp) for (_, tp) in entries)...}
+    return TypeAndParams(T{Tuple(names), types}, entries...)
   end
 end
 
 function save_object(s::SerializerState, obj::NamedTuple)
-  save_object(s, values(obj))
+  save_entries(s, pairs(obj))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:NamedTuple, <:Tuple{Vararg{Pair}}})
   T = type(tp)
-  tp_values = Tuple(v for (_, v) in params(tp))
-  return T(load_object(s, TypeAndParams(Tuple{Base.fieldtypes(T)...}, tp_values)))
+  return T(Tuple(v for (_, v) in load_entries(s, params(tp))))
 end
 
 ################################################################################
@@ -347,7 +400,7 @@ function type_and_params(obj::T) where {S <: Union{Symbol, Int, String},
   return TypeAndParams(
     T,
     :key_params => TypeAndParams(S, nothing),
-    :value_params => Tuple((x.first => type_and_params(x.second) for x in pairs(obj)))
+    :entry_params => Tuple((x.first => type_and_params(x.second) for x in pairs(obj)))
   )
 end
 
@@ -378,15 +431,9 @@ function save_type_and_params(
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
-      isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
       save_type_and_params(s, tp[:key_params], :key_params)
-
-      if tp[:value_params] isa Tuple
-        save_data_dict(s, :value_params) do
-          for (k, param_tp) in tp[:value_params]
-            save_type_and_params(s, param_tp, Symbol(k))
-          end
-        end
+      if haskey(tp, :entry_params)
+        save_entry_params(s, tp[:entry_params])
       else
         save_type_and_params(s, tp[:value_params], :value_params)
       end
@@ -401,24 +448,18 @@ function load_type_and_params(s::DeserializerState, T::Type{Dict})
     end
     S = type(key_tp)
 
-    load_node(s, :value_params) do
-      if node_is_object(s) && !haskey(s, :name) && !haskey(s, type_key)
-        # Heterogeneous Dict{S, Any} — per-key type params stored as dict
-        pairs_list = Pair[]
-        for k in propertynames(s.obj)
-          key = S <: Integer ? parse(Int, string(k)) : S(k)
-          tp = load_node(s, Symbol(k)) do
-            load_type_and_params(s, decode_type(s))
-          end
-          push!(pairs_list, key => tp)
-        end
-        TypeAndParams(Dict{S, Any}, :key_params => key_tp, :value_params => Tuple(pairs_list))
-      else
-        value_tp = load_type_and_params(s, decode_type(s))
-        TypeAndParams(Dict{S, type(value_tp)}, :key_params => key_tp, :value_params => value_tp)
-      end
+    if haskey(s, :entry_params)
+      entries = [(S <: Integer ? parse(S, string(k)) : S(k)) => tp
+                 for (k, tp) in load_entry_params(s)]
+      return TypeAndParams(Dict{S, Any}, :key_params => key_tp, :entry_params => Tuple(entries))
     end
+    value_tp = load_node(() -> load_type_and_params(s, decode_type(s)), s, :value_params)
+    return TypeAndParams(Dict{S, type(value_tp)}, :key_params => key_tp, :value_params => value_tp)
   end
+end
+
+function save_object(s::SerializerState, obj::Dict{S, Any}) where S <: Union{Symbol, String, Int}
+  save_entries(s, obj)
 end
 
 function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String, Int}, T}
@@ -485,15 +526,8 @@ end
 function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:Dict{S, U}, <:Tuple{Pair, Pair}}) where {S <: Union{Int, String, Symbol}, U}
   T = type(tp)
-  if tp[:value_params] isa Tuple
-    # Heterogeneous Dict{S, Any} — per-key type params
-    per_key_params = Dict(k => v for (k, v) in tp[:value_params])
-    dict = Dict{S, Any}()
-    for k in propertynames(s.obj)
-      key = S <: Integer ? parse(S, string(k)) : S(k)
-      dict[key] = load_object(s, per_key_params[key], k)
-    end
-    return Dict{S, Any}(dict)
+  if haskey(tp, :entry_params)
+    return Dict{S, Any}(load_entries(s, tp[:entry_params]))
   else
     # Homogeneous Dict{S, U} — single value type
     pairs = Tuple{S, U}[]

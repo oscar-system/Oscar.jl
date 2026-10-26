@@ -68,7 +68,7 @@ function weyl_group(type1::Tuple{Symbol,Int}, type::Tuple{Symbol,Int}...)
 end
 
 @doc raw"""
-    (W::WeylGroup)(word::Vector{<:Integer}) -> WeylGroupElem
+    (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true) -> WeylGroupElem
 
 Construct a Weyl group element from the given word.
 
@@ -191,7 +191,7 @@ function gen(W::WeylGroup, i::Integer)
 end
 
 @doc raw"""
-    gens(W::WeylGroup) -> WeylGroupElem
+    gens(W::WeylGroup) -> Vector{WeylGroupElem}
 
 Return the simple reflections (with respect to the underlying root system) of `W`.
 
@@ -353,7 +353,7 @@ end
 
 Return whether `x` is smaller than `y` with respect to the Bruhat order,
 i.e., whether some (not necessarily connected) subexpression of a reduced
-decomposition of `y`, is a reduced decomposition of `x`.
+decomposition of `y` is a reduced decomposition of `x`.
 """
 function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
   @req parent(x) === parent(y) "$x, $y must belong to the same Weyl group"
@@ -395,7 +395,7 @@ end
 @doc raw"""
     getindex(x::WeylGroupElem, i::Int) -> UInt8
 
-Return the index of simple reflection at the `i`-th position in the normal form of `x`.
+Return the index of the simple reflection at the `i`-th position in the normal form of `x`.
 """
 function Base.getindex(x::WeylGroupElem, i::Int)
   return word(x)[i]
@@ -595,7 +595,7 @@ julia> collect(reduced_expressions(x; up_to_commutation=true))
  [0x02, 0x01, 0x02, 0x03]
 ```
 The second expression of the first iterator is not contained in the second iterator
-because it only differs from the first expression by a swap of two the two commuting simple reflections `s1` and `s3`.
+because it only differs from the first expression by a swap of the two commuting simple reflections `s1` and `s3`.
 """
 function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
   return ReducedExpressionIterator(x, up_to_commutation)
@@ -607,6 +607,11 @@ end
 Return `x` as a list of indices of simple reflections, in reduced form.
 
 This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the Weyl group element.
+    Mutating the returned object will lead to undefined behavior.
 
 # Examples
 
@@ -656,7 +661,7 @@ end
 @doc raw"""
     syllables(x::WeylGroupElem) -> Vector{Pair{Int, ZZRingElem}}
 
-Return `x` as a list of pairs, each entry corresponding to indices of simple reflections and its exponent.
+Return `x` as a list of pairs, each consisting of the index of a simple reflection and its exponent.
 
 This function is right inverse to calling `(W::WeylGroup)(sylls::AbstractVector{<:Pair{<:Integer,<:IntegerUnion}})`.
 
@@ -927,7 +932,7 @@ end
 @doc raw"""
     weyl_orbit(wt::WeightLatticeElem)
 
-Return an iterator over the Weyl group orbit at the weight `wt`.
+Return an iterator over the Weyl group orbit of the weight `wt`.
 
 The type of the iterator and the order of the elements are considered
 implementation details and should not be relied upon.

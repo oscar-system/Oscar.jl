@@ -77,15 +77,15 @@ end
 ################################################
 
 function Base.:(==)(gf1::FamilyOfG4Fluxes, gf2::FamilyOfG4Fluxes)
-  return model(gf1) === model(gf2) && mat_int(gf1) == mat_int(gf2) &&
-         mat_rat(gf1) == mat_rat(gf2) && offset(gf1) == offset(gf2)
+  return model(gf1) === model(gf2) && matrix_integral(gf1) == matrix_integral(gf2) &&
+         matrix_rational(gf1) == matrix_rational(gf2) && offset(gf1) == offset(gf2)
 end
 
 function Base.hash(gf::FamilyOfG4Fluxes, h::UInt)
   b = 0x92bd6ac4f87d834e % UInt
   h = hash(model(gf), h)
-  h = hash(mat_int(gf), h)
-  h = hash(mat_rat(gf), h)
+  h = hash(matrix_integral(gf), h)
+  h = hash(matrix_rational(gf), h)
   h = hash(offset(gf), h)
   return xor(h, b)
 end

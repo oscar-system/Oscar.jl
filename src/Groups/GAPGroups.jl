@@ -419,9 +419,15 @@ end
 
 function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
   b = 0x51e7ebcb0206be89 % UInt
-  G = full_group(parent(x))[1]
-  h = hash(G, h)
-  h = hash(syllables(x), h)
+  o = GapObj(x)
+  if GAPWrap.IsNBitsPcWordRep(o)
+    h = _hash_gap_pc_word(o, h)
+  elseif GAPWrap.IsPcpElement(o)
+    h = _hash_gap_int_list(GAPWrap.Exponents(o), h)
+  else
+    # Other collectors use one representation per family.
+    h = hash(syllables(x), h)
+  end
   return xor(h, b)
 end
 

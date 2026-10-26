@@ -125,20 +125,17 @@ function encode_type(::Type{T}) where T
 end
 
 function node_is_string(s::DeserializerState)::Bool
-  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
+  s.obj isa JSON.LazyValue || return false
   return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
 end
 
 function node_is_array(s::DeserializerState)::Bool
-  s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
-    return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
+  s.obj isa JSON.LazyValue || return false
+  return JSON.gettype(s.obj) == JSON.JSONTypes.ARRAY
 end
 
 function node_is_object(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || return false
-  s.obj isa AbstractDict && return true
-
-  # I don't think we can get here now?
   return JSON.gettype(s.obj) == JSON.JSONTypes.OBJECT
 end
 
@@ -187,6 +184,7 @@ function decode_type(s::DeserializerState)::Type
       end
     end
   end
+  error("cannot decode type from $(s.obj)")
 end
 
 ################################################################################
@@ -247,12 +245,12 @@ details and examples.
 """
 type_and_params(obj::T) where T = TypeAndParams(T, nothing)
 
-function Base.show(io::IO, tp::TypeAndParams{T, Tuple}) where T
+function Base.show(io::IO, tp::TypeAndParams{T, <:Tuple}) where T
   if is_terse(io)
-    print(io, "Type parameters for $T")
+    print(io, "Type and parameters for $T")
   else
     io = pretty(io)
-    print(io, "Type parameters for $T")
+    print(io, "Type and parameters for $T")
     for param in params(tp)
       println(io, "")
       print(terse(io), Lowercase(), param)
@@ -262,10 +260,10 @@ end
 
 function Base.show(io::IO, tp::TypeAndParams{T, S}) where {T, S}
   if is_terse(io)
-    print(io, "Type parameters for $T")
+    print(io, "Type and parameters for $T")
   else
     io = pretty(io)
-    print(io, "Type parameters for $T ")
+    print(io, "Type and parameters for $T ")
     print(terse(io), Lowercase(), params(tp))
   end
 end
@@ -1087,7 +1085,7 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
       U = load_node(s, type_key) do
         decode_type(s)
       end
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+      U <: type || U >: type || error("Type in file doesn't match target type: $U not a subtype of $type")
       Base.issingletontype(type) && return type()
       if isnothing(params)
         tp_inner = load_node(s, type_key) do

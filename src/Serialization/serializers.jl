@@ -241,7 +241,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
   serializer::T
-  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing, Dict{Symbol, <:JSON.LazyValues}, Vector{JSON.LazyValues}}
+  obj::Union{JSON.LazyValue, BasicTypeUnion, Nothing}
   key::Union{Symbol, Int, Nothing}
   refs::Dict{UUID, JSON.LazyValues}
   with_attrs::Bool
@@ -287,20 +287,21 @@ function set_key(s::DeserializerState, key::Union{Symbol, Int, Nothing} = nothin
 end
 
 function set_state_level(s::DeserializerState, key::Union{Symbol, Int})
-  if node_is_object(s) && s.obj isa JSON.LazyValue
+  if node_is_object(s)
     d = Dict{Symbol, JSON.LazyValues}()
     foreach(s.obj) do (k,v)
       d[Symbol(k)] = v
     end
-    s.obj = d
-  elseif node_is_array(s) && s.obj isa JSON.LazyValue
+    s.obj = d[key]
+  elseif node_is_array(s)
     a = JSON.LazyValues[]
     foreach(s.obj) do v
       push!(a, v)
     end
-    s.obj = a
+    s.obj = a[key]
+  else
+    s.obj = s.obj[key]
   end
-  s.obj = s.obj[key]
 end
 
 function load_node(f::Function, s::DeserializerState,

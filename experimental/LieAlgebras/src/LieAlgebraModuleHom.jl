@@ -97,7 +97,7 @@ function image(
   h::LieAlgebraModuleHom{T1,T2}, v::LieAlgebraModuleElem
 ) where {T1<:LieAlgebraModule,T2<:LieAlgebraModule}
   @req parent(v) === domain(h) "Domain mismatch"
-  return codomain(h)(_matrix(v) * matrix(h))
+  return LieAlgebraModuleElem(codomain(h), _matrix(v) * matrix(h))
 end
 
 # TODO: image and kernel, once submodules are implemented

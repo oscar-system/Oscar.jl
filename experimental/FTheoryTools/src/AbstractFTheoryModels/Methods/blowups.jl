@@ -354,7 +354,7 @@ function _blow_up(
     else
       if bd isa ToricBlowupMorphism
         new_tate_ideal_sheaf = ideal_sheaf(
-          domain(bd), strict_transform(bd, ideal_in_coordinate_ring(tate_ideal_sheaf(m)))
+          domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m)))
         )
       else
         new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
@@ -382,7 +382,7 @@ function _blow_up(
       if bd isa ToricBlowupMorphism
         new_weierstrass_ideal_sheaf = ideal_sheaf(
           domain(bd),
-          strict_transform(bd, ideal_in_coordinate_ring(weierstrass_ideal_sheaf(m))),
+          strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))),
         )
       else
         new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
