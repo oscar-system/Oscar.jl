@@ -133,7 +133,7 @@ function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {
       load_object(s, T, params)
     end
   end
-  return Vector{typeof(first(v))}(v)
+  return v
 end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
