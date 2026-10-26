@@ -22,7 +22,6 @@ export bracket
 export braid_moves
 export cartan_subalgebra
 export chevalley_basis
-export coerce_to_lie_algebra_elem
 export coxeter_matrix
 export demazure_character
 export demazure_operator

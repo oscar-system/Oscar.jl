@@ -504,3 +504,7 @@
     @test T == (W, id_hom(W))
   end
 end
+
+@testset "coxeter_matrix of a Weyl group" begin
+  @test coxeter_matrix(weyl_group(:A, 2)) == matrix(ZZ, [1 3; 3 1])
+end
