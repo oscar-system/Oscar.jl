@@ -172,6 +172,22 @@
       end
     end
 
+    @testset "(de)serialization of keyed entries in NamedTuple and Dict{Symbol, Any}" begin
+      # a key called name, singleton values, and independence of JSON key order
+      for original in (Dict{Symbol, Any}(:name => 1, :x => "a"),
+                       Dict{Symbol, Any}(:a => ZZ, :b => 1),
+                       (zeta = 1, alpha = "x", mu = QQ(1//2), beta = ZZ(5), nu = ZZ))
+        test_save_load_roundtrip(path, original) do loaded
+          @test original == loaded
+        end
+        filename = joinpath(path, "keyed_entries.mrdi")
+        save(filename, original)
+        d = JSON.parsefile(filename; dicttype=Dict{String, Any})
+        write(filename, JSON.json(d))
+        @test load(filename) == original
+      end
+    end
+
     @testset "(de)serialization Dict{Vector, T}" for V in (
       1, [matrix(ZZ, [1 2; 3 4]), matrix(ZZ, [6 5; 3 4])]
       )

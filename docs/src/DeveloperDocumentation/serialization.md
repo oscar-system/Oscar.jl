@@ -219,7 +219,7 @@ match the type of the parameters:
 
 | `type_and_params` return | `load_object` signature |
 |---|---|
-| `TypeAndParams(T, nothing)` | `load_object(s, tp::TypeAndParams{T})` |
+| `TypeAndParams(T, nothing)` (the default) | `load_object(s, ::Type{<:T})` |
 | `TypeAndParams(T, parent_obj)` | `load_object(s, tp::TypeAndParams{T, ParentType})` |
 | `TypeAndParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}})` |
 
@@ -269,7 +269,7 @@ This will result in a data format that looks like this.
 With the corresponding loading function similar to this.
 
 ```julia
-function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
+function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do i
     if i == 3
       obj3 = load_object(s, Obj3Type, :key1)
@@ -340,7 +340,7 @@ function save_object(s::SerializerState, obj::NewType)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
+function load_object(s::DeserializerState, ::Type{<:NewType})
   load_node(s, :key) do
     info = do_something(load_json(s, String))
     if info
@@ -491,13 +491,13 @@ update the variable `commit_hash` in the file
 ##### Writing an Upgrade Script
 
 An upgrade script is a function pushed into `upgrade_scripts_set`. It receives
-an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}` representing a single
+an `UpgradeState` and a `dict::AbstractDict{String, Any}` representing a single
 serialized object node, and returns the (possibly modified) dict.
 
 The dict has the structure:
 ```
-:_type => ...   # type info (name string or dict with :name/:params)
-:data  => ...   # the serialized data
+"_type" => ...   # type info (name string or dict with "name"/"params")
+"data"  => ...   # the serialized data
 ```
 
 The typical structure of an upgrade function is:
@@ -523,7 +523,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     elseif type_name == "AnotherType"
       # change type parameter structure
       old_params = dict["_type"]["params"]
-      dict["_type"]["params"] = Dict{Symbol, Any}("renamed" => old_params["original"])
+      dict["_type"]["params"] = Dict{String, Any}("renamed" => old_params["original"])
     end
 
     return dict
@@ -534,7 +534,10 @@ push!(upgrade_scripts_set, UpgradeScript(
 `upgrade_recursive` handles traversal into containers (`Vector`, `Matrix`,
 `Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
 body of the upgrade function only needs to handle the specific type changes
-introduced in that version.
+introduced in that version. The format it expects for containers depends on the
+version of the running script, available as `s.version`; when an upgrade
+script changes the format of a container, `upgrade_recursive` must branch on
+that version rather than on the keys it finds.
 
 ###### Common patterns
 
@@ -546,22 +549,21 @@ return rename_types(dict, renamings)
 
 **Renaming a data field**:
 ```julia
-if type_name == "MyType" && haskey(dict[:data], :old_name)
-  dict[:data][:new_name] = pop!(dict[:data], :old_name)
+if type_name == "MyType" && haskey(dict["data"], "old_name")
+  dict["data"]["new_name"] = pop!(dict["data"], "old_name")
 end
 ```
 
 **Flattening a nested type-params wrapper** — if a type previously stored
 all its contextual data under a single params key and now stores them flat:
 ```julia
-if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
-  wrapper = dict[:_type][:params][:wrapper]
+if type_name == "MyType" && haskey(dict["_type"]["params"], "wrapper")
+  wrapper = dict["_type"]["params"]["wrapper"]
   # promote each inner key to the top level
-  for (k, v) in wrapper[:params]
-    k === :key_params && continue   # skip Dict metadata if applicable
-    dict[:_type][:params][k] = v
+  for (k, v) in wrapper["params"]
+    dict["_type"]["params"][k] = v
   end
-  delete!(dict[:_type][:params], :wrapper)
+  delete!(dict["_type"]["params"], "wrapper")
 end
 ```
 
