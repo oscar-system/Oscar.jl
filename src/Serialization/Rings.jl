@@ -179,18 +179,6 @@ function save_object(s::SerializerState, p::PolyRingElem)
       if !is_zero(c) ])
 end
 
-function save_object(s::SerializerState{IPCSerializer},
-                     p::PolyRingElem)
-  save_object(s, collect(coefficients(p)))
-end
-
-function load_object(s::DeserializerState{IPCSerializer},
-                     ::Type{<:PolyRingElem},
-                     parent_ring::PolyRing)
-  CR = coefficient_ring(parent_ring)
-  parent_ring(load_object(s, Vector{elem_type(CR)}, CR))
-end
-
 function load_object(s::DeserializerState,
                      ::Type{<: PolyRingElem},
                      parent_ring::PolyRing)
