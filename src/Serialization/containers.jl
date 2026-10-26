@@ -475,7 +475,10 @@ function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:Dict{S, U}, <:Tuple{Vararg{Pair}}}) where {S <: Union{Int, String, Symbol}, U}
   if haskey(tp, :value_params)
     # homogeneous Dict{S, U}: a single value type
-    value_tp = TypeAndParams(U, params(tp[:value_params]))
+    vp = tp[:value_params]
+    # calls with the old convention pass the raw params instead of a `TypeAndParams`,
+    # see the compatibility section in main.jl
+    value_tp = TypeAndParams(U, vp isa TypeAndParams ? params(vp) : vp)
     pairs = Tuple{S, U}[]
     for k in keys(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)

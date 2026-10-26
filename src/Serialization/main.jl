@@ -513,6 +513,54 @@ load_object(s::DeserializerState, tp::TypeAndParams{Array{T, N}, Nothing}) where
 load_object(s::DeserializerState, tp::TypeAndParams{Set{T}, Nothing}) where T = load_object(s, Set{T})
 
 ################################################################################
+# Backwards compatibility with the `load_object(s, T, params)` convention
+#
+# External code may still define `load_object(s, ::Type{<:T}, params)` and call
+# `load_object(s, T, params)` or `load(file; params=...)` with the old
+# representation of the parameters: a `Dict{Symbol, Any}` for named parameters
+# and a `Type` for type-only parameters.
+
+# old -> new representation of parameters
+_modern_params(p::Dict{Symbol}) = Tuple(k => _modern_params(v) for (k, v) in p)
+_modern_params(p::Type) = TypeAndParams(p, nothing)
+_modern_params(p::Tuple) = map(_modern_params, p)
+_modern_params(p::NamedTuple) = map(_modern_params, p)
+_modern_params(p) = p
+
+# new -> old representation of parameters
+_legacy_params(p::Tuple{Vararg{Pair}}) = Dict{Symbol, Any}(k => _legacy_params(v) for (k, v) in p)
+_legacy_params(tp::TypeAndParams{T, Nothing}) where T = T
+_legacy_params(tp::TypeAndParams) = _legacy_params(params(tp))
+_legacy_params(p::Tuple) = map(_legacy_params, p)
+_legacy_params(p::NamedTuple) = map(_legacy_params, p)
+_legacy_params(p) = p
+
+# calls with the old convention
+load_object(s::DeserializerState, T::Type, params::Any) =
+  load_object(s, TypeAndParams(T, _modern_params(params)))
+
+function load_object(s::DeserializerState, T::Type, params::Any,
+                     key::Union{Symbol, Int})
+  load_node(s, key) do
+    load_object(s, T, params)
+  end
+end
+
+const _legacy_call_shim = which(load_object, Tuple{DeserializerState, Type, Any})
+
+# definitions with the old convention: when no method takes the `TypeAndParams`,
+# fall back to a `load_object(s, ::Type{<:T}, params)` method, if there is one
+function load_object(s::DeserializerState, tp::TypeAndParams{T, S}) where {T, S}
+  legacy = _legacy_params(params(tp))
+  if which(load_object, Tuple{typeof(s), Type{T}, typeof(legacy)}) !== _legacy_call_shim
+    return load_object(s, T, legacy)
+  end
+  modern = _modern_params(params(tp))
+  modern === params(tp) && throw(MethodError(load_object, (s, tp)))
+  return load_object(s, TypeAndParams(T, modern))
+end
+
+################################################################################
 # serializing attributes
 function save_attrs(s::SerializerState, obj::T) where T
   if any(attr -> has_attribute(obj, attr), attrs_list(T))
@@ -1062,6 +1110,8 @@ end
 
 function load(io::IO; params::Any=nothing, type::Any=nothing,
               serializer::OscarSerializer=JSONSerializer(), with_attrs::Bool=true)
+  # backwards compatibility: the `params` keyword used to take a `TypeAndParams`
+  params isa TypeAndParams && return load(io, params; serializer, with_attrs)
   _load_with_state(io, serializer, with_attrs) do s
     if type !== nothing
       U = load_node(s, type_key) do
