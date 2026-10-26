@@ -428,6 +428,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
+  # modulus(R) lives in the localized ring; jacobian_matrix wants polynomials
   Q = underlying_quotient(R)
   rels, _ = sub(F, transpose(change_base_ring(R, jacobian_matrix(base_ring(Q), gens(modulus(Q))))))
   M, _ = quo(F, rels)

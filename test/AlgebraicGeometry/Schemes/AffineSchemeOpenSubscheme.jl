@@ -442,4 +442,7 @@ end
   V, h = maximal_extension(spec(R), elem_type(fraction_field(R))[])
   @test isempty(h)
   @test V == AffineSchemeOpenSubscheme(spec(R))
+  @test eltype(h) == elem_type(OO(V))
+  _, h2 = maximal_extension(spec(R), [x//y])
+  @test typeof(h) == typeof(h2)
 end
