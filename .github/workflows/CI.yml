@@ -284,7 +284,7 @@ jobs:
       # 30% slower.
       - name: "Run doctests"
         run: |
-          julia ${{ matrix.julia-version == '1.10' && runner.os == 'macOS' && '--code-coverage' || '' }} \
+          julia ${{ matrix.julia-version == '1.10' && runner.os == 'macOS' && matrix.depwarn != 'depwarn=error' && '--code-coverage' || '' }} \
             --project=docs --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
               using Documenter
               include("docs/documenter_helpers.jl")
@@ -300,12 +300,12 @@ jobs:
           path: |
             test-stats_*.csv
       - name: "Process code coverage"
-        if: matrix.julia-version == '1.10' && runner.os == 'macOS'
+        if: matrix.julia-version == '1.10' && runner.os == 'macOS' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
-        if: matrix.julia-version == '1.10' && runner.os == 'macOS'
+        if: matrix.julia-version == '1.10' && runner.os == 'macOS' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
