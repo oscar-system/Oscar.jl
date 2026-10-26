@@ -81,6 +81,17 @@ end
   @test free_group(Q) === G
 end
 
+@testset "Free groups of infinite rank are rejected" begin
+  X = GAP.Globals.FreeGroup(GAP.Globals.infinity, GapObj("f"), GapObj(["a", "b"]; recursive = true))
+  Xgens = GAP.Globals.GeneratorsOfGroup(X)
+  U = GAP.Globals.Subgroup(X, GapObj([Xgens[1], Xgens[3]]))
+  @test_throws ArgumentError FPGroup(X)
+  @test_throws ArgumentError fp_group(X)
+  @test_throws ArgumentError Oscar._oscar_group(X)
+  @test_throws ArgumentError SubFPGroup(U)
+  @test_throws ArgumentError Oscar._oscar_group(U)
+end
+
 @testset "Special Constructors" begin
 
   @test isa(symmetric_group(5), PermGroup)
