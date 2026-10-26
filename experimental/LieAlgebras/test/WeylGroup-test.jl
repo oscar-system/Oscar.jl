@@ -211,6 +211,8 @@
   @testset "WeylGroup parabolic subgroup test for $(Wname)" for (
     Wname, W, vec, check_proj
   ) in [
+    ("rank 0", weyl_group(zero_matrix(ZZ, 0, 0)), Int[], true),
+    ("B2, empty vec", weyl_group(:B, 2), Int[], true),
     ("A1", weyl_group(:A, 1), [1], true),
     ("A5", weyl_group(:A, 5), [1, 5, 3], false),
     ("B2", weyl_group(:B, 2), [2, 1], false),
