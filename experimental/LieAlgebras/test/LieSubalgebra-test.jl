@@ -77,10 +77,10 @@
     LS, _ = lie_algebra(S)
     @test matrix_repr_basis(LS) == matrix_repr.(basis(S))
   end
-end
 
-@testset "bracket of a Lie algebra with a subalgebra" begin
-  L = special_linear_lie_algebra(QQ, 2)
-  S = sub(L, [basis(L)[1]])
-  @test dim(bracket(L, S)) == 2
+  @testset "bracket of a Lie algebra with a subalgebra" begin
+    L = special_linear_lie_algebra(QQ, 2)
+    S = sub(L, [basis(L)[1]])
+    @test dim(bracket(L, S)) == 2
+  end
 end

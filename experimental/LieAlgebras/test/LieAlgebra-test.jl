@@ -74,23 +74,25 @@
     @test is_nilpotent(L)
     @test is_solvable(L)
 
-    @testset for n in 2:5, F in [QQ, GF(2), GF(3)]
+    @testset for n in 2:5, F in [QQ, GF(2), GF(3)], is_basis in [false, true]
       L = lie_algebra(
         F,
         n,
         [(b = zero_matrix(F, n, n); b[i, j] = 1; b) for i in 1:n for j in (i + 1):n],
-        ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n],
+        ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n];
+        is_basis,
       )
       @test is_nilpotent(L)
       @test is_solvable(L)
     end
 
-    @testset for n in 2:5, F in [QQ, GF(2), GF(3)]
+    @testset for n in 2:5, F in [QQ, GF(2), GF(3)], is_basis in [false, true]
       L = lie_algebra(
         F,
         n,
         [(b = zero_matrix(F, n, n); b[i, j] = 1; b) for i in 1:n for j in i:n],
-        ["x_$(i)_$(j)" for i in 1:n for j in i:n],
+        ["x_$(i)_$(j)" for i in 1:n for j in i:n];
+        is_basis,
       )
       @test !is_nilpotent(L)
       @test is_solvable(L)
@@ -117,7 +119,8 @@
       F,
       2,
       [matrix(F, [0 1; 0 0]), matrix(F, [1 0; 0 -1]), matrix(F, [0 0; 1 0])],
-      [:x, :h, :y],
+      [:x, :h, :y];
+      is_basis=true,
     )
     @test killing_matrix(L) == matrix(F, [0 0 4; 0 8 0; 4 0 0])
   end
