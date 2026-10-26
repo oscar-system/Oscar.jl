@@ -151,3 +151,13 @@ end
   pols = [collect(coefficients(defining_polynomial(fixed_field(C, H)))) for i in 1:5]
   @test allequal(pols)
 end
+
+@testset "fixed_field with large Tschirnhausen transformations" begin
+  # for x^21 - 3, transformations of degree up to 11 do not separate all conjugates
+  Qx, x = QQ[:x]
+  G, C = galois_group(x^21 - 3)
+  for H in map(representative, subgroup_classes(G))
+    index(G, H) == 3 || continue
+    @test degree(fixed_field(C, H)) == 3
+  end
+end

@@ -2289,8 +2289,9 @@ function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.d
       cnt += 1
       cnt > 20 && error("no Tschirni found")
       # the bit size of the invariant values, hence the precision needed,
-      # grows linearly in degree(ts): try small degrees first
-      ts = rand(RNG, Zx, 2:min(1 + cld(cnt, 2), max(2, length(r))), -4:4)
+      # grows linearly in degree(ts): try small degrees first, but let the
+      # degree grow quickly, as inputs like x^n - a need large ones
+      ts = rand(RNG, Zx, 2:min(1 + cnt, max(2, length(r))), -4:4)
       if degree(ts) > 0 
         break
       end
