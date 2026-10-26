@@ -232,7 +232,7 @@ function load_object(s::DeserializerState,
     for (i, e) in enumerate(exponents)
       load_node(s, i) do
         c = load_object(s, coeff_type, coeff_ring, 2)
-        e_int = load_array_node(s, 1) do _
+        e_int = load_array_node(s, 1; entry_type=Int) do _
           load_object(s, Int)
         end
         push_term!(polynomial, c, e_int)

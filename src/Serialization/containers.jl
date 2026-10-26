@@ -115,7 +115,11 @@ function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where par
         load_object(s, params)
       end
     end
-    return loaded_v
+    if !isempty(loaded_v)
+      elem_T = typeof(first(loaded_v))
+      return Vector{elem_T}(loaded_v)
+    end
+    return loaded_v::Vector{params}
   end
 end
 
@@ -134,7 +138,7 @@ end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
   isempty(s.obj) && return U[]
-  return load_array_node(s) do _
+  return load_array_node(s; entry_type=U) do _
     load_object(s, U)
   end
 end
