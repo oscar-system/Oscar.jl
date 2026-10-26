@@ -279,9 +279,12 @@ jobs:
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
+      # Only the macOS job collects doctest coverage: on Julia 1.10,
+      # --code-coverage disables package images, which makes the doctests
+      # 30% slower.
       - name: "Run doctests"
         run: |
-          julia ${{ matrix.julia-version == '1.10' && '--code-coverage' || '' }} \
+          julia ${{ matrix.julia-version == '1.10' && runner.os == 'macOS' && '--code-coverage' || '' }} \
             --project=docs --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
               using Documenter
               include("docs/documenter_helpers.jl")
@@ -297,12 +300,12 @@ jobs:
           path: |
             test-stats_*.csv
       - name: "Process code coverage"
-        if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
+        if: matrix.julia-version == '1.10' && runner.os == 'macOS'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
-        if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
+        if: matrix.julia-version == '1.10' && runner.os == 'macOS'
         continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
