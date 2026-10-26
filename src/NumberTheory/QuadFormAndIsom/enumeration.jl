@@ -1482,6 +1482,7 @@ function splitting_of_hermitian_type(
   @req iseven(Lf) "Lattice must be even"
   @req is_finite(n) "Isometry must be of finite order"
   @req is_prime(p) "p must be a prime number"
+  p = Int(p)
   @check begin
     @req is_of_hermitian_type(Lf) "Lattice with isometry must be of hermitian type"
   end
@@ -1534,8 +1535,8 @@ function _representatives_of_hermitian_type(L::ZZGenus, n::IntegerUnion, k::Inte
     if g!=0 && is_prime_power_with_data(g)[1] && g == k && !(ctx.orig_discriminant_action isa Nothing)
       # Let f  in O(L) be of order k = p^i = g and suppose that D_f is of order k as well.
       # Then we know that D_{f|L_k} is of order k, because f|L_k^\perp is of order at most n=k/p. 
-      if order(ctx.orig_discriminant_action)==g
-        filter!(order(discriminant_group(i)[2])==g, reps)
+      if order_of_isometry(ctx.orig_discriminant_action) == g
+        filter!(i -> order_of_isometry(discriminant_group(TorQuadModuleWithIsom, i)) == g, reps)
       end 
     end
     return reps
@@ -2664,7 +2665,7 @@ function splitting_by_prime_power!(
     _local::Bool=false,
   )
   ctx = enum_lat_with_isom_init(; eiglat_cond, fix_root, genusDB, update_genusDB, root_test, info_depth, discriminant_annihilator_lb=discriminant_annihilator,_local)
-  return _splitting_by_prime_power(Np, p, v; ctx)
+  return _splitting_by_prime_power!(Np, p, v; ctx)
 end   
 
 function _splitting_by_prime_power!(
@@ -3540,6 +3541,7 @@ function enum_lat_with_isom_init(;
   ctx.eigenlattice_conditions = eiglat_cond
   ctx.power = 1
   
+  ctx.orig_discriminant_action = discriminant_action
   ctx.orig_discriminant_annihilator_lb = discriminant_annihilator_lb
   ctx.orig_discriminant_annihilator_ub = discriminant_annihilator_ub
   ctx.orig_eigenlattice_conditions = eiglat_cond
