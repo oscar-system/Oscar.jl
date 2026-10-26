@@ -101,23 +101,23 @@ function save_object(s::SerializerState, x::AbstractVector{S}) where S
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
+function load_object(s::DeserializerState, T::Type{<: Vector{S}}) where S
   load_node(s) do
-    if serialize_with_id(params)
-      loaded_v = load_array_node(s; entry_type=params) do _
+    if serialize_with_id(S)
+      loaded_v = load_array_node(s; entry_type=S) do _
         load_ref(s)
       end
     else
-      isempty(s) && return params[]
-      loaded_v = load_array_node(s; entry_type=params) do _
-        load_object(s, params)
+      isempty(s) && return S[]
+      loaded_v = load_array_node(s; entry_type=S) do _
+        load_object(s, S)
       end
     end
     if !isempty(loaded_v)
       elem_T = typeof(first(loaded_v))
       return Vector{elem_T}(loaded_v)
     end
-    return loaded_v::Vector{params}
+    return loaded_v::Vector{S}
   end
 end
 
