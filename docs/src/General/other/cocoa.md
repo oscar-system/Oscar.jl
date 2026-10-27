@@ -10,7 +10,7 @@ can be challenging -- we hope that the notes here will be helpful.
 
 OSCAR offers a much wider range of built-in functions than CoCoA, though
 not every function in CoCoA has a counterpart in OSCAR.  In many cases,
-the implementation in OSCAR are more advanced, so may handle a wider
+the implementations in OSCAR are more advanced, so they may handle a wider
 range of inputs, and may be significantly faster on larger inputs,
 though there are also some cases where CoCoA is comparably fast.
 
