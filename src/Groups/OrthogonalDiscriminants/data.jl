@@ -1,8 +1,9 @@
+using JSON
 
 # functions for accessing the precomputed data
 
 # the precomputed data for Atlas groups
-const OD_data = JSON.parsefile(joinpath(@__DIR__, "..", "data", "odresults.json"))
+const OD_data = JSON.parsefile(joinpath(@__DIR__, "odresults.json"))
 
 const OD_simple_names = Dict{String, String}()
 
@@ -524,9 +525,9 @@ function all_od_infos(L...)
         good_degree || continue
 
         good_od = true
-        if haskey(conditions, Oscar.OrthogonalDiscriminants.orthogonal_discriminant)
+        if haskey(conditions, Oscar.orthogonal_discriminant)
           od = entry[4]
-          orthogonal_discriminant = conditions[Oscar.OrthogonalDiscriminants.orthogonal_discriminant]
+          orthogonal_discriminant = conditions[Oscar.orthogonal_discriminant]
           if orthogonal_discriminant isa Function
             (!orthogonal_discriminant(od)) && (good_od = false)
           elseif orthogonal_discriminant isa String
@@ -538,9 +539,9 @@ function all_od_infos(L...)
         good_od || continue
 
         good_comment = true
-        if haskey(conditions, Oscar.OrthogonalDiscriminants.comment_matches)
+        if haskey(conditions, Oscar.comment_matches)
           comment = entry[end]
-          comment_matches = conditions[Oscar.OrthogonalDiscriminants.comment_matches]
+          comment_matches = conditions[Oscar.comment_matches]
           if comment_matches isa Function
             (!comment_matches(comment)) && (good_comment = false)
           elseif comment_matches isa String
