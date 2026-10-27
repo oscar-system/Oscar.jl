@@ -247,10 +247,10 @@ function weight(tab::YoungTableau)
     end
   end
 
-  w = zeros(Int, max)
+  w = zeros(Int, Int(max))
   for rows in tab
     for box in rows
-      w[box] += 1
+      w[Int(box)] += 1
     end
   end
   return w
@@ -316,7 +316,7 @@ function is_semistandard(tab::YoungTableau)
   end
 
   #increasing first row
-  for j = 2:s[1]
+  for j in 2:Int(s[1])
     if tab[1][j] < tab[1][j - 1]
       return false
     end
@@ -331,7 +331,7 @@ function is_semistandard(tab::YoungTableau)
 
   #increasing rows and columns
   for i = 2:length(tab)
-    for j = 2:s[i]
+    for j in 2:Int(s[i])
       if tab[i][j] < tab[i][j - 1] || tab[i][j] <= tab[i - 1][j]
         return false
       end
@@ -462,7 +462,7 @@ Base.eltype(::Type{SemiStandardTableauxFixedBoxNum{T}}) where T = YoungTableau{T
 
 function Base.show(io::IO, S::SemiStandardTableauxFixedBoxNum)
   print(pretty(io), "Iterator over semistandard Young tableaux with ",
-        ItemQuantity(box_num(S), "box", "boxes"))
+        ItemQuantity(Int(box_num(S)), "box", "boxes"))
 end
 
 Base.IteratorSize(::Type{<: SemiStandardTableauxFixedBoxNum}) = Base.SizeUnknown()
@@ -781,7 +781,7 @@ Base.IteratorSize(::Type{<: StandardTableaux}) = Base.SizeUnknown()
 
 @inline function iterate(S::StandardTableaux{T}, state::Union{Nothing, StandardTableauxState{T}} = nothing) where T
   s = shape(S)
-  n_max = sum(s)
+  n_max = Int(sum(s))
 
   if isnothing(state)
     if isempty(s)
@@ -882,7 +882,7 @@ Base.eltype(::Type{StandardTableauxFixedBoxNum{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::StandardTableauxFixedBoxNum)
   print(pretty(io), "Iterator over standard Young tableaux with ",
-        ItemQuantity(box_num(S), "box", "boxes"))
+        ItemQuantity(Int(box_num(S)), "box", "boxes"))
 end
 
 Base.IteratorSize(::Type{<: StandardTableauxFixedBoxNum}) = Base.SizeUnknown()
@@ -1032,7 +1032,7 @@ schensted(sigma::PermGroupElem) = schensted(Int, sigma)
 Insert the integer `x` into the tableau `tab` according to the bumping
 algorithm by applying the Schensted insertion.
 """
-function bump!(tab::YoungTableau, x::Integer)
+function bump!(tab::YoungTableau, x::IntegerUnion)
   if isempty(tab)
     push!(tab, [x])
     return tab
@@ -1067,7 +1067,7 @@ Insert the integer `x` into `tab` according to the bumping algorithm by applying
 the Schensted insertion and insert the integer `y` into `Q` at the same position
 as `x` in `tab`.
 """
-function bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
+function bump!(tab::YoungTableau, x::IntegerUnion, Q::YoungTableau, y::IntegerUnion)
   if isempty(tab)
     push!(tab, [x])
     push!(Q, [x])

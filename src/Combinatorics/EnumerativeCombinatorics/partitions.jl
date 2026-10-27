@@ -861,10 +861,10 @@ function conjugate(lambda::Partition{T}) where T <: IntegerUnion
     return copy(lambda)
   end
 
-  mu = zeros(T, lambda[1])
+  mu = zeros(T, Int(lambda[1]))
 
   for i = 1:length(lambda)
-    for j = 1:lambda[i]
+    for j in 1:Int(lambda[i])
       mu[j] += 1
     end
   end

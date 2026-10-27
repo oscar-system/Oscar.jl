@@ -3,6 +3,7 @@
   T = underlying_module(Tf)
   @test order(T) == 50
   @test order_of_isometry(Tf) == 1
+  @test Tf^ZZ(2) == Tf^2
   @test order(underlying_module(primary_part(Tf, 5)[1])) == 25
 
   E8 = root_lattice(:E, 8)

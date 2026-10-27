@@ -120,7 +120,7 @@ end
 function _find_chart(U::SimplifiedAffineScheme, W::AbsAffineScheme;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
-  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  U === W && return identity_map(U), complement_equations
   V = original(U)
   f, g = identification_maps(U)
   ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))

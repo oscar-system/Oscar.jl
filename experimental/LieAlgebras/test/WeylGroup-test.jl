@@ -71,6 +71,7 @@
 
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
+    ("rank 0", weyl_group(zero_matrix(ZZ, 0, 0))),
     ("A1", weyl_group(:A, 1)),
     (
       "A3 with non-canonical ordering of simple roots",
@@ -210,6 +211,8 @@
   @testset "WeylGroup parabolic subgroup test for $(Wname)" for (
     Wname, W, vec, check_proj
   ) in [
+    ("rank 0", weyl_group(zero_matrix(ZZ, 0, 0)), Int[], true),
+    ("B2, empty vec", weyl_group(:B, 2), Int[], true),
     ("A1", weyl_group(:A, 1), [1], true),
     ("A5", weyl_group(:A, 5), [1, 5, 3], false),
     ("B2", weyl_group(:B, 2), [2, 1], false),
@@ -503,8 +506,8 @@
     T = torsion_subgroup(W)
     @test T == (W, id_hom(W))
   end
-end
 
-@testset "coxeter_matrix of a Weyl group" begin
-  @test coxeter_matrix(weyl_group(:A, 2)) == matrix(ZZ, [1 3; 3 1])
+  @testset "coxeter_matrix of a Weyl group" begin
+    @test coxeter_matrix(weyl_group(:A, 2)) == matrix(ZZ, [1 3; 3 1])
+  end
 end

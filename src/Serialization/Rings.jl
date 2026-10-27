@@ -185,18 +185,6 @@ function save_object(s::SerializerState, p::PolyRingElem)
       if !is_zero(c) ])
 end
 
-function save_object(s::SerializerState{IPCSerializer},
-                     p::PolyRingElem)
-  save_object(s, collect(coefficients(p)))
-end
-
-function load_object(s::DeserializerState{IPCSerializer},
-                     tp::TypeAndParams{<:PolyRingElem, <:PolyRing})
-  parent_ring = params(tp)
-  CR = coefficient_ring(parent_ring)
-  parent_ring(load_object(s, TypeAndParams(Vector{elem_type(CR)}, CR)))
-end
-
 function load_object(s::DeserializerState,
                      tp::TypeAndParams{<:PolyRingElem, <:PolyRing})
   parent_ring = params(tp)
@@ -205,7 +193,6 @@ function load_object(s::DeserializerState,
   exps_coeffs = load_object(s, TypeAndParams(Vector{Tuple{Int, coeff_type}}, (nothing, coeff_ring)))
 
   isempty(exps_coeffs) && return parent_ring(0)
-
   degree = max([e for (e, _) in exps_coeffs]...)
   loaded_terms = Hecke.zeros_array(coeff_ring, degree + 1)
   for (e, c) in exps_coeffs

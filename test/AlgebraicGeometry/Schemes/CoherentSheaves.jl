@@ -69,6 +69,14 @@ end
   U21 = PrincipalOpenSubset(U[2], dehomogenization_map(IP, U[2])(x))
   U321 = PrincipalOpenSubset(U[3], dehomogenization_map(IP, U[3])(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
+
+  # a point missing two of the three charts
+  JJ = IdealSheaf(IP, ideal(S, [x, y]))
+  inc_pt = Oscar.CoveredClosedEmbedding(X, JJ)
+  @test length(affine_charts(domain(inc_pt))) == 1
+  M = Oscar.PushforwardSheaf(inc_pt, Oscar.cotangent_sheaf(domain(inc_pt)))
+  @test iszero(M(U[1]))
+  @test base_ring(M(U[1])) === OO(U[1])
 end
 
 @testset "pullbacks of modules" begin
@@ -116,6 +124,33 @@ end
   V = simplify(U)
   @test p_star_LC(V) isa FreeMod
   @test p_star_LC(U, V) isa OFPModuleHom
+
+  # patches of the covering morphism which are principal open subsets
+  A = [1 2 4; 1 3 9; 1 5 25]
+  g = ProjectiveSchemeMor(IP, IP, hom(S, S, A*[x, y, z]))
+  g_cov = covered_scheme_morphism(g)
+  g_star_L = Oscar.PullbackSheaf(g_cov, L)
+  W = first(patches(domain(covering_morphism(g_cov))))
+  @test W isa PrincipalOpenSubset
+  @test g_star_L(W) isa FreeMod
+  @test base_ring(g_star_L(W)) === OO(W)
+
+  # restriction between two patches of the covering morphism
+  IP1 = projective_space(QQ, 1)
+  X1 = covered_scheme(IP1)
+  cov = default_covering(X1)
+  U1, U2 = patches(cov)
+  V1 = PrincipalOpenSubset(U1, first(gens(OO(U1))))
+  CC = Covering(AbsAffineScheme[U1, U2, V1])
+  Oscar.inherit_gluings!(CC, cov)
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}(U1 => identity_map(U1), U2 => identity_map(U2), V1 => inclusion_morphism(V1, U1))
+  f1 = Oscar.CoveredSchemeMorphism(X1, X1, Oscar.CoveringMorphism(CC, cov, mor_dict; check=false); check=false)
+  L1 = twisting_sheaf(IP1, 1)
+  F1 = Oscar.PullbackSheaf(f1, L1)
+  rho = F1(U1, V1)
+  @test domain(rho) === F1(U1)
+  @test codomain(rho) === F1(V1)
+  @test rho.(gens(F1(U1))) == gens(F1(V1))
 end
 
 @testset "projectivization of vector bundles" begin
@@ -165,10 +200,21 @@ end
   L2 = twisting_sheaf(IPX, 2)
 
   E = DirectSumSheaf(X, [L1, L2])
+  @test occursin("⊕", Oscar.with_unicode(() -> sprint(show, E)))
 
   for U in affine_charts(X)
     @test E(U) isa FreeMod
     V = PrincipalOpenSubset(U, one(OO(U)))
     @test E(U, V).(gens(E(U))) == gens(E(V))
   end
+end
+
+# cotangent module of a principal open subset of a hypersurface
+@testset "cotangent module on MPolyQuoLocRing" begin
+  R, (x, y) = QQ[:x, :y]
+  X = spec(R, ideal(R, [x*y]))
+  U = PrincipalOpenSubset(X, OO(X)(x+1))
+  M = Oscar.cotangent_module(U)
+  @test ngens(M) == 2
+  @test base_ring(M) === OO(U)
 end

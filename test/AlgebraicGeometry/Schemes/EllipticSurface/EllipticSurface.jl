@@ -27,8 +27,10 @@ end
   Qtf = fraction_field(Qt)
   E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2])
   X3 = elliptic_surface(E, 2)
+  @test Oscar.kodaira_neron_model(E, 2) isa Oscar.EllipticSurface
   weierstrass_contraction(X3)
   trivial_lattice(X3)
+  @test_throws ErrorException fiber_components(X3, [2, 3])
 end  
 
 # This test takes about 30 seconds

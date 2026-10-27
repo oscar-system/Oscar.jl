@@ -75,7 +75,7 @@ function load_object(
     ),
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  L = lie_algebra(R, n, basis, symbs; check=false)
+  L = lie_algebra(R, n, basis, symbs; is_basis=true, check=false)
   load_root_system_data(s, L, d)
   return L
 end

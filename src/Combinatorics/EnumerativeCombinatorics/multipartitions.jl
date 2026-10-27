@@ -122,7 +122,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
   function recP!(p::Vector{T}, i::T, n::T) #where T<:IntegerUnion
     if i==length(p) || n==0
       p[Int(i)] = n
-      recMultipartitions!(fill(Partition(T[]),r), p, T(1))
+      recMultipartitions!(fill(Partition(T[]),Int(r)), p, T(1))
     else
       for j=0:n
         p[Int(i)] = T(j)
@@ -146,7 +146,7 @@ function multipartitions(n::T, r::IntegerUnion) where T<:IntegerUnion
     end
   end
 
-  recP!(zeros(T,r), T(1), n)
+  recP!(zeros(T,Int(r)), T(1), n)
   return (x for x in MP)
   # return MP
 end

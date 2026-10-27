@@ -175,7 +175,7 @@ julia> Oscar.linear_index(C, 7)
 """
 function linear_index(C::Combination, n::IntegerUnion)
   @req is_empty(C) || C[end] <= n "Combination must be bounded by n"
-  k = length(C)
+  k = typeof(n)(length(C))
   iszero(k) && return 1
   isone(k) && return Int(C[1])
 
@@ -212,17 +212,17 @@ function combination(n::T, k::IntegerUnion, r::IntegerUnion) where T<:IntegerUni
   isone(k) && return Combination{T}(T[r])
   n == k && return Combination{T}(collect(T(1):n))
 
-  C = zeros(T, k)
+  C = zeros(T, Int(k))
   r = binomial(Int(n),Int(k)) - r
-  j = T(1)
-  for i in 1:k
+  j = 1
+  for i in 1:Int(k)
     b = binomial(Int(n) - j, Int(k) - i + 1)
     while b > r
-      j += T(1)
+      j += 1
       b = binomial(Int(n) - j, Int(k) - i + 1)
     end
     C[i] = j
-    j += T(1)
+    j += 1
     r -= b
   end
   return Combination{T}(C)

@@ -9,6 +9,7 @@
                          [2, 3],
                          [3, 3]]
     @test eltype(C) === Combination{Int}
+    @test collect(multicombinations([1, 2, 3], ZZ(2))) == collect(multicombinations([1, 2, 3], 2))
     C = multicombinations(100, 3)
     @test length(C) == binomial(102, 3)
 

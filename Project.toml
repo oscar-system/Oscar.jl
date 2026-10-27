@@ -38,7 +38,7 @@ HomotopyContinuation = "f213a82b-91d6-5c5d-acf7-10f1c761b327"
 HomotopyContinuationExt = "HomotopyContinuation"
 
 [compat]
-AbstractAlgebra = "0.51.1"
+AbstractAlgebra = "0.51.3"
 AlgebraicSolving = "0.13.0"
 CodecZlib = "0.7.8"
 Compat = "4.13.0"

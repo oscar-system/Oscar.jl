@@ -286,8 +286,8 @@ end
 function _equivariant_overlattice_with_graph(
   DAinD::TorQuadModuleMap,
   DBinD::TorQuadModuleMap,
-  fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
-  fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD)))),
+  fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(DAinD)))),
+  fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(DBinD)))),
 )
   C, graph = _overlattice_with_graph(DAinD, DBinD)
   L = relations(codomain(DAinD))
@@ -484,7 +484,7 @@ function _compute_image_stabilizer_in_Oq!(
   imOHM = elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check=false); check=false) for x in gens(_stabM)]
   _actM = hom(_stabM, OHM, imOHM; check=false)
   if ext_type[2] == :plain
-    _GN, _ = discrep(centralizer(domain(discrep), b)[1])
+    _GN, _ = discrep(centralizer(domain(discrep), domain(discrep)(b))[1])
   else
     _GN = OqfN
   end
@@ -1440,14 +1440,14 @@ function _primitive_extensions(
     if haskey(D, G)
       push!(D[G], N)
     else
-      D[G] = N
+      D[G] = ZZLat[N]
     end
   end
 
   results = NTuple{3, ZZLat}[]
   for G in keys(D)
     # Manage the parity compatibility each genus at a time
-    both_even = is_even(GM) && is_even(G)
+    both_even = is_even(genusM) && is_even(G)
     if !both_even && parity === :even
       continue
     elseif parity === :default
@@ -2498,7 +2498,7 @@ function equivariant_primitive_extensions(
         GMbar, _ = image_centralizer_in_Oq(M; _local)
       end
     else
-      GMbar, _ = image(discriminant_representation(M, right_action; full=false))
+      GMbar, _ = image(discriminant_representation(lattice(M), right_action; full=false))
     end
   else
     GMbar = right_discriminant_action
@@ -2513,7 +2513,7 @@ function equivariant_primitive_extensions(
         GNbar, _ = image_centralizer_in_Oq(N; _local)
       end
     else
-      GNbar, _ = image(discriminant_representation(N, left_action; full=false))
+      GNbar, _ = image(discriminant_representation(lattice(N), left_action; full=false))
     end
   else
     GNbar = left_discriminant_action
@@ -2585,7 +2585,7 @@ function equivariant_primitive_extensions(
         GMbar, _ = image_centralizer_in_Oq(M; _local)
       end
     else
-      GMbar, _ = image(discriminant_representation(M, right_action; full=false))
+      GMbar, _ = image(discriminant_representation(lattice(M), right_action; full=false))
     end
   else
     GMbar = right_discriminant_action
@@ -2726,6 +2726,8 @@ function admissible_equivariant_primitive_extensions(
   )
   # p and q can be equal, and they will be most of the time
   @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
+  p = Int(p)
+  q = Int(q)
 
   # Requirements for [BH23]
   same_ambient = ambient_space(lattice(A)) === ambient_space(lattice(B)) === ambient_space(lattice(C))
@@ -3147,7 +3149,7 @@ function _glue_stabilizers(
     if isnothing(right_action)
       GMbar = subM ? image_centralizer_in_Oq(M)[1] : _orthogonal_group(qM, TorQuadModuleMap[id_hom(qM)]; check=false)
     else
-      GMbar, _ = image(discriminant_representation(M, right_action; full=false))
+      GMbar, _ = image(discriminant_representation(lattice(M), right_action; full=false))
     end
   else
     GMbar = right_discriminant_action
@@ -3158,7 +3160,7 @@ function _glue_stabilizers(
     if isnothing(left_action)
       GNbar = subN ? image_centralizer_in_Oq(N)[1] : _orthogonal_group(qN, TorQuadModuleMap[id_hom(qN)]; check=false)
     else
-      GNbar, _ = image(discriminant_representation(N, left_action; full=false))
+      GNbar, _ = image(discriminant_representation(lattice(N), left_action; full=false))
     end
   else
     GNbar = left_discriminant_action
@@ -3232,6 +3234,7 @@ function _classes_isomorphic_subgroups(
     mu::PolyRingElem=zero(Hecke.Globals.Qx),
   )
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+  f isa AutomorphismGroupElem && (f = hom(f))
 
   if isnothing(H)
     @assert !isnothing(ordH)

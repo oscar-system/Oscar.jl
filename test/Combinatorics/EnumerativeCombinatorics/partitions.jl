@@ -229,6 +229,8 @@
 
     @test conjugate(partition([])) == partition([])
 
+    @test conjugate(partition(ZZRingElem[3, 1])) == partition(ZZRingElem[2, 1, 1])
+
     # Check if conjugate is an involution
     for p in partitions(10)
       @test conjugate(conjugate(p)) == p

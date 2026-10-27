@@ -75,7 +75,7 @@ end
 
 function restrict(f::AffineSchemeOpenSubschemeMor, W::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
   @check begin
-    is_subscheme(W, domain(f)) || error("$U is not contained in the domain of $f")
+    is_subscheme(W, domain(f)) || error("$W is not contained in the domain of $f")
     is_subscheme(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end
   phi = restriction_map(domain(f), W)

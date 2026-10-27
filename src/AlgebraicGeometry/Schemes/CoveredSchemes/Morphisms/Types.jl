@@ -91,7 +91,7 @@ information on the decomposition of the new scheme into disjoint components.
       inclusions::Vector{<:AbsCoveredSchemeMorphism};
       check::Bool=true
     ) 
-    @check is_normal(X) "not a normalization morphism"
+    @check is_normal(domain(f)) "not a normalization morphism"
     @assert all(inc->codomain(inc) === domain(f), inclusions) "domains and codomains do not match"
     ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,inclusions)
     return ret_value    
@@ -101,8 +101,8 @@ information on the decomposition of the new scheme into disjoint components.
       f::CoveredSchemeMorphism;
       check::Bool=true
     )
-    @check is_normal(X) "not a normalization morphism"
-    ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,[identity_map(X)])
+    @check is_normal(domain(f)) "not a normalization morphism"
+    ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,[identity_map(domain(f))])
     return ret_value    
   end
 
