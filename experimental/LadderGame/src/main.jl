@@ -252,7 +252,7 @@ end
 
 
 # TODO make transversal maps, integrate into each LadderStep
-function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
+function young_subgroup_ladder(p::Vector{T} ; full::T=sum(p)) where T<:Integer
   n = sum(p)
   L = LadderStep[]
   pp = copy(p)
@@ -283,18 +283,18 @@ function young_subgroup_ladder( p::Vector{T} ; full::T=sum(p)) where T<:Integer
 end
 
 function graph_edge_ladder(n::IntegerUnion)
-  m = binomial(n,2)
+  m = binomial(Int(n),2)
   G = symmetric_group(m)
-  U = image(action_homomorphism(gset(symmetric_group(n), [Set([1,2])])))[1]
+  U = image(action_homomorphism(gset(symmetric_group(Int(n)), [Set([1,2])])))[1]
   k = div(m,2)
   L = young_subgroup_ladder([k,m-k])
   return L, G, U
 end
 
 function graph_edge_ladder_full(n::IntegerUnion)
-  m = binomial(n,2)
+  m = binomial(Int(n),2)
   G = symmetric_group(m)
-  U = image(action_homomorphism(gset(symmetric_group(n), [Set([1,2])])))[1]
+  U = image(action_homomorphism(gset(symmetric_group(Int(n)), [Set([1,2])])))[1]
   L = young_subgroup_ladder([1,m-1])
   return L, G, U
 end
