@@ -22,7 +22,7 @@ help alleviate the limits -- but you might need to be patient!
 ## How to obtain/install OSCAR
 
 The main OSCAR website can be found at https://www.oscar-system.org/
-The menu on thet page offers a link to `Installation` which explains
+The menu on that page offers a link to `Installation` which explains
 the steps necessary to download and install OSCAR -- you will need a
 good internet connection, and some patience to complete the installation.
 Be aware that the installation requires as much as 8Gbyte disk space.
