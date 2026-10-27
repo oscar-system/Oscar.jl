@@ -36,6 +36,9 @@ end
 Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
 from `I` forwarding all `args`.
 
+Polynomials over `QQ` or `QQBar` are supported; irrational algebraic
+coefficients are approximated by `ComplexF64`.
+
 # Examples
 ```julia-repl
 julia> Qxy, (x, y) = QQ[:x, :y]
