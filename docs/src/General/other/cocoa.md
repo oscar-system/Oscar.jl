@@ -31,7 +31,7 @@ least 8Gbyte RAM free under normal circumstances -- ideally the computer
 should have _at least_ 16Gbyte RAM.
 
 
-## Forewarning: just-in-time compliation
+## Forewarning: just-in-time compilation
 
 _Forewarned is forearmed:_  your first impression of OSCAR/julia could
 easily be that it is terribly slow!  This is somewhat illusory.
