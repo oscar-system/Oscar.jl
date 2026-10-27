@@ -175,7 +175,9 @@ function _assemble_isotopy_graph!(
     x2 = x3 - dist / 3
     y1 = root_finder(projy(evaluate(f, [Rxy(x1), y])); solver_precision)
     y2 = root_finder(projy(evaluate(f, [Rxy(x2), y])); solver_precision)
-    # Apparently HomotopyContinuation.jl will sometimes produce weird results
+    # The numbers of roots must agree since there is no critical point in
+    # between; a mismatch indicates a numerical failure, e.g., with
+    # HomotopyContinuation.jl
     if length(y1) == length(y2)
       start_edges = _get_edges_with_singularity(length(svecs[i]), length(y1), sindices[i])
       end_edges = _get_edges_with_singularity(
@@ -199,6 +201,7 @@ function _assemble_isotopy_graph!(
       end
     else
       @vprintln :DrawingCurves 2 "Incoherency between critical points detected."
+      return false
     end
   end
 
@@ -226,4 +229,5 @@ function _assemble_isotopy_graph!(
       add_edge!(IG, pt0p, pt1p; nosequence=true)
     end
   end
+  return true
 end

@@ -288,7 +288,7 @@ function isotopy_graph_from_msolve(
     [(critpt[i][1][1] + critpt[i][1][2]) / 2, (critpt[i][2][1] + critpt[i][2][2]) / 2] for
     i in 1:length(svecs)
   ]
-  _assemble_isotopy_graph!(
+  return _assemble_isotopy_graph!(
     IG,
     f,
     singcoords,
@@ -299,6 +299,4 @@ function isotopy_graph_from_msolve(
     solver_precision,
     _real_roots,
   )
-
-  return true
 end
