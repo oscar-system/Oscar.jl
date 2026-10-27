@@ -5,7 +5,7 @@ using Oscar
 import HomotopyContinuation: HomotopyContinuation, Variable, Expression, System, witness_set
 
 # polynomials whose coefficients HomotopyContinuation can take
-const HCPoly = Union{QQMPolyRingElem, MPolyRingElem{QQBarFieldElem}}
+const HCPoly = MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}
 
 # rational coefficients stay exact, irrational algebraic ones become ComplexF64
 _hc_coeff(c::QQFieldElem) = Rational(c)
@@ -95,10 +95,8 @@ function Oscar.solve_numerical(I::MPolyIdeal{<:HCPoly}; args...)
 end
 
 """
-    witness_set(I::Vector{QQMPolyRingElem}; show_progress=false, args...)
-    witness_set(I::MPolyIdeal{<:HCPoly}; show_progress=false, args...)
-    witness_set(I::Vector{<:MPolyRingElem{QQBarFieldElem}}; show_progress=false, args...)
-    witness_set(I::MPolyIdeal{<:MPolyRingElem{QQBarFieldElem}}; show_progress=false, args...)
+    witness_set(I::MPolyIdeal{<:MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}}; show_progress=false, args...)
+    witness_set(I::Vector{<:MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}}; show_progress=false, args...)
 
 Creates a `HomotopyContinuation.WitnessSet`.
 
