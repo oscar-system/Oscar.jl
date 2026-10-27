@@ -412,11 +412,12 @@ update the variable `commit_hash` in the file
 
 ##### Writing an Upgrade Script
 
-An upgrade script is a function pushed into `upgrade_scripts_set`. It receives
-an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}` representing a single
-serialized object node, and returns the (possibly modified) dict.
+An upgrade script is an `UpgradeScript` pushed into `upgrade_scripts_set`. Its
+function receives an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}`,
+and returns the (possibly modified) dict. It is called on the top-level dict,
+which also contains `:_refs`, `:_ns` and `:id`, and then on each entry of `:_refs`.
 
-The dict has the structure:
+Each node has the structure:
 ```
 :_type => ...   # type info (name string or dict with :name/:params)
 :data  => ...   # the serialized data
