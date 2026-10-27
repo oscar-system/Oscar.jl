@@ -110,6 +110,19 @@ end
   @test p[10] isa FreeMod
 end
 
+@testset "issue #6435" begin
+  R, (x,) = graded_polynomial_ring(QQ, [:x])
+  A, _ = quo(R, ideal(R, [x^2]))
+  F1 = graded_free_module(A, [0])
+  F0 = graded_free_module(A, [0, 0])
+  P, _ = cokernel(hom(F1, F0, matrix(A, [1 0])))
+
+  F = free_resolution(P, algorithm = :mres, length = 3)
+  @test is_complete(F)
+  @test is_zero(F[1])
+  @test length(F) == 0
+end
+
 @testset "kernels of FreeMod -> SubquoModule" begin
   # kernels of homomorphisms 
   R, (x,y,z) = QQ[:x, :y, :z]
