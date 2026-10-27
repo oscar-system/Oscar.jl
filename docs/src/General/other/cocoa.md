@@ -196,12 +196,12 @@ matrix(ZZ,
 ```
 
 In OSCAR:
-```
-julia>  M = matrix(ZZ, [[0,1], [1,1]]);
-julia>  M^25   # no semicolon means print the result
+```jldoctest
+julia> M = matrix(ZZ, [[0,1], [1,1]]);
+
+julia> M^25   # no semicolon means print the result
 [46368    75025]
 [75025   121393]
-```
 Observe that the columns are neatly aligned; the lack of commas is a
 mixed blessing.
 
