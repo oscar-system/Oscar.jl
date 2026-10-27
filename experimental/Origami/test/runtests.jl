@@ -116,3 +116,61 @@ end
   expected_strat_list_normal = [normal_form(o) for o in expected_strat_list]
   @test issetequal(expected_strat_list_normal, actual_strat_list_normal)
 end
+
+@testset "Action of S on the extended homology of T_n" begin
+  # Check the S action on the extended homology of T_3 against its known matrix and
+  # against the action on the non-extended homology: they agree except in the column
+  # of the loop mapped to the extra loop, which in the non-extended homology is minus
+  # the sum of all other puncture loops
+  M = action_of_s_on_extended_homology_of_tn(3)
+  expected = matrix(ZZ, [
+     0 -1  0  0  0  0  0  0  0  0  0;
+     1  0  0  0  0  0  0  0  0  0  0;
+    -1  0  1  0  0  0  0  0  0  0  0;
+     0  0  0  0  0  0  0  0  1  0  0;
+     0  0  0  0  0  1  0  0  0  0  0;
+    -1  0  0  1  0  0  0  0  0  0  0;
+     0  0  0  0  0  0  0  0  0  1  0;
+     0  0  0  0  0  0  1  0  0  0  0;
+    -1  0  0  0  1  0  0  0  0  0  0;
+     0  0  0  0  0  0  0  0  0  0  1;
+     0  0  0  0  0  0  0  1  0  0  0
+  ])
+  @test M == expected
+
+  A = action_of_s_on_homology_of_tn(3)
+  N = nrows(A)
+  j = findfirst(k -> isone(M[N + 1, k]), 1:N)
+  @test all(iszero, M[1:N, j])
+  @test A[:, j] == [0; 0; fill(-1, N - 2)]
+  @test all(k -> M[1:N, k] == A[:, k], setdiff(1:N, [j]))
+end
+
+@testset "Action of T on the extended homology of T_n" begin
+  # Check the T action on the extended homology of T_3 against its known matrix and
+  # against the action on the non-extended homology: they agree except in the column
+  # of the loop mapped to the extra loop, which in the non-extended homology is minus
+  # the sum of all other puncture loops
+  M = action_of_t_on_extended_homology_of_tn(3)
+  expected = matrix(ZZ, [
+    1  1  0  0  0  0  0  0  0  0  0;
+    0  1  0  0  0  0  0  0  0  0  0;
+    0  0  1  0  0  0  0  0  0  0  0;
+    0  0  0  1  0  0  0  0  0  0  0;
+    0  0  0  0  1  0  0  0  0  0  0;
+    0 -1  0  0  0  0  0  1  0  0  0;
+    0  0  0  0  0  1  0  0  0  0  0;
+    0 -1  0  0  0  0  1  0  0  0  0;
+    0 -1  0  0  0  0  0  0  0  1  0;
+    0  0  0  0  0  0  0  0  0  0  1;
+    0  0  0  0  0  0  0  0  1  0  0
+  ])
+  @test M == expected
+
+  A = action_of_t_on_homology_of_tn(3)
+  N = nrows(A)
+  j = findfirst(k -> isone(M[N + 1, k]), 1:N)
+  @test all(iszero, M[1:N, j])
+  @test A[:, j] == [0; 0; fill(-1, N - 2)]
+  @test all(k -> M[1:N, k] == A[:, k], setdiff(1:N, [j]))
+end
