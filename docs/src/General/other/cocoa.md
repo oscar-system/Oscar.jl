@@ -134,7 +134,7 @@ corresponding mechanism.  Nevertheless, unless you frequently change
 the current ring in CoCoA-5, the OSCAR approach will work fine for you.
 
 In both CoCoA-5 and OSCAR you have to create a polynomial ring before
-can compute with it elements.  OSCAR offers a much wider range of rings
+you can compute with its elements.  OSCAR offers a much wider range of rings
 than CoCoA-5 does.
 
 
