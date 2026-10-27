@@ -416,6 +416,11 @@ function receives an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}`,
 and returns the (possibly modified) dict. It is called on the top-level dict,
 which also contains `:_refs`, `:_ns` and `:id`, and then on each entry of `:_refs`.
 
+
+```@docs
+Oscar.Serialization.UpgradeScript
+```
+
 Each node has the structure:
 ```
 :_type => ...   # type info (name string or dict with :name/:params)
@@ -440,9 +445,6 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     # 3. Apply type-specific transformations
     if type_name == "MyType"
-      # rename a field in the data
-      dict[:data][:new_field] = pop!(dict[:data], :old_field)
-    elseif type_name == "AnotherType"
       # change type parameter structure
       old_params = dict[:_type][:params]
       dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
@@ -473,23 +475,6 @@ if type_name == "MyType" && haskey(dict[:data], :old_name)
 end
 ```
 
-**Flattening a nested type-params wrapper** — if a type previously stored
-all its contextual data under a single params key and now stores them flat:
-```julia
-if type_name == "MyType" && haskey(dict[:_type][:params], :wrapper)
-  wrapper = dict[:_type][:params][:wrapper]
-  # promote each inner key to the top level
-  for (k, v) in wrapper[:params]
-    k === :key_params && continue   # skip Dict metadata if applicable
-    dict[:_type][:params][k] = v
-  end
-  delete!(dict[:_type][:params], :wrapper)
-end
-```
-
-```@docs
-Oscar.Serialization.UpgradeScript
-```
 
 ## Challenges
 This section documents the various challenges we (will) encounter while
