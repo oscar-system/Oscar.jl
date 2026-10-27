@@ -100,3 +100,11 @@ end
         character_table("U3(5)", 2)) == [[1], [2], [3, 4, 5], [6],
         [7, 8]]
 end
+
+@testset "orthogonal discriminant indicator 0 via a quadratic subfield" begin
+  T = character_table(cyclic_group(15))
+  chi = first(x for x in T if is_faithful(x))
+  # both are correct as sqrt(5) lies in the character field of chi + conj(chi);
+  # which one is found depends on the Julia version
+  @test Oscar.OrthogonalDiscriminants._orthogonal_discriminant_indicator0(chi) in ("-3", "-15")
+end
