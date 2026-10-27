@@ -394,10 +394,9 @@ they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
 should be named `0.13.0.jl`.
 There is also the possibility to have multiple upgrade scripts per version, to accommodate
 files serialized with DEV versions.
-In this case the upgrades should be named `1.6.0+n.jl` where `n` is the `n`th upgrade
-in the sequence for version `1.6.0`.
-To guarantee that upgrades occur in the correct order it is important that they are
-included in the correct order in `src/Serialization/Upgrades/main.jl`.
+In this case the first one is named `1.6.0.jl` and further ones `1.6.0+1.jl`,
+`1.6.0+2.jl`, and so on.
+Upgrades are applied in the order of the versions given to `UpgradeScript`.
 
 Test examples for each upgrade script should be added to the repository
 <https://github.com/oscar-system/serialization-upgrade-tests>.
@@ -454,8 +453,8 @@ push!(upgrade_scripts_set, UpgradeScript(
 ))
 ```
 
-`upgrade_recursive` handles traversal into containers (`Vector`, `Matrix`,
-`Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
+`upgrade_recursive` handles traversal into containers (`Vector`, `Set`, `Matrix`,
+`MultiDimArray`, `Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
 body of the upgrade function only needs to handle the specific type changes
 introduced in that version.
 
