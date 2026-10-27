@@ -295,7 +295,6 @@ function graph_edge_ladder_full(n::IntegerUnion)
   m = binomial(n,2)
   G = symmetric_group(m)
   U = image(action_homomorphism(gset(symmetric_group(n), [Set([1,2])])))[1]
-  k = div(m,2)
   L = young_subgroup_ladder([1,m-1])
   return L, G, U
 end
