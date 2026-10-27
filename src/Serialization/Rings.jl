@@ -176,11 +176,6 @@ function load_object(s::DeserializerState,
   return finish(polynomial)
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
-  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)
-end
-
 ################################################################################
 # Univariate Polynomials
 
@@ -189,7 +184,7 @@ end
 function save_object(s::SerializerState, p::PolyRingElem)
   save_data_array(s) do
     for (i, c) in enumerate(coefficients(p))
-      iszero(c) && continue
+      is_zero(c) && continue
       save_object(s, (i - 1, c))
     end
   end
