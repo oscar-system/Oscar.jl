@@ -111,6 +111,12 @@ function isotopy_graph_from_msolve(
   # This matrix is a generic rotation by definition
   f = f_in((random_transform * gens(Rxy))...)
 
+  # Check for genericity: no vertical asymptotes
+  if is_zero(coeff(f, [0, total_degree(f)]))
+    @vprintln :DrawingCurves 2 "Coefficient of y^deg(f) vanishes, curve has vertical asymptotes."
+    return false
+  end
+
   (x, y) = gens(Rxy)
   dfx = derivative(f, x)
   K = base_ring(Rxy)
