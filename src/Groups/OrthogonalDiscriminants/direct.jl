@@ -106,15 +106,15 @@ the invariant bilinear form of the representation, with random methods.
 ```jldoctest
 julia> t = character_table("A6");
 
-julia> Oscar.OrthogonalDiscriminants.od_from_atlas_group(t[7])
+julia> Oscar.od_from_atlas_group(t[7])
 (true, "-1")
 
-julia> Oscar.OrthogonalDiscriminants.od_from_atlas_group(mod(t, 3)[4])
+julia> Oscar.od_from_atlas_group(mod(t, 3)[4])
 (true, "O-")
 
 julia> t = character_table("L2(27)");
 
-julia> Oscar.OrthogonalDiscriminants.od_from_atlas_group(t[4])
+julia> Oscar.od_from_atlas_group(t[4])
 (false, "")
 ```
 """

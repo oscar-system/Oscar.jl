@@ -7,10 +7,10 @@ of the orthogonal groups $\Omega^+(d, q)$ and $\Omega^-(d, q)$.
 
 # Examples
 ```jldoctest
-julia> Oscar.OrthogonalDiscriminants.order_omega_mod_N(4, 2, 60)
+julia> Oscar.order_omega_mod_N(4, 2, 60)
 (false, true)
 
-julia> Oscar.OrthogonalDiscriminants.order_omega_mod_N(4, 5, 60)
+julia> Oscar.order_omega_mod_N(4, 5, 60)
 (true, true)
 ```
 """
@@ -64,10 +64,10 @@ Otherwise the coefficients of the result have a squarefree g.c.d.
 ```jldoctest
 julia> F, z = cyclotomic_field(4);
 
-julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(4*z^0)
+julia> Oscar.reduce_mod_squares(4*z^0)
 1
 
-julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(-8*z^0)
+julia> Oscar.reduce_mod_squares(-8*z^0)
 -2
 ```
 """
@@ -111,7 +111,7 @@ where $G$ is the group of `tbl` and $P$ is a Sylow `p`-subgroup of $G$.
 ```jldoctest
 julia> tbl = character_table("A5");
 
-julia> l = Oscar.OrthogonalDiscriminants.possible_permutation_characters_from_sylow_subgroup(tbl, 2);
+julia> l = Oscar.possible_permutation_characters_from_sylow_subgroup(tbl, 2);
 
 julia> length(l)
 1
@@ -338,7 +338,7 @@ We assume that `tbl` is almost simple.
 
 # Examples
 ```jldoctest
-julia> Oscar.OrthogonalDiscriminants.orbits_group_automorphisms(
+julia> Oscar.orbits_group_automorphisms(
          character_table("L2(8)"))
 5-element Vector{Vector{Int64}}:
  [1]
@@ -515,7 +515,7 @@ function _orthogonal_discriminant_indicator0(chi::GAPGroupClassFunction)
   # then choose the square root from `Q`, again get an integral `delta`.
   for (Q, Qemb) in subfields(F, degree = 2)
     if ! is_real(complex_embeddings(Q, conjugates = false)[1])
-      return string(AbelianClosure.quadratic_irrationality_info(embF(embQ(gen(Q))))[3])
+      return string(Oscar.AbelianClosure.quadratic_irrationality_info(embF(Qemb(gen(Q))))[3])
     end
   end
 
@@ -542,7 +542,7 @@ for ways to modify what is shown.)
 ```jldoctest
 julia> t = character_table("A5");
 
-julia> Oscar.OrthogonalDiscriminants.show_with_ODs(t)
+julia> Oscar.show_with_ODs(t)
 A5
 
           2  2  2  .  .  .
