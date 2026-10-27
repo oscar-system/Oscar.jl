@@ -26,12 +26,13 @@ concurrency:
 jobs:
   check-standard-refs:
     runs-on: ubuntu-slim
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
       - name: Install bibtool
         run: |
           sudo apt-get -y update
-          sudo apt-get install -y bibtool
+          sudo apt-get install -y --no-install-recommends bibtool
       - name: Execute bibtool and check for changes
         run: |
           bibtool docs/oscar_references.bib -o docs/oscar_references.bib 2>&1 | tee bibtool.log
