@@ -68,6 +68,7 @@ rational_equivalence_class(d::ToricDivisor)
 rational_equivalence_class(c::ToricDivisorClass)
 rational_equivalence_class(l::ToricLineBundle)
 rational_equivalence_class(cc::CohomologyClass)
+fundamental_class(sv::ClosedSubvarietyOfToricVariety)
 rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
 ```
 
@@ -94,10 +95,14 @@ corresponds to the product of two (equivalence classes of) polynomials.
 An algebraic cycle can be intersected `n`- with itself via `^n`,
 where `n` can be an integer of of type `ZZRingElem`.
 
-A closed subvarieties defines in a natural way a rational equivalence
-class (cf. [Special constructors](@ref toric_special_constructors)). This allows to
-compute intersection products among closed subvarieties and rational
-equivalence classes in the Chow ring.
+A complete-intersection subvariety naturally determines a rational equivalence
+class, called its fundamental class (cf.
+[Special constructors](@ref toric_special_constructors)). This allows us to
+compute intersection products of complete-intersection subvarieties of toric
+varieties in the Chow ring. For repeated intersections, it is recommended to
+convert each subvariety once using `fundamental_class` and reuse the resulting
+class, thereby avoiding repeated codimension checks involving potentially
+expensive ideal saturations.
 
 
 ## Attributes
