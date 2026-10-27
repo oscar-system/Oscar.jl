@@ -59,6 +59,7 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'
+      - uses: julia-actions/cache@v3
       - name: Install dependencies
         run: julia --project=docs/deploy/ --color=yes -e 'using Pkg; Pkg.instantiate()'
       - uses: actions/download-artifact@v8
