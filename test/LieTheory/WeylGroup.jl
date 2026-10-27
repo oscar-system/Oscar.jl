@@ -626,7 +626,12 @@
   end
 
   @testset "(dual_)geometric_representation" begin
-    for W in [weyl_group(:B, 3), weyl_group(:E, 6), weyl_group(:G, 2)]
+    for W in [
+      weyl_group(zero_matrix(ZZ, 0, 0)),
+      weyl_group(:B, 3),
+      weyl_group(:E, 6),
+      weyl_group(:G, 2),
+    ]
       R = root_system(W)
       G, hom = geometric_representation(W)
       for _ in 1:5
