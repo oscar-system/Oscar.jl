@@ -341,5 +341,5 @@ end
   chi = first(x for x in T if is_faithful(x))
   # both are correct as sqrt(5) lies in the character field of chi + conj(chi);
   # which one is found depends on the Julia version
-  @test Oscar.OrthogonalDiscriminants._orthogonal_discriminant_indicator0(chi) in ("-3", "-15")
+  @test Oscar._orthogonal_discriminant_indicator0(chi) in ("-3", "-15")
 end
