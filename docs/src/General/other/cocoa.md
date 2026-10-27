@@ -75,8 +75,7 @@ as part of the command.
 ### Assignment and equality testing
 
 In CoCoA-5, to assign a value to a variable one uses `:=`; in Julia
-one uses just `=`.  Oddly, if you use `:=` by accident then Julia
-issues an absurd error message.
+one uses just `=`.
 
 In CoCoA-5 one tests equality using the operator `=`, and non-equality
 using the operator `<>`.  In Julia, the equality test uses `==` (double
