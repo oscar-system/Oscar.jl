@@ -116,7 +116,7 @@ certainly do not want!  In contrast `1//3` does sort of work, but there
 are better ways (see below).
 
 OSCAR behaves much better.  Let `a` and `b` be two values.  _If at least
-one of then is an OSCAR value_ then `a/b` means what you'd expect: it is
+one of them is an OSCAR value_ then `a/b` means what you'd expect: it is
 exact division.
 
 If `a` and `b` are both integer values, and at least one of them is
