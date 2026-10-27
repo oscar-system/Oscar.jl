@@ -151,8 +151,8 @@ end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
   save_data_array(s) do 
-    for c_e in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))
-      save_object(s, reverse(c_e))
+    for e_c in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))
+      save_object(s, e_c)
     end
   end
   return finish(polynomial)
