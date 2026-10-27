@@ -142,11 +142,19 @@ end
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
+  save_data_array(s) do
+    for c_e in coefficients_and_exponents(p)
+      save_object(s, reverse(c_e))
+    end
+  end
 end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  save_object(s, [(e, c) for (c, e) in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))])
+  save_data_array(s) do 
+    for c_e in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))
+      save_object(s, reverse(c_e))
+    end
+  end
 end
 
 function load_object(s::DeserializerState,
@@ -174,9 +182,12 @@ end
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  save_object(s, [
-    (i - 1, c) for (i, c) in enumerate(coefficients(p))
-      if !is_zero(c) ])
+  save_data_array(s) do
+    for (i, c) in enumerate(coefficients(p))
+      iszero(c) && continue
+      save_object(s, (i - 1, c))
+    end
+  end
 end
 
 function load_object(s::DeserializerState,
