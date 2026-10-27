@@ -165,12 +165,13 @@ record[
 ```
 
 The same computation in OSCAR:
-```
-julia> P,x = ZZ["x"];
+```jldoctest
+julia> P, x = ZZ["x"];
+
 julia> f = 4*x^8 + 4*x^6 + x^4 + 4*x^2 + 4;
+
 julia> factor(f)
 (2*x^4 - 4*x^3 + 5*x^2 - 4*x + 2) * (2*x^4 + 4*x^3 + 5*x^2 + 4*x + 2)
-```
 
 
 ### Matrices
