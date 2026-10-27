@@ -236,7 +236,22 @@ function character_of_entry(d::Dict)
 end
 
 
-# Return `true` if `str` occurs as an entry in `d[:comment]`
+@doc raw"""
+    comment_matches(d::Dict, str::String)
+
+Return `true` if `d` describes an OD info (typically, `d` has been returned
+by `all_od_infos`) such that `str` occurs in `d[:comment]`,
+and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> length(all_od_infos(identifier => "A5", comment_matches => "ev"))
+2
+
+julia> length(all_od_infos(identifier => "A5", comment_matches => "AGR"))
+3
+```
+"""
 function comment_matches(d::Dict, str::String)
   @req haskey(d, :comment) "the dictionary has no :comment"
   return str in d[:comment]
@@ -350,9 +365,9 @@ The following conditions are supported.
   that encodes an algebraic integer),
   meaning entries only with this orthogonal discriminant,
 
-- `comment_matches`, with value a string (one of `"ev"`, `"specht"`, ...),
-  or a vector of such strings,
-  meaning entries whose comment contains these values.
+- `comment_matches`, with value a string or a vector of such strings,
+  meaning entries whose comment contains these values;
+  examples are `"ev"`, `"specht"`, `"syl(13)"`.
 
 For all conditions except the boolean valued ones, also a function can be
 given as value, meaning that all those entries satisfy this condition

@@ -295,7 +295,7 @@ include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
-include("Combinatorics/Graphs/functions.jl")
+include("Combinatorics/Graphs/functions.jl")  # Needs PermGroupElem
 include("Combinatorics/PhylogeneticTrees.jl")
 include("NumberTheory/ZLattices.jl") # needs graphs
 
@@ -306,7 +306,9 @@ include("Combinatorics/PartiallyOrderedSet/structs.jl")
 include("Combinatorics/PartiallyOrderedSet/functions.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+
 include("Groups/subspaces.jl") # needs EnumerativeCombinatorics
+include("Groups/OrthogonalDiscriminants/OrthogonalDiscriminants.jl") # needs Partition
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms
