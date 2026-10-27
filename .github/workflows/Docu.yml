@@ -50,6 +50,10 @@ jobs:
   deploy_docs:
     needs: build_docs
     runs-on: ubuntu-latest
+    # Concurrent deployments race between fetch and push to OscarDocumentation (#6459)
+    concurrency:
+      group: docs-deploy
+      queue: max
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@latest
