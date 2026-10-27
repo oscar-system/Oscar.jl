@@ -141,7 +141,7 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
 
 # elements
-function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
+function save_object(s::SerializerState, p::MPolyRingElem)
   save_data_array(s) do
     for c_e in coefficients_and_exponents(p)
       save_object(s, reverse(c_e))
@@ -149,13 +149,12 @@ function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRi
   end
 end
 
-function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
+function save_object(s::SerializerState, p::Union{AbstractAlgebra.Generic.LaurentMPolyWrap, UniversalPolyRingElem})
   save_data_array(s) do 
     for e_c in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))
       save_object(s, e_c)
     end
   end
-  return finish(polynomial)
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
