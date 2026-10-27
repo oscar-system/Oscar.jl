@@ -29,7 +29,7 @@ end
 function _degeneracy_locus(df::MatElem{T}, r::Int) where {T<:MPolyQuoRingElem}
   A = base_ring(df)
   R = base_ring(A)::MPolyRing
-  M = map_entries(lift, dF)
+  M = map_entries(lift, df)
   g = gens(modulus(A))
   dg = jacobi_matrix(g)
   M = hcat(M, dg)

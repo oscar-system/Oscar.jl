@@ -551,7 +551,7 @@ function _register_birationality!(f::AbsAffineSchemeMor,
     g::AbsAffineSchemeMor, ginv::AbsAffineSchemeMor)
   set_attribute!(g, :inverse, ginv)
   set_attribute!(ginv, :inverse, g)
-  return _register_birationality(f, g)
+  return _register_birationality!(f, g)
 end
 
 function _register_birationality!(f::AbsAffineSchemeMor,

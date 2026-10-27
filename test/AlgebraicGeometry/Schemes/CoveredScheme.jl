@@ -242,6 +242,16 @@
     inc_X = Oscar.CoveredClosedEmbedding(IP2_cov, II)
     (a, b, c) = base_change(pr, inc_X)
     @test compose(a, inc_X) == compose(b, c)
+
+    # a morphism whose covering morphism lives on a refinement of the default covering
+    kk5 = GF(5)
+    pr5 = MapFromFunc(ZZ, kk5, kk5)
+    g = ProjectiveSchemeMor(IP2, IP2, hom(S, S, [y, x, z]))
+    g_cov = covered_scheme_morphism(g)
+    @test domain(covering_morphism(g_cov)) !== default_covering(IP2_cov)
+    (a, b, c) = base_change(pr5, g_cov)
+    @test domain(b) === domain(a)
+    @test codomain(b) === domain(c)
   end
 
   @testset "decomposition info" begin

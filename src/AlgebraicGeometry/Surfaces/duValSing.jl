@@ -274,7 +274,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
 
   # we now already know essentially a hypersurface of corank 2, count degrees of freedom cubicpart
   cubiccount = vector_space_dim(F1quo,2)
-  cubiccount < 3 || return  (false, typof(smooth))                      ## at least X_9
+  cubiccount < 3 || return  (false, typeof(smooth))                      ## at least X_9
   cubiccount > 1 || return  (true, (:D,tau))                            ## D_series
 
   # it is definitely in the E/J series

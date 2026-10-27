@@ -155,6 +155,12 @@ function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPoly
       save_object(s, reverse(c_e))
     end
   end
+  return finish(polynomial)
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
+  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
+  return parent_ring(poly)
 end
 
 function load_object(s::DeserializerState,

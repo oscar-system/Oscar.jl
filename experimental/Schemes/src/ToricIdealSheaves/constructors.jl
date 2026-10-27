@@ -227,8 +227,6 @@ function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int
 
   S = cox_ring(X)
   r = matrix(ZZ, rays(X))
-  max_cones = maximal_cones(X)
-  sigma = max_cones[k]
   ray_indices_sigma = ray_indices(maximal_cones(X))[k, :]
   loc_vars = [x for (i, x) in enumerate(gens(S)) if !ray_indices_sigma[i]]
   inv_set = MPolyPowersOfElement(S, loc_vars)
@@ -236,9 +234,9 @@ function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int
   I_loc = loc_map(I)
   
   U = affine_charts(X)[k]
-  hb_U = hilbert_basis(polarize(sigma)) # Corresponds to the variables of OO(U).
+  hb_U = hilbert_basis(U) # Corresponds to the variables of OO(U).
   x = gens(S_loc)
-  img_gens = [prod(x[l]^Int(dot(hb_U[j], r[l, :])) for l in 1:nrows(r); init=one(S_loc)) for j in 1:length(hb_U)]
+  img_gens = [prod(x[l]^Int(dot(hb_U[j, :], r[l, :])) for l in 1:nrows(r); init=one(S_loc)) for j in 1:nrows(hb_U)]
   beta_star = hom(OO(U), S_loc, img_gens; check=false)
 
   # Assemble the dehomogenization map phi_sigma^star.

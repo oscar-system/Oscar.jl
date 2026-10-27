@@ -607,7 +607,7 @@ end
 function subsystem(L::LinearSystem, P::AbsWeilDivisor, n::Int; check::Bool=true)
   @check is_prime(P) "P must be a prime divisor"
   I = components(P)[1]
-  return subsystem(L, I, n)
+  return _subsystem(L, I, n)
 end
 
 
