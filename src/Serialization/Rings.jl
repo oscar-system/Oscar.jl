@@ -151,7 +151,7 @@ end
 
 function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
   save_data_array(s) do 
-    for e_c in zip(AbstractAlgebra.exponent_vectors(p), AbstractAlgebra.coefficients(p))
+    for e_c in zip(AbstractAlgebra.exponent_vectors(p), coefficients(p))
       save_object(s, e_c)
     end
   end
