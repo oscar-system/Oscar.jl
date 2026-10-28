@@ -44,10 +44,12 @@ end
 mutable struct UpgradeState
   id_to_dict::Dict{Symbol, Any}
   nested_level::Int
+  # version of the running upgrade script, decides which format upgrade_recursive expects
+  version::VersionNumber
 end
 
-function UpgradeState()
-  return UpgradeState(Dict{Symbol, Any}(), 0)
+function UpgradeState(version::VersionNumber=v"0.0.0")
+  return UpgradeState(Dict{Symbol, Any}(), 0, version)
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
@@ -66,7 +68,7 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   s.nested_level += 1
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
-  
+
   upgraded_dict = Dict{Symbol, Any}()
   for (key, dict_value) in dict
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
@@ -122,7 +124,7 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
       if d[:params] isa AbstractDict
         if haskey(d[:params], :_type)
           upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
-          
+
         else
           for (k, v) in d[:params]
             upg_d[:params][k] = upgrade_type(d[:params][k])
@@ -132,7 +134,7 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
         upg_d[:params] = upgrade_type(d[:params])
       end
     end
-    
+
     return upg_d
   end
 
@@ -140,6 +142,19 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
     dict[:_type] = upgrade_type(dict[:_type])
   end
   return dict
+end
+
+# Shared by NamedTuple and heterogeneous Dict from 1.9.0+1 on:
+# per-entry types under `entry_params`, data keyed by the same names.
+function upgrade_keyed_entries(upgrade::Function, s::UpgradeState,
+                               entry_params::AbstractDict, data::AbstractDict)
+  for k in keys(entry_params)
+    # singleton entries have no data
+    haskey(data, k) || continue
+    upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => entry_params[k], :data => data[k]))
+    entry_params[k] = upgraded_entry[:_type]
+    data[k] = upgraded_entry[:data]
+  end
 end
 
 function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDict)
@@ -205,20 +220,24 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif type_name == "NamedTuple"
-    upgraded_entries = Dict{Symbol, Any}[]
-    upgraded_entry = nothing
-    for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
-      upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry))
-      push!(upgraded_entries, upgraded_entry)
+    if s.version <= v"1.9.0+1"
+      # {names: [...], tuple_params: [...]} with the data as an array
+      upgraded_entries = Dict{Symbol, Any}[]
+      for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
+        push!(upgraded_entries, upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry)))
+      end
+      dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
+      dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+    else
+      upgrade_keyed_entries(upgrade, s, dict[:_type][:params][:entry_params], dict[:data])
     end
-    dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
-    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif type_name == "Dict"
     key_params = dict[:_type][:params][:key_params]
 
-    if haskey(dict[:_type][:params], :value_params)
+    if s.version > v"1.9.0+1" && haskey(dict[:_type][:params], :entry_params)
+      upgrade_keyed_entries(upgrade, s, dict[:_type][:params][:entry_params], dict[:data])
+    elseif haskey(dict[:_type][:params], :value_params)
       value_params = dict[:_type][:params][:value_params]
-      upgraded_entry = nothing
       upgraded_pairs = Tuple[]
       for (k, v) in dict[:data]
         upgraded_v = upgrade(s, Dict{Symbol, Any}(:_type => value_params, :data => v))
@@ -240,8 +259,11 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
         dict[:_type][:params][:value_params] = first_pair[2][:_type]
       end
     else
+      # before 1.9.0+1: per-key types next to key_params
       for k in keys(dict[:_type][:params])
         k === :key_params && continue
+        # singleton values have no data
+        haskey(dict[:data], k) || continue
         upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => dict[:_type][:params][k],
                                          :data => dict[:data][k]))
         dict[:data][k] = upgraded_entry[:data]
@@ -313,6 +335,7 @@ include("1.7.0.jl")
 include("1.8.0.jl")
 include("1.8.0+1.jl")
 include("1.9.0.jl")
+include("1.9.0+1.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -365,9 +388,7 @@ function upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
       @debug("upgrading serialized data....",
              maxlog=1)
 
-      upgrade_state = UpgradeState()
-      # upgrading large files needs a work around since the new load
-      # uses JSON3 which is read only
+      upgrade_state = UpgradeState(script_version)
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)
