@@ -44,7 +44,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
     elseif type_name == "Dict"
       old_params = dict[:_type][:params]
-      if old_params isa AbstractDict && haskey(old_params, :key_params) && !haskey(old_params, :value_params)
+      if old_params isa AbstractDict && haskey(old_params, :key_params) &&
+         !haskey(old_params, :value_params) && !haskey(old_params, :entry_params)
         dict[:_type][:params] = Dict{Symbol, Any}(
           :key_params => old_params[:key_params],
           :entry_params => filter(kv -> kv.first != :key_params, old_params)

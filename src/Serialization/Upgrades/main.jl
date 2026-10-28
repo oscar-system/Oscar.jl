@@ -44,12 +44,10 @@ end
 mutable struct UpgradeState
   id_to_dict::Dict{Symbol, Any}
   nested_level::Int
-  # version of the running upgrade script, decides which format upgrade_recursive expects
-  version::VersionNumber
 end
 
-function UpgradeState(version::VersionNumber=v"0.0.0")
-  return UpgradeState(Dict{Symbol, Any}(), 0, version)
+function UpgradeState()
+  return UpgradeState(Dict{Symbol, Any}(), 0)
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
@@ -220,8 +218,8 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif type_name == "NamedTuple"
-    if s.version <= v"1.9.0+1"
-      # {names: [...], tuple_params: [...]} with the data as an array
+    if haskey(dict[:_type][:params], :tuple_params)
+      # before 1.9.0+1: {names: [...], tuple_params: [...]} with the data as an array
       upgraded_entries = Dict{Symbol, Any}[]
       for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
         push!(upgraded_entries, upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry)))
@@ -234,7 +232,7 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
   elseif type_name == "Dict"
     key_params = dict[:_type][:params][:key_params]
 
-    if s.version > v"1.9.0+1" && haskey(dict[:_type][:params], :entry_params)
+    if haskey(dict[:_type][:params], :entry_params)
       upgrade_keyed_entries(upgrade, s, dict[:_type][:params][:entry_params], dict[:data])
     elseif haskey(dict[:_type][:params], :value_params)
       value_params = dict[:_type][:params][:value_params]
@@ -388,7 +386,7 @@ function upgrade(format_version::VersionNumber, dict::AbstractDict{Symbol, Any})
       @debug("upgrading serialized data....",
              maxlog=1)
 
-      upgrade_state = UpgradeState(script_version)
+      upgrade_state = UpgradeState()
       upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
       if script_version > v"0.13.0"
         if haskey(upgraded_dict, :_refs)
