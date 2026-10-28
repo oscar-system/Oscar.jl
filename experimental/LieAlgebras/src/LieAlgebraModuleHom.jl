@@ -449,14 +449,14 @@ function hom_tensor(
   if ((fl, Vs) = _is_tensor_product(V); fl)
     # nothing to do
   elseif ((fl, Vb, k) = _is_tensor_power(V); fl)
-    Vs = [Vb for _ in 1:k]
+    Vs = fill(Vb, k)
   else
     throw(ArgumentError("First module must be a tensor product or power"))
   end
   if ((fl, Ws) = _is_tensor_product(W); fl)
     # nothing to do
   elseif ((fl, Wb, k) = _is_tensor_power(W); fl)
-    Ws = [Wb for _ in 1:k]
+    Ws = fill(Wb, k)
   else
     throw(ArgumentError("Second module must be a tensor product or power"))
   end
