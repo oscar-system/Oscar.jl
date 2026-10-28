@@ -105,40 +105,28 @@ end
 
 function load_object(s::DeserializerState, T::Type{<: Vector{params}}) where params
   load_node(s) do
-    if serialize_with_id(params)
-      loaded_v = load_array_node(s; entry_type=params) do _
-        load_ref(s)
-      end
-    else
-      isempty(s.obj) && return params[]
-      loaded_v = load_array_node(s; entry_type=params) do _
-        load_object(s, params)
-      end
+    isempty(s.obj) && return params[]
+    load_array_node(s) do _
+      serialize_with_id(params) ? load_ref(s) : load_object(s, params)
     end
-    if !isempty(loaded_v)
-      elem_T = typeof(first(loaded_v))
-      return Vector{elem_T}(loaded_v)
-    end
-    return loaded_v::Vector{params}
   end
 end
 
 
 function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
   isempty(s.obj) && return T[]
-  v = load_array_node(s; entry_type=T) do _
+  return load_array_node(s) do _
     if serialize_with_id(T)
       load_ref(s)
     else
       load_object(s, T, params)
     end
   end
-  return Vector{typeof(first(v))}(v)
 end
 
 function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
   isempty(s.obj) && return U[]
-  return load_array_node(s; entry_type=U) do _
+  return load_array_node(s) do _
     load_object(s, U)
   end
 end
@@ -520,9 +508,9 @@ function load_object(s::DeserializerState, T::Type{Dict{Symbol, Int}}, key::Unio
 end
 
 function load_object(s::DeserializerState, T::Type{<:Dict{S, U}}, ::Nothing) where {S, U}
-  pairs = load_array_node(s) do _
+  pairs = load_array_node(s; entry_type=Tuple{S, U}) do _
     load_object(s, Tuple{S, U}, (nothing, nothing))
-  end::Vector{Tuple{S, U}}
+  end
   return T(k => v for (k, v) in pairs)
 end
 

@@ -181,6 +181,31 @@
       end
     end
 
+    @testset "(de)serialization Dict{Tuple, T}" begin
+      # Dict with non-string keys is stored as an array of pairs
+      original = Dict((1, 2) => 3)
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
+    @testset "nested Vector keeps concrete element type" begin
+      # loaded element type comes from the entries, not the abstract file type
+      R, (x, y) = polynomial_ring(QQ, [:x, :y])
+      original = [[x, y], [x*y]]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
+    @testset "Vector with null entries" begin
+      # entries are stored as JSON null and load as nothing
+      original = [nothing, nothing]
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
     @testset "(de)serialization Dict{Symbol, T}" begin
       Qx, x = QQ[:x]
       for (T, values) in ((Int, [1, 2]), (QQPolyRingElem, [x^2, x - 1]))

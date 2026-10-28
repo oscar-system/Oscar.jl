@@ -194,6 +194,13 @@ function load_object(s::DeserializerState, ::Type{<:NewType})
 end
 ```
 
+The callback passed to `load_array_node` receives only the index `i` of the
+current entry; the entry itself is available as `s.obj` (callbacks of
+`load_node` take no arguments). Entries that are `null` in the file are
+returned as `nothing` without calling the callback. The result is a vector whose
+element type is the narrowest common type of the loaded entries; pass
+`entry_type=T` to get a `Vector{T}`.
+
 ##### Example 2
 ```julia
 function save_object(s::SerializerState, obj::NewType)
