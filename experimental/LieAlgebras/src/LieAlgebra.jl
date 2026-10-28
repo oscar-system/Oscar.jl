@@ -903,34 +903,36 @@ function _field_ext_with_sqrts(F::QQField, elems::Vector{QQFieldElem})
     return F, sqrt.(elems)
   end
   Fx, x = polynomial_ring(F; cached=false)
-  F, _ = number_field(x^2 - elems[i]; cached=false)
-  return _field_ext_with_sqrts(F, [F(c) for c in elems])
+  Fext, _ = number_field(x^2 - elems[i]; cached=false)
+  return _field_ext_with_sqrts(Fext, Fext.(elems))
 end
 
 function _field_ext_with_sqrts(F::NumField, elems::Vector{<:NumFieldElem})
   @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
-  elems_F = elems
-  i = findfirst(!is_square, elems_F)
+  Fext = F
+  elems_Fext = elems
+  i = findfirst(!is_square, elems_Fext)
   while !isnothing(i)
-    Fx, x = polynomial_ring(F; cached=false)
-    F, _ = number_field(x^2 - elems_F[i]; cached=false)
-    elems_F = [F(c) for c in elems_F]
-    i = findfirst(!is_square, elems_F)
+    Fx, x = polynomial_ring(Fext; cached=false)
+    Fext, _ = number_field(x^2 - elems_Fext[i]; cached=false)
+    elems_Fext = Fext.(elems_Fext)
+    i = findfirst(!is_square, elems_Fext)
   end
-  return F, sqrt.(elems_F)
+  return Fext, sqrt.(elems_Fext)
 end
 
 function _field_ext_with_sqrts(F::FqField, elems::Vector{<:FqFieldElem})
   @req all(e -> parent(e) === F, elems) "Incompatible parent fields"
-  elems_F = elems
-  i = findfirst(!is_square, elems_F)
+  Fext = F
+  elems_Fext = elems
+  i = findfirst(!is_square, elems_Fext)
   while !isnothing(i)
-    Fx, x = polynomial_ring(F; cached=false)
-    F, _ = finite_field(x^2 - elems_F[i]; cached=false)
-    elems_F = [F(c) for c in elems_F]
-    i = findfirst(!is_square, elems_F)
+    Fx, x = polynomial_ring(Fext; cached=false)
+    Fext, _ = finite_field(x^2 - elems_Fext[i]; cached=false)
+    elems_Fext = Fext.(elems_Fext)
+    i = findfirst(!is_square, elems_Fext)
   end
-  return F, sqrt.(elems_F)
+  return Fext, sqrt.(elems_Fext)
 end
 
 function assure_root_system(L::LieAlgebra{C}) where {C<:FieldElem}
