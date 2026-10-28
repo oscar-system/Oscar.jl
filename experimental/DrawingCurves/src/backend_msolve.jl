@@ -8,84 +8,35 @@ function _real_roots(f::QQMPolyRingElem; solver_precision::Int)
   return result
 end
 
-
-function find_ytangent_ybox_tolerance(ypt::Vector{QQFieldElem}, xpt::Vector{QQFieldElem}, pts::Vector{QQFieldElem}, init::Int)
-  ytol = QQ(1, 2)^init
-  yinterval = [ypt[1] - ytol, ypt[2] + ytol]
-  pti = findall(r -> yinterval[1] <= r && r <= yinterval[2], pts)
-  if length(pti) == 2
-    return ytol
-  end
-  let toolarge, toosmall
-    if length(pti) > 2
-      @vprintln :DrawingCurves 2 "ybox was too large!"
-      toolarge = ytol
-      pti = findall(r -> ypt[1] <= r && r <= ypt[2], pts)
-      if length(pti) > 2
-        error("ybox too large, increase solver_precision")
-      end
-      if length(pti) == 2
-        return 0
-      end
-      if length(pti) < 2
-        toosmall = 0
-      end
-      maxit = 1000
-      while length(pti) != 2 && maxit > 0
-        ytol = QQ(1,2)*(toolarge+toosmall)
-        yinterval = [ypt[1] - ytol, ypt[2] + ytol]
-        pti = findall(r -> yinterval[1] <= r && r <= yinterval[2], pts)
-        if length(pti) > 2
-          toolarge = ytol
-        end
-        if length(pti) < 2
-          toosmall = ytol
-        end
-        maxit -= 1
-      end
-      if length(pti) != 2
-        error("Could not find suitable ybox tolerance.")
-      end
-    else
-      @vprintln :DrawingCurves 2 "ybox was too small!"
-      toosmall = ytol
-      l = (ypt[2]-ypt[1])
-      for i = 1:2000
-        ytol = QQ(2)^i * l
-        pti = findall(r -> ypt[1]-ytol <= r && r <= ypt[2]+ytol, pts)
-        if length(pti) > 2
-          break
-        end
-      end
-      if length(pti) < 2
-        error("ybox too small, increase solver_precision $xpt")
-      end
-      if length(pti) == 2
-        return ytol
-      end
-      if length(pti) > 2
-        toolarge = ytol
-      end
-      maxit = 1000
-      while length(pti) != 2 && maxit > 0
-        ytol = QQ(1,2)*(toolarge+toosmall)
-        yinterval = [ypt[1] - ytol, ypt[2] + ytol]
-        pti = findall(r -> yinterval[1] <= r && r <= yinterval[2], pts)
-        if length(pti) > 2
-          toolarge = ytol
-        end
-        if length(pti) < 2
-          toosmall = ytol
-        end
-        maxit -= 1
-      end
-      if length(pti) != 2
-        error("Could not find suitable ybox tolerance.")
-      end
+# Choose the y-window around a critical point with box [a,b] x [c,d].
+# Starting from ytol0, halve the tolerance until the window is separated
+# from all other fiber roots by a gap of the same width, the roots outside
+# the window match on both sides, and the window content fits the type.
+function _critical_ywindow(
+  ptsbefore::Vector{QQFieldElem},
+  ptsafter::Vector{QQFieldElem},
+  ypt::Vector{QQFieldElem},
+  type::Symbol,
+  ytol0::QQFieldElem,
+  ytolmin::QQFieldElem,
+)
+  inside(r, t) = ypt[1] - t <= r && r <= ypt[2] + t
+  ytol = ytol0
+  while ytol >= ytolmin
+    kb = count(r -> inside(r, ytol), ptsbefore)
+    ka = count(r -> inside(r, ytol), ptsafter)
+    gap =
+      count(r -> inside(r, 2 * ytol), ptsbefore) == kb &&
+      count(r -> inside(r, 2 * ytol), ptsafter) == ka
+    below = count(r -> r < ypt[1] - ytol, ptsbefore) == count(r -> r < ypt[1] - ytol, ptsafter)
+    above = count(r -> r > ypt[2] + ytol, ptsbefore) == count(r -> r > ypt[2] + ytol, ptsafter)
+    typeok = type != :ytangent || (kb, ka) in ((2, 0), (0, 2))
+    if gap && below && above && typeok
+      return (ytol, :success)
     end
+    ytol = ytol // 2
   end
-  @vprintln :DrawingCurves 2 "Found ybox tolerance: $ytol"
-  return ytol
+  return (ytol0, :fail)
 end
 
 function _analyse_singularity_msolve(
@@ -110,6 +61,15 @@ function _analyse_singularity_msolve(
     xafter = xpt[2]
     ptsafter = _real_roots(projy(evaluate(f, [Rxy(xafter), y])); solver_precision)
 
+    # Start from 2^-ybox_tolerance and shrink the window until it is consistent
+    ytol0 = QQ(1, 2)^ybox_tolerance
+    ytolmin = min(ytol0, QQ(1, 2)^div(solver_precision, 2))
+    (ytol, state) = _critical_ywindow(ptsbefore, ptsafter, ypt, type, ytol0, ytolmin)
+    if state == :fail
+      @vprintln :DrawingCurves 2 "Could not find a consistent y-window for critical point of type $type."
+      return (ptsbefore, 0, :fail)
+    end
+    yinterval = [ypt[1] - ytol, ypt[2] + ytol]
     result = ptsbefore
     diff = length(ptsbefore) - length(ptsafter)
     if diff < 0
@@ -120,13 +80,6 @@ function _analyse_singularity_msolve(
       @req abs(diff) == 2 "Could not verify ytangent status"
     end
     
-    # Just guessing some precision, not optimal...
-    ytol = QQ(1, 2)^ybox_tolerance
-    if type == :ytangent
-      ytol = find_ytangent_ybox_tolerance(ypt, xpt, result, ybox_tolerance)
-    end
-    yinterval = [ypt[1] - ytol, ypt[2] + ytol]
-
     # Just verify that everything fits with float
     pti = findfirst(r -> yinterval[1] <= r && r <= yinterval[2], result)
 
