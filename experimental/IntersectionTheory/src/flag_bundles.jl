@@ -82,7 +82,7 @@ function _flag_relative_polynomial(D::_FlagBundleData{N}, f) where {N}
   x = gens(A)
   @req ngens(parent(raw)) == N + length(x) "Unexpected ambient polynomial ring"
   ctx = MPolyBuildCtx(D.ring) # D.ring = S without grading
-  for (a, e) in zip(coefficients(raw), AbstractAlgebra.exponent_vectors(raw))
+  for (a, e) in coefficients_and_exponents(raw)
     b = A(a)
     for j in eachindex(x)
       e[N + j] == 0 && continue
@@ -97,9 +97,9 @@ function _flag_flatten(Fl::AbstractVariety, D::_FlagBundleData, f)
   # S without grading --> K[x's, c_ij's]
   R = base_ring(chow_ring(Fl))
   ctx = MPolyBuildCtx(R.R) # R.R: forget grading
-  for (a, e) in zip(coefficients(f), AbstractAlgebra.exponent_vectors(f))
+  for (a, e) in coefficients_and_exponents(f)
     raw = _flag_polynomial(_flag_coefficient(a))
-    for (b, v) in zip(coefficients(raw), AbstractAlgebra.exponent_vectors(raw))
+    for (b, v) in coefficients_and_exponents(raw)
       push_term!(ctx, b, vcat(e, v))
     end
   end

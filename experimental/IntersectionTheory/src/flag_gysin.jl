@@ -85,7 +85,7 @@ function _flag_gysin_roots(G::_FlagBundleGysin{D,A,S,P}, f;
   @req parent(f) === G.relative_ring "Polynomial belongs to a different relative ring"
   result = zero(G.root_ring)
   powers = Dict{Tuple{Int,Int},P}()
-  for (a, e) in zip(coefficients(f), AbstractAlgebra.exponent_vectors(f))
+  for (a, e) in coefficients_and_exponents(f)
     if prune && sum(e .* G.variable_weights) < G.relative_dimension
       continue
     end
@@ -150,7 +150,7 @@ function _flag_gysin_evaluate(G::_FlagBundleGysin{D,A,S,P,C}, f) where {D,A,S,P,
   @req parent(f) === G.root_ring "Polynomial belongs to a different root ring"
   weights = Dict{NTuple{D,Int},C}()
   triangle = div(D*(D + 1), 2)
-  for (a, alpha) in zip(coefficients(f), AbstractAlgebra.exponent_vectors(f))
+  for (a, alpha) in coefficients_and_exponents(f)
     sum(alpha) < G.relative_dimension && continue
     sign, rows = _flag_gysin_rows(alpha, G.exponents)
     (sign == 0 || rows[end] <= 0) && continue

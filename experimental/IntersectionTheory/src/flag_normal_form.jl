@@ -126,7 +126,7 @@ function _flag_rule(D::_FlagBundleReducer{N,A,S,P,C}, i::Int,
     get!(D.rules, beta) do
       tail = _flag_monomial(D.ring, beta) - _flag_relation(D, i, beta)
       result = Pair{NTuple{N,Int},C}[]
-      for (a, e) in zip(coefficients(tail), exponent_vectors(tail))
+      for (a, e) in coefficients_and_exponents(tail)
         a = _flag_coefficient(a)
         iszero(a) && continue
         t = Tuple(e)::NTuple{N,Int}
@@ -210,7 +210,7 @@ function _flag_reduce(D::_FlagBundleReducer{N,A,S,P,C}, f::P;
   pending = Dict{NTuple{N,Int},C}()
   answer = Dict{NTuple{N,Int},C}()
   heap = NTuple{N,Int}[]
-  for (a, e) in zip(coefficients(f), AbstractAlgebra.exponent_vectors(f))
+  for (a, e) in coefficients_and_exponents(f)
     _flag_enqueue!(pending, heap, D, Tuple(e), _flag_coefficient(a), top_only)
   end
   while !isempty(heap)
