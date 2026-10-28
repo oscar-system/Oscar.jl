@@ -611,18 +611,41 @@ function cohomology_model_projection(ctx::ToricCtx, d::FinGenAbGroupElem, i::Int
   return from_orig[i]
 end
 
-function get_lattice_points(A::Any, Q::BitVector, m::Vector{Int}, n::Int)
+# The fiber of `get_lattice_points` over `Q` is the polyhedron
+# {x >= 0 : W x = m + A*Q}, where W is A with the columns in Q negated.
+# It is nonempty iff m + A*Q lies in the cone over the columns of W, and
+# its recession cone {x >= 0 : W x = 0} does not depend on m either.
+# The matrix A is determined by the variety, so we cache per Q.
+@attr Dict{BitVector, Union{Cone{QQFieldElem}, Nothing}} function _fiber_cones(v::NormalToricVariety)
+  return Dict{BitVector, Union{Cone{QQFieldElem}, Nothing}}()
+end
+
+# Return the cone of the degrees m whose fiber over Q is nonempty, or
+# `nothing` if every nonempty fiber over Q is unbounded. An unbounded fiber
+# has infinitely many rationoms, which contribute nothing.
+function _fiber_cone(v::NormalToricVariety, A::Matrix{Int}, Q::BitVector)
+  return get!(_fiber_cones(v), Q) do
+    n = size(A, 2)
+    W = copy(A); W[:, Q] = -W[:, Q]
+    recession_cone = polyhedron((-Matrix{Int}(identity_matrix(ZZ, n)), zeros(Int, n)), (W, zeros(Int, size(A, 1))))
+    is_bounded(recession_cone) || return nothing
+    return positive_hull(permutedims(W))
+  end
+end
+
+function get_lattice_points(v::NormalToricVariety, A::Matrix{Int}, Q::BitVector, m::Vector{Int})
+  points = Vector{Vector{Int}}()
+  C = _fiber_cone(v, A, Q)
+  C === nothing && return points
+  b = m + A*Q
+  b in C || return points
+
+  n = n_rays(v)
   minus_indices = findall(x -> x != 0, Q)
   W = copy(A); W[:, minus_indices] = -W[:,minus_indices]
-  P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,m + A*Q))#First tuples is an affine halfspace that specifies that all exponents are non-negative
+  P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,b))#First tuples is an affine halfspace that specifies that all exponents are non-negative
   #Second tuple is a hyperplane that specifies that the degree of the corresponding rationome is m
-  points = Vector{Vector{Int}}()
-  list = try 
-    collect(lattice_points(P))#It is sometimes possible that there will be inf solutions which prob means that the corresponding rationome will contribute 0(secondary complex should be 0)
-  catch
-    Vector{Vector{Int}}()
-  end
-  for point in list
+  for point in lattice_points(P)
     point = Vector{Int}(point)
     point[minus_indices] = -(point[minus_indices] .+ 1)
     push!(points, point)
@@ -667,7 +690,7 @@ function cohomology_support(v::NormalToricVariety, m::Vector{Int}; D = Dict())#r
   list = Dict{BitVector, Vector{Vector{Int}}}()
 
   for (Q,c_degrees) in D
-    list[Q] = get_lattice_points(A, Q, m, n_rays(v))
+    list[Q] = get_lattice_points(v, A, Q, m)
   end
 
   for (Q,c_degrees) in D
@@ -682,7 +705,7 @@ function cohomology_support(v::NormalToricVariety, m::Vector{Int}; D = Dict())#r
 
         #This could omit a small amount of lattice points, which could improve the optimal_k bound very slightly, but could be outcommented for some performance
         ########
-        list_rest = get_lattice_points(A, Q_rest, m_dual, n_rays(v))
+        list_rest = get_lattice_points(v, A, Q_rest, m_dual)
         if length(list_rest)==0
           list[Q] = []#The dual subset was in the list, but had 0 or inf dual lattice points, so for Serre duality to make sense, this subset of SR cannot contribute
           continue
