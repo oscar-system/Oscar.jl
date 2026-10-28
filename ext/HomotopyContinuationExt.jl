@@ -4,11 +4,20 @@ using Oscar
 
 import HomotopyContinuation: HomotopyContinuation, Variable, Expression, System, witness_set
 
+# polynomials whose coefficients HomotopyContinuation can take
+const HCPoly = MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}
+
+# rational coefficients stay exact, irrational algebraic ones become ComplexF64
+_hc_coeff(c::QQFieldElem) = Rational(c)
+_hc_coeff(c::QQBarFieldElem) = is_rational(c) ? Rational(QQFieldElem(c)) : ComplexF64(c)
+
 @doc raw"""
     Expression(f::QQMPolyRingElem)
+    Expression(f::MPolyRingElem{QQBarFieldElem})
 
-Takes a polynomial `f` an `QQMPolyRingElem` and converts it into a
-`HomotopyContinuation.Expression`. The `HomotopyContinuation.Variable`
+Takes a polynomial `f` over `QQ` or `QQBar` and converts it into a
+`HomotopyContinuation.Expression`. Irrational algebraic coefficients
+are approximated by `ComplexF64`. The `HomotopyContinuation.Variable`
 objects used in the expression have the same names as the generators
 in the `parent(f)` (including brackets as in `x[1]`).
 
@@ -24,17 +33,19 @@ julia> Expression(p)
 x*y^2 + x^2
 ```
 """
-function Expression(f::QQMPolyRingElem)
+function Expression(f::HCPoly)
   # Get a list of HomotopyContinuation variables whose names are the
   # same as the ones in the Oscar polynomial f.
   v = Variable.(symbols(parent(f)))
   # Make the HomotopyContinuation expression
-  return sum(Rational(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f); init=Expression(0))
+  return sum(_hc_coeff(c) * prod(v[i]^e for (i,e) in enumerate(a)) for (c,a) in coefficients_and_exponents(f); init=Expression(0))
 end
 
 @doc raw"""
     System(I::MPolyIdeal{QQMPolyRingElem}; args...)
     System(I::Vector{QQMPolyRingElem}; args...)
+    System(I::MPolyIdeal{<:MPolyRingElem{QQBarFieldElem}}; args...)
+    System(I::Vector{<:MPolyRingElem{QQBarFieldElem}}; args...)
 
 Takes an `MPolyIdeal` and turns it into a `HomotopyContinuation.System`
 containing the ideal generators. It forwards all `args` to `HomotopyContinuation.System`.
@@ -64,28 +75,28 @@ System of length 2
  -x + y^2
 ```
 """
-function System(F::Vector{QQMPolyRingElem}; args...)
+function System(F::Vector{<:HCPoly}; args...)
   R = parent(first(F))
   @req all(f -> parent(f) === R, F) "All polynomials must have the same parent"
   return HomotopyContinuation.System(Expression.(F); variables=Variable.(symbols(R)), args...)
 end
 
-function System(I::MPolyIdeal{QQMPolyRingElem}; args...)
+function System(I::MPolyIdeal{<:HCPoly}; args...)
   R = base_ring(I)
   return HomotopyContinuation.System(Expression.(gens(I)); variables=Variable.(symbols(R)), args...)
 end
 
-function Oscar.solve_numerical(I::Vector{QQMPolyRingElem}; show_progress=false, threading=false, args...)
+function Oscar.solve_numerical(I::Vector{<:HCPoly}; show_progress=false, threading=false, args...)
   return HomotopyContinuation.solve(System(I); show_progress=show_progress, threading=threading, args...)
 end
                                     
-function Oscar.solve_numerical(I::MPolyIdeal{QQMPolyRingElem}; args...)
+function Oscar.solve_numerical(I::MPolyIdeal{<:HCPoly}; args...)
   return Oscar.solve_numerical(gens(I); args...)
 end
 
 """
-    witness_set(I::Vector{QQMPolyRingElem}; show_progress=false, args...)
-    witness_set(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...)
+    witness_set(I::MPolyIdeal{<:MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}}; show_progress=false, args...)
+    witness_set(I::Vector{<:MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}}; show_progress=false, args...)
 
 Creates a `HomotopyContinuation.WitnessSet`.
 
@@ -102,8 +113,8 @@ julia> witness_set(I)
 Witness set for dimension 1 of degree 4
 ```
 """
-witness_set(F::Vector{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(F); show_progress, args...)
-witness_set(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...) = witness_set(System(I); show_progress, args...)
+witness_set(F::Vector{<:HCPoly}; show_progress=false, args...) = witness_set(System(F); show_progress, args...)
+witness_set(I::MPolyIdeal{<:HCPoly}; show_progress=false, args...) = witness_set(System(I); show_progress, args...)
 
 # currently not working as expected
 #function Oscar.dim_numerical(I::Vector{QQMPolyRingElem})
