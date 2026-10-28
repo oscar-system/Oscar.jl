@@ -321,7 +321,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
           :params => Dict{Symbol, Any}(
-            :basis => dict[:data][:basis][:_type],
+            :basis => dict[:data][:basis][:_type][:params],
             :ambient_space => dict[:data][:ambient_space]
           )
         )
@@ -331,7 +331,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => type_name,
           :params => Dict{Symbol, Any}(
             :order => dict[:data][:order][:_type],
-            :isom => dict[:data][:isom][:_type],
+            :isom => dict[:data][:isom][:_type][:params],
             :quad_space => dict[:data][:quad_space]
           )
         )
@@ -346,7 +346,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => type_name,
           :params => Dict{Symbol, Any}(
             :ambient_space => quad_space,
-            :basis => dict[:data][:basis][:_type],
+            :basis => dict[:data][:basis][:_type][:params],
           )
         )
         dict[:data] = dict[:data][:basis][:data]

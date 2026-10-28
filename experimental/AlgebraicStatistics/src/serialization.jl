@@ -138,17 +138,21 @@ end
 type_and_params(pm::PhylogeneticModel) = TypeAndParams(
   PhylogeneticModel,
   :base_field => base_field(pm),
-  :graph => type_and_params(graph(pm)),
-  :transition_matrix => type_and_params(transition_matrix(pm)),
-  :root_distribution => type_and_params(root_distribution(pm)),
-  :model_parameter => type_and_params(varnames(pm)),
+  # needed until serialization can handle types as parameters
+  :graph_type => TypeAndParams(typeof(graph(pm)), nothing),
+  :graph_params => type_and_params(graph(pm)),
+  :model_parameter_name_type => TypeAndParams(typeof(varnames(pm)), nothing),
+  :transition_matrix_entry_type => TypeAndParams(eltype(transition_matrix(pm)), nothing),
+  :transition_matrix_params => type_and_params(transition_matrix(pm)),
+  :root_distribution_entry_type => TypeAndParams(eltype(root_distribution(pm)), nothing),
+  :root_distribution_params => type_and_params(root_distribution(pm))
 )
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
   save_data_dict(s) do
     save_object(s, graph(pm), :graph)
     save_object(s, transition_matrix(pm), :transition_matrix)
-    save_object(s, varnames(pm), :model_parameter)
+    save_object(s, varnames(pm), :model_parameter_name)
     save_object(s, n_states(pm), :n_states)
     save_object(s, root_distribution(pm), :root_distribution)
   end
@@ -157,10 +161,10 @@ end
 function load_object(s::DeserializerState, tp::TypeAndParams{PhylogeneticModel, <:Tuple{Vararg{Pair}}})
   return PhylogeneticModel(
     tp[:base_field],
-    load_object(s, tp[:graph], :graph),
-    load_object(s, tp[:transition_matrix], :transition_matrix),
-    load_object(s, tp[:root_distribution], :root_distribution),
-    load_object(s, tp[:model_parameter], :model_parameter)
+    load_object(s, tp[:graph_params], :graph),
+    load_object(s, tp[:transition_matrix_params], :transition_matrix),
+    load_object(s, tp[:root_distribution_params], :root_distribution),
+    load_object(s, tp[:model_parameter_name_type], :model_parameter_name)
   )
 end
 
@@ -171,15 +175,16 @@ end
 type_and_params(pm::GroupBasedPhylogeneticModel) = TypeAndParams(
   GroupBasedPhylogeneticModel,
   :phylo_model => phylogenetic_model(pm),
+  # see comment in GroupBasedPhylogeneticModel constructor about group
   :group => parent(first(group(pm))),
-  :model_parameter => type_and_params(varnames(pm)),
+  :model_parameter_name_type => TypeAndParams(typeof(varnames(pm)), nothing),
 )
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
   save_data_dict(s) do
     save_object(s, fourier_parameters(pm), :fourier_parameters)
     save_object(s, group(pm), :group_elems)
-    save_object(s, varnames(pm), :model_parameter)
+    save_object(s, varnames(pm), :varnames_group_based)
   end
 end
 
@@ -187,7 +192,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{GroupBasedPhylogene
   GroupBasedPhylogeneticModel(tp[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
                               load_object(s, TypeAndParams(Vector{FinGenAbGroupElem}, tp[:group]), :group_elems),
-                              load_object(s, tp[:model_parameter], :model_parameter))
+                              load_object(s, tp[:model_parameter_name_type], :varnames_group_based))
 end
 
 

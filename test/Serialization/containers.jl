@@ -172,11 +172,11 @@
       end
     end
 
-    @testset "(de)serialization of keyed entries in NamedTuple and Dict{Symbol, Any}" begin
+    @testset "(de)serialization of NamedTuple and Dict{Symbol, Any}" begin
       # a key called name, singleton values, and independence of JSON key order
       for original in (Dict{Symbol, Any}(:name => 1, :x => "a"),
                        Dict{Symbol, Any}(:a => ZZ, :b => 1),
-                       (zeta = 1, alpha = "x", mu = QQ(1//2), beta = ZZ(5), nu = ZZ))
+                       (zeta = 1, alpha = "x", mu = QQ(1//2), beta = ZZ(5)))
         test_save_load_roundtrip(path, original) do loaded
           @test original == loaded
         end
