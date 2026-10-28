@@ -834,11 +834,10 @@ function _root_system_and_chevalley_basis(
 
   # In general, `coeffs` may not be squares in the coefficient field.
   # Construct a field extension `F` where they are.
-  if all(is_square, coeffs)
-    F = R
-    coeffs_F_sqrt = sqrt.(coeffs)
+  F, coeffs_F_sqrt = if all(is_square, coeffs)
+    (R, sqrt.(coeffs))
   else
-    F, coeffs_F_sqrt = _field_ext_with_sqrts(R, coeffs)
+    _field_ext_with_sqrts(R, coeffs)
   end
 
   # Construct a Lie algebra `L_F` over `F` with the same structure constants as `L`,
