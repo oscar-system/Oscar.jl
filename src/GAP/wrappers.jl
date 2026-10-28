@@ -429,7 +429,7 @@ GAP.@wrap SLPforElement(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap SmallestMovedPoint(x::Any)::GapInt
 GAP.@wrap SortingPerm(x::GapObj)::GapObj
 GAP.@wrap Source(x::GapObj)::GapObj
-GAP.@wrap Sqrt(x::Int64)::GAP.Obj
+GAP.@wrap Sqrt(x::Any)::GAP.Obj
 GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Stabilizer(x::GapObj, y::Any, z::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj

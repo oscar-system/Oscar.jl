@@ -200,7 +200,7 @@ end
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
    my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
-   @testset for N in [ 5, -3, 12, -8 ]
+   @testset for N in [ 5, -3, 12, -8, 5 * ZZ(2)^64 ]
       F, z = quadratic_field(N)
       f = Oscar.iso_oscar_gap(F)
       @test f === Oscar.iso_oscar_gap(F)  # test that everything gets cached

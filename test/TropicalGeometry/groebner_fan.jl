@@ -22,4 +22,16 @@
         @test isequal(f_vector(Sigma),[63,206,225,81])
         @test !is_simplicial(Sigma)
     end
+
+    @testset "marked Groebner bases" begin
+        R,(x,y) = polynomial_ring(QQ,[:x,:y])
+        I = ideal(R,[x+y])
+        Sigma, output = groebner_fan(I; return_groebner_bases=true, marked_groebner_bases=true)
+        @test n_maximal_cones(Sigma) == 2
+        @test length(output) == 2
+        for cone_data in output
+            marked_GB = only(cone_data)
+            @test all(((g, lt),) -> lt in [x, y] && g == x+y, marked_GB)
+        end
+    end
 end
