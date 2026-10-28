@@ -81,6 +81,10 @@ include("AlgebraicCycles/properties.jl")
 include("AlgebraicCycles/attributes.jl")
 include("AlgebraicCycles/special_attributes.jl")
 
+include("CompleteIntersections/constructors.jl")
+include("CompleteIntersections/attributes.jl")
+include("CompleteIntersections/properties.jl")
+
 include("ToricMorphisms/constructors.jl")
 include("ToricMorphisms/attributes.jl")
 include("ToricMorphisms/standard_constructions.jl")
