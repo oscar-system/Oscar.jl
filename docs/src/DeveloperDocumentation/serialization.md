@@ -391,10 +391,13 @@ Oscar.Serialization.upgrade_data
 
 All upgrade scripts should be contained in a file named after the version
 they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
-should be named `0.13.0.jl`. 
-There is also the possibility to have multiple upgrade scripts per version, this is to accommodate file serialized with DEV versions.
-In this case the upgrades should be named `1.6.0-n.jl` where `n` is the `n`th upgrade in the sequence of upgrades that will upgrade a file to the `1.6.0` version.
-To guarantee that upgrades occur in the correct order it is important that they are included (`include("/path/to/upgrade")`) in the correct order in `src/Serialization/Upgrades/main.jl`.
+should be named `0.13.0.jl`.
+There is also the possibility to have multiple upgrade scripts per version, to accommodate
+files serialized with DEV versions.
+In this case the first one is named `1.6.0.jl` and further ones `1.6.0+1.jl`,
+`1.6.0+2.jl`, and so on.
+Upgrades are applied in the order of the versions given to `UpgradeScript`.
+That is, each upgrade script can assume that its input data have the format that is defined by the upgrade scripts with smaller version numbers.
 
 Test examples for each upgrade script should be added to the repository
 <https://github.com/oscar-system/serialization-upgrade-tests>.
@@ -406,10 +409,77 @@ has to modify the contents in order to load the object.
 In order to achieve that the new test examples get included in the CI tests,
 update the variable `commit_hash` in the file
 `test/Serialization/upgrades/setup_tests.jl` of the OSCAR repository.
+The value must be the hash of the merge commit that adds the new example to the master branch of the serialization-upgrade-tests repository.
+
+##### Writing an Upgrade Script
+
+An upgrade script is an `UpgradeScript` pushed into `upgrade_scripts_set`. Its
+function receives an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}`,
+and returns the (possibly modified) dict. It is called on the top-level dict,
+which also contains `:_refs`, `:_ns` and `:id`, and then on each entry of `:_refs`.
+
 
 ```@docs
 Oscar.Serialization.UpgradeScript
 ```
+
+Each node has the structure:
+```
+:_type => ...   # type info (name string or dict with :name/:params)
+:data  => ...   # the serialized data
+```
+
+The typical structure of an upgrade function is:
+
+```julia
+push!(upgrade_scripts_set, UpgradeScript(
+  v"X.Y.Z",
+  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+    # 1. Recurse into containers and nested objects first
+    upgrade_recursive(upgrade_X_Y_Z, s, dict)
+
+    # 2. Determine the type name of the current node
+    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
+      type_name = dict[:_type][:name]
+    else
+      type_name = dict[:_type]
+    end
+
+    # 3. Apply type-specific transformations
+    if type_name == "MyType"
+      # change type parameter structure
+      old_params = dict[:_type][:params]
+      dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
+    
+      # change data structure
+      dict[:data][:new_pos] = dict[:data][:old_pos]
+    end
+
+    return dict
+  end
+))
+```
+
+`upgrade_recursive` handles traversal into containers (`Vector`, `Set`, `Matrix`,
+`MultiDimArray`, `Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
+body of the upgrade function only needs to handle the specific type changes
+introduced in that version.
+
+###### Common patterns
+
+**Renaming a type** — use the `rename_types` helper:
+```julia
+renamings = Dict{String,String}("OldName" => "NewName")
+return rename_types(dict, renamings)
+```
+
+**Renaming a data field**:
+```julia
+if type_name == "MyType" && haskey(dict[:data], :old_name)
+  dict[:data][:new_name] = pop!(dict[:data], :old_name)
+end
+```
+
 
 ## Challenges
 This section documents the various challenges we (will) encounter while
