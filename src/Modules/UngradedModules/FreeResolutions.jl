@@ -2,18 +2,24 @@ function map(FR::FreeResolution, i::Int)
   return map(FR.C, i)
 end
 
+function _free_resolution_display_limit(C::Hecke.ComplexOfMorphisms)
+  padding_start = get_attribute(C, :free_resolution_padding_start)
+  return isnothing(padding_start) ? first(map_range(C)) : padding_start - 1
+end
+
+function _mark_free_resolution_padding!(C::Hecke.ComplexOfMorphisms, padding_start::Int)
+  current_padding_start = get_attribute(C, :free_resolution_padding_start)
+  if isnothing(current_padding_start) || padding_start < current_padding_start
+    set_attribute!(C, :free_resolution_padding_start => padding_start)
+  end
+end
+
 function Base.show(io::IO, FR::FreeResolution)
   C = FR.C
   name_mod = String[]
   rank_mod = Int[]
 
-  rng = range(C)
-  ub = findfirst(i -> is_zero(C[i]), 2:first(map_range(C)))
-  if ub == nothing
-    rng = first(map_range(C)):-1:0
-  else
-    rng = ub+1:-1:0
-  end
+  rng = _free_resolution_display_limit(C):-1:0
 
   arr = ("<--", "--")
 
@@ -158,6 +164,7 @@ end
 function _extend_free_resolution_to_the_left_by_zeros(cc::Hecke.ComplexOfMorphisms, idx::Int)
   r = Hecke.map_range(cc)
   if idx > first(r)
+    _mark_free_resolution_padding!(cc, first(r) + 1)
     for j = first(r):idx-1
       cod =  domain(first(cc.maps))
       phi = id_hom(cod)
@@ -298,6 +305,10 @@ function _extend_free_resolution_via_fres_or_sres(cc::Hecke.ComplexOfMorphisms, 
   pushfirst!(cc.maps, hom(res[i0+1], Fi0, img_gens))
   for j in first(range(cc))+1:first(range(res.C))
     pushfirst!(cc.maps, map(res, j))
+  end
+  padding_start = get_attribute(res.C, :free_resolution_padding_start)
+  if !isnothing(padding_start)
+    _mark_free_resolution_padding!(cc, padding_start)
   end
   if is_zero(domain(first(cc.maps)))
     cc.complete=true
@@ -540,6 +551,7 @@ function free_resolution(M::SubquoModule{T};
     if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
         set_attribute!(cc, :minimal=>true)
     end
+    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M, :algorithm => algorithm)
     _extend_free_resolution_to_the_left_by_zeros(cc, length)
     return FreeResolution(cc)
   end
@@ -645,6 +657,7 @@ function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
       N = domain(map(C, i))
       if iszero(N)
         C.complete = true
+        _mark_free_resolution_padding!(C, i + 1)
         phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
@@ -1195,13 +1208,10 @@ julia> augmented_complex(fr)
 
 ```
 """
-function augmented_complex(F::FreeResolution)
-  ub = findfirst(i -> is_zero(F.C[i]), 2:first(map_range(F.C)))
-  if isnothing(ub)
-    AC = F.C[-2:first(map_range(F.C))]
-  else
-    AC = F.C[-2:ub+1]
-  end
+function augmented_complex(F::FreeResolution{T}) where {T}
+  upper = _free_resolution_display_limit(F.C)
+  maps = [map(F.C, i) for i in upper:-1:-1]
+  AC = Hecke.ComplexOfMorphisms(T, maps; check = false, seed = -2)
   set_attribute!(AC, :show => Hecke.pres_show)
   return AC
 end

@@ -190,6 +190,25 @@ end
   M = free_module(R,1)
   @test length(free_resolution(M)) == 0
 
+  # Genuine zero terms and zero maps in a resolution must remain visible.
+  E = free_module(R, 1)
+  Z = free_module(R, 0)
+  maps = Oscar.OFPModuleHom[
+    hom(Z, E, elem_type(E)[]; check = false),
+    id_hom(E),
+    hom(E, Z, [zero(Z)]; check = false),
+    hom(Z, Z, elem_type(Z)[]; check = false),
+    hom(Z, E, elem_type(E)[]; check = false),
+    id_hom(E),
+    hom(E, Z, [zero(Z)]; check = false),
+  ]
+  C = Oscar.Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps; check = true, seed = -2)
+  F = FreeResolution(C)
+  A = augmented_complex(F)
+  @test split(strip(last(split(sprint(show, F), '\n')))) == ["0", "1", "2", "3", "4", "5"]
+  @test first(chain_range(A)) == 5
+  @test all(map(A, i) === map(F.C, i) for i in -1:5)
+
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[x+R(1) x^10; x^2+y^2 y^4-x^4]]
@@ -220,7 +239,17 @@ end
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
 	@test free_res[100] == free_module(R, 0)
+  @test free_res[101] == free_module(R, 0)
   @test is_complete(free_res) == true
+  @test get_attribute(free_res.C, :free_resolution_padding_start) == 5
+  @test split(strip(last(split(sprint(show, free_res), '\n')))) == ["0", "1", "2", "3", "4"]
+
+  # Direct overextension must retain where artificial zero padding starts.
+  free_res_direct = free_resolution(M, length = 1)
+  @test isnothing(get_attribute(free_res_direct.C, :free_resolution_padding_start))
+  @test free_res_direct[5] == free_module(R, 0)
+  @test get_attribute(free_res_direct.C, :free_resolution_padding_start) == 5
+  @test split(strip(last(split(sprint(show, free_res_direct), '\n')))) == ["0", "1", "2", "3", "4"]
 	free_res = free_resolution(M)
   @test get_attribute(free_res.C, :algorithm) == :fres
 	@test all(iszero, homology(free_res.C))
@@ -1569,6 +1598,16 @@ end
 
     @test length(fr.C.maps) == 3
     @test iszero(homology(fr.C)[1])
+
+    # Generic lazy resolutions must distinguish the terminal zero from padding.
+    G = FreeMod(ZZ, 1)
+    N = SubquoModule(G, [2*G[1]])
+    fr_free = free_resolution(N; length = 1)
+    @test is_zero(fr_free[1])
+    @test isnothing(get_attribute(fr_free.C, :free_resolution_padding_start))
+    @test is_zero(fr_free[2])
+    @test get_attribute(fr_free.C, :free_resolution_padding_start) == 2
+    @test split(strip(last(split(sprint(show, fr_free), '\n')))) == ["0", "1"]
   end
 
   @testset "Tensoring morphisms over ZZ" begin
@@ -1917,6 +1956,13 @@ end
   @test ngens(min_res[0]) == 1
   @test ngens(min_res[1]) == 2
   @test ngens(min_res[2]) == 1
+
+  # Simplified resolutions must distinguish the terminal zero from padding.
+  @test is_zero(min_res[3])
+  @test isnothing(get_attribute(min_res.C, :free_resolution_padding_start))
+  @test is_zero(min_res[4])
+  @test get_attribute(min_res.C, :free_resolution_padding_start) == 4
+  @test split(strip(last(split(sprint(show, min_res), '\n')))) == ["0", "1", "2", "3"]
 end
 
 @testset "caching of kernels" begin
@@ -2248,4 +2294,3 @@ end
   @test domain(psi) === new_dom
   @test codomain(psi) === new_cod
 end 
-
