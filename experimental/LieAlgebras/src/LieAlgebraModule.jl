@@ -377,7 +377,7 @@ function (V::LieAlgebraModule{C})(
     return LieAlgebraModuleElem(V, coefficients(only(a)))
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
-    @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
+    @req all(parent(ai) === Vi for (ai, Vi) in zip(a, Vs)) "Incompatible modules."
     return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
   elseif _is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
@@ -968,7 +968,7 @@ function tensor_product(
 
   function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == length(Vs) "Length of vector does not match."
-    @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
+    @req all(parent(ai) === Vi for (ai, Vi) in zip(as, Vs)) "Incompatible modules."
     vec = C[prod(coeff(as[j], k) for (j, k) in enumerate(inds)) for inds in ind_map]
     return LieAlgebraModuleElem(tensor_product_V, vec)
   end
