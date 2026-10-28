@@ -1,0 +1,7 @@
+[
+   "Complex Reflection Groups" => [
+      "introduction.md",
+      "complex_reflection_groups.md",
+      "symplectic_reflection_groups.md",
+   ],
+]
