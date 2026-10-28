@@ -405,7 +405,7 @@
       @test issubset(pnf, dbbpnf)
       @test n_facets(dbbpnf) <= 40
 
-      pqb = n_gon(7)
+      pqb = n_gon(8)
       dbbpqb = rand_dual_bounding_body(Oscar.get_seeded_rng(), pqb, 10)
       @test dbbpqb isa Polyhedron{QQBarFieldElem}
       @test issubset(pqb, dbbpqb)
