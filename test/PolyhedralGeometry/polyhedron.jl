@@ -950,6 +950,9 @@ end
     )
   end
 
+  @test n_vertices(tetrahedron(QQ)) == 4
+  @test tetrahedron(QQ) isa Polyhedron{QQFieldElem}
+
   let p = platonic_solid("dodecahedron")
     @test is_platonic_solid(p)
     @test !is_archimedean_solid(p)

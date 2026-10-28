@@ -35,8 +35,6 @@ Base.@deprecate_binding OldType NewType
 @deprecate ambient_ring(U::AbsMultSet) ring(U)
 
 # Deprecated for 1.0
-@deprecate _compute_glueing_base_change _compute_gluing_base_change
-@deprecate _compute_toric_glueing _compute_toric_gluing
 @deprecate add_glueing! add_gluing!
 @deprecate glueing_domains gluing_domains
 @deprecate glueing_graph gluing_graph
