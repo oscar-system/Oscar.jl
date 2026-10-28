@@ -1,0 +1,116 @@
+"""
+Return a canonical, immutable key for a connected pair of permutations.
+
+The permutations `h` and `v` use Julia labels 1:n. Two connected pairs have
+the same key exactly when they are simultaneously conjugate.
+
+The result contains first the canonical horizontal permutation and then the
+canonical vertical permutation.
+"""
+function canonical_origami_key(o::Origami)
+  n = degree(o)
+  h = Vector(horizontal_perm(o))
+  v = Vector(vertical_perm(o))
+
+  # Use root 1 to initialize concrete best arrays.
+  candidate_h, candidate_v, _ = _candidate_for_root(1, h, v)
+
+  best_h = copy(candidate_h)
+  best_v = copy(candidate_v)
+
+  for root in 2:n
+    candidate_h, candidate_v, _ = _candidate_for_root(root, h, v)
+
+    # choose the lexicographically smallest tuple of permutations
+    # (the lexicographic ordering applied to the list representations)
+    if (candidate_h, candidate_v) < (best_h, best_v)
+      copyto!(best_h, candidate_h)
+      copyto!(best_v, candidate_v)
+    end
+  end
+
+  return CanonicalOrigamiKey(best_h, best_v)
+end
+
+# Compute the canonical candidate associated with one root.
+# The 'root' is the arbitrary square (with the original labeling of o) which will
+# be 1 in the new labeling. Outgoing from this root, the rest of the labeling is
+# built in a deterministic and thus unique way.
+function _candidate_for_root(root::Int, h::Vector{Int}, v::Vector{Int})
+
+  n = length(h)
+  old_to_new = zeros(Int, n)
+  queue = Vector{Int}(undef, n)
+  candidate_h = Vector{Int}(undef, n)
+  candidate_v = Vector{Int}(undef, n)
+  fill!(old_to_new, 0)
+
+  queue[1] = root
+  old_to_new[root] = 1
+
+  head = 1
+  tail = 1
+
+  while head <= tail
+    x = queue[head]
+    head += 1
+
+    y = h[x] # move along horizontally
+    if old_to_new[y] == 0 # if the square y (to the right of x) is not labeled yet
+      tail += 1 # increase the counter
+      queue[tail] = y # add y to our queue
+      old_to_new[y] = tail # fix the new label for y
+    end
+
+    y = v[x] # move along vertically
+    if old_to_new[y] == 0 # if the square y (above x) is not labeled yet
+      tail += 1 # increase the counter
+      queue[tail] = y # add y to our queue
+      old_to_new[y] = tail # fix the new label for y
+    end
+  end
+
+  # build the new candidate permutation
+  for old_x in 1:n
+    new_x = old_to_new[old_x]
+    candidate_h[new_x] = old_to_new[h[old_x]]
+    candidate_v[new_x] = old_to_new[v[old_x]]
+  end
+  return (candidate_h, candidate_v, old_to_new)
+end
+
+function normalform_conjugators(o::Origami)
+  x = horizontal_perm(o)
+  y = vertical_perm(o)
+  n = degree(o)
+  G = PermGroupElem[]
+  sym = perm_group(o)
+ 
+  for i in 1:n
+    _, _, old_to_new = _candidate_for_root(i, Vector(x), Vector(y))
+    push!(G, perm(sym, old_to_new))
+  end
+
+  return G
+end
+
+@doc raw"""
+      normal_form(o::Origami)
+
+Computes a normal form of a given origami. This normal form has the property that two origamis are equivalent if and only if their normal forms are equal. Note that this method does not copy any previously computed attributes from the old origami to the new one.
+
+# Examples
+```jldoctest
+julia> o = origami(cperm([1,3,2,4]),cperm([2,3]))
+Origami ((1,3,2,4),(2,3), 4)
+
+julia> normal_form(o)
+Origami ((1,2,3,4),(3,4), 4)
+```
+"""
+function normal_form(o::Origami)
+  k = canonical_origami_key(o)
+  h = perm(k.h)
+  v = perm(k.v)
+  return origami(h, v; check=false)
+end

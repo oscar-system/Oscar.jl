@@ -173,6 +173,27 @@ on the right cosets of `G`.
   return G.s^-1*G.t^-1
 end
 
+@doc raw"""
+    defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
+
+Return whether the elements `s` and `t` of a permutation group define a valid 
+transitive coset action for ``{\rm SL}_2(\mathbb{Z})``.
+
+# Examples
+```jldoctest
+julia> Sym = symmetric_group(3);
+
+julia> s = Sym(cperm([2, 3])); t = Sym(cperm([1, 2]));
+
+julia> defines_coset_action_s_t(s, t)
+true
+
+julia> s_bad = Sym(cperm([1, 2, 3])); # Order 3 contradicts S^4 = 1
+
+julia> defines_coset_action_s_t(s_bad, t)
+false
+```
+"""
 function defines_coset_action_s_t(s::PermGroupElem, t::PermGroupElem)
   isone(s^4) || return false
   isone((s^3*t)^3) || return false
@@ -322,7 +343,6 @@ function s_t_decomposition(M::ZZMatrix)
   @req isone(det(M)) "Matrix needs to be in SL(2, Z)"
 
   MatS = _matrix_S()
-  MatT = _matrix_T()
   SL2Z = _SL2Z_fp()
   S, T = gens(SL2Z)
 
@@ -330,10 +350,11 @@ function s_t_decomposition(M::ZZMatrix)
 
   # Euclidean algorithm on the second row: M * T^-k * S has second row
   # (d - k*c, -c), so the lower left entry decreases in absolute value.
+  # T^{-k} = [1 -k; 0 1]. Do not power the matrix: fmpz_mat_pow takes a UInt64.
   while !iszero(M[2, 1])
     k = div(M[2, 2], M[2, 1])
     decomp = S^-1 * T^k * decomp
-    M = M * MatT^-k * MatS
+    M = M * matrix(ZZ, 2, 2, [1, -k, 0, 1]) * MatS
   end
 
   # now M[2, 1] = 0 and since det(M) == 1, we have M == +-T^r where r = +-M[1, 2]
