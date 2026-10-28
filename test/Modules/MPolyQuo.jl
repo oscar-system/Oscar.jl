@@ -121,6 +121,14 @@ end
   @test is_complete(F)
   @test is_zero(F[1])
   @test length(F) == 0
+  @test first(chain_range(F)) == 3
+  @test get_attribute(F.C, :free_resolution_padding_start) == 2
+  @test get_attribute(F.C, :show) === Oscar.Hecke.pres_show
+  @test get_attribute(F.C, :free_res) === P
+  @test get_attribute(F.C, :algorithm) == :mres
+  @test split(strip(last(split(sprint(show, F), '\n')))) == ["0", "1"]
+  @test startswith(sprint(show, F), "Free resolution of ")
+  @test first(chain_range(augmented_complex(F))) == 1
 end
 
 @testset "kernels of FreeMod -> SubquoModule" begin
