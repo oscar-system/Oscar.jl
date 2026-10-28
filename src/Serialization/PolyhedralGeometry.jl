@@ -16,12 +16,12 @@ function save_object(s::SerializerState, p::Polymake.BigObject)
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated})
-  dict = load_json(s, Dict{Symbol, Any})
+  dict = load_json(s, Dict{String, Any})
   return load_from_polymake(dict)
 end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
-  dict = load_json(s, Dict{Symbol, Any})
+  dict = load_json(s, Dict{String, Any})
   bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON.json(dict))
   return bigobject
 end
@@ -33,11 +33,11 @@ type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Polyhedral
 
 function type_and_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
-  field = p_dict[:_coeff]
-  delete!(p_dict, :_coeff)
+  field = p_dict["_coeff"]
+  delete!(p_dict, "_coeff")
   params = Pair[]
   for (k, v) in p_dict
-    push!(params, k => type_and_params(v))
+    push!(params, Symbol(k) => type_and_params(v))
   end
   return TypeAndParams(T, :field => field, params...)
 end
@@ -55,11 +55,11 @@ end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
   p_dict = _polyhedral_object_as_dict(obj)
-  delete!(p_dict, :_coeff)
+  delete!(p_dict, "_coeff")
   save_data_dict(s) do
     for (k, v) in p_dict
       if !Base.issingletontype(typeof(v))
-        save_object(s, v, k)
+        save_object(s, v, Symbol(k))
       end
     end
   end
@@ -68,20 +68,20 @@ end
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyhedralObject, <:Union{QQField, AbstractAlgebra.Floats}})
   field = params(tp)
   T = type(tp)
-  return load_from_polymake(T{elem_type(field)}, load_json(s, Dict{Symbol, Any}))
+  return load_from_polymake(T{elem_type(field)}, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyhedralObject{S}, <:Union{QQField, AbstractAlgebra.Floats}}) where S <: Union{QQFieldElem, Float64}
   T = type(tp)
-  return load_from_polymake(T, load_json(s, Dict{Symbol, Any}))
+  return load_from_polymake(T, load_json(s, Dict{String, Any}))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T <: PolyhedralObject
   field = tp[:field]
-  polymake_dict = Dict{Symbol, Any}()
+  polymake_dict = Dict{String, Any}()
   for (k, v) in params(tp)
     k === :field && continue
-    polymake_dict[k] = load_object(s, v, k)
+    polymake_dict[string(k)] = load_object(s, v, k)
   end
   bigobject = _dict_to_bigobject(polymake_dict)
   T_concrete = T isa UnionAll ? T{elem_type(field)} : T
@@ -127,7 +127,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:LinearProgram, QQ
   fr = load_object(s, TypeAndParams(Polyhedron, field), :feasible_region)
   conv = load_object(s, String, :convention)
   lpcoeffs = load_node(s, :lpcoeffs) do
-    Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{Symbol, Any})))
+    Polymake.call_function(:common, :deserialize_json_string, JSON.json(load_json(s, Dict{String, Any})))
   end
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   index = 0
@@ -211,14 +211,14 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:MixedIntegerLinea
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      JSON.json(load_json(s, Dict{Symbol, Any}))
+      JSON.json(load_json(s, Dict{String, Any}))
     )
   end
   int_vars = load_node(s, :int_vars) do
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      JSON.json(load_json(s, Dict{Symbol, Any}))
+      JSON.json(load_json(s, Dict{String, Any}))
     )
   end
 
