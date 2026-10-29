@@ -222,7 +222,7 @@ function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 
   return el
 end
 
-elevator(L::Vector{Int}, d::Int; lbs::Vector{Int} = [0 for i in 1:length(L)], ubs::Vector{Int} = Int[-1 for i in 1:length(L)]) = elevator(L, (x -> ZZ(x)), d, lbs = lbs, ubs = ubs)
+elevator(L::Vector{Int}, d::Int; lbs::Vector{Int} = [0 for i in 1:length(L)], ubs::Vector{Int} = Int[-1 for i in 1:length(L)]) = elevator(L, ZZ, d, lbs = lbs, ubs = ubs)
 
 ###############################################################################
 #
