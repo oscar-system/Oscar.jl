@@ -63,6 +63,15 @@ the garbage collector can do its work.  This can also manifest itself
 as brief "hesitations".
 
 
+## Naming conventions in OSCAR
+
+CoCoA-5 uses mostly _CamelCase_ for the names of functions, and
+some longer words are abbreviated: for example, `IsPolyRing`.
+
+In contrast OSCAR uses _snake_case_ for the names of functions,
+and abbreviations are rarely used: for example, `is_polynomial_ring`.
+
+
 ## Julia language and syntax
 
 OSCAR is written in Julia, and to use OSCAR you must use the Julia
@@ -231,7 +240,7 @@ CoCoA-5 they are different because they belong to different polynomial
 rings (which are obviously canonically isomorphic).
 
 
-In OSCAR we can do the same computations a bir more simply:
+In OSCAR we can do the same computations a bit more simply:
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
