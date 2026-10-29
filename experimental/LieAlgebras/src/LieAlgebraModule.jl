@@ -966,15 +966,14 @@ function tensor_product(
     L, dim_tensor_product_V, transformation_matrices, s; check=false
   )
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  function _my_mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == length(Vs) "Length of vector does not match."
     @req all(parent(ai) === Vi for (ai, Vi) in zip(as, Vs)) "Incompatible modules."
     vec = C[prod(coeff(as[j], k) for (j, k) in enumerate(inds)) for inds in ind_map]
     return LieAlgebraModuleElem(tensor_product_V, vec)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _my_mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _my_mult_tuple(as)
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === tensor_product_V "Incompatible modules."
@@ -1091,7 +1090,7 @@ function exterior_power(
 
   E = LieAlgebraModule{C}(L, dim_E, transformation_matrices, s; check=false)
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  function _my_mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     # the coefficients of a wedge product are the maximal minors of the coefficient rows
@@ -1102,9 +1101,8 @@ function exterior_power(
     end
     return LieAlgebraModuleElem(E, mat)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _my_mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _my_mult_tuple(as)
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === E "Incompatible modules."
@@ -1243,7 +1241,7 @@ function symmetric_power(
 
   S = LieAlgebraModule{C}(L, dim_S, transformation_matrices, s; check=false)
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  function _my_mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     # multiply out one factor at a time, with coefficients indexed by sorted index vectors
@@ -1264,9 +1262,8 @@ function symmetric_power(
     end
     return LieAlgebraModuleElem(S, vec)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _my_mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _my_mult_tuple(as)
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === S "Incompatible modules."
@@ -1384,7 +1381,7 @@ function tensor_power(
 
   T = LieAlgebraModule{C}(L, dim_T, transformation_matrices, s; check=false)
 
-  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
+  function _my_mult_tuple(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     vec = C[
@@ -1392,9 +1389,8 @@ function tensor_power(
     ]
     return LieAlgebraModuleElem(T, vec)
   end
-  function my_mult(as::LieAlgebraModuleElem{C}...)
-    return my_mult(as)::LieAlgebraModuleElem{C}
-  end
+  my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}}) = _my_mult_tuple(as)
+  my_mult(as::LieAlgebraModuleElem{C}...) = _my_mult_tuple(as)
 
   function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === T "Incompatible modules."
