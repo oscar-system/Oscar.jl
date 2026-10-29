@@ -146,9 +146,8 @@ function check_primary_degrees(
     end
     numbersInds = !isempty(degs) ? sum(deg_dict[e] for e in degs) : 0
     I, dimI = get!(ideals, gens_ideal) do
-      I = ideal(R, collect(gens_ideal))
-      d = dim(I)
-      return (I, d)
+      J = ideal(R, collect(gens_ideal))
+      return (J, dim(J))
     end
     if dimI > n - length(invars) - numbersInds
       return false
@@ -256,9 +255,8 @@ function primary_invariants_via_optimal_hsop!(
   if k <= 1
     k = 1
     I, dimI = get!(ideals, Set(invars_cache.invars)) do
-      I = ideal(polynomial_ring(RG), invars_cache.invars)
-      d = dim(I)
-      return (I, d)
+      J = ideal(polynomial_ring(RG), invars_cache.invars)
+      return (J, dim(J))
     end
     if dimI > n
       k = 0
