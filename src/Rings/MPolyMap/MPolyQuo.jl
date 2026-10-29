@@ -11,7 +11,9 @@ function _check_imgs_quo(R, S::NCRing, imgs, coeff_map = nothing)
   end
   gensI = gens(modulus(R))
   for g in gensI
-    if coeff_map !== nothing
+    if is_empty(imgs)
+      @req is_zero(_evaluate_constant(S, g, coeff_map)) "Morphism is not well-defined"
+    elseif coeff_map !== nothing
       @req is_zero(_evaluate_in(S, map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
     else
       @req iszero(_evaluate_in(S, g, imgs)) "Morphism is not well-defined"
@@ -24,7 +26,9 @@ end
 function _check_imgs_quo(R, S::Ring, imgs, coeff_map = nothing)
   gensI = gens(modulus(R))
   for g in gensI
-    if coeff_map !== nothing
+    if is_empty(imgs)
+      @req iszero(_evaluate_constant(S, g, coeff_map)) "Morphism is not well-defined"
+    elseif coeff_map !== nothing
       @req is_zero(_evaluate_in(S, map_coefficients(coeff_map, g), imgs)) "Morphism is not well-defined"
     else
       @req iszero(_evaluate_in(S, g, imgs)) "Morphism is not well-defined"
@@ -124,6 +128,9 @@ function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
     return evaluate(map_coefficients(coefficient_map(F), lift(u),
                                      parent = domain(F)), F.img_gens)
   else
+    is_empty(F.img_gens) && return _evaluate_constant(
+      codomain(F), lift(u), coefficient_map(F)
+    )
     S = temp_ring(F)
     if S !== nothing
       return _evaluate_in(codomain(F), map_coefficients(coefficient_map(F), lift(u),

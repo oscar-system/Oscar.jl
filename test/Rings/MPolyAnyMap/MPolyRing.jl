@@ -200,6 +200,13 @@ end
   @test hom(P, T, x -> x, elem_type(T)[])(P(i)) == T(i)
   @test hom(P, T, hom(Qi, Qi, -i), elem_type(T)[])(P(i)) == T(-i)
   @test hom(P, M, elem_type(M)[])(P(i)) == M(i)
+  sigma = hom(Qi, Qi, -i)
+  coeff_map = MapFromFunc(Qi, M, a -> M(sigma(a)))
+  @test hom(P, M, coeff_map, elem_type(M)[])(P(i)) == M(-i)
+  @test hom(P, M, a -> M(sigma(a)), elem_type(M)[])(P(i)) == M(-i)
+  @test hom(P, M, sigma, elem_type(M)[])(P(i)) == M(-i)
+  A, _ = quo(T, ideal(T, [zero(T)]))
+  @test hom(P, A, sigma, elem_type(A)[])(P(i)) == A(-i)
 
   P, _ = polynomial_ring(ZZ, 0)
   F = GF(2)

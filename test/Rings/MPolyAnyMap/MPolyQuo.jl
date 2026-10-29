@@ -234,6 +234,12 @@ end
   @test hom(Q, T, elem_type(T)[]; check = false)(Q(i)) == T(i)
   @test hom(Q, T, hom(Qi, Qi, -i), elem_type(T)[])(Q(i)) == T(-i)
   @test hom(Q, Q, elem_type(Q)[])(Q(i)) == Q(i)
+  M = matrix_ring(Qi, 2)
+  sigma = hom(Qi, Qi, -i)
+  coeff_map = MapFromFunc(Qi, M, a -> M(sigma(a)))
+  @test hom(Q, M, coeff_map, elem_type(M)[])(Q(i)) == M(-i)
+  @test hom(Q, M, a -> M(sigma(a)), elem_type(M)[])(Q(i)) == M(-i)
+  @test hom(Q, M, sigma, elem_type(M)[])(Q(i)) == M(-i)
 
   P, _ = polynomial_ring(ZZ, 0)
   Q, _ = quo(P, ideal(P, [P(2)]))
@@ -243,6 +249,9 @@ end
   @test is_one(hom(Q, GF(2), elem_type(GF(2))[])(Q(3)))
   @test_throws "not well-defined" hom(Q, T, elem_type(T)[])
   @test_throws "not well-defined" hom(Q, T, a -> T(a), elem_type(T)[])
+  @test_throws "not well-defined" hom(
+    Q, M, MapFromFunc(ZZ, M, a -> M(a)), elem_type(M)[]
+  )
 
   P, _ = polynomial_ring(QQ, 0)
   Q, _ = quo(P, ideal(P, [zero(P)]))

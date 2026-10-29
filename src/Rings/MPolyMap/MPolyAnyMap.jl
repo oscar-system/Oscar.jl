@@ -175,8 +175,14 @@ end
 
 # Evaluate `f` at `vals` with the result in `S`. AbstractAlgebra's `evaluate`
 # reads the result's parent off `vals[1]`, so it rejects an empty `vals`.
+_evaluate_constant(S::NCRing, f::MPolyRingElem, ::Nothing) =
+  S(constant_coefficient(f))
+
+_evaluate_constant(S::NCRing, f::MPolyRingElem, coeff_map) =
+  S(coeff_map(constant_coefficient(f)))
+
 function _evaluate_in(S::NCRing, f::MPolyRingElem, vals::Vector)
-  is_empty(vals) && return S(constant_coefficient(f))
+  is_empty(vals) && return _evaluate_constant(S, f, nothing)
   return S(evaluate(f, vals))
 end
 
