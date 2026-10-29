@@ -318,8 +318,8 @@ function module_syzygies(RG::FinGroupInvarRing)
 
     monomial_to_column = enumerate_monomials(gens_d)
     Md = polys_to_smat(gens_d, monomial_to_column)
-    N = polys_to_smat(s_invars_d, monomial_to_column)
-    sol = solve(Md, N; side=:left)
+    Nd = polys_to_smat(s_invars_d, monomial_to_column)
+    sol = solve(Md, Nd; side=:left)
 
     for i in 1:length(s_invars_d)
       a = F()
