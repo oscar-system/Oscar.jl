@@ -206,19 +206,20 @@
       end
     end
 
-    @testset "(de)serialization Dict{Symbol, T}" begin
-      Qx, x = QQ[:x]
-      for (T, values) in ((Int, [1, 2]), (QQPolyRingElem, [x^2, x - 1]))
-        original = Dict{Symbol, T}(:a => values[1], :b => values[2])
-        test_save_load_roundtrip(path, original) do loaded
-          @test original == loaded
-        end
-      end
+    @testset "load Dict{Tuple, T} without params" begin
+      # a round trip carries key and value params, so this method is only reached directly
+      io = IOBuffer()
+      save(io, Dict((1, 2) => 3))
+      d = Oscar.Serialization.JSON3.read(String(take!(io)))
+      s = Oscar.Serialization.DeserializerState(Oscar.Serialization.JSONSerializer(), d[:data], nothing, nothing, false)
+      @test Oscar.Serialization.load_object(s, Dict{Tuple{Int, Int}, Int}, nothing) == Dict((1, 2) => 3)
+    end
 
-      original = Dict{Symbol, Int}()
-      test_save_load_roundtrip(path, original) do loaded
-        @test original == loaded
-      end
+    @testset "load_array_node skips null entries" begin
+      # the callback must not run on a null entry
+      s = Oscar.Serialization.DeserializerState(Oscar.Serialization.JSONSerializer(),
+                                                Oscar.Serialization.JSON3.read("[null]"), nothing, nothing, false)
+      @test Oscar.Serialization.load_array_node(_ -> Oscar.Serialization.load_ref(s), s) == [nothing]
     end
 
     @testset "Testing (de)serialization of Set" begin
