@@ -1647,7 +1647,7 @@ function homogeneous_component(R::MPolyDecRing, d::FinGenAbGroupElem)
   basis = monomial_basis(R, d)
   component, embedding = vector_space(base_ring(R), basis; target = R)
   set_attribute!(component, :show => show_homo_comp, :data => (R, d))
-  add_relshp(component, R, x -> embedding(x))
+  add_relshp(component, R, embedding)
   return component, embedding
 end
 

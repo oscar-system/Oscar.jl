@@ -55,8 +55,8 @@ function (b::AlternatingBilinearForm{T})(v::Vector, w::Vector) where T <: RingEl
   v_safe = nothing
   w_safe = nothing
   try
-    v_safe = map(x -> R(x), v)
-    w_safe = map(x -> R(x), w)
+    v_safe = map(R, v)
+    w_safe = map(R, w)
   catch e
     throw(ArgumentError("The given vectors can not be cast into vectors over the base ring."))
   end

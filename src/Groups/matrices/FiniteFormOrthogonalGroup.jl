@@ -858,7 +858,7 @@ function _compute_gens_split_degenerate(T::TorQuadModule)
   gensOTorth = TorQuadModuleMap[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
-  length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
+  length(gensOT) > 1 ? filter!(!isone, gensOT) : nothing
   return gensOT
 end
 
@@ -985,7 +985,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
   gensOTorth = TorQuadModuleMap[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
-  length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
+  length(gensOT) > 1 ? filter!(!isone, gensOT) : nothing
   return gensOT
 end
 function _compute_gens_non_split_degenerate_primary(T::TorQuadModule; algorithm=:stabilizer)

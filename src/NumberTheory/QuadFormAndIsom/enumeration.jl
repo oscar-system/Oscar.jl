@@ -2676,7 +2676,7 @@ function _splitting_by_prime_power!(
   )
   @req is_prime(p) "p must be a prime number"
   @req all(N -> is_finite(order_of_isometry(N)), Np) "Isometries must be of finite order"
-  @req all(N -> is_even(N), Np) "Lattices must be even"
+  @req all(is_even, Np) "Lattices must be even"
   @req v >= 1 "v must be a positive integer"
   discriminant_annihilator = ctx.discriminant_annihilator_lb
   if discriminant_annihilator === nothing

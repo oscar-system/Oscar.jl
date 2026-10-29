@@ -141,7 +141,7 @@ function _effective_presentation_of_glnq(G)
   #@info A
   C = effective_presentation(K)
   #@info C
-  f = x -> G(x) # SL -> GL
+  f = G # SL -> GL
   g = x -> Oscar.det(Oscar.matrix(x)) # GL -> K^*
   fpreim = x -> begin
     @assert Oscar.det(Oscar.matrix(x)) == 1
