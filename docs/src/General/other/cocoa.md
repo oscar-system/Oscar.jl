@@ -211,7 +211,7 @@ on a term ordering (aka. monomial ordering).  In CoCoA-5 the term ordering
 is specified when the polynomial ring is created (defaulting to `degrevlex`).
 In OSCAR, the term ordering is specified when the function `groebner_basis`
 is called (again defaulting to `degrevlex`).  Here is an example to
-illustrate the similarities and differences.
+illustrate the similarities and differences between CoCoA-5 and OSCAR.
 
 In CoCoA-5 we compute `degrevlex` and `lex` Groebner bases of "the same" ideal:
 ```
@@ -245,12 +245,12 @@ Gröbner basis with elements
 with respect to the ordering
   degrevlex([x, y, z])
 
-julia> groebner_basis(I; lex(R))
+julia> groebner_basis(I; ordering=lex(R))
 Gröbner basis with elements
   1: y^3 - z^2
-  2: x*y - z
-  3: x^2 - y
-  4: x*z -y^2
+  2: x*z - y^2
+  3: x*y - z
+  4: x^2 - y
 with respect to the ordering
   lex([x, y, z])
 ```
