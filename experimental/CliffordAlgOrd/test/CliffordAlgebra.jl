@@ -394,7 +394,7 @@
       end
     end
     @testset "some computations" begin
-      x = sum(map(i -> e(i), 1:5))
+      x = sum(map(e, 1:5))
       @test parent(x) == C
       @test parent_type(x) == typeof(C)
       @test typeof(x) == typeof(C())
