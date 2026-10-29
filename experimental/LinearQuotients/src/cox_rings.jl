@@ -275,9 +275,9 @@ function cox_ring(
   if is_trivial(A)
     T0 = grade(forget_grading(S), [zero(A) for i in 1:ngens(S)])[1]
 
-    relsT = elem_type(T0)[T0(forget_grading(r)) for r in gens(modulus(QH))]
+    relsT0 = elem_type(T0)[T0(forget_grading(r)) for r in gens(modulus(QH))]
 
-    Q, TtoQ = quo(T0, ideal(T0, relsT))
+    Q, _ = quo(T0, ideal(T0, relsT0))
     QtoR = hom(Q, Rgraded, [Rgraded(f) for f in invars])
 
     return Q, QtoR
@@ -308,20 +308,20 @@ function cox_ring(
   HBB = HomBasisBuilder(PowerProductCache(R, invars), A, A_action, eig_to_group)
   hom_invars, degrees, phi = homogeneous_generators(HBB)
 
-  Tu = domain(phi)
+  T = domain(phi)
 
   # Move the relations from S to T
-  StoT = hom(S, Tu, [phi(gen(Tu, i)) for i in 1:ngens(Tu)])
-  relsT = elem_type(Tu)[StoT(r) for r in gens(modulus(QH))]
-  T = grade(Tu, degrees)[1]
+  StoT = hom(S, T, [phi(gen(T, i)) for i in 1:ngens(T)])
+  relsT = elem_type(T)[StoT(r) for r in gens(modulus(QH))]
+  Tgraded = grade(T, degrees)[1]
 
   # The relations are in general not homogeneous
   relsT = reduce(
     vcat,
-    [collect(values(homogeneous_components(T(f)))) for f in relsT];
-    init=elem_type(T)[],
+    [collect(values(homogeneous_components(Tgraded(f)))) for f in relsT];
+    init=elem_type(Tgraded)[],
   )
-  Q, TtoQ = quo(T, ideal(T, relsT))
+  Q, TgradedtoQ = quo(Tgraded, ideal(Tgraded, relsT))
   QtoR = hom(Q, Rgraded, [Rgraded(f) for f in hom_invars])
 
   return Q, QtoR
