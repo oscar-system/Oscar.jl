@@ -201,7 +201,7 @@ function unit_group_nonrecursive(R::Union{FiniteRing, AbstractAssociativeAlgebra
   Aunitabs = _unit_group_semisimple(A)
   # f : 1 + J -> R^*
   f = x -> x.elem
-  fpreim = x -> OJ(x) # R^* -> 1 + R
+  fpreim = OJ # R^* -> 1 + R
   # g : R^* -> A^*
   g = x -> preimage(AtoRs, RtoRs(x))
   gpreim = x -> preimage(RtoRs, AtoRs(x))
