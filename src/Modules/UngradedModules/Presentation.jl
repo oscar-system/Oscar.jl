@@ -157,7 +157,7 @@ function _presentation_simple(SQ::SubquoModule)
 
   F = ambient_free_module(SQ)
   if ngens(SQ) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(SQ), gens(F)))
-    rels = relations(SQ)
+    rels = filter(!is_zero, relations(SQ))
     F1 = FreeMod(R, length(rels))
     phi = hom(F1, F, rels)
     aug = hom(F, SQ, gens(SQ))
@@ -830,7 +830,7 @@ function _presentation_minimal(SQ::OFPModule{T};
   F1_to_F0 = compose(hom(F1, K, gens(K), check=false), inc)
 
   # When there is no kernel, clean things up
-  if is_zero(F1)
+  if is_zero(K)
     if is_sq_graded
         F1 = graded_free_module(R, 0)
     else

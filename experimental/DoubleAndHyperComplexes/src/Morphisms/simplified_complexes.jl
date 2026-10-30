@@ -483,6 +483,7 @@ function simplify(c::FreeResolution{T}) where T
 
       if is_zero(C[k-1])
         Z = C[k-1]
+        _mark_free_resolution_padding!(C, k)
         pushfirst!(C.maps, hom(Z, Z, elem_type(Z)[zero(Z) for _ in 1:ngens(Z)]))
         return first(C.maps)
       end
