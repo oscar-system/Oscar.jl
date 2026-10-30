@@ -729,7 +729,7 @@ function free_resolution(M::SubquoModule{T};
   if T <: MPolyQuoLocRingElem
     !iszero(length) || error("Specify a length up to which a free resolution should be computed")
   end
-  if length == 0
+  if length == 0 || length isa PosInf
     length = -1
   end
   if algorithm == :generic
