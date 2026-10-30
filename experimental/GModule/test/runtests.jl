@@ -436,3 +436,16 @@ end
   @test iszero(map(hN, 2)(z))
   @test hNM[2](z) == hM[2](g)
 end
+
+@testset "Galois cohomology regressions" begin
+  @testset "Subfields of an auxiliary extension" begin
+    # New subfields must satisfy the S-class-group conditions as well.
+    N, a = quadratic_field(-14)
+    L, b = rationals_as_number_field()
+    emb = hom(L, N, N(QQ(b)))
+    I = idele_class_gmodule(N; extension_of = emb, redo = true)
+    H, = cohomology_group(I, 2)
+    @test order(H) == degree(N)
+    @test is_cyclic(H)
+  end
+end
