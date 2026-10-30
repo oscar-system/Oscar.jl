@@ -757,3 +757,8 @@ end
   @test_throws ArgumentError radical_membership(d, J)
 end
 
+
+@testset "monomial_basis with ZZRingElem degree" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  @test monomial_basis(R, ZZ(2)) == monomial_basis(R, 2)
+end
