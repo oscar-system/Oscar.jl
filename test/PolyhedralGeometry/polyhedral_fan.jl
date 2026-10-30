@@ -265,3 +265,31 @@ end
   @test nvars(parent(arrangement_polynomial(RAvv, Avv))) == 3
   @test arrangement_polynomial(RAvv, Avv) == apAvv
 end
+
+@testset "Cone membership in polyhedral fans" begin
+  Sigma = polyhedral_fan(
+    incidence_matrix([[1, 2, 3, 4]]),
+    [0 0 1; 1 0 1; 1 1 1; 0 1 1],
+  )
+  tau = first(cones(Sigma, 1))
+  @test tau in Sigma
+  @test first(maximal_cones(Sigma)) in Sigma
+  @test first(cones(Sigma, 0)) in Sigma
+
+  # The diagonal subcone lies in the support of Sigma but is not a face.
+  diagonal = positive_hull([0 0 1; 1 1 1])
+  @test !(diagonal in Sigma)
+
+  @test !(positive_hull([1 0 0 0]) in Sigma)
+
+  # In fans with lineality, the ray-incidence criterion is insufficient.
+  Sigma_lineality = polyhedral_fan(
+    incidence_matrix([[1, 2]]),
+    [1 0 0; 0 1 0],
+    [0 0 1],
+  )
+  @test lineality_dim(Sigma_lineality) == 1
+  @test first(maximal_cones(Sigma_lineality)) in Sigma_lineality
+  @test first(cones(Sigma_lineality, 1)) in Sigma_lineality
+  @test !(first(cones(Sigma, 0)) in Sigma_lineality)
+end
