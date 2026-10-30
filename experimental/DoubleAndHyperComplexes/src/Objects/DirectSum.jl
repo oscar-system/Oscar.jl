@@ -16,28 +16,22 @@ struct DirectSumChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   R::Ring
   summands::Vector{<:AbsHyperComplex}
 
-  function DirectSumChainFactory(R::Ring, summands::Vector{<:AbsHyperComplex{CT}}) where {CT}
+  function DirectSumChainFactory{CT}(R::Ring, summands::Vector{<:AbsHyperComplex}) where {CT}
     return new{CT}(R, summands)
   end
 end
 
 function (fac::DirectSumChainFactory)(self::AbsHyperComplex, i::Tuple)
-  res = _direct_sum(fac.R, [s[i] for s in fac.summands])
+  res = _direct_sum(fac.R, [can_compute_index(s, i) ? s[i] : _zero_module(fac.R) for s in fac.summands])
   return res
 end
 
 function can_compute(fac::DirectSumChainFactory, self::AbsHyperComplex, i::Tuple)
-  is_empty(fac.summands) && return true
-  return can_compute_index(first(fac.summands), i)
-  return all(can_compute_index(s, i) for s in fac.summands)
+  return true
 end
 
 ### Production of the morphisms 
-struct DirectSumMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
-  function DirectSumMapFactory(::Type{MorphismType}) where MorphismType
-    return new{MorphismType}()
-  end
-end
+struct DirectSumMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType} end
 
 function (::DirectSumMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
   fac = chain_factory(self)
@@ -46,7 +40,17 @@ function (::DirectSumMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
   I[p] += direction(self, p) == :chain ? -1 : 1
   j = Tuple(I)
   cod = self[j]
-  return _direct_sum(fac.R, [map(s, p, i) for s in fac.summands]; domain=dom, codomain=cod)
+  maps = OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}[]
+  for (k, s) in enumerate(fac.summands)
+    if !can_compute_map(s, p, i)
+      domk = domain(canonical_injection(dom, k))
+      codk = domain(canonical_injection(cod, k))
+      push!(maps, hom(domk, codk, elem_type(codk)[zero(cod_k) for _ in 1:ngens(domk)]))
+      continue
+    end
+    push!(maps, map(s, p, i))
+  end
+  return _direct_sum(fac.R, maps; domain=dom, codomain=cod)
 end
 
 # We use the internal function `_direct_sum` instead of `direct_sum`. By default it 
@@ -98,10 +102,7 @@ function _direct_sum(R::Ring, phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModu
 end
 
 function can_compute(::DirectSumMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
-  fac = chain_factory(self)
-  is_empty(fac.summands) && return true
-  return can_compute_map(first(fac.summands), p, i)
-  return all(can_compute_map(s, p, i) for s in fac.summands)
+  return true
 end
 
 ### The concrete struct
@@ -118,14 +119,20 @@ of summands, the ring itself needs to be provided to the constructor.
   function DirectSumComplex(
       R::Ring, dirs::Vector{Symbol}, summands::Vector{<:AbsHyperComplex{CT, MT}}
     ) where {CT <: OFPModule, MT <: OFPModuleHom}
+    return DirectSumComplex{CT, MT}(R, dirs, summands)
+  end
+
+  function DirectSumComplex{CT, MT}(
+      R::Ring, dirs::Vector{Symbol}, summands::Vector
+    ) where {CT <: OFPModule, MT <: OFPModuleHom}
     d = length(dirs)
     if !is_empty(summands)
-      s = first(summands)
+      s = first(summands)::AbsHyperComplex
       @assert all(dim(ss) == d for ss in summands[2:end])
       @assert all(all(direction(ss, p) == dirs[p] for p in 1:dim(s)) for ss in summands[2:end])
     end
-    chain_fac = DirectSumChainFactory(R, summands)
-    map_fac = DirectSumMapFactory(MT)
+    chain_fac = DirectSumChainFactory{CT}(R, summands)
+    map_fac = DirectSumMapFactory{MT}()
 
     internal_complex = HyperComplex(d, chain_fac, map_fac, dirs)
     return new{CT, MT}(internal_complex)
@@ -140,8 +147,15 @@ underlying_complex(c::DirectSumComplex) = c.internal_complex
 function DirectSumComplex(
     R::Ring, dirs::Vector{Symbol}, summands::Vector
   )
-  @assert isempty(summands) "non-empty list of summands but no useful type of the entries of that list; try preparing your list in a type-stable way"
+  @assert isempty(summands) "non-empty list of summands but no useful type of the entries of that list; try preparing your list in a type-stable way or specify the type parameters explicitly"
   ET = elem_type(R)
   return DirectSumComplex(R, dirs, AbsHyperComplex{OFPModule{ET}, OFPModuleHom}[])
+end
+
+# method for the user's convenience
+function direct_sum(R::Ring, list::Vector{<:AbsHyperComplex})
+  is_empty(list) && return DirectSumComplex{OFPModule{elem_type(R)}, OFPModuleHom}(R, Symbol[], list)
+  dirs = Symbol[direction(first(list), i) for i in 1:dim(first(list))]
+  return DirectSumComplex{OFPModule{elem_type(R)}, OFPModuleHom}(R, dirs, list)
 end
 
