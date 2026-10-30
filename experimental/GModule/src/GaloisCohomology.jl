@@ -125,7 +125,7 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the 
   automorphism group, acts on the ideal group defining the class field.
 """
-function Oscar.gmodule(H::PermGroup, R::ClassField, mG = automorphism_group(PermGroup, k))
+function Oscar.gmodule(H::PermGroup, R::ClassField, mG = automorphism_group(PermGroup, base_field(R))[2])
   k = base_field(R)
   G = domain(mG)
   mR = R.rayclassgroupmap
@@ -1240,7 +1240,7 @@ function local_index(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsS
   return local_index([C], emb, mG)[1]
 end
 
-function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; index_only::Bool = false)
+function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, emb.K)[2]; index_only::Bool = false)
   if is_real(emb)
     return [Hecke.QmodnZ()(0) for x = CC]
   end
