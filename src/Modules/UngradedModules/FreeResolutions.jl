@@ -4,7 +4,13 @@ end
 
 function _free_resolution_display_limit(C::Hecke.ComplexOfMorphisms)
   padding_start = get_attribute(C, :free_resolution_padding_start)
-  return isnothing(padding_start) ? first(map_range(C)) : padding_start - 1
+  !isnothing(padding_start) && return padding_start - 1
+
+  upper = first(map_range(C))
+  while upper > 0 && is_zero(C[upper]) && is_zero(C[upper - 1])
+    upper -= 1
+  end
+  return upper
 end
 
 function _mark_free_resolution_padding!(C::Hecke.ComplexOfMorphisms, padding_start::Int)
