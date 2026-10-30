@@ -82,6 +82,88 @@ end
   @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
+@testset "Experimental.gmodule: solvable quotient" begin
+  # `sq` has to reach the maximal solvable quotient: the whole abelianization
+  # first and then every further layer, and it must not report one where there
+  # is none
+  F = free_group(2)
+  G33, _ = quo(F, [F[1]^3, F[2]^3, comm(F[1], F[2])])
+  C63, _ = quo(F, [F[1]^7, F[2]^9, comm(F[1], F[2])])
+  Z2, _ = quo(F, [comm(F[1], F[2])])
+  G27 = codomain(isomorphism(FPGroup, small_group(27, 3)))
+  S3 = codomain(isomorphism(FPGroup, pc_group(symmetric_group(3)), on_gens = true))
+
+  @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(G33)))) == 9
+
+  # C7 x C9: GAP's abelianization is not on a canonical pcgs here
+  @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(C63)))) == 63
+
+  Q = codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(G27)))
+  @test order(Q) == 27
+  @test abelian_invariants(Q) == ZZRingElem[3, 3]
+
+  # an infinite abelianization admits no maximal finite solvable quotient and no
+  # finite set of usable primes, but bounded steps still work
+  @test_throws ArgumentError Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(Z2))
+  @test_throws ArgumentError Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2))
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2); primes = [2])) == 3
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(F); primes = [2])) == 3
+
+  # the exact prime set refines Brueckner's estimate from 1.3.1
+  _, mq = maximal_abelian_quotient(PcGroup, S3)
+  @test Oscar.RepPc._admissible_primes(mq) == ZZRingElem[3]
+  @test issubset(Oscar.RepPc._admissible_primes(mq), Oscar.RepPc.find_primes(mq))
+
+  # at assertion level 1 this also checks that the number of lifts is
+  # |Z^1(G, M)| - |Z^1(Q, M)| and that every lift found is surjective
+  set_assertion_level(:BruecknerSQ, 1)
+  @test length(Oscar.RepPc.brueckner(mq)) == 6
+  @test all(is_surjective, Oscar.RepPc.brueckner(mq))
+  @test length(Oscar.RepPc.brueckner(mq; limit = 1)) == 1
+  set_assertion_level(:BruecknerSQ, 0)
+
+  # one class per line through 0 in H^2 suffices: scaling the module pairs
+  # with the identity on Q, so h and l*h yield the same quotients
+  _, m9 = maximal_abelian_quotient(PcGroup, G27)
+  l27 = Oscar.RepPc.brueckner(m9)
+  @test length(l27) == 9
+  @test all(is_surjective, l27)
+  @test all(x -> order(codomain(x)) == 27, l27)
+
+  # `End(M)` is a field that can be bigger than the prime field, and one class
+  # per line over it suffices: here that is 32 epimorphisms instead of 96
+  Q = pc_group(SL(2, 3))
+  mods = [Oscar.GModuleFromGap.gmodule(GF(2), Oscar.GModuleFromGap.gmodule_minimal_field(x))
+          for x in Oscar.RepPc.reps(GF(2, 6), Q)]
+  C = mods[findfirst(x -> dim(x) == 2, mods)]
+  @test length(Oscar.GModuleFromGap.hom_base(C, C)) == 2
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  GG, _, GGpro, _ = Oscar.GrpCoh.extension(PcGroup, z(first(x for x in H2 if !is_zero(x))))
+  iso = isomorphism(FPGroup, GG, on_gens = true)
+  l96 = Oscar.RepPc.brueckner(compose(inv(iso), GGpro); primes = [2])
+  @test length(l96) == 32
+  @test all(x -> order(codomain(x)) == 96, l96)
+
+  # a dimension bound prunes branches of the pc chain rather than filtering at
+  # the end, so it has to give the unbounded answer restricted to those dimensions
+  Q23 = pc_group(SL(2, 3))
+  allr = Oscar.RepPc.reps(GF(3, 6), Q23)
+  @test sort(unique([dim(x) for x in allr])) == [1, 2, 3]
+  for b in 1:3
+    @test sort([dim(x) for x in Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = b)]) ==
+          sort([dim(x) for x in allr if dim(x) <= b])
+  end
+  @test_throws ArgumentError Oscar.RepPc.reps(GF(3, 6), Q23; dim_bound = 0)
+
+  # cross-check against GAP's own solvable quotient algorithm
+  bound = GAP.Obj((2*3*5*7)^6)
+  for H in [G33, G27, S3]
+    e = GAP.Globals.EpimorphismSolvableQuotient(GapObj(H), bound)
+    @test order(codomain(Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(H)))) ==
+          GAP.Globals.Size(GAP.Globals.Image(e))
+  end
+end
+
 @testset "Experimental.gmodule natural G-modules" begin
   # for permutation groups
   G = symmetric_group(3)
