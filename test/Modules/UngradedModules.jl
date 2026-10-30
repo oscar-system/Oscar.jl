@@ -339,6 +339,15 @@ end
   @test domain(isom) == F
   @test codomain(isom) == C
 
+  # Simple presentations must discard zero relations.
+  P = presentation(C)
+  @test is_zero(P[1])
+  @test is_zero(free_resolution(C, length = 1)[1])
+  D, _ = quo(F, [x*F[1], zero(F), zero(F)])
+  P = presentation(D)
+  @test ngens(P[1]) == 1
+  @test [map(P, 1)(g) for g in gens(P[1])] == [x*F[1]]
+
   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
   A, p = quo(R, ideal(R, x^5))
   M1 = identity_matrix(A, 2)
