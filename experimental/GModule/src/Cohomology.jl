@@ -60,6 +60,10 @@ Oscar.parent_type(::Type{MultGrpElem{T}}) where T = MultGrp{T}
 Oscar.zero(a::MultGrpElem) = parent(a)(one(a.data))
 Oscar.zero(a::MultGrp) = a(one(a.data))
 
+Oscar.is_finitely_generated(::MultGrp) = false
+Oscar.has_gens(::MultGrp) = false
+Oscar.gens(M::MultGrp) = throw(NotImplementedError(:gens, M))
+
 import Base: ==, +, -, *
 
 *(a::Integer, b::MultGrpElem{T}) where T = MultGrpElem{T}(b.data^a, parent(b))
@@ -159,6 +163,13 @@ function gmodule(M, H::Union{Nothing, Oscar.GAPGroup}, ac::Vector{<:Map})
   return GModule(M, H, ac)
 end
 
+#elements on which an endomorphism of `V` is determined
+_test_elems(V) = gens(V)
+#`MultGrp` has no generating set, but its maps are induced by maps of `data`
+_test_elems(V::MultGrp) = [V(x) for x in gens(V.data)]
+#no cheap test: the inducing automorphism is checked on the number field
+_test_elems(V::MultGrp{<:Oscar.Hecke.NumFieldOrderFractionalIdeal}) = elem_type(V)[]
+
 """
 Check if the action maps satisfy the same relations
 as the generators of `G`.
@@ -173,7 +184,7 @@ function is_consistent(M::GModule)
     for i=2:length(w)
       a = a* action(M, preimage(mG, w[i]< 0 ? inv(gen(G, -w[i])) : gen(G, w[i])))
     end
-    all(x->a(x) == x, gens(V)) || (@show r; return false)
+    all(x->a(x) == x, _test_elems(V)) || (@show r; return false)
   end
 
   return true
@@ -452,7 +463,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
 #      push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
     end
@@ -474,7 +485,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
           AbstractAlgebra.Generic.add_direct_sum_injection!(X, i^sigma, au[i](p))
         end
       end
-      @assert !iszero(X)
+      @assert iszero(X) == iszero(q)
       push!(im_q, X)
     end
     return im_q
@@ -497,8 +508,9 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing) where GT
     a -> sum a g_i^-1 otimes g_i
     works (direct computation with reps and cosets)
   =#
-  h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
-  return iC, h
+  #not `h`: that would clobber the map `ind_action` closed over
+  mDi = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), x))) for i=1:length(g)) for x = gens(D.M)])
+  return iC, mDi
 end
 
 function is_induced(C::GModule)
@@ -1006,7 +1018,7 @@ function H_one_maps(C::GModule; task::Symbol = :maps)
 
   F, mF = fp_group_with_isomorphism(C)
   @assert ngens(F) == ngens(G)
-  @hassert :GroupCohomology 1 all(i->mF(gen(F, i)) == gen(G, i), 1:ngens(G))
+  @hassert :GroupCohomology 1 all(i->mF(gen(G, i)) == gen(F, i), 1:ngens(G))
 
   R = relators(F)
 #  @assert G == F
@@ -1297,7 +1309,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   id = hom(M, M, gens(M), check = false)
-  @vtime :GroupCohomology 1 F, mF = fp_group_with_isomorphism(C) #mF: F -> G
+  @vtime :GroupCohomology 1 F, mF = fp_group_with_isomorphism(C) #mF: G -> F
 
   if !force_rws && (isa(G, PcGroup) || is_solvable(G))
     @vprint :GroupCohomology 2 "using pc-presentation ...\n"
