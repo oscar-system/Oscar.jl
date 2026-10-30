@@ -179,22 +179,27 @@ With the corresponding loading function similar to this.
 
 ```julia
 function load_object(s::DeserializerState, ::Type{<:NewType})
-  (obj1, obj2, obj3_4) = load_array_node(s) do (i, entry)
-    if entry isa JSON3.Object
+  (obj1, obj2, obj3_4) = load_array_node(s) do i
+    if i == 3
       obj3 = load_object(s, Obj3Type, :key1)
-      obj4 = load_object(s, Obj3Type, :key2)
+      obj4 = load_object(s, Obj4Type, :key2)
       return OtherType(obj3, obj4)
+    elseif i == 1
+      load_object(s, Obj1Type)
     else
-      if p(entry) == c
-        load_object(s, Obj1Type)
-      else
-        load_object(s, Obj2Type)
-      end
+      load_object(s, Obj2Type)
     end
   end
   return NewType(obj1, obj2, obj3_4)
 end
 ```
+
+The callback passed to `load_array_node` receives only the index `i` of the
+current entry; the entry itself is available as `s.obj` (callbacks of
+`load_node` take no arguments). Entries that are `null` in the file are
+returned as `nothing` without calling the callback. The result is a vector whose
+element type is the narrowest common type of the loaded entries; pass
+`entry_type=T` to get a `Vector{T}`.
 
 ##### Example 2
 ```julia
@@ -228,7 +233,7 @@ The corresponding loading function would look something like this.
 function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
    obj1 = load_object(s, Obj1Type, params[1], :key1)
 
-   (obj3, obj4) = load_array_node(s, :key2) do (i, entry)
+   (obj3, obj4) = load_array_node(s, :key2) do i
      if i == 1
        load_object(s, Obj3Type, params[2])
      else
@@ -261,9 +266,9 @@ function save_object(s::SerializerState, obj:NewType)
   end
 end
 
-function load_object(s::SerializerState, ::Type{<:NewType})
-  load_node(s, :key) do x
-    info = do_something(x)
+function load_object(s::DeserializerState, ::Type{<:NewType})
+  load_node(s, :key) do
+    info = do_something(s.obj)
 
     if info
       load_object(s, OtherType)

@@ -18,8 +18,8 @@ function save_object(s::SerializerState, F::fpField)
 end
 
 function load_object(s::DeserializerState, ::Type{fpField})
-  load_node(s) do str
-    return fpField(parse(UInt64, str))
+  load_node(s) do
+    return fpField(parse(UInt64, s.obj))
   end::fpField
 end
 
@@ -31,8 +31,8 @@ function save_object(s::SerializerState, elem::fpFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
-  load_node(s) do str
-    return F(parse(UInt64, str))
+  load_node(s) do
+    return F(parse(UInt64, s.obj))
   end::fpFieldElem
 end
 
@@ -45,8 +45,8 @@ function save_object(s::SerializerState, F::FpField)
 end
 
 function load_object(s::DeserializerState, ::Type{FpField})
-  load_node(s) do str
-    FpField(parse(ZZRingElem, str))
+  load_node(s) do
+    FpField(parse(ZZRingElem, s.obj))
   end::FpField
 end
 
@@ -58,8 +58,8 @@ function save_object(s::SerializerState, elem::FpFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField)
-  load_node(s) do str
-    F(parse(ZZRingElem, str))
+  load_node(s) do
+    F(parse(ZZRingElem, s.obj))
   end::FpFieldElem
 end
 
@@ -170,7 +170,7 @@ function save_object(s::SerializerState, k::FqFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{FqFieldElem}, K::FqField)
-  load_node(s) do _
+  load_node(s) do
     if absolute_degree(K) != 1
       return K(load_object(s, PolyRingElem, parent(defining_polynomial(K))))
     end
@@ -199,8 +199,8 @@ function load_object(s::DeserializerState,
                      ::Type{<: NonSimpleNumField},
                      params::PolyRing)
   def_pols = load_object(s, Vector{PolyRingElem}, params, :def_pols)
-  vars = load_node(s, :vars) do vars_data
-    return map(Symbol, vars_data)
+  vars = load_node(s, :vars) do
+    return map(Symbol, s.obj)
   end
   # fix since numberfield doesn't accept PolyRingElem vectors
   array_pols = Array{typeof(def_pols[1]), 1}(def_pols)
@@ -225,7 +225,7 @@ function load_object(s::DeserializerState,
   # forces parent of MPolyRingElem
   poly_ring, _ = polynomial_ring(base_field(K), n; cached=false)
   poly_elem_type = elem_type
-  load_node(s) do _
+  load_node(s) do
     polynomial = load_object(s, MPolyRingElem, poly_ring)
   end
   polynomial = evaluate(polynomial, gens(K))
@@ -262,7 +262,7 @@ function save_object(s::SerializerState, f::FracElem)
 end
 
 function load_object(s::DeserializerState, ::Type{<: FracElem}, parent_ring::Ring)
-  load_node(s) do _
+  load_node(s) do
     base = base_ring(parent_ring)
     coeff_type = elem_type(base)
     return parent_ring(
@@ -317,12 +317,12 @@ function load_object(s::DeserializerState,
   base = base_ring(parent_ring.fraction_field)
   coeff_type = elem_type(base)
 
-  return load_node(s) do _
-    loaded_num = load_node(s, 1) do _
+  return load_node(s) do
+    loaded_num = load_node(s, 1) do
       load_object(s, coeff_type, base)
     end
 
-    loaded_den = load_node(s, 2) do _
+    loaded_den = load_node(s, 2) do
       load_object(s, coeff_type, base)
     end
     parent_ring(loaded_num, loaded_den)
@@ -354,7 +354,8 @@ end
 
 function load_object(s::DeserializerState, ::Type{ArbFieldElem}, parent::ArbField)
   r = ArbFieldElem()
-  load_node(s) do str
+  load_node(s) do
+    str = s.obj
     @ccall Nemo.libflint.arb_load_str(r::Ref{ArbFieldElem}, str::Ptr{UInt8})::Cint
   end
   r.parent = parent
@@ -384,7 +385,7 @@ function save_object(s::SerializerState, c::AcbFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{AcbFieldElem}, parent::AcbField)
-  (real_part, imag_part) = load_array_node(s) do _
+  (real_part, imag_part) = load_array_node(s; entry_type=ArbFieldElem) do _
     load_object(s, ArbFieldElem, ArbField(precision(parent)))
   end
   return parent(real_part, imag_part)
@@ -548,11 +549,11 @@ function save_object(s::SerializerState, P::PadicField)
 end
 
 function load_object(s::DeserializerState, ::Type{PadicField})
-  prime_num = load_node(s, :prime) do node
-    return parse(ZZRingElem, node)
+  prime_num = load_node(s, :prime) do
+    return parse(ZZRingElem, s.obj)
   end
-  precision = load_node(s, :precision) do node
-    return parse(Int64, node)
+  precision = load_node(s, :precision) do
+    return parse(Int64, s.obj)
   end
   return PadicField(prime_num, precision)
 end
