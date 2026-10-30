@@ -545,3 +545,16 @@ end
   @test issubset(U, T)
   @test issubset(U, T) == issubset(prime_ideal(T), prime_ideal(U))
 end
+
+@testset "products with MPolyProductOfMultSets" begin
+  # product of a powers-of-element set with a product of multiplicative sets
+  R, (x, y) = QQ[:x, :y]
+  T = powers_of_element(x) * complement_of_point_ideal(R, [0, 0])
+  @test powers_of_element(x) * T === T
+  W = powers_of_element(y) * T
+  @test W isa Oscar.MPolyProductOfMultSets
+  @test length(Oscar.sets(W)) == 3
+  @test y in W
+  @test x*y in W
+  @test T * powers_of_element(y) == W
+end

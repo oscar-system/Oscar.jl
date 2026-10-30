@@ -579,3 +579,14 @@ end
   @test all(x==iso_inv(iso(x)) for x in gens(L))
 end
 
+
+@testset "minimal_denominators of a localized quotient hom" begin
+  # the denominators of the images, cached as an attribute
+  R, (x, y) = QQ[:x, :y]
+  A, _ = quo(R, ideal(R, [x^2 - y^2]))
+  L, _ = localization(A, powers_of_element(y))
+  phi = hom(L, L, [L(x, y), L(y, y)])
+  d = Oscar.minimal_denominators(phi)
+  @test length(d) == 2
+  @test d[1] == y
+end
