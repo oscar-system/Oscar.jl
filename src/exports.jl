@@ -688,6 +688,7 @@ export free_resolution_via_kernels
 export full_group
 export function_field
 export fundamental_circuit
+export fundamental_class
 export fundamental_cocircuit
 export fundamental_group
 export fundamental_invariants
