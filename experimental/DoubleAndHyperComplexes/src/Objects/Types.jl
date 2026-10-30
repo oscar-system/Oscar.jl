@@ -450,7 +450,7 @@ function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphis
 end
 
 # Test whether the (i, j)-th entry can be computed.
-can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute(fac::ChainFactory, dc::AbsDoubleComplexOfMorphisms, t...)
+can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compute(fac, dc, t...)
 
 function can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   error("testing whether the ($i, $j)-th entry can be computed using $fac has not been implemented; see the programmer's documentation on double complexes for details")

@@ -130,3 +130,13 @@ end
   betti_table(quo3; upper_bound=bound)
 end
 
+
+@testset "linear strand for a degree given as a group element" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+  S1 = graded_free_module(S, [0])
+  I, inc = sub(S1, [f*S1[1] for f in gens(S)])
+  M, _ = cokernel(inc)
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  str, _ = Oscar.linear_strand(res, zero(grading_group(S)))
+  @test [rank(str[i]) for i in 0:3] == [1, 3, 3, 1]
+end
