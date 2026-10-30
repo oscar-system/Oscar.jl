@@ -149,6 +149,13 @@ end
    f = corresponding_bilinear_form(Q)
    @test dim(radical(f)[1])==2
 
+   F = GF(3)
+   Q = quadratic_form(identity_matrix(F,2))
+   @test Q*F(2)==F(2)*Q
+   @test gram_matrix(Q*F(2))==F(2)*identity_matrix(F,2)
+   R, (x, y) = polynomial_ring(F, [:x, :y])
+   Q = quadratic_form(x^2+x*y)
+   @test gram_matrix(Q*F(2))==F(2)*gram_matrix(Q)
 end
 
 @testset "TransformForm" begin

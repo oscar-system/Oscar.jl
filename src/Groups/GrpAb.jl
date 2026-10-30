@@ -72,7 +72,7 @@ end
 ################################################################################
 
 function Base.hash(C::FinGenAbGroupConjClass, h::UInt)
-  return Base.hash(Representative(C), h)
+  return Base.hash(representative(C), h)
 end
 
 function Base.show(io::IO, C::FinGenAbGroupConjClass)

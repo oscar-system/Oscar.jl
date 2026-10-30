@@ -141,6 +141,12 @@ end
   P = sylow_subgroup(G, 2)[1]
   C = conjugacy_class(G, P)
   @test is_conjugate(G, rand(C), P)
+
+  G = GL(2, 3)
+  U = sub(G, [gens(G)[1]])[1]
+  V = sub(G, [gens(G)[2]])[1]
+  @test !is_conjugate_subgroup(G, U, V)
+  @test is_conjugate_subgroup(G, U, U^rand(G))
 end
 
 @testset "Conjugacy classes as G-sets" begin
