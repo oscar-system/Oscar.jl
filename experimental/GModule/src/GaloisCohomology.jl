@@ -1898,7 +1898,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   sf = subfields(k)
   if !isnothing(extension_of)
     @vprint :GaloisCohomology 2 "reducing $(length(sf)) subfields by already known ones...\n"
-    sf = [x for x = sf if haspreimage(extension_of, x[2](x[1][1]))[1]]
+    sf = [x for x = sf if !haspreimage(extension_of, x[2](x[1][1]))[1]]
     @vprint :GaloisCohomology 2 "left with $(length(sf))\n"
   end
   sf = [x[1] for x = sf if degree(x[1]) > 1]
