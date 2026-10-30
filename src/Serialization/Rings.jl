@@ -242,11 +242,7 @@ end
 
 @register_serialization_type IdealGens
 
-type_and_params(ig::IdealGens) = TypeAndParams(
-  IdealGens,
-  :base_ring => base_ring(ig),
-  :ordering_type => TypeAndParams(typeof(ordering(ig)), nothing)
-)
+type_and_params(ig::IdealGens) = TypeAndParams(IdealGens, base_ring(ig))
 
 function save_object(s::SerializerState, obj::IdealGens)
   save_data_dict(s) do
@@ -258,17 +254,9 @@ function save_object(s::SerializerState, obj::IdealGens)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:IdealGens, <:Tuple{Vararg{Pair}}})
-  base_ring = tp[:base_ring]
-  ordering_type = type(tp[:ordering_type])
-
-  if ordering_type <: MonomialOrdering
-    ord = load_object(s, TypeAndParams(ordering_type, base_ring), :ordering)
-  else
-    ord = load_node(s, :ordering) do
-      MonomialOrdering(base_ring, load_object(s, ordering_type, :internal_ordering))
-    end
-  end
+function load_object(s::DeserializerState, tp::TypeAndParams{<:IdealGens, <:MPolyRing})
+  base_ring = params(tp)
+  ord = load_object(s, TypeAndParams(MonomialOrdering, base_ring), :ordering)
   generators = load_object(s, TypeAndParams(Vector{elem_type(base_ring)}, base_ring), :gens)
   is_gb = load_object(s, Bool, :is_gb)
   is_reduced = load_object(s, Bool, :is_reduced)
@@ -561,11 +549,7 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_and_params(A::MPolyQuoRing) = TypeAndParams(
-  MPolyQuoRing,
-  :base_ring => base_ring(A),
-  :ordering => typeof(ordering(A))
-)
+type_and_params(A::MPolyQuoRing) = TypeAndParams(MPolyQuoRing, base_ring(A))
 
 function save_object(s::SerializerState, A::MPolyQuoRing)
   save_data_dict(s) do
@@ -574,9 +558,9 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyQuoRing, <:Tuple{Vararg{Pair}}})
-  R = tp[:base_ring]
-  o = load_object(s, TypeAndParams(type(tp[:ordering]), R), :ordering)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyQuoRing, <:MPolyRing})
+  R = params(tp)
+  o = load_object(s, TypeAndParams(MonomialOrdering, R), :ordering)
   I = load_object(s, TypeAndParams(ideal_type(R), R), :modulus)
   return MPolyQuoRing(R, I, o)
 end
