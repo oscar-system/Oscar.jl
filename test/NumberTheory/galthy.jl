@@ -148,3 +148,22 @@ end
   @test_throws ErrorException Oscar.GaloisGrp.extension_field(f)
   @test degree(Oscar.GaloisGrp.extension_field(f; check = false)[1]) == 2
 end
+
+@testset "fixed_field does not depend on the global RNG" begin
+  # the Tschirnhausen transformation must come from fixed_field's own RNG only
+  Qx, x = QQ[:x]
+  G, C = galois_group(x^6 - 2)
+  H = sylow_subgroup(G, 3)[1]
+  pols = [collect(coefficients(defining_polynomial(fixed_field(C, H)))) for i in 1:5]
+  @test allequal(pols)
+end
+
+@testset "fixed_field with large Tschirnhausen transformations" begin
+  # for x^21 - 3, transformations of degree up to 11 do not separate all conjugates
+  Qx, x = QQ[:x]
+  G, C = galois_group(x^21 - 3)
+  for H in map(representative, subgroup_classes(G))
+    index(G, H) == 3 || continue
+    @test degree(fixed_field(C, H)) == 3
+  end
+end
