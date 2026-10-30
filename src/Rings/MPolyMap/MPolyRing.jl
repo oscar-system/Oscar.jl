@@ -180,7 +180,7 @@ function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
 end
 
 function _evaluate_plain(F::MPolyAnyMap{<: MPolyRing}, u)
-  return evaluate(u, F.img_gens)
+  return _evaluate_in(codomain(F), u, F.img_gens)
 end
 
 # See the comment in MPolyQuo.jl
@@ -221,12 +221,13 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
     return evaluate(map_coefficients(coefficient_map(F), u,
                                      parent = domain(F)), F.img_gens)
   else
+    is_empty(F.img_gens) && return _evaluate_constant(codomain(F), u, coefficient_map(F))
     S = temp_ring(F)
     fl, var_ind = _maps_variables_to_variables(F)
     if S !== nothing
       if !fl || coefficient_ring(S) !== codomain(F)
-        return evaluate(map_coefficients(coefficient_map(F), u,
-                                         parent = S), F.img_gens)
+        return _evaluate_in(codomain(F), map_coefficients(coefficient_map(F), u,
+                                                          parent = S), F.img_gens)
       else
         tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
         return _evaluate_with_build_ctx(tmp_poly, var_ind, codomain(F))
@@ -243,7 +244,7 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
                    codomain(F)
                  )
         # Otherwise default to the standard evaluation for the time being.
-        return evaluate(tmp_poly, F.img_gens)
+        return _evaluate_in(codomain(F), tmp_poly, F.img_gens)
       end
     end
   end
@@ -254,12 +255,13 @@ function _evaluate_general(F::MPolyAnyMap{<: MPolyRing}, u)
     return evaluate(map_coefficients(coefficient_map(F), u,
                                      parent = domain(F)), F.img_gens)
   else
+    is_empty(F.img_gens) && return _evaluate_constant(codomain(F), u, coefficient_map(F))
     S = temp_ring(F)
     if S !== nothing
-      return evaluate(map_coefficients(coefficient_map(F), u,
-                                       parent = S), F.img_gens)
+      return _evaluate_in(codomain(F), map_coefficients(coefficient_map(F), u,
+                                                        parent = S), F.img_gens)
     else
-      return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
+      return _evaluate_in(codomain(F), map_coefficients(coefficient_map(F), u), F.img_gens)
     end
   end
 end
