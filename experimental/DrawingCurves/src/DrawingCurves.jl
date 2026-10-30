@@ -33,6 +33,7 @@ function _compute_isotopy_graph(
   counter = 0
   while counter < ntries && !success
     random_transform *= transform
+    IG = _IsotopyGraph()
     success = isotopy_graph_from_curve_inner(
       IG, f_in, random_transform, solver_precision, ybox_tolerance
     )
