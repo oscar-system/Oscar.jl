@@ -4,7 +4,6 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   R = base_ring(M)
   kk = coefficient_ring(R)
   cod_dict = strand_mapping_dict(c, i)
-  fac.mapping_dicts[i] = cod_dict
   return FreeMod(kk, length(cod_dict))
 end
 
@@ -15,7 +14,6 @@ end
 # Get the dictionary which enumerates the terms for the basis.
 function strand_mapping_dict(c::AbsHyperComplex, i::Tuple)
   fac = chain_factory(c)::StrandChainFactory
-  M = fac.orig[i]
   return get!(fac.mapping_dicts, i) do
     Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(get_exponents(c, i)))
   end
