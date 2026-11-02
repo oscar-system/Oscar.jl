@@ -99,6 +99,6 @@ end
 function load_object(s::DeserializerState, ::Type{Symbol})
   load_node(s) do
     Symbol(s.obj)
-  end
+  end::Symbol
 end
 
