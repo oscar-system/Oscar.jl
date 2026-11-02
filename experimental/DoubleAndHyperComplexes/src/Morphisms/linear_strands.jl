@@ -80,7 +80,7 @@ function linear_strand(C::AbsHyperComplex, degree::Int=0)
 end
 
 function linear_strand(C::AbsHyperComplex, g::FinGenAbGroupElem)
-  return linear_strand(C, g[1])
+  return linear_strand(C, Int(g[1]))
 end
 
 ### Additional constructors for compatibility with what's already there:
