@@ -119,58 +119,92 @@ end
 
 @testset "Action of S on the extended homology of T_n" begin
   # Check the S action on the extended homology of T_3 against its known matrix and
-  # against the action on the non-extended homology: they agree except in the column
-  # of the loop mapped to the extra loop, which in the non-extended homology is minus
-  # the sum of all other puncture loops
+  # against the action on the non-extended homology, which it contains as the upper left
+  # block, followed by the image of the additional loop and a zero row
   M = action_of_s_on_extended_homology_of_tn(3)
   expected = matrix(ZZ, [
      0 -1  0  0  0  0  0  0  0  0  0;
      1  0  0  0  0  0  0  0  0  0  0;
-    -1  0  1  0  0  0  0  0  0  0  0;
-     0  0  0  0  0  0  0  0  1  0  0;
-     0  0  0  0  0  1  0  0  0  0  0;
-    -1  0  0  1  0  0  0  0  0  0  0;
-     0  0  0  0  0  0  0  0  0  1  0;
-     0  0  0  0  0  0  1  0  0  0  0;
-    -1  0  0  0  1  0  0  0  0  0  0;
-     0  0  0  0  0  0  0  0  0  0  1;
-     0  0  0  0  0  0  0  1  0  0  0
+    -1  0  1  0  0  0  0 -1  0  0  0;
+     0  0  0  0  0  0  0 -1  1  0  0;
+     0  0  0  0  0  1  0 -1  0  0  0;
+    -1  0  0  1  0  0  0 -1  0  0  0;
+     0  0  0  0  0  0  0 -1  0  1  0;
+     0  0  0  0  0  0  1 -1  0  0  0;
+    -1  0  0  0  1  0  0 -1  0  0  0;
+     0  0  0  0  0  0  0 -1  0  0  1;
+     0  0  0  0  0  0  0  0  0  0  0
   ])
   @test M == expected
 
   A = action_of_s_on_homology_of_tn(3)
   N = nrows(A)
-  j = findfirst(k -> isone(M[N + 1, k]), 1:N)
-  @test all(iszero, M[1:N, j])
-  @test A[:, j] == [0; 0; fill(-1, N - 2)]
-  @test all(k -> M[1:N, k] == A[:, k], setdiff(1:N, [j]))
+  c = matrix(ZZ, N, 1, [0; 0; fill(-1, N - 2)])
+  @test M[1:N, 1:N] == A
+  @test M[1:N, N + 1:N + 1] == A * c
+  @test iszero(M[N + 1:N + 1, :])
 end
 
 @testset "Action of T on the extended homology of T_n" begin
   # Check the T action on the extended homology of T_3 against its known matrix and
-  # against the action on the non-extended homology: they agree except in the column
-  # of the loop mapped to the extra loop, which in the non-extended homology is minus
-  # the sum of all other puncture loops
+  # against the action on the non-extended homology, which it contains as the upper left
+  # block, followed by the image of the additional loop and a zero row
   M = action_of_t_on_extended_homology_of_tn(3)
   expected = matrix(ZZ, [
     1  1  0  0  0  0  0  0  0  0  0;
     0  1  0  0  0  0  0  0  0  0  0;
-    0  0  1  0  0  0  0  0  0  0  0;
-    0  0  0  1  0  0  0  0  0  0  0;
-    0  0  0  0  1  0  0  0  0  0  0;
-    0 -1  0  0  0  0  0  1  0  0  0;
-    0  0  0  0  0  1  0  0  0  0  0;
-    0 -1  0  0  0  0  1  0  0  0  0;
-    0 -1  0  0  0  0  0  0  0  1  0;
-    0  0  0  0  0  0  0  0  0  0  1;
-    0  0  0  0  0  0  0  0  1  0  0
+    0  0  1  0  0  0  0  0 -1  0  0;
+    0  0  0  1  0  0  0  0 -1  0  0;
+    0  0  0  0  1  0  0  0 -1  0  0;
+    0 -1  0  0  0  0  0  1 -1  0  0;
+    0  0  0  0  0  1  0  0 -1  0  0;
+    0 -1  0  0  0  0  1  0 -1  0  0;
+    0 -1  0  0  0  0  0  0 -1  1  0;
+    0  0  0  0  0  0  0  0 -1  0  1;
+    0  0  0  0  0  0  0  0  0  0  0
   ])
   @test M == expected
 
   A = action_of_t_on_homology_of_tn(3)
   N = nrows(A)
-  j = findfirst(k -> isone(M[N + 1, k]), 1:N)
-  @test all(iszero, M[1:N, j])
-  @test A[:, j] == [0; 0; fill(-1, N - 2)]
-  @test all(k -> M[1:N, k] == A[:, k], setdiff(1:N, [j]))
+  c = matrix(ZZ, N, 1, [0; 0; fill(-1, N - 2)])
+  @test M[1:N, 1:N] == A
+  @test M[1:N, N + 1:N + 1] == A * c
+  @test iszero(M[N + 1:N + 1, :])
+end
+
+@testset "Relations of SL_2(Z) acting on the homology of T_n" begin
+  # Check that the actions of S and T on the homology of T_n satisfy the relations of
+  # SL_2(Z), and that S has order 4
+  for n in 2:3
+    S = action_of_s_on_homology_of_tn(n)
+    T = action_of_t_on_homology_of_tn(n)
+    I = identity_matrix(ZZ, n^2 + 1)
+    @test S^4 == I
+    @test S^2 != I
+    @test (S * T)^3 == S^2
+  end
+end
+
+@testset "Relations of SL_2(Z) acting on the extended homology of T_n" begin
+  # Check that the actions on the extended homology of T_n satisfy the relations of SL_2(Z)
+  # between non-empty words, that S^4 is the projection EF, that the sum of all puncture loops
+  # is mapped to zero, and that action_of_matrix_on_extended_homology_of_tn agrees with S and T
+  for n in 2:3
+    S = action_of_s_on_extended_homology_of_tn(n)
+    T = action_of_t_on_extended_homology_of_tn(n)
+    @test (S * T)^3 == S^2
+    @test S^5 == S
+    @test S^8 == S^4
+    @test S^4 != identity_matrix(ZZ, n^2 + 2)
+    N = n^2 + 1
+    c = matrix(ZZ, N, 1, [0; 0; fill(-1, N - 2)])
+    @test S^4 == vcat(hcat(identity_matrix(ZZ, N), c), zero_matrix(ZZ, 1, N + 1))
+    r = matrix(ZZ, n^2 + 2, 1, [0; 0; fill(1, n^2)])
+    @test iszero(S * r)
+    @test iszero(T * r)
+    @test action_of_matrix_on_extended_homology_of_tn(n, [0 -1; 1 0]) == S
+    @test action_of_matrix_on_extended_homology_of_tn(n, [1 1; 0 1]) == T
+    @test action_of_matrix_on_extended_homology_of_tn(n, [0 -1; 1 1]) == S * T
+  end
 end

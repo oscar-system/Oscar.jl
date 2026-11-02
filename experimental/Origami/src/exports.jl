@@ -1,3 +1,4 @@
+export action_of_matrix_on_extended_homology_of_tn
 export action_of_matrix_on_homology
 export action_of_matrix_on_homology_of_tn
 export action_of_s_on_extended_homology_of_tn

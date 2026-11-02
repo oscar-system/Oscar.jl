@@ -109,14 +109,13 @@ action_of_matrix_on_homology_of_tn(n::Int, A::Matrix)
 
 ### Actions on the extended homology of $T_n$
 
-The extended homology adds the loop around the $n^2$-th puncture to the basis $L$, so that the generators
-$S$ and $T$ simply permute the puncture loops. The functions `apply_S_to_loop` and `apply_T_to_loop` compute
-these permutations. In the extended homology the sum of all puncture loops is not zero; as a consequence, the
-matrices of $S$ and $T$ satisfy the relations of ${\rm SL}_2(\mathbb{Z})$ only up to multiples of this sum.
+The extended homology adds the loop around the $n^2$-th puncture to the basis $L$. The actions on it are
+obtained from the actions on the homology of $T_n$: the additional loop is first mapped to minus the sum of all
+other puncture loops, and the result has no component along the additional loop. As a consequence, products of
+these matrices correspond to products in ${\rm SL}_2(\mathbb{Z})$, but the matrices are not invertible.
 
 ```@docs
-apply_S_to_loop(n::Int, k::Int)
 action_of_s_on_extended_homology_of_tn(n::Int)
-apply_T_to_loop(n::Int, k::Int)
 action_of_t_on_extended_homology_of_tn(n::Int)
+action_of_matrix_on_extended_homology_of_tn(n::Int, A::Matrix)
 ```

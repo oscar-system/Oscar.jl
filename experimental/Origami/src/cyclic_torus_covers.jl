@@ -180,28 +180,14 @@ function action_of_matrix_on_homology_of_tn(n::Int, A::Matrix)
   return matrix(ZZ, GAP.Globals.ActionOfMatrixOnHomologyOfTn(n, GapObj(A)))
 end
 
-@doc raw"""
-    apply_S_to_loop(n::Int, k::Int)
-
-Returns: the index of the loop obtained by applying the generator ``S`` of ``{\rm SL}_2(\mathbb{Z})`` to the loop with index ``k`` in the homology of ``T_n`` with respect to ``L``. This is simply the index of the loop obtained by rotating the loop with index ``k`` by ``\pi / 2`` counterclockwise around the left bottom puncture.
-
-```jldoctest
-julia> Oscar.apply_S_to_loop(3, 2)
-4
-
-julia> Oscar.apply_S_to_loop(3, 4)
-3
-```
-"""
-function apply_S_to_loop(n::Int, k::Int)
-    y = div(k - 1, n)
-    x = mod(k - 1, n)
-
-    # Rotate and wrap.
-    y2 = mod(x, n)
-    x2 = mod(-y, n)
-
-    return n * y2 + x2 + 1
+# Turn the action of a matrix on the homology of T_n into an action on the extended
+# homology: the additional loop is first mapped to minus the sum of all other puncture
+# loops, and the result gets a zero entry for the additional loop.
+function _extend_homology_action(M::ZZMatrix)
+  N = nrows(M)
+  E = vcat(identity_matrix(ZZ, N), zero_matrix(ZZ, 1, N))
+  F = hcat(identity_matrix(ZZ, N), matrix(ZZ, N, 1, [0; 0; fill(-1, N - 2)]))
+  return E * M * F
 end
 
 @doc raw"""
@@ -210,65 +196,29 @@ end
 Returns: a matrix representing the action of the generator ``S`` of ``{\rm SL}_2(\mathbb{Z})`` on the homology of ``T_n`` with
 respect to ``L`` extended by the loop around the ``n^2``-th puncture.
 
-Without its last row and column, the matrix agrees with [`action_of_s_on_homology_of_tn`](@ref), except for the column of
-the loop that ``S`` maps to the loop around the ``n^2``-th puncture. That loop is not part of the basis ``L``, so in the
-non-extended homology it is replaced by minus the sum of all other puncture loops, giving the column ``(0, 0, -1, \dots, -1)``.
-In other words, both actions are compatible with the projection that maps the additional loop to minus the sum of the
-other puncture loops.
+Let ``N = n^2 + 1`` and let ``\tilde S`` be the matrix returned by [`action_of_s_on_homology_of_tn`](@ref). The result is
+``E \tilde S F``, where ``E = \begin{pmatrix} I_N \\ 0 \end{pmatrix}`` appends a zero row and
+``F = \begin{pmatrix} I_N & c \end{pmatrix}`` with ``c = (0, 0, -1, \dots, -1)^T`` maps the additional loop to minus the sum
+of all other puncture loops, as in the homology of ``T_n``.
 
-Since the extended homology lacks the relation that the sum of all puncture loops is zero, this matrix and the one of
-[`action_of_t_on_extended_homology_of_tn`](@ref) do not satisfy the relations of ``{\rm SL}_2(\mathbb{Z})`` exactly:
-``S^4 = 1`` holds, but ``(ST)^3 = S^2`` only holds up to multiples of the sum of all puncture loops.
+Since ``F E = I_N``, a product of these matrices is ``E`` times the corresponding product of the matrices on the
+non-extended homology times ``F``. Hence the matrices of ``S`` and ``T`` (see
+[`action_of_t_on_extended_homology_of_tn`](@ref)) satisfy all relations of ``{\rm SL}_2(\mathbb{Z})`` between non-empty
+words, for example ``(ST)^3 = S^2``. They are not invertible, however, so ``S^4`` is not the identity but the projection
+``E F = \begin{pmatrix} I_N & c \\ 0 & 0 \end{pmatrix}``.
 
 ```jldoctest
 julia> action_of_s_on_extended_homology_of_tn(2)
-[ 0   -1   0   0   0   0]
-[ 1    0   0   0   0   0]
-[-1    0   1   0   0   0]
-[ 0    0   0   0   1   0]
-[-1    0   0   1   0   0]
-[ 0    0   0   0   0   1]
+[ 0   -1   0   0   0    0]
+[ 1    0   0   0   0    0]
+[-1    0   1   0   0   -1]
+[ 0    0   0   0   1   -1]
+[-1    0   0   1   0   -1]
+[ 0    0   0   0   0    0]
 ```
 """
 function action_of_s_on_extended_homology_of_tn(n::Int)
-    N = n^2 + 1
-    dim = n^2 + 2
-
-    e_n = zeros(Int, N)
-    e_n[n] = 1
-    col1 = inv(base_change_l_to_s(n)) * e_n
-
-    col2 = zeros(Int, N)
-    col2[1] = -1
-
-    mat = zeros(promote_type(eltype(col1), eltype(col2)), dim, dim)
-    mat[1:N, 1] = col1
-    mat[1:N, 2] = col2
-
-    for k in 1:n^2
-        mat[apply_S_to_loop(n, k) + 2, k + 2] = 1
-    end
-
-    return matrix(ZZ, mat)
-end
-
-@doc raw"""
-    apply_T_to_loop(n::Int, k::Int)
-
-Returns: the index of the loop obtained by applying the generator ``T`` of ``{\rm SL}_2(\mathbb{Z})`` to the loop with index ``k`` in the homology of ``T_n`` with respect to ``L``. This is simply the index of the loop obtained by shearing the loop with index ``k`` to the right while fixing the left bottom puncture, that is, the loop around the puncture ``(x, y)`` is mapped to the loop around the puncture ``(x + y, y)``.
-
-```jldoctest
-julia> Oscar.apply_T_to_loop(3, 2)
-2
-
-julia> Oscar.apply_T_to_loop(3, 4)
-5
-```
-"""
-function apply_T_to_loop(n::Int, k::Int)
-  y = div(k - 1, n)
-  x = mod(k - 1, n)
-  return n * y + mod(x + y, n) + 1
+  return _extend_homology_action(action_of_s_on_homology_of_tn(n))
 end
 
 @doc raw"""
@@ -277,39 +227,50 @@ end
 Returns: a matrix representing the action of the generator ``T`` of ``{\rm SL}_2(\mathbb{Z})`` on the homology of ``T_n`` with
 respect to ``L`` extended by the loop around the ``n^2``-th puncture.
 
-Without its last row and column, the matrix agrees with [`action_of_t_on_homology_of_tn`](@ref), except for the column of
-the loop that ``T`` maps to the loop around the ``n^2``-th puncture. That loop is not part of the basis ``L``, so in the
-non-extended homology it is replaced by minus the sum of all other puncture loops, giving the column ``(0, 0, -1, \dots, -1)``.
-In other words, both actions are compatible with the projection that maps the additional loop to minus the sum of the
-other puncture loops.
-
-Since the extended homology lacks the relation that the sum of all puncture loops is zero, this matrix and the one of
-[`action_of_s_on_extended_homology_of_tn`](@ref) do not satisfy the relations of ``{\rm SL}_2(\mathbb{Z})`` exactly:
-``S^4 = 1`` holds, but ``(ST)^3 = S^2`` only holds up to multiples of the sum of all puncture loops.
+The result is ``E \tilde T F``, where ``\tilde T`` is the matrix returned by [`action_of_t_on_homology_of_tn`](@ref) and
+``E`` and ``F`` are as in [`action_of_s_on_extended_homology_of_tn`](@ref).
 
 ```jldoctest
 julia> action_of_t_on_extended_homology_of_tn(2)
-[1    1   0   0   0   0]
-[0    1   0   0   0   0]
-[0    0   1   0   0   0]
-[0    0   0   1   0   0]
-[0   -1   0   0   0   1]
-[0    0   0   0   1   0]
+[1    1   0   0    0   0]
+[0    1   0   0    0   0]
+[0    0   1   0   -1   0]
+[0    0   0   1   -1   0]
+[0   -1   0   0   -1   1]
+[0    0   0   0    0   0]
 ```
 """
 function action_of_t_on_extended_homology_of_tn(n::Int)
-  N = n^2 + 1
-  T = action_of_t_on_homology_of_tn(n)
-  mat = zero_matrix(ZZ, N + 1, N + 1)
+  return _extend_homology_action(action_of_t_on_homology_of_tn(n))
+end
 
-  # The images of the loops a and b are the same as in the non-extended homology.
-  for j in 1:2, i in 1:N
-    mat[i, j] = T[i, j]
-  end
+@doc raw"""
+    action_of_matrix_on_extended_homology_of_tn(n::Int, A::Matrix)
 
-  for k in 1:n^2
-    mat[apply_T_to_loop(n, k) + 2, k + 2] = 1
-  end
+Returns: a matrix representing the action of ``A \in {\rm SL}_2(\mathbb{Z})`` on the homology of ``T_n`` with respect to ``L``
+extended by the loop around the ``n^2``-th puncture.
 
-  return mat
+The result is ``E \tilde A F``, where ``\tilde A`` is the matrix returned by [`action_of_matrix_on_homology_of_tn`](@ref)
+and ``E`` and ``F`` are as in [`action_of_s_on_extended_homology_of_tn`](@ref). It is the corresponding product of the
+matrices returned by [`action_of_s_on_extended_homology_of_tn`](@ref) and [`action_of_t_on_extended_homology_of_tn`](@ref),
+except for the identity matrix ``A = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}``, which yields the projection
+``E F = \begin{pmatrix} I_N & c \\ 0 & 0 \end{pmatrix}``.
+
+```jldoctest
+julia> M = [0 -1; 1 1] # = S * T
+2×2 Matrix{Int64}:
+ 0  -1
+ 1   1
+
+julia> action_of_matrix_on_extended_homology_of_tn(2, M)
+[ 0   -1   0   0    0   0]
+[ 1    1   0   0    0   0]
+[-1   -1   1   0   -1   0]
+[ 0   -1   0   0   -1   1]
+[-1   -1   0   1   -1   0]
+[ 0    0   0   0    0   0]
+```
+"""
+function action_of_matrix_on_extended_homology_of_tn(n::Int, A::Matrix)
+  return _extend_homology_action(action_of_matrix_on_homology_of_tn(n, A))
 end
