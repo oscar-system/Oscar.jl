@@ -915,7 +915,7 @@ function lattice(
     isbasis::Bool=true,
     check::Bool=true
   )
-  L = lattice(space(Vf), B; isbasis, check)
+  L = lattice(space(Vf), B; is_basis=isbasis, check)
   fB = restrict_to_lattice(L, isometry(Vf); check)
   n = is_zero(fB) ? -1 : multiplicative_order(fB)
   return ZZLatWithIsom(Vf, L, fB, n)

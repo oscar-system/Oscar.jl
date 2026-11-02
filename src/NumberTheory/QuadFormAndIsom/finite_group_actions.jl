@@ -782,7 +782,7 @@ function setwise_stabilizer_in_orthogonal_group(
     B::QQMatrix;
     kwargs...,
   )
-  S = lattice(ambient_space(L), B; isbasis=(rank(B)==nrows(B)))
+  S = lattice(ambient_space(L), B; is_basis=(rank(B)==nrows(B)))
   return setwise_stabilizer_in_orthogonal_group(L, S; kwargs...)
 end
 
