@@ -108,6 +108,7 @@ export IndexedSet
 export InfiniteDimensionError
 export K3Chamber
 export K3_surface_automorphism_group
+export LWE
 export LazyPoly
 export LazyPolyRing
 export LinearHalfspace
@@ -790,6 +791,14 @@ export hirsch_length
 export hirzebruch_surface
 export hodge_number
 export hodge_numbers
+export instantiate_lwe
+export lwe_all
+export lwe_decrypt
+export lwe_encrypt
+export lwe_keygen
+export lwe_light
+export lwe_standard
+export lwe_toy
 export print_hodge_diamond
 export hom
 export hom_product
@@ -1132,7 +1141,6 @@ export k_skeleton
 export kaehler_differentials
 export katsura
 export kernel
-export keygen
 export klee_minty_cube
 export klein_bottle
 export known_class_fusion
@@ -1710,7 +1718,6 @@ export show_atlas_info
 export show_morphism
 export show_morphism_as_map
 export show_subquo
-export sign
 export signed_incidence_matrix
 export signed_permutahedron
 export simple_coroot
@@ -1892,7 +1899,10 @@ export uov_5
 export uov_5_pkc
 export uov_5_pkc_skc
 export uov_all
+export uov_keygen
 export uov_open
+export uov_sign
+export uov_verify
 export update_gluing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
@@ -1907,7 +1917,6 @@ export variety
 export vector_matrix
 export vector_space_basis
 export vector_space_dim
-export verify
 export vertex_and_ray_indices
 export vertex_edge_graph
 export vertex_figure
