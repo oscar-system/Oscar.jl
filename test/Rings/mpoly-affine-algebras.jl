@@ -191,3 +191,13 @@ end
   @test I == ideal([t2 - 1//8*t1^3 - 3t3])
   @test fl == is_algebraically_independent(V)
 end
+
+@testset "present_finite_extension_ring, ungraded" begin
+  A, (u, v) = polynomial_ring(QQ, [:u, :v])
+  BR, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  B, _ = quo(BR, ideal(BR, x^2 + y^2 + z^2))
+  F = hom(A, B, B.([x, y]))
+  gs, PM, sect = present_finite_extension_ring(F)
+  @test gs == [z, one(BR)]
+  @test isempty(PM)
+end

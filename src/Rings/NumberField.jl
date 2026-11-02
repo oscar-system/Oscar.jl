@@ -954,8 +954,8 @@ function image(f::MapDataFromNfNSGen, L, y)
   return evaluate(z, f.images)
 end
 
-function Hecke.map_data_type(T::Type{<: NfNSGen}, L::Type{<:Any})
-  MapDataFromNfNSGen{Vector{elem_type(L)}, map_data_type(base_field_type(T), L)}
+function Hecke.map_data_type(::Type{<: NfNSGen{T}}, L::Type{<:Any}) where {T}
+  MapDataFromNfNSGen{Vector{elem_type(L)}, Hecke.map_data_type(parent_type(T), L)}
 end
 
 Hecke.map_data_type(K::NfNSGen, L) = MapDataFromNfNSGen{Vector{elem_type(L)}, Hecke.map_data_type(base_field(K), L)}
@@ -1016,7 +1016,7 @@ function Hecke._compute_inverse_data(f, K, LL, L::NfNSGen)
     push!(preimg_gens, preimg)
   end
   inverse_data_base_field = Hecke._compute_inverse_data(f, K, LL, base_field(L))
-  return MapDataFromNfRelNS{typeof(preimg_gens), typeof(inverse_data_base_field)}(preimg_gens, inverse_data_base_field)
+  return MapDataFromNfNSGen{typeof(preimg_gens), typeof(inverse_data_base_field)}(preimg_gens, inverse_data_base_field)
 end
 
 # compose
