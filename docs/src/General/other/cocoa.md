@@ -66,10 +66,10 @@ as brief "hesitations".
 ## Naming conventions in OSCAR
 
 CoCoA-5 uses mostly _CamelCase_ for the names of functions, and
-some longer words are abbreviated: for example, `IsPolyRing`.
+some longer words are abbreviated: for example, `IsProbPrime`.
 
 In contrast OSCAR uses _snake_case_ for the names of functions,
-and abbreviations are rarely used: for example, `is_polynomial_ring`.
+and abbreviations are rarely used: for example, `is_probable_prime`.
 
 
 ## Julia language and syntax
