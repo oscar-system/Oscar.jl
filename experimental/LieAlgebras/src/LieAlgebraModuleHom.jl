@@ -554,7 +554,7 @@ function tensor_power(
   (codomain_fl, codomain_base, codomain_k) = _is_tensor_power(codomain)
   @req domain_fl "Domain must be an tensor power"
   @req codomain_fl "Codomain must be an tensor power"
-  @req domain_k == codomain_k "Exponent mismatch"
+  @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
   mat = reduce(

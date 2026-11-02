@@ -197,6 +197,8 @@
       @test is_welldefined(h)
       vs = elem_type(Vb)[Vb(rand(-10:10, dim(Vb))) for _ in 1:k]
       @test h(V(vs)) == W(hb.(vs))
+
+      @test_throws ArgumentError f_power(hb, k + 1; domain=V, codomain=W)
     end
   end
 end
