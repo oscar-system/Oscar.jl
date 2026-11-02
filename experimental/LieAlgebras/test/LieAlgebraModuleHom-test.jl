@@ -94,6 +94,8 @@
     v1, v2, v3, v4, v5, v6 = basis(V)
     h = hom(V, V, [zero(V), zero(V), zero(V), v1, v2, v3])
     @test !is_isomorphism(h)
+    # surjective but not injective, has a one-sided inverse
+    @test !is_isomorphism(canonical_projection(V, 1))
 
     @test is_isomorphism(id_hom(V))
     @test id_hom(V) == inv(id_hom(V))

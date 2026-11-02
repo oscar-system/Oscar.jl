@@ -106,6 +106,12 @@
     @test id_hom(L1) == inv(id_hom(L1))
 
     @test !is_isomorphism(zero_map(L1))
+
+    # surjective but not injective, has a one-sided inverse
+    h = hom(
+      abelian_lie_algebra(QQ, 2), abelian_lie_algebra(QQ, 1), matrix(QQ, 2, 1, [1, 1])
+    )
+    @test !is_isomorphism(h)
   end
 
   @testset "Hum72, Exercise 2.10" begin
