@@ -239,6 +239,13 @@ Base.@deprecate_binding ModuleFP_dec OFPModule_dec
 Base.@deprecate_binding ModuleFPElem_dec OFPModuleElem_dec
 Base.@deprecate_binding ModuleFPHomDummy OFPModuleHomDummy
 
+# copy of `Hecke._is_basis_kwarg` from thofma/Hecke.jl#2576
+function _is_basis_kwarg(is_basis::Bool, isbasis::Union{Nothing, Bool}, f::Symbol)
+  isnothing(isbasis) && return is_basis
+  Base.depwarn("The keyword `isbasis` is deprecated, use `is_basis` instead.", f)
+  return isbasis
+end
+
 @eval Serialization begin
   @deprecate type_params type_and_params
   Base.@deprecate_binding TypeParams TypeAndParams
