@@ -8,8 +8,7 @@ using Oscar:
   GAPWrap,
   GSetByElements,
   IntegerUnion,
-  MapHeader,
-  set_root_system_type!
+  MapHeader
 
 # not importet in Oscar
 using AbstractAlgebra:
