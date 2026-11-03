@@ -2162,6 +2162,16 @@ function induce_hom(I::IdeleParent, mR::Union{MapRayClassGrp,Hecke.MapClassGrp};
       for (p, v) = factor(minimum(m0))
         @assert haskey(c, Int(p)) && c[Int(p)] >= v
       end
+      for P = I.S
+        l = valuation(m0, P)
+        # We use the principal unit group at level l - 1, so require l >= 2.
+        l <= 1 && continue
+        kp, _, _, mUp = completion(I, P)
+        # The P-adic order of u - 1 is l - 1, so u does not lie in 1 + P^l.
+        # If u lies in the kernel, the kernel is not contained in 1 + P^l.
+        u = 1 + uniformizer(kp)^(l - 1)
+        @req !iszero(preimage(mUp, u)) "refine the local quotient at $P to support the ray modulus"
+      end
     end
   else
     m0 = 1*maximal_order(number_field(I))
