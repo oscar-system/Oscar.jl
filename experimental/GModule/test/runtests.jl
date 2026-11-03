@@ -448,4 +448,19 @@ end
     @test order(H) == degree(N)
     @test is_cyclic(H)
   end
+
+  @testset "Test local exponent for Artin application" begin
+    # A unit in the kernel of the tame quotient map can have a nontrivial ray class.
+    K, a = quadratic_field(-7)
+    O = maximal_order(K)
+    I = idele_class_gmodule(K; redo = true)
+    P = prime_decomposition(O, 7)[1][1]
+    _, mKp, _, mUp = completion(I, P)
+    u = 1 + a
+    @test iszero(preimage(mUp, mKp(u)))
+    R, mR = ray_class_group(7*O)
+    J = Oscar.GaloisCohomology_Mod._local_norm(7*O, O(u), P)
+    @test order(preimage(mR, J)) == 7
+    @test_throws ArgumentError induce_hom(I, mR)
+  end
 end
