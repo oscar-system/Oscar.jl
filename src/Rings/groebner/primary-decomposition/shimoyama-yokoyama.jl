@@ -56,7 +56,7 @@ function _pd_extract(Q::MPolyIdeal, P::MPolyIdeal)
 end
 
 @doc raw"""
-    primdec_sy(I::MPolyIdeal) -> Vector{Tuple{MPolyIdeal, MPolyIdeal}}
+    primary_decomposition_sy(I::MPolyIdeal) -> Vector{Tuple{MPolyIdeal, MPolyIdeal}}
 
 Compute a primary decomposition of `I` with the algorithm of Shimoyama and
 Yokoyama. The result is a vector of pairs `(Q, P)` of a primary component `Q`
@@ -66,11 +66,11 @@ and its radical `P`, without redundant components.
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> length(Oscar.primdec_sy(ideal(R, [x^2, x*y])))
+julia> length(Oscar.primary_decomposition_sy(ideal(R, [x^2, x*y])))
 2
 ```
 """
-function primdec_sy(I::MPolyIdeal)
+function primary_decomposition_sy(I::MPolyIdeal)
   T = typeof(I)
   I = _pd_clean(I)
   is_one(I) && return Tuple{T,T}[]
@@ -79,7 +79,7 @@ function primdec_sy(I::MPolyIdeal)
   while !isempty(todo)
     J = pop!(todo)
     is_one(J) && continue
-    primes = minass_gtz(J)
+    primes = minimal_associated_gtz(J)
     R = base_ring(J)
     if length(primes) == 1
       pseudo = [(J, primes[1])]

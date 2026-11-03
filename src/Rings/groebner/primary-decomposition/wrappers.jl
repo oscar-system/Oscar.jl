@@ -1,28 +1,28 @@
 # ---------------------------------------------------------------------------
-# User-facing wrappers and verification helpers corresponding to `primdec`,
+# User-facing wrappers and verification helpers corresponding to `primary_decomposition_native`,
 # `minAss`, `testPrimary`, `idealsEqual` and friends of Singular's `primdec.lib`.
 # ---------------------------------------------------------------------------
 
 @doc raw"""
-    primdec(I::MPolyIdeal; algorithm::Symbol = :gtz) -> Vector{Tuple{MPolyIdeal, MPolyIdeal}}
+    primary_decomposition_native(I::MPolyIdeal; algorithm::Symbol = :gtz) -> Vector{Tuple{MPolyIdeal, MPolyIdeal}}
 
 Compute a primary decomposition of `I` as a vector of pairs `(Q, P)` of a
 primary component and its radical, with the algorithm `:gtz` (Gianni, Trager,
 Zacharias) or `:sy` (Shimoyama, Yokoyama).
 """
-function primdec(I::MPolyIdeal; algorithm::Symbol=:gtz)
-  algorithm == :gtz && return primdec_gtz(I)
-  algorithm == :sy && return primdec_sy(I)
+function primary_decomposition_native(I::MPolyIdeal; algorithm::Symbol=:gtz)
+  algorithm == :gtz && return primary_decomposition_gtz(I)
+  algorithm == :sy && return primary_decomposition_sy(I)
   throw(ArgumentError("unknown algorithm $algorithm, expected :gtz or :sy"))
 end
 
 @doc raw"""
-    minass(I::MPolyIdeal; algorithm::Symbol = :gtz) -> Vector{MPolyIdeal}
+    minimal_associated(I::MPolyIdeal; algorithm::Symbol = :gtz) -> Vector{MPolyIdeal}
 
 Compute the minimal associated primes of `I` with the algorithm `:gtz`.
 """
-function minass(I::MPolyIdeal; algorithm::Symbol=:gtz)
-  algorithm == :gtz && return minass_gtz(I)
+function minimal_associated(I::MPolyIdeal; algorithm::Symbol=:gtz)
+  algorithm == :gtz && return minimal_associated_gtz(I)
   throw(ArgumentError("unknown algorithm $algorithm, expected :gtz"))
 end
 

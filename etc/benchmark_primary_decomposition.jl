@@ -52,9 +52,9 @@ for K in (QQ, GF(32003))
   println(rpad("example", 20), rpad("task", 12), rpad("native [s]", 14), rpad("Singular [s]", 14), "ratio")
   for (name, I) in cases(K)
     tasks = [
-      ("minAss", () -> Oscar.minass_gtz(I), singular_call(L.minAssGTZ, I)),
-      ("primdecGTZ", () -> Oscar.primdec_gtz(I), singular_call(L.primdecGTZ, I)),
-      ("primdecSY", () -> Oscar.primdec_sy(I), singular_call(L.primdecSY, I)),
+      ("minAss", () -> Oscar.minimal_associated_gtz(I), singular_call(L.minAssGTZ, I)),
+      ("primdecGTZ", () -> Oscar.primary_decomposition_gtz(I), singular_call(L.primdecGTZ, I)),
+      ("primdecSY", () -> Oscar.primary_decomposition_sy(I), singular_call(L.primdecSY, I)),
       ("radical", () -> Oscar.radical_kl(I), singular_call(L.radical, I)),
       ("equidim", () -> Oscar.equidim(I), singular_call(L.equidim, I)),
     ]
