@@ -112,7 +112,7 @@ function _pd_irredundant(L::Vector{Tuple{T,T}}) where {T<:MPolyIdeal}
 end
 
 @doc raw"""
-    minimal_associated_gtz(I::MPolyIdeal) -> Vector{MPolyIdeal}
+    minimal_associated_primes_gtz(I::MPolyIdeal) -> Vector{MPolyIdeal}
 
 Compute the minimal associated primes of `I` with the algorithm of Gianni,
 Trager and Zacharias.
@@ -121,11 +121,11 @@ Trager and Zacharias.
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> length(Oscar.minimal_associated_gtz(ideal(R, [x*y, x*z])))
+julia> length(Oscar.minimal_associated_primes_gtz(ideal(R, [x*y, x*z])))
 2
 ```
 """
-function minimal_associated_gtz(I::MPolyIdeal)
+function minimal_associated_primes_gtz(I::MPolyIdeal)
   T = typeof(I)
   I = _pd_clean(I)
   is_one(I) && return T[]

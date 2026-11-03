@@ -79,7 +79,7 @@ function primary_decomposition_sy(I::MPolyIdeal)
   while !isempty(todo)
     J = pop!(todo)
     is_one(J) && continue
-    primes = minimal_associated_gtz(J)
+    primes = minimal_associated_primes_gtz(J)
     R = base_ring(J)
     if length(primes) == 1
       pseudo = [(J, primes[1])]

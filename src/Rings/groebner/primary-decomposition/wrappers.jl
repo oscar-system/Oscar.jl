@@ -17,12 +17,12 @@ function primary_decomposition_native(I::MPolyIdeal; algorithm::Symbol=:gtz)
 end
 
 @doc raw"""
-    minimal_associated(I::MPolyIdeal; algorithm::Symbol = :gtz) -> Vector{MPolyIdeal}
+    minimal_associated_primes(I::MPolyIdeal; algorithm::Symbol = :gtz) -> Vector{MPolyIdeal}
 
 Compute the minimal associated primes of `I` with the algorithm `:gtz`.
 """
-function minimal_associated(I::MPolyIdeal; algorithm::Symbol=:gtz)
-  algorithm == :gtz && return minimal_associated_gtz(I)
+function minimal_associated_primes(I::MPolyIdeal; algorithm::Symbol=:gtz)
+  algorithm == :gtz && return minimal_associated_primes_gtz(I)
   throw(ArgumentError("unknown algorithm $algorithm, expected :gtz"))
 end
 
