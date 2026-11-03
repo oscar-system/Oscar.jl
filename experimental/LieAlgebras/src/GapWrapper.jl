@@ -7,7 +7,7 @@
 function lie_algebra_simple_module_struct_consts_gap(
   L::LieAlgebra, weight::WeightLatticeElem
 )
-  @req root_system(weight) == root_system(L) "Incompatible root systems"
+  @req root_system(weight) === root_system(L) "Incompatible root systems"
   return lie_algebra_simple_module_struct_consts_gap(
     L, Int.(Oscar._vec(coefficients(weight)))
   )

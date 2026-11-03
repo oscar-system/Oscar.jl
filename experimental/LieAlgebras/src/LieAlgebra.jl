@@ -273,7 +273,7 @@ function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldEl
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
-  coefficient_ring(x) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(x) === parent(c) "Incompatible rings."
   return LieAlgebraElem(parent(x), _matrix(x) * c)
 end
 
@@ -282,7 +282,7 @@ function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
-  coefficient_ring(x) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(x) === parent(c) "Incompatible rings."
   return LieAlgebraElem(parent(x), c * _matrix(x))
 end
 
