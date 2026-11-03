@@ -13,7 +13,7 @@ function primitive_element(a::Vector{QQBarFieldElem})
     g = minpoly(a[i])
     f = minpoly(pe)
     k, _ = number_field(f, check = false, cached = false)
-    lf = collect(keys(factor(k, g).fac))
+    lf = [p for (p, _) in factor(k, g)]
     for j = 1:length(lf)
       h = map_coefficients(x->Qx(x)(pe), lf[j])
       if is_zero(h(a[i]))
@@ -83,7 +83,7 @@ function cyclo_fixed_group_gens(a::AbsSimpleNumFieldElem)
   k = GF(p)
   o = k(1)
   lf = factor(f)
-  test = [div(f, x) for x = keys(lf.fac)]
+  test = [div(f, x) for (x, _) in lf]
   while any(i->isone(o^i), test)
     o = rand(k)^divexact(p-1, f)
   end
@@ -162,7 +162,7 @@ function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
   _, sR = is_subgroup(Q, R)
   Qgen = map(sR, map(ms, gens(s)))
   lf = factor(F)
-  for p = keys(lf.fac)
+  for (p, _) in lf
     while true
       G = div(F, p)
       zg = quo(ZZ, G)[1]
