@@ -359,12 +359,13 @@ end
 ###############################################################################
 # LieAlgebraModuleHom
 
-@attributes mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
-                           Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
+@attributes mutable struct LieAlgebraModuleHom{
+  T1<:LieAlgebraModule,T2<:LieAlgebraModule,MatT<:MatElem
+} <: Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
   header::MapHeader{T1,T2}
-  matrix::MatElem
+  matrix::MatT
 
-  inverse_isomorphism::LieAlgebraModuleHom{T2,T1}
+  inverse_isomorphism::LieAlgebraModuleHom{T2,T1,MatT}
 
   function LieAlgebraModuleHom(
     V1::LieAlgebraModule,
@@ -390,7 +391,7 @@ end
     @req size(mat) == (dim(V1), dim(V2)) "Matrix size must match dimensions of domain and codomain"
     @req base_ring(mat) === coefficient_ring(V2) "Matrix must be over coefficient ring of codomain"
     @req mat isa dense_matrix_type(coefficient_ring(V2)) "Invalid matrix type"
-    h = new{typeof(V1),typeof(V2)}()
+    h = new{typeof(V1),typeof(V2),typeof(mat)}()
     h.matrix = mat
     h.header = MapHeader(V1, V2)
     if check

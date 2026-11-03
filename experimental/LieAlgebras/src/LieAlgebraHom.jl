@@ -11,8 +11,8 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra,MatT}) where {MatT<:MatElem}
-  return (h.matrix)::MatT
+function matrix(h::LieAlgebraHom)
+  return h.matrix
 end
 
 @doc raw"""
