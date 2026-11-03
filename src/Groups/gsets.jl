@@ -577,7 +577,7 @@ function orbit_via_Julia(G::T, fun::F, omega::S) where {T,F,S}
 end
 
 orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S} =
-  orbit_via_Julia(acting_group(Omega), action_function(G), omega)
+  orbit_via_Julia(acting_group(Omega), action_function(Omega), omega)
 
 
 #############################################################################
@@ -1669,7 +1669,7 @@ function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) 
   k == 0 && return [(sub(V, [])[1], G)]
   if order(G)>1
     gens_mat = matrix.(small_generating_set(G))
-  else 
+  else
     gens_mat = [identity_matrix(F,n)]
   end
   res = Hecke.orbit_representatives_and_stabilizers_mod_2(gens_mat, k; group_order=order(G))
