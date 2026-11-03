@@ -748,7 +748,7 @@ end
 ######################## Standard module ########################
 
 # cache storage
-@attr LieAlgebraModule{elem_type(coefficient_ring(L))} function _standard_module(
+@attr LieAlgebraModule{elem_type(coefficient_ring(L)),elem_type(L)} function _standard_module(
   L::LinearLieAlgebra
 )
   return standard_module(L; cached=false)
