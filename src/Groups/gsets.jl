@@ -559,11 +559,9 @@ function orbit(Omega::GSetByElements{T, S}, omega::S) where {T<:Union{Group, Fin
 end
 
 # simpleminded alternative directly in Julia
-function orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S}
-  acts = gens(acting_group(Omega))
+function orbit_via_Julia(G::T, fun::F, omega::S) where {T,F,S}
+  acts = gens(G)
   orb = IndexedSet([omega])
-  fun = action_function(Omega)
-
   for p in orb
     for g in acts
       img = fun(p, g)::S
@@ -572,12 +570,14 @@ function orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S}
       end
     end
   end
-
-  res = as_gset(acting_group(Omega), action_function(Omega), orb)
+  res = as_gset(G, fun, orb)
   # We know that this G-set is transitive.
   set_attribute!(res, :orbits => [res])
   return res
 end
+
+orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S} =
+  orbit_via_Julia(acting_group(Omega), action_function(G), omega)
 
 
 #############################################################################
