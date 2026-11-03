@@ -241,7 +241,7 @@ end
 
 Construct the homomorphism from `L1` to `L2` by acting with the matrix `mat`
 from the right on the coefficient vector w.r.t. the basis of `L1`.
-`mat` must be a matrix of size `dim(L1) \times dim(L2)` over `coefficient_ring(L2)`.
+`mat` must be a matrix of size $\dim(L_1) \times \dim(L_2)$ over `coefficient_ring(L2)`.
 
 By setting `check=false`, the linear map is not checked to be compatible with the Lie bracket.
 

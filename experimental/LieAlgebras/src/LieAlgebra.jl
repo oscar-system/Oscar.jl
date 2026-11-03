@@ -15,7 +15,7 @@
 #   has_root_system(::MyLieAlgebra) -> Bool
 #   root_system(::MyLieAlgebra) -> RootSystem
 #   chevalley_basis(L::MyLieAlgebra{C}) -> NTuple{3,Vector{MyLieAlgebraElem{C}}}
-#   set_root_system_and_chevalley_basis!(L::MyLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{MyLieAlgebraElem{C}}}}})
+#   set_root_system_and_chevalley_basis!(L::MyLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{MyLieAlgebraElem{C}}})
 
 ###############################################################################
 #
@@ -563,7 +563,7 @@ end
 
 Return an element of `L` that is not ad-nilpotent, or the zero element if all elements are ad-nilpotent.
 
-The used algorithm is described in [GIR96; Ch. 3](@cite).
+The algorithm is from [GIR96; Sect. 3](@cite), see also [Gra00; Sect. 2.7](@cite).
 """
 function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
   if dim(L) <= 1
