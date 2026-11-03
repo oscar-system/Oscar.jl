@@ -16,27 +16,24 @@
 # and this `sibling_lt` method will be used as a tie-breaker.)
 # A user can provide a custom `sibling_lt` by setting a `:sibling_order` attribute on the corresponding `LadderStep`.
 
-
 abstract type AbstractTestFunction end
 
-
 mutable struct GAPTransversalTest <: AbstractTestFunction
-  T::Oscar.SubgroupTransversal{PermGroup, PermGroup, PermGroupElem}
+  T::Oscar.SubgroupTransversal{PermGroup,PermGroup,PermGroupElem}
   Tvec::Vector{PermGroupElem}
   domain::PermGroup
   ambient::PermGroup
   __index_cache::Dict{PermGroupElem,Int}
 end
 
-function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup = G)
+function GAPTransversalTest(G::PermGroup, H::PermGroup; ambient::PermGroup=G)
   T = right_transversal(G, H)
-  Tvec = PermGroupElem[ reparent(ambient, t) for t in T ]
+  Tvec = PermGroupElem[reparent(ambient, t) for t in T]
   return GAPTransversalTest(T, Tvec, G, ambient, Dict{PermGroupElem,Int}())
 end
 
-_coset_rep(tf::GAPTransversalTest, x::PermGroupElem) = tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
-
-
+_coset_rep(tf::GAPTransversalTest, x::PermGroupElem) =
+  tf.Tvec[index_of_coset(Int, tf.T, reparent(tf.domain, x))]
 
 mutable struct FunctionTest{F} <: AbstractTestFunction
   f::F   # maps to coset rep
@@ -46,14 +43,18 @@ mutable struct FunctionTest{F} <: AbstractTestFunction
   __index_cache::Dict{PermGroupElem,Int}
 end
 
-function FunctionTest(Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup = parent(first(Tvec))) where F
-  tf = FunctionTest{F}(f, copy(Tvec), parent(first(Tvec)), ambient, Dict{PermGroupElem,Int}())
+function FunctionTest(
+  Tvec::Vector{PermGroupElem}, f::F; ambient::PermGroup=parent(first(Tvec))
+) where {F}
+  tf = FunctionTest{F}(
+    f, copy(Tvec), parent(first(Tvec)), ambient, Dict{PermGroupElem,Int}()
+  )
   set_ambient!(tf, ambient)
   return tf
 end
 
-_coset_rep(tf::FunctionTest, x::PermGroupElem) = reparent(tf.ambient, tf.f(reparent(tf.domain, x)))
-
+_coset_rep(tf::FunctionTest, x::PermGroupElem) =
+  reparent(tf.ambient, tf.f(reparent(tf.domain, x)))
 
 coset_rep(tf::AbstractTestFunction, x::PermGroupElem) = _coset_rep(tf, x)::PermGroupElem
 Oscar.elements(tf::AbstractTestFunction) = tf.Tvec::Vector{PermGroupElem}
@@ -75,31 +76,33 @@ function _index_lookup(tf::AbstractTestFunction)
   return tf.__index_cache
 end
 
-
 function sibling_lt(tf::AbstractTestFunction, x::PermGroupElem, y::PermGroupElem)
   idx = _index_lookup(tf)
   return idx[x] < idx[y]
 end
 
 function Base.show(io::IO, tf::GAPTransversalTest)
-  if is_terse(io)
+  return if is_terse(io)
     print(io, "Coset-sifting test function")
   else
-    print(io, "Coset-sifting test function with ", ItemQuantity(length(elements(tf)), "element"))
+    print(
+      io, "Coset-sifting test function with ", ItemQuantity(length(elements(tf)), "element")
+    )
   end
 end
 
 function Base.show(io::IO, tf::FunctionTest)
-  if is_terse(io)
+  return if is_terse(io)
     print(io, "Combinatorial test function")
   else
-    print(io, "Combinatorial test function with ", ItemQuantity(length(elements(tf)), "element"))
+    print(
+      io, "Combinatorial test function with ", ItemQuantity(length(elements(tf)), "element")
+    )
   end
 end
 
-
 mutable struct TransversalChain
-  C::Vector{Tuple{PermGroup, Vector{PermGroupElem}}}
+  C::Vector{Tuple{PermGroup,Vector{PermGroupElem}}}
 end
 
 @inline data(T::TransversalChain) = T.C
@@ -109,10 +112,9 @@ end
 @inline Base.lastindex(T::TransversalChain) = length(T)
 @inline Base.getindex(T::TransversalChain, i::IntegerUnion) = getindex(data(T), Int(i))
 
-
 function TransversalChain(U::PermGroup)
   U0 = U
-  C = Tuple{PermGroup, Vector{PermGroupElem}}[]
+  C = Tuple{PermGroup,Vector{PermGroupElem}}[]
   while length(U0) != 1
     s = first(moved_points(U0))
     U = stabilizer(U0, s)[1]
@@ -128,21 +130,20 @@ end
 get_transversal_chain(U::PermGroup) = TransversalChain(U)
 
 function Base.show(io::IO, T::TransversalChain)
-  if is_terse(io)
+  return if is_terse(io)
     print(io, "Transversal chain")
   else
     print(io, "Transversal chain of length ", length(T))
   end
 end
 
-
 @attributes mutable struct LadderStep
   is_up_step::Bool
   Aprev::PermGroup
   A::PermGroup
   test::AbstractTestFunction
-  DSt::Dict{PermGroupElem, TransversalChain}
-  Im::Dict{PermGroupElem, Tuple{PermGroupElem, PermGroupElem}}
+  DSt::Dict{PermGroupElem,TransversalChain}
+  Im::Dict{PermGroupElem,Tuple{PermGroupElem,PermGroupElem}}
   F
 
   function LadderStep(Aprev::PermGroup, A::PermGroup)
@@ -170,20 +171,21 @@ end
 
 function Base.getproperty(S::LadderStep, s::Symbol)
   if s === :F
-    return getfield(S, :F)::SubArray{LadderStep, 1, SubgroupLadder, Tuple{UnitRange{Int64}}, false}
+    return getfield(
+      S, :F
+    )::SubArray{LadderStep,1,SubgroupLadder,Tuple{UnitRange{Int64}},false}
   else
     return getfield(S, s)
   end
 end
 
-@inline _get_previous_steps(S::LadderStep) =  S.F
+@inline _get_previous_steps(S::LadderStep) = S.F
 
 function sibling_lt(S::LadderStep, x::PermGroupElem, y::PermGroupElem)
   f = get_attribute(S, :sibling_order, nothing)
   f !== nothing && return f(x, y)
   return sibling_lt(S.test, x, y)   # fall back to the test function's own default
 end
-
 
 function Base.show(io::IO, ::MIME"text/plain", S::LadderStep)
   @show_name(io, S)
@@ -193,13 +195,13 @@ function Base.show(io::IO, ::MIME"text/plain", S::LadderStep)
   io = pretty(io)
   println(io, Indent(), Lowercase(), S.Aprev)
   print(io, "-> ", Lowercase(), S.A)
-  print(io, Dedent())
+  return print(io, Dedent())
 end
 
 function Base.show(io::IO, S::LadderStep)
   @show_name(io, S)
   @show_special(io, S)
-  if is_terse(io)
+  return if is_terse(io)
     print(io, "Ladder step")
   else
     dir = S.is_up_step ? "up" : "down"
@@ -207,8 +209,6 @@ function Base.show(io::IO, S::LadderStep)
     print(terse(pretty(io)), Lowercase(), S.Aprev, " -> ", Lowercase(), S.A)
   end
 end
-
-
 
 # SubgroupLadder stores Vector{LadderStep}
 @attributes mutable struct SubgroupLadder <: AbstractVector{LadderStep}
@@ -224,7 +224,6 @@ end
     return L
   end
 end
-
 
 # When extending a subgroup ladder with a "down" step, need to ensure that we still have a strong subgroup ladder. (See Koch Theorem 6.5.2)
 function _is_valid_strong_down_extension(Aprev::PermGroup, A::PermGroup, C::PermGroup)
@@ -279,13 +278,13 @@ function Base.show(io::IO, ::MIME"text/plain", L::SubgroupLadder)
   print(io, Indent())
   println(io, "from ", Lowercase(), _ambient_group(L))
   print(io, "to ", Lowercase(), L[end].A)
-  print(io, Dedent())
+  return print(io, Dedent())
 end
 
 function Base.show(io::IO, L::SubgroupLadder)
   @show_name(io, L)
   @show_special(io, L)
-  if is_terse(io)
+  return if is_terse(io)
     print(io, "Subgroup ladder")
   else
     print(io, "Subgroup ladder of length ", length(L), " from ")
@@ -301,7 +300,7 @@ end
 #
 ################################################################################
 
-@inline Base.size(L::SubgroupLadder) =  size(data(L))
+@inline Base.size(L::SubgroupLadder) = size(data(L))
 @inline Base.length(L::SubgroupLadder) = length(data(L))
 @inline Base.firstindex(L::SubgroupLadder) = 1
 @inline Base.lastindex(L::SubgroupLadder) = length(L)
