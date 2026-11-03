@@ -388,8 +388,10 @@ end
   )
     @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
     @req size(mat) == (dim(V1), dim(V2)) "Matrix size must match dimensions of domain and codomain"
+    @req base_ring(mat) === coefficient_ring(V2) "Matrix must be over coefficient ring of codomain"
+    @req mat isa dense_matrix_type(coefficient_ring(V2)) "Invalid matrix type"
     h = new{typeof(V1),typeof(V2)}()
-    h.matrix = mat::dense_matrix_type(coefficient_ring(V2))
+    h.matrix = mat
     h.header = MapHeader(V1, V2)
     if check
       @req is_welldefined(h) "Not a homomorphism"
