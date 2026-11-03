@@ -66,7 +66,7 @@ and its radical `P`, without redundant components.
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> length(Oscar.primary_decomposition_sy(ideal(R, [x^2, x*y])))
+julia> length(primary_decomposition_sy(ideal(R, [x^2, x*y])))
 2
 ```
 """

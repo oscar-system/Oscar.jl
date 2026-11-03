@@ -427,9 +427,9 @@ end
     for I in examples
       ref = primary_decomposition(I)
       ref_primes = [P for (_, P) in ref]
-      @test same_ideals(Oscar.minimal_associated_primes_gtz(I), minimal_primes(I))
+      @test same_ideals(minimal_associated_primes_gtz(I), minimal_primes(I))
       for alg in (:gtz, :sy)
-        pd = Oscar.primary_decomposition_native(I; algorithm=alg)
+        pd = primary_decomposition_native(I; algorithm=alg)
         @test length(pd) == length(ref)
         @test same_ideals([P for (_, P) in pd], ref_primes)
         @test Oscar.test_primary(pd, I)
@@ -449,11 +449,11 @@ end
   @test Oscar.equidim(ideal(R, [one(R)])) == [ideal(R, [one(R)])]
 
   # unit ideal, the zero ideal and zero-dimensional ideals
-  @test isempty(Oscar.primary_decomposition_gtz(ideal(R, [one(R)])))
-  @test isempty(Oscar.minimal_associated_primes_gtz(ideal(R, [one(R)])))
-  @test length(Oscar.minimal_associated_primes_gtz(ideal(R, elem_type(R)[]))) == 1
+  @test isempty(primary_decomposition_gtz(ideal(R, [one(R)])))
+  @test isempty(minimal_associated_primes_gtz(ideal(R, [one(R)])))
+  @test length(minimal_associated_primes_gtz(ideal(R, elem_type(R)[]))) == 1
   J = ideal(R, [(x^2-2)*(x^2-3)^2, y^2 - 2 - x, z])
-  @test length(Oscar.primary_decomposition_gtz(J)) == 2
-  @test Oscar.test_primary(Oscar.primary_decomposition_sy(J), J)
-  @test_throws ArgumentError Oscar.primary_decomposition_native(I; algorithm=:foo)
+  @test length(primary_decomposition_gtz(J)) == 2
+  @test Oscar.test_primary(primary_decomposition_sy(J), J)
+  @test_throws ArgumentError primary_decomposition_native(I; algorithm=:foo)
 end

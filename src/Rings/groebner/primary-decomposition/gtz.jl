@@ -64,7 +64,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal(R, [x*y, x*z]);
 
-julia> length(Oscar.primary_decomposition_gtz(I))
+julia> length(primary_decomposition_gtz(I))
 2
 ```
 """
@@ -121,7 +121,7 @@ Trager and Zacharias.
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> length(Oscar.minimal_associated_primes_gtz(ideal(R, [x*y, x*z])))
+julia> length(minimal_associated_primes_gtz(ideal(R, [x*y, x*z])))
 2
 ```
 """
