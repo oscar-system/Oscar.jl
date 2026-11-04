@@ -40,5 +40,9 @@ end
   Q = Oscar.affine_semigroup(M)
   C = Oscar.InjectiveResolutions.polyhedral_cone(Q)
   @test_throws AssertionError Oscar.AffineSemigroup(C) # cone is not pointed, which is not supported at the moment
+  @test gens(Vector, Q) isa Vector
+  @test gen(Vector, Q, 3) isa Vector
+  F = Oscar.InjectiveResolutions.ambient_group(Q)
+  @test repres(Q(gen(Q, 1)) + 2*Q(gen(Q, 2))) == F([1, 2])
 end
 
