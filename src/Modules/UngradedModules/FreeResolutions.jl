@@ -672,7 +672,7 @@ end
 Return a free resolution of `M`.
 
 If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
-For modules over quotient-local rings, `length` must be finite.
+For modules over localizations of quotient rings, `length` must be finite.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -1023,7 +1023,7 @@ end
 Consider `I` as a subquotient module over its base ring, and return a free resolution of that module.
 
 If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
-For ideals over quotient-local rings, `length` must be finite.
+For ideals over localizations of quotient rings, `length` must be finite.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
