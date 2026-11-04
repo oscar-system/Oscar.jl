@@ -788,6 +788,7 @@ export hilbert_series_expanded
 export hilbert_series_reduced
 export hirsch_length
 export hirzebruch_surface
+export hochster_betti_numbers
 export hodge_number
 export hodge_numbers
 export print_hodge_diamond

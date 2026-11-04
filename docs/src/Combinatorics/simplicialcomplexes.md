@@ -79,6 +79,7 @@ The complements of the minimal non-faces form the facets of the Alexander dual.
 ```@docs
 minimal_nonfaces(K::SimplicialComplex)
 alexander_dual(K::SimplicialComplex)
+hochster_betti_numbers(monomials::Vector{<:MPolyRingElem})
 ```
 
 Let $K$ be a simplicial complex on $n$ vertices.
