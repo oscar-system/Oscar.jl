@@ -13,21 +13,23 @@
 
 ### Production of the chains
 struct DirectSumChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
-  R::Ring
   summands::Vector{<:AbsHyperComplex}
 
-  function DirectSumChainFactory{CT}(R::Ring, summands::Vector{<:AbsHyperComplex}) where {CT}
-    return new{CT}(R, summands)
+  function DirectSumChainFactory{CT}(summands::Vector{<:AbsHyperComplex}) where {CT}
+    return new{CT}(summands)
   end
 end
 
 function (fac::DirectSumChainFactory)(self::AbsHyperComplex, i::Tuple)
-  res = _direct_sum(fac.R, [can_compute_index(s, i) ? s[i] : _zero_module(fac.R) for s in fac.summands])
+  ind = findfirst(can_compute_index(a, i) for a in fac.summands)
+  isnothing(ind) && error("can not compute this index")
+  sample = fac.summands[ind][i]
+  res = _direct_sum([can_compute_index(s, i) ? s[i] : _zero_object(sample) for s in fac.summands])
   return res
 end
 
 function can_compute(fac::DirectSumChainFactory, self::AbsHyperComplex, i::Tuple)
-  return true
+  return any(can_compute_index(a, i) for a in fac.summands)
 end
 
 ### Production of the morphisms 
@@ -51,6 +53,15 @@ function (::DirectSumMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
     push!(maps, map(s, p, i))
   end
   return _direct_sum(fac.R, maps; domain=dom, codomain=cod)
+end
+
+function _zero_map(domain, codomain)
+  error("overwrite this internal method for the direct sums of complexes; see source code for details")
+end
+
+function _zero_map(domain::OFPModule, codomain::OFPModule)
+  @assert base_ring(domain) === base_ring(codomain) "incompatible rings in domain and codomain"
+  return hom(domain, codomain, elem_type(codomain)[zero(codomain) for _ in 1:ngens(domain)])
 end
 
 # We use the internal function `_direct_sum` instead of `direct_sum`. By default it 
@@ -102,7 +113,7 @@ function _direct_sum(R::Ring, phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModu
 end
 
 function can_compute(::DirectSumMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
-  return true
+  return any(can_compute_map(a, p, i) for a in chain_factory(self).summands)
 end
 
 ### The concrete struct
