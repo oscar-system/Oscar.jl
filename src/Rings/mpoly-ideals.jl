@@ -405,10 +405,10 @@ function torus_saturation(I::MPolyIdeal; algorithm::Symbol = :satstd)
   any(is_unit, G) && return ideal(R, [one(R)])
   isempty(x) && return I
   # Bayer's method needs homogeneity with respect to the standard grading
-  homogeneous = all(f -> allequal(total_degree(t) for t in terms(f)), G)
   if algorithm == :saturation
     return saturation(I, ideal(R, [prod(x)]))
   end
+  homogeneous = all(f -> allequal(total_degree(t) for t in terms(f)), G)
   @req homogeneous "The $algorithm algorithm requires homogeneous generators"
   J = ideal(R, G)
   algorithm == :bayer && return _torus_saturation_bayer(J)
@@ -420,7 +420,7 @@ function _torus_saturation_bayer(I::MPolyIdeal)
   x = gens(R)
   n = length(x)
   J = I
-  for i in 1:n
+  for i in n:-1:1
     # degrevlex with x[i] as the smallest variable
     o = degrevlex([x[1:i-1]; x[i+1:n]; x[i]])
     B = groebner_basis(J; ordering = o)
@@ -428,7 +428,7 @@ function _torus_saturation_bayer(I::MPolyIdeal)
     for g in B
       k = minimum(e[i] for e in exponents(g))
       h = divexact(g, x[i]^k)
-      is_unit(h) && return ideal(R, [one(R)])
+      length(h)==1 && is_unit(first(coefficients(h))) && return ideal(R, [one(R)])
       push!(H, h)
     end
     J = ideal(R, H)
