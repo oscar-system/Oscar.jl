@@ -139,6 +139,7 @@ export zeroth_local_cohomology
 # some composite types
 #########################
 
+include("AffineSemiGroup.jl")
 include("MonoidAlgebra.jl")
 
 struct IndecInj #indecomposable injective
