@@ -40,13 +40,13 @@ _SL_order(n::Int, F::Ring) = _SL_order(n, order(F))
 # returns elements of type MatElem{T}
 # returns a generating set for GL(n,F) of at most two elements
 function _gens_for_GL(n::Int, F::FinField)
-   n !=1 || return [matrix(F,1,1,[primitive_element(F)])]
+   n !=1 || return [matrix(F,1,1,[multiplicative_generator(F)])]
    h1 = identity_matrix(F,n)
    h2 = zero_matrix(F,n,n)
    if order(F)==2
       h1[1,2] = 1
    else
-      h1[1,1] = primitive_element(F)
+      h1[1,1] = multiplicative_generator(F)
       h2[1,1] = -1
    end
    h2[1,n] = 1
@@ -91,7 +91,7 @@ end
 # assumes V is sorted (e.g. [1,1,1,2,3,3])
 function _centr_unipotent(F::FinField, V::AbstractVector{Int}; isSL=false)
    n = sum(V)
-   _lambda = primitive_element(F)
+   _lambda = multiplicative_generator(F)
 
    # L = multiset(V)
    L=[[V[1],1]]
@@ -173,7 +173,7 @@ function _centr_block_unipotent(f::PolyRingElem, F::FinField, V::AbstractVector{
    C = companion_matrix(f)
    idN = identity_matrix(F,n)
    idD = identity_matrix(F,d)
-   lambda = primitive_element(F)
+   lambda = multiplicative_generator(F)
    # The nilpotent directions form a vector space over the prime field.
    # Use a prime-field basis of F times 1, C, ..., C^(d-1); powers
    # 1, lambda, ..., lambda^(degree(F)-1) would also work, but the
@@ -321,7 +321,7 @@ function _gens_for_SL(n::Int, F::FinField)
    if order(F)==2 || order(F)==3
       h1[1,2] = 1
    else
-      h1[1,1] = primitive_element(F)
+      h1[1,1] = multiplicative_generator(F)
       h1[2,2] = inv(h1[1,1])
       h2[1,1] = -1
    end
@@ -367,19 +367,15 @@ function _gens_for_SL_matrix(f::PolyRingElem, n::Int, F::FinField; D::Int=1)
    return [h1,h2,h3]
 end
 
-# Return a polynomial representing a primitive element of the field F[t]/(f),
-# normalized so that its determinant as an F-linear map is the chosen
-# primitive element of F.
+# Return the matrix of an element of the field F[t]/(f) acting on F[t]/(f),
+# normalized so that its determinant is `multiplicative_generator(F)`, which
+# is cached on F.
 function _centralizer_with_base_determinant(f::PolyRingElem, F::FinField)
    c = _centralizer(f)(companion_matrix(f))
-   m = Int(order(F)) - 1
-   if m == 1
-      return c
-   end
-   logdet = Int(disc_log(det(c), primitive_element(F)))
-   # If det(c) = lambda^logdet, then c^invmod(logdet, q-1) has
-   # determinant lambda.
-   return c^invmod(logdet, m)
+   order(F) == 2 && return c
+   # det(c)^k equals the generator
+   k = disc_log(det(c), multiplicative_generator(F))
+   return c^k
 end
 
 
@@ -387,11 +383,11 @@ end
 # Giovanni De Franceschi, Centralizers and conjugacy classes in finite classical groups, arXiv:2008.12651
 
 # returns the list of generators and the cardinality of the centralizer of x in SL
-function _centralizer_SL(x::MatElem)
+function _centralizer_SL(x::T) where {T <: MatElem{<:FinFieldElem}}
    _,a,ED = generalized_jordan_form(x; with_pol=true)    # a = change basis matrix
    am = inv(a)
    n=nrows(x)
-   listgens = MatElem[]
+   listgens = T[]
    res = ZZRingElem(1)
    ind = ZZRingElem(0)
    idN = identity_matrix(base_ring(x),n)
@@ -441,8 +437,6 @@ function _centralizer_SL(x::MatElem)
       z = deepcopy(idN)
       pos = 1
       for i in 1:length(block_dim)
-         t1 = cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2))
-         z[pos:pos-1+nrows(t1), pos:pos-1+ncols(t1)] = t1
          t1 = cat([block_dim[i][3]^Int(g(k)[i]) for j in 1:block_dim[i][1]]..., dims=(1,2))
          z[pos:pos-1+nrows(t1), pos:pos-1+ncols(t1)] = t1
          pos += block_dim[i][1]*block_dim[i][2]*nrows(block_dim[i][3])
