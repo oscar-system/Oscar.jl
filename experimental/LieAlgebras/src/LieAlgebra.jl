@@ -1043,27 +1043,25 @@ function structure_constant_table(
 end
 
 function _structure_constant_table(L::LieAlgebra{C}, basis_mat::MatElem{C}) where {C}
-  @req is_invertible(basis_mat) "input is not a basis"
-  basis_mat_ctx = solve_init(basis_mat)
+  fl, basis_mat_inv = is_invertible_with_inverse(basis_mat)
+  @req fl "input is not a basis"
 
   R = coefficient_ring(L)
-  struct_consts = Matrix{sparse_row_type(R)}(undef, dim(L), dim(L))
-  sc_standard_basis = structure_constant_table(L; copy=false)
+  n = dim(L)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, n, n)
 
-  for i in 1:dim(L)
+  for i in 1:n
     struct_consts[i, i] = sparse_row(R)
   end
-  for i in 1:dim(L), j in (i + 1):dim(L)
-    # lookup entry in `basis_mat * sc_standard_basis * transpose(basis_mat)`
-    entry = zero_matrix(R, 1, dim(L))
-    for k in 1:dim(L), l in 1:dim(L)
-      coeff = basis_mat[i, k] * basis_mat[j, l]
-      if !is_zero(coeff)
-        entry = addmul!(entry, coeff, dense_row(sc_standard_basis[k, l], dim(L)))
-      end
+  for i in 1:(n - 1)
+    # row k of `basis_mat * adjoint_matrix(x_i)` is `[x_i, x_k]` in standard
+    # coordinates; multiplying with `basis_mat_inv` translates to the given basis
+    ad = adjoint_matrix(LieAlgebraElem(L, basis_mat[i:i, :]))
+    brackets = basis_mat[(i + 1):n, :] * ad * basis_mat_inv
+    for j in (i + 1):n
+      struct_consts[i, j] = sparse_row(brackets[(j - i):(j - i), :])
+      struct_consts[j, i] = -struct_consts[i, j]
     end
-    struct_consts[i, j] = sparse_row(solve(basis_mat_ctx, entry; side=:left))
-    struct_consts[j, i] = -struct_consts[i, j]
   end
 
   return struct_consts
