@@ -456,3 +456,17 @@ end
   @test iszero(map(hN, 2)(z))
   @test hNM[2](z) == hM[2](g)
 end
+
+@testset "Valuations over a ramified local base" begin
+  # Normalized valuations need the absolute ramification index in both fast paths.
+  Q3 = padic_field(3; precision = 30)
+  Q3x, x = polynomial_ring(Q3, "x")
+  k, a = eisenstein_extension(x^2 - 3)
+  K, b = unramified_extension(k, 2)
+  M, mG, mM = gmodule(K, k)
+  @test valuation(uniformizer(K)) == 1//2
+  @test all(preimage(mM, mM(u)) == u for u = gens(M.M))
+  M, mG, mM = gmodule(K, k; conductor = 1)
+  @test ngens(M.M) == 2
+  @test all(preimage(mM, mM(u)) == u for u = gens(M.M))
+end
