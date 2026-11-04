@@ -88,12 +88,16 @@ function bracket(
 ) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
+  struct_consts = _struct_consts(L)
+  mat_x = _matrix(x)
+  mat_y = _matrix(y)
+  nonzeros_y = [(j, mat_y[1, j]) for j in 1:dim(L) if !is_zero_entry(mat_y, 1, j)]
   vec = sparse_row(coefficient_ring(L))
-  for (i, cxi) in enumerate(coefficients(x))
-    iszero(cxi) && continue
-    for (j, cyj) in enumerate(coefficients(y))
-      iszero(cyj) && continue
-      vec = addmul!(vec, _struct_consts(L)[i, j], cxi * cyj)
+  for i in 1:dim(L)
+    is_zero_entry(mat_x, 1, i) && continue
+    cxi = mat_x[1, i]
+    for (j, cyj) in nonzeros_y
+      vec = addmul!(vec, struct_consts[i, j], cxi * cyj)
     end
   end
   return LieAlgebraElem(L, vec)
