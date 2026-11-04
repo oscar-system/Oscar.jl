@@ -17,7 +17,7 @@ Here is a list of the fields available in OSCAR:
 | $\overline{\mathbb{F}}_q$ | `algebraic_closure(F)` | | [Algebraic closure of finite prime fields](@ref)
 | $\mathbb{Q}^{\mathrm{ab}}$ | `abelian_closure(QQ)` | | [Abelian closure of the rationals](@ref)
 | $\mathbb{Q}[X]/(f)$ | `number_field(f)` |
-| $\mathbb{Q}(\alpha) \subseteq \R$ | `embedded_number_field` | Ordered field
+| $\mathbb{Q}(\alpha) \subseteq \mathbb{R}$ | `embedded_number_field` | Ordered field
 | $\mathbb{R}$ | `real_field()` | Ball arithmetic | [Arbitrary precision real balls](@ref real_field_section)
 | $\mathbb{C}$ | `complex_field()` | Ball arithmetic | [Arbitrary precision complex balls](@ref complex_field_section)
 | $\mathbb{Q}_p$ | `padic_field(p)` |  | [Padics](@ref)

@@ -266,7 +266,7 @@ If `v0` lies on a root hyperplane and if there is no given `direction_vector` it
 next to `v0` will be computed.
 
 # Arguments
-- `Q`: symmetric $\Z$ matrix of signature $(1, n)$ -- the corresponding Gram matrix
+- `Q`: symmetric $\mathbb{Z}$ matrix of signature $(1, n)$ -- the corresponding Gram matrix
 - `upper_bound`: the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
 - `v0`: primitive row vector with $v_0^2 > 0$
 - `root_lengths`: the possible integer values of $r^2$
@@ -331,7 +331,7 @@ If `v0` lies on a root hyperplane and if there is no given `direction_vector`,
 then it is a random choice which reflection chamber next to `v0` will be computed.
 
 # Arguments
-- `S`: a hyperbolic $\Z$-lattice of signature $(1,0,n)$.
+- `S`: a hyperbolic $\mathbb{Z}$-lattice of signature $(1,0,n)$.
 - `upper_bound`: the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
 - `v0`: primitive row vector with $v_0^2 > 0$ given w.r.t. the ambient space
 - `root_lengths`: the possible integer values of $r^2$
