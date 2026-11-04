@@ -467,6 +467,23 @@ function coordinates_atomic(a::FreeModElem, M::SubModuleOfFreeModule; task::Symb
   error("The function coordinates_atomic is not implemented for modules over rings of type $(typeof(base_ring(ambient_free_module(M))))")
 end
 
+function _absolute_groebner_basis(GB::ModuleGens)
+  !isdefined(GB, :quo_GB) && return GB
+
+  quo_GB = GB.quo_GB
+  @assert GB.isGB && quo_GB.isGB
+  @assert GB.ordering == quo_GB.ordering
+
+  P = ModuleGens(
+    vcat(oscar_generators(GB), oscar_generators(quo_GB)),
+    oscar_free_module(GB),
+    GB.ordering,
+  )
+  P.isGB = true
+  singular_generators(P).isGB = true
+  return P
+end
+
 @doc raw"""
     normal_form(M::ModuleGens, GB::ModuleGens)
 
@@ -476,7 +493,7 @@ function normal_form(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingE
   @assert oscar_free_module(M) === oscar_free_module(GB)
   @assert GB.isGB # TODO When Singular.jl can handle reduce with non-GB remove this
 
-  P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
+  P = _absolute_groebner_basis(GB)
 
   red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
@@ -498,7 +515,7 @@ function normal_form_with_unit(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: 
   end
   R = base_ring(M)
 
-  P = isdefined(GB, :quo_GB) ? union(GB, GB.quo_GB) : GB
+  P = _absolute_groebner_basis(GB)
 
   red = _reduce(singular_generators(M, GB.ordering), singular_generators(P))
   res = ModuleGens(oscar_free_module(M), red)
@@ -546,4 +563,3 @@ function reduce(M::ModuleGens{T}, GB::ModuleGens{T}) where {T <: MPolyRingElem}
   @assert is_global(GB.ordering)
   return normal_form(M, GB)
 end
-

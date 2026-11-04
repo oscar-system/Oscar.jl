@@ -666,12 +666,13 @@ end
 
 @doc raw"""
     free_resolution(M::SubquoModule{T};
-        length::Union{Int, PosInf} = 0,
+        length::Union{Int, PosInf} = PosInf(),
         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 
 Return a free resolution of `M`.
 
-If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
+For modules over quotient-local rings, `length` must be finite.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -724,12 +725,15 @@ RL2^1 <---- RL2^3 <---- RL2^2 <---- 0
 
 """
 function free_resolution(M::SubquoModule{T};
-                         length::Union{Int, PosInf} = 0,
+                         length::Union{Int, PosInf} = PosInf(),
                          algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
-  if T <: MPolyQuoLocRingElem
-    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  if length isa Int && length < 0
+    error("The length must be nonnegative")
   end
-  if length == 0 || length isa PosInf
+  if T <: MPolyQuoLocRingElem && length isa PosInf
+    error("Specify a finite length up to which a free resolution should be computed")
+  end
+  if length isa PosInf
     length = -1
   end
   if algorithm == :generic
@@ -856,6 +860,7 @@ degree: 0  1  2  3
 function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   p = presentation(M)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
+  iszero(limit) && popfirst!(mp)
   while true
     if limit != -1 && length(mp) > limit+1
       break
@@ -1012,12 +1017,13 @@ end
 
 @doc raw"""
     free_resolution(I::Ideal{T};
-        length::Int = 0,
+        length::Union{Int, PosInf} = PosInf(),
         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 
 Consider `I` as a subquotient module over its base ring, and return a free resolution of that module.
 
-If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
+For ideals over quotient-local rings, `length` must be finite.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -1047,7 +1053,8 @@ AL^4 <---- AL^3 <---- 0
 ```
 """
 function free_resolution(I::Ideal{T};
-             length::Int = 0, algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
+                         length::Union{Int, PosInf} = PosInf(),
+                         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
   S = ideal_as_module(I)
   n = AbstractAlgebra.get_name(I)
   if n !== nothing
@@ -1129,10 +1136,10 @@ end
 
 @doc raw"""
     free_resolution(Q::MPolyQuoLocRing{T};
-        length::Int = 0, algorithm = :generic) where T
+        length::Union{Int, PosInf} = PosInf(), algorithm = :generic) where T
 Consider `Q` as a subquotient module over its base ring, and return a free resolution of that module.
 
-If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -1161,7 +1168,8 @@ RL^1 <---- RL^4 <---- RL^3 <---- 0
 ```
 """
 function free_resolution(Q::MPolyQuoLocRing{T};
-             length::Int = 0, algorithm = :generic) where T
+                         length::Union{Int, PosInf} = PosInf(),
+                         algorithm = :generic) where T
   q = quotient_ring_as_module(Q)
   n = AbstractAlgebra.get_name(Q)
   if n !== nothing
@@ -1244,4 +1252,3 @@ function length(F::FreeResolution)
   isnothing(ub) && return first(map_range(F.C))
   return ub-1::Int
 end
-

@@ -30,6 +30,11 @@
   A, _ = quo(R, ideal(R, [x^2, y, z]))
   W, _ = localization(A, complement_of_prime_ideal(ideal(R, [x,y,z])))
   F = FreeMod(W, 2)
-  @test length(F) == 4 
-end
+  @test length(F) == 4
 
+  M2, _ = quo(F, [gens(W)[1]*F[1]])
+  res = free_resolution(M2; length=0)
+  @test length(res) == 0
+  @test_throws ErrorException free_resolution(M2; length=-1)
+  @test_throws ErrorException free_resolution(M2; length=PosInf())
+end

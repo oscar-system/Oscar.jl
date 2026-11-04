@@ -2261,6 +2261,11 @@ end
   gb = reduced_groebner_basis(M)
   @test gb.isGB
   @test !isempty(sprint(show, gb))
+  Mrel = SubquoModule(F, [x*F[1]], [x^2*F[1]])
+  ord = lex(gens(R))*lex(gens(F))
+  gb_rel = groebner_basis(Mrel; ordering=ord)
+  @test normal_form(x*F[1], gb_rel) == zero(F)
+  @test first(Oscar.normal_form_with_unit(x*F[1], gb_rel)) == zero(F)
   J = ideal(R, [x])
   @test M:J == quotient(M, J)
   G = free_module(R, 2)
