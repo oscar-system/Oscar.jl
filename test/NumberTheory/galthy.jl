@@ -134,6 +134,12 @@ end
   @test order(galois_group(psi/5)[1]) == 60
 end
 
+@testset "symbolic roots in a given field" begin
+  K, = quadratic_field(5)
+  G, = galois_group(K; algorithm=:Symbolic, field=K)
+  @test order(G) == 2
+end
+
 @testset "extension_field over number fields honours check" begin
   # with check = false, a reducible polynomial is accepted without an irreducibility test
   K, a = number_field(QQ[:x][2]^2 - 2, "a")

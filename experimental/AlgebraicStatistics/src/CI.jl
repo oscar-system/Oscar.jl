@@ -91,7 +91,7 @@ macro CI_str(str)
     throw(ArgumentError(str * " is not a CI statement"))
   end
   parse_arg(s) = unique([parse(Int, c) for c in s])
-  I, J, K = map(s -> parse_arg(s), m)
+  I, J, K = map(parse_arg, m)
   return ci_stmt(I, J, K)
 end
 

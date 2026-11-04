@@ -42,6 +42,10 @@ end
 mutable struct NfNSGenElem{T, S} <: Hecke.NumFieldElem{T}
   f::S
   parent::NfNSGen{T, S}
+  is_reduced::Bool # f is in normal form w.r.t. the defining ideal
+
+  NfNSGenElem(f::S, K::NfNSGen{T, S}, is_reduced::Bool = false) where {T, S} =
+      new{T, S}(f, K, is_reduced)
 end
 
 const NfAbsNSGen = NfNSGen{QQFieldElem, QQMPolyRingElem}
@@ -188,11 +192,13 @@ end
 ################################################################################
 
 function reduce!(a::NfNSGenElem)
+  a.is_reduced && return a
   K = parent(a)
   I = defining_ideal(K)
   GS = singular_groebner_generators(I, false, false)
   iso = _sing_iso(I, base_ring(GS))
   a.f = preimage(iso, reduce(iso(a.f), GS))
+  a.is_reduced = true
   return a
 end
 
@@ -419,7 +425,7 @@ divexact(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}; check::Bool=tru
 ################################################################################
 
 function Base.deepcopy_internal(a::NfNSGenElem, dict::IdDict)
-  return NfNSGenElem(Base.deepcopy_internal(a.f, dict), parent(a))
+  return NfNSGenElem(Base.deepcopy_internal(a.f, dict), parent(a), a.is_reduced)
 end
 
 ################################################################################
@@ -430,11 +436,13 @@ end
 
 function Oscar.mul!(a::NfNSGenElem, b::NfNSGenElem, c::NfNSGenElem)
   a.f = b.f*c.f
+  a.is_reduced = false
   return a
 end
 
 function Oscar.add!(a::NfNSGenElem, b::NfNSGenElem, c::NfNSGenElem)
   a.f = b.f + c.f
+  a.is_reduced = false
   return a
 end
 
@@ -946,8 +954,8 @@ function image(f::MapDataFromNfNSGen, L, y)
   return evaluate(z, f.images)
 end
 
-function Hecke.map_data_type(T::Type{<: NfNSGen}, L::Type{<:Any})
-  MapDataFromNfNSGen{Vector{elem_type(L)}, map_data_type(base_field_type(T), L)}
+function Hecke.map_data_type(::Type{<: NfNSGen{T}}, L::Type{<:Any}) where {T}
+  MapDataFromNfNSGen{Vector{elem_type(L)}, Hecke.map_data_type(parent_type(T), L)}
 end
 
 Hecke.map_data_type(K::NfNSGen, L) = MapDataFromNfNSGen{Vector{elem_type(L)}, Hecke.map_data_type(base_field(K), L)}
@@ -1008,7 +1016,7 @@ function Hecke._compute_inverse_data(f, K, LL, L::NfNSGen)
     push!(preimg_gens, preimg)
   end
   inverse_data_base_field = Hecke._compute_inverse_data(f, K, LL, base_field(L))
-  return MapDataFromNfRelNS{typeof(preimg_gens), typeof(inverse_data_base_field)}(preimg_gens, inverse_data_base_field)
+  return MapDataFromNfNSGen{typeof(preimg_gens), typeof(inverse_data_base_field)}(preimg_gens, inverse_data_base_field)
 end
 
 # compose

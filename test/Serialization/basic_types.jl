@@ -36,6 +36,13 @@
       end
     end
 
+    @testset "type mismatch" begin
+      io = IOBuffer()
+      save(io, 1)
+      seekstart(io)
+      @test_throws ErrorException load(io; type=QQFieldElem)
+    end
+
     @testset "Singleton types" begin
       test_save_load_roundtrip(path, ZZ) do loaded
         @test loaded === ZZ

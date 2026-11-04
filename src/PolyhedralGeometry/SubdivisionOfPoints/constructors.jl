@@ -136,7 +136,7 @@ end
 function subdivision_of_points(
   f::scalar_type_or_field, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}
 )
-  subdivision_of_points(f, points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
+  subdivision_of_points(f, Points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 
 ###############################################################################

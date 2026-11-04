@@ -9,16 +9,17 @@ See also  [`embed_in_unimodular`](@ref).
 """
 function embedding_in_unimodular_manyroots(S::ZZLat, pos::Int, neg::Int; primitive=true, even=true)
   @req iszero(mod(pos - neg,8)) "an even unimodular lattice of signature ($pos, $neg) does not exist"
-  @vprintln :Lattice 1 "computing embedding in L_$(n)"
+  @vprintln :Lattice 1 "computing embedding in L_($pos, $neg)"
   pS, kS, nS = signature_tuple(S)
   @req kS == 0 "S must be non-degenerate"
-  even || throw(NotImplementedError("for now we need the unimodular lattice to be even."))
+  @req even "for now the unimodular lattice must be even"
   pR = pos - pS
   nR = neg - nS
   DS = discriminant_group(S)
   DR = rescale(DS, -1)  # discriminant group of R = S^\perp in L as predicted by Nikulin
   GR = genus(DR, (pR, nR)) # genus of R
   roots = biggest_root_sublattice(GR)
+  @req roots !== nothing "the genus of the orthogonal complement represents no root lattice"
   R = _overlattice_orbits(roots, GR)[1] #don't trust the name of this function! 
   R = lll(R;  same_ambient=false)  # make R a bit nicer
   SR, inj = direct_sum(S, R)

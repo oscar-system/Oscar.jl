@@ -260,14 +260,14 @@ end
     vinberg_algorithm(Q::ZZMatrix, upper_bound; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
 Return the fundamental roots `r` of a given hyperbolic reflection lattice with standard basis represented by its corresponding Gram matrix `Q` with 
-squared length contained in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}$, stopping at `upper_bound`.
+squared length contained in `root_lengths` and by increasing order of the value $\frac{(r.v_0)^2}{r^2}$, stopping at `upper_bound`.
 If `root_lengths` is not defined it takes all possible values of $r^2$.
 If `v0` lies on a root hyperplane and if there is no given `direction_vector` it is a random choice which reflection chamber
 next to `v0` will be computed.
 
 # Arguments
 - `Q`: symmetric $\Z$ matrix of signature $(1, n)$ -- the corresponding Gram matrix
-- `upper_bound`: the upper bound of the value $\frac{(r.v_0^2}{r^2}$
+- `upper_bound`: the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
 - `v0`: primitive row vector with $v_0^2 > 0$
 - `root_lengths`: the possible integer values of $r^2$
 - `direction_vector`: row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$
@@ -325,14 +325,14 @@ end
     vinberg_algorithm(S::ZZLat, upper_bound; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
 Return the fundamental roots `r` of a given hyperbolic reflection lattice `S` with standard basis with squared length contained 
-in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}$, stopping at `upper_bound`.
+in `root_lengths` and by increasing order of the value $\frac{(r.v_0)^2}{r^2}$, stopping at `upper_bound`.
 If `root_lengths` is not defined it takes all possible values of $r^2$.
 If `v0` lies on a root hyperplane and if there is no given `direction_vector`, 
 then it is a random choice which reflection chamber next to `v0` will be computed.
 
 # Arguments
 - `S`: a hyperbolic $\Z$-lattice of signature $(1,0,n)$.
-- `upper_bound`: the upper bound of the value $\frac{(r.v_0^2}{r^2}$
+- `upper_bound`: the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
 - `v0`: primitive row vector with $v_0^2 > 0$ given w.r.t. the ambient space
 - `root_lengths`: the possible integer values of $r^2$
 - `direction_vector`: row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$, given w.r.t. the ambient space

@@ -196,13 +196,13 @@ end
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for row in eachrow(basis_matrix)
-          push!(left, g * L(row))
+          push!(left, g * LieAlgebraElem(L, row))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
         @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = L.(eachrow(basis_matrix))
+      basis_elems = [LieAlgebraElem(L, row) for row in eachrow(basis_matrix)]
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -250,7 +250,7 @@ end
         rank = rref!(basis_matrix)
         @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = L.(eachrow(basis_matrix))
+      basis_elems = [LieAlgebraElem(L, row) for row in eachrow(basis_matrix)]
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -346,7 +346,14 @@ end
 
 struct LieAlgebraModuleElem{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: AbstractAlgebra.SetElem
   parent::LieAlgebraModule{C,LieT}
-  mat::MatElem{C}
+  mat::MatElem{C} # 1 x dim(parent) coefficient vector w.r.t. basis(parent)
+
+  # no sanity checks, `LieAlgebraModuleElem(V, mat)` does them
+  function LieAlgebraModuleElem{C,LieT}(
+    V::LieAlgebraModule{C,LieT}, mat::MatElem{C}
+  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
+    return new{C,LieT}(V, mat)
+  end
 end
 
 ###############################################################################

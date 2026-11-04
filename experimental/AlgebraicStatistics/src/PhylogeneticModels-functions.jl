@@ -231,7 +231,7 @@ end
 #
 ###################################################################################
 
-root(PM::PhylogeneticModel) = _root(adjacency_tree(graph(PM)))
+root(PM::PhylogeneticModel) = root(graph(PM))
 
 ## PROBABILITY PARMAETRIZATION
 

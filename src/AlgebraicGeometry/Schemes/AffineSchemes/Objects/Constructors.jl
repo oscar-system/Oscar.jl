@@ -870,7 +870,7 @@ function closure(
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
   R = base_ring(I)
-  return spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
+  return spec(MPolyQuoLocRing(R, I, inverted_set(OO(Y))))
 end
 
 function closure(

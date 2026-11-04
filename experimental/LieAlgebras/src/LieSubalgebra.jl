@@ -208,7 +208,7 @@ function bracket(
   L::LieAlgebra{C}, S::LieSubalgebra{C,LieT}
 ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
   @req L === base_lie_algebra(S) "Incompatible Lie algebras."
-  return sub(sub(L), S)
+  return bracket(sub(L), S)
 end
 
 ###############################################################################
@@ -240,7 +240,7 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
   sol_dim = nrows(sol)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)
-  return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+  return sub(L, [LieAlgebraElem(L, c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
 function normalizer(S::LieSubalgebra)
@@ -301,7 +301,7 @@ where `L` is the Lie algebra where `S` lives in.
 """
 function lie_algebra(S::LieSubalgebra)
   L = base_lie_algebra(S)
-  LS = lie_algebra(L, basis(S))
+  LS = lie_algebra(L, basis(S); is_basis=true, check=false)
   emb = hom(LS, L, basis(S); check=false)
   return LS, emb
 end

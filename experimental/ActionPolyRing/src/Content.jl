@@ -1845,7 +1845,7 @@ end
 #
 ###############################################################################
 
-__is_valid_partition(par::Vector{Vector{Int}}, m::Int) = all(par_elt -> !is_zero(par_elt), par) && sum(par) == fill(1, m) && all(par_elt -> all(j -> par_elt[j] == 0 || par_elt[j] == 1, 1:m), par)
+__is_valid_partition(par::Vector{Vector{Int}}, m::Int) = all(!is_zero, par) && sum(par) == fill(1, m) && all(par_elt -> all(j -> par_elt[j] == 0 || par_elt[j] == 1, 1:m), par)
 
 function __in_block_tie_breaking_matrix(partition::Vector{Vector{Int}})
   m = length(partition[1])

@@ -107,7 +107,7 @@ function is_isometry(
   end
 
   if ambient_representation
-    !is_isometry(ambient_space(L), f) && return false
+    !is_isometry(ambient_space(L), change_base_ring(QQ, f)) && return false
     ok, fL =  can_solve_with_solution(basis_matrix(L), basis_matrix(L)*f)
   else
     ok = true
@@ -148,11 +148,11 @@ Return whether the matrices in ``V`` define isometries of the lattice ``L``.
 """
 function is_isometry_list(
     L::ZZLat,
-    V::Vector{QQMatrix},
+    V::Vector{T},
     ambient_representation::Bool = false;
     is_special::Bool=false,
     is_stable::Bool=false,
-  )
+  ) where T <: Union{ZZMatrix, QQMatrix}
   return all(f -> is_isometry(L, f, ambient_representation; is_special, is_stable), V)
 end
 
@@ -966,7 +966,7 @@ function saturation(
   if check
     @req is_definite(first(coinvariant_lattice(L, H))) "Coinvariant sublattice of the second group is not definite"
     @req is_isometry_group(L, G, ambient_representation) "first group does not define a group of isometries of the lattice"
-    @req is_subgroup(G, H) "Second group is not a subgroup of the first group"
+    @req is_subset(H, G) "Second group is not a subgroup of the first group"
     @req is_finite(G) "First group is not finite"
   end
   Hsat = saturation(L, H; ambient_representation)

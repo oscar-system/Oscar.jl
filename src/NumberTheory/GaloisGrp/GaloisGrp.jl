@@ -147,7 +147,7 @@ function qt_ring()
   return BoundRing{Tuple{ZZRingElem, Int, QQFieldElem}}( (x,y) -> (x[1]*y[1], x[2]+y[2]+1, x[3]+y[3]),
                                             (x,y) -> (x[1]+y[1], max(x[2], y[2]), max(x[3], y[3])),
                                             (x,y) -> (x[1]^y, y*x[2]+y-1, y*x[3]),
-                                                x -> _coerce_qt(x), "qt-ring")
+                                                _coerce_qt, "qt-ring")
 end
 
 _coerce_qt(x::ZZRingElem) = (abs(x), 0, QQFieldElem(0))
@@ -556,7 +556,7 @@ mutable struct SymbolicRootCtx
   end
   function SymbolicRootCtx(f::ZZPolyRingElem, field::AbsSimpleNumField)
     @assert is_monic(f)
-    rt = roots(f, field)
+    rt = roots(field, f)
     return new(f, rt)
   end
 
@@ -1170,8 +1170,8 @@ function Hecke.minpoly(C::GaloisCtx, I, extra::Int = 5)
   end
 end
 
-Hecke.minpoly(R::ZZPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
-Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra = extra)(gen(R))
+Hecke.minpoly(R::ZZPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra)(gen(R))
+Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C, I, extra)(gen(R))
 
 struct GroupFilter
   f::Vector{Tuple{Function, String}}
@@ -2935,7 +2935,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     push!(F, fi)
   =#  
 
-    push!(F, x->!is_transitive(x), "subdirect case: group is transitive")
+    push!(F, !is_transitive, "subdirect case: group is transitive")
     push!(F, x->all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C)), "subdirect case: wrong projections")
     return CC, G, F, G(si), con
   end
