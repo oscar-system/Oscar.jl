@@ -378,7 +378,8 @@ function (V::LieAlgebraModule{C})(
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(parent(ai) === Vi for (ai, Vi) in zip(a, Vs)) "Incompatible modules."
-    return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
+    mat = reduce(hcat, map(_matrix, a); init=zero_matrix(coefficient_ring(V), 1, 0))
+    return LieAlgebraModuleElem(V, mat)
   elseif _is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::elem_type(V)
