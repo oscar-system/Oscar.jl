@@ -323,6 +323,10 @@ end
       @test random_centralizer_test(func(n, q), (q < 64) ? 5 : 1)
    end
 
+   @testset "Centralizers in $func(3, ::$(typeof(F)))" for F in (Nemo.Native.GF(5), Nemo.Native.GF(ZZ(5))), func in (GL, SL)
+      @test exhaustive_centralizer_test(func(3, F))
+   end
+
    # Cases beyond the exhaustive checks: a degree 2 elementary divisor over
    # GF(8), and degree 2 blocks of mixed sizes over GF(2)
    R, t = polynomial_ring(GF(8), :t)
