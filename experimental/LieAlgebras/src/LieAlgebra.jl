@@ -336,9 +336,10 @@ Return the center of `L`, i.e. $\{x \in L \mid [x, L] = 0\}$
 function center(L::LieAlgebra)
   dim(L) == 0 && return ideal(L, elem_type(L)[])
 
+  b = basis(L)
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
-  for (i, bi) in enumerate(basis(L))
-    for (j, bj) in enumerate(basis(L))
+  for (i, bi) in enumerate(b)
+    for (j, bj) in enumerate(b)
       mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bi * bj)
     end
   end
@@ -500,10 +501,10 @@ end
 @attr Vector{dense_matrix_type(C)} function adjoint_matrices(
   L::LieAlgebra{C}
 ) where {C<:FieldElem}
-  return map(1:dim(L)) do i
-    x = basis(L, i)
+  b = basis(L)
+  return map(b) do x
     A = zero_matrix(coefficient_ring(L), dim(L), dim(L))
-    for (j, bj) in enumerate(basis(L))
+    for (j, bj) in enumerate(b)
       A[j, :] = _matrix(bracket(x, bj))
     end
     return A
@@ -570,10 +571,11 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
     # L is abelian and hence nilpotent
   elseif characteristic(L) == 0
     # if L is not nilpotent, some x_i or x_i + x_j is not ad-nilpotent [Gra00; Prop. 2.7.2]
-    for x in basis(L)
+    b = basis(L)
+    for x in b
       !is_ad_nilpotent(x) && return x
     end
-    for (i, x) in enumerate(basis(L)), (j, y) in enumerate(basis(L))
+    for (i, x) in enumerate(b), (j, y) in enumerate(b)
       i < j || continue
       xy = x + y
       !is_ad_nilpotent(xy) && return xy

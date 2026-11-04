@@ -240,10 +240,11 @@ end
       basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
       gens = unique(g for g in gens if !iszero(g))
       left = copy(gens)
+      basis_L = basis(L)
       while !isempty(left)
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for b in basis(L)
+        for b in basis_L
           push!(left, b * g)
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
@@ -328,7 +329,8 @@ end
     if check
       @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
       # with the right action `v * T_x`, the module axiom reads T_[x,y] = T_y T_x - T_x T_y
-      for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))
+      basis_L = basis(L)
+      for (i, xi) in enumerate(basis_L), (j, xj) in enumerate(basis_L)
         i < j || continue
         T_i = transformation_matrices[i]
         T_j = transformation_matrices[j]
