@@ -668,6 +668,35 @@ Abstract simplicial complex of dimension 0 on 2 vertices
 """
 link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = SimplicialComplex(Polymake.topaz.link_subcomplex(pm_object(K), Polymake.to_zero_based_indexing(sigma)))
 
+@doc raw"""
+    induced_subcomplex(K::SimplicialComplex, V::Union{AbstractVector{<:IntegerUnion}, AbstractSet{<:IntegerUnion}})
+
+Return the subcomplex of the abstract simplicial complex `K` consisting of all faces
+contained in the nonempty vertex set `V`.
+
+The vertices of the result are numbered consecutively from 1, following the ascending order
+of `V`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> L = induced_subcomplex(K, [1,2,4])
+Abstract simplicial complex of dimension 1 on 3 vertices
+
+julia> sort(sort.(collect.(facets(L))))
+2-element Vector{Vector{Int64}}:
+ [1, 2]
+ [2, 3]
+```
+"""
+function induced_subcomplex(K::SimplicialComplex, V::Union{AbstractVector{<:IntegerUnion}, AbstractSet{<:IntegerUnion}})
+  @req !isempty(V) "The vertex set must not be empty"
+  @req all(in(1:n_vertices(K)), V) "The vertices must be in 1:$(n_vertices(K))"
+  vertices = Polymake.Set{Int}([Int(v) - 1 for v in V])
+  return SimplicialComplex(Polymake.topaz.induced_subcomplex(pm_object(K), vertices))
+end
+
 ###############################################################################
 ### Display
 ###############################################################################

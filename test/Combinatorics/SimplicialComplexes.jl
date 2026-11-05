@@ -70,6 +70,23 @@
     @test is_isomorphic(K1, K2)
   end
 
+  @testset "induced subcomplex" begin
+    # faces inside V are kept and V is renumbered consecutively, in any input form
+    K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+    for V in ([1, 2, 4], [4, 1, 2, 2], Set([1, 2, 4]), ZZRingElem[1, 2, 4])
+      L = induced_subcomplex(K, V)
+      @test n_vertices(L) == 3
+      @test issetequal(facets(L), Set{Int}.([[1, 2], [2, 3]]))
+    end
+    @test f_vector(induced_subcomplex(K, 2:3)) == [2, 1]
+    @test f_vector(induced_subcomplex(K, 1:4)) == f_vector(K)
+    @test n_vertices(induced_subcomplex(K, [3])) == 1
+
+    @test_throws ArgumentError induced_subcomplex(K, Int[])
+    @test_throws ArgumentError induced_subcomplex(K, [0, 1])
+    @test_throws ArgumentError induced_subcomplex(K, [1, 5])
+  end
+
   @testset "automorphism groups" begin
     K = simplicial_complex([[1, 2], [2, 3]])
     G = automorphism_group(K)

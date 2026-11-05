@@ -848,6 +848,7 @@ export induced_action_function
 export induced_automorphism
 export induced_cyclic
 export induced_ring_ordering
+export induced_subcomplex
 export induced_subgraph
 export initial
 export inneighbors
