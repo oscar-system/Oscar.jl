@@ -79,7 +79,7 @@
       @test issetequal(facets(L), Set{Int}.([[1, 2], [2, 3]]))
     end
     @test f_vector(induced_subcomplex(K, [2,3])) == [2, 1]
-    @test f_vector(induced_subcomplex(K, [1, 4])) == f_vector(K)
+    @test f_vector(induced_subcomplex(K, [1, 2, 3, 4])) == f_vector(K)
     @test n_vertices(induced_subcomplex(K, [3])) == 1
 
     @test_throws ArgumentError induced_subcomplex(K, Int[])
