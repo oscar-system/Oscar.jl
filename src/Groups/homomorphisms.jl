@@ -1218,10 +1218,6 @@ domain(f::GroupIsomorphismFromFunc) = domain(f.map)
 
 codomain(f::GroupIsomorphismFromFunc) = codomain(f.map)
 
-image_function(f::GroupIsomorphismFromFunc) = x -> image(f.map, x)
-
-preimage_function(f::GroupIsomorphismFromFunc) = x -> preimage(f.map, x)
-
 image(f::GroupIsomorphismFromFunc, x) = image(f.map, x)
 
 preimage(f::GroupIsomorphismFromFunc, y) = preimage(f.map, y)
