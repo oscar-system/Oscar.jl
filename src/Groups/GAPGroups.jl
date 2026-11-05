@@ -1516,7 +1516,7 @@ true
 """
 function p_rump(G::GAPGroup, p::IntegerUnion)
   @req is_prime(p) "p is not a prime"
-  H = GAPWrap.PRump(GapObj(G), GapObj(p))
+  H = GAPWrap.PRump(GapObj(G), p)
   return _as_subgroup(G, H)
 end
 
