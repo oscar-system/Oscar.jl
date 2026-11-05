@@ -461,17 +461,20 @@ function _hochster_betti_numbers_squarefree(monomials::Vector{<:MPolyRingElem})
   R = parent(first(monomials))
   n = ngens(R)
   supp(m) = findall(>(0), exponent_vector(m, 1))
-  # minimal generators
   delta_star = simplicial_complex([setdiff(1:n, supp(mon)) for mon in monomials])
 
-  # this will need to  accomodate for size of largest monomials
-  # i.e. if n > 64 use an Int128? and so on but probably ok to leave as 64?
   full = n == 64 ? typemax(UInt64) : (one(UInt64) << n) - 1
-  betti_table = Dict{MPolyRingElem, Int}()
+  betti_table = Dict{MPolyRingElem, Vector{Int}}()
   @showprogress for sigma in Oscar._lcm_lattice_squarefree(monomials)
-    link = link_subcomplex(delta_star, findall(isone, digits(sigma; base = 2)))
+    sigma == 0 && continue                                         # bottom element, not a degree
+    mon = monomial(R, digits(Int, sigma; base = 2, pad = n))       # key is sigma, not sigma_bar
+    if mon in monomials                                            # generator: link is {∅}
+      betti_table[mon] = [1]
+      continue
+    end
     sigma_bar = ~sigma & full
-    betti_table[monomial(R, digits(sigma_bar; base = 2, pad = n))] = betti_numbers(link)
+    link = link_subcomplex(delta_star, findall(isone, digits(sigma_bar; base = 2)))  # link of the complement
+    betti_table[mon] = betti_numbers(link)
   end
   return betti_table
 end
