@@ -46,3 +46,15 @@ end
   @test repres(Q(gen(Q, 1)) + 2*Q(gen(Q, 2))) == F([1, 2])
 end
 
+@testset "test if a semigroup is saturated" begin
+  A = ZZ[1 0;0 1]
+  Q = Oscar.AffineSemigroup(A)
+  @test Oscar.InjectiveResolutions.is_saturated(Q)
+  @test [1,3] in Q
+
+  A = ZZ[2 0;3 0]
+  Q = Oscar.AffineSemigroup(A)
+  @test !Oscar.InjectiveResolutions.is_saturated(Q)
+  @test !([1,0] in Q)
+  @test [5,0] in Q
+end

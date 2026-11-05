@@ -50,6 +50,7 @@ import ..Oscar:
   is_nilpotent,
   is_normal,
   is_pointed,
+  is_saturated,
   is_subset,
   is_unit,
   is_zero,

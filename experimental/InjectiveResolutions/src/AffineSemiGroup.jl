@@ -275,7 +275,7 @@ end
   return get_zonotope(cone(S))
 end
 
-function _in_milp(v::AbstractVector, S::AffineSemigroup)
+function in_milp(v::AbstractVector, S::AffineSemigroup)
   M = _generator_matrix(S)
   m = nrows(M)
   length(v) == ncols(M) || return false
@@ -288,9 +288,10 @@ end
   return all(h -> in_milp(h, S), hilbert_basis(polyhedral_cone(S)))
 end
 
-function Base.in(v::AbstractVector, S::AffineSemigroup)
-  v in polyhedral_cone(S) || return false      # cheap necessary condition
-  is_saturated(S) && return true               # then Q = C ∩ Z^d
-  return _in_milp(v, S)
+function Base.in(v::AbstractVector{<:IntegerUnion}, S::AffineSemigroup)
+  @req length(v) == ambient_dim(S) "the point does not lie in the ambient space"
+  v in polyhedral_cone(S) || return false      # necessary condition
+  is_saturated(S) && return true
+  return in_milp(v, S)
 end
 
