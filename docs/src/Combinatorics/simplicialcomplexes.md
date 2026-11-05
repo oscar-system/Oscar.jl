@@ -22,7 +22,7 @@ simplicial_complex(K::Vector{Vector{Int}})
 ```@docs
 star_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
 link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
-induced_subcomplex(K::SimplicialComplex, V::Union{AbstractVector{<:IntegerUnion}, AbstractSet{<:IntegerUnion}})
+induced_subcomplex(K::SimplicialComplex, V::Union{Vector{Int}, Set{Int}})
 ```
 
 ### Surface examples
