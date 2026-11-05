@@ -120,3 +120,22 @@ end
   return get_zonotope(cone(S))
 end
 
+function _in_milp(v::AbstractVector, S::AffineSemigroup)
+  M = _generator_matrix(S)
+  m = nrows(M)
+  length(v) == ncols(M) || return false
+  b = matrix(ZZ, length(v), 1, ZZ.(v))
+  sol = solve_mixed(ZZMatrix, transpose(M), b, identity_matrix(ZZ, m), zero_matrix(ZZ, m, 1))
+  return nrows(sol) > 0   # or ncols; the docs say solutions are the (transposed) rows
+end
+
+@attr Bool function is_saturated(S::AffineSemigroup)
+  return all(h -> in_milp(h, S), hilbert_basis(polyhedral_cone(S)))
+end
+
+function Base.in(v::AbstractVector, S::AffineSemigroup)
+  v in polyhedral_cone(S) || return false      # cheap necessary condition
+  is_saturated(S) && return true               # then Q = C ∩ Z^d
+  return _in_milp(v, S)
+end
+
