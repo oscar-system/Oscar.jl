@@ -30,6 +30,7 @@ end
 
   M = quotient_ring_as_module(J)
   res = free_resolution(M; length=5)
+  @test length(free_resolution(M; length=0)) == 0
   prune_with_map(M)
 end
 
