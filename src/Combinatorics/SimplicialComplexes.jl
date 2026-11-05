@@ -623,7 +623,7 @@ julia> sort(sort.(collect.(facets(L))))
  [2, 3]
 ```
 """
-induced_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
+function induced_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}})
   @req !isempty(sigma) "The vertex set must not be empty"
   @req all(in(1:n_vertices(K)), sigma) "The vertices must be in 1:$(n_vertices(K))"
   vertices = Polymake.to_zero_based_indexing(sigma)
