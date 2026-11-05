@@ -156,6 +156,8 @@ end
    R, (x, y) = polynomial_ring(F, [:x, :y])
    Q = quadratic_form(x^2+x*y)
    @test gram_matrix(Q*F(2))==F(2)*gram_matrix(Q)
+   @test defining_polynomial(Q*F(2))==F(2)*defining_polynomial(Q)
+   @test hash(Q*F(2))==hash(F(2)*Q)
 end
 
 @testset "TransformForm" begin

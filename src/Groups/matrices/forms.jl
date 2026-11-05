@@ -37,7 +37,6 @@ end
 SesquilinearForm(B::MatElem{T}, sym) where T = SesquilinearForm{T}(B,sym)
 
 
-# descr is always defined
 # at least one of matrix and pol is defined
 # NOTE: the field ring_iso is always defined if the field X is
 """
@@ -47,7 +46,6 @@ Type of quadratic forms, defined by a Gram matrix or by a polynomial.
 """
 mutable struct QuadraticForm{T<:RingElem}
    matrix::MatElem{T}
-   descr::Symbol  # perhaps unnecessary
    pol::MPolyRingElem{T}
    X::GapObj
    ring_iso::MapFromFunc
@@ -319,9 +317,15 @@ end
 ==(B::SesquilinearForm, C::SesquilinearForm) = B.descr == C.descr && gram_matrix(B) == gram_matrix(C)
 ==(B::QuadraticForm, C::QuadraticForm) = gram_matrix(B) == gram_matrix(C)
 
-function Base.hash(f::Union{SesquilinearForm, QuadraticForm}, h::UInt)
+function Base.hash(f::SesquilinearForm, h::UInt)
    b = 0xf64440baac005f8c % UInt
    h = hash(f.descr, h)
+   h = hash(gram_matrix(f), h)
+   return xor(h, b)
+end
+
+function Base.hash(f::QuadraticForm, h::UInt)
+   b = 0x5c1f4a2e8d3b6907 % UInt
    h = hash(gram_matrix(f), h)
    return xor(h, b)
 end
@@ -522,7 +526,9 @@ function Base.:*(f::QuadraticForm, l::FieldElem)
    @req l != 0 "Zero is not admitted"
    @req parent(l)==base_ring(f) "The scalar does not belong to the base ring of the form"
    isdefined(f,:matrix) || return QuadraticForm(l*f.pol)
-   return QuadraticForm(l*gram_matrix(f))
+   g = QuadraticForm(l*gram_matrix(f))
+   if isdefined(f,:pol) g.pol = l*f.pol end
+   return g
 end
 
 Base.:*(l::FieldElem, f::Union{SesquilinearForm, QuadraticForm}) = f*l
