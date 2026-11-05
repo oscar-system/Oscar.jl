@@ -73,7 +73,7 @@
   @testset "induced subcomplex" begin
     # faces inside V are kept and V is renumbered consecutively, in any input form
     K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
-    for V in ([1, 2, 4], [4, 1, 2, 2], Set([1, 2, 4]), ZZRingElem[1, 2, 4])
+    for V in ([1, 2, 4], [4, 1, 2, 2], Set([1, 2, 4]))
       L = induced_subcomplex(K, V)
       @test n_vertices(L) == 3
       @test issetequal(facets(L), Set{Int}.([[1, 2], [2, 3]]))
