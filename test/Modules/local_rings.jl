@@ -33,8 +33,9 @@
   @test length(F) == 4
 
   M2, _ = quo(F, [gens(W)[1]*F[1]])
-  res = free_resolution(M2; length=0)
-  @test length(res) == 0
+  res = free_resolution(M2; length=2)
+  @test length(res) == 2
+  @test_throws ErrorException free_resolution(M2; length=0)
   @test_throws ErrorException free_resolution(M2; length=-1)
   @test_throws ErrorException free_resolution(M2; length=PosInf())
 end

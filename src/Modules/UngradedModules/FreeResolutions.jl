@@ -671,8 +671,8 @@ end
 
 Return a free resolution of `M`.
 
-If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
-For modules over localizations of quotient rings, `length` must be finite.
+If `length` is a positive integer, then the free resolution is only computed up to the `length`-th free module.
+For modules over localizations of quotient rings, `length` must be a positive integer.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -730,10 +730,8 @@ function free_resolution(M::SubquoModule{T};
   if length isa Int && length < 0
     error("The length must be nonnegative")
   end
-  if T <: MPolyQuoLocRingElem && length isa PosInf
-    error("Specify a finite length up to which a free resolution should be computed")
-  end
-  if length isa PosInf
+  if length == 0 || length isa PosInf
+    T <: MPolyQuoLocRingElem && error("Specify a finite length up to which a free resolution should be computed")
     length = -1
   end
   if algorithm == :generic
@@ -860,7 +858,6 @@ degree: 0  1  2  3
 function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   p = presentation(M)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
-  iszero(limit) && popfirst!(mp)
   while true
     if limit != -1 && length(mp) > limit+1
       break
@@ -1022,8 +1019,8 @@ end
 
 Consider `I` as a subquotient module over its base ring, and return a free resolution of that module.
 
-If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
-For ideals over localizations of quotient rings, `length` must be finite.
+If `length` is a positive integer, then the free resolution is only computed up to the `length`-th free module.
+For ideals over localizations of quotient rings, `length` must be a positive integer.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -1139,7 +1136,7 @@ end
         length::Union{Int, PosInf} = PosInf(), algorithm = :generic) where T
 Consider `Q` as a subquotient module over its base ring, and return a free resolution of that module.
 
-If `length` is finite, then the free resolution is only computed up to the `length`-th free module.
+If `length` is a positive integer, then the free resolution is only computed up to the `length`-th free module.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
