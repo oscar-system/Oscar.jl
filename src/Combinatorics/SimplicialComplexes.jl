@@ -626,7 +626,7 @@ julia> sort(sort.(collect.(facets(L))))
 induced_subcomplex(K::SimplicialComplex, V::Union{Vector{Int}, Set{Int}})
   @req !isempty(V) "The vertex set must not be empty"
   @req all(in(1:n_vertices(K)), V) "The vertices must be in 1:$(n_vertices(K))"
-  vertices = Polymake.Set{Int}([Int(v) - 1 for v in V])
+  vertices = Polymake.to_zero_based_indexing(V)
   return SimplicialComplex(Polymake.topaz.induced_subcomplex(pm_object(K), vertices))
 end
 
