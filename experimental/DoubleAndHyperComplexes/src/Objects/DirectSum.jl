@@ -24,7 +24,7 @@ function (fac::DirectSumChainFactory)(self::AbsHyperComplex, i::Tuple)
   ind = findfirst(can_compute_index(a, i) for a in fac.summands)
   isnothing(ind) && error("can not compute this index")
   sample = fac.summands[ind][i]
-  res = _direct_sum([can_compute_index(s, i) ? s[i] : _zero_object(sample) for s in fac.summands])
+  res, _ = direct_sum([can_compute_index(s, i) ? s[i] : _zero_object(sample) for s in fac.summands])
   return res
 end
 
@@ -52,64 +52,36 @@ function (::DirectSumMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
     end
     push!(maps, map(s, p, i))
   end
-  return _direct_sum(fac.R, maps; domain=dom, codomain=cod)
+  return direct_sum(maps; domain=dom, codomain=cod)
 end
 
+# We need to be able to create dummy zero maps for those cases 
+# where one of the summands does not have objects in the respective 
+# homological degrees and hence can not produce maps themselves.
+# Since there is no canonical way to do this, we request the user 
+# to fill this gap here according to the type they wish to use.
 function _zero_map(domain, codomain)
-  error("overwrite this internal method for the direct sums of complexes; see source code for details")
+  error("not implemented for arguments of type $(typeof(domain)); please overwrite this internal for the direct sums of complexes, see source code for details")
+end
+
+# `DirectSumComplex` produces an entry at index `i` if and only if 
+# there is at least one summand which can produce an entry at index `i`. 
+# For all others a zero object needs to be created to fill the spots 
+# in the structure of the direct sum. Since there is no standard way 
+# to do this, the user must overwrite this function for their types. 
+function _zero_object(sample)
+  error("not implemented for arguments of type $(typeof(sample)); please overwrite this internal for the direct sums of complexes, see source code for details")
+end
+
+# For instance, for `OFPModule`s we do the following: 
+function _zero_object(M::OFPModule)
+  is_graded(M) && return graded_free_module(base_ring(M), grading_group(M)[])
+  return FreeMod(base_ring(M), 0)
 end
 
 function _zero_map(domain::OFPModule, codomain::OFPModule)
   @assert base_ring(domain) === base_ring(codomain) "incompatible rings in domain and codomain"
   return hom(domain, codomain, elem_type(codomain)[zero(codomain) for _ in 1:ngens(domain)])
-end
-
-# We use the internal function `_direct_sum` instead of `direct_sum`. By default it 
-# just deflects to `direct_sum`. But since we can not guarantee the latter to be streamlined 
-# in its behavior for different types of modules and coefficient rings, this deviation allows 
-# us to wrap any existing functionality so that it will adhere to the interface used here. 
-# Note that, in particular, we need to pass the common ring `R` as an additional argument 
-# to be able to catch the edge cases where zero modules/morphisms are provided. 
-
-# Direct sums of morphisms. Keyword arguments allow to specify domain and codomain. 
-function _direct_sum(R::Ring, phis::Vector{T}; 
-    domain=_direct_sum(R, [domain(phi) for phi in phis]), 
-    codomain=_direct_sum(R, [codomain(phi) for phi in phis])
-  ) where {T<:OFPModuleHom}
-  return direct_sum(phis; domain, codomain)
-end
-
-# By default we use `OFPModule`s here. In case no summands are provided, these internal 
-# functions create the zero module according to the type of the ring. If you want this 
-# to behave differently for your application, overwrite this for your type of rings. 
-_zero_module(R::Ring) = FreeMod(R, 0)
-_zero_module(R::MPolyDecRing) = graded_free_module(R, elem_type(grading_group(R))[])
-
-function _direct_sum(R::Ring, summands::Vector{T}) where {T <: OFPModule}
-  is_empty(summands) && return _zero_module(R)
-  return direct_sum(summands; task=:none)
-end
-
-# In case the type of modules is not recognized by the input vector, throw an 
-# error. The programmer should take care that their code is sufficiently type stable.
-function _direct_sum(R::Ring, summands::Vector)
-  @assert is_empty(summands) "non-empty list with no useful type detected"
-  return _zero_module(R)
-end
-
-function _direct_sum(R::Ring, phis::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}}; 
-    domain::OFPModule=_direct_sum(R, [domain(phi) for phi in phis]), 
-    codomain::OFPModule=_direct_sum(R, [codomain(phi) for phi in phis])
-  )
-  img_gens = sizehint!(Vector{elem_type(codomain)}[], length(phis))
-  for (k, phi) in enumerate(phis)
-    inc_cod = canonical_injection(codomain, k)
-    @assert Oscar.domain(inc_cod) === Oscar.codomain(phi)
-    ig2 = images_of_generators(phi)
-    ig3 = [inc_cod(v) for v in ig2]
-    push!(img_gens, ig3)
-  end
-  return hom(domain, codomain, is_empty(img_gens) ? elem_type(codomain)[] : reduce(vcat, img_gens))
 end
 
 function can_compute(::DirectSumMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
@@ -127,22 +99,17 @@ of summands, the ring itself needs to be provided to the constructor.
 @attributes mutable struct DirectSumComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
 
-  function DirectSumComplex(
-      R::Ring, dirs::Vector{Symbol}, summands::Vector{<:AbsHyperComplex{CT, MT}}
-    ) where {CT <: OFPModule, MT <: OFPModuleHom}
-    return DirectSumComplex{CT, MT}(R, dirs, summands)
-  end
-
   function DirectSumComplex{CT, MT}(
-      R::Ring, dirs::Vector{Symbol}, summands::Vector
-    ) where {CT <: OFPModule, MT <: OFPModuleHom}
-    d = length(dirs)
+      summands::Vector
+    ) where {CT, MT}
+    d = is_empty(summands) ? 0 : dim(first(summands))
+    dirs = is_empty(summands) ? Symbol[] : Symbol[direction(first(summands), i) for i in 1:d]
     if !is_empty(summands)
       s = first(summands)::AbsHyperComplex
       @assert all(dim(ss) == d for ss in summands[2:end])
       @assert all(all(direction(ss, p) == dirs[p] for p in 1:dim(s)) for ss in summands[2:end])
     end
-    chain_fac = DirectSumChainFactory{CT}(R, summands)
+    chain_fac = DirectSumChainFactory{CT}(summands)
     map_fac = DirectSumMapFactory{MT}()
 
     internal_complex = HyperComplex(d, chain_fac, map_fac, dirs)
@@ -153,6 +120,7 @@ end
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::DirectSumComplex) = c.internal_complex
 
+#=
 # dirty catch of the edge case with an empty list of summands 
 # where the type parameter of the `summands` vector might not be specified
 function DirectSumComplex(
@@ -162,11 +130,14 @@ function DirectSumComplex(
   ET = elem_type(R)
   return DirectSumComplex(R, dirs, AbsHyperComplex{OFPModule{ET}, OFPModuleHom}[])
 end
+=#
 
 # method for the user's convenience
-function direct_sum(R::Ring, list::Vector{<:AbsHyperComplex})
-  is_empty(list) && return DirectSumComplex{OFPModule{elem_type(R)}, OFPModuleHom}(R, Symbol[], list)
-  dirs = Symbol[direction(first(list), i) for i in 1:dim(first(list))]
-  return DirectSumComplex{OFPModule{elem_type(R)}, OFPModuleHom}(R, dirs, list)
+function direct_sum(list::Vector{<:AbsHyperComplex})
+  error("no reasonable type could for objects and morphisms could be inferred from the argument list; try making the type of the list more informative, or call the internal constructor directly")
+end
+
+function direct_sum(list::Vector{<:AbsHyperComplex{CT}}) where {CT<:OFPModule}
+  return DirectSumComplex{CT, OFPModuleHom}(list)
 end
 
