@@ -1377,6 +1377,7 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   return S
 end
 
+# Much slower than the `PermGroup` method, which should be generalized.
 function short_right_transversal(G::GAPGroup, H::GAPGroup, s::GAPGroupElem)
   return elem_type(G)[t for t in right_transversal(G, H) if s in H^t]
 end
