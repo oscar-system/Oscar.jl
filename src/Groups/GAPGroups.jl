@@ -2146,7 +2146,6 @@ function _relators_by_generators(G::GAPGroup)
   return relators(FPGroup(GAPWrap.Image(f)))
 end
 
-
 @doc raw"""
     map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
