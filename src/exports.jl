@@ -790,8 +790,12 @@ export hbs_fors_standard
 export hbs_fors_toy
 export hbs_horst_light
 export hbs_horst_toy
+export hbs_keygen
 export hbs_mss_light
 export hbs_mss_toy
+export hbs_open
+export hbs_sign
+export hbs_verify
 export hilbert_series
 export hilbert_series_expanded
 export hilbert_series_reduced
