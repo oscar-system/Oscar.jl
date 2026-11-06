@@ -560,7 +560,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   cv = QQ((h*gram*transpose(v))[1,1])
   b = basis_matrix(L)
   prW = reduce(vcat,[b[i:i,:] - (b[i:i,:]*gram*transpose(h))*ch^-1*h for i in 1:n])
-  W = lattice(ambient_space(L), prW, isbasis=false)
+  W = lattice(ambient_space(L), prW; is_basis=false)
   bW = basis_matrix(W)
   # set up the quadratic triple for SW
   gramW = gram_matrix(W)
@@ -1081,6 +1081,8 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
     walls1 = _alg58_short_vector(data, weyl_vector)
   elseif algorithm==:close
     walls1 = _alg58_close_vector(data, weyl_vector)
+  else
+    error("unknown algorithm")
   end
   if length(walls1)==rank(data.S)
     # shortcut which avoids calling Polymake

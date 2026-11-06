@@ -173,7 +173,9 @@ end
 function toric_morphism(
   domain::NormalToricVarietyType, lattice_homomorphism::FinGenAbGroupHom; check=true
 )
-  image = transform(domain, matrix(lattice_homomorphism); check=check)
+  image = normal_toric_variety(
+    transform(polyhedral_fan(domain), matrix(QQ, matrix(lattice_homomorphism)); check)
+  )
   return ToricMorphism(domain, lattice_homomorphism, image)
 end
 

@@ -859,6 +859,7 @@ export inner_automorphism_group
 export inner_cartesian_power
 export inner_direct_product
 export inradical
+export instantiate_uov
 export integer_hull
 export integer_lattice_with_isometry
 export integral_basis
@@ -1136,6 +1137,7 @@ export k_skeleton
 export kaehler_differentials
 export katsura
 export kernel
+export keygen
 export klee_minty_cube
 export klein_bottle
 export known_class_fusion
@@ -1705,6 +1707,7 @@ export set_relative_orders!
 export set_theoretic_intersection
 export sets
 export setwise_stabilizer_in_orthogonal_group
+export shake_256
 export shape
 export sheaf_cohomology
 export sheaf_of_rings
@@ -1715,6 +1718,7 @@ export show_morphism
 export show_morphism_as_map
 export show_OD_info
 export show_subquo
+export sign
 export signed_incidence_matrix
 export signed_permutahedron
 export simple_coroot
@@ -1830,6 +1834,7 @@ export toric_variety
 export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
+export torus_saturation
 export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
@@ -1883,6 +1888,20 @@ export unit
 export unitary_group
 export units_of
 export unwrap
+export uov_1p
+export uov_1p_pkc
+export uov_1p_pkc_skc
+export uov_1s
+export uov_1s_pkc
+export uov_1s_pkc_skc
+export uov_3
+export uov_3_pkc
+export uov_3_pkc_skc
+export uov_5
+export uov_5_pkc
+export uov_5_pkc_skc
+export uov_all
+export uov_open
 export update_gluing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
@@ -1897,6 +1916,7 @@ export variety
 export vector_matrix
 export vector_space_basis
 export vector_space_dim
+export verify
 export vertex_and_ray_indices
 export vertex_edge_graph
 export vertex_figure

@@ -223,3 +223,47 @@ end
   end
 
 end
+
+@testset "MPolyAnyMap/MPolyQuoRing without generators" begin
+  # maps out of a quotient of a polynomial ring in 0 variables
+  Qi, i = quadratic_field(-1)
+  P, _ = polynomial_ring(Qi, 0)
+  Q, _ = quo(P, ideal(P, [zero(P)]))
+  T, _ = polynomial_ring(Qi, [:z])
+  @test hom(Q, T, elem_type(T)[])(Q(i)) == T(i)
+  @test hom(Q, T, elem_type(T)[]; check = false)(Q(i)) == T(i)
+  @test hom(Q, T, hom(Qi, Qi, -i), elem_type(T)[])(Q(i)) == T(-i)
+  @test hom(Q, Q, elem_type(Q)[])(Q(i)) == Q(i)
+  M = matrix_ring(Qi, 2)
+  sigma = hom(Qi, Qi, -i)
+  coeff_map = MapFromFunc(Qi, M, a -> M(sigma(a)))
+  @test hom(Q, M, coeff_map, elem_type(M)[])(Q(i)) == M(-i)
+  @test hom(Q, M, a -> M(sigma(a)), elem_type(M)[])(Q(i)) == M(-i)
+  @test hom(Q, M, sigma, elem_type(M)[])(Q(i)) == M(-i)
+
+  P, _ = polynomial_ring(ZZ, 0)
+  Q, _ = quo(P, ideal(P, [P(2)]))
+  F, _ = polynomial_ring(GF(2), [:y])
+  @test is_one(hom(Q, F, elem_type(F)[])(Q(3)))
+  @test is_one(hom(Q, F, a -> F(a), elem_type(F)[])(Q(3)))
+  @test is_one(hom(Q, GF(2), elem_type(GF(2))[])(Q(3)))
+  @test_throws "not well-defined" hom(Q, T, elem_type(T)[])
+  @test_throws "not well-defined" hom(Q, T, a -> T(a), elem_type(T)[])
+  @test_throws "not well-defined" hom(
+    Q, M, MapFromFunc(ZZ, M, a -> M(a)), elem_type(M)[]
+  )
+
+  P, _ = polynomial_ring(QQ, 0)
+  Q, _ = quo(P, ideal(P, [zero(P)]))
+  T, _ = polynomial_ring(QQ, [:z])
+  @test sprint(show, "text/plain", hom(Q, T, elem_type(T)[])) == """
+    Ring homomorphism
+      from quotient of multivariate polynomial ring by ideal (0)
+      to multivariate polynomial ring in 1 variable over QQ"""
+  @test sprint(show, "text/plain", hom(Q, T, identity_map(QQ), elem_type(T)[])) == """
+    Ring homomorphism
+      from quotient of multivariate polynomial ring by ideal (0)
+      to multivariate polynomial ring in 1 variable over QQ
+    with map on coefficients
+      Map: QQ -> QQ"""
+end

@@ -19,6 +19,7 @@
   @test !can_compute_index(KV, 0)
   @test Oscar.can_compute_map(KV, 1, (2,))
   @test map(KV, 1, (2,)) === map(K, 2, (-1, 2))
+  @test Oscar.has_map(KV, 1, (2,))
 
   KV = K[-2, 1:2]
 

@@ -55,19 +55,19 @@ julia> collect(multicombinations(['a', 'b', 'c'], 2))
 multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
 
 
-@inline function Base.iterate(C::MultiCombinations{<:AbstractVector{T}, U}, state::Vector{U} = C.k == 0 ? U[] : (s = ones(U, C.k); s[Int(C.k)] = U(0); s)) where {T, U<:IntegerUnion}
+@inline function Base.iterate(C::MultiCombinations{<:AbstractVector{T}, U}, state::Vector{U} = C.k == 0 ? U[] : (s = ones(U, Int(C.k)); s[Int(C.k)] = U(0); s)) where {T, U<:IntegerUnion}
   if is_zero(C.k) # special case to generate 1 result for k = 0
     if isempty(state)
       return Combination{T}(T[]), U[0]
     end
     return nothing
   end
-  for i in C.k:U(-1):U(1)
+  for i in Int(C.k):-1:1
     state[i] += 1
     if state[i] > C.n
       continue
     end
-    for j in i+1:C.k
+    for j in i+1:Int(C.k)
       state[j] = state[i]
     end
     break
@@ -76,7 +76,7 @@ multicombinations(v::AbstractVector, k::IntegerUnion) = MultiCombinations(v, k)
     return nothing
   end
 
-  c = C.inplace ? Combination{T}(state) : Combination{T}(C.v[state])
+  c = C.inplace ? Combination{T}(state) : Combination{T}(C.v[Int.(state)])
   return c, state
 end
 

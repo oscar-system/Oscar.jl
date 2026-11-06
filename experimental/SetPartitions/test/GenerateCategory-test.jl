@@ -104,3 +104,22 @@
             spatial_category_costum_rotation
     end
 end
+
+@testset "print_trace" begin
+  # rr is built from r, r from the generator p, and p is traced as its own
+  # involution; print_trace must follow the parents of its start partition,
+  # so starting at rr prints these three lines
+  p = set_partition([1, 1], [1, 1])
+  _, tr = construct_category([p], 3, true)
+  r = rotate_top_left(p)
+  rr = rotate_top_left(r)
+  @test tr[r] == ([p], "r")
+  @test tr[rr] == ([r], "r")
+  @test tr[p] == ([p], "i")
+
+  @test sprint(print_trace, tr, rr) == "$rr : $(tr[rr])\n$r : $(tr[r])\n$p : $(tr[p])\n"
+
+  q = set_partition([1, 1, 1], [1, 1, 1])
+  @test !haskey(tr, q)
+  @test sprint(print_trace, tr, q) == "Partition $q not found in trace\n"
+end

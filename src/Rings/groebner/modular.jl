@@ -39,7 +39,7 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
 end
 
 
-function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem; parent = 1)
+function induce_rational_reconstruction(f::ZZMPolyRingElem, d::ZZRingElem; parent)
   g = MPolyBuildCtx(parent)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     fl, r, s = Hecke.rational_reconstruction(c, d)
@@ -51,12 +51,12 @@ end
 function _certify_modular_groebner_basis(I::MPolyIdeal, ordering::MonomialOrdering)
   @req haskey(I.gb, ordering) "There exists no standard basis w.r.t. the given ordering."
   singular_generators(I.gb[ordering])
-  SR = I.gb[ordering].gensBiPolyArray.Sx
+  iso = _sing_iso(I.gb[ordering])
   SG = I.gb[ordering].gensBiPolyArray.S
 
   #= test if I is included in <G> =#
   for f in I.gens
-    if Singular.reduce(SR(f), SG) != 0
+    if Singular.reduce(iso(f), SG) != 0
       return false
     end
   end

@@ -123,6 +123,13 @@ end
       Oscar.Serialization.reset_global_serializer_state()
       loaded = load(prefix_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R)
       @test loaded == p
+
+      # filename with explicit .mrdi suffix
+      main_path = joinpath(path, "explicit.mrdi")
+      save(main_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer())
+      @test "explicit.mrdi" in readdir(path)
+      Oscar.Serialization.reset_global_serializer_state()
+      @test load(main_path; serializer=Oscar.Serialization.MultiFileRefSerializer(), params=R) == p
     end
   end
 end

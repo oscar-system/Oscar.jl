@@ -64,8 +64,8 @@ mutable struct Covering{BaseRingType}
     # check the affine refinements
     for U in keys(affine_refinements)
       for (V, a) in affine_refinements[U]
-        ambient(V) == U && error("the ambient scheme of the refinement of X must be X")
-        any(u->u===U, patches) && error("the ambient scheme of the refinement can not be found in the affine patches")
+        ambient_scheme(V) == U || error("the ambient scheme of the refinement of X must be X")
+        any(u->u===U, patches) || error("the ambient scheme of the refinement can not be found in the affine patches")
         @check isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) "the patch $V does not cover $U"
       end
     end

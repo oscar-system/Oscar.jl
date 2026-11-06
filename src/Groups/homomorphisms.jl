@@ -832,7 +832,7 @@ end
 for T in [PermGroup, SubFPGroup, SubPcGroup]
   @eval begin
     function isomorphism(::Type{$T}, G::$T; on_gens::Bool = false)
-      on_gens && error("only `on_gens = false` is supported for `isomorphism(::Type{$T}, G::$T)`")
+      on_gens && error($("only `on_gens = false` is supported for `isomorphism(::Type{$T}, G::$T)`"))
       return _isomorphism_same_type(G, on_gens)
     end
   end
@@ -1217,10 +1217,6 @@ end
 domain(f::GroupIsomorphismFromFunc) = domain(f.map)
 
 codomain(f::GroupIsomorphismFromFunc) = codomain(f.map)
-
-image_function(f::GroupIsomorphismFromFunc) = image_function(f.map)
-
-preimage_function(f::GroupIsomorphismFromFunc) = preimage_function(f.map)
 
 image(f::GroupIsomorphismFromFunc, x) = image(f.map, x)
 

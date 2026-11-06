@@ -8,8 +8,8 @@
 @doc raw"""
     cartan_matrix(fam::Symbol, rk::Int) -> ZZMatrix
 
-Return the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$ $G$)
-and `rk` is the rank of the associated the root system.
+Return the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$, $G$)
+and `rk` is the rank of the associated root system.
 
 The input must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
 
