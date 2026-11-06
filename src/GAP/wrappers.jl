@@ -387,7 +387,7 @@ GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap PrimitiveElement(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj, i::Int)::GapObj
-GAP.@wrap PRump(x::GapObj, y::Int)::GapObj
+GAP.@wrap PRump(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap QUO(x::GAP.Obj, y::GAP.Obj)::GAP.Obj
 GAP.@wrap Random(x::GapObj)::GAP.Obj
 GAP.@wrap Random(x::GapObj, y::GapObj)::GAP.Obj

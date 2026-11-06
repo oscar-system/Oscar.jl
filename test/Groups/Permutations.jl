@@ -283,6 +283,7 @@ end
   @test degree(g) == 2
 
   @test order(permutation_group(3, [cperm(1:3)])) == 3
+  @test order(permutation_group(ZZ(3), [cperm(1:3)])) == 3
   @test order(permutation_group(5, [cperm(1:3, 4:5), cperm(1:4)])) == 120
 end
 
