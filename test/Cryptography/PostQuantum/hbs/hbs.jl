@@ -39,3 +39,21 @@ end
   @test merkle_verify(merkle_root(levels), UInt8[3], 2, path; node)
   @test !merkle_verify(merkle_root(levels), UInt8[3], 2, path)
 end
+
+@testset "hbs lamport signatures" begin
+  # Test signing and verification with Lamport's one-time scheme
+  rng = Random.MersenneTwister(1)
+  for n in (1, 4, 16)
+    pk, sk = lamport_keygen(n; rng)
+    msg = Vector{UInt8}("oscar")
+    sig = lamport_sign(n, msg, sk)
+    @test length(sig) == 8n * n
+    @test lamport_verify(n, sig, msg, pk)
+    @test !lamport_verify(n, sig, Vector{UInt8}("oscaR"), pk)
+    bad = copy(sig)
+    bad[1] ⊻= 0x01
+    @test !lamport_verify(n, bad, msg, pk)
+  end
+  @test_throws ArgumentError lamport_keygen(0)
+  @test_throws ArgumentError lamport_verify(4, UInt8[], UInt8[], UInt8[])
+end

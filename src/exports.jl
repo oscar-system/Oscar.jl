@@ -792,6 +792,9 @@ export hirzebruch_surface
 export hodge_number
 export hodge_numbers
 export instantiate_lwe
+export lamport_keygen
+export lamport_sign
+export lamport_verify
 export lwe_all
 export lwe_decrypt
 export lwe_encrypt
