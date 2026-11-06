@@ -8,6 +8,37 @@ function _real_roots(f::QQMPolyRingElem; solver_precision::Int)
   return result
 end
 
+# Choose the y-window around a critical point with box [a,b] x [c,d].
+# Starting from ytol0, halve the tolerance until the window is separated
+# from all other fiber roots by a gap of the same width, the roots outside
+# the window match on both sides, and the window content fits the type.
+function _critical_ywindow(
+  ptsbefore::Vector{QQFieldElem},
+  ptsafter::Vector{QQFieldElem},
+  ypt::Vector{QQFieldElem},
+  type::Symbol,
+  ytol0::QQFieldElem,
+  ytolmin::QQFieldElem,
+)
+  inside(r, t) = ypt[1] - t <= r && r <= ypt[2] + t
+  ytol = ytol0
+  while ytol >= ytolmin
+    kb = count(r -> inside(r, ytol), ptsbefore)
+    ka = count(r -> inside(r, ytol), ptsafter)
+    gap =
+      count(r -> inside(r, 2 * ytol), ptsbefore) == kb &&
+      count(r -> inside(r, 2 * ytol), ptsafter) == ka
+    below = count(r -> r < ypt[1] - ytol, ptsbefore) == count(r -> r < ypt[1] - ytol, ptsafter)
+    above = count(r -> r > ypt[2] + ytol, ptsbefore) == count(r -> r > ypt[2] + ytol, ptsafter)
+    typeok = type != :ytangent || (kb, ka) in ((2, 0), (0, 2))
+    if gap && below && above && typeok
+      return (ytol, :success)
+    end
+    ytol = ytol // 2
+  end
+  return (ytol0, :fail)
+end
+
 function _analyse_singularity_msolve(
   f::QQMPolyRingElem,
   projy::Map,
@@ -30,8 +61,14 @@ function _analyse_singularity_msolve(
     xafter = xpt[2]
     ptsafter = _real_roots(projy(evaluate(f, [Rxy(xafter), y])); solver_precision)
 
-    # Just guessing some precision, not optimal...
-    ytol = QQ(1, 2)^ybox_tolerance
+    # Start from 2^-ybox_tolerance and shrink the window until it is consistent
+    ytol0 = QQ(1, 2)^ybox_tolerance
+    ytolmin = min(ytol0, QQ(1, 2)^div(solver_precision, 2))
+    (ytol, state) = _critical_ywindow(ptsbefore, ptsafter, ypt, type, ytol0, ytolmin)
+    if state == :fail
+      @vprintln :DrawingCurves 2 "Could not find a consistent y-window for critical point of type $type."
+      return (ptsbefore, 0, :fail)
+    end
     yinterval = [ypt[1] - ytol, ypt[2] + ytol]
     result = ptsbefore
     diff = length(ptsbefore) - length(ptsafter)
@@ -110,6 +147,12 @@ function isotopy_graph_from_msolve(
 
   # This matrix is a generic rotation by definition
   f = f_in((random_transform * gens(Rxy))...)
+
+  # Check for genericity: no vertical asymptotes
+  if is_zero(coeff(f, [0, total_degree(f)]))
+    @vprintln :DrawingCurves 2 "Coefficient of y^deg(f) vanishes, curve has vertical asymptotes."
+    return false
+  end
 
   (x, y) = gens(Rxy)
   dfx = derivative(f, x)
@@ -197,7 +240,7 @@ function isotopy_graph_from_msolve(
     [(critpt[i][1][1] + critpt[i][1][2]) / 2, (critpt[i][2][1] + critpt[i][2][2]) / 2] for
     i in 1:length(svecs)
   ]
-  _assemble_isotopy_graph!(
+  return _assemble_isotopy_graph!(
     IG,
     f,
     singcoords,
@@ -208,6 +251,4 @@ function isotopy_graph_from_msolve(
     solver_precision,
     _real_roots,
   )
-
-  return true
 end
