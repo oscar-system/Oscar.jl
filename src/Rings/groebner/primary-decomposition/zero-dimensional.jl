@@ -106,7 +106,7 @@ function _pd_min_poly(T, M::MatElem)
   cur = v
   while true
     w = copy(cur)
-    c = zeros(F, d + 1)
+    c = [zero(F) for _ in 1:d + 1]
     c[k+1] = one(F)
     for (r, cr, p) in zip(rows, combs, piv)
       if !is_zero(w[p])
@@ -129,7 +129,7 @@ function _pd_min_poly(T, M::MatElem)
     c .*= s
     push!(rows, w); push!(combs, c); push!(piv, p)
     # next Krylov vector: cur * M
-    nxt = zeros(F, d)
+    nxt = [zero(F) for _ in 1:d]
     for i in 1:d
       is_zero(cur[i]) && continue
       for j in 1:d
