@@ -248,6 +248,19 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams{T}) where T 
   end
 end
 
+# Empty containers store their entry type without params, and singleton tuple
+# types have none. The field types are still needed to load the type.
+function save_type_and_params(s::SerializerState, ::TypeAndParams{T, Nothing}) where T <: Tuple
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_array(s, :params) do
+      for U in fieldtypes(T)
+        save_type_and_params(s, TypeAndParams(U, nothing))
+      end
+    end
+  end
+end
+
 function load_type_and_params(s::DeserializerState, T::Type{Tuple})
   !haskey(s, :params) && return T{}, nothing
   subtype, params = load_node(s, :params) do _
@@ -317,6 +330,26 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams{<:NamedTuple
       save_data_array(s, :tuple_params) do
         for (i, param_tp) in enumerate(values(params(tp)))
           save_type_and_params(s, param_tp)
+        end
+      end
+    end
+  end
+end
+
+# see the method for `TypeAndParams{<:Tuple, Nothing}`
+function save_type_and_params(s::SerializerState,
+                              ::TypeAndParams{T, Nothing}) where T <: NamedTuple
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_dict(s, :params) do
+      save_data_array(s, :names) do
+        for name in fieldnames(T)
+          save_object(s, name)
+        end
+      end
+      save_data_array(s, :tuple_params) do
+        for U in fieldtypes(T)
+          save_type_and_params(s, TypeAndParams(U, nothing))
         end
       end
     end
