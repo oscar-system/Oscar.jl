@@ -266,8 +266,8 @@ end
 
 function Base.haskey(s::DeserializerState, key::Symbol)
   s.obj isa String && return false
-  load_node(s) do obj
-    key in keys(obj)
+  load_node(s) do
+    key in keys(s.obj)
   end
 end
 
@@ -289,16 +289,22 @@ function load_node(f::Function, s::DeserializerState,
   if isnothing(s.obj)
     result = nothing
   else
-    result = f(s.obj)
+    result = f()
   end
   s.obj = obj
   return result
 end
 
 function load_array_node(f::Function, s::DeserializerState,
-                         key::Union{Symbol, Int, Nothing} = nothing)
-  load_node(s, key) do array
-    [load_node(x -> f((i, x)), s, i) for (i, _) in enumerate(array)]
+                         key::Union{Symbol, Int, Nothing} = nothing;
+                         entry_type::Type = Any)
+  load_node(s, key) do
+    result = map(enumerate(s.obj)) do (i, v)
+      isnothing(v) && return nothing
+      s.obj = v
+      f(i)
+    end
+    return entry_type === Any ? result : convert(Vector{entry_type}, result)
   end
 end
 

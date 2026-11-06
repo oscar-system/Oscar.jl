@@ -146,7 +146,7 @@ function decode_type(s::DeserializerState)
   end
 
   if type_key in keys(s.obj)
-    return load_node(s, type_key) do _
+    return load_node(s, type_key) do
       obj = decode_type(s)
       obj isa AbstractDict && return obj["default"]
       return obj
@@ -160,7 +160,7 @@ function decode_type(s::DeserializerState)
         error("unsupported instance '$unsupported_instance' for decoding")
       end
     else
-      return load_node(s, :name) do _
+      return load_node(s, :name) do
         obj = decode_type(s)
         obj isa AbstractDict && return obj["default"]
         return obj
@@ -362,15 +362,15 @@ function save_type_and_params(s::SerializerState,
 end
 
 function load_type_and_params(s::DeserializerState, T::Type, key::Symbol)
-  load_node(s, key) do _
+  load_node(s, key) do
     load_type_and_params(s, T)
   end
 end
 
 function load_type_array_params(s::DeserializerState)
-  load_array_node(s) do obj
+  load_array_node(s) do _
     T = decode_type(s)
-    if obj isa String
+    if s.obj isa String
       !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
       return T
     end
@@ -386,10 +386,10 @@ function load_type_and_params(s::DeserializerState, T::Type)
     return T, nothing
   end
   if haskey(s, :params)
-    load_node(s, :params) do obj
-      if obj isa JSON3.Array || obj isa Vector
+    load_node(s, :params) do
+      if s.obj isa JSON3.Array || s.obj isa Vector
         params = load_type_array_params(s)
-      elseif obj isa String || haskey(s, :params)
+      elseif s.obj isa String || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           params = U()
@@ -397,16 +397,16 @@ function load_type_and_params(s::DeserializerState, T::Type)
           params = load_type_and_params(s, U)[2]
         end
       # handle cases where type_and_params is a dict of params
-      elseif !haskey(obj, type_key) 
+      elseif !haskey(s.obj, type_key) 
         params = Dict{Symbol, Any}()
-        for (k, _) in obj
-          params[k] = load_node(s, k) do obj
-            if obj isa JSON3.Array || obj isa Vector
+        for (k, _) in s.obj
+          params[k] = load_node(s, k) do
+            if s.obj isa JSON3.Array || s.obj isa Vector
               return load_type_array_params(s)
             end
             
             U = decode_type(s)
-            if obj isa String && isnothing(tryparse(UUID, obj))
+            if s.obj isa String && isnothing(tryparse(UUID, s.obj))
               return U
             end
             return load_type_and_params(s, U)[2]
@@ -427,7 +427,7 @@ function load_type_and_params(s::DeserializerState, T::Type)
 end
 
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
-  load_node(s, key) do _
+  load_node(s, key) do
     load_typed_object(s; override_params=override_params)
   end
 end
@@ -444,7 +444,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     T, params = load_type_and_params(s, T, type_key)
   end
   Base.issingletontype(T) && return T()
-  obj = load_node(s, :data) do _
+  obj = load_node(s, :data) do
     return load_object(s, T, params)
   end
   load_attrs(s, obj)
@@ -452,14 +452,14 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
 end
 
 function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
-  load_node(s, key) do _
+  load_node(s, key) do
     load_object(s, T)
   end
 end
 
 function load_object(s::DeserializerState, T::Type, params::S,
                      key::Union{Symbol, Int}) where S
-  load_node(s, key) do _
+  load_node(s, key) do
     load_object(s, T, params)
   end
 end
@@ -481,8 +481,8 @@ end
 function load_attrs(s::DeserializerState, obj::T) where T
   !with_attrs(s) && return
 
-  haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in keys(d)
+  haskey(s, :attrs) && load_node(s, :attrs) do
+    for attr in keys(s.obj)
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
@@ -873,11 +873,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   # handle different namespaces
-  polymake_obj = load_node(s) do d
-    @req :_ns in keys(d) "Namespace is missing"
-    load_node(s, :_ns) do _ns
-      if :polymake in keys(_ns)
-        return load_from_polymake(Dict(d))
+  polymake_obj = load_node(s) do
+    @req :_ns in keys(s.obj) "Namespace is missing"
+    outer_obj = s.obj
+    load_node(s, :_ns) do
+      if :polymake in keys(s.obj)
+        return load_from_polymake(Dict(outer_obj))
       end
     end
   end
@@ -885,13 +886,13 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     return polymake_obj
   end
 
-  load_node(s, :_ns) do _ns
-    @req haskey(_ns, :Oscar) "Not an Oscar object"
+  load_node(s, :_ns) do
+    @req haskey(s.obj, :Oscar) "Not an Oscar object"
   end
 
   # deal with upgrades
-  file_version = load_node(s) do obj
-    serialization_version_info(obj)
+  file_version = load_node(s) do
+    serialization_version_info(s.obj)
   end
   # A file needs upgrading iff some upgrade script targets a version newer than the
   # file's effective version. Gate on the newest upgrade script rather than on
@@ -919,7 +920,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       # concrete, and `U <: T` should hold.
       #
       # This check should maybe change to a check on the whole type tree?
-      U = load_node(s, type_key) do _
+      U = load_node(s, type_key) do
         decode_type(s)
       end
       
@@ -927,11 +928,11 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
       Base.issingletontype(type) && return type()
       if isnothing(params)
-        _, params = load_node(s, type_key) do _
+        _, params = load_node(s, type_key) do
           load_type_and_params(s, U)
         end
       end
-      load_node(s, :data) do _
+      load_node(s, :data) do
         loaded = load_object(s, type, params)
       end
     else
@@ -939,7 +940,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
 
     if :id in keys(s.obj)
-      load_node(s, :id) do id
+      load_node(s, :id) do
+        id = s.obj
         global_serializer_state.obj_to_id[loaded] = UUID(id)
         global_serializer_state.id_to_obj[UUID(id)] = loaded
       end
