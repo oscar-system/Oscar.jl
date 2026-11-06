@@ -519,16 +519,17 @@ end
 function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
-  cx = coefficients(x)
   V = parent(v)
-  return LieAlgebraModuleElem(
-    V,
-    sum(
-      cx[i] * _matrix(v) * transformation_matrix(V, i) for
-      i in 1:dim(parent(x)) if !iszero(cx[i]);
-      init=zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C),
-    ),
-  )
+  mat_x = _matrix(x)
+  mat_v = _matrix(v)
+  res = zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C)
+  tmp = zero(res)
+  for i in 1:dim(parent(x))
+    is_zero_entry(mat_x, 1, i) && continue
+    tmp = mul!(tmp, mat_v, transformation_matrix(V, i))
+    res = addmul!(res, tmp, mat_x[1, i])
+  end
+  return LieAlgebraModuleElem(V, res)
 end
 
 function transformation_matrices(V::LieAlgebraModule{C}) where {C<:FieldElem}
