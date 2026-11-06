@@ -41,7 +41,9 @@ root_system(::WeightLattice)
 WeightLatticeElem(::WeightLattice, ::Vector{<:IntegerUnion})
 WeightLatticeElem(::RootSystem, ::Vector{<:IntegerUnion})
 WeightLatticeElem(::WeightLattice, ::ZZMatrix)
+WeightLatticeElem(::WeightLattice, ::WeightLatticeElem)
 WeightLatticeElem(::RootSystem, ::ZZMatrix)
+WeightLatticeElem(::RootSystem, ::WeightLatticeElem)
 WeightLatticeElem(::RootSpaceElem)
 ```
 
