@@ -119,3 +119,26 @@ end
     @test Oscar._fors_pk_from_sig(n, a, k, sig, md, seed, (0, 5, 3)) != pk
   end
 end
+
+@testset "hbs horst signatures" begin
+  # Test signing and recovering the public key of HORST, also with modified signatures
+  for (n, tau, k, x) in ((8, 6, 8, 2), (16, 5, 6, 0), (8, 4, 5, 4))
+    sk_seed = rand(UInt8, n)
+    seed = rand(UInt8, n)
+    loc = (0, 1, 7)
+    md = rand(UInt8, Oscar._horst_md_size(tau, k))
+    pk = Oscar._horst_pk(n, tau, sk_seed, seed, loc)
+    sig = Oscar._horst_sign(n, tau, k, x, md, sk_seed, seed, loc)
+    @test length(sig) == k * (tau - x + 1) * n + 2^x * n
+    @test Oscar._horst_pk_from_sig(n, tau, k, x, sig, md, seed, loc) == pk
+    md2 = copy(md)
+    md2[1] ⊻= 0x80
+    @test Oscar._horst_pk_from_sig(n, tau, k, x, sig, md2, seed, loc) != pk
+    sig2 = copy(sig)
+    sig2[1] ⊻= 0x01
+    @test Oscar._horst_pk_from_sig(n, tau, k, x, sig2, md, seed, loc) != pk
+    sig3 = copy(sig)
+    sig3[end] ⊻= 0x01
+    @test Oscar._horst_pk_from_sig(n, tau, k, x, sig3, md, seed, loc) != pk
+  end
+end
