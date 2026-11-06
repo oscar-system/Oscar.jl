@@ -48,8 +48,17 @@ end
   S, (y,) = polynomial_ring(R, [:y])
   Sg, _ = grade(S)
   F = graded_free_module(Sg, 2)
-  FS, phi = change_base_ring(Oscar.RingFlattening(Sg), F)
+  flat_map = Oscar.RingFlattening(Sg)
+  # manual invocation of `change_base_ring` should not clutter 
+  # the cache of `flat_map`
+  FS, phi = change_base_ring(flat_map, F)
+  @test !isdefined(flat_map, :flat_counterparts) # cache not even created
   @test ngens(FS) == 2
   @test is_graded(FS)
   @test phi(F[1]) == FS[1]
+  # If we want modules and elements to be memoized, we use `flat_map` directly.
+  FF, iso, iso_inv = flat_map(F)
+  @test F in keys(Oscar.flat_counterparts(flat_map)) && Oscar.flat_counterparts(flat_map)[F] === (FF, iso, iso_inv)
+  @test FF !== FS
 end
+
