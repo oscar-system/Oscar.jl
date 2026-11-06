@@ -562,7 +562,7 @@ end
 # simpleminded alternative directly in Julia
 # NOTE we need to 1. specialize to the type of the action function for performance, and
 # 2. make sure that the resulting `GSet` is of type `GSet{typeof(G), S}`
-function orbit_via_Julia(G::::Union{Group, FinGenAbGroup}, fun::F, omega, ::Type(S)) where {F,S}
+function orbit_via_Julia(G::Union{Group, FinGenAbGroup}, fun::F, omega, ::Type{S}) where {F,S}
   acts = gens(G)
   orb = IndexedSet(S[omega])
   for p in orb
@@ -581,7 +581,7 @@ end
 
 
 orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S} =
-  orbit_via_Julia(Omega, action_function(Omega), omega, S)
+  orbit_via_Julia(acting_group(Omega), action_function(Omega), omega, S)
 
 
 #############################################################################
