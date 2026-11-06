@@ -7,10 +7,6 @@ include("Tjurina.jl")
 include("Auxiliary.jl")
 include("critical_locus.jl")
 
-include("ToricIdealSheaves/auxiliary.jl")
-include("ToricIdealSheaves/constructors.jl")
-include("ToricIdealSheaves/attributes.jl")
-include("ToricIdealSheaves/methods.jl")
 
 include("ToricDivisors/constructors.jl")
 include("ToricDivisors/attributes.jl")
@@ -44,7 +40,6 @@ export elliptic_parameter
 export germ_at_point
 export has_du_val_singularities
 export hypersurface_germ
-export ideal_sheaf
 export index_of_exceptional_ray
 export is_isolated_singularity
 export intersection_matrix
