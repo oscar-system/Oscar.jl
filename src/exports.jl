@@ -784,6 +784,14 @@ export highest_root
 export hilbert_basis
 export hilbert_function
 export hilbert_polynomial
+export hbs_all
+export hbs_fors_light
+export hbs_fors_standard
+export hbs_fors_toy
+export hbs_horst_light
+export hbs_horst_toy
+export hbs_mss_light
+export hbs_mss_toy
 export hilbert_series
 export hilbert_series_expanded
 export hilbert_series_reduced
@@ -791,6 +799,7 @@ export hirsch_length
 export hirzebruch_surface
 export hodge_number
 export hodge_numbers
+export instantiate_hbs
 export instantiate_lwe
 export lamport_keygen
 export lamport_sign

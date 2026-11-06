@@ -81,3 +81,20 @@ end
     @test Oscar._wots_pk_from_sig(n, w, sig, msg, seed, (1, 2, 4)) != pk
   end
 end
+
+@testset "hbs parameter sets" begin
+  # Test the validation of parameters and the sizes of the predefined sets
+  @test length(hbs_all) == 7
+  @test hbs_mss_toy.scheme == :mss && hbs_fors_toy.scheme == :hypertree
+  @test hbs_mss_toy.sig_sz == 8 + 8 + 36 * 8 + 4 * 8
+  @test hbs_fors_standard.hp == 3 && hbs_fors_standard.len == 35
+  @test hbs_fors_standard.sig_sz == 16 + 33 * 7 * 16 + 20 * 38 * 16
+  @test hbs_horst_toy.sig_sz == 8 + (8 * 5 * 8 + 4 * 8) + 2 * (36 * 8 + 3 * 8)
+  @test_throws ArgumentError instantiate_hbs(0, 16, 4, "bad")
+  @test_throws ArgumentError instantiate_hbs(16, 12, 4, "bad")
+  @test_throws ArgumentError instantiate_hbs(16, 16, 4, "bad"; d = 2)
+  @test_throws ArgumentError instantiate_hbs(16, 16, 5, "bad"; d = 2, fts = :fors, tau = 4, k = 4)
+  @test_throws ArgumentError instantiate_hbs(16, 16, 4, "bad"; fts = :horst, tau = 4, k = 4, x = 5)
+  @test_throws ArgumentError instantiate_hbs(16, 16, 4, "bad"; fts = :foo, tau = 4, k = 4)
+  @test sprint(show, hbs_mss_toy) == "Hash-based signature parameters hbs-mss-toy (mss, n = 8, w = 4, h = 4)"
+end
