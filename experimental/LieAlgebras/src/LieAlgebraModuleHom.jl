@@ -408,16 +408,17 @@ function hom_direct_sum(
     j in 1:size(hs, 2)
   ) "Domain/codomain mismatch"
 
-  Winjs = canonical_injections(W)
-  Vprojs = canonical_projections(V)
-  function map_basis(v)
-    return sum(
-      Winjs[j](sum(hs[i, j](Vprojs[i](v)) for i in 1:length(Vs); init=zero(Ws[j]))) for
-      j in 1:length(Ws);
-      init=zero(W),
-    )
+  mat = zero_matrix(coefficient_ring(W), dim(V), dim(W))
+  row = 0
+  for i in 1:length(Vs)
+    col = 0
+    for j in 1:length(Ws)
+      mat[(row + 1):(row + dim(Vs[i])), (col + 1):(col + dim(Ws[j]))] = matrix(hs[i, j])
+      col += dim(Ws[j])
+    end
+    row += dim(Vs[i])
   end
-  return hom(V, W, map(map_basis, basis(V)); check=false)
+  return hom(V, W, mat; check=false)
 end
 
 function hom_direct_sum(
