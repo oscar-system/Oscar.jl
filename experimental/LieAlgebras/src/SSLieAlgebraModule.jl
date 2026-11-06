@@ -4,6 +4,12 @@
 #
 ###############################################################################
 
+function _root_system_of_ss_char0(L::LieAlgebra)
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
+  @req is_semisimple(L) "Lie algebra not semisimple"
+  return root_system(L)
+end
+
 ###############################################################################
 #
 #   Simple modules (via highest weight) of semisimple Lie algebras
@@ -19,9 +25,7 @@ Construct the simple module of the Lie algebra `L` with highest weight `hw`.
 `L` needs to be a semisimple Lie algebra of characteristic $0$.
 """
 function simple_module(L::LieAlgebra, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  hw = WeightLatticeElem(root_system(L), hw_)
+  hw = WeightLatticeElem(_root_system_of_ss_char0(L), hw_)
   @req is_dominant(hw) "Not a dominant weight"
   struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
   dimV = size(struct_consts, 2)
@@ -69,9 +73,7 @@ end
 function dim_of_simple_module(
   T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dim_of_simple_module(T, root_system(L), hw)
+  return dim_of_simple_module(T, _root_system_of_ss_char0(L), hw)
 end
 
 function dim_of_simple_module(
@@ -134,9 +136,7 @@ julia> dominant_weights(R, 3 * fundamental_weight(R, 1) + fundamental_weight(R, 
 function dominant_weights(
   L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dominant_weights(root_system(L), hw)
+  return dominant_weights(_root_system_of_ss_char0(L), hw)
 end
 
 function dominant_weights(
@@ -214,9 +214,7 @@ end
 function dominant_character(
   T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dominant_character(T, root_system(L), hw)
+  return dominant_character(T, _root_system_of_ss_char0(L), hw)
 end
 
 function dominant_character(
@@ -348,9 +346,7 @@ end
 function character(
   T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return character(T, root_system(L), hw)
+  return character(T, _root_system_of_ss_char0(L), hw)
 end
 
 function character(
@@ -430,9 +426,7 @@ function tensor_product_decomposition(
   hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   hw2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return tensor_product_decomposition(root_system(L), hw1, hw2)
+  return tensor_product_decomposition(_root_system_of_ss_char0(L), hw1, hw2)
 end
 
 function tensor_product_decomposition(
@@ -627,9 +621,7 @@ function demazure_character(
   w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return demazure_character(T, root_system(L), w, x)
+  return demazure_character(T, _root_system_of_ss_char0(L), w, x)
 end
 
 function demazure_character(
@@ -689,9 +681,7 @@ function kostant_kumar_character(
   w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return kostant_kumar_character(T, root_system(L), w1, w2, x)
+  return kostant_kumar_character(T, _root_system_of_ss_char0(L), w1, w2, x)
 end
 
 function kostant_kumar_character(
