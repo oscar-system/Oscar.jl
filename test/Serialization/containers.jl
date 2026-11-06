@@ -189,8 +189,12 @@
           @test original == loaded
         end
       end
+
+      original = Dict{Symbol, Int}()
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
     end
-    
     @testset "(de)serialization Dict{Tuple, T}" begin
       # Dict with non-string keys is stored as an array of pairs
       original = Dict((1, 2) => 3)
