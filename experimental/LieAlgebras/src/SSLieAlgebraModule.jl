@@ -259,7 +259,7 @@ function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   dot_how_plus_rho = dot(hw_plus_rho, hw_plus_rho)
 
   pos_roots = positive_roots(R)
-  pos_roots_w = WeightLatticeElem.(positive_roots(R))
+  pos_roots_w = WeightLatticeElem.(pos_roots)
   pos_roots_w_coeffs = coefficients.(pos_roots_w)
 
   char = Dict(hw => T(1))
