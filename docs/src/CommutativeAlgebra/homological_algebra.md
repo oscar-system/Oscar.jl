@@ -53,8 +53,8 @@ free_resolution(M::SubquoModule{T};
 
 ```@docs
 free_resolution(M::SubquoModule{T};
-    length::Union{Int, PosInf} = 0,
-    algorithm = :kernels) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
+    length::Union{Int, PosInf} = PosInf(),
+    algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 ```
 
 ```@docs
@@ -65,7 +65,7 @@ free_resolution(I::Ideal{T};
 
 ```@docs
 free_resolution(I::Ideal{T};
-    length::Int = 0,
+    length::Union{Int, PosInf} = PosInf(),
     algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 ```
 
@@ -77,7 +77,7 @@ free_resolution(Q::MPolyQuoRing{T};
 
 ```@docs
 free_resolution(Q::MPolyQuoLocRing{T};
-    length::Int = 0, algorithm = :generic) where T
+    length::Union{Int, PosInf} = PosInf(), algorithm = :generic) where T
 ```
 
 ### Tests on Free Resolutions
