@@ -145,7 +145,7 @@ include("MonoidAlgebra.jl")
 
 struct IndecInj #indecomposable injective
   face::FaceQ
-  vector::Vector{Int}
+  vector::FinGenAbGroupElem
 end
 mutable struct InjMod #ZZ^d-graded injective module over monoid algebra
   monoid_algebra::MonoidAlgebra
@@ -251,7 +251,7 @@ struct InjRes #ZZ^d-graded injective resolution
   cochain_maps::Vector{MonomialMatrix{InjMod}}  # d^0, d^1, ..., d^{upto-1}
   upto::Int
   Q_graded_part::IrrRes
-  shift::Vector{Int}
+  shift::FinGenAbGroupElem
 end
 
 @doc raw"""
@@ -464,7 +464,7 @@ function Base.show(io::IO, Ji::IndecInj)
 end
 
 @doc raw"""
-    generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
+    generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::FinGenAbGroupElem)
 
 Return, for a hyperplane `H` bounding the cone $\mathbb{R}_{\geq 0}Q$ of the
 monoid algebra `kQ` and a vector $a \in \mathbb{Z}^d$, a finite set $B$ such that
@@ -476,22 +476,23 @@ This is Algorithm 3.11. in [HM05](@cite).
 !!! note
     The monoid algebra $k[Q]$ must be normal.
 """
-function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
-  @assert torsion_free_rank(grading_group(kQ)) == length(a)
+function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::FinGenAbGroupElem)
+  @req ngens(parent(a)) == ngens(grading_group(kQ)) "degree has the wrong dimension"
   @assert H in hyperplanes(kQ)
+  a_vec = Int[a[i] for i in 1:ngens(parent(a))]
 
   F = intersect(H.hyperplane, cone(kQ))
 
   #get faces of Q intersecting F only origin in Q
   D = Vector{Polyhedron}()
   for f in faces(kQ)
-    if dim(intersect(f.poly, F)) == 0
-      push!(D, f.poly)
+    if dim(intersect(cone(f.semigroup), F)) == 0
+      push!(D, cone(f.semigroup))
     end
   end
 
   B = Vector{Vector{Int}}()
-  rhs = H.A*a + H.b
+  rhs = H.A*a_vec + H.b
   PaF = polyhedron(H.A, rhs) #a + RR H
   Z = zonotope(kQ)[1]
   for d in D
@@ -523,11 +524,11 @@ function degrees_of_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   free_res = free_resolution(k; length=i+2)
   lifted   = hom(free_res.C[first(Hecke.map_range(free_res.C)):-1:1], M)
 
-  degrees = Vector{Vector{Int}}()
+  degrees = FinGenAbGroupElem[]
   for j in 0:i
     E = simplify_light(homology(lifted, j))[1]
     for g in filter(!is_zero, gens(E))
-      push!(degrees, degree(Vector{Int}, g))
+      push!(degrees, degree(g))
     end
   end
   return unique(degrees) # filter duplicates
@@ -543,26 +544,14 @@ Unlike `degrees_of_bass_numbers` this needs no $\mathrm{Ext}$ computation.
 """
 function degrees_of_bass_numbers_bound(M::SubquoModule{<:MonoidAlgebraElem}, i::Int)
   kQ = base_ring(M)
-
-  # generator degrees of M
-  deg_M = [degree(Vector{Int}, g) for g in filter(!is_zero, gens(M))]
-
-  # Every summand k{a + F - Q} of J^j has a in deg(g) - a_jl + Q + ZF, where
-  # G_j = sum_l k[Q](-a_jl) resolves k[Q]/P_F (shift bound of the paper).
-  D = Set{Vector{Int}}()
+  deg_M = [degree(g) for g in filter(!is_zero, gens(M))]
+  D = Set{FinGenAbGroupElem}()
   for p in faces(kQ)
-    # F = Q: k{a + Q - Q} = k{ZZ^d} has non-zero Q-graded part for every a
     is_zero(p.prime) && continue
     RpF = quotient_ring_as_module(monoid_algebra_ideal(kQ, p.prime))
-    # length 0 would mean a complete resolution, hence max(i, 1)
-    free_res = free_resolution(RpF; length=max(i, 1))
-    for j in 0:i
-      for d in degrees_of_generators(free_res[j])
-        de = Int[d[l] for l in 1:ngens(parent(d))]
-        for dg in deg_M
-          push!(D, dg .- de)
-        end
-      end
+    free_res = free_resolution(RpF; length = max(i, 1))
+    for j in 0:i, d in degrees_of_generators(free_res[j]), dg in deg_M
+      push!(D, dg - d)
     end
   end
   return collect(D)
@@ -570,7 +559,7 @@ end
 
 # Given a finite set of ℤ^d-degrees, return a shift a = j*c (j ≥ 0, c the sum of
 # primitive ray generators of Q) such that every degree + a lies in Q.
-function _shift_into_Q(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
+function _shift_into_Q(kQ::MonoidAlgebra, degrees::Vector{FinGenAbGroupElem})
   Q = affine_semigroup(kQ)
   if is_normal(kQ)
     c = zonotope(kQ)[2]
@@ -581,15 +570,14 @@ function _shift_into_Q(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
     b_v = Vector(b_f)
     in_Q = b -> all(A_m*b .<= b_v)
   else
-    c = sum(gens(Q)) #TODO: is the best way?
-    in_Q = b -> is_in_semigroup(kQ, b)
+    c = sum(gens(Q))
   end
 
   j = 0
   for b in degrees
     j_b = 0
     v = b
-    while !in_Q(v)
+    while !(v in Q)
       v = v + c
       j_b += 1
     end
@@ -621,11 +609,13 @@ end
 
 # MILP that minimises sum(a) subject to a + B[j] in Q for all j, where a in Q.
 # Variables: [a (d); lambda_0 (n); lambda_1 (n); ...; lambda_k (n)], all integer.
-function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
-  isempty(degrees) && return zeros(Int, ambient_dimension(affine_semigroup(kQ)))
-  A  = Matrix{Int64}(semigroup_generators(kQ))
+function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{FinGenAbGroupElem})
+  G = grading_group(kQ)
+  isempty(degrees) && return zero(G)
+
+  A  = Matrix{Int}(transpose(_generator_matrix(affine_semigroup(kQ))))  # generators as columns
   d, n = size(A)
-  B  = [Vector{Int64}(b) for b in degrees]
+  B  = [_int_vector(b) for b in degrees]
   k  = length(B)
 
   DA  = block_diagonal_matrix(ZZ, [A for _ in 1:(k+1)])
@@ -633,10 +623,10 @@ function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
   N   = hcat(vcat([-I_d for _ in 1:(k+1)]...), DA)
   M   = vcat(N, -N, -identity_matrix(ZZ, (k+1)*n + d))
   b   = vcat(B...)
-  M_b = vcat(zeros(Int64, d), b, zeros(Int64, d), -b, zeros(Int64, (k+1)*n + d))
+  M_b = vcat(zeros(Int, d), b, zeros(Int, d), -b, zeros(Int, (k+1)*n + d))
 
   P    = polyhedron(M, M_b)
-  c    = vcat(ones(Int64, d), zeros(Int64, (k+1)*n))
+  c    = vcat(ones(Int, d), zeros(Int, (k+1)*n))
   # The multipliers are integers, so that a + b_j = A lambda_j lies in the
   # semigroup generated by the columns of A (rounding a real solution up
   # coordinatewise would not stay in the cone in general).
@@ -644,7 +634,7 @@ function _shift_milp(kQ::MonoidAlgebra, degrees::Vector{Vector{Int}})
   milp = mixed_integer_linear_program(P, c; integer_variables=int_vars, convention = :min)
   _, opt = solve_milp(milp)
   opt === nothing && error("MILP shift infeasible: no shift puts all Bass-number degrees into Q")
-  return [Int(opt[i]) for i in 1:d]
+  return G([ZZ(opt[i]) for i in 1:d])
 end
 
 @doc raw"""
@@ -857,14 +847,16 @@ end
 function coefficients_wrt_generators(m::SubquoModuleElem{T}, N::SubquoModule{T}) where {T <: MonoidAlgebraElem}
   kQ = base_ring(N)
   k = coefficient_ring(kQ)
+  Q = affine_semigroup(kQ)
   m_amb = ambient_representative(m) ## why is this needed??
   coord_sparse = coordinates(N(m_amb))
   _coord = [evaluate(coord_sparse[i], [1 for _ in 1:ngens(kQ)]) for i in 1:ngens(N)]
-  d = degree(Vector{Int}, m)
+  d = degree(m)
   for i in 1:length(_coord)
     if !is_zero(_coord[i])
-      d_diff = d - degree(Vector{Int}, N[i])
-      if !is_in_semigroup(kQ, d_diff) || is_zero(monomial_basis(kQ, d_diff)[1]*N[i])
+      d_diff = d - degree(N[i])
+      # if !is_in_semigroup(kQ, d_diff) || is_zero(monomial_basis(kQ, d_diff)[1]*N[i])
+      if !(d_diff in Q) || is_zero(monomial_basis(kQ, d_diff)[1]*N[i])
         _coord[i] = k()
       end
     end
@@ -875,9 +867,12 @@ end
 #get all relevant generators of N, i.e., check (deg(b) + F) \cap (deg(g) + Q) ≠ ∅
 function relevant_generators(N::SubquoModule{T}, p::FaceQ, b::SubquoModuleElem{T}) where {T <: MonoidAlgebraElem}
   kQ = base_ring(N)
+  Q = affine_semigroup(kQ)
+  G_F = _generator_matrix(p.semigroup)        # rows generate ℤF
+
   rel_gens = Vector{SubquoModuleElem}()
   for g in filter(!is_zero,gens(N))
-    if in_intersection(kQ,degree(Vector{Int},g),degree(Vector{Int},b),p)
+    if intersects(degree(Vector{Int},g),Q, degree(Vector{Int},b),G_F)
       push!(rel_gens,g)
     end
   end
@@ -888,10 +883,13 @@ end
 # check deg(r) + Q = b has a solution
 function relevant_relations(N::SubquoModule{T},p::FaceQ, b::SubquoModuleElem{T}, c_b) where {T <: MonoidAlgebraElem}
   kQ = base_ring(N)
+  Q = affine_semigroup(kQ)
+  G_F = _generator_matrix(p.semigroup)          # rows generate ℤF
+
   R = relations(N)
   rel_rels = Vector{FreeModElem{elem_type(kQ)}}()
   for r in R
-    if in_intersection(kQ,degree(Vector{Int},r),degree(Vector{Int},b),p)
+    if intersects(degree(Vector{Int},r),Q,degree(Vector{Int},b),G_F)
       push!(rel_rels,r)
     end
   end
@@ -937,7 +935,7 @@ function _dual_basis_lambdas(k, n::Int, p::FaceQ, degs, c_bs, C_rows)
   # group socle elements by ZF-class of their degree
   groups = Vector{Tuple{Vector{Int}, Vector{Int}}}() # (representative degree, indices)
   for (idx, d_b) in enumerate(degs)
-    gidx = findfirst(t -> is_in_aZF(t[1], p, d_b), groups)
+    gidx = findfirst(t -> in_lattice(d_b - t[1],_generator_matrix(p.semigroup)), groups)
     if gidx === nothing
       push!(groups, (d_b, Int[idx]))
     else
@@ -978,7 +976,7 @@ function _coefficients_normal(N::SubquoModule{T}, p::FaceQ, Bp) where {T <: Mono
   C_rows = Vector{Vector{Vector{elem_type(k)}}}()
   for b in Bp
     b_p = convex_hull(degree(Vector{Int}, b))
-    b_ZF = b_p + p.poly + (-1)*p.poly # b + ZF
+    b_ZF = b_p + cone(p.semigroup) + (-1)*cone(p.semigroup) # b + ZF
     #get coefficient vector w.r.t. generators of N
     b_amb = ambient_representative(b)
     _c_b = coordinates(N(b_amb))
@@ -991,7 +989,7 @@ function _coefficients_normal(N::SubquoModule{T}, p::FaceQ, Bp) where {T <: Mono
     for (g_idx, g_N) in enumerate(gens(N))
       is_zero(g_N) && continue
       g_p = convex_hull(degree(Vector{Int}, g_N))
-      if dim(intersect(b_p + p.poly + (-1)*p.poly, g_p + cone(kQ))) >= 0
+      if dim(intersect(b_p + cone(p.semigroup) + (-1)*cone(p.semigroup), g_p + cone(kQ))) >= 0
         push!(G_b, g_N)
         push!(G_b_indices, g_idx)
       end
@@ -1036,12 +1034,13 @@ end
 function _coefficients_non_normal(N::SubquoModule{T}, p::FaceQ, Bp) where {T <: MonoidAlgebraElem}
   kQ = base_ring(N)
   k = coefficient_ring(kQ)
+  Q = affine_semigroup(kQ)
 
   degs = Vector{Vector{Int}}()
   c_bs = Vector{Vector{elem_type(k)}}()
   C_rows = Vector{Vector{Vector{elem_type(k)}}}()
   # use saturation for monomial_basis since degrees may not be in Q
-  kQsat = saturation(kQ)
+  kQsat,_ = saturation(kQ)
   for b in Bp
     #get coefficient vector w.r.t. generators of N
     c_b = coefficients_wrt_generators(b, N)
@@ -1056,16 +1055,17 @@ function _coefficients_non_normal(N::SubquoModule{T}, p::FaceQ, Bp) where {T <: 
     rel_rels = relevant_relations(N, p, b, c_b)
 
     C_bF = Vector{Vector{elem_type(k)}}()
-    x_rel_gens = [monomial_basis(kQsat, degree(g))[1] for g in rel_gens]
+    x_rel_gens = [monomial_basis(kQsat, grading_group(kQsat)(_int_vector(degree(g))))[1] for g in rel_gens]
     for r in rel_rels
-      x_r = monomial_basis(kQsat, degree(r))[1]
+      x_r = monomial_basis(kQsat, grading_group(kQsat)(_int_vector(degree(r))))[1]
       a = lcm(x_rel_gens..., x_r)
 
       # compute scaling factor (a//x_r) and pull back to kQ
       scaling = divexact(a, x_r)
       # scale r: need to work in kQ, so express scaling as element of kQ if possible
       d_scaling = degree(Vector{Int}, scaling)
-      if !is_in_semigroup(kQ, d_scaling) && !is_zero(d_scaling)
+      # if !is_in_semigroup(kQ, d_scaling) && !is_zero(d_scaling)
+      if !(d_scaling in Q) && !is_zero(d_scaling)
         continue
       end
       if is_zero(d_scaling)
@@ -1126,7 +1126,7 @@ function irreducible_hull(Mi::SubquoModule{<:MonoidAlgebraElem}, j=0)
     Bp, lambda_p = coefficients(N, p)
 
     for b in Bp
-      push!(summands, IndecInj(p, degree(Vector{Int}, b)))
+      push!(summands, IndecInj(p, degree(b)))
     end
 
     if length(Bp) > 0 # we don't want to add zero vectors to lambda...
@@ -1195,7 +1195,7 @@ part of the indecomposable injective $J = k\{a + F - Q\}$ over the monoid algebr
 function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj; minimal::Bool=true)
   B = Set{Vector{Int}}()
   for h in hyperplanes(kQ)
-    if is_subset(J.face.poly, h.hyperplane)
+    if is_subset(cone(J.face.semigroup), h.hyperplane)
       union!(B, generators_W_H(kQ, h, J.vector))
     end
   end
@@ -1223,13 +1223,14 @@ end
 function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
   @assert base_ring(J.face.prime) == kQ.algebra
   @assert is_pointed(kQ) "k[Q] must be pointed"
+  Q = affine_semigroup(kQ)
 
   #get polyhedron a + ZF
-  F = J.face.poly
+  F = cone(J.face.semigroup)
   a = J.vector
 
   #get saturation of semigroup
-  kQsat = saturation(kQ)
+  kQsat,_ = saturation(kQ)
 
   #compute irreducible ideal in kQsat, with the redundant generators of
   #Algorithm 3.9, which seed the iteration below better than the minimal ones
@@ -1240,14 +1241,16 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
 
   W = intersect(I_kQ,V) #this is an ideal in kQsat
 
-  B = [degree(Vector{Int},w) for w in filter(!is_zero,gens(W))]
+  # W lives over kQsat, so move its degrees into the grading group of kQ
+  G = grading_group(kQ)
+  B = FinGenAbGroupElem[G(_int_vector(degree(w))) for w in filter(!is_zero, gens(W))]
 
   #intersection of p_D for all facets D of F
   I_D = Vector{MPolyQuoIdeal}()
   for d in facets(F)
     for p in faces(kQ)
       _facet = polyhedron([d],affine_hull(F))
-      if _facet != F && p.poly == _facet
+      if _facet != F && cone(p.semigroup) == _facet
         push!(I_D, p.prime)
       end
     end
@@ -1262,12 +1265,7 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
   end
 
   #get W as an ideal in kQ
-  _B = []
-  for b in B # check if generators of W lie in kQ!!!
-    if is_in_semigroup(kQ,b)
-      push!(_B,b)
-    end
-  end
+  _B = FinGenAbGroupElem[b for b in B if b in Q] # generators of W that lie in kQ
   W = ideal(kQ.algebra, [monomial_basis(kQ, b)[1] for b in _B])
   W_bar = quotient_ring_as_module(W)
 
@@ -1280,11 +1278,9 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
     i = 0
     for g in filter(!is_zero,gens(W_F))
       #check if deg(g) in a + ZF
-      d_vec = degree(Vector{Int},g)
-      if is_in_aZF(a,J.face,d_vec)
-        continue
-      end
-      push!(_B,d_vec)
+      d = degree(g)
+      in_lattice(d - a, J.face.semigroup) && continue
+      push!(_B, d)
       i = i + 1
     end
     if i == 0
@@ -1367,7 +1363,8 @@ over monoid algebra over rational field with cone of dimension 2
 """
 function irreducible_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Union{Int,Nothing}=nothing; check::Bool=true)
   kQ = base_ring(M)
-  @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
+  Q = affine_semigroup(kQ)
+  @req _generates_ambient_lattice(Q) "the semigroup must generate ZZ^d"
 
   R_Q = kQ.algebra
   Mi = M # current module in resolution
@@ -1494,14 +1491,13 @@ over monoid algebra over rational field with cone of dimension 2
 """
 function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shift::Symbol=:bound, check::Bool=true)
   kQ = base_ring(M)
-  @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
-
-  G = grading_group(kQ)
+  Q = affine_semigroup(kQ)
+  @req _generates_ambient_lattice(Q) "the semigroup must generate ZZ^d"
 
   # The bound strategies control the summands of J^0, ..., J^i at every face.
   # The exact strategies go through the maximal ideal and need the Bass
   # numbers up to degree i + dim Q by [HM05, Lemma 4.5].
-  depth_m = i + ambient_dimension(affine_semigroup(kQ))
+  depth_m = i + ambient_dim(affine_semigroup(kQ))
 
   #compute irreducible resolution of shifted module
   if shift === :bound
@@ -1516,7 +1512,7 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
     throw(ArgumentError("unknown shift strategy :$shift; expected :bound, :helm_miller, :milp, or :milp_bound"))
   end
 
-  M_a = twist(M, -G(a_shift))
+  M_a = twist(M, -a_shift)
   irr_res = irreducible_resolution(M_a, i; check)
 
   #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
@@ -1550,12 +1546,13 @@ function _generic_rank(M::SubquoModule)
   return Int(ngens(F0) - rank(A))
 end
 
-# Canonical representative of b modulo the lattice ZF spanned by the columns
+# Canonical representative of b modulo the lattice ZF spanned by the rows
 # of A, via HNF reduction.
-function _reduce_mod_ZF(b::Vector{Int}, A::Union{Matrix{Int},Nothing})
-  (A === nothing || size(A, 2) == 0) && return copy(b)
-  H = hnf(transpose(matrix(ZZ, A)))           # rows = ZF basis in HNF
-  bb = ZZRingElem[ZZ(b[k]) for k in 1:length(b)]
+# function _reduce_mod_ZF(b::Vector{Int}, A::Union{Matrix{Int},Nothing})
+function _reduce_mod_ZF(b::FinGenAbGroupElem, A::MatElem{ZZRingElem})
+  is_zero(A) && return b
+  H = hnf(A)           # rows = ZF basis in HNF
+  bb = ZZRingElem[b[k] for k in 1:ngens(parent(b))]
   for i in 1:nrows(H)
     j = 0
     for k in 1:ncols(H)
@@ -1567,7 +1564,7 @@ function _reduce_mod_ZF(b::Vector{Int}, A::Union{Matrix{Int},Nothing})
       bb[k] -= q * H[i, k]
     end
   end
-  return [Int(x) for x in bb]
+  return parent(b)(bb)
 end
 
 @doc raw"""
@@ -1585,8 +1582,8 @@ function graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::
   if is_zero(p.prime)
     d = rank(grading_group(kQ))
     r = _generic_rank(M)
-    out = [Dict{Vector{Int},Int}() for _ in 0:i]
-    r > 0 && (out[1][zeros(Int, d)] = r)
+    out = [Dict{FinGenAbGroupElem,Int}() for _ in 0:i]
+    r > 0 && (out[1][zero(grading_group(kQ))] = r)
     return out
   end
 
@@ -1595,15 +1592,15 @@ function graded_bass_numbers(M::SubquoModule{<:MonoidAlgebraElem}, p::FaceQ, i::
   fr     = free_resolution(RpF; length=i+2)
   lifted = hom(fr.C[first(Hecke.map_range(fr.C)):-1:1], M)
 
-  out = Vector{Dict{Vector{Int},Int}}()
+  out = Vector{Dict{FinGenAbGroupElem,Int}}()
   for j in 0:i
     # for the whole-cone face p_F = (0), k[Q]/p_F is free and the homology can
     # come back as a FreeMod; ZF_basis expects a SubquoModule, so coerce.
     Hj    = homology(lifted, j)
     Ej    = simplify_light(Hj isa SubquoModule ? Hj : sub(Hj, gens(Hj))[1])[1]
-    tally = Dict{Vector{Int},Int}()
+    tally = Dict{FinGenAbGroupElem,Int}()
     for b in ZF_basis(Ej, p)                 # k[ZF]-basis of (0 :_{Ej} p)[ZF]
-      a = _reduce_mod_ZF(degree(Vector{Int}, b), p.A)
+      a = _reduce_mod_ZF(degree(b), _generator_matrix(p.semigroup))
       tally[a] = get(tally, a, 0) + 1
     end
     push!(out, tally)
@@ -1627,10 +1624,10 @@ function is_minimal(res::InjRes; verbose::Bool=false)
   for p in faces(kQ)
     bass = graded_bass_numbers(M, p, res.upto)
     for j in 0:res.upto
-      claimed = Dict{Vector{Int},Int}()
+      claimed = Dict{FinGenAbGroupElem,Int}()
       for ind in res.inj_mods[j+1].indec_injectives
-        ind.face.poly == p.poly || continue
-        a = _reduce_mod_ZF(ind.vector, p.A)
+        cone(ind.face.semigroup) == cone(p.semigroup) || continue
+        a = _reduce_mod_ZF(ind.vector, _generator_matrix(p.semigroup))
         claimed[a] = get(claimed, a, 0) + 1
       end
       if claimed != bass[j+1]
@@ -1657,14 +1654,13 @@ $i$-th generator of `M` maps into the $j$-th summand of $E(M)$, as
 """
 function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
-  @req _generates_lattice(kQ) "the semigroup must generate ZZ^d"
-
-  G = grading_group(kQ)
+  Q = affine_semigroup(kQ)
+  @req _generates_ambient_lattice(Q) "the semigroup must generate ZZ^d"
 
   #compute irreducible hull of shifted module; the bound controls the
   #summands of J^0 at every face, see degrees_of_bass_numbers_bound
   a_shift = compute_shift_bound(M, 0)
-  M_a = twist(M, -G(a_shift))
+  M_a = twist(M, -a_shift)
   J, _lambda = irreducible_hull(M_a, 0)
   lambda = _scalar_matrix(kQ, _lambda)
 

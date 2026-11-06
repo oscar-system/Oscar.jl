@@ -289,8 +289,8 @@ function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
   for J_i in J
     tau_i = []
     for h in H
-      if issubset(J_i.face.poly, h[1])
-        a_ih = dot(h[2], J_i.vector)
+      if issubset(cone(J_i.face.semigroup), h[1])
+        a_ih = dot(h[2], _int_vector(J_i.vector))
         push!(tau_i, a_ih)
       else
         push!(tau_i, -Inf)

@@ -52,12 +52,13 @@
     # the socle lives in degrees [1,3] and [3,1]
     W, lambda = Oscar.InjectiveResolutions.irreducible_hull(M)
     @test length(indecomposable_injectives(W)) == 2
-    @test sort(degrees_of_bass_numbers(M, 0)) == [[1, 3], [3, 1]]
+    G = grading_group(kQ)
+    @test Set(degrees_of_bass_numbers(M, 0)) == Set(G.([[1, 3], [3, 1]]))
     p = faces(kQ)[1]
     @test is_zero(p.prime) == false
     bass = Oscar.InjectiveResolutions.graded_bass_numbers(M, p, 1)
-    @test bass[1] == Dict([1, 3] => 1, [3, 1] => 1)
-    @test bass[2] == Dict([-1, 3] => 1, [1, 1] => 1, [3, -1] => 1)
+    @test bass[1] == Dict(G([1, 3]) => 1, G([3, 1]) => 1)
+    @test bass[2] == Dict(G([-1, 3]) => 1, G([1, 1]) => 1, G([3, -1]) => 1)
 
     # wrapping an ideal of the underlying algebra
     J = monoid_algebra_ideal(kQ, ideal(kQ.algebra, [kQ.algebra[1]^2]))

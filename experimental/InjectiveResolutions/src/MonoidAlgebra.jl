@@ -16,8 +16,6 @@
 struct FaceQ # face of semigroup
   prime::Union{MPolyIdeal,MPolyQuoIdeal} #homogeneous prime corresponding to face
   semigroup::AffineSemigroup
-  # poly::Polyhedron  #face as polyhedron
-  # A::Union{Matrix{Int},Nothing} #semigroup generators of the face as columns of a matrix
 end
 
 struct HyperplaneQ # a hyperplane bounding the cone RR_{\geq 0}Q
@@ -47,7 +45,7 @@ end
     gg_Q = grading_group(A)
     @check is_free(gg_Q) && is_abelian(gg_Q) "given algebra is not a monoid algebra"
     D = [degree(Vector{Int}, g) for g in gens(A)]
-    Q = AffineSemigroup(hcat(D...))
+    Q = affine_semigroup(D; ambient_group = gg_Q)
     kk = coefficient_ring(A)
     return new{elem_type(kk),AlgebraType}(A, Q)
   end
@@ -95,7 +93,7 @@ Return all faces of the cone $\mathbb{R}_{\geq 0}Q$ of the monoid algebra `A` $=
 """
 @attr Vector{FaceQ} function faces(A::MonoidAlgebra)
   S = affine_semigroup(A)
-  return [FaceQ(prime_of_face(A.algebra, f[1]), f[2]) for f in faces(S)]
+  return [FaceQ(prime_of_face(A, f[2]), f[2]) for f in faces(S)]
 end
 
 function hyperplanes(A::MonoidAlgebra)
@@ -179,7 +177,7 @@ function degree(
     a::MonoidAlgebraElem{<:FieldElem, PT};
     check::Bool=true
   ) where {RT <: MPolyRing, PT <: MonoidAlgebra{<:FieldElem, RT}}
-  !isdefined(a, :elem) && return zero(grading_group(parent(a)))
+  !isdefined(a, :elem) && return zeros(Int, ngens(grading_group(parent(a))))
   return degree(Vector{Int},underlying_element(a))
 end
 
@@ -345,13 +343,12 @@ return the corresponding homogeneous prime ideal
 
 $P_F = k\{Q\setminus F\}.$
 """
-function prime_of_face(kQ::Union{MPolyRing,MPolyQuoRing},F::Polyhedron)
-  #get degrees of generators of kQ
-  G = [degree(Vector{Int},g) for g in gens(kQ)]
-
-  #generators of P_F
-  gens_PF = [g for g in G if !is_subset(convex_hull(g),F)]
-  return ideal(kQ,[monomial_basis(kQ,g)[1] for g in gens_PF])
+function prime_of_face(kQ::MonoidAlgebra, F::AffineSemigroup)
+  Q = affine_semigroup(kQ)
+  A = kQ.algebra
+  F_gens = Set(gens(Vector, F))
+  M = _generator_matrix(Q)
+  return ideal(A, [gens(A)[i] for i in 1:nrows(M) if !(M[i, :] in F_gens)])
 end
 
 function get_bounding_hyperplanes(P::Polyhedron)
@@ -439,8 +436,6 @@ Quotient
 """
 
 function monoid_algebra(M::MatElem{T}, k::Field) where {T <: ZZRingElem}
-  Q = affine_semigroup(M)
-  @req is_pointed(Q) "the semigroup must be pointed"
   d = size(M, 2)
 
   t_vars = [Symbol("t_$i") for i in 1:d]
@@ -454,6 +449,9 @@ function monoid_algebra(M::MatElem{T}, k::Field) where {T <: ZZRingElem}
   R, _ = graded_polynomial_ring(
     k, x_vars; weights=[Vector(row) for row in eachrow(M)], cached = false
   )
+  # Q lives in the grading group of k[Q], so degrees and semigroup elements can be combined
+  Q = affine_semigroup(M; ambient_group = grading_group(R))
+  @req is_pointed(Q) "the semigroup must be pointed"
 
   # construct map x_i \to t^(a_i)
   targ = [prod(s[j]^M[i, j] for j in 1:d) for i in 1:size(M, 1)]
@@ -486,7 +484,7 @@ end
   k = coefficient_ring(kQ)
   M_gens = [Int.(h) for h in hilbert_basis(C)]
   kQsat = monoid_algebra(M_gens, k)
-  im_phi = [monomial_basis(kQsat, degree(g))[1] for g in gens(kQ.algebra)]
+  im_phi = [monomial_basis(kQsat, grading_group(kQsat)(_int_vector(degree(g))))[1] for g in gens(kQ.algebra)]
   return (kQsat, hom(kQ, kQsat, im_phi))
 end
 
@@ -732,27 +730,27 @@ end
 #   return rank(M) == rank(grading_group(kQ)) && all(diag_entries .== 1)
 # end
 
-# check if the intersection (g + Q) \cap (a + ZF) is non-empty
-function in_intersection(kQ::MonoidAlgebra,g_vec::Vector{Int},a_vec::Vector{Int},F::FaceQ)
-    # cheap cone-level pre-filter: (g + cone(Q)) ∩ (a + ZF) = ∅ implies (g + Q) ∩ (a + ZF) = ∅
-    g_p = convex_hull(g_vec)
-    a_p = convex_hull(a_vec)
-    if dim(intersect(g_p + cone(kQ), a_p + F.poly + (-1)*F.poly)) < 0
-        return false
-    end
+# # check if the intersection (g + Q) \cap (a + ZF) is non-empty
+# function in_intersection(kQ::MonoidAlgebra,g_vec::Vector{Int},a_vec::Vector{Int},F::FaceQ)
+#     # cheap cone-level pre-filter: (g + cone(Q)) ∩ (a + ZF) = ∅ implies (g + Q) ∩ (a + ZF) = ∅
+#     g_p = convex_hull(g_vec)
+#     a_p = convex_hull(a_vec)
+#     if dim(intersect(g_p + cone(kQ), a_p + F.poly + (-1)*F.poly)) < 0
+#         return false
+#     end
 
-    n = ngens(kQ)
-    _D = [degree(Vector{Int},g) for g in gens(kQ)]
-    D = hcat(_D...)
-    if F.A === nothing
-        _A = vcat(D,-D)
-        A = vcat(_A,-I_n(n))
-    else
-        _A = vcat(hcat(-F.A,D),hcat(F.A,-D))
-        A = vcat(_A,hcat(zeros(Int64,n,size(F.A,2)),-I_n(n)))
-    end
-    b = vcat(a_vec.-g_vec,g_vec .- a_vec, zeros(Int64,n))
-    P = polyhedron(A,b)
-    milp = mixed_integer_linear_program(P,zeros(Int64,size(A,2)))
-    return solve_milp(milp) != (nothing,nothing)
-end
+#     n = ngens(kQ)
+#     _D = [degree(Vector{Int},g) for g in gens(kQ)]
+#     D = hcat(_D...)
+#     if F.A === nothing
+#         _A = vcat(D,-D)
+#         A = vcat(_A,-I_n(n))
+#     else
+#         _A = vcat(hcat(-F.A,D),hcat(F.A,-D))
+#         A = vcat(_A,hcat(zeros(Int64,n,size(F.A,2)),-I_n(n)))
+#     end
+#     b = vcat(a_vec.-g_vec,g_vec .- a_vec, zeros(Int64,n))
+#     P = polyhedron(A,b)
+#     milp = mixed_integer_linear_program(P,zeros(Int64,size(A,2)))
+#     return solve_milp(milp) != (nothing,nothing)
+# end
