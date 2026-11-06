@@ -376,12 +376,8 @@ characteristic(apr::ActionPolyRing) = characteristic(base_ring(apr))
 ###############################################################################
 
 function __wrap_factorization_apr(f::Fac{<:UniversalPolyRingElem}, apr::ActionPolyRing)
-  res = Fac{elem_type(apr)}()
-  res.unit = apr(f.unit)
-  for (fact, expo) in f
-    AbstractAlgebra.mulpow!(res, apr(fact), expo)
-  end
-  return res
+  D = Dict{elem_type(apr), Int}(apr(fact) => expo for (fact, expo) in f)
+  return Fac(apr(unit(f)), D)
 end
 
 factor_squarefree(apr::ActionPolyRingElem) = __wrap_factorization_apr(factor_squarefree(data(apr)), parent(apr))
