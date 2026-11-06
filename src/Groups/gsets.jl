@@ -581,7 +581,7 @@ end
 
 
 orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S} =
-  orbit_via_Julia(acting_group(Omega), action_function(Omega), omega, S)
+  orbit_via_Julia(acting_group(Omega), action_function(Omega), omega, S)::GSetByElements{T,S}
 
 
 #############################################################################
