@@ -10,6 +10,19 @@ end
   ConformanceTests.test_Ring_interface_recursive(Q; reps = 3)
 end
 
+@testset "MPolyQuoRing.divexact by zero" begin
+  # divexact by zero throws DivideError, except in the zero ring
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  Q, = quo(R, ideal(R, [y^2+y+x^2]))
+  for check in (true, false)
+    @test_throws DivideError divexact(one(Q), zero(Q); check)
+    @test_throws DivideError divexact(zero(Q), zero(Q); check)
+  end
+
+  Q0, = quo(R, ideal(R, [one(R)]))
+  @test is_zero(divexact(zero(Q0), zero(Q0)))
+end
+
 @testset "MPolyQuoRing" begin
   R, (x,y) = polynomial_ring(QQ, [:x, :y])
   f = y^2+y+x^2
