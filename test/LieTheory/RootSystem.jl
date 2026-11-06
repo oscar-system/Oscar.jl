@@ -308,6 +308,17 @@
     end
   end
 
+  @testset "Construction from elements" begin
+    # constructing from an element returns it unchanged
+    R = root_system(:B, 3)
+    r = root(R, 2)
+    c = coroot(R, 2)
+    @test RootSpaceElem(R, r) === r
+    @test DualRootSpaceElem(R, c) === c
+    @test_throws ArgumentError RootSpaceElem(root_system(:B, 3), r)
+    @test_throws ArgumentError DualRootSpaceElem(root_system(:B, 3), c)
+  end
+
   @testset "dual" begin
     @testset "$Rname" for (Rname, R) in [
       ("A5", root_system(:A, 5)),
