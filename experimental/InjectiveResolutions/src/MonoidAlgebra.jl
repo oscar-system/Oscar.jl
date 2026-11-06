@@ -15,8 +15,9 @@
 
 struct FaceQ # face of semigroup
   prime::Union{MPolyIdeal,MPolyQuoIdeal} #homogeneous prime corresponding to face
-  poly::Polyhedron  #face as polyhedron
-  A::Union{Matrix{Int},Nothing} #semigroup generators of the face as columns of a matrix
+  semigroup::AffineSemigroup
+  # poly::Polyhedron  #face as polyhedron
+  # A::Union{Matrix{Int},Nothing} #semigroup generators of the face as columns of a matrix
 end
 
 struct HyperplaneQ # a hyperplane bounding the cone RR_{\geq 0}Q
@@ -93,30 +94,8 @@ end
 Return all faces of the cone $\mathbb{R}_{\geq 0}Q$ of the monoid algebra `A` $= k[Q]$, each with its homogeneous prime ideal.
 """
 @attr Vector{FaceQ} function faces(A::MonoidAlgebra)
-  # Compute all faces of the cone
-  P = cone(A)
-  P_faces = reduce(vcat, [collect(faces(P, i)) for i in 0:dim(P)])
-
-  # Get semigroup generators
-  D = semigroup_generators(A)
-
-  # For each face, compute its semigroup generators and prime ideal
-  _faces = Vector{FaceQ}()
-  for F in P_faces
-    # Determine which generators lie on this face
-    A_face = [D[:,i] for i in 1:size(D,2) if is_subset(convex_hull(D[:,i]), F)]
-    if is_empty(A_face)
-      face_gens = nothing
-    else
-      face_gens = hcat(A_face...)
-    end
-
-    # Compute the corresponding homogeneous prime ideal
-    prime = prime_of_face(A.algebra, F)
-    push!(_faces, FaceQ(prime, F, face_gens))
-  end
-
-  return _faces
+  S = affine_semigroup(A)
+  return [FaceQ(prime_of_face(A.algebra, f[1]), f[2]) for f in faces(S)]
 end
 
 function hyperplanes(A::MonoidAlgebra)
@@ -150,40 +129,7 @@ false
 ```
 """
 @attr Bool function is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyQuoRing})
-  # Implementation adapted from
-  #
-  #    M2/Macaulay2/packages/IntegralClosure.m2,
-  #
-  # line 666 ff. of https://github.com/Macaulay2/M2/blob/2565455411d15a3386204aa62a00e20ee5c0e99f/M2/Macaulay2/packages/IntegralClosure.m2
-  # on Apr 25, 2025.
-  R = A.algebra::MPolyQuoRing
-  R_B = base_ring(R)
-  I = modulus(R)
-  M = quotient_ring_as_module(I)
-  n = codim(I)
-
-  # Check the S2 condition
-  test_range = 0:(krull_dim(R_B) - n - 2)
-
-  for j in test_range
-    # Check if codimension of Ext^{j+n+1} is at least j+n+3
-    E = ext(M, graded_free_module(R_B, 1), j + n + 1)
-    # work around issue https://github.com/oscar-system/Oscar.jl/issues/4884
-    if is_zero(E)
-      d = -1
-    else
-      d = krull_dim(E)
-    end
-    cod = krull_dim(R_B) - d
-    if cod < j + n + 3
-      return false
-    end
-  end
-
-  Jac = ideal(R, minors(map_entries(R, jacobian_matrix(gens(modulus(R)))), n))
-  d = krull_dim(Jac)
-  d < 0 && return true
-  return krull_dim(R) - d >= 2
+  return is_saturated(affine_semigroup(A))
 end
 
 is_normal(A::MonoidAlgebra{<:FieldElem, <:MPolyRing}) = true
@@ -491,42 +437,47 @@ Quotient
   by ideal (-x_1*x_3 + x_2^2)
 ```
 """
-function monoid_algebra(M_Q::Matrix{Int}, k::Field)
-  Q = AffineSemigroup(M_Q)
+
+function monoid_algebra(M::MatElem{T}, k::Field) where {T <: ZZRingElem}
+  Q = affine_semigroup(M)
   @req is_pointed(Q) "the semigroup must be pointed"
-  d = size(M_Q, 1)
+  d = size(M, 2)
 
   t_vars = [Symbol("t_$i") for i in 1:d]
-  if all(M_Q .>= 0)
-    T, t = graded_polynomial_ring(k, t_vars; cached = false)
+  if all(M .>= 0)
+    S, s = graded_polynomial_ring(k, t_vars; cached = false)
   else
-    T, t = laurent_polynomial_ring(k, t_vars)
+    S, s = laurent_polynomial_ring(k, t_vars)
   end
   # construct k[x_1,...,x_n] where n is the number of columns/generators
-  x_vars = [Symbol("x_$i") for i in 1:size(M_Q, 2)]
+  x_vars = [Symbol("x_$i") for i in 1:size(M, 1)]
   R, _ = graded_polynomial_ring(
-    k, x_vars; weights=[Vector(row) for row in eachcol(M_Q)], cached = false
+    k, x_vars; weights=[Vector(row) for row in eachrow(M)], cached = false
   )
 
   # construct map x_i \to t^(a_i)
-  targ = [prod(t[j]^M_Q[j, i] for j in 1:d) for i in 1:size(M_Q, 2)]
-  map_T_R = hom(R, T, targ)
+  targ = [prod(s[j]^M[i, j] for j in 1:d) for i in 1:size(M, 1)]
+  map_S_R = hom(R, S, targ)
 
   # return monoid algebra
-  if is_zero(ideal(gens(kernel(map_T_R))))
+  if is_zero(ideal(gens(kernel(map_S_R))))
     kQ = MonoidAlgebra(R, Q)
   else
-    kQ = MonoidAlgebra(quo(R, ideal(gens(kernel(map_T_R))))[1], Q)
+    kQ = MonoidAlgebra(quo(R, ideal(gens(kernel(map_S_R))))[1], Q)
   end
   return kQ
 end
 
+function monoid_algebra(M_Q::Matrix{Int}, k::Field)
+  return monoid_algebra(affine_semigroup(M_Q),k)
+end
+
 function monoid_algebra(V_Q::Vector{Vector{Int}}, k::Field)
-  return monoid_algebra(Matrix{Int}(transpose(matrix(V_Q))), k)
+  return monoid_algebra(affine_semigroup(V_Q), k)
 end
 
 function monoid_algebra(Q::AffineSemigroup, k::Field)
-  return monoid_algebra(Q.generators, k)
+  return monoid_algebra(_generator_matrix(Q), k)
 end
 
 # compute the saturation $k[\overline{Q}]$ of a monoid algebra $k[Q]$ and the inclusion map $k[\overline{Q}] \to k[Q]$
@@ -592,7 +543,7 @@ Check if all generators of `M` have degrees in the semigroup $Q$.
 """
 function is_q_graded(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
-  return all(g -> is_zero(g) || is_in_semigroup(kQ, degree(Vector{Int}, g)), gens(M))
+  return all(g -> is_zero(g) || (degree(g) in affine_semigroup(kQ)), gens(M))
 end
 
 function Base.show(io::IO, F::FaceQ)
@@ -729,57 +680,57 @@ function Base.show(io::IO, I::MonoidAlgebraIdeal)
   print(io, underlying_ideal(I))
 end
 
-# Let p in ZZ^d, a in ZZ^d and F a face of a semigroup Q. This function checks if p is in a + ZF.
-function is_in_aZF(a::Vector{Int}, F::FaceQ, p::Vector{Int})
-  F.A === nothing && return a == p
-  # p - a lies in the lattice spanned by the columns of F.A iff the integer
-  # linear system F.A * x = p - a is solvable
-  return can_solve(matrix(ZZ, F.A), matrix(ZZ, length(p), 1, p .- a); side=:right)
-end
+# # Let p in ZZ^d, a in ZZ^d and F a face of a semigroup Q. This function checks if p is in a + ZF.
+# function is_in_aZF(a::Vector{Int}, F::FaceQ, p::Vector{Int})
+#   F.A === nothing && return a == p
+#   # p - a lies in the lattice spanned by the columns of F.A iff the integer
+#   # linear system F.A * x = p - a is solvable
+#   return can_solve(matrix(ZZ, F.A), matrix(ZZ, length(p), 1, p .- a); side=:right)
+# end
 
-# return integer identity matrix
-function I_n(n)
-    I = zeros(Int64, n, n)
-    for i in 1:n
-        I[i, i] = 1
-    end
-    return I
-end
+# # return integer identity matrix
+# function I_n(n)
+#     I = zeros(Int64, n, n)
+#     for i in 1:n
+#         I[i, i] = 1
+#     end
+#     return I
+# end
 
-@attr Dict{Vector{Int},Bool} function _is_in_semigroup_cache(kQ::MonoidAlgebra)
-    return Dict{Vector{Int},Bool}()
-end
+# @attr Dict{Vector{Int},Bool} function _is_in_semigroup_cache(kQ::MonoidAlgebra)
+#     return Dict{Vector{Int},Bool}()
+# end
 
-#check if a point in ZZ^d is in the semigroup generated by the degrees of the generators of a monoid algebra
-function is_in_semigroup(kQ::MonoidAlgebra, p::Vector{Int})
-    cache = _is_in_semigroup_cache(kQ)
-    return get!(cache, p) do
-        D = [degree(Vector{Int},g) for g in gens(kQ)]
-        _is_in_semigroup(hcat(D...),p)
-    end
-end
+# #check if a point in ZZ^d is in the semigroup generated by the degrees of the generators of a monoid algebra
+# function is_in_semigroup(kQ::MonoidAlgebra, p::Vector{Int})
+#     cache = _is_in_semigroup_cache(kQ)
+#     return get!(cache, p) do
+#         D = [degree(Vector{Int},g) for g in gens(kQ)]
+#         _is_in_semigroup(hcat(D...),p)
+#     end
+# end
 
-#check if a point in ZZ^d is in the semigroup generated by the columns of a matrix A
-function _is_in_semigroup(A,p)
-    @assert size(A,1) == length(p)
-    n = size(A,2)
-    #only positive integer combinations
-    _In = - I_n(n)
-    _A = vcat(_In,A,-A)
-    _b = vcat(zeros(Int64,n),p,-p)
-    P = polyhedron(_A,_b)
-    milp = mixed_integer_linear_program(P,zeros(Int64,n))
-    return solve_milp(milp) != (nothing,nothing)
-end
+# #check if a point in ZZ^d is in the semigroup generated by the columns of a matrix A
+# function _is_in_semigroup(A,p)
+#     @assert size(A,1) == length(p)
+#     n = size(A,2)
+#     #only positive integer combinations
+#     _In = - I_n(n)
+#     _A = vcat(_In,A,-A)
+#     _b = vcat(zeros(Int64,n),p,-p)
+#     P = polyhedron(_A,_b)
+#     milp = mixed_integer_linear_program(P,zeros(Int64,n))
+#     return solve_milp(milp) != (nothing,nothing)
+# end
 
-# this function checks if the semigroup generated Z^d
-function _generates_lattice(kQ::MonoidAlgebra)
-  _M = [degree(Vector{Int},g) for g in gens(kQ)]
-  M = matrix(ZZ,hcat(_M...))
-  S = snf(M)
-  diag_entries = [S[i,i] for i in 1:min(nrows(S), ncols(S))]
-  return rank(M) == rank(grading_group(kQ)) && all(diag_entries .== 1)
-end
+# # this function checks if the semigroup generated Z^d
+# function _generates_lattice(kQ::MonoidAlgebra)
+#   _M = [degree(Vector{Int},g) for g in gens(kQ)]
+#   M = matrix(ZZ,hcat(_M...))
+#   S = snf(M)
+#   diag_entries = [S[i,i] for i in 1:min(nrows(S), ncols(S))]
+#   return rank(M) == rank(grading_group(kQ)) && all(diag_entries .== 1)
+# end
 
 # check if the intersection (g + Q) \cap (a + ZF) is non-empty
 function in_intersection(kQ::MonoidAlgebra,g_vec::Vector{Int},a_vec::Vector{Int},F::FaceQ)

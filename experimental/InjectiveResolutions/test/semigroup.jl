@@ -57,4 +57,51 @@ end
   @test !Oscar.InjectiveResolutions.is_saturated(Q)
   @test !([1,0] in Q)
   @test [5,0] in Q
+  kQ = monoid_algebra(Q,QQ)
+  @test !is_normal(kQ)
+
+  A = ZZ[2;4]
+  S = affine_semigroup(A)
+  @test Oscar.InjectiveResolutions.is_saturated(S)
+  kS = monoid_algebra(S,QQ)
+  @test is_normal(kS)
+end
+
+@testset "generates ambient lattice" begin
+  A = ZZ[2 1; 4 1]
+  S = affine_semigroup(A)
+  @test !Oscar.InjectiveResolutions._generates_ambient_lattice(S)
+
+  A = ZZ[1 3; 1 4]
+  S = affine_semigroup(A)
+  @test Oscar.InjectiveResolutions._generates_ambient_lattice(S)
+end
+
+@testset "lattice membership" begin
+  A = ZZ[2 0; 3 0]
+  V = quadratic_space(QQ, identity_matrix(QQ, ncols(A)))
+  L = lattice(V, QQ.(A); isbasis = false)
+  @test !([1,1] in L)
+  @test [1,0] in L
+
+  A = ZZ[2 0;3 0;0 2;0 3]
+  S = affine_semigroup(A)
+  kS = monoid_algebra(S,QQ)
+  F = faces(kS)
+end 
+
+@testset "faces" begin
+  A = ZZ[2 0;3 0;0 2;0 3]
+  S = affine_semigroup(A)
+  F = faces(S)
+  @test ngens(F[1][2]) == 0
+  F2 = F[2]
+  @test ngens(F2[2]) == 2
+  @test positive_hull(Oscar.InjectiveResolutions._generator_matrix(F2[2])) == F2[1]
+  @test ngens(F[4][2]) == 4
+
+  kS = monoid_algebra(S,QQ)
+  F = faces(kS)
+  @test dim(cone(F[1].semigroup)) == 0
+  @test dim(cone(F[length(F)].semigroup)) == dim(cone(S))
 end

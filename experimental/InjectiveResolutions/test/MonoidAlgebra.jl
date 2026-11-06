@@ -24,7 +24,7 @@ end
   kQ = monoid_algebra([[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], QQ)
   a, b, c, d = gens(kQ)
   @test dim(cone(kQ)) == 3
-  @test length([f for f in faces(kQ) if dim(f.poly) == 2]) == 4 && length(facets(cone(kQ))) == 4
+  @test length([f for f in faces(kQ) if dim(cone(f.semigroup)) == 2]) == 4 && length(facets(cone(kQ))) == 4
   @test is_pointed(kQ)
 end
 
@@ -57,9 +57,8 @@ end
 @testset "saturation, holes and grading" begin
     kQ = monoid_algebra([[2], [3]], QQ)
     @test !is_normal(kQ)
-    kQsat = Oscar.InjectiveResolutions.saturation(kQ)
+    kQsat,phi = Oscar.InjectiveResolutions.saturation(kQ)
     @test is_normal(kQsat)
-    phi = Oscar.InjectiveResolutions.saturation_map(kQ)
     @test domain(phi) == kQ.algebra
     @test codomain(phi) == kQsat.algebra
     J = Oscar.InjectiveResolutions.saturation_ideal(kQ)
@@ -70,11 +69,12 @@ end
     @test is_zero(holes_module(kQsat))
 
     M = quotient_ring_as_module(ideal(kQ, [gens(kQ)[1]^2]))
-    @test Oscar.InjectiveResolutions.is_Q_graded(M)
-    @test !Oscar.InjectiveResolutions.is_Q_graded(twist(M, -grading_group(kQ)([1])))
+    g = M[1]
+    @test degree(g) in affine_semigroup(kQ)
+    @test Oscar.InjectiveResolutions.is_q_graded(M)
+    @test !Oscar.InjectiveResolutions.is_q_graded(twist(M, -grading_group(kQ)([1])))
 
-    @test Oscar.InjectiveResolutions.ambient_dimension(affine_semigroup(kQ)) == 1
-    @test semigroup_generators(kQ) == [2 3]
+    @test Oscar.InjectiveResolutions.ambient_dim(affine_semigroup(kQ)) == 1
 end
 
 @testset "printing" begin

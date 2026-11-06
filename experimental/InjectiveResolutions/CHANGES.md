@@ -1,10 +1,10 @@
 # Changes — experimental/InjectiveResolutions
 
-Summary of the changes to the `InjectiveResolutions` experimental package
-since the version in OSCAR master (last upstream change: PR #5497), to
-accompany the pull request. The package computes injective resolutions and
-local cohomology of finitely generated modules over monoid algebras following
-[HM05].
+Updates the experimental `InjectiveResolutions` module, which computes
+injective resolutions and local cohomology of finitely generated modules over
+monoid algebras following [HM05]. The main changes are support for non-normal
+monoid algebras, a corrected coefficient computation, monomial matrices as the
+differentials of injective resolutions, and performance improvements.
 
 ## New functionality
 
@@ -39,9 +39,17 @@ local cohomology of finitely generated modules over monoid algebras following
   matrix of the embedding, in the form `augmentation_map` uses for resolutions.
 - **Ideals.** `minimal_generating_set`, `number_of_generators`, `radical`,
   `intersect` of several ideals, `monoid_algebra_ideal` wrapper.
-- **Getters** replacing field access: `injective_modules`, `cochain_maps`,
-  `Q_graded_part`, `degree_shift`, `irreducible_sums`, `cochain_complex`,
-  `is_exact`, `indecomposable_injectives`, `monoid_algebra`, `sectors`.
+
+## API changes
+
+- Getters replace direct field access on the resolution types:
+  `injective_modules`, `cochain_maps`, `Q_graded_part`, `degree_shift`,
+  `irreducible_sums`, `cochain_complex`, `is_exact`,
+  `indecomposable_injectives`, `monoid_algebra`, `sectors`.
+- The differentials of an injective resolution are `MonomialMatrix` objects
+  instead of plain matrices; `matrix` returns the underlying scalar matrix.
+
+The module is experimental, so these changes are made directly.
 
 ## Performance
 

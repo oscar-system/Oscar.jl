@@ -69,6 +69,10 @@ function gens(Q::AffineSemigroup)
   return [F(M[i, :]) for i in 1:nrows(M)]
 end
 
+function number_of_generators(Q::AffineSemigroup)
+  return length(gens(Q))
+end
+
 function Oscar.gen(Q::AffineSemigroup, i::Int)
   F = ambient_group(Q)
   return F(_generator_matrix(Q)[i, :])
@@ -103,13 +107,28 @@ function affine_semigroup(M::MatElem{T}; ambient_group::FinGenAbGroup=free_abeli
   return AffineSemigroup(M; ambient_group)
 end
 
-function affine_semigroup(V_Q::Vector{Vector{Int}}; ambient_group::FinGenAbGroup=free_abelian_group(length(first(V_Q))))
-  @assert !is_empty(V_Q) "list of generators must not be empty"
-  m = length(V_Q)
+function affine_semigroup(V_Q::Vector{Vector{Int}}; ambient_group::Union{FinGenAbGroup,Nothing}=nothing)
+  if isempty(V_Q)
+    @req !isnothing(ambient_group) "specify ambient_group for an empty list of generators"
+    return affine_semigroup(zero_matrix(ZZ, 0, ngens(ambient_group)); ambient_group)
+  end
   n = length(first(V_Q))
-  @assert all(length(v) == n for v in V_Q) "all vectors must have the same length"
-  return affine_semigroup(matrix_space(ZZ, m, n)(reduce(vcat, V_Q)); ambient_group)
+  @req all(length(v) == n for v in V_Q) "all vectors must have the same length"
+  F = something(ambient_group, free_abelian_group(n))
+  return affine_semigroup(matrix_space(ZZ, length(V_Q), n)(reduce(vcat, V_Q)); ambient_group = F)
 end
+
+function affine_semigroup(V::Vector{FinGenAbGroupElem}; ambient_group::Union{FinGenAbGroup,Nothing}=nothing)
+  if isnothing(ambient_group)
+    @req !isempty(V) "specify ambient_group for an empty list of generators"
+    ambient_group = parent(first(V))
+  end
+  F = ambient_group
+  @req is_free(F) "ambient group must be free"
+  @req all(v -> parent(v) === F, V) "all generators must lie in the ambient group"
+  M = isempty(V) ? zero_matrix(ZZ, 0, ngens(F)) : reduce(vcat, [v.coeff for v in V])
+  return AffineSemigroup(M; ambient_group = F)
+end 
 
 # elements in semigroups
 mutable struct AffineSemigroupElem{T}
@@ -259,8 +278,8 @@ end
 
 @attr Cone{QQFieldElem} function polyhedral_cone(S::AffineSemigroup)
   M = _generator_matrix(S)
-  G = [M[i, :] for i in 1:nrows(M)]
-  return positive_hull(G)
+  nrows(M) == 0 && return positive_hull(zeros(QQ, 1, ncols(M)))   # zero cone {0}
+  return positive_hull(QQ.(M))
 end
 
 @attr Polyhedron function Oscar.cone(S::AffineSemigroup)
@@ -284,14 +303,60 @@ function in_milp(v::AbstractVector, S::AffineSemigroup)
   return nrows(sol) > 0   # or ncols; the docs say solutions are the (transposed) rows
 end
 
+# Q is saturated iff Q = ℤQ ∩ ℝ₊Q; test this in coordinates of a basis of ℤQ,
+# where ℤQ becomes ℤ^r and saturation means every Hilbert basis element lies in Q
 @attr Bool function is_saturated(S::AffineSemigroup)
-  return all(h -> in_milp(h, S), hilbert_basis(polyhedral_cone(S)))
+  M = _generator_matrix(S)
+  M = M[[i for i in 1:nrows(M) if !is_zero_row(M, i)], :]   # zero gens are irrelevant
+  nrows(M) == 0 && return true                              # Q = {0}
+  r = rank(M)
+  B = hnf(M)[1:r, :]                    # ℤ-basis of ℤQ (r × d)
+  X = solve(B, M; side = :left)         # X * B == M, integer (m × r)
+  Sr = affine_semigroup(X)              # Q ≅ Sr ⊂ ℤ^r with ℤSr = ℤ^r
+  G = Set(X[i, :] for i in 1:nrows(X))
+  return all(h -> Vector{ZZRingElem}(h) in G || in_milp(h, Sr),
+             hilbert_basis(polyhedral_cone(Sr)))
 end
 
 function Base.in(v::AbstractVector{<:IntegerUnion}, S::AffineSemigroup)
   @req length(v) == ambient_dim(S) "the point does not lie in the ambient space"
+  is_zero(v) && return true
   v in polyhedral_cone(S) || return false      # necessary condition
   is_saturated(S) && return true
   return in_milp(v, S)
 end
 
+function Base.in(a::FinGenAbGroupElem, S::AffineSemigroup)
+  is_zero(a) && return true
+  return Base.in([a[i] for i in 1:ngens(parent(a))], S)
+end
+
+function _generates_ambient_lattice(S::AffineSemigroup)
+  M = _generator_matrix(S)
+  SNF = snf(M)
+  diag_entries = [SNF[i,i] for i in 1:min(nrows(SNF), ncols(SNF))]
+  return rank(M) == ambient_dim(S) && all(diag_entries .== 1)
+end
+
+function intersects(g::AbstractVector, Q::AffineSemigroup,
+                    a::AbstractVector, G::ZZMatrix)
+  MQ = _generator_matrix(Q)
+  m, k = nrows(MQ), nrows(G)
+  A = hcat(transpose(MQ), -transpose(G))                  # d × (m+k)
+  b = matrix(ZZ, ncols(MQ), 1, ZZ.(a) .- ZZ.(g))
+  C = hcat(identity_matrix(ZZ, m), zero_matrix(ZZ, m, k)) # x ≥ 0, y free
+  sol = solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, m, 1); permit_unbounded = true)
+  return nrows(sol) > 0
+end
+
+function faces(S::AffineSemigroup{T}) where T
+  d = ambient_dim(S)
+  C = polyhedral_cone(S)
+  G = gens(S)                                   # rows of the generator matrix
+  res = Tuple{Polyhedron{QQFieldElem}, AffineSemigroup{T}}[]
+  push!(res, (convex_hull(zeros(QQ, 1, ambient_dim(C))), affine_semigroup(zero_matrix(ZZ,0,d),ambient_group = ambient_group(S))))
+  for i in 1:dim(C), f in faces(C, i)           # includes {0} for i = 0 if C is pointed
+    push!(res, (polyhedron(f), affine_semigroup([G[i] for i in 1:length(G) if [G[i][k] for k in 1:d] in f], ambient_group = ambient_group(S))))
+  end
+  return res
+end
