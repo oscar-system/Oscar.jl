@@ -560,16 +560,17 @@ end
 
 
 # simpleminded alternative directly in Julia
-function orbit_via_Julia(Omega::GSet{T,S}, fun::F, omega::S) where {T,F,S}
-  G = acting_group(Omega)
+# NOTE we need to 1. specialize to the type of the action function for performance, and
+# 2. make sure that the resulting `GSet` is of type `GSet{typeof(G), S}`
+function orbit_via_Julia(G::::Union{Group, FinGenAbGroup}, fun::F, omega, ::Type(S)) where {F,S}
   acts = gens(G)
-  orb = IndexedSet([omega])
+  orb = IndexedSet(S[omega])
   for p in orb
     for g in acts
-      img = fun(p, g)::S
-      if !(img in orb)
-        push!(orb, img)
-      end
+      img = fun(p, g)
+      img isa S || throw(ArgumentError(
+        "the action function maps a point to an object of type $(typeof(img)), which is not of type $S"))
+      push!(orb, img)
     end
   end
   res = as_gset(G, fun, orb)
@@ -578,26 +579,9 @@ function orbit_via_Julia(Omega::GSet{T,S}, fun::F, omega::S) where {T,F,S}
   return res
 end
 
-# simpleminded alternative directly in Julia
-function orbit_via_Julia(G::T, fun::F, omega::S) where {T,F,S}
-  acts = gens(G)
-  orb = IndexedSet([omega])
-  for p in orb
-    for g in acts
-      img = fun(p, g)::S
-      if !(img in orb)
-        push!(orb, img)
-      end
-    end
-  end
-  res = as_gset(G, fun, orb)
-  # We know that this G-set is transitive.
-  set_attribute!(res, :orbits => [res])
-  return res
-end
 
 orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S} =
-  orbit_via_Julia(Omega, action_function(Omega), omega)
+  orbit_via_Julia(Omega, action_function(Omega), omega, S)
 
 
 #############################################################################
