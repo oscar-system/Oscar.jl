@@ -159,3 +159,27 @@ end
     @test Oscar._xmss_root_from_sig(n, w, hp, sig, m, seed, 2, 6, leaf) != root
   end
 end
+
+@testset "hbs single Merkle tree scheme" begin
+  # Test the stateful scheme: all signatures of a key verify, the counter runs out
+  p = hbs_mss_toy
+  pk, sk = Oscar._mss_keygen(p, Random.MersenneTwister(3))
+  @test length(pk) == p.pk_sz && length(sk) == p.sk_sz
+  sigs = Vector{Vector{UInt8}}()
+  for i in 1:2^p.h
+    msg = UInt8[i, 7]
+    sig = Oscar._mss_sign(p, msg, sk)
+    @test length(sig) == p.sig_sz
+    @test Oscar._mss_verify(p, sig, msg, pk)
+    @test !Oscar._mss_verify(p, sig, UInt8[i, 8], pk)
+    push!(sigs, sig)
+  end
+  @test length(unique(sig[1:8] for sig in sigs)) == 2^p.h
+  @test_throws ArgumentError Oscar._mss_sign(p, UInt8[1], sk)
+  bad = copy(sigs[1])
+  bad[end] ⊻= 0x01
+  @test !Oscar._mss_verify(p, bad, UInt8[1, 7], pk)
+  bad = copy(sigs[1])
+  bad[1:8] = Oscar._hbs_adrs(2^p.h)
+  @test !Oscar._mss_verify(p, bad, UInt8[1, 7], pk)
+end

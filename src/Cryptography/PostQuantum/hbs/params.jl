@@ -87,7 +87,7 @@ function instantiate_hbs(n::Int, w::Int, h::Int, name::String; d::Int = 1, fts::
         @req h <= 24 "the height of a single tree must be at most 24, got $h"
         @req tau == 0 && k == 0 && x == 0 "tau, k and x are only used with a few-time signature"
         sig_sz = 8 + n + len * n + h * n
-        return HBS(:mss, fts, n, w, h, 1, h, len, 0, 0, 0, 2n, 3n + 8, sig_sz, name)
+        return HBS(:mss, fts, n, w, h, 1, h, len, 0, 0, 0, 2n, 4n + 8, sig_sz, name)
     end
     @req d >= 1 && h % d == 0 "d must divide h, got h = $h and d = $d"
     @req 1 <= tau <= 24 && k >= 1 "tau must be between 1 and 24 and k must be positive, got tau = $tau and k = $k"
