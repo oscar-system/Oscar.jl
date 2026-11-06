@@ -295,7 +295,7 @@ include("PolyhedralGeometry/PolyhedralGeometry.jl")
 
 include("Polymake/polymake_to_oscar.jl")
 
-include("Combinatorics/Graphs/functions.jl")  # Needs PermGroupElem
+include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/PhylogeneticTrees.jl")
 include("NumberTheory/ZLattices.jl") # needs graphs
 

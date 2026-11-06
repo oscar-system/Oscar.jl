@@ -1,4 +1,4 @@
-using JSON
+import JSON
 
 # functions for accessing the precomputed data
 
@@ -53,7 +53,7 @@ Return a string that describes the orthogonal discriminant of `chi`:
 - one of `"O+"`, `"O-"` in positive characteristic,
 - something that can be evaluated with [`atlas_irrationality`](@ref)
   in characteristic `0`, and
-- `""` if `chi is not irreducible, not orthogonal, or has odd degree.
+- `""` if `chi` is not irreducible, not orthogonal, or has odd degree.
 
 # Examples
 ```jldoctest
@@ -540,28 +540,28 @@ function all_od_infos(L...)
         good_degree || continue
 
         good_od = true
-        if haskey(conditions, Oscar.orthogonal_discriminant)
+        if haskey(conditions, orthogonal_discriminant)
           od = entry[4]
-          orthogonal_discriminant = conditions[Oscar.orthogonal_discriminant]
-          if orthogonal_discriminant isa Function
-            (!orthogonal_discriminant(od)) && (good_od = false)
-          elseif orthogonal_discriminant isa String
-            (orthogonal_discriminant != od) && (good_od = false)
-          elseif !(od in orthogonal_discriminant)
+          od_condition = conditions[orthogonal_discriminant]
+          if od_condition isa Function
+            (!od_condition(od)) && (good_od = false)
+          elseif od_condition isa String
+            (od_condition != od) && (good_od = false)
+          elseif !(od in od_condition)
             good_od = false
           end
         end
         good_od || continue
 
         good_comment = true
-        if haskey(conditions, Oscar.comment_matches)
+        if haskey(conditions, comment_matches)
           comment = entry[end]
-          comment_matches = conditions[Oscar.comment_matches]
-          if comment_matches isa Function
-            (!comment_matches(comment)) && (good_comment = false)
-          elseif comment_matches isa String
-            (!(comment_matches in comment)) && (good_comment = false)
-          elseif is_empty(intersect(comment, comment_matches))
+          comment_condition = conditions[comment_matches]
+          if comment_condition isa Function
+            (!comment_condition(comment)) && (good_comment = false)
+          elseif comment_condition isa String
+            (!(comment_condition in comment)) && (good_comment = false)
+          elseif is_empty(intersect(comment, comment_condition))
             good_comment = false
           end
         end

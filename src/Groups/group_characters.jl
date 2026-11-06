@@ -901,7 +901,6 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     emptycor = ["" for i in 1:length(ind)]
 
     # Fetch the Orthogonal Discriminants if applicable.
-    # (This is possible only if the OD database is available.)
     OD = get(io, :OD, false)::Bool
     if OD && !(:chars in keys(io))
       ODs = [orthogonal_discriminants(tbl)]

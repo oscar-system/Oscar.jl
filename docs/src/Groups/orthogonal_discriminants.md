@@ -15,6 +15,7 @@ the Oscar book [DEFHJ25](@cite).
 
 ```@docs
 all_od_infos
+comment_matches
 orthogonal_discriminants
 orthogonal_discriminant
 ```
@@ -41,7 +42,7 @@ Oscar.od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int)
 
 ```@docs
 is_orthogonally_stable
-show_with_ODs
+Oscar.show_with_ODs
 show_OD_info
 ```
 
