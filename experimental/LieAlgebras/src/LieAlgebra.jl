@@ -852,7 +852,9 @@ function _root_system_and_chevalley_basis(
   # so we can construct the Lie algebra `K` over `R` with the these structure constants.
   # The basis elements of `K` form a Chevalley basis.
   K = lie_algebra(
-    R, map(e -> change_base_ring(R, e), _structure_constant_table(L_F, L_F_chev_basis_mat))
+    R,
+    map(e -> change_base_ring(R, e), _structure_constant_table(L_F, L_F_chev_basis_mat));
+    check=false,
   )
 
   # Construct an isomorphism f from K to L.

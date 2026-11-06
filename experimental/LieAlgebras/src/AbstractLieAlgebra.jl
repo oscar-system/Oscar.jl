@@ -526,7 +526,7 @@ function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:AbstractLieA
     struct_consts[i, j] = sparse_row(R)
   end
 
-  L = lie_algebra(R, struct_consts, s)
+  L = lie_algebra(R, struct_consts, s; check=false)
   set_attribute!(L, :is_abelian => true)
   return L
 end
