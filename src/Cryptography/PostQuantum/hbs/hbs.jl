@@ -10,3 +10,4 @@
 using Random: AbstractRNG, RandomDevice
 
 include("hash.jl")
+include("merkle.jl")

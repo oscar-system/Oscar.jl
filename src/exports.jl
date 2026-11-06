@@ -1257,6 +1257,10 @@ export maximal_supersolvable_quotient
 export metadata
 export min_revlex_basis_encoding
 export min_weights
+export merkle_auth_path
+export merkle_root
+export merkle_tree
+export merkle_verify
 export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
