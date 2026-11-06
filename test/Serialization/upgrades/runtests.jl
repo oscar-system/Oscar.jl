@@ -96,4 +96,56 @@
     test_upgrade_folder("version_1_8_2")
   end
 
+  @testset "load groups serialized via GapObj" begin
+    # full groups viewed as `SubFPGroup` or `SubPcGroup`, which are created by
+    # `as_sub_fp_group` and `as_sub_pc_group`, and free groups of infinite rank
+    loadold(name) = load(joinpath(Main.serialization_upgrade_test_path, "version_1_9_0_dev", name))
+
+    Oscar.reset_global_serializer_state()
+    x = loadold("SubFPGroupElem-1/0.mrdi")
+    @test x isa SubFPGroupElem
+    G = full_group(parent(x))[1]
+    @test G isa FPGroup
+    @test order(G) == 60
+    @test order(parent(x)) == 60
+    @test order(x) == 5
+
+    Oscar.reset_global_serializer_state()
+    G, H, x = loadold("Tuple-3/0.mrdi")
+    @test G isa FPGroup
+    @test full_group(H)[1] === G
+    @test full_group(parent(x))[1] === G
+    @test order(parent(x)) == 60
+
+    Oscar.reset_global_serializer_state()
+    y = loadold("SubFPGroupElem-1/1.mrdi")
+    @test y isa SubFPGroupElem
+    F = full_group(parent(y))[1]
+    @test F isa FPGroup
+    @test free_group(F) === F
+    @test ngens(parent(y)) == 2
+
+    Oscar.reset_global_serializer_state()
+    F, U, y = loadold("Tuple-3/1.mrdi")
+    @test full_group(U)[1] === F
+    @test full_group(parent(y))[1] === F
+
+    Oscar.reset_global_serializer_state()
+    z = loadold("SubPcGroupElem-2/0.mrdi")
+    @test z isa SubPcGroupElem
+    @test full_group(parent(z))[1] isa PcGroup
+    @test order(parent(z)) == 24
+
+    Oscar.reset_global_serializer_state()
+    P, P1, z = loadold("Tuple-3/2.mrdi")
+    @test P isa PcGroup
+    @test full_group(P1)[1] === P
+    @test full_group(parent(z))[1] === P
+
+    Oscar.reset_global_serializer_state()
+    @test_throws "infinite rank" loadold("FPGroup-4/0.mrdi")
+    @test_throws "infinite rank" loadold("FPGroupElem-5/0.mrdi")
+    Oscar.reset_global_serializer_state()
+  end
+
 end

@@ -44,12 +44,14 @@ push!(upgrade_scripts_set, UpgradeScript(
     # Step 2: Adjust the `_refs` part, and collect `params` replacements
     #         (non-recursively).
 
-    # Collect pointers from GAP groups to corresponding OSCAR groups.
+    # Collect pointers from GAP groups to corresponding OSCAR full groups.
+    # A `SubFPGroup` or `SubPcGroup` may share its GAP group with the full
+    # group, it must not be taken as a full group.
     pointers = Dict{String, String}()
     for key in keys(refs)
       ref = refs[key]
       if ref[:_type] isa AbstractDict && haskey(ref[:_type], :name) &&
-         ref[:_type][:name] in ["FPGroup", "SubFPGroup", "PcGroup", "SubPcGroup"]
+         ref[:_type][:name] in ["FPGroup", "PcGroup"]
         pointers[ref[:_type][:params]] = String(key)
       end
     end
@@ -59,10 +61,15 @@ push!(upgrade_scripts_set, UpgradeScript(
     pairs = collect(refs)
 
     # auxiliary functions
+    check_finite_rank = function(gapdata)
+      @req !haskey(gapdata, :nameprefix) "free groups of infinite rank are not supported"
+    end
+
     insert_oscar_free_group = function(pointer, name)
       # no Oscar free group was stored
       oscaruuid = string(uuid4())
       gapdata = refs[Symbol(pointer)][:data]
+      check_finite_rank(gapdata)
       oscarobj = Dict{Symbol, Any}(
                    :_type => "FPGroup",
                    :data => Dict{Symbol, Any}(
@@ -148,6 +155,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           if haskey(data, :names)
             # full free group:
             # transfer the names and the filter identifier.
+            check_finite_rank(data)
             ref[:data] = Dict{Symbol, Any}(
                            :names => data[:names],
                            :rep => Oscar.Serialization._word_filters[
@@ -200,28 +208,41 @@ push!(upgrade_scripts_set, UpgradeScript(
         elseif name == "SubPcGroup" || name == "SubFPGroup"
           oldparams = ref[:_type][:params]
           gapref = refs[Symbol(oldparams)]
-          if haskey(gapref, :_type) && gapref[:_type] isa AbstractDict &&
-             haskey(gapref[:_type], :name) && gapref[:_type][:name] == "GapObj"
+          data = gapref[:data]
 
-            data = gapref[:data]
-
-            # transfer generators
+          if haskey(data, :gens)
+            # proper subgroup: transfer generators,
+            # the GAP full group is the type parameter of the GAP group
             ref[:data] = Dict{Symbol, Any}(
                            :gens => data[:gens])
-
-            # lift the ref to the full group from GAP to OSCAR
             pointer = gapref[:_type][:params]
-            if !haskey(pointers, pointer)
-              insert_oscar_full_group(pointer, name)
+          else
+            # the full group itself (see `as_sub_fp_group`,
+            # `as_sub_pc_group`): take its defining generators
+            if haskey(data, :relord)
+              n = length(data[:relord])
+              gens = [[i == j ? "1" : "0" for j in 1:n] for i in 1:n]
+            else
+              freedata = haskey(data, :names) ? data :
+                         refs[Symbol(gapref[:_type][:params])][:data]
+              check_finite_rank(freedata)
+              gens = [[string(i), "1"] for i in 1:length(freedata[:names])]
             end
-
-            replace_type[Dict{Symbol, Any}(:name => name,
-                              :params => oldparams)] =
-                         Dict{Symbol, Any}(:name => name,
-                              :params => pointers[pointer])
-
-            ref[:_type][:params] = pointers[pointer]
+            ref[:data] = Dict{Symbol, Any}(:gens => gens)
+            pointer = oldparams
           end
+
+          # lift the ref to the full group from GAP to OSCAR
+          if !haskey(pointers, pointer)
+            insert_oscar_full_group(pointer, name)
+          end
+
+          replace_type[Dict{Symbol, Any}(:name => name,
+                            :params => oldparams)] =
+                       Dict{Symbol, Any}(:name => name,
+                            :params => pointers[pointer])
+
+          ref[:_type][:params] = pointers[pointer]
         end
       end
     end
