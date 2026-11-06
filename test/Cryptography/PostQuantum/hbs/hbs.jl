@@ -142,3 +142,20 @@ end
     @test Oscar._horst_pk_from_sig(n, tau, k, x, sig3, md, seed, loc) != pk
   end
 end
+
+@testset "hbs trees over winternitz keys" begin
+  # Test signing with a leaf of a tree and recovering the root from the signature
+  n, w, hp = 8, 4, 3
+  sk_seed = rand(UInt8, n)
+  seed = rand(UInt8, n)
+  levels = Oscar._xmss_tree(n, w, hp, sk_seed, seed, 2, 5)
+  root = merkle_root(levels)
+  m = rand(UInt8, n)
+  for leaf in (0, 3, 7)
+    sig = Oscar._xmss_sign(n, w, levels, m, sk_seed, seed, 2, 5, leaf)
+    @test length(sig) == (Oscar._wots_len(n, w) + hp) * n
+    @test Oscar._xmss_root_from_sig(n, w, hp, sig, m, seed, 2, 5, leaf) == root
+    @test Oscar._xmss_root_from_sig(n, w, hp, sig, m, seed, 2, 5, (leaf + 1) % 8) != root
+    @test Oscar._xmss_root_from_sig(n, w, hp, sig, m, seed, 2, 6, leaf) != root
+  end
+end
