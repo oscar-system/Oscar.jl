@@ -161,7 +161,8 @@ General textbooks offering details on theory and algorithms include
 - [Ful98](@cite).
 
 Generators and relations for the Chow ring of a flag bundle are described in [Gro58](@cite).
-For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite).
+For the pushforward of cycle classes from a flag bundle to its base variety see [GSS22](@cite)
+and [DP17](@cite), respectively.
 
 ## Contact
 
