@@ -11,9 +11,7 @@ Base.isfinite(G::PermGroup) = true
 function Base.hash(x::PermGroupElem, h::UInt)
   b = 0x9b3a9724eca6a9c5 % UInt
   h = hash(degree(x), h)
-  modulus = Sys.WORD_SIZE == 32 ? 2^28 : 2^60 # GAP limitations on integer size for seed.
-  h = UInt(GAPWrap.HashPermutation(GapObj(x), GapInt(h % modulus)))
-  return xor(h, b)
+  return xor(hash(_gap_perm_hash(GapObj(x)), h), b)
 end
 
 Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
@@ -66,6 +64,24 @@ _gap_perm_images(::Type{T}, x::GapObj) where T = Ptr{T}(GAP.ADDR_OBJ(x) + _GAP_P
     return Int(unsafe_load(Ptr{UInt16}(images), n)) + 1
   end
 end
+
+# Hash of the GAP permutation `x`, compatible with `==` for GAP permutations,
+# which ignores trailing fixed points and whether `x` is a `T_PERM2` or a
+# `T_PERM4`. To this end, a `T_PERM4` whose largest moved point is at most
+# `_GAP_PERM2_MAX_DEGREE` is converted into a `T_PERM2` in place.
+function _gap_perm_hash(x::GapObj)
+  l = @ccall GAP.libgap.LargestMovedPointPerm(x::Any)::UInt
+  if GAP.TNUM_OBJ(x) == GAP.T_PERM4
+    if l > _GAP_PERM2_MAX_DEGREE
+      return GC.@preserve x _gap_hashkey_mem(_gap_perm_images(UInt32, x), sizeof(UInt32) * l)
+    end
+    @ccall GAP.libgap.TrimPerm(x::Any, l::UInt)::Cvoid
+  end
+  return GC.@preserve x _gap_hashkey_mem(_gap_perm_images(UInt16, x), sizeof(UInt16) * l)
+end
+
+# GAP's hash function for the `nbytes` bytes at `ptr`.
+_gap_hashkey_mem(ptr::Ptr, nbytes::UInt) = @ccall GAP.libgap.HASHKEY_MEM_NC(ptr::Ptr{Cvoid}, 0::UInt32, nbytes::Int)::Int
 
 # Return the GAP permutation mapping `i` to `L[i]` for all `i` in `1:length(L)`.
 # Throw an `ArgumentError` if `L` is not a permutation of `1:length(L)`.
