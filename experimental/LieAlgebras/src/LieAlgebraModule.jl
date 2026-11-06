@@ -441,7 +441,7 @@ function Base.:-(
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
-  coefficient_ring(v) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(v) === parent(c) "Incompatible rings."
   return LieAlgebraModuleElem(parent(v), _matrix(v) * c)
 end
 
@@ -450,7 +450,7 @@ function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
-  coefficient_ring(v) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(v) === parent(c) "Incompatible rings."
   return LieAlgebraModuleElem(parent(v), c * _matrix(v))
 end
 
@@ -748,7 +748,7 @@ end
 ######################## Standard module ########################
 
 # cache storage
-@attr LieAlgebraModule{elem_type(coefficient_ring(L))} function _standard_module(
+@attr LieAlgebraModule{elem_type(coefficient_ring(L)),elem_type(L)} function _standard_module(
   L::LinearLieAlgebra
 )
   return standard_module(L; cached=false)

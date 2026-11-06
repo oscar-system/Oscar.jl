@@ -273,7 +273,7 @@ function Base.:-(x1::LieAlgebraElem{C}, x2::LieAlgebraElem{C}) where {C<:FieldEl
 end
 
 function Base.:*(x::LieAlgebraElem{C}, c::C) where {C<:FieldElem}
-  coefficient_ring(x) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(x) === parent(c) "Incompatible rings."
   return LieAlgebraElem(parent(x), _matrix(x) * c)
 end
 
@@ -282,7 +282,7 @@ function Base.:*(x::LieAlgebraElem, c::U) where {U<:RationalUnion}
 end
 
 function Base.:*(c::C, x::LieAlgebraElem{C}) where {C<:FieldElem}
-  coefficient_ring(x) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(x) === parent(c) "Incompatible rings."
   return LieAlgebraElem(parent(x), c * _matrix(x))
 end
 
@@ -676,14 +676,11 @@ function _root_system_and_chevalley_basis(
   @req all(B_j -> dim(B_j) == 1, B) "The Cartan subalgebra is not split"
 
   # compute the roots, i.e. the list of eigenvalues of basis(H) on each B_j
-  root_spaces = Dict(
-    begin
-      b = only(basis(B_j))
-      root = [only(solve(_matrix(b), _matrix(bracket(h, b)); side=:left)) for h in basis(H)]
-      root => B_j
-    end for B_j in B
-  )
-  roots = collect(keys(root_spaces))
+  roots = map(B) do B_j
+    b = only(basis(B_j))
+    return [only(solve(_matrix(b), _matrix(bracket(h, b)); side=:left)) for h in basis(H)]
+  end
+  root_spaces = Dict(zip(roots, B))
 
   # compute an R-basis of the root space, s.t. the corresponding co-roots are a basis of H
   roots_basis = empty(roots)

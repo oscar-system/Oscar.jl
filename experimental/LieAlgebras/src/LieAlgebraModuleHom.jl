@@ -11,10 +11,8 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(
-  h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
-) where {C2<:FieldElem}
-  return (h.matrix)::dense_matrix_type(C2)
+function matrix(h::LieAlgebraModuleHom)
+  return h.matrix
 end
 
 @doc raw"""
