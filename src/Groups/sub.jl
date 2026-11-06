@@ -1088,6 +1088,7 @@ Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
 Pc group of order 6
+  with 2 generators f1, f2
 
 julia> schur_multiplier(abelian_group([2, 12]))
 Z/2
