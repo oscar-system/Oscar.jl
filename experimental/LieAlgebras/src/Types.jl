@@ -27,7 +27,7 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
     s::Vector{Symbol};
     check::Bool=true,
   ) where {C<:FieldElem}
-    @assert struct_consts isa Matrix{sparse_row_type(R)} "Invalid structure constants type."
+    @req struct_consts isa Matrix{sparse_row_type(R)} "Invalid structure constants type."
     (n1, n2) = size(struct_consts)
     @req n1 == n2 "Invalid structure constants dimensions."
     dimL = n1

@@ -19,7 +19,7 @@ function lie_algebra_simple_module_struct_consts_gap(
   R = coefficient_ring(L)
   isoR = Oscar.iso_oscar_gap(R)
 
-  gapL = codomain(Oscar.iso_oscar_gap(L))
+  gapL = _gap_lie_algebra_with_root_system(L)
   dimL = GAPWrap.Dimension(gapL)
   @assert dimL == dim(L)
   basisL = GAPWrap.Basis(gapL)
@@ -38,4 +38,22 @@ function lie_algebra_simple_module_struct_consts_gap(
   end
 
   return struct_consts
+end
+
+# The GAP counterpart of `L` with the simple roots of `root_system(L)`, so that GAP reads
+# weights in the same order. GAP chooses its own if the cached isomorphism was created
+# before the root system of `L`.
+function _gap_lie_algebra_with_root_system(L::LieAlgebra)
+  root_system(L) # `iso_oscar_gap` only passes a root system to GAP if `L` already has one
+  isoL = Oscar.iso_oscar_gap(L)
+  gapL = codomain(isoL)
+  if !GAP.Globals.HasRootSystem(gapL)
+    _iso_oscar_gap_set_root_system(L, gapL, isoL)
+    return gapL
+  end
+  # GAP may have computed a root system of its own
+  chev = GAP.Obj([GAP.Obj(isoL.(xs)) for xs in chevalley_basis(L)])
+  GAP.Globals.ChevalleyBasis(gapL) == chev && return gapL
+  # a fresh GAP copy of `L`, created with the root system of `L`
+  return codomain(_iso_oscar_gap(L))
 end

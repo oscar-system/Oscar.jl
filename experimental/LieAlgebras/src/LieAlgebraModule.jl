@@ -1271,8 +1271,8 @@ function symmetric_power(
       return Tuple(zero(V) for _ in 1:k)
     end
     nz = findall(!iszero, coefficients(a))
-    @req length(nz) == 1 "Non-pure exterior power element."
-    @req isone(coeff(a, nz[1])) "Non-pure exterior power element."
+    @req length(nz) == 1 "Non-pure symmetric power element."
+    @req isone(coeff(a, nz[1])) "Non-pure symmetric power element."
     inds = ind_map[nz[1]]
     return Tuple(basis(V, i) for i in inds)
   end

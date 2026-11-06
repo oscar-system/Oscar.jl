@@ -152,6 +152,8 @@ The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this 
 """
 @attr Bool function is_isomorphism(h::LieAlgebraModuleHom)
   isdefined(h, :inverse_isomorphism) && return true
+  # `is_invertible_with_inverse` returns a one-sided inverse for non-square matrices
+  is_square(matrix(h)) || return false
   fl, invmat = is_invertible_with_inverse(matrix(h))
   fl || return false
   h.inverse_isomorphism = LieAlgebraModuleHom(codomain(h), domain(h), invmat; check=false)
@@ -552,7 +554,7 @@ function tensor_power(
   (codomain_fl, codomain_base, codomain_k) = _is_tensor_power(codomain)
   @req domain_fl "Domain must be an tensor power"
   @req codomain_fl "Codomain must be an tensor power"
-  @req domain_k == codomain_k "Exponent mismatch"
+  @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
   mat = reduce(
