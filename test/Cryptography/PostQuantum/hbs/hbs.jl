@@ -183,3 +183,24 @@ end
   bad[1:8] = Oscar._hbs_adrs(2^p.h)
   @test !Oscar._mss_verify(p, bad, UInt8[1, 7], pk)
 end
+
+@testset "hbs hypertree scheme" begin
+  # Test signing and verification with HORST and FORS in a hypertree of several trees
+  for p in (hbs_horst_toy, hbs_fors_toy)
+    pk, sk = Oscar._ht_keygen(p, Random.MersenneTwister(5))
+    @test length(pk) == p.pk_sz && length(sk) == p.sk_sz
+    for msg in (UInt8[], UInt8[1, 2, 3], rand(UInt8, 100))
+      sig = Oscar._ht_sign(p, msg, sk)
+      @test length(sig) == p.sig_sz
+      @test Oscar._ht_verify(p, sig, msg, pk)
+      @test !Oscar._ht_verify(p, sig, vcat(msg, UInt8[0]), pk)
+      for pos in (1, p.n + 1, p.sig_sz)
+        bad = copy(sig)
+        bad[pos] ⊻= 0x01
+        @test !Oscar._ht_verify(p, bad, msg, pk)
+      end
+    end
+    # signing is deterministic and does not change the key
+    @test Oscar._ht_sign(p, UInt8[1], sk) == Oscar._ht_sign(p, UInt8[1], sk)
+  end
+end
