@@ -43,7 +43,7 @@ U(\mathfrak g)=K \langle x_1,\ldots, x_n \mid x_jx_i = x_ix_j+[x_j, x_i],  \ 1\l
 ```
 where $[x_j, x_i]$ corresponds to evaluating the Lie bracket $[x_j, x_i]_\mathfrak g$. That the standard monomials
 in $U(\mathfrak g)$ indeed form a $K$-basis for $U(\mathfrak g)$ is the content of the
-Poincar``\'{\text{e}}``-Birkhoff-Witt theorem (the names PBW-basis and PBW-algebra are derived from this fact).
+Poincaré-Birkhoff-Witt theorem (the names PBW-basis and PBW-algebra are derived from this fact).
 
 Note that any degree compatible global monomial ordering on $\mathbb{N}^n$ is admissible for $U(\mathfrak g)$.
 
