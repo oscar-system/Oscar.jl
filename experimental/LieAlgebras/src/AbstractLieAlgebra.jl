@@ -453,14 +453,18 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       i < j || continue
       alpha_i_plus_beta_j = add!(alpha_i_plus_beta_j, alpha_i, beta_j)
       is_positive_root(alpha_i_plus_beta_j) || continue
-      l = let alpha_i_plus_beta_j = alpha_i_plus_beta_j # avoid closure capture
-        findfirst(
-          l -> is_positive_root(alpha_i_plus_beta_j - simple_root(rs, l)), 1:nsimp
-        )::Int
+      # smallest simple root `l` with `alpha_i + beta_j - alpha_l` a positive root
+      l = 0
+      l_comp = 0
+      for k in 1:nsimp
+        fl, l_comp = is_positive_root_with_index(alpha_i_plus_beta_j - simple_root(rs, k))
+        if fl
+          l = k
+          break
+        end
       end
+      @assert l != 0
       l == i && continue # already extraspecial
-      fl, l_comp = is_positive_root_with_index(alpha_i_plus_beta_j - simple_root(rs, l))
-      @assert fl
       t1 = 0
       t2 = 0
       if ((fl, m) = is_positive_root_with_index(beta_j - simple_root(rs, l)); fl)
