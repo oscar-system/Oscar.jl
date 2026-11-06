@@ -56,6 +56,52 @@ end
   @test characteristic(quo(S, ideal([s, t]))[1]) == 5
 end
 
+@testset "MPolyQuoRing arithmetic" begin
+  # Arithmetic should reduce intermediate products without constructing an unused quotient ring.
+  R, (x,) = polynomial_ring(QQ, [:x])
+  Q, p = quo(R, ideal(R, [x^2]))
+  f = 1 + x + x^2
+  a = p(f)
+
+  b = a^10_000
+  @test b == p(1 + 10_000 * x)
+  @test lift(a) === f
+  @test !a.simplified
+  @test b.simplified
+  @test lift(b) !== f
+
+  aa = a * a
+  @test aa == p(1 + 2 * x)
+  @test aa.simplified
+
+  n = big(typemax(Int32)) + 1
+  @test a^n == p(1 + QQ(n) * x)
+  @test (-one(Q))^typemin(Int8) == one(Q)
+
+  c = simplify(p(1 + x))
+  d = simplify(p(1 - x))
+  cd = c * d
+  @test lift(cd) == one(R)
+  @test cd.simplified
+
+  @test !isdefined(Q, :SQR)
+  @test !isdefined(Q, :SQRGB)
+  Oscar.singular_quotient_ring(Q)
+  @test isdefined(Q, :SQR)
+  @test isdefined(Q, :SQRGB)
+
+  Z, q = quo(R, ideal(R, [one(R)]))
+  @test iszero(q(x)^0)
+
+  P, r = quo(R, ideal(R, [zero(R)]))
+  e = r(1 + x)
+  e5 = e^5
+  @test e5 == r((1 + x)^5)
+  @test e5.simplified
+  @test (e * e).simplified
+  @test !isdefined(P, :SQR)
+end
+
 @testset "MpolyQuo.manipulation" begin
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [zero(R)])
