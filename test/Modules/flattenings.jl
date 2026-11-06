@@ -60,5 +60,10 @@ end
   FF, iso, iso_inv = flat_map(F)
   @test F in keys(Oscar.flat_counterparts(flat_map)) && Oscar.flat_counterparts(flat_map)[F] === (FF, iso, iso_inv)
   @test FF !== FS
+  I = sub_object(F, [x*F[1]])
+  IS, phi = change_base_ring(flat_map, I)
+  @test !(I in keys(Oscar.flat_counterparts(flat_map))) # no caching
+  II, iso, iso_inv = flat_map(I)
+  @test I in keys(Oscar.flat_counterparts(flat_map)) # caching when using `flat_map` directly
 end
 
