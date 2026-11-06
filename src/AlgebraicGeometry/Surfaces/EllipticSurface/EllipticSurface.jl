@@ -224,7 +224,7 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   _, u = hnf_with_transform(ZZ.(denominator(GB) * GB))
   B = u[1:rk-r,:] * BMWL
 
-  MWL = lll(lattice(V, B, isbasis=false))
+  MWL = lll(lattice(V, B; is_basis=false))
   u = solve(BMWL, basis_matrix(MWL); side=:left)
   u = ZZ.(u)
   mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
@@ -865,7 +865,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
   gen_tors = zip(tors, torsV)
   push!(torsV, identity_matrix(QQ,n))
   V = quadratic_space(QQ,GA)
-  L = lattice(V, reduce(vcat,torsV), isbasis=false)
+  L = lattice(V, reduce(vcat,torsV); is_basis=false)
   return basisA, collect(gen_tors), L
 end
 
