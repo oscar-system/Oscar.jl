@@ -61,11 +61,9 @@ julia> dim_of_simple_module(R, fundamental_weight(R, 1))
 ```
 """
 function dim_of_simple_module(
-  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  LR::Union{LieAlgebra,RootSystem}, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dim_of_simple_module(root_system(L), hw)
+  return dim_of_simple_module(Int, LR, hw)
 end
 
 function dim_of_simple_module(
@@ -74,12 +72,6 @@ function dim_of_simple_module(
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return dim_of_simple_module(T, root_system(L), hw)
-end
-
-function dim_of_simple_module(
-  R::RootSystem, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
-)
-  return dim_of_simple_module(Int, R, hw)
 end
 
 function dim_of_simple_module(
@@ -214,11 +206,9 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
 ```
 """
 function dominant_character(
-  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  LR::Union{LieAlgebra,RootSystem}, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dominant_character(root_system(L), hw)
+  return dominant_character(Int, LR, hw)
 end
 
 function dominant_character(
@@ -227,12 +217,6 @@ function dominant_character(
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return dominant_character(T, root_system(L), hw)
-end
-
-function dominant_character(
-  R::RootSystem, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
-)
-  return dominant_character(Int, R, hw)
 end
 
 function dominant_character(
@@ -355,10 +339,10 @@ Dict{WeightLatticeElem, Int64} with 8 entries:
   -w_1 + w_3       => 1
 ```
 """
-function character(L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return character(root_system(L), hw)
+function character(
+  LR::Union{LieAlgebra,RootSystem}, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return character(Int, LR, hw)
 end
 
 function character(
@@ -367,10 +351,6 @@ function character(
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return character(T, root_system(L), hw)
-end
-
-function character(R::RootSystem, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
-  return character(Int, R, hw)
 end
 
 function character(
@@ -634,13 +614,11 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
 ```
 """
 function demazure_character(
-  L::LieAlgebra,
+  LR::Union{LieAlgebra,RootSystem},
   w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return demazure_character(root_system(L), w, x)
+  return demazure_character(Int, LR, w, x)
 end
 
 function demazure_character(
@@ -652,14 +630,6 @@ function demazure_character(
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return demazure_character(T, root_system(L), w, x)
-end
-
-function demazure_character(
-  R::RootSystem,
-  w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return demazure_character(Int, R, w, x)
 end
 
 function demazure_character(
@@ -704,14 +674,12 @@ Instead of a Weyl group element `x`, a reduced expression for `x` can be supplie
 This function may return arbitrary results if the provided expression is not reduced.
 """
 function kostant_kumar_character(
-  L::LieAlgebra,
+  LR::Union{LieAlgebra,RootSystem},
   w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return kostant_kumar_character(root_system(L), w1, w2, x)
+  return kostant_kumar_character(Int, LR, w1, w2, x)
 end
 
 function kostant_kumar_character(
@@ -724,15 +692,6 @@ function kostant_kumar_character(
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return kostant_kumar_character(T, root_system(L), w1, w2, x)
-end
-
-function kostant_kumar_character(
-  R::RootSystem,
-  w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(Int, R, w1, w2, x)
 end
 
 function kostant_kumar_character(
