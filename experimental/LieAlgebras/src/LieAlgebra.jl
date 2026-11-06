@@ -1095,7 +1095,8 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   rel = strictly_upper_triangular_matrix([
     to_R(b[i]) * to_R(b[j]) - to_R(b[i] * b[j]) for i in 1:(n - 1) for j in (i + 1):n
   ])
-  U, gensU = pbw_algebra(R, rel, monomial_ordering(R, ordering); check=true)
+  # the PBW basis condition holds by the PBW theorem
+  U, gensU = pbw_algebra(R, rel, monomial_ordering(R, ordering); check=false)
 
   L_to_U = MapFromFunc(
     L, U, function (x::LieAlgebraElem)
