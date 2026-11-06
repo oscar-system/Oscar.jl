@@ -30,11 +30,14 @@ function dim_numerical(::Any)
 end
 
 """
-    solve_numerical(I::MPolyIdeal{QQMPolyRingElem}; show_progress=false, args...)
-    solve_numerical(I::Vector{MPolyRingElem}; show_progress=false, args...)
+    solve_numerical(I::MPolyIdeal{<:MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}}; show_progress=false, args...)
+    solve_numerical(I::MPolyIdeal{<:MPolyRingElem{<:Union{QQFieldElem, QQBarFieldElem}}}; show_progress=false, args...)
 
 Call `HomotopyContinuation.solve` on the `HomotopyContinuation.System` derived
 from `I` forwarding all `args`.
+
+Polynomials over `QQ` or `QQBar` are supported; irrational algebraic
+coefficients are approximated by `ComplexF64`.
 
 # Examples
 ```julia-repl

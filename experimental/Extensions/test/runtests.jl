@@ -14,6 +14,23 @@ using HomotopyContinuation
     @test length(ws.R) == 3
   end
 
+  @testset "HomotopyContinuation over QQBar" begin
+    K = algebraic_closure(QQ)
+    i = sqrt(K(-1))
+    Kxy, (x, y) = K[:x, :y]
+    result = Oscar.solve_numerical(ideal([x^2 + 1, y - i * x]))
+    sols = HomotopyContinuation.solutions(result)
+    @test length(sols) == 2
+    @test all(s -> isapprox(s[2], im * s[1]; atol=1e-8), sols)
+
+    # rational coefficients over QQBar behave as over QQ
+    Qxy, (u, v) = QQ[:x, :y]
+    I = ideal([u^2 - u * v + v^3, v^2 - u - 4//5])
+    IK = ideal([x^2 - x * y + y^3, y^2 - x - 4//5])
+    @test HomotopyContinuation.nsolutions(Oscar.solve_numerical(IK)) ==
+          HomotopyContinuation.nsolutions(Oscar.solve_numerical(I))
+  end
+
   # here for future test
   # @testset "" begin
   #   R, a = polynomial_ring(QQ, :a => (1:2, 1:2))
