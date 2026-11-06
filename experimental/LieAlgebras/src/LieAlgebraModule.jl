@@ -378,7 +378,8 @@ function (V::LieAlgebraModule{C})(
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(parent(ai) === Vi for (ai, Vi) in zip(a, Vs)) "Incompatible modules."
-    return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
+    mat = reduce(hcat, map(_matrix, a); init=zero_matrix(coefficient_ring(V), 1, 0))
+    return LieAlgebraModuleElem(V, mat)
   elseif _is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::elem_type(V)
@@ -518,16 +519,17 @@ end
 function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
-  cx = coefficients(x)
   V = parent(v)
-  return LieAlgebraModuleElem(
-    V,
-    sum(
-      cx[i] * _matrix(v) * transformation_matrix(V, i) for
-      i in 1:dim(parent(x)) if !iszero(cx[i]);
-      init=zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C),
-    ),
-  )
+  mat_x = _matrix(x)
+  mat_v = _matrix(v)
+  res = zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C)
+  tmp = zero(res)
+  for i in 1:dim(parent(x))
+    is_zero_entry(mat_x, 1, i) && continue
+    tmp = mul!(tmp, mat_v, transformation_matrix(V, i))
+    res = addmul!(res, tmp, mat_x[1, i])
+  end
+  return LieAlgebraModuleElem(V, res)
 end
 
 function transformation_matrices(V::LieAlgebraModule{C}) where {C<:FieldElem}

@@ -336,9 +336,10 @@ Return the center of `L`, i.e. $\{x \in L \mid [x, L] = 0\}$
 function center(L::LieAlgebra)
   dim(L) == 0 && return ideal(L, elem_type(L)[])
 
+  b = basis(L)
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
-  for (i, bi) in enumerate(basis(L))
-    for (j, bj) in enumerate(basis(L))
+  for (i, bi) in enumerate(b)
+    for (j, bj) in enumerate(b)
       mat[i, ((j - 1) * dim(L) + 1):(j * dim(L))] = _matrix(bi * bj)
     end
   end
@@ -500,10 +501,10 @@ end
 @attr Vector{dense_matrix_type(C)} function adjoint_matrices(
   L::LieAlgebra{C}
 ) where {C<:FieldElem}
-  return map(1:dim(L)) do i
-    x = basis(L, i)
+  b = basis(L)
+  return map(b) do x
     A = zero_matrix(coefficient_ring(L), dim(L), dim(L))
-    for (j, bj) in enumerate(basis(L))
+    for (j, bj) in enumerate(b)
       A[j, :] = _matrix(bracket(x, bj))
     end
     return A
@@ -570,10 +571,11 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
     # L is abelian and hence nilpotent
   elseif characteristic(L) == 0
     # if L is not nilpotent, some x_i or x_i + x_j is not ad-nilpotent [Gra00; Prop. 2.7.2]
-    for x in basis(L)
+    b = basis(L)
+    for x in b
       !is_ad_nilpotent(x) && return x
     end
-    for (i, x) in enumerate(basis(L)), (j, y) in enumerate(basis(L))
+    for (i, x) in enumerate(b), (j, y) in enumerate(b)
       i < j || continue
       xy = x + y
       !is_ad_nilpotent(xy) && return xy
@@ -850,7 +852,9 @@ function _root_system_and_chevalley_basis(
   # so we can construct the Lie algebra `K` over `R` with the these structure constants.
   # The basis elements of `K` form a Chevalley basis.
   K = lie_algebra(
-    R, map(e -> change_base_ring(R, e), _structure_constant_table(L_F, L_F_chev_basis_mat))
+    R,
+    map(e -> change_base_ring(R, e), _structure_constant_table(L_F, L_F_chev_basis_mat));
+    check=false,
   )
 
   # Construct an isomorphism f from K to L.
@@ -1043,27 +1047,25 @@ function structure_constant_table(
 end
 
 function _structure_constant_table(L::LieAlgebra{C}, basis_mat::MatElem{C}) where {C}
-  @req is_invertible(basis_mat) "input is not a basis"
-  basis_mat_ctx = solve_init(basis_mat)
+  fl, basis_mat_inv = is_invertible_with_inverse(basis_mat)
+  @req fl "input is not a basis"
 
   R = coefficient_ring(L)
-  struct_consts = Matrix{sparse_row_type(R)}(undef, dim(L), dim(L))
-  sc_standard_basis = structure_constant_table(L; copy=false)
+  n = dim(L)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, n, n)
 
-  for i in 1:dim(L)
+  for i in 1:n
     struct_consts[i, i] = sparse_row(R)
   end
-  for i in 1:dim(L), j in (i + 1):dim(L)
-    # lookup entry in `basis_mat * sc_standard_basis * transpose(basis_mat)`
-    entry = zero_matrix(R, 1, dim(L))
-    for k in 1:dim(L), l in 1:dim(L)
-      coeff = basis_mat[i, k] * basis_mat[j, l]
-      if !is_zero(coeff)
-        entry = addmul!(entry, coeff, dense_row(sc_standard_basis[k, l], dim(L)))
-      end
+  for i in 1:(n - 1)
+    # row k of `basis_mat * adjoint_matrix(x_i)` is `[x_i, x_k]` in standard
+    # coordinates; multiplying with `basis_mat_inv` translates to the given basis
+    ad = adjoint_matrix(LieAlgebraElem(L, basis_mat[i:i, :]))
+    brackets = basis_mat[(i + 1):n, :] * ad * basis_mat_inv
+    for j in (i + 1):n
+      struct_consts[i, j] = sparse_row(brackets[(j - i):(j - i), :])
+      struct_consts[j, i] = -struct_consts[i, j]
     end
-    struct_consts[i, j] = sparse_row(solve(basis_mat_ctx, entry; side=:left))
-    struct_consts[j, i] = -struct_consts[i, j]
   end
 
   return struct_consts

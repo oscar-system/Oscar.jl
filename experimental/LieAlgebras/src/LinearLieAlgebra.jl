@@ -243,11 +243,12 @@ function Generic.matrix_repr(
 ) where {C<:FieldElem}
   if !isdefined(x, :matrix_repr)
     L = parent(x)
+    mat_x = _matrix(x)
     mat = zero_matrix(coefficient_ring(L), L.n, L.n)
     tmp = zero(mat)
-    for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
-      iszero(c) && continue
-      mat = addmul!(mat, b, c, tmp)
+    for (i, b) in enumerate(matrix_repr_basis(L))
+      is_zero_entry(mat_x, 1, i) && continue
+      mat = addmul!(mat, b, mat_x[1, i], tmp)
     end
     x.matrix_repr = mat
   end
