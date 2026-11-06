@@ -368,7 +368,7 @@
 
         @testset "exterior_power" begin
           if characteristic(R) != 0
-            @test_throws ArgumentError symmetric_power(standard_module(L), 2)[1]
+            @test_throws ArgumentError exterior_power(standard_module(L), 2)
           else
             V = symmetric_power(standard_module(L), 2)[1]
             type_V = module_type_bools(V)
@@ -416,7 +416,7 @@
 
         @testset "symmetric_power" begin
           if characteristic(R) != 0
-            @test_throws ArgumentError exterior_power(standard_module(L), 2)[1]
+            @test_throws ArgumentError symmetric_power(standard_module(L), 2)
           else
             V = exterior_power(standard_module(L), 2)[1]
             type_V = module_type_bools(V)

@@ -210,7 +210,7 @@ end
 
 Construct the homomorphism from `V1` to `V2` by acting with the matrix `mat`
 from the right on the coefficient vector w.r.t. the basis of `V1`.
-`mat` must be a matrix of size `dim(V1) \times dim(V2)` over `coefficient_ring(V2)`.
+`mat` must be a matrix of size $\dim(V_1) \times \dim(V_2)$ over `coefficient_ring(V2)`.
 Currently, `V1` and `V2` must be modules over the same Lie algebra.
 
 By setting `check=false`, the linear map is not checked to be compatible with the module action.
@@ -324,7 +324,7 @@ end
     canonical_injections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
 
 Return the canonical injections from all components into $V$
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_injections(V::LieAlgebraModule)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -336,7 +336,7 @@ end
     canonical_injection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
 
 Return the canonical injection $V_i \to V$
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_injection(V::LieAlgebraModule, i::Int)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -351,7 +351,7 @@ end
     canonical_projections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
 
 Return the canonical projections from $V$ to all components
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_projections(V::LieAlgebraModule)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -363,7 +363,7 @@ end
     canonical_projection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
 
 Return the canonical projection $V \to V_i$
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_projection(V::LieAlgebraModule, i::Int)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -388,7 +388,7 @@ end
     hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
 
 Given modules `V` and `W` which are direct sums with `r` respective `s` summands,
-say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix
+say $V = V_1 \oplus \cdots \oplus V_r$, $W = W_1 \oplus \cdots \oplus W_s$, and given a $r \times s$ matrix
 `hs` of homomorphisms $h_{ij} : V_i \to W_j$, return the homomorphism
 $V \to W$ with $ij$-components $h_{ij}$.
 
@@ -519,8 +519,8 @@ function symmetric_power(
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_symmetric_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_symmetric_power(codomain)
-  @req domain_fl "Domain must be an symmetric power"
-  @req codomain_fl "Codomain must be an symmetric power"
+  @req domain_fl "Domain must be a symmetric power"
+  @req codomain_fl "Codomain must be a symmetric power"
   @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
@@ -550,8 +550,8 @@ function tensor_power(
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_tensor_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_tensor_power(codomain)
-  @req domain_fl "Domain must be an tensor power"
-  @req codomain_fl "Codomain must be an tensor power"
+  @req domain_fl "Domain must be a tensor power"
+  @req codomain_fl "Codomain must be a tensor power"
   @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
