@@ -1080,6 +1080,9 @@ end
 
 Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
 together with a map from `L` into the filtered component of degree 1 of `U(L)`.
+
+The `ordering` must satisfy $x_i x_j > x_k$ whenever the basis element $x_k$ occurs in
+$[x_i, x_j]$. Global degree orderings like `:deglex` and `:degrevlex` satisfy this for every `L`.
 """
 function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
