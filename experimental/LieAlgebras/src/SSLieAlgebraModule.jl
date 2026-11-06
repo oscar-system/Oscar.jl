@@ -18,19 +18,16 @@ Construct the simple module of the Lie algebra `L` with highest weight `hw`.
 
 `L` needs to be a semisimple Lie algebra of characteristic $0$.
 """
-function simple_module(L::LieAlgebra, hw::WeightLatticeElem)
+function simple_module(L::LieAlgebra, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
+  hw = WeightLatticeElem(root_system(L), hw_)
   @req is_dominant(hw) "Not a dominant weight"
   struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
   dimV = size(struct_consts, 2)
   V = abstract_module(L, dimV, struct_consts; check=false)
   # TODO: set appropriate attributes
   return V
-end
-
-function simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return simple_module(L, WeightLatticeElem(root_system(L), hw))
 end
 
 @doc raw"""
@@ -79,20 +76,16 @@ function dim_of_simple_module(
   return dim_of_simple_module(T, root_system(L), hw)
 end
 
-function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(R, WeightLatticeElem(R, hw))
-end
-
-function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
-end
-
-function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
+function dim_of_simple_module(
+  R::RootSystem, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
   return dim_of_simple_module(Int, R, hw)
 end
 
-function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+function dim_of_simple_module(
+  T::Type, R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   rho = weyl_vector(R)
   hw_plus_rho = hw + rho
@@ -154,12 +147,10 @@ function dominant_weights(
   return dominant_weights(root_system(L), hw)
 end
 
-function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+function dominant_weights(
+  R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
 
   pos_roots = positive_roots(R)
@@ -238,20 +229,16 @@ function dominant_character(
   return dominant_character(T, root_system(L), hw)
 end
 
-function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(T, R, WeightLatticeElem(R, hw))
-end
-
-function dominant_character(R::RootSystem, hw::WeightLatticeElem)
+function dominant_character(
+  R::RootSystem, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
   return dominant_character(Int, R, hw)
 end
 
-function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+function dominant_character(
+  T::Type, R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
   rho = weyl_vector(R)
@@ -382,20 +369,14 @@ function character(
   return character(T, root_system(L), hw)
 end
 
-function character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(R, WeightLatticeElem(R, hw))
-end
-
-function character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(T, R, WeightLatticeElem(R, hw))
-end
-
-function character(R::RootSystem, hw::WeightLatticeElem)
+function character(R::RootSystem, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
   return character(Int, R, hw)
 end
 
-function character(T::Type, R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+function character(
+  T::Type, R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   dom_char = dominant_character(T, R, hw)
   char = Dict{WeightLatticeElem,T}()
@@ -476,23 +457,11 @@ end
 
 function tensor_product_decomposition(
   R::RootSystem,
-  hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  hw2::Vector{<:IntegerUnion},
+  hw1_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  hw2_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  return tensor_product_decomposition(R, hw1, WeightLatticeElem(R, hw2))
-end
-
-function tensor_product_decomposition(
-  R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::WeightLatticeElem
-)
-  return tensor_product_decomposition(R, WeightLatticeElem(R, hw1), hw2)
-end
-
-function tensor_product_decomposition(
-  R::RootSystem, hw1::WeightLatticeElem, hw2::WeightLatticeElem
-)
-  @req root_system(hw1) === R "parent root system mismatch"
-  @req root_system(hw2) === R "parent root system mismatch"
+  hw1 = WeightLatticeElem(R, hw1_)
+  hw2 = WeightLatticeElem(R, hw2_)
   @req is_dominant(hw1) "not a dominant weight"
   @req is_dominant(hw2) "not a dominant weight"
 
@@ -686,22 +655,9 @@ function demazure_character(
 end
 
 function demazure_character(
-  R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}}
-)
-  return demazure_character(R, WeightLatticeElem(R, w), x)
-end
-
-function demazure_character(
-  T::Type,
   R::RootSystem,
-  w::Vector{<:IntegerUnion},
+  w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return demazure_character(T, R, WeightLatticeElem(R, w), x)
-end
-
-function demazure_character(
-  R::RootSystem, w::WeightLatticeElem, x::Union{WeylGroupElem,Vector{<:IntegerUnion}}
 )
   return demazure_character(Int, R, w, x)
 end
@@ -709,10 +665,10 @@ end
 function demazure_character(
   T::Type,
   R::RootSystem,
-  w::WeightLatticeElem,
+  w_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req root_system(w) === R "parent root system mismatch"
+  w = WeightLatticeElem(R, w_)
   @req is_dominant(w) "not a dominant weight"
   char = Dict{WeightLatticeElem,T}(w => T(1))
   return _iterated_demazure_operator(R, x, char)
@@ -771,26 +727,9 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  R::RootSystem, w1::Vector{<:IntegerUnion}, w2::Vector{<:IntegerUnion},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(R, WeightLatticeElem(R, w1), WeightLatticeElem(R, w2), x)
-end
-
-function kostant_kumar_character(
-  T::Type,
   R::RootSystem,
-  w1::Vector{<:IntegerUnion},
-  w2::Vector{<:IntegerUnion},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(
-    T, R, WeightLatticeElem(R, w1), WeightLatticeElem(R, w2), x
-  )
-end
-
-function kostant_kumar_character(
-  R::RootSystem, w1::WeightLatticeElem, w2::WeightLatticeElem,
+  w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
   return kostant_kumar_character(Int, R, w1, w2, x)
@@ -799,11 +738,12 @@ end
 function kostant_kumar_character(
   T::Type,
   R::RootSystem,
-  w1::WeightLatticeElem,
-  w2::WeightLatticeElem,
+  w1_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  w2_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req root_system(w1) === root_system(w2) === R "parent root system mismatch"
+  w1 = WeightLatticeElem(R, w1_)
+  w2 = WeightLatticeElem(R, w2_)
   @req is_dominant(w1) "first weight is not a dominant weight"
   @req is_dominant(w2) "second weight is not a dominant weight"
   # Compute D_w0(e^w1 * D_x(e^w2))
