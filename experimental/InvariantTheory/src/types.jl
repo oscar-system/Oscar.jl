@@ -46,7 +46,6 @@ end
 mutable struct RepresentationLinearlyReductiveGroup
   group::LinearlyReductiveGroup
   rep_mat::MatElem
-  reynolds_v::Function
 
   #stores if the representation is on symmetric forms, and of which degree.
   sym_deg::Tuple{Bool,Int}
@@ -57,7 +56,6 @@ mutable struct RepresentationLinearlyReductiveGroup
     R.group = G
     R.rep_mat = _rep_mat(G, d)
     R.sym_deg = (true, d)
-    R.reynolds_v = reynolds_v_slm
     return R
   end
 
@@ -68,9 +66,6 @@ mutable struct RepresentationLinearlyReductiveGroup
     R.group = G
     R.rep_mat = M
     R.sym_deg = (false, 0)
-    if group_type(G) == :SL
-      R.reynolds_v = reynolds_v_slm
-    end
     return R
   end
 end
@@ -82,8 +77,6 @@ end
 
   group::LinearlyReductiveGroup
   representation::RepresentationLinearlyReductiveGroup
-
-  reynolds_operator::Function
 
   fundamental::Vector{PolyRingElemT}
   presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT},PolyRingT,Nothing,PolyRingElemT}
@@ -99,9 +92,6 @@ end
     z.group = G
     z.field = K
     z.poly_ring = poly_ring
-    if _has_reynolds_operator(group(R))
-      z.reynolds_operator = reynolds_v_slm
-    end
     return z
   end
 
@@ -116,9 +106,6 @@ end
     z.group = G
     z.field = K
     z.poly_ring = ring
-    if _has_reynolds_operator(group(R))
-      z.reynolds_operator = reynolds_v_slm
-    end
     return z
   end
 end
