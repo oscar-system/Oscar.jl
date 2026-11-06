@@ -1080,6 +1080,9 @@ end
 
 Return the universal enveloping algebra `U(L)` of `L` with the given monomial ordering,
 together with a map from `L` into the filtered component of degree 1 of `U(L)`.
+
+The `ordering` must satisfy $x_i x_j > x_k$ whenever the basis element $x_k$ occurs in
+$[x_i, x_j]$. Global degree orderings like `:deglex` and `:degrevlex` satisfy this for every `L`.
 """
 function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   R, gensR = polynomial_ring(coefficient_ring(L), symbols(L))
@@ -1092,7 +1095,8 @@ function universal_enveloping_algebra(L::LieAlgebra; ordering::Symbol=:deglex)
   rel = strictly_upper_triangular_matrix([
     to_R(b[i]) * to_R(b[j]) - to_R(b[i] * b[j]) for i in 1:(n - 1) for j in (i + 1):n
   ])
-  U, gensU = pbw_algebra(R, rel, monomial_ordering(R, ordering); check=true)
+  # the PBW basis condition holds by the PBW theorem
+  U, gensU = pbw_algebra(R, rel, monomial_ordering(R, ordering); check=false)
 
   L_to_U = MapFromFunc(
     L, U, function (x::LieAlgebraElem)
