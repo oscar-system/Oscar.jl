@@ -84,6 +84,26 @@ function _check_resolution_length(length::Union{Int, PosInf})
   length isa Int && length < 0 && error("length must be nonnegative")
 end
 
+# The maps `F0 → M → 0` of a presentation of `M`, without computing the
+# relations `F1 → F0`: a resolution of length 0 needs no syzygies.
+# `F0` is chosen as in `presentation(M)`.
+function _generator_maps(M::SubquoModule)
+  R = base_ring(M)
+  F = ambient_free_module(M)
+  if ngens(M) == ngens(F) && all(repres(v) == g for (v, g) in zip(gens(M), gens(F)))
+    F0_to_M = hom(F, M, gens(M); check=false)
+  elseif is_graded(M)
+    F0_to_M = graded_map(M, gens(M); check=false)
+  else
+    F0_to_M = hom(FreeMod(R, ngens(M)), M, gens(M); check=false)
+  end
+  F0_to_M.generators_map_to_generators = true
+
+  Z = is_graded(M) ? graded_free_module(R, elem_type(grading_group(R))[]) : FreeMod(R, 0)
+  M_to_Z = hom(M, Z, elem_type(Z)[zero(Z) for i in 1:ngens(M)]; check=false)
+  return OFPModuleHom[F0_to_M, M_to_Z]
+end
+
 @doc raw"""
     free_resolution(F::FreeMod)
 
@@ -550,6 +570,21 @@ function free_resolution(M::SubquoModule{T};
 
   cc_complete = false
 
+  # Truncation at the generators: no syzygies needed. The `fill` function extends on demand.
+  # Minimal generators for `:mres` come from pruning, which needs the relations.
+  if iszero(length)
+    maps = algorithm == :mres ? _presentation_minimal(M, minimal_kernel=false).maps[2:3] : _generator_maps(M)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
+    if algorithm == :mres && is_graded(cc[-1])
+      set_attribute!(cc, :minimal=>true)
+    end
+    cc.fill     = _extend_free_resolution
+    cc.complete = false
+    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
+    set_attribute!(cc, :algorithm, algorithm)
+    return FreeResolution(cc)
+  end
+
   #= Start with presentation =#
   pm = algorithm == :mres ? _presentation_minimal(M, minimal_kernel=false) : presentation(M)
   maps = [pm.maps[j] for j in 2:3]
@@ -566,19 +601,6 @@ function free_resolution(M::SubquoModule{T};
     end
     set_attribute!(cc, :show => Hecke.pres_show, :free_res => M, :algorithm => algorithm)
     length isa Int && _extend_free_resolution_to_the_left_by_zeros(cc, length)
-    return FreeResolution(cc)
-  end
-
-  # Truncation at the generators: no syzygies needed. The `fill` function extends on demand.
-  if iszero(length)
-    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
-    if algorithm == :mres && is_graded(cc[-1])
-      set_attribute!(cc, :minimal=>true)
-    end
-    cc.fill     = _extend_free_resolution
-    cc.complete = false
-    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
-    set_attribute!(cc, :algorithm, algorithm)
     return FreeResolution(cc)
   end
 
@@ -676,7 +698,12 @@ function free_resolution(M::SubquoModule{T}; length::Union{Int, PosInf}=PosInf()
   # on request. A finite `length` is computed right away.
   _check_resolution_length(length)
   R = base_ring(M)
-  p = presentation(M)
+  if iszero(length)
+    p = Hecke.ComplexOfMorphisms(OFPModule, _generator_maps(M), check = false, seed = -2)
+    set_attribute!(p, :show => Hecke.pres_show)
+  else
+    p = presentation(M)
+  end
   p.fill = function(C::Hecke.ComplexOfMorphisms, k::Int)
     min_index = first(chain_range(C))
 
@@ -697,7 +724,6 @@ function free_resolution(M::SubquoModule{T}; length::Union{Int, PosInf}=PosInf()
     end
     return first(C.maps)
   end
-  iszero(length) && popfirst!(p.maps)
   length isa Int && length > 1 && p[length]
   return FreeResolution(p)
 end
@@ -893,9 +919,12 @@ degree: 0  1  2  3
 """
 function free_resolution_via_kernels(M::SubquoModule, limit::Union{Int, PosInf} = PosInf())
   _check_resolution_length(limit)
-  p = presentation(M)
-  mp = [map(p, j) for j in Hecke.map_range(p)]  
-  iszero(limit) && popfirst!(mp)
+  if iszero(limit)
+    mp = _generator_maps(M)
+  else
+    p = presentation(M)
+    mp = [map(p, j) for j in Hecke.map_range(p)]
+  end
   while true
     if length(mp) > limit+1
       break

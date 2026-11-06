@@ -285,6 +285,17 @@ function free_resolution(M::SubquoModule{T};
 
   cc_complete = false
 
+  # Truncation at the generators: no syzygies needed. The `fill` function extends on demand.
+  if iszero(length)
+    maps = algorithm == :mres ? _presentation_minimal(M, minimal_kernel=false).maps[2:3] : Oscar._generator_maps(M)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
+    cc.fill     = _extend_free_resolution
+    cc.complete = false
+    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
+    set_attribute!(cc, :algorithm, algorithm)
+    return FreeResolution(cc)
+  end
+
   #= Start with presentation =#
   pm = algorithm == :mres ? Oscar._presentation_minimal(M, minimal_kernel=false) : presentation(M)
   maps = [pm.maps[j] for j in 2:3]
@@ -296,16 +307,6 @@ function free_resolution(M::SubquoModule{T};
     cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
-    return FreeResolution(cc)
-  end
-
-  # Truncation at the generators: no syzygies needed. The `fill` function extends on demand.
-  if iszero(length)
-    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
-    cc.fill     = _extend_free_resolution
-    cc.complete = false
-    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
-    set_attribute!(cc, :algorithm, algorithm)
     return FreeResolution(cc)
   end
 
