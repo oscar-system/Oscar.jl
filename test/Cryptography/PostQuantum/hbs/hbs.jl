@@ -57,3 +57,27 @@ end
   @test_throws ArgumentError lamport_keygen(0)
   @test_throws ArgumentError lamport_verify(4, UInt8[], UInt8[], UInt8[])
 end
+
+@testset "hbs winternitz signatures" begin
+  # Test the digits, signing and recovering the public key of WOTS+
+  @test Oscar._wots_lens(16, 16) == (32, 3)
+  @test Oscar._wots_lens(8, 4) == (32, 4)
+  @test Oscar._wots_lens(16, 256) == (16, 2)
+  @test Oscar._wots_digits(1, 16, UInt8[0xa5]) == [10, 5, 0, 15]
+  for (n, w) in ((8, 4), (16, 16), (16, 256), (5, 8))
+    sk_seed = rand(UInt8, n)
+    seed = rand(UInt8, n)
+    loc = (1, 2, 3)
+    msg = rand(UInt8, n)
+    d = Oscar._wots_digits(n, w, msg)
+    @test length(d) == Oscar._wots_len(n, w)
+    @test all(0 .<= d .< w)
+    pk = Oscar._wots_pk(n, w, sk_seed, seed, loc)
+    sig = Oscar._wots_sign(n, w, msg, sk_seed, seed, loc)
+    @test Oscar._wots_pk_from_sig(n, w, sig, msg, seed, loc) == pk
+    msg2 = copy(msg)
+    msg2[1] ⊻= 0x01
+    @test Oscar._wots_pk_from_sig(n, w, sig, msg2, seed, loc) != pk
+    @test Oscar._wots_pk_from_sig(n, w, sig, msg, seed, (1, 2, 4)) != pk
+  end
+end

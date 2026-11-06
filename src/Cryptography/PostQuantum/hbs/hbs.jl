@@ -12,3 +12,4 @@ using Random: AbstractRNG, RandomDevice
 include("hash.jl")
 include("merkle.jl")
 include("lamport.jl")
+include("wots.jl")
