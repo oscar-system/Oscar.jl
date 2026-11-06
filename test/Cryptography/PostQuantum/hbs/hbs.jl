@@ -98,3 +98,24 @@ end
   @test_throws ArgumentError instantiate_hbs(16, 16, 4, "bad"; fts = :foo, tau = 4, k = 4)
   @test sprint(show, hbs_mss_toy) == "Hash-based signature parameters hbs-mss-toy (mss, n = 8, w = 4, h = 4)"
 end
+
+@testset "hbs fors signatures" begin
+  # Test signing and recovering the public key of FORS, also with a wrong digest
+  for (n, a, k) in ((8, 4, 8), (16, 6, 5), (8, 3, 7))
+    sk_seed = rand(UInt8, n)
+    seed = rand(UInt8, n)
+    loc = (0, 5, 2)
+    md = rand(UInt8, Oscar._fors_md_size(a, k))
+    pk = Oscar._fors_pk(n, a, k, sk_seed, seed, loc)
+    sig = Oscar._fors_sign(n, a, k, md, sk_seed, seed, loc)
+    @test length(sig) == k * (a + 1) * n
+    @test Oscar._fors_pk_from_sig(n, a, k, sig, md, seed, loc) == pk
+    md2 = copy(md)
+    md2[1] ⊻= 0x80
+    @test Oscar._fors_pk_from_sig(n, a, k, sig, md2, seed, loc) != pk
+    sig2 = copy(sig)
+    sig2[end] ⊻= 0x01
+    @test Oscar._fors_pk_from_sig(n, a, k, sig2, md, seed, loc) != pk
+    @test Oscar._fors_pk_from_sig(n, a, k, sig, md, seed, (0, 5, 3)) != pk
+  end
+end

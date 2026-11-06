@@ -52,3 +52,9 @@ function _hbs_indices(bytes::Vector{UInt8}, count::Int, bits::Int)
     end
     return idx
 end
+
+# Split `bytes` into strings of `n` bytes.
+function _hbs_split(bytes::Vector{UInt8}, n::Int)
+    @req length(bytes) % n == 0 "length $(length(bytes)) is not a multiple of $n"
+    return [bytes[(i - 1) * n + 1:i * n] for i in 1:length(bytes) ÷ n]
+end
