@@ -1301,6 +1301,49 @@ end
   @test length(FA.C.maps) == 9
 end
 
+@testset "free resolutions truncated by length" begin
+  # `length = n` stops at the n-th free module, `PosInf()` computes everything
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  M = SubquoModule(R[x; y], R[x^2; x*y; y^2; z^4])
+  for algorithm in (:fres, :mres, :nres)
+    fr = free_resolution(M; length=0, algorithm)
+    @test length(fr) == 0
+    @test !is_complete(fr)
+    @test [rank(fr[i]) for i in 0:4] == [2, 6, 6, 2, 0]
+    @test is_complete(fr)
+
+    fr = free_resolution(M; length=2, algorithm)
+    @test length(fr) == 2
+    @test !is_complete(fr)
+
+    fr = free_resolution(M; length=PosInf(), algorithm)
+    @test length(fr) == 3
+    @test is_complete(fr)
+  end
+  @test_throws ErrorException free_resolution(M; length=-1)
+
+  I = ideal(R, [x, y])^2
+  @test length(free_resolution(I; length=0)) == 0
+  @test length(free_resolution(quo(R, I)[1]; length=0)) == 0
+  @test length(free_resolution(free_module(R, 2); length=0)) == 0
+
+  S, _ = quo(R, ideal(R, [x^2]))
+  N = quotient_ring_as_module(ideal(S, [x, y]))
+  fr = free_resolution(N; length=0)
+  @test length(fr) == 0
+  @test rank(fr[1]) == 2
+  @test length(free_resolution(N; length=3)) == 3
+  @test_throws ErrorException free_resolution(N)
+
+  F = FreeMod(ZZ, 2)
+  MZ, _ = quo(F, [2*F[1], 3*F[2]])
+  fr = free_resolution(MZ; length=0)
+  @test length(fr) == 0
+  @test rank(fr[1]) == 2
+  @test is_zero(fr[2])
+  @test_throws ErrorException free_resolution(MZ; length=-1)
+end
+
 @testset "vector_space_dim and vector_space_basis" begin
   Oscar.set_seed!(235)
   R,(x,y,z,w) = QQ[:x, :y, :z, :w]
@@ -1567,7 +1610,8 @@ end
 
     fr = free_resolution(M, length=3)
 
-    @test length(fr.C.maps) == 3
+    @test length(fr) == 1
+    @test is_complete(fr)
     @test iszero(homology(fr.C)[1])
   end
 
@@ -1729,7 +1773,8 @@ end
 
     fr = free_resolution(M, length=3)
 
-    @test length(fr.C.maps) == 3
+    @test length(fr) == 1
+    @test is_complete(fr)
     @test iszero(homology(fr.C)[1])
     MP, _ = prune_with_map(M)
     @test is_zero(MP)
