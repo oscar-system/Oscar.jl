@@ -4,15 +4,15 @@ function _check_cgs(I, cgs, pts, ord)
   R = base_ring(I)
   T = base_ring(ord)
   spec(f, a) = map_coefficients(c -> evaluate(c, a), f; parent = T)
-  on((E, N, _), a) = all(iszero(evaluate(e, a)) for e in gens(fat_ideal(E))) &&
-                    any(!iszero(evaluate(n, a)) for n in gens(fat_ideal(N)))
+  on((E, N, _), a) = all(iszero(evaluate(e, a)) for e in gens(E)) &&
+                    any(!iszero(evaluate(n, a)) for n in gens(N))
   for a in pts
     bs = filter(b -> on(b, a), cgs)
     @test length(bs) == 1
     _, _, B = only(bs)
     J = ideal(T, elem_type(T)[spec(f, a) for f in gens(I)])
-    G = elem_type(T)[spec(g, a) for g in B]
-    @test (B == [one(R)]) == is_one(J)
+    G = elem_type(T)[spec(g, a) for g in gens(B) if !iszero(g)]
+    @test (gens(B) == [one(R)]) == is_one(J)
     @test ideal(T, G) == J
     @test ideal(T, elem_type(T)[leading_monomial(g; ordering = ord) for g in G]) == leading_ideal(J; ordering = ord)
   end
@@ -31,30 +31,30 @@ _points(K, m, r) = vec([collect(K.(t)) for t in Iterators.product(fill(r, m)...)
     T, _ = polynomial_ring(K, [:x1, :x2])
     cgs = comprehensive_groebner_system(I)
     @test length(cgs) == 2
-    E1, N1, _ = only(filter(t -> t[3] == [one(R)], cgs))
-    @test E1 == algebraic_set(zero(A))
-    @test N1 == algebraic_set(h)
-    E2, _, _ = only(filter(t -> t[3] != [one(R)], cgs))
-    @test E2 == algebraic_set(h^2)  # compared as sets
+    E1, N1, _ = only(filter(t -> gens(t[3]) == [one(R)], cgs))
+    @test is_zero(E1)
+    @test N1 == ideal(A, [h])
+    E2, _, _ = only(filter(t -> gens(t[3]) != [one(R)], cgs))
+    @test E2 == ideal(A, [h])
     _check_cgs(I, cgs, pts, default_ordering(T))
 
-    # restricting the parameter space with full and hole
-    cgs = comprehensive_groebner_system(I; full = algebraic_set(h))
-    @test length(cgs) == 1 && cgs[1][3] != [one(R)]
+    # restricting the parameter space with null and nonnull
+    cgs = comprehensive_groebner_system(I; null = ideal(A, [h]))
+    @test length(cgs) == 1 && gens(cgs[1][3]) != [one(R)]
     _check_cgs(I, cgs, filter(a -> iszero(evaluate(h, a)), pts), default_ordering(T))
-    cgs = comprehensive_groebner_system(I; hole = algebraic_set(h))
-    @test length(cgs) == 1 && cgs[1][3] == [one(R)]
+    cgs = comprehensive_groebner_system(I; nonnull = ideal(A, [h]))
+    @test length(cgs) == 1 && gens(cgs[1][3]) == [one(R)]
   end
 
-  # a system over GF(5), with lex ordering and the hole keyword
-  @testset "GF(5), lex ordering and hole" begin
+  # a system over GF(5), with lex ordering and the nonnull keyword
+  @testset "GF(5), lex ordering and nonnull" begin
     A, (a, b) = polynomial_ring(GF(5), [:a, :b])
     R, (x, y) = polynomial_ring(A, [:x, :y])
     T, _ = polynomial_ring(GF(5), [:x, :y])
     I = ideal(R, [a*x - b*y, x^2 - a])
     cgs = comprehensive_groebner_system(I; ordering = lex(R))
     _check_cgs(I, cgs, _points(GF(5), 2, 0:4), lex(T))
-    cgs = comprehensive_groebner_system(I; hole = algebraic_set(a*b))
+    cgs = comprehensive_groebner_system(I; nonnull = ideal(A, [a*b]))
     _check_cgs(I, cgs, filter(p -> !iszero(p[1]*p[2]), _points(GF(5), 2, 0:4)), default_ordering(T))
   end
 
@@ -63,12 +63,12 @@ _points(K, m, r) = vec([collect(K.(t)) for t in Iterators.product(fill(r, m)...)
     A, (a, b) = polynomial_ring(QQ, [:a, :b])
     R, (x,) = polynomial_ring(A, [:x])
     cgs = comprehensive_groebner_system(ideal(R, [R(2)]))
-    @test length(cgs) == 1 && cgs[1][3] == [one(R)]
+    @test length(cgs) == 1 && gens(cgs[1][3]) == [one(R)]
     for I in (ideal(R, elem_type(R)[]), ideal(R, [zero(R)]))
       cgs = comprehensive_groebner_system(I)
-      @test length(cgs) == 1 && isempty(cgs[1][3]) && cgs[1][1] == algebraic_set(zero(A))
+      @test length(cgs) == 1 && is_zero(cgs[1][3]) && is_zero(cgs[1][1])
     end
-    @test isempty(comprehensive_groebner_system(ideal(R, [a*x - b]); hole = algebraic_set(zero(A))))
+    @test isempty(comprehensive_groebner_system(ideal(R, [a*x - b]); nonnull = ideal(A, [zero(A)])))
     I = ideal(R, [R(a)])
     cgs = comprehensive_groebner_system(I)
     _check_cgs(I, cgs, _points(QQ, 2, -2:2), default_ordering(polynomial_ring(QQ, [:x])[1]))
@@ -85,6 +85,6 @@ _points(K, m, r) = vec([collect(K.(t)) for t in Iterators.product(fill(r, m)...)
     R, (x,) = polynomial_ring(A, [:x])
     @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); ordering = neglex(R))
     B, (c,) = polynomial_ring(QQ, [:c])
-    @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); full = algebraic_set(c))
+    @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); null = ideal(B, [c]))
   end
 end
