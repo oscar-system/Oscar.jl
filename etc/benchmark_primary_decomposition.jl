@@ -1,5 +1,5 @@
 # Benchmark of the native primary decomposition algorithms in
-# `src/Rings/groebner/primary-decomposition` against the corresponding procedures
+# `experimental/PrimaryDecomposition` against the corresponding procedures
 # of Singular's `primdec.lib`. Run with
 #   julia --project=. etc/benchmark_primary_decomposition.jl
 using Oscar

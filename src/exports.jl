@@ -1249,7 +1249,6 @@ export maximal_supersolvable_quotient
 export metadata
 export min_revlex_basis_encoding
 export min_weights
-export minimal_associated_primes, minimal_associated_primes_gtz
 export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
@@ -1504,7 +1503,6 @@ export presentation
 export preserved_quadratic_forms
 export preserved_sesquilinear_forms
 export primary_decomposition
-export primary_decomposition_gtz, primary_decomposition_native, primary_decomposition_sy
 export primary_invariants
 export prime_ideal
 export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
