@@ -113,5 +113,11 @@ fundamental_invariants(RG::RedGroupInvarRing, algorithm::Symbol = :default)
 ## Invariant Rings as Affine Algebras
 
 ```@docs
-affine_algebra(RG::RedGroupInvarRing)
+affine_algebra(RG::RedOrTorGroupInvarRing)
+```
+
+## The Hilbert Series
+
+```@docs
+hilbert_series(RG::RedOrTorGroupInvarRing)
 ```
