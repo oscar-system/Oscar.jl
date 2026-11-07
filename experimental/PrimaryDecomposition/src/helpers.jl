@@ -96,15 +96,16 @@ end
 # the squarefree part of `h` with the same saturation) and the least `k` such that
 # `I : f^k` is the saturation, so that `I = (I : h^oo) ∩ (I + <f^k>)`; see
 # `minsat` in Singular's `primdec.lib`. Returns `(saturation, factors, f, k)`
-# where `factors` are the irreducible factors of `f`.
-function _pd_split_by(I::MPolyIdeal, h::MPolyRingElem)
+# where `factors` are the irreducible factors of `f`. With `minimal=false` the
+# search for a minimal divisor is skipped, so `f` is the squarefree part of `h`.
+function _pd_split_by(I::MPolyIdeal, h::MPolyRingElem; minimal::Bool=true)
   R = base_ring(I)
   is_unit(h) && return I, typeof(h)[], one(R), 0
   facs = sort!([f for (f, _) in factor(h)]; by=total_degree)
   f = prod(facs)
   S, k = saturation_with_index(I, ideal(R, [f]))
   # drop factors that are not needed to obtain the saturation
-  if length(facs) > 1
+  if minimal && length(facs) > 1
     for g in reverse(facs)
       length(facs) == 1 && break
       rest = filter(!=(g), facs)
@@ -188,7 +189,7 @@ function _pd_contract(E::_PDExtension, gs::Vector)
   L = ideal(R, filter(!is_zero, [_pd_from_ext(E, g) for g in gs]))
   isempty(E.U) && return L
   h = _pd_lead_lcm(L, E.U)
-  S, _, _, _ = _pd_split_by(L, h)
+  S, _, _, _ = _pd_split_by(L, h; minimal=false)
   return S
 end
 
