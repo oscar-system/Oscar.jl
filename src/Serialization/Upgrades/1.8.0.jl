@@ -16,7 +16,9 @@ push!(upgrade_scripts_set, UpgradeScript(
     elseif type_name == "MatroidRealizationSpace"
       dict[:data][:one_realization] = parse(Bool, dict[:data][:one_realization])
     elseif type_name == "SelfProjectingMatroidRealizations"
-      dict[:data][:equality_of_realizationspaces] = parse(Bool, dict[:data][:equality_of_realizationspaces])
+      # nothing when the self-projecting realization space was not computed
+      equal = dict[:data][:equality_of_realizationspaces]
+      isnothing(equal) || (dict[:data][:equality_of_realizationspaces] = parse(Bool, equal))
 
       upgraded_mrs = upgrade_1_8_0(s, Dict{Symbol, Any}(
         :_type => Dict(:name => "MatroidRealizationSpace",
