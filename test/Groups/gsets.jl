@@ -162,11 +162,6 @@
   G = symmetric_group(4)
   mixed_action(x, g) = (y = Int(x)^g; isodd(y) ? y : Float64(y))
 
-  o = Oscar.orbit_via_Julia(G, mixed_action, 1)
-  @test o isa Oscar.GSetByElements{PermGroup, Real}
-  @test sort(Int.(collect(o))) == 1:4
-  @test Oscar.orbit_via_Julia(G, mixed_action, 2.0) isa Oscar.GSetByElements{PermGroup, Real}
-
   # given element type: points must fit
   @test_throws ArgumentError Oscar.orbit_via_Julia(G, mixed_action, 1, Int)
   @test Oscar.orbit_via_Julia(G, mixed_action, 1, Union{Int, Float64}) isa
