@@ -1,8 +1,9 @@
+import JSON
 
 # functions for accessing the precomputed data
 
 # the precomputed data for Atlas groups
-const OD_data = JSON.parsefile(joinpath(@__DIR__, "..", "data", "odresults.json"))
+const OD_data = JSON.parsefile(joinpath(@__DIR__, "odresults.json"))
 
 const OD_simple_names = Dict{String, String}()
 
@@ -52,7 +53,7 @@ Return a string that describes the orthogonal discriminant of `chi`:
 - one of `"O+"`, `"O-"` in positive characteristic,
 - something that can be evaluated with [`atlas_irrationality`](@ref)
   in characteristic `0`, and
-- `""` if `chi is not irreducible, not orthogonal, or has odd degree.
+- `""` if `chi` is not irreducible, not orthogonal, or has odd degree.
 
 # Examples
 ```jldoctest
@@ -235,7 +236,22 @@ function character_of_entry(d::Dict)
 end
 
 
-# Return `true` if `str` occurs as an entry in `d[:comment]`
+@doc raw"""
+    comment_matches(d::Dict, str::String)
+
+Return `true` if `d` describes an OD info (typically, `d` has been returned
+by `all_od_infos`) such that `str` occurs in `d[:comment]`,
+and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> length(all_od_infos(identifier => "A5", comment_matches => "ev"))
+2
+
+julia> length(all_od_infos(identifier => "A5", comment_matches => "AGR"))
+3
+```
+"""
 function comment_matches(d::Dict, str::String)
   @req haskey(d, :comment) "the dictionary has no :comment"
   return str in d[:comment]
@@ -349,9 +365,9 @@ The following conditions are supported.
   that encodes an algebraic integer),
   meaning entries only with this orthogonal discriminant,
 
-- `comment_matches`, with value a string (one of `"ev"`, `"specht"`, ...),
-  or a vector of such strings,
-  meaning entries whose comment contains these values.
+- `comment_matches`, with value a string or a vector of such strings,
+  meaning entries whose comment contains these values;
+  examples are `"ev"`, `"specht"`, `"syl(13)"`.
 
 For all conditions except the boolean valued ones, also a function can be
 given as value, meaning that all those entries satisfy this condition
@@ -524,28 +540,28 @@ function all_od_infos(L...)
         good_degree || continue
 
         good_od = true
-        if haskey(conditions, Oscar.OrthogonalDiscriminants.orthogonal_discriminant)
+        if haskey(conditions, orthogonal_discriminant)
           od = entry[4]
-          orthogonal_discriminant = conditions[Oscar.OrthogonalDiscriminants.orthogonal_discriminant]
-          if orthogonal_discriminant isa Function
-            (!orthogonal_discriminant(od)) && (good_od = false)
-          elseif orthogonal_discriminant isa String
-            (orthogonal_discriminant != od) && (good_od = false)
-          elseif !(od in orthogonal_discriminant)
+          od_condition = conditions[orthogonal_discriminant]
+          if od_condition isa Function
+            (!od_condition(od)) && (good_od = false)
+          elseif od_condition isa String
+            (od_condition != od) && (good_od = false)
+          elseif !(od in od_condition)
             good_od = false
           end
         end
         good_od || continue
 
         good_comment = true
-        if haskey(conditions, Oscar.OrthogonalDiscriminants.comment_matches)
+        if haskey(conditions, comment_matches)
           comment = entry[end]
-          comment_matches = conditions[Oscar.OrthogonalDiscriminants.comment_matches]
-          if comment_matches isa Function
-            (!comment_matches(comment)) && (good_comment = false)
-          elseif comment_matches isa String
-            (!(comment_matches in comment)) && (good_comment = false)
-          elseif is_empty(intersect(comment, comment_matches))
+          comment_condition = conditions[comment_matches]
+          if comment_condition isa Function
+            (!comment_condition(comment)) && (good_comment = false)
+          elseif comment_condition isa String
+            (!(comment_condition in comment)) && (good_comment = false)
+          elseif is_empty(intersect(comment, comment_condition))
             good_comment = false
           end
         end

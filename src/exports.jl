@@ -277,6 +277,7 @@ export all_character_table_names
 export all_cohomologies
 export all_groups_with_class_number
 export all_neighbors
+export all_od_infos
 export all_perfect_groups
 export all_primitive_groups
 export all_small_groups
@@ -442,6 +443,7 @@ export combinations
 export combinatorial_symmetries
 export comm
 export comm!
+export comment_matches
 export common_components
 export common_refinement
 export comparability_graph
@@ -562,6 +564,7 @@ export dicyclic_group
 export dihedral_group
 export dim
 export dim_of_torusfactor
+export dimension_specht_module
 export direct_product
 export direct_sum
 export direct_sum_components
@@ -738,6 +741,7 @@ export graded_image
 export graded_map
 export graded_polynomial_ring
 export grading_group
+export gram_determinant_specht_module
 export graph
 export graph_curve
 export graph_from_adjacency_matrix
@@ -1026,6 +1030,7 @@ export is_of_type
 export is_one
 export is_open_embedding
 export is_orbifold
+export is_orthogonally_stable
 export is_perfect, has_is_perfect, set_is_perfect
 export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
@@ -1424,6 +1429,8 @@ export orders_class_representatives
 export orders_perfect_groups
 export ordinary_table
 export orthogonal_components
+export orthogonal_discriminant
+export orthogonal_discriminants
 export orthogonal_group
 export orthogonal_group_bilinear
 export orthogonal_sign
@@ -1709,6 +1716,7 @@ export shortest_path_dijkstra
 export show_atlas_info
 export show_morphism
 export show_morphism_as_map
+export show_OD_info
 export show_subquo
 export sign
 export signed_incidence_matrix
