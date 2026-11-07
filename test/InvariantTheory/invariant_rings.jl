@@ -225,3 +225,33 @@ end
 
   @test length(basis(RS2, 1, chi)) == 1
 end
+
+@testset "Hilbert series of invariant rings" begin
+  # hilbert_series(IR) agrees with the Hilbert series of affine_algebra(IR) and,
+  # where the Molien series is implemented, p/q with molien_series(IR)
+  coeffs(f) = collect(coefficients(f))
+
+  K, a = cyclotomic_field(3, "a")
+  M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
+  P = matrix(GF(2), [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0])
+  IRs = [
+    invariant_ring(matrix_group(M1, M2)),
+    invariant_ring(GF(3), alternating_group(4)),
+    invariant_ring(matrix_group(P)),
+  ]
+  @test !Oscar.is_molien_series_implemented(IRs[3])
+
+  for IR in IRs
+    p, q = hilbert_series(IR)
+    pA, qA = hilbert_series(affine_algebra(IR)[1])
+    @test typeof((p, q)) == typeof((pA, qA))
+    @test coeffs(p) == coeffs(pA)
+    @test Dict(coeffs(f) => e for (f, e) in q) == Dict(coeffs(f) => e for (f, e) in qA)
+
+    Oscar.is_molien_series_implemented(IR) || continue
+    m = molien_series(IR)
+    Qt = base_ring(parent(m))
+    @test Qt(coeffs(p))//Qt(coeffs(evaluate(q))) == m
+  end
+end

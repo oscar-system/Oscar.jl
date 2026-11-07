@@ -142,6 +142,8 @@ iterate_basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 
 ```@docs
  molien_series([S::PolyRing], I::FinGroupInvarRing, [chi::GAPGroupClassFunction])
+
+hilbert_series(IR::FinGroupInvarRing)
 ```
 
 ## Primary Invariants

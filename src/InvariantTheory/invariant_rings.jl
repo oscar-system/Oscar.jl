@@ -739,6 +739,52 @@ is_molien_series_implemented(I::FinGroupInvarRing{<:Any,<:PermGroup}) = true
 
 ################################################################################
 #
+#  Hilbert series
+#
+################################################################################
+
+@doc raw"""
+    hilbert_series(IR::FinGroupInvarRing)
+
+Return the Hilbert series of `IR` as `hilbert_series` does for the graded affine algebra
+returned by `affine_algebra(IR)`: a pair $(p, q)$ of univariate polynomials such that
+$p/q$ is the Hilbert series, where $q = (1-t^{d_1}) \cdots (1-t^{d_s})$ and
+$d_1, \dots, d_s$ are the degrees of the fundamental invariants.
+
+If [`molien_series`](@ref) is implemented for `IR`, $p$ is computed from it, without
+the relations between the fundamental invariants.
+
+# Examples
+```jldoctest
+julia> IR = invariant_ring(matrix_group(-identity_matrix(QQ, 2)));
+
+julia> hilbert_series(IR)
+(-t^4 + 1, (-t^2 + 1)^3)
+
+julia> molien_series(IR)
+(t^2 + 1)//(t^4 - 2*t^2 + 1)
+```
+"""
+function hilbert_series(IR::FinGroupInvarRing)
+  if !is_molien_series_implemented(IR)
+    return hilbert_series(affine_algebra(IR)[1])
+  end
+
+  # Same ring and denominator as `hilbert_series(affine_algebra(IR)[1])`
+  fundamental_invariants(IR)
+  W = [[degree(Int, y)] for y in gens(IR.fundamental.S)]
+  S, _ = polynomial_ring(ZZ, :t; cached=false)
+  q = _hilbert_series_denominator(S, W)
+
+  m = molien_series(IR)
+  Qt = base_ring(parent(m))
+  qQ = change_coefficient_ring(QQ, evaluate(q); parent=Qt)
+  p = divexact(numerator(m) * qQ, denominator(m))
+  return change_coefficient_ring(ZZ, p; parent=S), q
+end
+
+################################################################################
+#
 #  Fundamental invariants
 #
 ################################################################################
