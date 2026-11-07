@@ -271,4 +271,16 @@
   end
   @test length(fundamental_invariants(invariant_ring(r4))) == 2
   @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
+
+  #binary quartics: the invariants of degrees 2 and 3 are algebraically independent
+  p, q = hilbert_series(invariant_ring(r4))
+  t = gen(parent(p))
+  @test p * (1 - t^2) * (1 - t^3) == evaluate(q)
+end
+
+@testset "Supertype of invariant rings" begin
+  #the invariant rings of finite groups, linearly reductive groups and tori share a supertype
+  @test Oscar.FinGroupInvarRing <: Oscar.InvarRing
+  @test Oscar.RedGroupInvarRing <: Oscar.InvarRing
+  @test Oscar.TorGroupInvarRing <: Oscar.InvarRing
 end

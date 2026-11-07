@@ -71,7 +71,7 @@ mutable struct RepresentationLinearlyReductiveGroup
 end
 
 # Invariant rings of linearly reductive groups
-@attributes mutable struct RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
+@attributes mutable struct RedGroupInvarRing{FldT,PolyRingElemT,PolyRingT} <: InvarRing
   field::FldT
   poly_ring::PolyRingT # graded
 
@@ -120,7 +120,7 @@ struct RepresentationTorusGroup
   weights::Vector{Vector{ZZRingElem}}
 end
 
-@attributes mutable struct TorGroupInvarRing{FldT,PolyRingElemT,PolyRingT}
+@attributes mutable struct TorGroupInvarRing{FldT,PolyRingElemT,PolyRingT} <: InvarRing
   field::FldT
   poly_ring::PolyRingT #graded
 
@@ -149,3 +149,6 @@ end
     return z
   end
 end
+
+# The two types have the same fields; methods on this Union read them
+const RedOrTorGroupInvarRing = Union{RedGroupInvarRing,TorGroupInvarRing}
