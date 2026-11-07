@@ -54,3 +54,49 @@ end
 
 # Ideals
 @register_serialization_type FreeAssociativeAlgebraIdeal
+
+################################################################################
+# QuaternionAlgebra
+
+# uses_id, so that the elements of one file share their parent: elements of
+# distinct quaternion algebras never compare equal, and quaternion_algebra does
+# not cache
+@register_serialization_type Hecke.QuaternionAlgebra uses_id
+
+type_and_params(A::Hecke.QuaternionAlgebra) = TypeAndParams(typeof(A), base_ring(A))
+
+function save_object(s::SerializerState, A::Hecke.QuaternionAlgebra)
+  a, b = Hecke.standard_form(A)
+  save_data_array(s) do
+    save_object(s, a)
+    save_object(s, b)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:Hecke.QuaternionAlgebra}, K::Field)
+  a, b = load_array_node(s) do _
+    load_object(s, elem_type(K), K)
+  end
+  return quaternion_algebra(K, a, b)
+end
+
+# Quaternion algebra element serialization
+@register_serialization_type Hecke.AssociativeAlgebraElem{
+  T, Hecke.QuaternionAlgebra{T}} where {T} "QuaternionAlgebraElem"
+
+type_and_params(x::Hecke.AssociativeAlgebraElem{T, Hecke.QuaternionAlgebra{T}}) where {T} =
+  TypeAndParams(typeof(x), parent(x))
+
+function save_object(
+  s::SerializerState, x::Hecke.AssociativeAlgebraElem{T, Hecke.QuaternionAlgebra{T}}
+) where {T}
+  save_object(s, coefficients(x))
+end
+
+# the type argument is the registered where-form, so dispatch is on the parent,
+# as for FreeAssociativeAlgebraElem
+function load_object(s::DeserializerState, ::Type{<:Hecke.AssociativeAlgebraElem},
+                     A::Hecke.QuaternionAlgebra)
+  K = base_ring(A)
+  return A(load_object(s, Vector{elem_type(K)}, K))
+end
