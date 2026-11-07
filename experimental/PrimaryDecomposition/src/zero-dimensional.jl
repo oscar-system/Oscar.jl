@@ -152,23 +152,92 @@ function _pd_evaluate_mod(Z::_PDZeroData, f, p::MPolyRingElem)
   return h
 end
 
-# Radical of a zero-dimensional ideal over a field of characteristic zero or a
-# finite field (Seidenberg's lemma).
-function _pd_zero_radical(I::MPolyIdeal)
-  R = base_ring(I)
-  F = coefficient_ring(R)
-  Z = _pd_zero_data(I)
-  isempty(Z.basis) && return I
-  T, _ = polynomial_ring(F, :T; cached=false)
-  gs = copy(gens(I))
+# The pairs `(j, g)` such that `g(x_j)` for the squarefree part `g` of the minimal
+# polynomial of the variable `x_j` on `R/I`; together with `I` they generate the
+# radical (Seidenberg's lemma, for a field of characteristic zero or a finite
+# field).
+function _pd_radical_generators(Z::_PDZeroData, T)
+  R = base_ring(Z.I)
+  res = Tuple{Int,Any}[]
   for j in 1:ngens(R)
     m = _pd_min_poly(T, _pd_mult_matrix(Z, j))
     degree(m) <= 1 && continue
     g = _pd_squarefree_part(m)
     degree(g) == degree(m) && continue
-    push!(gs, evaluate(g, gens(R)[j]))
+    push!(res, (j, g))
   end
-  return ideal(R, gs)
+  return res
+end
+
+function _pd_radical_ideal(Z::_PDZeroData, rg)
+  R = base_ring(Z.I)
+  return ideal(R, vcat(copy(gens(Z.I)), [evaluate(g, gens(R)[j]) for (j, g) in rg]))
+end
+
+# Radical of a zero-dimensional ideal over a field of characteristic zero or a
+# finite field (Seidenberg's lemma).
+function _pd_zero_radical(I::MPolyIdeal)
+  Z = _pd_zero_data(I)
+  isempty(Z.basis) && return I
+  T, _ = polynomial_ring(coefficient_ring(base_ring(I)), :T; cached=false)
+  return _pd_radical_ideal(Z, _pd_radical_generators(Z, T))
+end
+
+# The matrix of the polynomial `g` evaluated at the square matrix `M`.
+function _pd_matrix_poly(g, M::MatElem)
+  F = base_ring(M)
+  d = nrows(M)
+  cs = collect(coefficients(g))
+  H = cs[end] * identity_matrix(F, d)
+  for k in length(cs)-1:-1:1
+    H = H * M + cs[k] * identity_matrix(F, d)
+  end
+  return H
+end
+
+# The nilradical of `R/I` as a subspace of the coordinate space, in reduced row
+# echelon form, or `nothing` if `I` is radical. It is spanned by the products of
+# the basis with the radical generators, so no Groebner basis of the radical is
+# needed.
+function _pd_nilradical(Z::_PDZeroData, rg)
+  isempty(rg) && return nothing
+  F = coefficient_ring(base_ring(Z.I))
+  d = length(Z.basis)
+  S = zero_matrix(F, d * length(rg), d)
+  for (t, (j, g)) in enumerate(rg)
+    G = _pd_matrix_poly(g, _pd_mult_matrix(Z, j))
+    for a in 1:d, b in 1:d
+      S[(t-1)*d+a, b] = G[a, b]
+    end
+  end
+  r, Rm = rref(S)
+  return (r, Rm)
+end
+
+# The matrix of the endomorphism `M` of `R/I` on the quotient by the nilradical
+# `N`, in the basis given by the non-pivot coordinates.
+function _pd_quotient_matrix(M::MatElem, N)
+  N === nothing && return M
+  F = base_ring(M)
+  r, Rm = N
+  d = nrows(M)
+  piv = [findfirst(k -> !is_zero(Rm[i, k]), 1:d) for i in 1:r]
+  free = setdiff(1:d, piv)
+  Q = zero_matrix(F, length(free), length(free))
+  for (a, c) in enumerate(free)
+    v = [M[c, k] for k in 1:d]
+    for i in 1:r
+      s = v[piv[i]]
+      is_zero(s) && continue
+      for k in 1:d
+        v[k] -= s * Rm[i, k]
+      end
+    end
+    for (b, c2) in enumerate(free)
+      Q[a, b] = v[c2]
+    end
+  end
+  return Q
 end
 
 # A random linear form in the variables with coefficients in `F`.
@@ -188,13 +257,11 @@ function _pd_random_linear_form(R::MPolyRing, tries::Int)
   return p
 end
 
-# Characteristic polynomial of the multiplication by `p` on `R/I`.
-function _pd_charpoly(Z::_PDZeroData, T, p::MPolyRingElem)
+# The multiplication matrix of `p` on `R/I`.
+function _pd_poly_mult_matrix(Z::_PDZeroData, p::MPolyRingElem)
   R = base_ring(Z.I)
   F = coefficient_ring(R)
   d = length(Z.basis)
-  # build the multiplication matrix of `p` from the matrices of the variables;
-  # constants and general monomials are handled by reducing
   mons = [_pd_monomial(R, e) for e in Z.basis]
   nfs = normal_form([p * m for m in mons], Z.I; ordering=Z.o)
   M = zero_matrix(F, d, d)
@@ -203,7 +270,7 @@ function _pd_charpoly(Z::_PDZeroData, T, p::MPolyRingElem)
       M[k, Z.index[e]] = c
     end
   end
-  return charpoly(T, M)
+  return M
 end
 
 @doc raw"""
@@ -219,22 +286,24 @@ function _pd_zero_dimensional_decomposition(I::MPolyIdeal)
   F = coefficient_ring(R)
   I = _pd_clean(I)
   is_one(I) && return Tuple{typeof(I),typeof(I)}[]
-  J = _pd_zero_radical(I)
-  ZJ = _pd_zero_data(J)
-  ZI = _pd_zero_data(I)
+  Z = _pd_zero_data(I)
   T, _ = polynomial_ring(F, :T; cached=false)
+  rg = _pd_radical_generators(Z, T)
+  J = _pd_radical_ideal(Z, rg)
+  N = _pd_nilradical(Z, rg)
   tries = 0
   while true
     tries += 1
     tries > 60 && error("could not find a separating linear form (is the field too small?)")
     p = _pd_random_linear_form(R, tries)
-    chJ = _pd_charpoly(ZJ, T, p)
+    Mp = _pd_poly_mult_matrix(Z, p)
+    chJ = charpoly(T, _pd_quotient_matrix(Mp, N))
     fa = collect(factor(chJ))
     any(((_, e),) -> e != 1, fa) && continue
     if length(fa) == 1
       return [(I, J)]
     end
-    chI = _pd_charpoly(ZI, T, p)
+    chI = charpoly(T, Mp)
     faI = [(divexact(g, leading_coefficient(g)), e) for (g, e) in factor(chI)]
     res = Tuple{typeof(I),typeof(I)}[]
     ok = true
@@ -242,8 +311,8 @@ function _pd_zero_dimensional_decomposition(I::MPolyIdeal)
       g = divexact(g0, leading_coefficient(g0))
       idx = findfirst(((h, _),) -> h == g, faI)
       idx === nothing && (ok = false; break)
-      P = ideal(R, vcat(gens(J), [_pd_evaluate_mod(ZJ, g, p)]))
-      Q = ideal(R, vcat(gens(I), [_pd_evaluate_mod(ZI, g^faI[idx][2], p)]))
+      P = ideal(R, vcat(gens(J), [_pd_evaluate_mod(Z, g, p)]))
+      Q = ideal(R, vcat(gens(I), [_pd_evaluate_mod(Z, g^faI[idx][2], p)]))
       push!(res, (Q, P))
     end
     ok || continue
