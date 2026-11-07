@@ -1,7 +1,8 @@
 @doc raw"""
     comprehensive_groebner_system(I::MPolyIdeal;
       null::MPolyIdeal, nonnull::MPolyIdeal,
-      ordering::MonomialOrdering = default_ordering(base_ring(I)))
+      ordering::MonomialOrdering = default_ordering(base_ring(I)),
+      algorithm::Symbol = :KSW)
 
 If `ordering` is global, return a comprehensive Gröbner system of $I$ with respect to `ordering`.
 
@@ -24,10 +25,8 @@ of the same substitution in $I$.
     By default, `null` is the zero ideal and `nonnull` is the unit ideal,
     so that the segments cover the whole parameter space.
 
-Internally, the function calls `cgsdr` from the Singular library `grobcov.lib`,
-which implements the Kapur-Sun-Wang algorithm of [KSW10](@cite).
-Additionally, `cgsdr` ensures that the segments are disjoint
-and that the Gröbner bases are reduced.
+The keyword `algorithm` can be set to
+- `:KSW` (implementation of the Kapur-Sun-Wang algorithm [KSW10](@cite) in *Singular*).
 
 # Examples
 ```jldoctest
@@ -44,7 +43,9 @@ julia> comprehensive_groebner_system(ideal(R, [a*x - b]))
 """
 function comprehensive_groebner_system(I::MPolyIdeal;
     null::Union{MPolyIdeal,Nothing}=nothing, nonnull::Union{MPolyIdeal,Nothing}=nothing,
-    ordering::MonomialOrdering=default_ordering(base_ring(I)))
+    ordering::MonomialOrdering=default_ordering(base_ring(I)),
+    algorithm::Symbol=:KSW)
+  @req algorithm in (:KSW,) "Unsupported algorithm"
   R = base_ring(I)
   A = coefficient_ring(R)
   @req A isa MPolyRing "the coefficient ring must be a multivariate polynomial ring"

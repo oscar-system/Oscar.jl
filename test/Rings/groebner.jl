@@ -412,7 +412,7 @@ end
 @testset "comprehensive Groebner systems" begin
   A, (a, b) = polynomial_ring(QQ, [:a, :b])
   R, (x,) = polynomial_ring(A, [:x])
-  cgs = comprehensive_groebner_system(ideal(R, [a*x - b]))
+  cgs = comprehensive_groebner_system(ideal(R, [a*x - b]); algorithm = :KSW)
   @test [(gens(E), gens(N), gens(G)) for (E, N, G) in cgs] ==
         [([zero(A)], [a], [a*x - b]), ([a], [b, a], [one(R)]), ([b, a], [one(A)], [zero(R)])]
   cgs = comprehensive_groebner_system(ideal(R, [R(a)]))
@@ -464,4 +464,5 @@ end
   @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); ordering = neglex(R))
   B, (c,) = polynomial_ring(QQ, [:c])
   @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); null = ideal(B, [c]))
+  @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); algorithm = :foo)
 end
