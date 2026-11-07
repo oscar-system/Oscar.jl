@@ -756,13 +756,13 @@ $p/q$ is the Hilbert series, where $q = (1-t^{d_1}) \cdots (1-t^{d_s})$ and
 $d_1, \dots, d_s$ are the degrees of the fundamental invariants.
 
 # Examples
-```jldoctest
+```jldoctest; filter = Main.Oscar.doctestfilter_hash_changes_in_1_13()
 julia> G = linearly_reductive_group(:SL, 2, QQ);
 
 julia> RG = invariant_ring(representation_on_forms(G, 4));
 
 julia> hilbert_series(RG)
-(1, (-t^3 + 1)^1*(-t^2 + 1)^1)
+(1, (-t^2 + 1)^1*(-t^3 + 1)^1)
 ```
 
 ```jldoctest
