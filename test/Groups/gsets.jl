@@ -158,6 +158,19 @@
   orbs = orbits(orb)
   @test (length(orbs) == 1) && (orbs[1] === orb)
 
+  # mixed orbit actions
+  G = symmetric_group(4)
+  mixed_action(x, g) = (y = Int(x)^g; isodd(y) ? y : Float64(y))
+
+  # given element type: points must fit
+  @test_throws ArgumentError Oscar.orbit_via_Julia(G, mixed_action, 1, Int)
+  @test Oscar.orbit_via_Julia(G, mixed_action, 1, Union{Int, Float64}) isa
+        Oscar.GSetByElements{PermGroup, Union{Int, Float64}}
+
+  # via a G-set, its element type wins
+  @test_throws ArgumentError orbit(gset(G, mixed_action, [1]), 1)
+  @test length(orbit(gset(G, mixed_action, Union{Int, Float64}[1]), 1)) == 4
+
   # permutation
   G = alternating_group(6)
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
