@@ -1,7 +1,3 @@
-```@meta
-CurrentModule = Oscar
-```
-
 # Primary decomposition
 
 This is a native implementation of the algorithms of Singular's `primdec.lib`
