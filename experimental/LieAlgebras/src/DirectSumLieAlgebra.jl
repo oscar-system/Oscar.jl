@@ -102,6 +102,10 @@ end
   return all(is_abelian, L.summands)
 end
 
+function change_base_ring(R::Field, L::DirectSumLieAlgebra)
+  return direct_sum(R, LieAlgebra{elem_type(R)}[change_base_ring(R, S) for S in L.summands])
+end
+
 ###############################################################################
 #
 #   Direct sum functionality

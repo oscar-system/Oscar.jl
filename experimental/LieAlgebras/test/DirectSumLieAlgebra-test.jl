@@ -68,6 +68,26 @@
     end
   end
 
+  @testset "change_base_ring" begin
+    # the summands and the structure constants are carried over to the new field
+    K, _ = cyclotomic_field(4)
+    for Ss in (
+      LieAlgebra{QQFieldElem}[special_linear_lie_algebra(QQ, 2), lie_algebra(QQ, :B, 2)],
+      LieAlgebra{QQFieldElem}[],
+    )
+      L = direct_sum(QQ, Ss)
+      LK = change_base_ring(K, L)
+      @test LK isa DirectSumLieAlgebra{elem_type(K)}
+      @test coefficient_ring(LK) === K
+      @test dim(LK) == dim(L)
+      @test symbols(LK) == symbols(L)
+      for x in basis(L), y in basis(L)
+        @test LK(K.(coefficients(x * y))) ==
+          LK(K.(coefficients(x))) * LK(K.(coefficients(y)))
+      end
+    end
+  end
+
   @testset "properties" begin
     S1 = special_linear_lie_algebra(QQ, 2)
     S2 = lie_algebra(QQ, :A, 1)

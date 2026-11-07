@@ -606,7 +606,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRin
   F, cont = Oscar.AbstractAlgebra._remove_denominators(Rx, f)
   lF = factor(F)
   an = []
-  push!(an, Qtx(cont)*Oscar.AbstractAlgebra._restore_numerators(Qtx, lF.unit))
+  push!(an, Qtx(cont)*Oscar.AbstractAlgebra._restore_numerators(Qtx, unit(lF)))
   K = base_ring(f)
   Kt, t = polynomial_ring(K, :t, cached = false)
   for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) <= 0)

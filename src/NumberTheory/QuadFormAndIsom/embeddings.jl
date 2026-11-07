@@ -30,9 +30,9 @@ function __direct_sum(
   @hassert :ZZLatWithIsom 1 iszero(rank(intersect(cover(A), cover(B))))
 
   bas_cov_D = reduce(vcat, [basis_matrix(cover(A)), basis_matrix(cover(B))])
-  covD = lattice(V, bas_cov_D; isbasis=true)
+  covD = lattice(V, bas_cov_D; is_basis=true)
   bas_rel_D = reduce(vcat, [basis_matrix(relations(A)), basis_matrix(relations(B))])
-  relD = lattice(V, bas_rel_D; isbasis=true)
+  relD = lattice(V, bas_rel_D; is_basis=true)
   gensDA = Vector{QQFieldElem}[lift(a) for a in gens(A)]
   gensDB = Vector{QQFieldElem}[lift(b) for b in gens(B)]
   # D is A\oplus B, and we fix a set of generators given first the generators

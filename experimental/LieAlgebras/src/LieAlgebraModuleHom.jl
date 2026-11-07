@@ -11,10 +11,8 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(
-  h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
-) where {C2<:FieldElem}
-  return (h.matrix)::dense_matrix_type(C2)
+function matrix(h::LieAlgebraModuleHom)
+  return h.matrix
 end
 
 @doc raw"""
@@ -152,6 +150,8 @@ The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this 
 """
 @attr Bool function is_isomorphism(h::LieAlgebraModuleHom)
   isdefined(h, :inverse_isomorphism) && return true
+  # `is_invertible_with_inverse` returns a one-sided inverse for non-square matrices
+  is_square(matrix(h)) || return false
   fl, invmat = is_invertible_with_inverse(matrix(h))
   fl || return false
   h.inverse_isomorphism = LieAlgebraModuleHom(codomain(h), domain(h), invmat; check=false)
@@ -408,16 +408,17 @@ function hom_direct_sum(
     j in 1:size(hs, 2)
   ) "Domain/codomain mismatch"
 
-  Winjs = canonical_injections(W)
-  Vprojs = canonical_projections(V)
-  function map_basis(v)
-    return sum(
-      Winjs[j](sum(hs[i, j](Vprojs[i](v)) for i in 1:length(Vs); init=zero(Ws[j]))) for
-      j in 1:length(Ws);
-      init=zero(W),
-    )
+  mat = zero_matrix(coefficient_ring(W), dim(V), dim(W))
+  row = 0
+  for i in 1:length(Vs)
+    col = 0
+    for j in 1:length(Ws)
+      mat[(row + 1):(row + dim(Vs[i])), (col + 1):(col + dim(Ws[j]))] = matrix(hs[i, j])
+      col += dim(Ws[j])
+    end
+    row += dim(Vs[i])
   end
-  return hom(V, W, map(map_basis, basis(V)); check=false)
+  return hom(V, W, mat; check=false)
 end
 
 function hom_direct_sum(
@@ -552,7 +553,7 @@ function tensor_power(
   (codomain_fl, codomain_base, codomain_k) = _is_tensor_power(codomain)
   @req domain_fl "Domain must be an tensor power"
   @req codomain_fl "Codomain must be an tensor power"
-  @req domain_k == codomain_k "Exponent mismatch"
+  @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
   mat = reduce(

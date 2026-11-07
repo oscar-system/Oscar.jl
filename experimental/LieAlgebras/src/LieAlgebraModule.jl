@@ -378,7 +378,8 @@ function (V::LieAlgebraModule{C})(
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(parent(ai) === Vi for (ai, Vi) in zip(a, Vs)) "Incompatible modules."
-    return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
+    mat = reduce(hcat, map(_matrix, a); init=zero_matrix(coefficient_ring(V), 1, 0))
+    return LieAlgebraModuleElem(V, mat)
   elseif _is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::elem_type(V)
@@ -441,7 +442,7 @@ function Base.:-(
 end
 
 function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
-  coefficient_ring(v) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(v) === parent(c) "Incompatible rings."
   return LieAlgebraModuleElem(parent(v), _matrix(v) * c)
 end
 
@@ -450,7 +451,7 @@ function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
 end
 
 function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
-  coefficient_ring(v) != parent(c) && error("Incompatible rings.")
+  @req coefficient_ring(v) === parent(c) "Incompatible rings."
   return LieAlgebraModuleElem(parent(v), c * _matrix(v))
 end
 
@@ -518,16 +519,17 @@ end
 function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
-  cx = coefficients(x)
   V = parent(v)
-  return LieAlgebraModuleElem(
-    V,
-    sum(
-      cx[i] * _matrix(v) * transformation_matrix(V, i) for
-      i in 1:dim(parent(x)) if !iszero(cx[i]);
-      init=zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C),
-    ),
-  )
+  mat_x = _matrix(x)
+  mat_v = _matrix(v)
+  res = zero_matrix(coefficient_ring(V), 1, dim(V))::dense_matrix_type(C)
+  tmp = zero(res)
+  for i in 1:dim(parent(x))
+    is_zero_entry(mat_x, 1, i) && continue
+    tmp = mul!(tmp, mat_v, transformation_matrix(V, i))
+    res = addmul!(res, tmp, mat_x[1, i])
+  end
+  return LieAlgebraModuleElem(V, res)
 end
 
 function transformation_matrices(V::LieAlgebraModule{C}) where {C<:FieldElem}
@@ -748,7 +750,7 @@ end
 ######################## Standard module ########################
 
 # cache storage
-@attr LieAlgebraModule{elem_type(coefficient_ring(L))} function _standard_module(
+@attr LieAlgebraModule{elem_type(coefficient_ring(L)),elem_type(L)} function _standard_module(
   L::LinearLieAlgebra
 )
   return standard_module(L; cached=false)
@@ -1271,8 +1273,8 @@ function symmetric_power(
       return Tuple(zero(V) for _ in 1:k)
     end
     nz = findall(!iszero, coefficients(a))
-    @req length(nz) == 1 "Non-pure exterior power element."
-    @req isone(coeff(a, nz[1])) "Non-pure exterior power element."
+    @req length(nz) == 1 "Non-pure symmetric power element."
+    @req isone(coeff(a, nz[1])) "Non-pure symmetric power element."
     inds = ind_map[nz[1]]
     return Tuple(basis(V, i) for i in inds)
   end

@@ -303,13 +303,13 @@ function is_admissible_triple(
     if length(symbol(Ap)) > 1
       Ar = ZZLocalGenus(p, symbol(Ap)[1:end-1])
     else
-      Ar = genus(matrix(ZZ, 0, 0, []), p)
+      Ar = genus_from_gram(matrix(ZZ, 0, 0, []), p)
     end
 
     if length(symbol(Bp)) > 1
       Br = ZZLocalGenus(p, symbol(Bp)[1:end-1])
     else
-      Br = genus(matrix(ZZ, 0, 0, []), p)
+      Br = genus_from_gram(matrix(ZZ, 0, 0, []), p)
     end
 
     ABr = direct_sum(Ar, Br)

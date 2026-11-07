@@ -224,7 +224,7 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   _, u = hnf_with_transform(ZZ.(denominator(GB) * GB))
   B = u[1:rk-r,:] * BMWL
 
-  MWL = lll(lattice(V, B, isbasis=false))
+  MWL = lll(lattice(V, B; is_basis=false))
   u = solve(BMWL, basis_matrix(MWL); side=:left)
   u = ZZ.(u)
   mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
@@ -869,7 +869,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
   gen_tors = zip(tors, torsV)
   push!(torsV, identity_matrix(QQ,n))
   V = quadratic_space(QQ,GA)
-  L = lattice(V, reduce(vcat,torsV), isbasis=false)
+  L = lattice(V, reduce(vcat,torsV); is_basis=false)
   return basisA, collect(gen_tors), L
 end
 
@@ -1128,7 +1128,7 @@ function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
   k = coefficient_ring(kt)
   sing = Vector{elem_type(k)}[]
   for (p,v) in factor(d)
-    if v == 1
+    if v == 1 || (v == 2 && iszero(rem(numerator(j), p)))
       continue
     end
     r = k.(roots(p))
@@ -1137,21 +1137,14 @@ function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
     end
     @assert length(r) ==1
     rt = r[1]
-    if v == 2
-      # not a type II fiber
-      if j!=0
-        push!(sing, [rt,k(1)])
-      end
-    end
-    if v > 2
-      push!(sing, [rt,k(1)])
-    end
+    push!(sing, [rt,k(1)])
   end
   if sort
     sort!(sing, by=x->by_total_order(x[1]))
   end
   # fiber over infinity is always last (if it is there)
-  if degree(d) <= 12*euler_characteristic(X) - 2
+  v = 12*euler_characteristic(X) - degree(d)
+  if v > 2 || (v == 2 && degree(numerator(j)) >= degree(denominator(j)))
     push!(sing, k.([1, 0]))
   end
   return sing
