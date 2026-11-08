@@ -2249,3 +2249,27 @@ end
   @test codomain(psi) === new_cod
 end 
 
+
+# SubquoModule methods with formerly undefined variables
+@testset "SubquoModule regressions" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  F = free_module(R, 1)
+  M, _ = quo(F, [x^2*F[1]])
+  @test redirect_stdout(devnull) do
+    show_subquo(M)
+  end === nothing
+  gb = reduced_groebner_basis(M)
+  @test gb.isGB
+  @test !isempty(sprint(show, gb))
+  Mrel = SubquoModule(F, [x*F[1]], [x^2*F[1]])
+  ord = lex(gens(R))*lex(gens(F))
+  gb_rel = groebner_basis(Mrel; ordering=ord)
+  @test normal_form(x*F[1], gb_rel) == zero(F)
+  @test first(Oscar.normal_form_with_unit(x*F[1], gb_rel)) == zero(F)
+  J = ideal(R, [x])
+  @test M:J == quotient(M, J)
+  G = free_module(R, 2)
+  fl, h = is_canonically_isomorphic_with_map(SubquoModule(F, [x*F[1]]), SubquoModule(G, [x*G[1]]))
+  @test !fl
+  @test all(is_zero, h.(gens(domain(h))))
+end
