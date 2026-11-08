@@ -1,5 +1,5 @@
-using Distributed: RemoteChannel, Future, remotecall, @everywhere, WorkerPool, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers, procs
-import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager, rmprocs
+using Distributed: RemoteChannel, Future, remotecall, @everywhere, AbstractWorkerPool, addprocs, rmprocs, remotecall_eval, nworkers, procs
+import Distributed: remotecall, workers, remotecall_fetch, pmap, ClusterManager
 
 import .Serialization: put_type_and_params
 
@@ -14,63 +14,66 @@ functions [`remotecall`](https://docs.julialang.org/en/v1/stdlib/Distributed/#Di
 [remotecall_fetch](https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.remotecall_fetch-Tuple{Any,%20AbstractWorkerPool,%20Vararg{Any}})
 and [`pmap`](https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.pmap) will work with an `OscarWorkerPool` which is a subtype of
 [`AbstractWorkerPool`](https://docs.julialang.org/en/v1/stdlib/Distributed/#Distributed.AbstractWorkerPool).
+
+A worker that dies during a computation (it crashed, or was killed by
+[`remotecall_with_timeout`](@ref)) is replaced by a new one, if the pool
+knows how to start one (see [`oscar_worker_pool`](@ref)).
 """
 mutable struct OscarWorkerPool <: AbstractWorkerPool
-  wp::WorkerPool # the plain worker pool
-  channel::Channel{Int} # required for the `AbstractWorkerPool` interface
-  workers::Set{Int}     # same
-  oscar_channels::Dict{Int, <:RemoteChannel} # channels for sending `type_params` to the workers
-  init_expr::Expr
+  # `channel` (free workers) and `workers` (all workers) are the fields the default
+  # `AbstractWorkerPool` methods of Distributed work with (`take!`, `put!`, `push!`,
+  # `length`, `isready`); in particular `take!` drops dead workers lazily.
+  channel::Channel{Int}
+  workers::Set{Int}
+  oscar_channels::Dict{Int, RemoteChannel} # channels for sending `type_and_params` to the workers
+  init_expr::Expr # evaluated on every worker after `using Oscar`
+  addworker::Union{Function, Nothing} # () -> id of a new worker; `nothing`: dead workers are not replaced
 
-  function OscarWorkerPool(n::Int, init_expr::Expr=:(); kw...)
-    wids = addprocs(n; kw...)
-    wp = WorkerPool(wids)
-    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
+  function OscarWorkerPool(wids::Vector{Int}, init_expr::Expr, addworker::Union{Function, Nothing})
+    wp = new(Channel{Int}(typemax(Int)), Set{Int}(), Dict{Int, RemoteChannel}(), init_expr, addworker)
+    # @everywhere can only be used on top-level, so `push!` does `remotecall_eval`.
+    asyncmap(wid -> push!(wp, wid), wids)
+    return wp
+  end
+end
+
+function OscarWorkerPool(n::Int, init_expr::Expr=:(); kw...)
+  return OscarWorkerPool(addprocs(n; kw...), init_expr, () -> only(addprocs(1; kw...)))
+end
+
+function OscarWorkerPool(manager::ClusterManager, init_expr::Expr=:();
+                         project=Base.active_project(), addworker=nothing, kw...)
+  wids = addprocs(manager; kw...)
+  if !isnothing(project)
     asyncmap(wids) do wid
-      remotecall_eval(Main, wid, :(using Oscar))
-      remotecall_eval(Main, wid, init_expr)
+      remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); Pkg.instantiate()))
     end
-
-    return new(wp, wp.channel, wp.workers, Dict{Int, RemoteChannel}(), init_expr)
   end
-
-  function OscarWorkerPool(manager::ClusterManager, init_expr::Expr=:(); project=Base.active_project(), kw...)
-    wids = addprocs(manager; kw...)
-    wp = WorkerPool(wids)
-    # @everywhere can only be used on top-level, so have to do `remotecall_eval` here.
-    if !isnothing(project)
-      depot_path = copy(Base.DEPOT_PATH)
-      asyncmap(wids) do wid
-        remotecall_eval(Main, wid, :(empty!(Base.DEPOT_PATH); append!(Base.DEPOT_PATH, $depot_path)))
-        remotecall_eval(Main, wid, :(using Pkg; Pkg.activate($project); using Oscar))
-        remotecall_eval(Main, wid, init_expr)
-      end
-    else
-      asyncmap(wids) do wid
-        remotecall_eval(Main, wid, :(using Oscar))
-        remotecall_eval(Main, wid, init_expr)
-      end
-    end
-    return new(wp, wp.channel, wp.workers, Dict{Int, RemoteChannel}(), init_expr)
-  end
+  return OscarWorkerPool(wids, init_expr, addworker)
 end
 
 @doc raw"""
      oscar_worker_pool(n::Int, init_expr::Expr=:(); kw...)
-     oscar_worker_pool(f::Function, n::Int, init_expr=:(); kw...)
-     oscar_worker_pool(manager::ClusterManager, init_expr=:(); project=Base.active_project(), kw...)
-     oscar_worker_pool(f::Function, manager::ClusterManager, init_expr=:(); project=Base.active_project(), kw...)
+     oscar_worker_pool(f::Function, n::Int, init_expr::Expr=:(); kw...)
+     oscar_worker_pool(manager::ClusterManager, init_expr::Expr=:(); project=Base.active_project(), addworker=nothing, kw...)
+     oscar_worker_pool(f::Function, manager::ClusterManager, init_expr::Expr=:(); project=Base.active_project(), addworker=nothing, kw...)
 
 Create an `OscarWorkerPool` with `n` separate processes running Oscar.
 There is also the option to use an `OscarWorkerPool` within a context,
 such that closing down the processes happens automatically.
-The `init_expr` can be used to pass an initial expression that will be evaluated
-on all workers as well as any new workers being pushed to the pool. 
+The `init_expr` is evaluated on every worker after loading Oscar, including
+workers added to the pool later.
 
 Keyword arguments will get passed to `addprocs` when initializing the workers,
 for example use `exeflags` to specify settings for the worker processes.
 When passing a `manager`, the `project` argument will determine which project to activate on the machines in the cluster.
 The default is to use `Base.active_project()` mimicking the local setting, passing nothing won't activate any project.
+
+A worker that dies is replaced by a new one. With `n` workers the replacement
+is started like the others, with a `manager` only if `addworker` is given: a
+function without arguments that starts one worker and returns its id, for
+example `() -> only(addprocs(1))` for a replacement on the local machine.
+Without `addworker` the pool shrinks when a worker dies.
 
 # Example
 The following code will start up 3 processes with Oscar,
@@ -83,16 +86,14 @@ results = oscar_worker_pool(3; exeflags="--heap-size-hint=8G") do wp
 end
 ```
 """
-oscar_worker_pool(n::Int, init_expr=:(); kw...) = OscarWorkerPool(n, init_expr; kw...)
-oscar_worker_pool(manager::ClusterManager, init_expr=:(); kw...) = OscarWorkerPool(manager, init_expr; kw...)
+oscar_worker_pool(n::Int, init_expr::Expr=:(); kw...) = OscarWorkerPool(n, init_expr; kw...)
+oscar_worker_pool(manager::ClusterManager, init_expr::Expr=:(); kw...) = OscarWorkerPool(manager, init_expr; kw...)
 
 function oscar_worker_pool(f::Function, args...; kw...)
   wp = OscarWorkerPool(args...; kw...)
   local results
   try
     results = f(wp)
-  catch e
-    rethrow(e)
   finally
     close!(wp)
   end
@@ -100,47 +101,22 @@ function oscar_worker_pool(f::Function, args...; kw...)
   return results
 end
 
-### The following implements the `AbstractWorkerPool` interface
+### The following implements the `AbstractWorkerPool` interface;
+### `take!`, `put!`, `length` and `isready` are the defaults of Distributed.
 
 # Add a new worker to the pool
 function push!(wp::OscarWorkerPool, id::Int)
   # Make sure the node is running Oscar
   remotecall_eval(Main, id, :(using Oscar))
   remotecall_eval(Main, id, wp.init_expr)
-  push!(wp.wp, id)
   push!(wp.workers, id)
-end
-
-# Take a worker from the pool; this marks it as being busy.
-function Base.take!(wp::OscarWorkerPool)
-  return take!(wp.wp)
-end
-
-# Put a formerly busy worker back into the pool.
-function Base.put!(wp::OscarWorkerPool, a::Int)
-  return put!(wp.wp, a)
-end
-
-# Get the number of all workers associated to the pool.
-function length(wp::OscarWorkerPool)
-  return length(wp.wp)
-end
-
-# Return whether any worker is available for work.
-function Base.isready(wp::OscarWorkerPool)
-  return isready(wp.wp)
+  put!(wp.channel, id)
+  return wp
 end
 
 ### end of implementation interface `AbstractWorkerPool`
 
 ### extra functionality
-function rmprocs(wp::OscarWorkerPool, wid::Int)
-  rmprocs(wid; waitfor=0)
-  # clear dead workers
-  wp.workers = Set{Int}([i for i in wp.workers if i in procs()])
-  wp.wp = WorkerPool(collect(wp.workers))
-  wp.channel = wp.wp.channel
-end
 
 workers(wp::OscarWorkerPool) = collect(wp.workers)
 
@@ -151,6 +127,24 @@ function get_channel(wp::OscarWorkerPool, id::Int; channel_size::Int=1024)
 end
 
 close!(wp::OscarWorkerPool) = rmprocs(workers(wp)...)
+
+# Forget the lost worker `wid` (dead, or alive but to be killed) and start a replacement.
+function replace_worker!(wp::OscarWorkerPool, wid::Int)
+  wid in procs() && rmprocs(wid; waitfor=0)
+  delete!(wp.workers, wid)
+  delete!(wp.oscar_channels, wid)
+  isnothing(wp.addworker) && return
+  try
+    push!(wp, wp.addworker())
+  catch e
+    @warn "could not start a replacement for worker $wid" exception=(e, catch_backtrace())
+  end
+end
+
+# Hand back the worker `wid` after a call: to the pool if it is alive, replace it if it died.
+function release!(wp::OscarWorkerPool, wid::Int)
+  wid in procs() ? put!(wp, wid) : replace_worker!(wp, wid)
+end
 
 # extend functionality so that `pmap` works with Oscar stuff
 function put_type_and_params(wp::OscarWorkerPool, a::Any)
@@ -253,14 +247,18 @@ process_result!(ctx, id::Int, res) = ctx
 # `OscarWorkerPool` is being used, loads of other functionality like `pmap`
 # will run out of the box.
 =#
-function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
-  wid = take!(wp)
+function put_args_params(wp::OscarWorkerPool, wid::Int, args, kwargs)
   for a in args
     put_type_and_params(get_channel(wp, wid), a)
   end
   for a in kwargs
     put_type_and_params(get_channel(wp, wid), a)
   end
+end
+
+function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
+  wid = take!(wp)
+  put_args_params(wp, wid, args, kwargs)
 
   # Copied from Distributed.jl/src/workerpool.jl.
   # This puts the worker back to the pool once the future is ready
@@ -269,14 +267,14 @@ function remotecall(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   try
     fut = remotecall(f, wid, args...; kwargs...)
   catch
-    put!(wp, wid)
+    release!(wp, wid)
     rethrow()
   end
   t = Threads.@spawn Threads.threadpool() try
     wait(fut)
   catch
   finally
-    put!(wp, wid)
+    release!(wp, wid)
   end
   errormonitor(t)
 
@@ -288,56 +286,89 @@ function remotecall_fetch(f::Any, wp::OscarWorkerPool, args...; kwargs...)
   # this is inefficient and can clog up channels
   # TODO only send params when necessary
   # and/or figure out how to clear channels
-  for a in args
-    put_type_and_params(get_channel(wp, wid), a)
+  try
+    put_args_params(wp, wid, args, kwargs)
+    return remotecall_fetch(f, wid, args...; kwargs...)
+  finally
+    release!(wp, wid)
   end
-  for a in kwargs
-    put_type_and_params(get_channel(wp, wid), a)
-  end
-  result = remotecall_fetch(f, wid, args...; kwargs...)
-  put!(wp, wid)
-  return result
 end
 
-struct TimeoutException <: Exception end
+@doc raw"""
+    TimeoutException
 
-function remotecall_with_timeout(f::Any, wp::OscarWorkerPool,
-                                 timeout,
-                                 args...; kwargs...)
+Thrown by [`remotecall_with_timeout`](@ref) when the computation did not finish in time.
+"""
+struct TimeoutException <: Exception
+  timeout::Float64
+end
+
+Base.showerror(io::IO, e::TimeoutException) = print(io, "computation did not finish within $(e.timeout) seconds")
+
+@doc raw"""
+    remotecall_with_timeout(f, wp::OscarWorkerPool, timeout::Real, args...; kwargs...)
+
+Like `remotecall_fetch(f, wp, args...; kwargs...)`, but if the result is not
+there after `timeout` seconds, the worker is killed, replaced by a new one (see
+[`oscar_worker_pool`](@ref)) and a [`TimeoutException`](@ref) is thrown.
+Killing the worker is the only reliable way to stop a computation that is stuck
+in a C library.
+"""
+function remotecall_with_timeout(f::Any, wp::OscarWorkerPool, timeout::Real, args...; kwargs...)
   wid = take!(wp)
-
-  # Ship the arguments' type-params (e.g. parent rings) to the worker up front.
-  for a in args
-    put_type_and_params(get_channel(wp, wid), a)
+  local t
+  try
+    put_args_params(wp, wid, args, kwargs)
+    t = @async remotecall_fetch(f, wid, args...; kwargs...)
+  catch
+    release!(wp, wid)
+    rethrow()
   end
-  for a in kwargs
-    put_type_and_params(get_channel(wp, wid), a)
+  if timedwait(() -> istaskdone(t), timeout) == :timed_out
+    replace_worker!(wp, wid)
+    throw(TimeoutException(timeout))
   end
-
-  fut = @async remotecall_fetch(f, wid, args...; kwargs...)
-
-  # `timeout` is in minutes. The computation may be an uninterruptible C call
-  # (msolve / Singular / f4), so the only reliable way to stop it is to kill the
-  # worker process; we then drop it from the pool and spawn a replacement.
-  if timedwait(() -> istaskdone(fut), timeout * 60) == :timed_out
-    rmprocs(wid; waitfor=0)             # imported from Distributed; kills the process
-    delete!(wp.workers, wid)            # same Set object as wp.wp.workers
-    push!(wp, first(addprocs(1)))       # replacement runs `using Oscar` + init_expr
-    throw(TimeoutException())
-  end
-
-  # Task finished in time: worker is healthy regardless of success/failure, so
-  # return it to the pool. `fetch` rethrows if the computation itself errored.
-  put!(wp, wid)
-  return fetch(fut)
+  release!(wp, wid)
+  return fetch(t)
 end
 
 # this is here so that setting batchsize still works
 type_and_params(p::Base.Iterators.Zip) = type_and_params(first(p))
-  
-function pmap(f::Any, wp::OscarWorkerPool, c; kwargs...)
+
+# The pool `pmap` runs on: it shares the free and all workers with `wp`, but its
+# calls do not send the `type_and_params` of their arguments again, since `pmap`
+# sends those of the whole collection `c` up front; only a worker that joined `wp`
+# after that (a replacement for a dead one) gets them on its first call.
+# Distributed's `pmap` applies `on_error` on the worker, so it never sees a worker
+# that died; with `lost_worker` set (`on_error` without batching) that call returns
+# `lost_worker(exception)` instead of ending the whole `pmap`.
+struct PmapPool <: AbstractWorkerPool
+  channel::Channel{Int}
+  workers::Set{Int}
+  wp::OscarWorkerPool
+  c::Any
+  has_params::Set{Int}
+  lost_worker::Union{Function, Nothing}
+end
+
+function remotecall_fetch(f::Any, p::PmapPool, args...; kwargs...)
+  wid = take!(p)
+  try
+    wid in p.has_params || (put_type_and_params(get_channel(p.wp, wid), p.c); push!(p.has_params, wid))
+    return remotecall_fetch(f, wid, args...; kwargs...)
+  catch e
+    (isnothing(p.lost_worker) || wid in procs()) && rethrow()
+    return p.lost_worker(e)
+  finally
+    release!(p.wp, wid)
+  end
+end
+
+function pmap(f::Any, wp::OscarWorkerPool, c; on_error=nothing, batch_size=1, kwargs...)
   put_type_and_params(wp, c)
-  pmap(f, wp.wp, c; kwargs...)
+  lost_worker = batch_size == 1 ? on_error : nothing
+  p = PmapPool(wp.channel, wp.workers, wp, c, Set(wp.workers), lost_worker)
+  return pmap(f, p, c; on_error, batch_size, kwargs...)
 end
 
 include("determinants.jl")
