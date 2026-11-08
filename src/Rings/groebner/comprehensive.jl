@@ -63,12 +63,11 @@ function comprehensive_groebner_system(I::MPolyIdeal;
       "null", singular_generators(ideal(FX, gens(null)), o),
       "nonnull", singular_generators(ideal(FX, gens(nonnull)), o))
   # cgsdr returns polynomials over Frac(K[U]) whose coefficients lie in K[U]
-  to_A(c) = divexact(numerator(c), denominator(c))
-  function to_ideal(S, f, J)
-    v = elem_type(S)[f(g) for g in gens(ideal(FX, J)) if !iszero(g)]
-    return ideal(S, isempty(v) ? [zero(S)] : v)
+  cgs = Tuple{MPolyIdeal{elem_type(A)}, MPolyIdeal{elem_type(A)}, MPolyIdeal{elem_type(R)}}[]
+  for branch in branches
+    E, N, G = ([map_coefficients(c -> divexact(numerator(c), denominator(c)), g; parent=R)
+                for g in gens(ideal(FX, J))] for J in branch)
+    push!(cgs, (ideal(A, constant_coefficient.(E)), ideal(A, constant_coefficient.(N)), ideal(R, G)))
   end
-  to_A_ideal(J) = to_ideal(A, g -> to_A(constant_coefficient(g)), J)
-  to_R_ideal(J) = to_ideal(R, g -> map_coefficients(to_A, g; parent=R), J)
-  return [(to_A_ideal(E), to_A_ideal(N), to_R_ideal(G)) for (E, N, G) in branches]
+  return cgs
 end
