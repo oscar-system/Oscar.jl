@@ -93,13 +93,16 @@
     @test GAP.Globals.FamilyObj(GapObj(P)) === GAP.Globals.FamilyObj(GapObj(S))
   end
   @testset "load files serialized with 1.8.2" begin
-    test_upgrade_folder("version_1_8_2")
+    test_upgrade_folder("version_1_8_2"; exclude=[
+      # free groups of infinite rank, tested below
+      "FPGroup", "FPGroupElem",
+    ])
   end
 
   @testset "load groups serialized via GapObj" begin
     # full groups viewed as `SubFPGroup` or `SubPcGroup`, which are created by
     # `as_sub_fp_group` and `as_sub_pc_group`, and free groups of infinite rank
-    loadold(name) = load(joinpath(Main.serialization_upgrade_test_path, "version_1_9_0_dev", name))
+    loadold(name) = load(joinpath(Main.serialization_upgrade_test_path, "version_1_8_2", name))
 
     Oscar.reset_global_serializer_state()
     x = loadold("SubFPGroupElem-1/0.mrdi")
