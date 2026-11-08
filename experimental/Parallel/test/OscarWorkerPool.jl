@@ -65,6 +65,17 @@
       @test isready(wp)
       pop!(workers(wp)) # `push!` re-listed the worker; `close!` must remove it once
     end
+
+    @testset "remotecall with timeout" begin
+      process_id = only(workers(wp))
+      @test_throws TimeoutException remotecall_with_timeout(() -> sleep(2), wp, 0)
+      @test process_id != only(workers(wp))
+    end
+
+    @testset "reuse after timeout" begin
+      R, (x, y, z) = GF(101)[:x, :y, :z]
+      @test pmap(f->f^2, wp, gens(R)) == [x^2, y^2, z^2]
+    end
   end
   sleep(2)
   yield()
