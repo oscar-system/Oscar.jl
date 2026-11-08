@@ -26,6 +26,8 @@
   @test sprint(show, rep1) == "Representation of degree 3 of linearly reductive group"
 
   R_rep1 = invariant_ring(rep1)
+  @test sprint(show, R_rep1) == "Invariant ring of linearly reductive group"
+  @test sprint(show, R_rep1; context=:supercompact => true) == "Invariant ring"
   FI_rep1 = fundamental_invariants(R_rep1)
   @test length(FI_rep1) == 1
 
@@ -132,6 +134,7 @@
   @test weights(representation_from_weights(T, ZZ.([-3, -1, 1, 2]))) == weights(r)
   @test_throws ArgumentError representation_from_weights(torus_group(QQ, 2), [1, -1])
   I = invariant_ring(r)
+  @test sprint(show, I) == "Invariant ring of torus"
   f = fundamental_invariants(I)
   @test length(f) == 6
 
@@ -271,4 +274,16 @@
   end
   @test length(fundamental_invariants(invariant_ring(r4))) == 2
   @test_throws ArgumentError fundamental_invariants(invariant_ring(r4), :king)
+
+  #binary quartics: the invariants of degrees 2 and 3 are algebraically independent
+  p, q = hilbert_series(invariant_ring(r4))
+  t = gen(parent(p))
+  @test p * (1 - t^2) * (1 - t^3) == evaluate(q)
+end
+
+@testset "Supertype of invariant rings" begin
+  #the invariant rings of finite groups, linearly reductive groups and tori share a supertype
+  @test Oscar.FinGroupInvarRing <: Oscar.InvarRing
+  @test Oscar.RedGroupInvarRing <: Oscar.InvarRing
+  @test Oscar.TorGroupInvarRing <: Oscar.InvarRing
 end
