@@ -248,7 +248,7 @@ function Oscar.extension_field(f::AbstractAlgebra.Generic.Poly{<:NumFieldElem}; 
 end
 
 function refined_derived_series(G::PermGroup)
-  s = GAP.Globals.PcSeries(GAP.Globals.Pcgs(GapObj(G)))
+  s = GAP.Globals.PcSeries(Oscar.GAPWrap.Pcgs(GapObj(G)))
   return  Oscar._as_subgroups(G,s)
 end
 
@@ -599,7 +599,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
         p = parent(s)
         if p == QQ
           lf = factor(s, ZZ)
-          t = prod([p for (p, k) = lf if isodd(k)], init = ZZ(1)) * lf.unit
+          t = prod([p for (p, k) = lf if isodd(k)], init = ZZ(1)) * unit(lf)
           r = root(s//t, 2)    
         else
           _, ma = absolute_simple_field(p)

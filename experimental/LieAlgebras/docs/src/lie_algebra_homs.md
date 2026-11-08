@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Lie algebra homomorphisms
 
 Homomorphisms of Lie algebras in Oscar are represented by the type
@@ -29,7 +23,7 @@ The following functions are available for `LieAlgebraHom`s:
 For a homomorphism $h: L_1 \to L_2$, `domain(h)` and `codomain(h)` return $L_1$ and $L_2$ respectively.
 
 ```@docs
-matrix(::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:FieldElem}
+matrix(::LieAlgebraHom)
 ```
 
 ### Image

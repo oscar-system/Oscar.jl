@@ -20,7 +20,7 @@ julia> ac = rational_equivalence_class(d)
 Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> toric_variety(ac)
-Normal, simplicial toric variety
+Q-factorial normal toric variety
 ```
 """
 toric_variety(ac::RationalEquivalenceClass) = ac.v

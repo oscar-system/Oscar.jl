@@ -13,7 +13,7 @@ julia> filt = filter(pi -> pi[ord7[1]] != 0, pis);
 
 julia> degree.(filt)
 2-element Vector{QQFieldElem}:
- 100
+  100
  1800
 
 julia> ord5 = findall(is_equal(5), ords);
@@ -32,7 +32,7 @@ julia> ord3 = findall(is_equal(3), ords);
 
 julia> [class_multiplication_coefficient(t, 3, i, ord7[1]) for i in ord3]
 2-element Vector{ZZRingElem}:
- 0
+  0
  70
 
 julia> s = mx[findfirst(is_equal(filt[2]), pis)];

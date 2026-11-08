@@ -37,13 +37,57 @@
 
     @testset "resuse pool" begin
       Qx, x = QQ[:x];
-      pmap(f -> order(class_group(maximal_order(number_field(f; cached = false)[1]))[1]),
-           wp,
-           [x^2 + d for d in PrimesSet(10000, 11000)])
+      pmap(identity, wp, [x^2 + d for d in PrimesSet(10000, 11000)])
 
-      pmap(f -> order(class_group(maximal_order(number_field(f; cached = false)[1]))[1]),
-           wp,
-           [x^2 + d for d in PrimesSet(10000, 11000)])
+      pmap(identity, wp, [x^2 + d for d in PrimesSet(10000, 11000)])
+    end
+
+    # starting a worker loads Oscar, so reuse the pool
+    @testset "modular determinants" begin
+      P, t = ZZ[:t]
+      m = 5 # from m = 12 it starts to get interesting in terms of timings
+      A = matrix_space(P, m, m)([rand(P, 1:100, -1000:1000) for _ in 1:m, _ in 1:m]);
+      @test det(A) == Oscar.det_modular_coeff_rec(A)
+      @test det(A) == Oscar.det_modular_coeff_rec(A; wp)
+    end
+
+    @testset "determinant with naive height bound" begin
+      Zx, x = polynomial_ring(ZZ, :x)
+      A = matrix(Zx, [x 1; 2 x+1])
+      @test Oscar.det_modular_coeff_rec(A; bound=:Naive) == det(A)
+    end
+
+    # Return a taken worker via `push!`; last, since a failure leaves it taken.
+    @testset "push!" begin
+      id = take!(wp)
+      @test !isready(wp)
+      push!(wp, id)
+      @test isready(wp)
+      @test workers(wp) == [id]
+    end
+
+    @testset "remotecall with timeout" begin
+      process_id = only(workers(wp))
+      @test_throws TimeoutException remotecall_with_timeout(() -> sleep(10), wp, 0.5)
+      @test process_id != only(workers(wp))
+      @test remotecall_with_timeout(() -> 1 + 1, wp, 60) == 2
+    end
+
+    @testset "replace crashed worker" begin
+      process_id = only(workers(wp))
+      R, (x, y, z) = GF(101)[:x, :y, :z]
+      # the first call kills its worker, the others run on the replacement
+      res = pmap(wp, gens(R); on_error=identity) do f
+        f == x && exit(1)
+        f^2
+      end
+      @test res[1] isa Exception && res[2:3] == [y^2, z^2]
+      @test process_id != only(workers(wp))
+    end
+
+    @testset "reuse after timeout" begin
+      R, (x, y, z) = GF(101)[:x, :y, :z]
+      @test pmap(f->f^2, wp, gens(R)) == [x^2, y^2, z^2]
     end
 
     @testset "remotecall with timeout" begin
@@ -60,5 +104,3 @@
   sleep(2)
   yield()
 end
-
-  

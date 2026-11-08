@@ -3,12 +3,12 @@
 ####################
 
 @doc raw"""
-    chain_complex(V::ModuleFPHom...; seed::Int = 0)
+    chain_complex(V::OFPModuleHom...; seed::Int = 0)
 
 Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the chain complex defined by these homomorphisms.
 
-    chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
+    chain_complex(V::Vector{<:OFPModuleHom}; seed::Int = 0)
 
 Given a vector `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the chain complex defined by these homomorphisms.
@@ -19,12 +19,12 @@ return the chain complex defined by these homomorphisms.
 !!! note
     The function checks whether successive homomorphisms indeed compose to zero.
 """
-function chain_complex(V::ModuleFPHom...; seed::Int = 0)
-  return ComplexOfMorphisms(ModuleFP, collect(V); typ = :chain, seed = seed)
+function chain_complex(V::OFPModuleHom...; seed::Int = 0)
+  return ComplexOfMorphisms(OFPModule, collect(V); typ = :chain, seed = seed)
 end
 
-function chain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0, check::Bool=true)
-  return ComplexOfMorphisms(ModuleFP, V; typ = :chain, seed = seed, check=check)
+function chain_complex(V::Vector{<:OFPModuleHom}; seed::Int = 0, check::Bool=true)
+  return ComplexOfMorphisms(OFPModule, V; typ = :chain, seed = seed, check=check)
 end
 
 ####################
@@ -34,12 +34,12 @@ end
 ####################
 
 @doc raw"""
-    cochain_complex(V::ModuleFPHom...; seed::Int = 0)
+    cochain_complex(V::OFPModuleHom...; seed::Int = 0)
 
 Given a tuple `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the cochain complex defined by these homomorphisms.
 
-    cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
+    cochain_complex(V::Vector{<:OFPModuleHom}; seed::Int = 0)
 
 Given a vector `V` of module homorphisms between successive modules over a multivariate polynomial ring, 
 return the cochain complex defined by these homomorphisms.
@@ -50,16 +50,16 @@ return the cochain complex defined by these homomorphisms.
 !!! note
     The function checks whether successive homomorphisms indeed compose to zero.
 """
-function cochain_complex(V::ModuleFPHom...; seed::Int = 0)
-  return ComplexOfMorphisms(ModuleFP, collect(V); typ = :cochain, seed = seed)
+function cochain_complex(V::OFPModuleHom...; seed::Int = 0)
+  return ComplexOfMorphisms(OFPModule, collect(V); typ = :cochain, seed = seed)
 end
 
-function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
-  return ComplexOfMorphisms(ModuleFP, V; typ = :cochain, seed = seed)
+function cochain_complex(V::Vector{<:OFPModuleHom}; seed::Int = 0)
+  return ComplexOfMorphisms(OFPModule, V; typ = :cochain, seed = seed)
 end
 
 
-function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
+function hom_tensor(M::OFPModule, N::OFPModule, V::Vector{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")
   tN = get_attribute(N, :tensor_product)
@@ -84,14 +84,14 @@ end
 
 # the case of a non-trivial base change
 @doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+    hom_tensor(M::OFPModule, N::OFPModule, V::Vector{<:OFPModuleHom})
 
 Given modules `M`, `N` which are tensor products with the same number of factors,
 say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
 and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
 $a_1 \otimes \cdots \otimes a_r$.
 """
-function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+function hom_tensor(M::OFPModule, N::OFPModule, V::Vector{<:OFPModuleHom})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")
   tN = get_attribute(N, :tensor_product)
@@ -118,14 +118,14 @@ end
 
 
 @doc raw"""
-    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
+    hom_product(M::OFPModule, N::OFPModule, A::Matrix{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}})
 
 Given modules `M` and `N` which are products with `r` respective `s` factors,  
 say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \to N$ with $ij$-components $a_{ij}$.
 """
-function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
+function hom_product(M::OFPModule, N::OFPModule, A::Matrix{<:OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}})
   tM = get_attribute(M, :direct_product)
   tM === nothing && error("both modules must be direct products")
   tN = get_attribute(N, :direct_product)
@@ -156,11 +156,11 @@ end
 # Tor
 #############################
 @doc raw"""
-    tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
+    tensor_product(M::OFPModule, C::ComplexOfMorphisms{OFPModule})
 
 Return the complex obtained by applying `M` $\otimes\;\! \bullet$ to `C`.
 """
-function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
+function tensor_product(P::OFPModule, C::Hecke.ComplexOfMorphisms{OFPModule})
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_modules = [tensor_product(P, domain(map(C,first(chain_range(C)))), task=:cache_morphism)[1]]
@@ -181,20 +181,20 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
     push!(tensor_chain, hom_tensor(A,B,[id_hom(A_fac[1]), map(C,j)]))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(OFPModule, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-function tensor_product(M::ModuleFP, F::FreeResolution)
+function tensor_product(M::OFPModule, F::FreeResolution)
   return tensor_product(M, F.C)
 end
 
 
 @doc raw"""
-    tensor_product(C::ComplexOfMorphisms{<:ModuleFP}, M::ModuleFP)
+    tensor_product(C::ComplexOfMorphisms{<:OFPModule}, M::OFPModule)
 
 Return the complex obtained by applying $\bullet\;\! \otimes$ `M` to `C`.
 """
-function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
+function tensor_product(C::Hecke.ComplexOfMorphisms{<:OFPModule}, P::OFPModule)
   #tensor_chain = Hecke.map_type(C)[]
   tensor_chain = valtype(C.maps)[]
   tensor_chain = Map[]
@@ -210,15 +210,15 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
     push!(tensor_chain, hom_tensor(A,B,[map(C,j), id_hom(P)]))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(OFPModule, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-function tensor_product(F::FreeResolution, M::ModuleFP)
+function tensor_product(F::FreeResolution, M::OFPModule)
   return tensor_product(F.C, M)
 end
 
 @doc raw"""
-    tor(M::ModuleFP, N::ModuleFP, i::Int)
+    tor(M::OFPModule, N::OFPModule, i::Int)
 
 Return $\text{Tor}_i(M,N)$.
 
@@ -266,7 +266,7 @@ Submodule with 0 generators
 represented as subquotient with no relations
 ```
 """
-function tor(M::ModuleFP, N::ModuleFP, i::Int)
+function tor(M::OFPModule, N::OFPModule, i::Int)
   free_res = free_resolution(M; length=i+2)
   lifted_resolution = tensor_product(free_res.C[first(chain_range(free_res.C)):-1:1], N) #TODO only three homs are necessary
   return simplify_light(homology(lifted_resolution,i))[1]
@@ -282,13 +282,13 @@ simplify_light(F::FreeMod) = (F, id_hom(F), id_hom(F))
 #
 #################################################
 @doc raw"""
-    lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, a::ModuleFPHom)
+    lift_homomorphism_contravariant(Hom_MP::OFPModule, Hom_NP::OFPModule, a::OFPModuleHom)
 
 Given modules of homomorphism, say, `Hom_MP` $= \text{Hom}(M,P)$ and `Hom_NP` $= \text{Hom}(N,P)$, 
 and given a homomorphism `a` $: N \to M$, return the induced homomorphism
 $\text{Hom}(M,P) \to \text{Hom}(N,P)$.
 """
-function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi::ModuleFPHom)
+function lift_homomorphism_contravariant(Hom_MP::OFPModule, Hom_NP::OFPModule, phi::OFPModuleHom)
   # phi : N -> M
   M_P = get_attribute(Hom_MP, :hom)
   M_P === nothing && error("Both modules must be hom modules")
@@ -306,13 +306,13 @@ function lift_homomorphism_contravariant(Hom_MP::ModuleFP, Hom_NP::ModuleFP, phi
 end
 
 @doc raw"""
-    lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, a::ModuleFPHom)
+    lift_homomorphism_covariant(Hom_PM::OFPModule, Hom_PN::OFPModule, a::OFPModuleHom)
 
 Given modules of homomorphism, say, `Hom_PM` $= \text{Hom}(P,M)$ and `Hom_PN` $= \text{Hom}(P,N)$,
 and given a homomorphism `a` $: M \to N$, return the induced homomorphism
 $\text{Hom}(P,M) \to \text{Hom}(P,N)$.
 """
-function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::ModuleFPHom)
+function lift_homomorphism_covariant(Hom_PM::OFPModule, Hom_PN::OFPModule, phi::OFPModuleHom)
   # phi : M -> N
   P_M = get_attribute(Hom_PM, :hom)
   P_M === nothing && error("Both modules must be hom modules")
@@ -333,11 +333,11 @@ function lift_homomorphism_covariant(Hom_PM::ModuleFP, Hom_PN::ModuleFP, phi::Mo
 end
 
 @doc raw"""
-    hom(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
+    hom(M::OFPModule, C::ComplexOfMorphisms{OFPModule})
 
 Return the complex obtained by applying $\text{Hom}($`M`, $-)$ to `C`.
 """
-function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
+function hom(P::OFPModule, C::Hecke.ComplexOfMorphisms{OFPModule})
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   chain_range = Hecke.map_range(C)
@@ -352,15 +352,15 @@ function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
     push!(hom_chain, lift_homomorphism_covariant(A,B,map(C,j)))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
+  return Hecke.ComplexOfMorphisms(OFPModule, hom_chain, seed=C.seed, typ=C.typ)
 end
 
-function hom(M::ModuleFP, F::FreeResolution)
+function hom(M::OFPModule, F::FreeResolution)
   return hom(M, F.C)
 end
 
 @doc raw"""
-    hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+    hom(C::ComplexOfMorphisms{OFPModule}, M::OFPModule)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 
@@ -392,13 +392,13 @@ julia> range(D)
 3:5
 ```
 """
-function hom(C::Hecke.ComplexOfMorphisms{T}, P::ModuleFP) where {T<:ModuleFP}
+function hom(C::Hecke.ComplexOfMorphisms{T}, P::OFPModule) where {T<:OFPModule}
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   hom_chain = Map[]
   chain_range = Hecke.map_range(C)
-  hom_modules = Tuple{ModuleFP, Map}[hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, Tuple{ModuleFP, Map}[hom(codomain(map(C,i)), P) for i in chain_range])
+  hom_modules = Tuple{OFPModule, Map}[hom(domain(map(C,first(chain_range))),P)]
+  append!(hom_modules, Tuple{OFPModule, Map}[hom(codomain(map(C,i)), P) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
@@ -410,15 +410,15 @@ function hom(C::Hecke.ComplexOfMorphisms{T}, P::ModuleFP) where {T<:ModuleFP}
 
   typ = Hecke.is_chain_complex(C) ? :cochain : :chain
   seed = C.seed
-  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
+  return Hecke.ComplexOfMorphisms(OFPModule, reverse(hom_chain), seed=seed, typ=typ)
 end
 
-function hom(F::FreeResolution, M::ModuleFP)
+function hom(F::FreeResolution, M::OFPModule)
   return hom(F.C, M)
 end
 
 @doc raw"""
-    hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+    hom_without_reversing_direction(C::ComplexOfMorphisms{OFPModule}, M::OFPModule)
 
 Return the complex obtained by applying $\text{Hom}(-,$ `M`$)$ to `C`.
 
@@ -450,7 +450,7 @@ julia> range(D)
 -3:-1:-5
 ```
 """
-function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
+function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{OFPModule}, P::OFPModule)
   #up to seed/ typ identical to the one above. Should be
   #ONE worker function with 2 interfaces.
   #hom_chain = Hecke.map_type(C)[]
@@ -467,17 +467,17 @@ function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, 
     push!(hom_chain, lift_homomorphism_contravariant(B,A,map(C,j)))
   end
 
-  return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(chain_range(C)), typ=C.typ)
+  return Hecke.ComplexOfMorphisms(OFPModule, reverse(hom_chain), seed=-first(chain_range(C)), typ=C.typ)
 end
 
-function hom_without_reversing_direction(F::FreeResolution, M::ModuleFP)
+function hom_without_reversing_direction(F::FreeResolution, M::OFPModule)
   return hom_without_reversing_direction(F.C, M)
 end
 
 
 #############################
 @doc raw"""
-    homology(C::ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
+    homology(C::ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,OFPModule}}
 
 Return the homology of `C`.
 
@@ -515,7 +515,7 @@ by submodule with 2 generators
   2: x^2*e[1]
 ```
 """
-function homology(C::Hecke.ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
+function homology(C::Hecke.ComplexOfMorphisms{T}) where {T<:Union{AbstractAlgebra.FPModule,OFPModule}}
   return [homology(C,i) for i in Hecke.range(C)]
 end
 
@@ -525,7 +525,7 @@ end
 
 
 @doc raw"""
-    homology(C::ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
+    homology(C::ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,OFPModule}}
 
 Return the `i`-th homology module of `C`.
 
@@ -543,7 +543,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> C = ComplexOfMorphisms(ModuleFP, [a, b]);
+julia> C = ComplexOfMorphisms(OFPModule, [a, b]);
 
 julia> H = homology(C, 1)
 Subquotient of submodule with 1 generator
@@ -553,7 +553,7 @@ by submodule with 2 generators
   2: x^2*e[1]
 ```
 """
-function homology(C::Hecke.ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,ModuleFP}}
+function homology(C::Hecke.ComplexOfMorphisms{T}, i::Int) where {T<:Union{AbstractAlgebra.FPModule,OFPModule}}
   chain_range = Hecke.range(C)
   map_range = Hecke.map_range(C)
   @assert length(chain_range) > 0 #TODO we need actually only the base ring
@@ -577,7 +577,7 @@ end
 # Ext
 #############################
 @doc raw"""
-    ext(M::ModuleFP, N::ModuleFP, i::Int)
+    ext(M::OFPModule, N::OFPModule, i::Int)
 
 Return $\text{Ext}^i(M,N)$.
 
@@ -626,7 +626,7 @@ Submodule with 0 generators
 represented as subquotient with no relations
 ```
 """
-function ext(M::ModuleFP, N::ModuleFP, i::Int)
+function ext(M::OFPModule, N::OFPModule, i::Int)
   free_res = free_resolution(M; length=i+2)
   
   lifted_resolution = hom(free_res.C[first(Hecke.map_range(free_res.C)):-1:1], N) #TODO only three homs are necessary

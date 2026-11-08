@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Chain and Cochain Complexes
 
 The general OSCAR type `ComplexOfMorphisms{T}` allows one to model both chain complexes and cochain complexes
@@ -15,11 +9,11 @@ complexes, mainly focusing on chain complexes. Cochain complexes can be handled 
 ## Constructors
 
 ```@docs
-chain_complex(V::ModuleFPHom...; seed::Int = 0)
+chain_complex(V::OFPModuleHom...; seed::Int = 0)
 ```
 
 ```@docs
-cochain_complex(V::ModuleFPHom...; ssed::Int = 0)
+cochain_complex(V::OFPModuleHom...; ssed::Int = 0)
 ```
 
 ## Data Associated to Complexes
@@ -101,23 +95,23 @@ julia> range(D)
 ```
 
 ```@docs
-hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+hom(C::ComplexOfMorphisms{OFPModule}, M::OFPModule)
 ```
 
 ```@docs
-hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+hom_without_reversing_direction(C::ComplexOfMorphisms{OFPModule}, M::OFPModule)
 ```
 
 ```@docs
-hom(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
+hom(M::OFPModule, C::ComplexOfMorphisms{OFPModule})
 ```
 
 ```@docs
-tensor_product(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
+tensor_product(C::ComplexOfMorphisms{OFPModule}, M::OFPModule)
 ```
 
 ```@docs
-tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
+tensor_product(M::OFPModule, C::ComplexOfMorphisms{OFPModule})
 ```
 
 ## Tests on Complexes
@@ -127,15 +121,15 @@ tensor_product(M::ModuleFP, C::ComplexOfMorphisms{ModuleFP})
 The functions below check properties of complexes:
 
 ```@julia
-is_chain_complex(C::ComplexOfMorphisms{ModuleFP})
+is_chain_complex(C::ComplexOfMorphisms{OFPModule})
 ```
 
 ```@julia
-is_cochain_complex(C::ComplexOfMorphisms{ModuleFP})
+is_cochain_complex(C::ComplexOfMorphisms{OFPModule})
 ```
 
 ```@julia
-is_exact(C::ComplexOfMorphisms{ModuleFP})
+is_exact(C::ComplexOfMorphisms{OFPModule})
 ```
 
 ##### Examples

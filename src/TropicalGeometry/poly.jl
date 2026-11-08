@@ -103,7 +103,7 @@ julia> f = 1*x^2+x+0
 
 julia> roots(f)
 2-element Vector{QQFieldElem}:
- 0
+  0
  -1
 
 julia> R,x = polynomial_ring(tropical_semiring(max),:x)
@@ -205,7 +205,7 @@ function _tropical_mul(x, y)
             return y^x
         end
     elseif y isa Union{Integer, Rational, QQFieldElem, ZZRingElem}
-        if y isa Rational | y isa QQFieldElem
+        if y isa Union{Rational, QQFieldElem}
             _y = ZZ(y)
             return x^_y
         else

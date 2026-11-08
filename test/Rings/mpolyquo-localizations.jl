@@ -136,6 +136,31 @@ end
   @test L(x)/L(y) == L(x//y)
   @test L(y)/L(x) == L(y//x)
   @test_throws ErrorException L(y)/L(x-1)
+
+  # integer divided by a ring element
+  @test 2/L(y) == L(2//y)
+  @test ZZ(2)/L(y) == L(2//y)
+  @test divexact(2, L(y)) == L(2//y)
+  @test_throws ErrorException 2/L(x-1)
+end
+
+@testset "Ring interface for localized quotient rings" begin
+  # one non-reduced quotient, localized at each type of multiplicative set
+  kk = GF(7)
+  R, (x, y) = kk[:x, :y]
+  A, = quo(R, ideal(R, [x^2*y]))
+  ConformanceTests.test_Ring_interface_recursive(localization(A, powers_of_element(y))[1]; reps = 3)
+  ConformanceTests.test_Ring_interface_recursive(localization(A, complement_of_point_ideal(R, [kk(0), kk(0)]))[1]; reps = 3)
+  ConformanceTests.test_Ring_interface_recursive(localization(A, complement_of_prime_ideal(ideal(R, [x])))[1]; reps = 3)
+end
+
+@testset "is_nilpotent for localized quotient rings" begin
+  # x^2*y = 0, so x becomes nilpotent once y is inverted
+  R, (x, y) = QQ[:x, :y]
+  A, = quo(R, ideal(R, [x^2*y]))
+  L, = localization(A, powers_of_element(y))
+  @test is_nilpotent(L(x))
+  @test !is_nilpotent(L(y - 1))
 end
 
 @testset "associated primes (quo and localized)" begin
@@ -554,3 +579,23 @@ end
   @test all(x==iso_inv(iso(x)) for x in gens(L))
 end
 
+
+@testset "quotient of a localized quotient ring by a localized ideal" begin
+  R, (x, y) = QQ[:x, :y]
+  L, _ = localization(R, complement_of_point_ideal(R, [0, 0]))
+  Q, _ = quo(L, ideal(L, [x^2]))
+  W, p = quo(Q, ideal(L, [x]))
+  @test is_zero(p(Q(x)))
+  @test !is_zero(p(Q(y)))
+end
+
+@testset "minimal_denominators of a localized quotient hom" begin
+  # the denominators of the images, cached as an attribute
+  R, (x, y) = QQ[:x, :y]
+  A, _ = quo(R, ideal(R, [x^2 - y^2]))
+  L, _ = localization(A, powers_of_element(y))
+  phi = hom(L, L, [L(x, y), L(y, y)])
+  d = Oscar.minimal_denominators(phi)
+  @test length(d) == 2
+  @test d[1] == y
+end

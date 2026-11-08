@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Introduction](@id fields)
 
 OSCAR provides functionality for working with a wide variety of different fields.
@@ -23,7 +17,7 @@ Here is a list of the fields available in OSCAR:
 | $\overline{\mathbb{F}}_q$ | `algebraic_closure(F)` | | [Algebraic closure of finite prime fields](@ref)
 | $\mathbb{Q}^{\mathrm{ab}}$ | `abelian_closure(QQ)` | | [Abelian closure of the rationals](@ref)
 | $\mathbb{Q}[X]/(f)$ | `number_field(f)` |
-| $\mathbb{Q}(\alpha) \subseteq \R$ | `embedded_number_field` | Ordered field
+| $\mathbb{Q}(\alpha) \subseteq \mathbb{R}$ | `embedded_number_field` | Ordered field
 | $\mathbb{R}$ | `real_field()` | Ball arithmetic | [Arbitrary precision real balls](@ref real_field_section)
 | $\mathbb{C}$ | `complex_field()` | Ball arithmetic | [Arbitrary precision complex balls](@ref complex_field_section)
 | $\mathbb{Q}_p$ | `padic_field(p)` |  | [Padics](@ref)
@@ -57,6 +51,14 @@ julia> B = change_base_ring(C, A)
 [1.0000000000000000000   2.0000000000000000000]
 [3.0000000000000000000   4.0000000000000000000]
 ```
+
+
+## Division
+
+OSCAR in general makes a subtle but important distinction between `/` and
+`//`. However, for field elements, they actually are the same and both
+correspond to `divexact`. We provide more details on the 
+[distinction between `/` and `//` for rings.](@ref subtle_distinction_for_rings).
 
 ## Contact
 

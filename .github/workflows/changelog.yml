@@ -21,15 +21,16 @@ jobs:
     steps:
     # Checkout the repository
     - name: Checkout Repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     # Run the update script
     - name: Run python script
+      id: release-notes
       uses: oscar-system/update-release-notes@v1
       with:
-        conffile: "dev/releases/config.toml"
+        conffile: "etc/release_config.toml"
         releasenotesfile: "CHANGELOG.md"
         version: ${{ inputs.version }}
 
@@ -51,5 +52,6 @@ jobs:
       with:
         commit-message: "Update Changelog on $(date +'%Y-%m-%d')"
         branch: update-changelog
-        title: "Update changelog"
+        title: "Update changelog for ${{ steps.release-notes.outputs.version }}"
+        labels: "release notes: not needed"
         base: master

@@ -20,6 +20,7 @@
       square_max_cells,
       maximal_cells(subdivision_of_points(C, min_weights(square_by_cells))),
     )
+    @test n_maximal_cells(subdivision_of_points(QQ, [0 0; 1 0; 0 1], Bool[1 1 1])) == 1
   end
 
   moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]

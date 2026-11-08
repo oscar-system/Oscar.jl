@@ -3,7 +3,7 @@ module OscarDB
 using ..Oscar
 using ..Oscar.Serialization
 
-import Oscar.Serialization: load_object, save_object, type_params
+import Oscar.Serialization: load_object, save_object, type_and_params
 
 import Oscar:
   simplicial_complex,
@@ -20,7 +20,8 @@ import Oscar:
 
 # for ca certificates
 import NetworkOptions
-import Mongoc: Mongoc, find, find_one
+import Mongoc: Mongoc, find_one
+import Oscar: find
 
 const OSCAR_DB = "oscar"
 const OSCAR_DEV_DB = "oscar-dev"
@@ -61,7 +62,7 @@ end
 Connect to the `OscarDB` and return `Database` instance.
 
 The uri of the server can be set in advance by writing its `String` representation
-into ENV["OSCARDB_TEST_URI"].
+into `ENV["OSCARDB_TEST_URI"]`.
 (used to connect to the github services container for testing)
 # Examples
 ```julia-repl
@@ -109,14 +110,10 @@ Count documents in a collection `c` matching the criteria given by `d`.
 
 # Examples
 
-Same as above, but faster.
-
 ```julia-repl
 julia> db = Oscar.OscarDB.get_db();
 
-julia> tscit = Oscar.OscarDB.find(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]));
-
-julia> length(tscit)
+julia> length(db["TransitiveSimplicialComplexes"], Dict("data.betti_numbers" => ["0", "0", "0", "1"]))
 63
 ```
 """
@@ -145,6 +142,10 @@ julia> length([tsc for tsc in tscit])
 63
 ```
 """
+function find(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
+  return Mongoc.find(c, d; opts)
+end
+
 function Mongoc.find(c::Collection, d::Dict=Dict();
                      opts::Union{Nothing, Dict}=nothing)
   return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))

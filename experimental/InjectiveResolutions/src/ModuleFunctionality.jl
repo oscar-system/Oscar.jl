@@ -1,14 +1,52 @@
 default_ordering(A::MonoidAlgebra) = MonomialOrdering(A, Orderings.SymbOrdering(:degrevlex, collect(1:ngens(A))))
 
-singular_poly_ring(A::MonoidAlgebra, ord::Singular.sordering; keep_ordering=nothing) = singular_poly_ring(A.algebra) # ignores the ordering for now
-singular_poly_ring(A::MonoidAlgebra, ord::MonomialOrdering; keep_ordering=nothing) = singular_poly_ring(A.algebra) 
-singular_poly_ring(A::MonoidAlgebra; keep_ordering=nothing) = singular_poly_ring(A.algebra) 
+#############################################################################
+#
+# Singular rings for monoid algebras
+#
+struct OscarSingularMonoidAlgebraMap{D<:MonoidAlgebra, C, W} <: Map{D, C, Any, Any}
+  R::D
+  fpoly::W
+end
 
-(S::Singular.PolyRing)(a::MonoidAlgebraElem) = S(underlying_element(a))
+OscarSingularMonoidAlgebraMap(R::MonoidAlgebra, fpoly::Map) = OscarSingularMonoidAlgebraMap{typeof(R), typeof(codomain(fpoly)), typeof(fpoly)}(R, fpoly)
 
+domain(f::OscarSingularMonoidAlgebraMap) = f.R
+
+codomain(f::OscarSingularMonoidAlgebraMap) = codomain(f.fpoly)
+
+(f::OscarSingularMonoidAlgebraMap)(x) = image(f, x)
+
+function iso_oscar_singular_poly_ring(A::MonoidAlgebra, ord::Union{Singular.sordering, MonomialOrdering, Nothing} = nothing; keep_ordering=nothing)
+  # FIXME: `ord` and `keep_ordering` are ignored, so the Singular ring has a
+  # fixed ordering and e.g. `singular_module(F, o)`, and hence standard bases
+  # of modules w.r.t. `o`, silently use that ordering instead of `o`. For
+  # polynomial algebras, pass `ord` on; quotient algebras share the fixed
+  # ordering limitation of `MPolyQuoRing`.
+  iso1 = iso_oscar_singular_poly_ring(A.algebra)
+  return OscarSingularMonoidAlgebraMap(A, iso1)
+end
+
+function image(f::OscarSingularMonoidAlgebraMap, a)
+  parent(a) !== domain(f) && error("Element not in domain")
+  return image(f.fpoly, underlying_element(a))
+end
+
+function preimage(f::OscarSingularMonoidAlgebraMap, a; check::Bool = true)
+  check && (parent(a) === codomain(f) || error("Element not in codomain"))
+  g = preimage(f.fpoly, a; check)
+  return f.R(g)
+end
+
+_iso_onto(A::MonoidAlgebra, Sx::Singular.PolyRing) = OscarSingularMonoidAlgebraMap(A, _iso_onto(A.algebra, Sx))
+
+
+#############################################################################
+#
+#
 function singular_module(F::FreeMod{<:MonoidAlgebraElem}, ordering::ModuleOrdering)
   A = base_ring(F)
-  Sx = singular_poly_ring(A, induced_ring_ordering(ordering))
+  Sx = codomain(iso_oscar_singular_poly_ring(A, induced_ring_ordering(ordering)))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -65,16 +103,24 @@ function coordinates_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule; task=:a
   return coordinates_via_transform(a, std)
 end
 
+#= The function's body is copied from `src/Modules`. 
+# We need to duplicate the method, because it needs te be made available for 
+# the type `MonoidAlgebraElem` which is from experimental. Therefore, we can 
+# not introduce a type union in `src`.
+=#
 function lift_std(M::ModuleGens{T}) where {T <: MonoidAlgebraElem}
   R = base_ring(M)
-  G,Trans_mat = Singular.lift_std(singular_generators(M)) # When Singular supports reduction add it also here
-  mg = ModuleGens(oscar_free_module(M), G)
+  G, trans_mod = Singular.lift_std_sparse_transformation_matrix(singular_generators(M))
+  A = sparse_matrix(R, 0, ngens(trans_mod))
+  for v in gens(trans_mod)
+    push!(A, _build_sparse_row(R, v))
+  end
+  mg = ModuleGens(M.F, G)
   mg.isGB = true
   mg.S.isGB = true
-  mg.ordering = default_ordering(oscar_free_module(M))
-  mat = map_entries(R, transpose(Trans_mat))
-  set_attribute!(mg, :transformation_matrix => mat)
-  return mg, mat
+  mg.ordering = default_ordering(M.F)
+  set_attribute!(mg, :sparse_transformation_matrix => A)
+  return mg, A
 end
 
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MonoidAlgebraElem}
@@ -85,7 +131,7 @@ function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: Monoid
 end
 
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MonoidAlgebraElem}
-  A = get_attribute(generators, :transformation_matrix)
+  A = get_attribute(generators, :sparse_transformation_matrix)
   A === nothing && error("No transformation matrix in the Gröbner basis.")
   if iszero(a)
     return sparse_row(base_ring(parent(a)))
@@ -103,7 +149,7 @@ function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T})
   end
   Rx = base_ring(generators)
   coords_wrt_groebner_basis = sparse_row(Rx, s[1], 1:ngens(generators))
-  return coords_wrt_groebner_basis * sparse_matrix(A)
+  return coords_wrt_groebner_basis * A
 end
 
 function sparse_row(
@@ -155,7 +201,7 @@ function annihilator(N::SubquoModule{T}) where T <: MonoidAlgebraElem
   B = N_quo
   SB = singular_generators(B.gens)
   res = Singular.quotient(SB, SA)
-  return ideal(R, [R(f) for f in gens(res)])
+  return ideal(R, res)
 end
 
 function singular_generators(J::MonoidAlgebraIdeal)
@@ -171,7 +217,7 @@ end
 
 # `twist` stuff is only copy-pasted because the original signature was too narrow.
 # This should be streamlined eventually.
-function twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T <: MonoidAlgebraElem}
+function twist(M::OFPModule{T}, g::FinGenAbGroupElem) where {T <: MonoidAlgebraElem}
  error("Not implemented for the given type")
 end
 
@@ -239,14 +285,14 @@ function free_resolution(M::SubquoModule{T};
   cc_complete = false
 
   #= Start with presentation =#
-  pm = algorithm == :mres ? _presentation_minimal(M, minimal_kernel=false) : presentation(M)
+  pm = algorithm == :mres ? Oscar._presentation_minimal(M, minimal_kernel=false) : presentation(M)
   maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
   kernel_entry          = image(pm.maps[1])[1]
 
   if ngens(kernel_entry) == 0
-    cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, pushfirst!(maps, pm.maps[1]), check = false, seed = -2)
     cc.fill     = _extend_free_resolution
     cc.complete = true
     return FreeResolution(cc)
@@ -319,7 +365,7 @@ function free_resolution(M::SubquoModule{T};
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
-  cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
+  cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
   cc.fill     = _extend_free_resolution
   cc.complete = cc_complete
   set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)

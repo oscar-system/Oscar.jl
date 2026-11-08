@@ -18,6 +18,11 @@
       ],
     )
     @test is_welldefined(h)
+
+    # swapping two basis vectors of the standard module is not a homomorphism
+    v1, v2, v3 = basis(V1)
+    @test_throws ArgumentError hom(V1, V1, [v2, v1, v3])
+    @test !is_welldefined(hom(V1, V1, [v2, v1, v3]; check=false))
   end
 
   @testset "Image and kernel" begin
@@ -89,6 +94,8 @@
     v1, v2, v3, v4, v5, v6 = basis(V)
     h = hom(V, V, [zero(V), zero(V), zero(V), v1, v2, v3])
     @test !is_isomorphism(h)
+    # surjective but not injective, has a one-sided inverse
+    @test !is_isomorphism(canonical_projection(V, 1))
 
     @test is_isomorphism(id_hom(V))
     @test id_hom(V) == inv(id_hom(V))
@@ -190,6 +197,8 @@
       @test is_welldefined(h)
       vs = elem_type(Vb)[Vb(rand(-10:10, dim(Vb))) for _ in 1:k]
       @test h(V(vs)) == W(hb.(vs))
+
+      @test_throws ArgumentError f_power(hb, k + 1; domain=V, codomain=W)
     end
   end
 end

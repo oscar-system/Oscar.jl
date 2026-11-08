@@ -183,7 +183,8 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
+    U = AffineSchemeOpenSubscheme(X)
+    return U, elem_type(OO(U))[]
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -209,7 +210,8 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
+    U = AffineSchemeOpenSubscheme(X)
+    return U, elem_type(OO(U))[]
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -233,7 +235,8 @@ function maximal_extension(
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
+    U = AffineSchemeOpenSubscheme(X)
+    return U, elem_type(OO(U))[]
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -261,7 +264,7 @@ function subscheme(U::AffineSchemeOpenSubscheme, g::Vector{T}) where {T<:AffineS
   X = ambient_scheme(U)
   gen_list = Vector{elem_type(OO(X))}()
   for f in g
-    gen_list = vcat(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
+    append!(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
   end
   Z = subscheme(X, gen_list)
   return AffineSchemeOpenSubscheme(Z, complement_equations(U))

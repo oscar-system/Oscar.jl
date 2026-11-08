@@ -1,17 +1,11 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 The combinatorics part of OSCAR provides functionality for handling:
 - [Graphs](@ref)
 - [Partially Ordered Sets](@ref)
 - [Matroids](@ref)
-- [Simplicial complexes](@ref)
-- [Phylogenetic trees](@ref)
+- [Simplicial Complexes](@ref)
+- [Phylogenetic Trees](@ref)
 - [Combinations](@ref)
 - [Compositions](@ref)
 - [Partitions](@ref partitions_chapter)

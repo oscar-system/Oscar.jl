@@ -12,6 +12,13 @@
     @test n_edges(g) == 0
     @test !has_edge(g, Directed, 1, 2)
 
+    add_edge!(g, Directed, 1, 2)
+    @test has_edge(g, Directed, Edge(1, 2))
+    @test !has_edge(g, Undirected, Edge(1, 2))
+    rem_edge!(g, Directed, Edge(1, 2))
+    @test n_edges(g) == 0
+    @test !has_edge(g, Directed, Edge(1, 2))
+
     add_edge!(g, Undirected, 1, 2)
     @test n_edges(g) == 1
     @test has_edge(g, Undirected, 1, 2)
@@ -32,5 +39,15 @@
     @test rem_vertices!(g, [2, 4, 6, 11])
     @test n_vertices(g) == 7
     @test vertices(g) == 1:7
+
+    g1 = graph_from_edges(Directed, [[1, 2], [3, 4]])
+    g2 = graph_from_edges(Undirected, [[1, 4], [3, 2]])
+    gm = graph_from_edges(Mixed, edges(g1), edges(g2))
+    gm2 = graph_from_edges(Mixed, edges(g1), edges(g2))
+
+    @test hash(gm) == hash(gm2)
+    @test gm == gm2
+    rem_edge!(gm, Directed, 1, 2)
+    @test gm != gm2
   end
 end

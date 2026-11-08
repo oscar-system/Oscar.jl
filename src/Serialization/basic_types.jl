@@ -22,8 +22,8 @@ end
 
 function load_object(s::DeserializerState, ::Type{Bool})
   load_node(s) do val
-    return val::Bool
-  end
+    return val
+  end::Bool
 end
 
 
@@ -36,7 +36,7 @@ load_object(s::DeserializerState, T::Type{ZZRingElem}, ::ZZRing) = load_object(s
 function load_object(s::DeserializerState, ::Type{ZZRingElem})
   load_node(s) do str
     return ZZRingElem(str)
-  end
+  end::ZZRingElem
 end
 
 ################################################################################
@@ -53,7 +53,7 @@ function load_object(s::DeserializerState, ::Type{QQFieldElem})
     fraction_parts = parse.(ZZRingElem, fraction_parts)
     
     return QQFieldElem(fraction_parts...)
-  end
+  end::QQFieldElem
 end
 
 ################################################################################

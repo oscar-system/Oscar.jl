@@ -199,8 +199,8 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
       else
         GG = GapObj(G)
       end
-      M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(GG),
-                                    GAP.Globals.FieldOfMatrixGroup(GG))
+      M = GAP.Globals.GModuleByMats(Oscar.GAPWrap.GeneratorsOfGroup(GG),
+                                    Oscar.GAPWrap.FieldOfMatrixGroup(GG))
       GAP.Globals.MTX.IsAbsolutelyIrreducible(M) || continue
     end
 

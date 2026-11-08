@@ -23,6 +23,10 @@ on:
         type: boolean
         default: false
         description: Run extra long test set
+      dualdepot:
+        type: boolean
+        default: false
+        description: Run test suite with a dual depot
 
 # needed to allow julia-actions/cache to delete old caches that it has created
 permissions:
@@ -45,19 +49,19 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
         depwarn: [ '' ]
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
-          - julia-version: '1.10'
+          - julia-version: '1.13'
             group: 'short'
             os: [Linux, RPTU, high-memory]
             depwarn: 'depwarn=error'
-          - julia-version: '1.10'
+          - julia-version: '1.13'
             group: 'long'
             os: [Linux, RPTU, normal-memory]
             depwarn: 'depwarn=error'
@@ -78,14 +82,14 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
         id: setup-julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v3
@@ -108,7 +112,7 @@ jobs:
         # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
         run: echo "NUMPROCS=5" >> $GITHUB_ENV
       - name: "set test subgroup"
-        if: ${{ matrix.group }} != ''
+        if: matrix.group != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
@@ -116,6 +120,17 @@ jobs:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
+        env:
+          # GC logging only on the depwarn jobs and on nightlies
+          OSCAR_GC_LOGGING: ${{ (matrix.depwarn == 'depwarn=error' || endsWith(matrix.julia-version, 'nightly')) && 'true' || 'false' }}
+      - name: Archive stats
+        if: matrix.depwarn == ''
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: stats-${{ matrix.group }}-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats_*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
@@ -124,7 +139,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -138,15 +153,18 @@ jobs:
           - '1.10'
           - 'pre'
           - 'nightly'
+    env:
+      # GC logging only on prereleases and nightlies
+      OSCAR_GC_LOGGING: ${{ (matrix.julia-version == 'pre' || endsWith(matrix.julia-version, 'nightly')) && 'true' || 'false' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
         id: setup-julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v3
@@ -164,6 +182,13 @@ jobs:
         with:
           annotate: ${{ matrix.julia-version == '1.10' }}
           coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: Archive stats
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: stats-book-${{ runner.os }}-${{ matrix.julia-version }}
+          path: |
+            test-stats_*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10'
         uses: julia-actions/julia-processcoverage@v1
@@ -172,7 +197,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -182,12 +207,12 @@ jobs:
     if: ${{ github.event_name == 'schedule' || ( github.event_name == 'workflow_dispatch' && inputs.extralong ) || ( github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'extra-long') ) }}
     runs-on: [Linux, RPTU, high-memory]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
       - name: "Set up Julia"
         id: setup-julia
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: "1.10"
       - name: "Build package"
@@ -208,15 +233,15 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os:
           - 'ubuntu-latest'
         depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
-          - julia-version: '1.10'
+          - julia-version: '1.13'
             os: 'ubuntu-latest'
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
@@ -224,13 +249,13 @@ jobs:
             os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v3
@@ -262,7 +287,15 @@ jobs:
               include("docs/documenter_helpers.jl")
               using Oscar
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
-              doctest(Oscar; doctestfilters=Oscar.doctestfilters())'
+              doctest(Oscar; doctestfilters=Oscar.doctestfilters(), meta=Oscar.docmeta())'
+      - name: Archive stats
+        if: matrix.depwarn == ''
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: stats-doctest-${{ join(matrix.os) }}-${{ matrix.julia-version }}
+          path: |
+            test-stats_*.csv
       - name: "Process code coverage"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
@@ -271,7 +304,7 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -284,8 +317,8 @@ jobs:
       matrix:
         julia-version:
           - '1.10'
-          - '1.12'
-          - '1.13-nightly'
+          - '1.13'
+          - '1.14-nightly'
           - 'nightly'
         os: ['ubuntu-latest']
 
@@ -305,10 +338,12 @@ jobs:
     env:
       OSCARDB_TEST_URI: "mongodb://admin:admin@localhost:27017/?authSource=admin"
       OSCAR_TEST_SUBSET: "oscar_db"
+      # GC logging only on nightlies
+      OSCAR_GC_LOGGING: ${{ endsWith(matrix.julia-version, 'nightly') && 'true' || 'false' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v2
+        uses: julia-actions/setup-julia@v3
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v3
@@ -335,10 +370,110 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10'
         continue-on-error: true
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  exts:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ contains(matrix.julia-version, 'nightly') }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version:
+          - '1.10'
+          - '1.13'
+          - '1.14-nightly'
+          - 'nightly'
+        os: ['ubuntu-latest']
+    env:
+      OSCAR_TEST_SUBSET: "exts"
+      # GC logging only on nightlies
+      OSCAR_GC_LOGGING: ${{ endsWith(matrix.julia-version, 'nightly') && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v3
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
+          cache-scratchspaces: false
+      - name: "Inject HomotopyContinuation as test dependencies"
+        continue-on-error: true
+        run: |
+          sed -i -e "s/\[deps\]/[deps]\nHomotopyContinuation = \"f213a82b-91d6-5c5d-acf7-10f1c761b327\"/" test/Project.toml
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
+      - name: "Process code coverage"
+        if: matrix.julia-version == '1.10'
+        uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: src,experimental
+      - name: "Upload coverage data to Codecov"
+        if: matrix.julia-version == '1.10'
+        continue-on-error: true
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  test-dual-depot:
+    # Simulates the system-wide install from
+    # https://www.oscar-system.org/install/generic/: packages, artifacts and
+    # precompile caches live in a shared depot that users cannot write to,
+    # behind each user's own depot. Catches code that writes into the shared
+    # depot, like AtlasRep in https://github.com/oscar-system/GAP.jl/issues/1371.
+    #
+    # The runner's depot plays the shared one: everything is installed and
+    # precompiled into it, then the tests run with it mounted read-only behind
+    # a fresh writable depot. Oscar itself is the writable checkout, not a depot
+    # package, so writes into its own source tree go unnoticed.
+    # History: #5961, #6394.
+    name: Run testsuite with a dual depot
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.dualdepot) }}
+    runs-on: [RPTU, Linux, normal-memory]
+    continue-on-error: true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+      - name: Set up julia
+        uses: julia-actions/setup-julia@v3
+        with:
+          # 1.13 hits a StackOverflowError in the tests, see #6391
+          version: "1.12"
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      # Install and precompile everything the tests load into the depot that
+      # becomes read-only, so that the tests load it from there. The test
+      # environment resolves other versions than the package environment, and
+      # caches are only reused with the same flags, so let Pkg.test set it up
+      # exactly as in the next step, but run an empty test file.
+      - name: Precompile
+        run: |
+          # the trailing colon appends Julia's bundled depot
+          export JULIA_DEPOT_PATH=${JULIA_DEPOT_PATH%:}:
+          echo > test/runtests.jl
+          julia --project=. -e 'using Pkg; Pkg.test()'
+          git checkout -- test/runtests.jl
+      # The read-only mount lives in a private mount namespace, so other jobs
+      # and the depot's file modes are unaffected. The outer unshare is root in
+      # its namespace and may mount; the inner one maps back to our own uid.
+      - name: Run tests
+        env:
+          OSCAR_TEST_SUBSET: short
+        run: |
+          ro=${JULIA_DEPOT_PATH%:}
+          mkdir -p "$RUNNER_TEMP/depot-rw"
+          export JULIA_DEPOT_PATH=$RUNNER_TEMP/depot-rw:$ro:
+          unshare --user --map-root-user --mount -- sh -c "
+            mount --bind -o ro '$ro' '$ro' &&
+            exec unshare --user --map-user=$(id -u) --map-group=$(id -g) -- \
+              julia --project=. -e 'using Pkg; Pkg.test()'"
 
 # adapted from gap-system/gap
   slack-notification:

@@ -6,20 +6,20 @@
     a = 1//2 * (1 + b)
     C = clifford_order(lattice(quadratic_space(K, K[2*a 1; 1 2*(1 - a)])))
     ConformanceTests.test_NCRing_interface(C)
-  end 
+  end
 
   @testset "ZZCliffordOrder - conformance tests" begin
     lsZZ = lattice(quadratic_space(QQ, QQ[0 1; 1 0]))
     ConformanceTests.test_NCRing_interface(clifford_order(lsZZ))
-    
+
     C = clifford_order(root_lattice(:A, 3))
     ConformanceTests.test_NCRing_interface(C)
-    
+
     # Matrices over ZZClifford orders
     M = matrix_ring(C, 2)
     ConformanceTests.test_NCRing_interface(M)
-  end 
-  
+  end
+
   @testset "failing constructions" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
@@ -106,7 +106,7 @@
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
         @test CA(x) in C
-        @test !(1//2 * CA(x) in C) 
+        @test !(1//2 * CA(x) in C)
       end
       @testset "defining relations" begin
         @test length(pseudo_basis(C)) == 1
@@ -199,7 +199,7 @@
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
         @test CA(x) in C
-        @test !(1//2 * CA(x) in C) 
+        @test !(1//2 * CA(x) in C)
       end
       @testset "defining relations" begin
         @test length(basis(C)) == 1
@@ -249,9 +249,9 @@
     C = clifford_order(lsK)
     Kzer = K.([0, 0, 0, 0])
     e(i::Int) = C(pseudo_gen(C, i)[1])
-    
+
     @test !is_commutative(C)
-    
+
     @testset "construction" begin
       @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
       @test elem_type(C) ==
@@ -317,7 +317,7 @@
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
       @test CA(x) in C
-      @test !(1//2 * CA(x) in C) 
+      @test !(1//2 * CA(x) in C)
     end
     @testset "defining relations" begin
       @test length(pseudo_gens(C)) == 2
@@ -384,14 +384,14 @@
     @testset "mul_with_gen!" begin
       x = C([-a^2, 2, a + 4, -1])
       coeffs = coefficients(x)
-      
+
       out = [zero(K) for _ in 1:length(coeffs)]
-      
+
       Oscar._mul_with_gen!(out, coeffs, 1, gram_matrix(C))
       @test out == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
-      
+
       Oscar._mul_with_gen!(out, coeffs, 2, gram_matrix(C))
-      @test out == K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2]) 
+      @test out == K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
     end
     @testset "center and centroid" begin
       @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
@@ -400,7 +400,7 @@
       @test disq(C) == (fractional_ideal(O, O(5)), K(5))
     end
   end
-  
+
   @testset "hyperbolic plane" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
@@ -412,9 +412,9 @@
       C = clifford_order(lsK)
       Kzer = K.([0, 0, 0, 0])
       e(i::Int) = C(pseudo_gen(C, i)[1])
-    
+
       @test !is_commutative(C)
-    
+
       @testset "construction" begin
         @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
         @test elem_type(C) ==
@@ -477,7 +477,7 @@
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
         @test CA(x) in C
-        @test !(1//2 * CA(x) in C) 
+        @test !(1//2 * CA(x) in C)
       end
       @testset "defining relations" begin
         @test length(pseudo_gens(C)) == 2
@@ -550,9 +550,9 @@
       C = clifford_order(ls)
       QQzer = QQ.([0, 0, 0, 0])
       e(i::Int) = gen(C, i)
-    
+
       @test !is_commutative(C)
-    
+
       @testset "construction" begin
         @test typeof(C) == ZZCliffordOrder
         @test elem_type(C) == ZZCliffordOrderElem
@@ -609,7 +609,7 @@
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
         @test CA(x) in C
-        @test !(1//2 * CA(x) in C) 
+        @test !(1//2 * CA(x) in C)
       end
       @testset "defining relations" begin
         @test length(gens(C)) == 2
@@ -739,7 +739,7 @@
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
       @test CA(x) in C
-      @test !(1//2 * CA(x) in C) 
+      @test !(1//2 * CA(x) in C)
     end
     @testset "defining relations" begin
       @test length(basis(C)) == 2^6
@@ -749,12 +749,12 @@
       @test C(a) * C(b) == C(a * b)
       @test C(a) + C(b) == C(a + b)
       @test (C(a) + C(b)) * (C(a) - C(b)) == C(a)^2 - C(b)^2
-      
+
       e(i) = gen(C, i)
       for i in 1:6
         @test e(i)^2 == C(divexact(gram_matrix(C)[i, i], 2))
       end
-      
+
       for i in 2:6
         for j in 1:i-1
           @test e(i) * e(j) == C(gram_matrix(C)[i, j]) - e(j) * e(i)
@@ -862,7 +862,7 @@
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
       @test CA(x) in C
-      @test !(1//2 * CA(x) in C) 
+      @test !(1//2 * CA(x) in C)
     end
     @testset "defining relations" begin
       @test length(basis(C)) == 2^5
@@ -872,12 +872,12 @@
       @test C(a) * C(b) == C(a * b)
       @test C(a) + C(b) == C(a + b)
       @test (C(a) + C(b)) * (C(a) - C(b)) == C(a)^2 - C(b)^2
-      
+
       e(i) = gen(C, i)
       for i in 1:5
         @test e(i)^2 == C(divexact(gram_matrix(C)[i, i], 2))
       end
-      
+
       for i in 2:5
         for j in 1:i-1
           @test e(i) * e(j) == C(gram_matrix(C)[i, j]) - e(j) * e(i)
@@ -897,7 +897,7 @@
       @test_throws BoundsError x[0]
       @test_throws BoundsError x[33]
       @test_throws BoundsError x[rand(33:500)]
-    end     
+    end
     @testset "center and centroid" begin
       @test basis_of_center(C) == basis_of_centroid(C)
       @test basis_of_max_orth_suborder_of_centroid(C) == basis_of_centroid(C)
@@ -964,8 +964,8 @@
       @test y == C([0, 4, 3, 36])
     end
     @testset "center and centroid" begin
-      @test pseudo_basis_of_center(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1)))] 
-      @test pseudo_basis_of_centroid(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1))), (CA([1, 0, 0, -1]), ideal(OK, OK(6)))] 
+      @test pseudo_basis_of_center(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1)))]
+      @test pseudo_basis_of_centroid(C) == [(CA([1, 0, 0, 0]), ideal(OK, OK(1))), (CA([1, 0, 0, -1]), ideal(OK, OK(6)))]
       @test pseudo_basis_of_center(D) == pseudo_basis_of_centroid(D)
     end
   end

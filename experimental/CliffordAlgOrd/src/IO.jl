@@ -3,7 +3,7 @@
 #  Clifford algebra and elements
 #
 ##################################################
- 
+
 ##### Algebra #####
 function Base.show(io::IO, ::MIME"text/plain", C::CliffordAlgebra)
   io = pretty(io)
@@ -12,7 +12,7 @@ function Base.show(io::IO, ::MIME"text/plain", C::CliffordAlgebra)
   show(io, "text/plain", gram_matrix(C))
   print(io, Dedent(), "\ndefined over ", Lowercase(), base_ring(C))
 end
- 
+
 function Base.show(io::IO, C::CliffordAlgebra)
   io = pretty(io)
   if is_terse(io)
@@ -30,11 +30,11 @@ function Base.show(io::IO, x::CliffordAlgebraElem)
 end
 
 ##################################################
-#   
+#
 #  Clifford Order and elements
 #
 ##################################################
-  
+
 ##### Order #####
 function Base.show(io::IO, ::MIME"text/plain", C::CliffordOrder)
   io = pretty(io)

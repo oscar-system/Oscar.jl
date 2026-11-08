@@ -1,3 +1,4 @@
+# Test class accessors, Cartier conversion, and arithmetic compatibility checks.
 @testset "Torus-invariant divisor classes" begin
   F5 = hirzebruch_surface(NormalToricVariety, 5)
   dP3 = del_pezzo_surface(NormalToricVariety, 3)
@@ -47,6 +48,9 @@
 
   @testset "Basic attributes" begin
     @test torsion_free_rank(parent(divisor_class(DC2))) == 2
+    @test coefficients(DC2) == coefficients(toric_divisor(DC2))
+    @test picard_class(DC7) == picard_class(toric_line_bundle(DC7))
+    @test map_from_picard_group_to_class_group(P2)(picard_class(DC7)) == divisor_class(DC7)
     @test dim(toric_variety(DC2)) == 2
   end
 
@@ -56,5 +60,16 @@
     @test (DC == DC2) == false
     @test (DC4 - DC5 == DC6) == false
     @test (DC == DC3) == false
+  end
+
+  @testset "Should fail due to incompatible or non-Cartier classes" begin
+    another_F5 = hirzebruch_surface(NormalToricVariety, 5)
+    another_DC = toric_divisor_class(another_F5, [1, 2])
+    @test_throws ArgumentError DC2 + another_DC
+    @test_throws ArgumentError DC2 - another_DC
+    WPS = weighted_projective_space(NormalToricVariety, [2, 3, 1])
+    non_cartier_class = toric_divisor_class(toric_divisor(WPS, [1, 0, 0]))
+    @test_throws ArgumentError picard_class(non_cartier_class)
+    @test_throws ArgumentError toric_line_bundle(non_cartier_class)
   end
 end

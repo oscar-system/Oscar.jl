@@ -45,7 +45,7 @@ coordinates(::Type{OutputType}, f::T, I::Ideal{T}) where {OutputType<:SRow, T<:R
 
 function coordinates(::Type{OutputType}, f::T, I::Ideal{T}) where {OutputType<:SRow, T<:MPolyRingElem}
   R = parent(f)
-  c = coordinates(f, I)::MatrixElem
+  c = coordinates(f, I)::MatElem
   sparse_row(R, [(i, c[1, i]) for i in 1:ngens(I) if !is_zero(c[1, i])])
 end
 

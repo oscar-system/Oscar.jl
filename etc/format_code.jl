@@ -57,6 +57,7 @@ files_and_dirs_to_be_formatted = [
   "experimental/BasisLieHighestWeight",
   "experimental/ExperimentalTemplate",
   "experimental/ExteriorAlgebra",
+  "experimental/InvariantTheory",
   "experimental/LieAlgebras",
   "experimental/LinearAlgebraicGroups",
   "experimental/LinearQuotients",
@@ -65,7 +66,6 @@ files_and_dirs_to_be_formatted = [
 ]
 # a few files for one reason or another may need to be skipped
 ignore = [
-  "experimental/InvariantTheory/src/InvariantTheory.jl",
 ]
 
 for fname in files_and_dirs_to_be_formatted

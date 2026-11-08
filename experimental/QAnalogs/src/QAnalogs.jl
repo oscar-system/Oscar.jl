@@ -189,7 +189,7 @@ function q_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElement)
   isone(q) && return R(binomial(n,k))
   k == 0 && return one(R)
   k == 1 && return q_integer(n,q)
-  n < 0 && return (-1)^k * q^(div(-k*(k-1),2) + k*n) * q_binomial(k-n-1,k,q)
+  n < 0 && return (-1)^Int(k) * q^(div(-k*(k-1),2) + k*n) * q_binomial(k-n-1,k,q)
   n < k && return zero(R)
 
   z = zero(R)

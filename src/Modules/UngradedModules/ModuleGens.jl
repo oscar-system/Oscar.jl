@@ -239,7 +239,7 @@ getindex(F::ModuleGens, i::Int) = oscar_generators(F)[i]
 Compute the union of `M` and `N`.
 """
 function union(M::ModuleGens, N::ModuleGens)
-  @assert oscar_free_module(M) === oscar_free_module(M)
+  @assert oscar_free_module(M) === oscar_free_module(N)
   O = vcat(oscar_generators(M), oscar_generators(N))
   return ModuleGens(oscar_free_module(M), O)
 end
@@ -250,7 +250,7 @@ end
 Create a Singular module from a given free module.
 """
 function singular_module(F::FreeMod)
-  Sx = singular_poly_ring(base_ring(F), keep_ordering=false)
+  Sx = codomain(iso_oscar_singular_poly_ring(base_ring(F), keep_ordering=false))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -260,7 +260,7 @@ end
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
 function singular_module(F::FreeMod{<:MPolyRingElem}, ordering::ModuleOrdering)
-  Sx = singular_poly_ring(base_ring(F), singular(ordering))
+  Sx = codomain(iso_oscar_singular_poly_ring(base_ring(F), singular(ordering)))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -270,13 +270,14 @@ end
 Convert a free module element to the Singular side.
 """
 function (SF::Singular.FreeMod)(m::FreeModElem)
-  g = Singular.gens(SF)
-  e = SF()
-  Sx = base_ring(SF)
-  for (p,v) in coordinates(m)
-    e += Sx(v)*g[p]
+  is_zero(m) && return SF()
+  iso = _iso_onto(base_ring(parent(m)), base_ring(SF))
+  c = coordinates(m)
+  if isone(length(c)) 
+    (p, v) = only(c)
+    return iso(v)*gen(SF, p) 
   end
-  return e
+  return sum(iso(v)*gen(SF, p) for (p, v) in c; init=SF())
 end
 
 @doc raw"""
@@ -302,13 +303,13 @@ function _build_sparse_row(
     cast::Ring=Rx
   )
   is_zero(length(s)) && return sparse_row(cast)
-  R = coefficient_ring(Rx)
+  f = _coeff_iso(_iso_onto(Rx, base_ring(s)))
 
   # shortcuts in order not to allocate the dictionary
   ctx = MPolyBuildCtx(Rx)
   if isone(length(s))
     (i, e, c) = first(s)
-    push_term!(ctx, R(c), e)
+    push_term!(ctx, preimage(f, c), e)
     cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx)))])
     return sparse_row(Rx, [(i, finish(ctx))])
   end
@@ -317,14 +318,14 @@ function _build_sparse_row(
   last_index = 0
   for (i, e, c) in s
     if i == last_index
-      push_term!(ctx, R(c), e)
+      push_term!(ctx, preimage(f, c), e)
       continue
     end
     last_index = i
     ctx = get!(cache, i) do
       MPolyBuildCtx(Rx)
     end
-    push_term!(ctx, R(c), e)
+    push_term!(ctx, preimage(f, c), e)
   end
   cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx))) for (i, ctx) in cache])
   return sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache])
@@ -381,9 +382,7 @@ If no such `r` exists, an exception is thrown.
 function coordinates_via_transform(a::FreeModElem{T}, generators::ModuleGens{T}) where T
   iszero(a) && return sparse_row(base_ring(parent(a)))
   SA = get_attribute!(generators, :sparse_transformation_matrix) do
-    A = get_attribute(generators, :transformation_matrix)
-    A === nothing && error("No transformation matrix in the Gröbner basis.")
-    sparse_matrix(A)
+    error("No transformation matrix in the Gröbner basis.")
   end
 
   @assert generators.isGB

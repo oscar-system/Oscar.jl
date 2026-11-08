@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Compositions
 
 A **weak composition** of a non-negative integer $n$ is a sequence $\lambda_1,\dots,\lambda_k$ of non-negative integers $\lambda_i$ such that $n = \lambda_1 + \dots + \lambda_k$.

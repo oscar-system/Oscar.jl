@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Partitioned Permutations
 
 Partitioned Permutations are used in the context of Free Probability Theory to model higher order freeness and higher order free cumulants, see e.g. [CMS07](@cite).

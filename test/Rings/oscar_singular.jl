@@ -18,7 +18,7 @@
   QQtuv, = rational_function_field(QQ, [:t, :u, :v])
 
   test_rings = (ZZ, QQ, Qx,
-                Nemo.Native.GF(2), GF(2), GF(2, 2), GF(next_prime(ZZ(2)^70)),
+                Nemo.Native.GF(2), GF(2), GF(2, 2), GF(2^61 - 1), GF(next_prime(ZZ(2)^70)),
                 GF(next_prime(ZZ(2)^70), 2), FFrel, abelian_closure(QQ)[1],
                 K, Krel, FFt, QQt, FFtuv, QQtuv) 
 

@@ -48,7 +48,6 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     _parent_or_coefficient_field(::Type{TT}, po::$T{<:TT}) where {TT<:FieldElem} =
       coefficient_field(po)
-    _find_elem_type(po::$T) = elem_type(coefficient_field(po))
 
     function Base.similar(
       bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}},
@@ -188,7 +187,7 @@ Return the `$($Hlin)` `H(a)`, which is given by a vector `a` such that
 
     coefficient_field(h::$Habs) = base_ring(h.a)
 
-    _find_elem_type(h::$Habs) = elem_type(coefficient_field(h))
+    _find_elem_type(::Type{<:$Habs{T}}) where {T} = T
     _parent_or_coefficient_field(::Type{T}, h::$Habs{<:T}) where {T<:FieldElem} =
       coefficient_field(h)
   end
@@ -463,7 +462,7 @@ for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_
   M = Symbol(f)
   @eval begin
     $M(::Val{_empty_access}, P::PolyhedralObjectUnion) =
-      return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+      return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(pm_object(P)))
   end
 end
 
@@ -474,7 +473,7 @@ for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
       scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
       typename = scalar_regexp[1]
       T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
+      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)))
     end
   end
 end
@@ -486,7 +485,7 @@ for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
       scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
       typename = scalar_regexp[1]
       T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
+      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + 1)
     end
   end
 end

@@ -868,7 +868,7 @@ lattice(Vf::QuadSpaceWithIsom) = ZZLatWithIsom(Vf, lattice(space(Vf)), isometry(
     lattice(
       Vf::QuadSpaceWithIsom,
       B::MatElem{<:RationalUnion};
-      isbasis::Bool=true,
+      is_basis::Bool=true,
       check::Bool=true
     ) -> ZZLatWithIsom
 
@@ -912,10 +912,12 @@ Integer lattice of rank 3 and degree 5
 function lattice(
     Vf::QuadSpaceWithIsom,
     B::MatElem{<:RationalUnion};
-    isbasis::Bool=true,
+    is_basis::Bool=true,
+    isbasis::Union{Bool, Nothing}=nothing,
     check::Bool=true
   )
-  L = lattice(space(Vf), B; isbasis, check)
+  is_basis = _is_basis_kwarg(is_basis, isbasis, :lattice)
+  L = lattice(space(Vf), B; is_basis, check)
   fB = restrict_to_lattice(L, isometry(Vf); check)
   n = is_zero(fB) ? -1 : multiplicative_order(fB)
   return ZZLatWithIsom(Vf, L, fB, n)
@@ -2319,7 +2321,7 @@ julia> L = root_lattice(:A, 2);
 
 julia> G = isometry_group(L);
 
-julia> F, C, _ = invariant_coinvariant_pair(L, matrix(last(gens(G))))
+julia> F, C, _ = invariant_coinvariant_pair(L, QQ[1 0; -1 -1])
 (Integer lattice of rank 1 and degree 2, Integer lattice of rank 1 and degree 2, [1 0; -1 -1])
 
 julia> F

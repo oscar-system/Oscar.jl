@@ -300,7 +300,13 @@ julia> CD |> maximal_polyhedra
 ```
 """
 function covector_decomposition(P::TropicalPointConfiguration; dehomogenize_by=1)
-  return Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject |> polyhedral_complex
+  tsc = Polymake.tropical.torus_subdivision_as_complex(P.pm_tpolytope, dehomogenize_by-1)::Polymake.BigObject
+  # workaround until a polymake bug is fixed:
+  # the torus_subdivision_as_complex client produces an empty lineality space matrix with the wrong number of
+  # columns which can cause subsequent computations to fail
+  # we copy the relevant properties to a new object and return that instead
+  tsc_fixed = Polymake.fan.PolyhedralComplex{Polymake.Rational}(VERTICES=tsc.VERTICES, MAXIMAL_POLYTOPES=tsc.MAXIMAL_POLYTOPES, FAN_AMBIENT_DIM=ncols(tsc.VERTICES))
+  return PolyhedralComplex{QQFieldElem}(tsc_fixed)
 end
 
 @doc raw"""
@@ -364,3 +370,11 @@ function Base.show(io::IO, P::TropicalPointConfiguration{M}) where {M<:MinOrMax}
     print(io, "Max tropical point configuration in tropical projective torus of dimension $d")
   end
 end
+
+
+@doc raw"""
+     is_feasible(P::TropicalPolyhedron)
+
+Checks whether `P` is non-empty.
+"""
+is_feasible(P::TropicalPolyhedron) = pm_object(P).FEASIBLE::Bool

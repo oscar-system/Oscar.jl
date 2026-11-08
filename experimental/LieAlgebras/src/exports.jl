@@ -22,7 +22,6 @@ export bracket
 export braid_moves
 export cartan_subalgebra
 export chevalley_basis
-export coerce_to_lie_algebra_elem
 export coxeter_matrix
 export demazure_character
 export demazure_operator
@@ -38,6 +37,7 @@ export irreducible_factors
 export is_ad_nilpotent
 export is_self_normalizing
 export killing_matrix
+export kostant_kumar_character
 export lie_algebra
 export lower_central_series
 export matrix_repr_basis

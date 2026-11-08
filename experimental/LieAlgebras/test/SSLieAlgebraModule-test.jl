@@ -483,8 +483,6 @@
       @test char isa Dict{WeightLatticeElem,Int}
     end
     # The "correct" solution in the below tests has been computed using Magma V2.28-7.
-    # Note that Magma considers right actions of Weyl groups on weights,
-    # so to reproduce one needs to reverse all Weyl words when copying a test case to Magma.
 
     @testset "Type A" begin
       for n in 2:4
@@ -992,6 +990,163 @@
       @test char isa Dict{WeightLatticeElem,Int}
 
       char_ZZ = @inferred demazure_character(ZZRingElem, L, w_int, reduced_expression)
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+    end
+  end
+
+  @testset "kostant_kumar_character" begin
+    @testset "manual cases" begin
+      # The "correct" solution in these tests is due to Example 6.3 in https://doi.org/10.1016/j.aim.2021.107614,
+      # but note that they switch the order of the simple roots, B2 is our C2.
+      # Furthermore, in their convention, the Weyl group acts from the left, so we have to reverse the order of the simple reflections.
+      R = root_system(:C, 2)
+      W = weyl_group(R)
+      lambda = WeightLatticeElem(R, [2, 0])
+      mu = WeightLatticeElem(R, [2, 1])
+
+      # K(λ, 1, µ) = V(λ+µ)
+      @test kostant_kumar_character(R, lambda, mu, one(W)) == character(R, lambda + mu)
+
+      # K(λ, s1, µ) = V(λ+µ) ⊕ V(2w_1+2w_2) ⊕ V(3w_2)
+      @test kostant_kumar_character(R, lambda, mu, W([1])) == mergewith(+)(
+        character(R, lambda + mu),
+        character(R, WeightLatticeElem(R, [2, 2])),
+        character(R, WeightLatticeElem(R, [0, 3])),
+      )
+
+      # K(λ, s1s2, µ) = V(λ+µ) ⊕ V(2w_1+2w_2) ⊕ V(3w_2) ⊕ V(4w_1) ⊕ V(2w_1+w_2)
+      @test kostant_kumar_character(R, lambda, mu, W([2, 1])) == mergewith(+)(
+        character(R, lambda + mu),
+        character(R, WeightLatticeElem(R, [2, 2])),
+        character(R, WeightLatticeElem(R, [0, 3])),
+        character(R, WeightLatticeElem(R, [4, 0])),
+        character(R, WeightLatticeElem(R, [2, 1])),
+      )
+
+      # K(λ, s1s2s1, µ) = V(λ+µ) ⊕ V(2w_1+2w_2) ⊕ V(3w_2) ⊕ V(4w_1) ⊕ V(2w_1+w_2)^⊕2 ⊕ V(2w_1) ⊕ V(w_2) ⊕ V(2w_2)
+      @test kostant_kumar_character(R, lambda, mu, W([1, 2, 1])) == mergewith(+)(
+        character(R, lambda + mu),
+        character(R, WeightLatticeElem(R, [2, 2])),
+        character(R, WeightLatticeElem(R, [0, 3])),
+        character(R, WeightLatticeElem(R, [4, 0])),
+        character(R, WeightLatticeElem(R, [2, 1])),
+        character(R, WeightLatticeElem(R, [2, 1])),
+        character(R, WeightLatticeElem(R, [2, 0])),
+        character(R, WeightLatticeElem(R, [0, 1])),
+        character(R, WeightLatticeElem(R, [0, 2])),
+      )
+
+      # K(λ, w0, µ) = V(λ) ⊗ V(µ)
+      @test kostant_kumar_character(R, lambda, mu, longest_element(W)) == mergewith(+)(
+        [character(R, hw) for hw in tensor_product_decomposition(R, lambda, mu)]...
+      )
+    end
+
+    @testset "trivial cases" begin
+      # The identities used for testing here are due to Remark 5.3 in https://doi.org/10.1016/j.aim.2021.107614,
+      for (R, lambda, mu) in (
+        (root_system(:A, 1), [1], [2]),
+        (root_system(:A, 3), [1, 3, 1], [2, 2, 0]),
+        (root_system(:B, 2), [1, 0], [1, 1]),
+        (root_system(:D, 4), [1, 0, 1, 2], [2, 0, 0, 2]),
+        (root_system(:G, 2), [3, 1], [2, 1]),
+      )
+        W = weyl_group(R)
+
+        # K(λ, 1, µ) = V(λ+µ)
+        @test kostant_kumar_character(R, lambda, mu, one(W)) == character(R, lambda + mu)
+
+        # K(λ, w0, µ) = V(λ) ⊗ V(µ)
+        @test kostant_kumar_character(R, lambda, mu, longest_element(W)) == mergewith(+)(
+          [character(R, hw) for hw in tensor_product_decomposition(R, lambda, mu)]...
+        )
+      end
+    end
+
+    @testset "Input Conversion" begin
+      R = root_system(:A, 2)
+      W = weyl_group(R)
+      L = lie_algebra(QQ, R)
+      w1_int = [0, 1]
+      w1_weight = WeightLatticeElem(R, w1_int)
+      w2_int = [1, 0]
+      w2_weight = WeightLatticeElem(R, w2_int)
+      x = W([1])
+      reduced_expression = word(x)
+
+      # We don't check the result here, just that different input types give the same result.
+      result = kostant_kumar_character(R, w1_weight, w2_weight, x)
+
+      char = @inferred kostant_kumar_character(R, w1_weight, w2_weight, x)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(ZZRingElem, R, w1_weight, w2_weight, x)
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(R, w1_weight, w2_weight, reduced_expression)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(
+        ZZRingElem, R, w1_weight, w2_weight, reduced_expression
+      )
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(R, w1_int, w2_int, x)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(ZZRingElem, R, w1_int, w2_int, x)
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(R, w1_int, w2_int, reduced_expression)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(
+        ZZRingElem, R, w1_int, w2_int, reduced_expression
+      )
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(L, w1_weight, w2_weight, x)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(ZZRingElem, L, w1_weight, w2_weight, x)
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(L, w1_weight, w2_weight, reduced_expression)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(
+        ZZRingElem, L, w1_weight, w2_weight, reduced_expression
+      )
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(L, w1_int, w2_int, x)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(ZZRingElem, L, w1_int, w2_int, x)
+      @test char_ZZ == result
+      @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(L, w1_int, w2_int, reduced_expression)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
+      char_ZZ = @inferred kostant_kumar_character(
+        ZZRingElem, L, w1_int, w2_int, reduced_expression
+      )
       @test char_ZZ == result
       @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
     end

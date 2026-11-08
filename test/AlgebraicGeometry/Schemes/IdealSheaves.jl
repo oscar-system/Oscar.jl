@@ -259,3 +259,16 @@ end
   Oscar.produce_object(II, affine_charts(P2)[3]; algorithm=:pushforward)
 end
 
+
+@testset "cheap sub-ideals of sums of ideal sheaves" begin
+  # a summand cached on the chart is only a shortcut if it is the unit ideal
+  P2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
+  U = first(affine_charts(P2))
+  y, z = gens(OO(U))
+  II = IdealSheaf(P2, U, ideal(OO(U), y))
+  JJ = IdealSheaf(P2, U, ideal(OO(U), z))
+  II(U)
+  K = Oscar.cheap_sub_ideal(II + JJ, U)
+  @test y in K
+  @test z in K
+end

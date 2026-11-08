@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Abstract variety maps
 
 An *abstract variety map* $f\colon X \to Y$ encodes a morphism between abstract varieties at the level
@@ -82,6 +76,10 @@ extend_inclusion(i::AbstractVarietyMap; symbol::String = "e")
 
 ```@docs
 identity_map(X::AbstractVariety)
+```
+
+```@docs
+map(X::AbstractVariety, Y::AbstractVariety)
 ```
 
 ## Underlying data of an abstract variety map

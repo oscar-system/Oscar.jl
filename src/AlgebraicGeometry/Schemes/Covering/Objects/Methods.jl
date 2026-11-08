@@ -163,7 +163,7 @@ function Base.length(C::Covering)
   for U in patches(C)
     result = result + 1
     if haskey(affine_refinements(C), U)
-      for W in affine_refinements(C)[U]
+      for (W, _) in affine_refinements(C)[U]
         result = result + ngens(W)
       end
     end
@@ -177,7 +177,7 @@ function all_patches(C::Covering)
     push!(result, U)
     if haskey(affine_refinements(C), U)
       for (W, a) in affine_refinements(C)[U]
-        result = vcat(result, affine_patches(W))
+        append!(result, affine_patches(W))
       end
     end
   end

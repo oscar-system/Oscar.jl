@@ -107,7 +107,7 @@
   # S4 (natural permutation module in characteristic 5)
   gl = general_linear_group(4, 5)
   gapmats = [
-    GAP.Globals.PermutationMat(GapObj(elm), 4, GAP.Globals.GF(5)) for
+    GAP.Globals.PermutationMat(GapObj(elm), 4, GAPWrap.GF(5)) for
     elm in gens(symmetric_group(4))
   ]
   s4 = sub(gl, [MatGroupElem(gl, x) for x in gapmats])[1]
@@ -163,19 +163,24 @@ end
   @test length(basis(RGK, 1)) == 1
   @test length(basis(RGK, 1, :reynolds)) == 1
   @test length(basis(RGK, 1, :linear_algebra)) == 1
+  @test length(basis(RGK, 1, :orbit_sums)) == 1
   @test length(basis(RGK, 3)) == 3
   @test length(basis(RGK, 3, :reynolds)) == 3
   @test length(basis(RGK, 3, :linear_algebra)) == 3
+  @test length(basis(RGK, 3, :orbit_sums)) == 3
 
   @test length(basis(RGF, 1)) == 1
   @test length(basis(RGF, 1, :reynolds)) == 1
   @test length(basis(RGF, 1, :linear_algebra)) == 1
+  @test length(basis(RGF, 1, :orbit_sums)) == 1
   @test length(basis(RGF, 3)) == 3
   @test length(basis(RGF, 3, :reynolds)) == 3
   @test length(basis(RGF, 3, :linear_algebra)) == 3
+  @test length(basis(RGF, 3, :orbit_sums)) == 3
 
   @test length(basis(RGM, 1)) == 1
   @test length(basis(RGM, 1, :linear_algebra)) == 1
+  @test length(basis(RGM, 1, :orbit_sums)) == 1
   @test_throws AssertionError basis(RGM, 1, :reynolds)
 
   mol = molien_series(RGK)
@@ -184,6 +189,12 @@ end
   @test mol == 1//((1 - t^3) * (1 - t^2) * (1 - t))
 
   mol = molien_series(RGF)
+  F = parent(mol)
+  t = gens(base_ring(F))[1]
+  @test mol == 1//((1 - t^3) * (1 - t^2) * (1 - t))
+
+  @test Oscar.is_molien_series_implemented(RGM)
+  mol = molien_series(RGM)
   F = parent(mol)
   t = gens(base_ring(F))[1]
   @test mol == 1//((1 - t^3) * (1 - t^2) * (1 - t))

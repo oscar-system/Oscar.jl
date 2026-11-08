@@ -258,7 +258,7 @@ cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 Construct the regular tetrahedron, one of the Platonic solids.
 """
 tetrahedron() = polyhedron(Polymake.polytope.tetrahedron());
-tetrahedron(f::scalar_type_or_field) = polyhedron(F, Polymake.polytope.tetrahedron());
+tetrahedron(f::scalar_type_or_field) = polyhedron(f, Polymake.polytope.tetrahedron());
 
 @doc raw"""
     dodecahedron([F::scalar_type_or_field])
@@ -1063,9 +1063,9 @@ Polyhedron in ambient dimension 4
 
 julia> f_vector(BL)
 3-element Vector{ZZRingElem}:
- 6
+  6
  12
- 8
+  8
 
 ```
 """
@@ -1360,9 +1360,9 @@ Polytope in ambient dimension 3
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{QQFieldElem}:
  4306545//4194304
- 15849//16384
- 4165//4096
- 8281//8192
+   15849//16384
+    4165//4096
+    8281//8192
 
 julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
 Polytope in ambient dimension 3
@@ -1433,6 +1433,98 @@ function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where {T<:scal
     VERTICES=pm_matrix
   )::Polymake.BigObject
   return Polyhedron{T}(pm_obj, coefficient_field(P))
+end
+
+@doc raw"""
+    rand_dual_bounding_body([rng::AbstractRNG,] P::Polyhedron{T}, m::Int, l::Int=1;
+    precision=nothing, seed=nothing) where {T<:scalar_types}
+
+Construct a random polytope which approximates the polytope $P \subset \mathbb{R}^d$ from
+the outside. Let $V$ be the set of vertices of $P$. To this end, $m$ random directions
+$u_1, \dots, u_m$ are chosen almost uniformly on the unit sphere. For each
+$u \in \{\pm u_1, \dots, \pm u_m\}$ the halfspace $\{x \mid \langle u, x \rangle \geq t_u\}$
+is formed, where $t_u$ is the $l$-th smallest value of $\langle u, v \rangle$ for
+$v \in V$. The result is the intersection of these $2m$ halfspaces. The polyhedron $P$
+must be bounded.
+
+The result has the same scalar type as $P$. For a `Polyhedron{<:FieldElem}` the directions
+are the points of [`rand_spherical_polytope`](@ref) with the default distribution
+`:uniform`, which polymake computes via floating point numbers of the given `precision`
+and converts to rational points close to the unit sphere. Then the result is computed in
+exact rational arithmetic. For a `Polyhedron{Float64}` the directions are normalized
+standard Gaussian vectors in `Float64`, and `precision` is ignored. This is inferior in
+two respects: the precision of the directions is fixed to that of `Float64`,
+and all subsequent computations are subject to rounding errors. In particular, the result
+may fail to contain $P$ for $l=1$.
+
+Rational input should be preferred if the polyhedral geometry matters.
+On the other hand side, `Float64` is much faster; this is desirable in
+a data analysis setting, where the actual geometry does not matter.
+
+For $l=1$ the result contains $P$ (at least for exact computations).
+For $l>1$ each halfspace may cut off up to $l-1$ vertices of $P$; the
+resulting polyhedra are the (symmetrized) random polytope descriptors
+of [JKR20](@cite). The result is bounded if and only if the directions
+span $\mathbb{R}^d$, which happens almost surely for $m \geq d$.
+
+# Keywords
+- `precision::Int64`:     Precision in bits during the floating point approximation
+                          of the uniform distribution on the sphere; only used
+                          for rational input.
+- `seed::Int64`:          Seed for random number generation. Cannot be used
+                          together with the `AbstractRNG` argument.
+
+# Examples
+```jldoctest
+julia> C = cube(3);
+
+julia> P = rand_dual_bounding_body(C, 10)
+Polyhedron in ambient dimension 3
+
+julia> is_bounded(P)
+true
+
+julia> issubset(C, P)
+true
+```
+"""
+function rand_dual_bounding_body(
+  rng::AbstractRNG, P::Polyhedron{T}, m::Int, l::Int=1; precision=nothing
+) where {T<:scalar_types}
+  d = ambient_dim(P)
+  @req m > d "number of directions must be larger than the dimension"
+  @req is_bounded(P) "polyhedron must be bounded"
+  pts = matrix(vertices(P))
+  n = nrows(pts)
+  @req 1 <= l <= n "l must be between 1 and the number of vertices"
+  cf = coefficient_field(P)
+  U = matrix(cf, _random_unit_vectors(T, rng, m, d, precision))
+  A = vcat(U, -U)
+  D = pts * transpose(A)
+  b = partialsort.(eachcol(D), l)
+  return polyhedron(cf, -A, -b)::Polyhedron{T}
+end
+
+rand_dual_bounding_body(P::Polyhedron, m::Int, l::Int=1; precision=nothing, seed=nothing) =
+  rand_dual_bounding_body(
+    isnothing(seed) ? Random.default_rng() : Random.Xoshiro(seed), P, m, l; precision
+  )
+
+# m random points on the unit sphere in dimension d, as rows of a matrix
+function _random_unit_vectors(::Type{Float64}, rng::AbstractRNG, m::Int, d::Int, precision)
+  U = randn(rng, m, d)
+  U ./= sqrt.(sum(abs2, U; dims=2))
+  return U
+end
+
+function _random_unit_vectors(
+  ::Type{<:FieldElem}, rng::AbstractRNG, m::Int, d::Int, precision
+)
+  # the unit sphere is {-1, 1}, and rand_dual_bounding_body uses both directions anyway
+  d == 1 && return ones(QQFieldElem, m, 1)
+  # rand_spherical_polytope requires more than d points (but that has been checked before)
+  S = rand_spherical_polytope(d, m; precision, seed=rand(rng, Int64))
+  return Matrix{QQFieldElem}(pm_object(S).POINTS[1:m, 2:end])::Matrix{QQFieldElem}
 end
 
 @doc raw"""
@@ -2110,7 +2202,7 @@ Polytope in ambient dimension 4
 
 julia> f_vector(DP)
 4-element Vector{ZZRingElem}:
- 9
+  9
  32
  46
  23
@@ -2293,9 +2385,9 @@ true
 julia> sort(map(x->dot(x,x), vertices(rnp)))
 4-element Vector{QQFieldElem}:
  1417//4096
- 481//1024
- 225//256
- 101//32
+  481//1024
+  225//256
+  101//32
 ```
 """
 function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
@@ -2622,4 +2714,52 @@ julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
 """
 function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
   return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
+end
+
+@doc raw"""
+    prism(P::Polyhedron)
+    prism(P::Polyhedron, z1, z2)
+
+Build the prism over the polyhedron `P`, i.e. the product with $[-1,1]$.
+If `z1` and `z2` are provided, build the product with the
+interval $[z_1, z_2]$ instead.
+
+# Examples
+```jldoctest
+julia> S = simplex(2)
+Polytope in ambient dimension 2
+
+julia> PS = prism(S)
+Polytope in ambient dimension 3
+
+julia> vertices(PS)
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, -1]
+ [1, 0, -1]
+ [0, 1, -1]
+ [0, 0, 1]
+ [1, 0, 1]
+ [0, 1, 1]
+
+julia> vertices(prism(S, -3, 2))
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, -3]
+ [1, 0, -3]
+ [0, 1, -3]
+ [0, 0, 2]
+ [1, 0, 2]
+ [0, 1, 2]
+```
+"""
+function prism(
+  P::Polyhedron{T},
+  z1::Union{Number,IntegerUnion,scalar_types},
+  z2::Union{Number,IntegerUnion,scalar_types},
+) where {T<:scalar_types}
+  F = coefficient_field(P)
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P), F(z1), F(z2)), F)
+end
+
+function prism(P::Polyhedron{T}) where {T<:scalar_types}
+  return Polyhedron{T}(Polymake.polytope.prism(pm_object(P)), coefficient_field(P))
 end

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Introduction
 
 Linear quotients are orbit spaces of the action of a finite group $G$ on a finite-dimensional vector space $V$ over $\mathbb C$.

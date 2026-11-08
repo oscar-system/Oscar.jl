@@ -66,6 +66,7 @@ end
   wall1 = Oscar._walls_of_chamber(C.data,weyl_vector(C),:short)
   wall2 = Oscar._walls_of_chamber(C.data,weyl_vector(C),:close)
   @test Set(wall1)==Set(wall2)
+  @test_throws ErrorException Oscar._walls_of_chamber(C.data, weyl_vector(C), :foo)
   
   #=
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 18, compute_OR=true)

@@ -18,7 +18,7 @@ mutable struct CliffordAlgebra{T, S} <: Hecke.AbstractAssociativeAlgebra{T}
   orth_elt::Any #elem_type{C}
   disq::T
 
-  #Return the Clifford algebra of the quadratic space 'qs' 
+  #Return the Clifford algebra of the quadratic space 'qs'
   function CliffordAlgebra{T,S}(qs::Hecke.QuadSpace{K,S}) where {T,S,K}
     gram = gram_matrix(qs)
     return new{T,S}(base_ring(qs), qs, gram, 2^ncols(gram))
@@ -46,7 +46,7 @@ mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{
 
   CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeffs::Vector{T}) where {T,S} =
     CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram)}(C, coeffs)
-  
+
   function CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{R}) where {T,S,R}
     K = C.base_ring
     return CliffordAlgebraElem{elem_type(K), typeof(C.gram)}(C, K.(coeff))
@@ -89,7 +89,7 @@ mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
 
   function ZZCliffordOrder(ls::ZZLat)
     !is_zero(rank(ls)) && @req is_even(ls) "The given lattice is not even!"
-    qs = rational_span(ls) 
+    qs = rational_span(ls)
     return new(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs))
   end
 
@@ -114,12 +114,12 @@ mutable struct CliffordOrderElem{T, C, S} <: Hecke.AbstractAssociativeAlgebraEle
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
   function CliffordOrderElem{T, C, S}(CO::CliffordOrder{T, C}, coeffs::Vector{S}) where {T, C, S}
     @req length(coeffs) == CO.rank "invalid length of coefficient vector"
-    
+
     for i in 1:CO.rank
       ci = coeffs[i]
       is_zero(ci) || @req ci in coefficient_ideals(CO)[i] "The element does not lie in the Clifford order."
     end
-    
+
     return new{T, C, S}(CO, coeffs)
   end
 

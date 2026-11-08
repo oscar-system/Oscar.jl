@@ -133,3 +133,18 @@ end
   @test order(galois_group(psi)[1]) == 60
   @test order(galois_group(psi/5)[1]) == 60
 end
+
+@testset "symbolic roots in a given field" begin
+  K, = quadratic_field(5)
+  G, = galois_group(K; algorithm=:Symbolic, field=K)
+  @test order(G) == 2
+end
+
+@testset "extension_field over number fields honours check" begin
+  # with check = false, a reducible polynomial is accepted without an irreducibility test
+  K, a = number_field(QQ[:x][2]^2 - 2, "a")
+  Kt, t = K[:t]
+  f = (t - a)*(t + a)
+  @test_throws ErrorException Oscar.GaloisGrp.extension_field(f)
+  @test degree(Oscar.GaloisGrp.extension_field(f; check = false)[1]) == 2
+end

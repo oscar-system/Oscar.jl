@@ -139,9 +139,9 @@ end
 
   I = ideal(Q, [x^2*y-x+y,y+1])
   simplify(I)
-  SQ = Oscar.singular_poly_ring(Q)
+  iso = Oscar.iso_oscar_singular_poly_ring(Q)
   SI = Oscar.singular_generators(I.gens)
-  @test SI[1] == SQ(-x+y) && SI[2] == SQ(y+1)
+  @test SI[1] == iso(-x+y) && SI[2] == iso(y+1)
   J = ideal(Q, [x+y+1,y+1])
   @test issubset(J, I) == true
   @test issubset(I, J) == false
@@ -356,6 +356,27 @@ end
   @test Oscar.HasNormalFormTrait(one(R1)) isa Oscar.HasNoNormalForm
   @test Oscar.HasGroebnerAlgorithmTrait(R1) isa Oscar.HasRingFlattening
   @test Oscar.HasGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasRingFlattening
+end
+
+@testset "quotients of polynomial rings in 0 variables" begin
+  # Normal forms, for which Singular needs at least one variable
+  P, _ = polynomial_ring(QQ, 0)
+  Q, _ = quo(P, ideal(P, [zero(P)]))
+  @test !iszero(Q(1))
+  @test Q(1) != Q(2)
+  @test Q(2) * Q(3) == Q(6)
+  @test hash(Q(2) * Q(3)) == hash(Q(6))
+  Q, _ = quo(P, ideal(P, [P(3)]))
+  @test iszero(Q(1))
+  @test Q(1) == Q(2)
+
+  P, _ = polynomial_ring(ZZ, 0)
+  Q, _ = quo(P, ideal(P, [P(3)]))
+  @test !iszero(Q(4))
+  @test Q(5) == Q(2)
+  @test hash(Q(5)) == hash(Q(2))
+  Q, _ = quo(P, ideal(P, [P(4), P(6)]))
+  @test Q(3) == Q(1)
 end
 
 @testset "Tensor product" begin

@@ -584,10 +584,7 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=sim
     push!(images, normal_form(a, pPw))
   end
   # collect a monomial basis in which to represent the results
-  all_mons = elem_type(R)[]
-  for b in images
-    all_mons = vcat(all_mons, [m for m in monomials(b) if !(b in all_mons)])
-  end
+  all_mons = unique!(elem_type(R)[m for b in images for m in monomials(b)])
 
   kk = base_ring(X)
   A = zero_matrix(kk, ngens(L), length(all_mons))
@@ -610,7 +607,7 @@ end
 function subsystem(L::LinearSystem, P::AbsWeilDivisor, n::Int; check::Bool=true)
   @check is_prime(P) "P must be a prime divisor"
   I = components(P)[1]
-  return subsystem(L, I, n)
+  return _subsystem(L, I, n)
 end
 
 

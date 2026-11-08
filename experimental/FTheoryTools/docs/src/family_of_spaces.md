@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Families of Spaces](@id family_of_spaces)
 
 Many F-theory constructions in the literature work without fully specifying the base space of

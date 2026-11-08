@@ -53,8 +53,8 @@ end
 
 # We can not use the signature with T because the MPolyQuoIdeals are 
 # not parametrized by the element type of their ring.
-#function *(I::Ideal{T}, M::ModuleFP{T}) where {T<:RingElem}
-function *(I::Ideal, M::ModuleFP)
+#function *(I::Ideal{T}, M::OFPModule{T}) where {T<:RingElem}
+function *(I::Ideal, M::OFPModule)
   base_ring(I) === base_ring(M) || error("ideal and module are not defined over the same ring")
   return sub(M, elem_type(M)[g*e for g in gens(I) for e in gens(M)])
 end
@@ -95,7 +95,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
     return [id_hom(M)]
   end
-  parent_hom = IdDict{SubquoModule, ModuleFPHom}()
+  parent_hom = IdDict{SubquoModule, OFPModuleHom}()
   modules = [M]
   found_N = false
   for A in modules
@@ -115,7 +115,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if !found_N
     throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
   end
-  morphisms = Vector{ModuleFPHom}()
+  morphisms = Vector{OFPModuleHom}()
   A = N
   while A !== M
     f = parent_hom[A]
@@ -125,7 +125,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   return morphisms
 end
 
-function _recreate_morphism(dom::ModuleFP, cod::ModuleFP, t::Tuple{<:SMat, <:Any})
+function _recreate_morphism(dom::OFPModule, cod::OFPModule, t::Tuple{<:SMat, <:Any})
   A, bc = t
   if bc === nothing
     return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], check=false)
@@ -171,7 +171,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   all_paths = []
 
-  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:ModuleFP}, path::Vector)
+  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:OFPModule}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
@@ -182,9 +182,9 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
     end
   end
 
-  helper_dfs!(N, M, Vector{ModuleFP}(), [])
+  helper_dfs!(N, M, Vector{OFPModule}(), [])
 
-  morphisms = Vector{ModuleFPHom}()
+  morphisms = Vector{OFPModuleHom}()
   for path in all_paths
     phi = id_hom(N)
     for h in path
@@ -201,11 +201,11 @@ end
 #############################
 
 @doc raw"""
-    register_morphism!(f::ModuleFPHom)
+    register_morphism!(f::OFPModuleHom)
 
 Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
 """
-function register_morphism!(f::ModuleFPHom)
+function register_morphism!(f::OFPModuleHom)
   dom = domain(f)
   cod = codomain(f)
   dom.outgoing[cod] = sparse_matrix(f), ring_map(f)
@@ -214,7 +214,7 @@ function register_morphism!(f::ModuleFPHom)
 end
 
 # Some missing methods for the above to work
-function sparse_matrix(f::ModuleFPHom)
+function sparse_matrix(f::OFPModuleHom)
   dom = domain(f)
   R = base_ring(codomain(f))
   result = sparse_matrix(R, 0, ngens(codomain(f)))
@@ -224,10 +224,10 @@ function sparse_matrix(f::ModuleFPHom)
   return result
 end
 
-ring_map(f::FreeModuleHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::FreeModuleHom{<:AbstractFreeMod, <:OFPModule, Nothing}) = nothing
 ring_map(f::FreeModuleHom) = f.ring_map
 
-ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::SubQuoHom{<:AbstractFreeMod, <:OFPModule, Nothing}) = nothing
 ring_map(f::SubQuoHom) = f.ring_map
 
 function default_ordering(F::FreeMod)
@@ -292,16 +292,16 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   g2 = matrix_kernel(g1)
   n = s1*t0
   m = s0*t0 + s1*t1
-  delta::MatrixElem{T} = zero_matrix(R, m,n)
+  delta::MatElem{T} = zero_matrix(R, m,n)
   for j=1:s0*t0
-    b_vector::MatrixElem{T} = zero_matrix(R, 1,s0*t0)
+    b_vector::MatElem{T} = zero_matrix(R, 1,s0*t0)
     b_vector[1,j] = R(1)
     A = copy_and_reshape(b_vector, s0, t0)
     res = f1*A
     delta[j,:] = copy_and_reshape(res, 1, n)
   end
   for j=s0*t0+1:m
-    b_vector::MatrixElem{T} = zero_matrix(R, 1,m-s0*t0)
+    b_vector::MatElem{T} = zero_matrix(R, 1,m-s0*t0)
     b_vector[1,j-s0*t0] = R(1)
     B = copy_and_reshape(b_vector, s1, t1)
     res = -B*g1
@@ -311,7 +311,7 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
   gamma = matrix_kernel(delta)
   gamma = gamma[:,1:s0*t0]
 
-  rho::MatrixElem{T} = zero_matrix(R, s0*t1, s0*t0)
+  rho::MatElem{T} = zero_matrix(R, s0*t1, s0*t0)
 
   for j=1:s0*t1
     b_vector = zero_matrix(R, 1,s0*t1)
@@ -358,7 +358,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
       A = convert_to_matrix(elem2)
       return SubQuoHom(M,N,A; check=false)
     end
-    to_subquotient_elem = function(H::ModuleFPHom)
+    to_subquotient_elem = function(H::OFPModuleHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
       v = FreeModElem(sparse_row(v), FreeMod(R, length(v)))
@@ -370,7 +370,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
 
     return SQ2, to_hom_map
   else
-    to_subquotient_elem = function(H::ModuleFPHom)
+    to_subquotient_elem = function(H::OFPModuleHom)
       m = length(matrix(H))
       v = copy_and_reshape(matrix(H),1,m)
       v = FreeModElem(sparse_row(v), ambient_free_module(SQ))
@@ -429,7 +429,7 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   return MS, map
 end
 
-function change_base_ring(phi::Any, f::ModuleFPHom; 
+function change_base_ring(phi::Any, f::OFPModuleHom; 
     domain_base_change=change_base_ring(phi, domain(f))[2], 
     codomain_base_change=change_base_ring(phi, codomain(f))[2]
   )
@@ -441,7 +441,7 @@ end
 
 ### Duals of modules
 @doc raw"""
-    dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
+    dual(M::OFPModule; codomain::Union{FreeMod, Nothing}=nothing)
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
 interpretation map ``i``, turning an element ``φ`` of ``M*`` into 
@@ -450,7 +450,7 @@ a homomorphism ``M → R``.
 The optional argument allows to specify a free module of rank ``1`` 
 for the codomain of the dualizing functor.
 """
-function dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
+function dual(M::OFPModule; codomain::Union{FreeMod, Nothing}=nothing)
   R = base_ring(M)
   codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
   base_ring(codomain) === R && rank(codomain) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
@@ -458,7 +458,7 @@ function dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
 end
 
 @doc raw"""
-    double_dual(M::ModuleFP)
+    double_dual(M::OFPModule)
 
 For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of 
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
@@ -506,7 +506,7 @@ end
 
 
 @doc raw"""
-    dual(f::ModuleFPHom; codomain::FreeMod)
+    dual(f::OFPModuleHom; codomain::FreeMod)
 
 Given a morphism of modules ``f : M → N``, return the morphism
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
@@ -514,10 +514,10 @@ Given a morphism of modules ``f : M → N``, return the morphism
 The optional argument allows to specify a free module of rank one over the 
 base ring of ``f`` for building the duals of ``M`` and ``N``.
 """
-function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
+function dual(f::OFPModuleHom{<:OFPModule, <:OFPModule, Nothing}; # Third parameter assures same base ring
     codomain::FreeMod=FreeMod(base_ring(domain(f)), 1), 
-    domain_dual::ModuleFP=dual(Oscar.domain(f), codomain=codomain)[1],
-    codomain_dual::ModuleFP=dual(Oscar.codomain(f), codomain=codomain)[1]
+    domain_dual::OFPModule=dual(Oscar.domain(f), codomain=codomain)[1],
+    codomain_dual::OFPModule=dual(Oscar.codomain(f), codomain=codomain)[1]
   )
   M = Oscar.domain(f)
   N = Oscar.codomain(f)
@@ -542,7 +542,7 @@ end
 #
 # The general user facing signature is 
 #
-#   vector_space[_dimension/_basis](kk::Field, M::ModuleFP; check::Bool)
+#   vector_space[_dimension/_basis](kk::Field, M::OFPModule; check::Bool)
 #
 # where we assume that either 1) the `base_ring` of `M` is already the 
 # field `kk`, or 2) the `base_ring` `R` of `M` is an algebra over the 
@@ -551,7 +551,7 @@ end
 #
 # For convenience we also allow 
 #
-#   vector_space[_dimension/_basis](M::ModuleFP; check::Bool, cached::Bool=true)
+#   vector_space[_dimension/_basis](M::OFPModule; check::Bool, cached::Bool=true)
 #
 # which picks the field `kk` according to the above assumptions. Note 
 # that this has the default option to cache the result (as it does not depend 
@@ -565,19 +565,19 @@ end
 # Once we are sure that the module is presented, we delegate to respective 
 # internal methods 
 #
-#   _vector_space[_dimension/_basis](kk::Field, M::ModuleFP; check::Bool)
+#   _vector_space[_dimension/_basis](kk::Field, M::OFPModule; check::Bool)
 #
 # These might still do internal checks, like e.g. finiteness over `kk`.
 #
 # For the non-graded polynomial case there are methods to filter out a 
 # graded part w.r.t the total degree via 
 #
-#   vector_space[_dimension/_basis](kk::Field, M::ModuleFP, d::Int; check::Bool)
+#   vector_space[_dimension/_basis](kk::Field, M::OFPModule, d::Int; check::Bool)
 #
 # These will eventually be deprecated to internal methods, but they are part of 
 # the system for now. In the graded case we aim to have 
 #   
-#   vector_space[_dimension/_basis](kk::Field, M::ModuleFP, d::FinGenAbGroupElem; check::Bool)
+#   vector_space[_dimension/_basis](kk::Field, M::OFPModule, d::FinGenAbGroupElem; check::Bool)
 #
 # for which there are stubs at the moment, but only partial implementations.
 ##########################################################################
@@ -653,6 +653,71 @@ function _vector_space_dim(kk::Field, M::SubquoModule; check::Bool=true)
   return length(vector_space_basis(kk, M; check))
 end
 
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyRingElem{<:FieldElem}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end
+  if !isdefined(M, :quo) # exists to prevent a undefined field access
+    return PosInf()
+  end
+  GB = groebner_basis(M.quo)
+  vdim = Singular.vdim(singular_generators(GB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T <: MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}
+
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  return _vector_space_dim(kk, _as_poly_module(M), check=false)
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem,
+                               <:MPolyRing, <:MPolyRingElem,
+                               <:MPolyComplementOfKPointIdeal
+                              }}
+  @assert kk === coefficient_ring(base_ring(M)) "not implemented for other fields than the coefficients of the underlying polynomial ring"                              
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end  
+  M_shift, _, _ = shifted_module(M)
+  ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  # M_shift.quo is always defined
+  SB = standard_basis(M_shift.quo, ordering = ord)
+  vdim = Singular.vdim(singular_generators(SB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
+function _vector_space_dim(
+    kk::Field, M::SubquoModule{T}; check::Bool=true
+  ) where {T<:MPolyQuoLocRingElem{<:Field, <:FieldElem,
+                                  <:MPolyRing, <:MPolyRingElem,
+                                  <:MPolyComplementOfKPointIdeal
+                                 }}
+  LQ = base_ring(M)
+  @assert kk === coefficient_ring(LQ) "not implemented for other fields than the coefficients of the underlying polynomial ring"
+  if ngens(M) == 0 #prevent zero module presented with no generators and relations from returning infinity
+    return 0
+  end
+  M_poly = pre_saturated_module(M)
+  #TODO: refactor when infrastructure for caching GB-basis is available in this setting
+  shift, _ = base_ring_shifts(localized_ring(LQ))
+  Mq, _ = sub(ambient_free_module(M_poly), relations(M_poly))
+  Mq_shift, _ = change_base_ring(shift, Mq)
+
+  ord = negdegrevlex(base_ring(Mq_shift))*lex(ambient_free_module(Mq_shift))
+  SB = standard_basis(Mq_shift.sub, ordering = ord)
+  vdim = Singular.vdim(singular_generators(SB))
+  return vdim >= 0 ? vdim : PosInf()
+end
+
 @doc raw"""
     _is_finite(kk::Field, M::SubquoModule)
 
@@ -669,7 +734,7 @@ function _is_finite(kk::Field, M::SubquoModule{T}) where {T<:MPolyRingElem{<:Fie
   @assert kk === coefficient_ring(base_ring(M)) "not implemented for fields other than the `coefficient_ring` of the `base_ring` of the module"
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
-  return _has_monomials_on_all_axes(leading_module(M.quo, default_ordering(M)))
+  return _has_leading_monomials_on_all_axes(standard_basis(M.quo, ordering = default_ordering(M)))
 end
 
 function _is_finite(kk::Field, M::SubquoModule{<:FieldElem})
@@ -883,21 +948,75 @@ end
 
 # This is an internal method which assumes `M` to be presented.
 function _vector_space_basis(kk::Field, M::SubquoModule{T}, d::Int64; check::Bool=true) where {T <: MPolyRingElem{<:FieldElem}}
-  R = base_ring(M)
-  F = ambient_free_module(M)
-
-  mons = elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]
-
   if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
-    return M.(vec(mons))
+    R = base_ring(M)
+    F = ambient_free_module(M)
+    return M.(vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))]))
   end
 
-  o = default_ordering(M)
-  LM = leading_module(M.quo, o)
+  ord = default_ordering(M)
+  SB = standard_basis(M.quo, ordering = ord)
 
-  return elem_type(M)[M(mon) for mon in mons if !(mon in LM)]
+  return M.(_vector_space_basis_helper(SB, d))
 end
+
+@doc raw"""
+    _vector_space_basis_helper(GB::ModuleGens, d::Int64) where {T <: MPolyRingElem{<: FieldElem}}
+
+Return a vector of all monomials of total degree `d` which are not in the 
+leading module of the Gröbner basis `GB`. 
+"""
+function _vector_space_basis_helper(GB::ModuleGens{T}, d::Int64) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  R = base_ring(GB)
+  F = oscar_free_module(GB)
+
+  min_degs = _min_degrees_to_check(GB)
+  max_degs = _max_degrees_to_check(GB)
+  # Case I: We know, that all monomials of degree 'd' are in the leading module.
+  d > maximum(max_degs) && return elem_type(F)[]
+  # Case II: We know, that no monomial of degree 'd' is in the leading module.
+  if d < minimum(min_degs)
+    return vec(elem_type(F)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F))])
+  end
+  # Case III: We need to check the monomials of degree 'd' in each coordinate individually. 
+  mons_on_axes = _leading_monomials_on_axes(GB)
+  LM = leading_monomials(GB)
+  B = elem_type(F)[]
   
+  #= Hack to be able to use normal_form() below. 
+  The 'ModuleGens' constructors does not set 'ordering' and 'isGB' from a Singular 'smodule' (see issue #5944),
+  thus 'leading_monomials' also does not do it, therefore we do it manually here.
+  TODO: remove, when issue #5944 is resolved
+  =#
+  LM.isGB = true  
+  LM.ordering = GB.ordering
+  
+  # Go through each coordinate individually
+  for i in 1:rank(F)
+    # Subcase i: We know, that all monomials of degree 'd' in the 'i'-th coordinate are in the leading module.
+    if d > max_degs[i]
+      continue
+    # Subcase ii: We know, that no monomial of degree 'd' in the 'i'-th coordinate is in the leading module.
+    elseif d < min_degs[i]
+      append!(B, [a*F[i] for a in monomials_of_degree(R, d)])
+    # Subcase iii: We need to check the monomials of degree in the 'i'-th coordinate 'd' individually.
+    else
+      # check only monomials with variables, that are not in the leading module
+      mons = [a*F[i] for a in monomials_of_degree(R, d, findall(mons_on_axes[i,:] .> 1))]
+      B_i = [mon for mon in mons if !is_zero(normal_form(mon, LM))]
+      # improve upper bound for 'i'-th coordinate, if all monomials in it are in the leading module.
+      if length(B_i) == 0
+        max_degs[i] = d-1
+      else
+        append!(B, B_i)
+      end
+    end
+  end
+  return B
+end
+
+
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::FinGenAbGroupElem; check::Bool=true)
   error("not implemented")
 end
@@ -905,73 +1024,126 @@ end
 function _vector_space_basis_graded(kk::Field, M::SubquoModule, d::Int64; check::Bool=true)
   error("not implemented")
 end
-  
-@doc raw"""
-    _has_monomials_on_all_axes(M::SubquoModule)
 
-Internal function to test for a submodule `M` of a free module `F` whether the quotient `F/M` is a finite-dimensional vector space. Do not use directly.
+
+@doc raw"""
+    _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Compute whether the monomial diagram of the leading monomials of the Gröbner 
+basis `GB` has monomials on all its axes.
 """
-function _has_monomials_on_all_axes(M::SubquoModule)
-  length(rels(M)) == 0 || error("not implemented for quotients")
-  return _has_monomials_on_all_axes(M.sub)
+@attr Bool function _has_leading_monomials_on_all_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  return !any(==(PosInf()), _leading_monomials_on_axes(GB))
 end
 
-function _has_monomials_on_all_axes(M::SubModuleOfFreeModule)
-  R = base_ring(M)
-  
-  ambient_rank = ngens(ambient_free_module(M))
-  genlist = gens(M)
-  explist = Tuple{Vector{Int64}, Int64, Int}[]
-  for x in genlist
-    tempexp = leading_exponent(x)
-    tempdeg = sum(tempexp[1])
-    push!(explist, (tempexp[1], tempexp[2], tempdeg))
-  end
-  for i in 1:ngens(R), j in 1:ambient_rank
-    if !any(x -> (x[1][i] == x[3] && x[2]==j), explist)
-      return false
+@doc raw"""
+    _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Return, encoded into a (julia) matrix, the leading monomials of the Gröbner basis `GB`, 
+which are univariate, i.e. lay on the axes of a monomial diagram.
+
+The returned matrix `M` contains in the entry `M[i,j]` the smallest degree `k`,
+such that the monomial $R[j]^k*F[i]$ is in the leading module of `GB`.
+If such a monomial does not exist the entry is `PosInf()`.
+"""
+@attr Matrix{IntExt} function _leading_monomials_on_axes(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  ambient_rank = ngens(oscar_free_module(GB))
+  mons_on_axes = IntExt[PosInf() for _ in 1:ambient_rank, _ in 1:ngens(base_ring(GB))]
+  for mon in leading_monomials(GB)
+    tempexp, tempcomp = leading_exponent(mon)
+    tempdeg = sum(tempexp)
+    # constant monomial
+    if tempdeg == 0
+      mons_on_axes[tempcomp, :] .= 0
+      continue
+    end
+    tempvar = findfirst(!=(0), tempexp)
+    # univariate and smaller degree
+    if tempexp[tempvar] == tempdeg && tempdeg < mons_on_axes[tempcomp, tempvar] 
+      mons_on_axes[tempcomp, tempvar] = tempdeg
     end
   end
-  return true
+  return mons_on_axes
 end
 
+@doc raw"""
+    _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Compute for each coordinate of the ambient free module of the Gröbner basis `GB`
+the smallest total degree of a monomial appearing in the leading module of `GB`.
+"""
+@attr Vector{IntExt} function _min_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  ambient_rank = ngens(oscar_free_module(GB))
+  min_degs = IntExt[PosInf() for _ in 1:ambient_rank]
+  for mon in leading_monomials(GB)
+    tempexp, tempcomp = leading_exponent(mon)
+    tempdeg = sum(tempexp)
+    
+    if tempdeg < min_degs[tempcomp]
+      min_degs[tempcomp] = tempdeg
+    end
+  end
+  return min_degs
+end
+
+@doc raw"""
+    _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+
+Compute for each coordinate of the ambient free module of the Gröbner basis `GB` 
+an upper bound for the total degree of the monomials not appearing in the 
+leading module of `GB`.
+
+The bound is `PosInf()` if and only if no finite bound exists.
+"""
+@attr Vector{IntExt} function _max_degrees_to_check(GB::ModuleGens{T}) where {T <: MPolyRingElem{<: FieldElem}}
+  @assert GB.isGB
+  mons_on_axes = _leading_monomials_on_axes(GB)
+  # nrows(mons_on_axes) is the rank of the ambient free module of 'GB'
+  return IntExt[sum(mons_on_axes[i,:]) - ngens(base_ring(GB)) for i in 1:nrows(mons_on_axes)]
+end
+
+
+
 ### Some missing functionality
-function Base.:*(k::Int, f::ModuleFPHom)
+function Base.:*(k::Int, f::OFPModuleHom)
   return base_ring(codomain(f))(k)*f
 end
 
-function _is_tensor_product(M::ModuleFP)
+function _is_tensor_product(M::OFPModule)
   !has_attribute(M, :tensor_product) && return false, [M]
   return true, get_attribute(M, :tensor_product)::Tuple
 end
 
-function tensor_pure_function(M::ModuleFP)
+function tensor_pure_function(M::OFPModule)
   success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_pure_function)
 end
 
-function tensor_generator_decompose_function(M::ModuleFP)
+function tensor_generator_decompose_function(M::OFPModule)
   success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_generator_decompose_function)
 end
   
-function tensor_product(mod::Vector{<:ModuleFP})
+function tensor_product(mod::Vector{<:OFPModule})
   return tensor_product(mod...)
 end
 
-function tensor_product(f::ModuleFPHom...)
+function tensor_product(f::OFPModuleHom...)
   return tensor_product(collect(f))
 end
 
 # We follow the convention to use the same function also for the 
 # constructor of induced maps.
-tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
+tensor_product(dom::OFPModule, cod::OFPModule, maps::Vector{<:OFPModuleHom}) = hom_tensor(dom, cod, maps)
 
-function tensor_product(maps::Vector{<:ModuleFPHom}; 
-        domain::ModuleFP = tensor_product([domain(f) for f in maps]), 
-        codomain::ModuleFP = tensor_product([codomain(f) for f in maps])
+function tensor_product(maps::Vector{<:OFPModuleHom}; 
+        domain::OFPModule = tensor_product([domain(f) for f in maps]), 
+        codomain::OFPModule = tensor_product([codomain(f) for f in maps])
     )
   return tensor_product(domain, codomain, maps)
 end
@@ -981,13 +1153,13 @@ end
 function vector_space(M::SubquoModule; check::Bool=false)
   R = base_ring(M)
   kk = coefficient_ring(R)
-  return vector_space(ModuleFP, kk, M; check)
+  return vector_space(OFPModule, kk, M; check)
 end
 
 function vector_space(
     ::Type{ResType}, M::SubquoModule; 
     check::Bool=false
-  ) where {ResType <: ModuleFP}
+  ) where {ResType <: OFPModule}
   R = base_ring(M)
   kk = coefficient_ring(R)
   return vector_space(ResType, kk, M; check)
@@ -1012,7 +1184,7 @@ end
 function vector_space(
     ::Type{ResType}, kk::Field, M::SubquoModule; 
     check::Bool=false
-  ) where {ResType <: ModuleFP}
+  ) where {ResType <: OFPModule}
   R = base_ring(M)
   @assert kk === coefficient_ring(R) "not implemented for fields other than the `coefficient_ring` of the `base_ring`"
   @check vector_space_dimension(kk, M) < inf "module is not finite dimensional over the coefficient field"
@@ -1024,7 +1196,7 @@ end
 
 # sparse modules over a field return themselves 
 function vector_space(
-    M::ModuleFP{T}; 
+    M::OFPModule{T}; 
     check::Bool=false
   ) where {T<:FieldElem}
   kk = base_ring(M)
@@ -1033,7 +1205,7 @@ end
 
 function vector_space(
     kk::Field,
-    M::ModuleFP{T}; 
+    M::OFPModule{T}; 
     check::Bool=false
   ) where {T<:FieldElem}
   @assert kk === base_ring(M) "not implemented for fields other than the `base_ring`"
@@ -1087,8 +1259,8 @@ function _is_finite(
   is_zero(M) && return true
   !isdefined(M, :quo) && return false
   M_shift,_,_ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
-  return _has_monomials_on_all_axes(leading_module(M_shift.quo, o))
+  ord = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
+  return _has_leading_monomials_on_all_axes(standard_basis(M_shift.quo, ordering = ord))
 end
 
 # This is an internal method which assumes `M` to be presented. 
@@ -1105,24 +1277,23 @@ function _vector_space_basis(
                                <:MPolyRing, <:MPolyRingElem,
                                <:MPolyComplementOfKPointIdeal
                               }}
-  L = base_ring(M)
-  R = base_ring(L)
-  F = ambient_free_module(M)
-  
+  F = ambient_free_module(M)  
   F_shift, _, back_shift = shifted_module(F)
   iota = base_ring_module_map(F)
   
-  mons = elem_type(F_shift)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F_shift))]
-  
   if !isdefined(M, :quo) || is_zero(M.quo)  # exists to prevent a undefined field access
+    L = base_ring(M)
+    R = base_ring(L)
+    mons = elem_type(F_shift)[a*e for (a, e) in Iterators.product(monomials_of_degree(R, d), gens(F_shift))]
     return M.(iota.(back_shift.(vec(mons))))
   end
   
   M_shift, _, _ = shifted_module(M)
-  o = negdegrevlex(base_ring(M_shift))*lex(F_shift)
-  LMq = leading_module(M_shift.quo, o)
 
-  B = elem_type(F_shift)[mon for mon in mons if !(mon in LMq)]
+  ord = negdegrevlex(base_ring(M_shift))*lex(F_shift)
+  SB = standard_basis(M_shift.quo, ordering = ord)
+
+  B = _vector_space_basis_helper(SB, d)
   return M.(iota.(back_shift.(B)))
 end
 

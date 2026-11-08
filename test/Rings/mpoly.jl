@@ -131,6 +131,61 @@ end
   @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
 end
 
+# Torus saturation
+@testset "Torus saturation" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  coordinate_product = ideal(R, [x*y*z])
+  maximal_ideal = ideal(R, [x, y, z])
+  algorithms = (:saturation, :bayer, :satstd)
+
+  I = ideal(R, [x^2 - x*y, x*z - y^2])
+  expected = ideal(R, [x - z, y - z])
+  for algorithm in algorithms
+    @test torus_saturation(I; algorithm) == expected
+  end
+  @test torus_saturation(I) == torus_saturation(I; algorithm = :satstd)
+
+  I = ideal(R, [x*y])
+  @test saturation(I, maximal_ideal) == I
+  for algorithm in algorithms
+    @test is_one(torus_saturation(I; algorithm))
+  end
+
+  I = ideal(R, [x*y - 1, x*z])
+  expected = saturation(I, coordinate_product)
+  @test torus_saturation(I; algorithm = :saturation) == expected
+  @test_throws ArgumentError torus_saturation(I)
+  @test_throws ArgumentError torus_saturation(I; algorithm = :bayer)
+  @test_throws ArgumentError torus_saturation(I; algorithm = :satstd)
+  @test_throws ArgumentError torus_saturation(I; algorithm = :unknown)
+
+  zero_ideal = ideal(R, [zero(R)])
+  unit_ideal = ideal(R, [one(R)])
+  for algorithm in algorithms
+    @test torus_saturation(zero_ideal; algorithm) == zero_ideal
+    @test torus_saturation(unit_ideal; algorithm) == unit_ideal
+  end
+
+  S, (a, b, c) = polynomial_ring(GF(7), [:a, :b, :c])
+  K = ideal(S, [a^2 - a*b, a*c - b^2])
+  @test torus_saturation(K) == ideal(S, [a - c, b - c])
+
+  T, (u, v) = polynomial_ring(ZZ, [:u, :v])
+  L = ideal(T, [2*u])
+  @test torus_saturation(L) == ideal(T, [T(2)])
+
+  Z4, _ = residue_ring(ZZ, 4)
+  U, (s, t) = polynomial_ring(Z4, [:s, :t])
+  M = ideal(U, [2*s])
+  @test torus_saturation(M) == ideal(U, [U(2)])
+
+  V, _ = polynomial_ring(QQ, Symbol[])
+  for algorithm in algorithms
+    @test torus_saturation(ideal(V, [zero(V)]); algorithm) == ideal(V, [zero(V)])
+    @test torus_saturation(ideal(V, [one(V)]); algorithm) == ideal(V, [one(V)])
+  end
+end
+
 @testset "Primary decomposition" begin
 
   # primary_decomposition
@@ -680,6 +735,32 @@ end
   @test dim(R) == 2
 end
 
+@testset "ideals in polynomial rings in 0 variables" begin
+  # Singular needs at least one variable for these
+  P, _ = polynomial_ring(QQ, 0)
+  I = ideal(P, [zero(P)])
+  @test dim(I) == 0
+  @test isempty(groebner_basis(I))
+  @test normal_form(P(2), I) == P(2)
+  @test !(P(2) in I)
+  @test zero(P) in I
+  I = ideal(P, [P(3)])
+  @test dim(I) == -inf
+  @test dim(quo(P, I)[1]) == -inf
+  @test collect(groebner_basis(I; complete_reduction = true)) == [one(P)]
+  @test is_zero(normal_form(P(2), I))
+  @test P(2) in I
+
+  P, _ = polynomial_ring(ZZ, 0)
+  @test dim(ideal(P, [zero(P)])) == 1
+  @test dim(ideal(P, [one(P)])) == -inf
+  I = ideal(P, [P(4), P(6)])
+  @test dim(I) == 0
+  @test collect(groebner_basis(I)) == [P(2)]
+  @test P(8) in I
+  @test !(P(3) in I)
+end
+
 @testset "principally generated ideals" begin
   R, (x, y) = QQ[:x, :y]
   I1 = ideal(R, [x])
@@ -717,3 +798,21 @@ end
   @test all(is_zero(evaluate(g, [gen(parent(hg)), hg])) for hg in hg)
 end
 
+@testset "issue #5968" begin
+  R, (a,b,c) = QQ[:a,:b,:c]
+  Q, (d,e,f) = QQ[:d,:e,:f]
+  P, (u,v) = QQ[:u,:v]
+
+  I = ideal(R, [a,b,c])
+  J = ideal(P, [u,v])
+
+  @test_throws ArgumentError ideal_membership(d, I)
+  @test_throws ArgumentError ideal_membership(d, J)
+  @test_throws ArgumentError radical_membership(d, I)
+  @test_throws ArgumentError radical_membership(d, J)
+end
+
+@testset "monomial_basis with ZZRingElem degree" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  @test monomial_basis(R, ZZ(2)) == monomial_basis(R, 2)
+end

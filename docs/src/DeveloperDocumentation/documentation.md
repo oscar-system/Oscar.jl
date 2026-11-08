@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Documenting Code
 
 The general philosophy of the OSCAR documentation is to put as much of the
@@ -74,6 +68,12 @@ some_other_function
 blocks that simply pull in the docstring from the corresponding source file. If
 you add a new page in `docs/src`, you will have to modify `docs/doc.main` to
 include your new page in the appropriate place.
+
+Pages must not start with a `@meta` block, and `etc/check_meta.jl` enforces
+that. `CurrentModule`, `CollapsedDocStrings` and `DocTestSetup` are set once
+for the whole documentation in `Oscar.docmeta()`. To document a name that does
+not live in `Oscar` itself, qualify it (`OscarDB.get_db`) rather than switching
+`CurrentModule`.
 
 
 ## Building the OSCAR documentation with `Oscar.build_doc`
@@ -160,3 +160,15 @@ Please follow the additional guidelines below, that are not checked by bibtool:
 - If a DOI is available for your reference, please add it as a `doi` field to the BibTeX entry. In this case, please refrain from adding an additional `url` field.
 - If your reference has no DOI or the paper is not open-access, but is available as an arXiv preprint, you can add the arXiv link as a `eprint` field (even additionally to a `doi` field). For other preprint servers (e.g. HAL), please refer to the [DocumenterCitations.jl docs](https://juliadocs.org/DocumenterCitations.jl/stable/syntax/#Preprint-support).
 - Documents available only as an arXiv preprint should be added as `@Misc` entries with the arXiv-ID in the `eprint` field, e.g., `archiveprefix = {arXiv}` and `eprint = {2008.12651}`.
+
+### Entries for GAP packages
+
+The entries for GAP packages (those with `note = {GAP package}`) use the
+package name as citation key and are generated from the `PackageInfo.g` files
+of the packages shipped with the GAP.jl version in the current environment.
+Do not edit them by hand; instead, in particular after a GAP.jl update, run
+
+    julia --project=. etc/update_gap_package_bib.jl
+
+from the root directory of the Oscar.jl repository, followed by `bibtool` as
+described above. Run the script with `--check` to only report outdated entries.

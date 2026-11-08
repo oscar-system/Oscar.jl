@@ -376,6 +376,41 @@
         map(v -> abs(dot(v, v) - 1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec - 1)
       )
 
+      # dual bounding bodies contain the input for l = 1 and miss fewer than l vertices per halfspace otherwise
+      V = vertices(rsph_r)
+      dbb = @inferred rand_dual_bounding_body(Oscar.get_seeded_rng(), rsph_r, 20)
+      @test is_bounded(dbb)
+      @test issubset(rsph_r, dbb)
+      @test n_facets(dbb) <= 40
+      dbb3 = rand_dual_bounding_body(rsph_r, 20, 3; precision=20)
+      @test all(h -> count(v -> v in h, V) >= 8, facets(dbb3))
+      @test_throws ArgumentError rand_dual_bounding_body(rsph_r, 0)
+      @test_throws ArgumentError rand_dual_bounding_body(rsph_r, 5, 11)
+      @test_throws ArgumentError rand_dual_bounding_body(convex_hull([0 0], [1 0]), 5)
+      dbbf = @inferred rand_dual_bounding_body(
+        Oscar.get_seeded_rng(), convex_hull(Float64, [1.5 0; 0 0; 0 1; 1 1]), 10
+      )
+      @test dbbf isa Polyhedron{Float64}
+      @test is_bounded(dbbf)
+      Pf = convex_hull(Float64, [1.5 0; 0 0; 0 1])
+      @test affine_inequality_matrix(facets(rand_dual_bounding_body(Pf, 6; seed=5))) ==
+        affine_inequality_matrix(facets(rand_dual_bounding_body(Pf, 6; seed=5)))
+      @test rand_dual_bounding_body(rsph_r, 5; seed=7, precision=30) ==
+        rand_dual_bounding_body(rsph_r, 5; seed=7, precision=30)
+      @test rand_dual_bounding_body(convex_hull([0; 2;;]), 3) == convex_hull([0; 2;;])
+
+      pnf = dodecahedron()
+      dbbpnf = rand_dual_bounding_body(Oscar.get_seeded_rng(), pnf, 20)
+      @test dbbpnf isa Polyhedron{EmbeddedAbsSimpleNumFieldElem}
+      @test issubset(pnf, dbbpnf)
+      @test n_facets(dbbpnf) <= 40
+
+      pqb = n_gon(7)
+      dbbpqb = rand_dual_bounding_body(Oscar.get_seeded_rng(), pqb, 10)
+      @test dbbpqb isa Polyhedron{QQBarFieldElem}
+      @test issubset(pqb, dbbpqb)
+      @test n_facets(dbbpqb) <= 20
+
       @test_throws ArgumentError SIM_body_polytope([])
       @test_throws ArgumentError SIM_body_polytope([1, 2, 3])
       let sim = SIM_body_polytope([3, 2, 1])
@@ -898,6 +933,12 @@
     SC = secondary_cone(SOP)
     @test polyhedron(SC) isa Polyhedron
   end
+
+  @testset "Prism" begin
+    PQ0 = prism(Q0)
+    @test n_vertices(PQ0) == 6
+    @test n_facets(PQ0) == 5
+  end
 end
 
 @testset "Regular solids" begin
@@ -908,6 +949,9 @@ end
       Oscar.pm_object(j), Polymake.polytope.johnson_solid(i)
     )
   end
+
+  @test n_vertices(tetrahedron(QQ)) == 4
+  @test tetrahedron(QQ) isa Polyhedron{QQFieldElem}
 
   let p = platonic_solid("dodecahedron")
     @test is_platonic_solid(p)
@@ -959,8 +1003,30 @@ end
   pts = collect(orb)
   len = sqrt(dot(pts[1] - pts[2], pts[1] - pts[2])) / 2
   ngon = convex_hull(pts)
-  prism = polyhedron(Polymake.polytope.prism(Oscar.pm_object(ngon), len))
-  @test Oscar._is_prismic_or_antiprismic(prism)
-  @test !is_archimedean_solid(prism)
-  @test !is_johnson_solid(prism)
+  ngprism = prism(ngon, -len, len)
+  @test Oscar._is_prismic_or_antiprismic(ngprism)
+  @test !is_archimedean_solid(ngprism)
+  @test !is_johnson_solid(ngprism)
+end
+
+@testset "Slack ideal" begin
+  # The ouput depends on the ordering of the vertices and facets of the input
+  # polytope. Reordering results in a permutation of the variables. Depending
+  # on the convex hull algorithm used we may ge a different ordering of the
+  # vertices or facets. To avoid this issue, we load the polytope from file
+  # with the vertices and facets already computed.
+  PS = polyhedron(Polymake.load(joinpath(@__DIR__, "data", "prism_over_simplex.poly")))
+  SI = slack_ideal(PS)
+  R = base_ring(SI)
+  x = gens(R)
+  desired = ideal(
+    R,
+    [
+      x[3] * x[6] * x[10] * x[11] - x[4] * x[5] * x[9] * x[12],
+      x[1] * x[6] * x[8] * x[11] - x[2] * x[5] * x[7] * x[12],
+      x[1] * x[4] * x[8] * x[9] - x[2] * x[3] * x[7] * x[10],
+    ],
+  )
+  @test SI == desired
+  @test_throws ArgumentError slack_ideal(QQ[:x, :y][1], PS)
 end

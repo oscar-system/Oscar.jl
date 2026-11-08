@@ -357,9 +357,7 @@ end
 @testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
     F = GF(2)
     function _rep_mat(n)
-        I = [i for i in 1:n-1 for d in (0,1)]
-        J = [(i+d-1) % n + 1 for i in 1:n-1 for d in (0,1)]
-        matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
+        matrix(F, [j == i || j == i + 1 for i in 1:n-1, j in 1:n])
     end
     for n in 2:50
         d = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
@@ -1339,10 +1337,10 @@ end
   end
   dummy(F)
 
-  GC.gc()
-  GC.gc()
+  GC.gc(true)
+  GC.gc(true)
 
-  @test length(keys(F.incoming)) == 0
+  @test is_empty(F.incoming)
   # The other way around it will not work, because I has a reference to its ambient_free_module f.
 
   function dummy2(F::FreeMod)
@@ -1359,10 +1357,10 @@ end
   end
   dummy2(F)
   
-  GC.gc()
-  GC.gc()
+  GC.gc(true)
+  GC.gc(true)
 
-  @test length(keys(F.incoming)) == 0
+  @test is_empty(F.incoming)
 end
 
 
@@ -1983,6 +1981,11 @@ end
   R, (x,y) = QQ[:x,:y]
   F = free_module(R, 2)
 
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2015,6 +2018,11 @@ end
   I = ideal(R, [x^3+y^2+z^2, x*y])
   Q,_ = quo(R, I)
   F = free_module(Q, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
@@ -2064,6 +2072,11 @@ end
   R, (x,y,z) = QQ[:x,:y,:z]
   L,_ =  localization(R, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(L, 2)
+
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
 
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
@@ -2133,6 +2146,11 @@ end
   LQ,_ =  localization(Q, complement_of_point_ideal(R, [1,2,3]))
   F = free_module(LQ, 2)
 
+  # F as a SubquoModule (presented module with no relations)
+  F_SQ = SubquoModule(F, gens(F))
+  @test_throws ErrorException vector_space_basis(F_SQ)
+  @test vector_space_dim(F_SQ) == PosInf()
+
   # different presentations of the zero module
   O1 = quo_object(F, gens(F))
   @test vector_space_dim(O1) == 0
@@ -2199,3 +2217,35 @@ end
   @test normal_form(v, SB) == -x*F[3]
   @test normal_form(w, SB) == zero(F)
 end
+
+@testset "right scalar multiplication is not supported" begin
+  # right multiplication is rejected by its own error, not by a dispatch ambiguity
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  F = free_module(R, 2)
+
+  @test_throws ErrorException F[1]*x
+  @test_throws ErrorException F[1]*2
+end
+
+@testset "direct sums of morphisms" begin
+  R, (x, y) = QQ[:x, :y]
+  F = FreeMod(R, 2)
+  phi = identity_map(F)
+  F2, _ = direct_sum([F, F])
+  psi = direct_sum([phi, phi])
+  @test domain(psi) !== F2
+  @test codomain(psi) !== F2
+  psi = direct_sum([phi, phi]; domain=F2, codomain=F2)
+  @test domain(psi) === F2
+  @test codomain(psi) === F2
+  I = sub_object(F, [x*F[1], y*F[2]])
+  eta = identity_map(I)
+  mu = hom(F, I, gens(I))
+  psi = direct_sum([eta, mu, phi])
+  new_dom, _ = direct_sum([I, F, F])
+  new_cod, _ = direct_sum([I, I, F])
+  psi = direct_sum([eta, mu, phi]; domain=new_dom, codomain=new_cod)
+  @test domain(psi) === new_dom
+  @test codomain(psi) === new_cod
+end 
+

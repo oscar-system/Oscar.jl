@@ -75,7 +75,7 @@ function koszul_complex(::Type{T}, v::Vector{<:RingElem}) where {T<:AbsSimpleCom
   R = parent(first(v))
   @assert all(u->parent(u)===R, v) "elements must belong to the same ring"
   r = length(v)
-  F = (is_graded(R) ? graded_free_module(R, degree.(x)) : FreeMod(R, r))
+  F = (is_graded(R) ? graded_free_module(R, degree.(v)) : FreeMod(R, r))
   w = sum(u*e for (u, e) in zip(v, gens(F)); init = zero(F))
   return koszul_complex(T, w)
 end
@@ -88,7 +88,7 @@ function defining_element(K::KoszulComplex)
   return K.v
 end
 #=
-function truncated_cech_complex(M::ModuleFP, x::Vector{T}, d::Int) where {T<:RingElem}
+function truncated_cech_complex(M::OFPModule, x::Vector{T}, d::Int) where {T<:RingElem}
   R = base_ring(M)
   @assert all(u->parent(u)===R, x) "elements do not belong to the correct ring"
   @assert d>=0 "pole order must be non-negative"

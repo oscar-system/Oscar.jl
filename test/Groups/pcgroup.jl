@@ -89,6 +89,43 @@ end
   @test_throws ArgumentError set_relative_order!(c, 2, 3)
 end
 
+@testset "deepcopy collectors" begin
+  # a copy of a collector is independent of the original,
+  # also when the GAP collector has already been created
+  for create_gap_collector in [false, true]
+    # finite case: `c.X` is a GAP single collector
+    c = collector(2, Int)
+    set_relative_orders!(c, [2, 3])
+    set_conjugate!(c, 2, 1, [2 => 2])
+    create_gap_collector && pc_group(c)
+
+    cc = deepcopy(c)
+    @test get_relative_orders(cc) == get_relative_orders(c)
+    @test get_conjugate(cc, 2, 1) == get_conjugate(c, 2, 1)
+    @test !isdefined(c, :X) || cc.X !== c.X
+
+    set_conjugate!(cc, 2, 1, [2 => 1])
+    set_power!(cc, 1, [2 => 1])
+    @test get_conjugate(c, 2, 1) == [2 => 2]
+    @test get_power(c, 1) == Pair{Int, Int}[]
+    @test describe(pc_group(c)) == "S3"
+    @test describe(pc_group(cc)) == "C6"
+
+    # infinite case: `c.X` is a collector from the left
+    c = collector(2, Int)
+    set_relative_orders!(c, [2, 0])
+    set_conjugate!(c, 2, 1, [2 => -1])
+    create_gap_collector && pc_group(c)
+
+    cc = deepcopy(c)
+    @test !isdefined(c, :X) || cc.X !== c.X
+
+    set_relative_orders!(cc, [3, 0])
+    @test get_relative_orders(c) == [2, 0]
+    @test describe(pc_group(c)) == "an infinite group"
+  end
+end
+
 @testset "create letters from polycyclic group elements" begin
 
   # finite polycyclic groups
@@ -152,6 +189,10 @@ end
 end
 
 @testset "hashing polycyclic group elements" begin
+  # coverage instrumentation makes calls into GAP allocate
+  hash_allocations(x) = @allocated hash(x)
+  skip_allocations = Base.JLOptions().code_coverage != 0
+
   # finite polycyclic groups
   G = small_group(6, 1)
   a = G[1]^5 * G[2]^-4
@@ -170,6 +211,19 @@ end
 
   @test hash(b) == hash(one(G))
   @test hash(a) == hash(a_bar)
+  @test hash(G(a)) == hash(a)
+
+  # GAP stores these elements with 8, 16 resp. 32 bits per syllable
+  for G in [small_group(1536, 100),
+            abelian_group(PcGroup, fill(2, 300)),
+            cyclic_group(PcGroup, 65537)]
+    x = rand(G)
+    y = rand(G)
+    @test hash(x * y) == hash(inv(inv(y) * inv(x)))
+    @test hash(x * y) != hash(x * y * G[1])
+    hash_allocations(x)
+    @test hash_allocations(x) == 0 skip = skip_allocations
+  end
 
   # infinite polycyclic groups
   G = abelian_group(PcGroup, [5, 0])
@@ -178,6 +232,22 @@ end
 
   @test hash(G[1]^0) == hash(one(G))
   @test hash(a) == hash(a_bar)
+
+  # exponents beyond immediate integers, of both signs
+  G = abelian_group(PcGroup, [0, 0])
+  e = ZZ(2)^100
+  for a in [G[1]^e * G[2]^-e, G[1]^-e * G[2]^e]
+    @test hash(a) == hash(a^2 * inv(a))
+    @test hash(a) != hash(a * G[1])
+  end
+  @test hash(G[1]^e) != hash(G[1]^-e)
+  x = G[1]
+  hash_allocations(x)
+  @test hash_allocations(x) == 0 skip = skip_allocations
+
+  # lists not in plain representation are hashed like plain lists
+  h = Oscar._hash_gap_int_list(GAP.evalstr("[1, 2, 3]"), UInt(0))
+  @test Oscar._hash_gap_int_list(GAP.evalstr("[1..3]"), UInt(0)) == h
 
   # case for finite and infinite pcgroups
   G = abelian_group(PcGroup, [2, 0])

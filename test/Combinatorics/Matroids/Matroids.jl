@@ -221,7 +221,10 @@
         @test_throws ErrorException isomorphic_matroid(fano_matroid(), [1,2,3,1,2,3,4])
 
         @test is_isomorphic(fano_matroid(), isomorphic_matroid(fano_matroid(), ["001","010","011","100","101","110","111"]))
+        @test is_isomorphic(fano_matroid(), isomorphic_matroid(fano_matroid(), Set(1:7)))
+        @test is_isomorphic(fano_matroid(), Matroid(Oscar.pm_object(fano_matroid()), Set(1:7)))
         @test  !is_isomorphic(fano_matroid(), non_fano_matroid())
+        @test is_isomorphic(matroid_from_bases([[1,2]], 4), matroid_from_bases([[3,4]], 4))
 
 
         N = matroid_from_bases([[1,2],[1,'i'],[1,'j'],[2,'i'],[2,'j']],[1,2,'i','j'])

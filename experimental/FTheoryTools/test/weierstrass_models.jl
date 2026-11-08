@@ -31,6 +31,43 @@ weierstrass_P3 = weierstrass_model(P3; completeness_check=false, rng=our_rng)
   @test length(singular_loci(weierstrass_P3; rng=our_rng)) == 1
   @test is_base_space_fully_specified(weierstrass_P3) == true
   @test is_partially_resolved(weierstrass_P3) == false
+  @test isempty(exceptional_classes(weierstrass_P3))
+  @test isempty(exceptional_divisor_indices(weierstrass_P3))
+end
+
+# Equal G4-fluxes must have equal hashes after restriction to the hypersurface.
+@testset "Hashing G4-fluxes" begin
+  ambient = ambient_space(weierstrass_P3)
+  cohomology = cohomology_ring(ambient; completeness_check=false)
+  cy = cohomology_class(
+    toric_divisor_class(ambient, degree(hypersurface_equation(weierstrass_P3)));
+    completeness_check=false,
+  )
+  candidates = [
+    cohomology_class(ambient, x * y; completeness_check=false) for
+    (i, x) in enumerate(gens(cohomology)) for y in gens(cohomology)[i:end]
+  ]
+  kernel_index = findfirst(
+    c -> !iszero(polynomial(c)) && iszero(polynomial(cy * c)), candidates
+  )::Int
+  kernel_class = candidates[kernel_index]
+  zero_class = cohomology_class(ambient, zero(cohomology); completeness_check=false)
+  zero_flux = Oscar.G4Flux(weierstrass_P3, zero_class)
+  kernel_flux = Oscar.G4Flux(weierstrass_P3, kernel_class)
+  @test zero_flux == kernel_flux
+  @test hash(zero_flux) == hash(kernel_flux)
+  @test length(unique([zero_flux, kernel_flux])) == 1
+end
+
+# Check detailed display for a model carrying parameter metadata.
+set_attribute!(weierstrass_P3, :model_description, "Parameterized model")
+set_attribute!(weierstrass_P3, :model_parameters, Dict("z" => 2, "a" => 1))
+
+@testset "Detailed display of a parameterized Weierstrass model" begin
+  displayed_model = sprint(show, MIME("text/plain"), weierstrass_P3)
+  @test occursin(
+    "Parameterized model with parameter values (a = 1, z = 2)", displayed_model
+  )
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin
@@ -118,6 +155,33 @@ weierstrass_generic = weierstrass_model(
     coordinate_ring(ambient_space(weierstrass_generic))
   @test dim(base_space(weierstrass_generic)) == 3
   @test dim(ambient_space(weierstrass_generic)) == 5
+end
+
+# Test specialization of a generic Weierstrass model to a concrete toric base.
+@testset "Put Weierstrass model over concrete base" begin
+  specialized_model = put_over_concrete_base(
+    weierstrass_generic,
+    Dict{String,Any}("base" => P3);
+    completeness_check=false,
+    rng=Random.Xoshiro(1234),
+  )
+  @test isempty(model_section_parametrization(weierstrass_generic))
+  @test is_base_space_fully_specified(specialized_model)
+  @test base_space(specialized_model) === P3
+  @test parent(weierstrass_section_f(specialized_model)) === coordinate_ring(P3)
+  @test parent(weierstrass_section_g(specialized_model)) === coordinate_ring(P3)
+  @test degree(weierstrass_section_f(specialized_model)) ==
+    degree(generic_section(anticanonical_bundle(P3)^4; rng=Random.Xoshiro(1234)))
+  @test degree(weierstrass_section_g(specialized_model)) ==
+    degree(generic_section(anticanonical_bundle(P3)^6; rng=Random.Xoshiro(1234)))
+  @test_throws ArgumentError put_over_concrete_base(
+    weierstrass_generic, Dict{String,Any}(); completeness_check=false
+  )
+  @test_throws ArgumentError put_over_concrete_base(
+    weierstrass_generic,
+    Dict{String,Any}("base" => base_space(weierstrass_generic));
+    completeness_check=false,
+  )
 end
 
 @testset "Error messages in Weierstrass models over generic base space" begin

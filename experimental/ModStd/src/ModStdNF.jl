@@ -23,17 +23,16 @@ end
 
 function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
-    R = Oscar.singular_poly_ring(base_ring(B), ord)
+    iso = Oscar.iso_oscar_singular_poly_ring(base_ring(B), ord)
+    R = codomain(iso)
     hdata = convert(Int32,h.coeffs)
     hdata = push!(hdata,0)
-    i = stdhilb(Singular.Ideal(R, [R(x) for x = B]), hdata, complete_reduction = complete_reduction)
+    i = stdhilb(Singular.Ideal(R, [iso(x) for x = B]), hdata, complete_reduction = complete_reduction)
     return IdealGens(base_ring(B), i)
   end
-  if !isdefined(B.gensBiPolyArray, :S)
-    Sx = B.gensBiPolyArray.Sx
-    B.gensBiPolyArray.S = Singular.Ideal(Sx, [Sx(x) for x in oscar_generators(B)])
-  end 
-  return IdealGens(base_ring(B), stdhilb(B.gensBiPolyArray.S, h.data, complete_reduction = complete_reduction), keep_ordering = false, isGB = true)
+  S = Oscar.singular_generators(B)
+  i = stdhilb(S, h.data, complete_reduction = complete_reduction)
+  return IdealGens(base_ring(B), i)
 end
 
 function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}; ord::Symbol = :degrevlex, complete_reduction::Bool = false)

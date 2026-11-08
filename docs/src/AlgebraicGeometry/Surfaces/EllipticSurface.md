@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Elliptic Surfaces
 See [SS19](@cite) for the theory of elliptic surfaces.
 
@@ -14,7 +8,7 @@ EllipticSurface
 ## Constructors
 ```@docs
 elliptic_surface
-kodaira_neron_model(E::EllipticCurve)
+kodaira_neron_model(E::EllipticCurve, euler_characteristic::Int)
 ```
 
 ## Attributes

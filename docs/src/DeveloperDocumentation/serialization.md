@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Serialization](@id dev_serialization)
 This document summarizes the serialization efforts of OSCAR, how it works, and what our long-term vision is.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
@@ -115,7 +109,7 @@ evaluation.
 There are three pairs of saving and loading functions that are used
 during serialization:
 1. `save_typed_object`, `load_typed_object`
-2. `save_type_params`, `load_type_params`
+2. `save_type_and_params`, `load_type_and_params`
 3. `save_object`, `load_object`
 
 
@@ -127,7 +121,7 @@ type information as well as its data. The data and type nodes are
 set in `save_typed_object` resulting in a "data branch" and "type branch".
 
 
-#### `save_type_params` / `load_type_params`
+#### `save_type_and_params` / `load_type_and_params`
 
 The serialization mechanism stores data in the format of a tree, with the
 exception that some nodes may point to a shared reference. The "data branch"
@@ -135,11 +129,11 @@ is anything that is a child node of a data node, whereas the "type branch" is
 any information that is stored in a node that is a child of a type node.
 
 These functions should also not be touched, however they expect an implementation
-of `type_params` whenever saving a type `T`. By default `type_params` will return
-`nothing`. The `type_params` function does a shallow pass through an `obj` of type
+of `type_and_params` whenever saving a type `T`. By default `type_and_params` will return
+`nothing`. The `type_and_params` function does a shallow pass through an `obj` of type
 `T` gathering the necessary parameters for serializing `obj`.
 In most cases these parameters are the parameters of the `obj` that uses references.
-For example if `obj` is of type `RingElem` than it is expected that `type_params`
+For example if `obj` is of type `RingElem` than it is expected that `type_and_params`
 should contain at least `parent(obj)`.
 
 #### `save_object` / `load_object`
@@ -283,25 +277,102 @@ end
 Note for now `save_typed_object` must be wrapped in either a `save_data_array` or
 `save_data_dict`. Otherwise you will get a key override error.
 
+### Registering types in other packages
+
+Besides defining methods, `@register_serialization_type` adds the type to
+global tables of OSCAR. Changes to these tables made while a package is
+precompiled are lost, so in a package depending on OSCAR, calling the macro at
+the top level leads to a `KeyError` on `save` in later sessions.
+Instead, call it from the package's `__init__` function:
+
+```julia
+function __init__()
+  # evaluating into a closed module breaks precompilation of dependent packages
+  if ccall(:jl_generating_output, Cint, ()) == 0 # `!Base.generating_output()` on Julia ≥ 1.11
+    @eval @register_serialization_type MyType
+    @eval @register_serialization_type MyParentType uses_id
+  end
+end
+```
+
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
-`serializers.jl` file. Different serializers have different use cases, the
-default serializer `JSONSerializer` is used for writing to a file.
+`serializers.jl` file. The abstract type hierarchy is:
 
-When passing `serialize_refs = false` to the `JSONSerializer` it will not
-store the refs of any types that are registered with the `uses_id` flag.
-When using this flag it is left up to the user to guarantee that any refs
-mentioned in the file are loaded prior to loading the file.
-This is useful for cases where the user wants to store multiple objects that
-refer to the same object, but does not want to store the refs in each file.
-Instead, one can now store the refs in a separate file, and store the objects
-themselves without the refs.
+```
+OscarSerializer
+├── JSONSerializer        # default; single JSON file with inline _refs
+├── IPCSerializer         # inter-process communication; no refs written
+└── MultiFileSerializer
+    ├── LPSerializer      # LinearProgram + external .lp file
+    └── MultiFileRefSerializer  # one file per ref object, prefix-based naming
+```
 
-There is also the `IPCSerializer` which at the moment is
-equal to the `JSONSerializer(serialize_refs = false)`. However, this serializer
-may be changed in the future to support binary representations of some types
-for faster inter-process communication (IPC).
+#### JSONSerializer
+
+The default serializer. Writes a single `.mrdi` JSON file. Referenced objects
+(parent rings, coefficient fields, etc.) are inlined under the `_refs` key and
+resolved by UUID during load.
+
+```julia
+JSONSerializer()                         # serialize_refs=true (default)
+JSONSerializer(serialize_refs=false)     # omit _refs; caller must pre-load them
+```
+
+When `serialize_refs = false` it is the caller's responsibility to ensure that
+any UUID references in the file are already in `global_serializer_state` before
+calling `load`. This is useful for storing many objects that share a large parent
+without duplicating it: serialize the parent once (with its id), then serialize
+the children with `serialize_refs=false`.
+
+#### IPCSerializer
+
+Equivalent to `JSONSerializer(serialize_refs=false)` at present. Reserved for
+future optimised representation for inter-process communication (IPC).
+
+#### LPSerializer
+
+Handles `LinearProgram{QQFieldElem}` by writing the LP data to an external file
+in the standard LP file format (`.lp`) and storing only the filename in the
+`.mrdi` JSON. The `basepath` field is used as the filename prefix for the `.lp`
+file.
+
+```julia
+LPSerializer(basepath::String)
+```
+
+The `.mrdi` and `.lp` files are separate; both must be kept together and the
+same `LPSerializer(basepath)` must be passed to both `save` and `load`.
+
+```julia
+ser = Oscar.Serialization.LPSerializer("/data/project/lp")
+save("/data/project/lp.mrdi", lp; serializer=ser)
+load("/data/project/lp.mrdi"; serializer=ser)
+# also creates: /data/project/lp-<objectid>.lp
+```
+
+#### MultiFileRefSerializer
+
+Writes `<prefix>.mrdi` for the root object and one `<prefix>_<UUID>.mrdi` (or
+`<prefix>_<UUID>.mrdi.gz` with `compression=:gzip`) file per referenced object,
+all flat in the same directory. The path argument is used as a prefix verbatim
+(no extension stripping): `save("my_data", obj; serializer=MultiFileRefSerializer())`
+creates `my_data.mrdi` and `my_data_<UUID>.mrdi`.
+
+```julia
+MultiFileRefSerializer()                    # basepath resolved at save time
+MultiFileRefSerializer(basepath::String)    # explicit stem path
+MultiFileRefSerializer(basepath, compression)  # with compression (internal use)
+```
+
+`_ref_files` in the main file lists ref basenames in leaf-first (dependency) order
+so `deserializer_open` can load them in the correct sequence without requiring a
+separate topological sort.
+
+On load, `deserializer_open` opens each ref file before deserializing the main file.
+Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
+
 
 ### Upgrades
 
@@ -320,10 +391,13 @@ Oscar.Serialization.upgrade_data
 
 All upgrade scripts should be contained in a file named after the version
 they upgrade to. For example a script that upgrades to OSCAR version 0.13.0
-should be named `0.13.0.jl`. 
-There is also the possibility to have multiple upgrade scripts per version, this is to accommodate file serialized with DEV versions.
-In this case the upgrades should be named `1.6.0-n.jl` where `n` is the `n`th upgrade in the sequence of upgrades that will upgrade a file to the `1.6.0` version.
-To guarantee that upgrades occur in the correct order it is important that they are included (`include("/path/to/upgrade")`) in the correct order in `src/Serialization/Upgrades/main.jl`.
+should be named `0.13.0.jl`.
+There is also the possibility to have multiple upgrade scripts per version, to accommodate
+files serialized with DEV versions.
+In this case the first one is named `1.6.0.jl` and further ones `1.6.0+1.jl`,
+`1.6.0+2.jl`, and so on.
+Upgrades are applied in the order of the versions given to `UpgradeScript`.
+That is, each upgrade script can assume that its input data have the format that is defined by the upgrade scripts with smaller version numbers.
 
 Test examples for each upgrade script should be added to the repository
 <https://github.com/oscar-system/serialization-upgrade-tests>.
@@ -335,10 +409,77 @@ has to modify the contents in order to load the object.
 In order to achieve that the new test examples get included in the CI tests,
 update the variable `commit_hash` in the file
 `test/Serialization/upgrades/setup_tests.jl` of the OSCAR repository.
+The value must be the hash of the merge commit that adds the new example to the master branch of the serialization-upgrade-tests repository.
+
+##### Writing an Upgrade Script
+
+An upgrade script is an `UpgradeScript` pushed into `upgrade_scripts_set`. Its
+function receives an `UpgradeState` and a `dict::AbstractDict{Symbol, Any}`,
+and returns the (possibly modified) dict. It is called on the top-level dict,
+which also contains `:_refs`, `:_ns` and `:id`, and then on each entry of `:_refs`.
+
 
 ```@docs
 Oscar.Serialization.UpgradeScript
 ```
+
+Each node has the structure:
+```
+:_type => ...   # type info (name string or dict with :name/:params)
+:data  => ...   # the serialized data
+```
+
+The typical structure of an upgrade function is:
+
+```julia
+push!(upgrade_scripts_set, UpgradeScript(
+  v"X.Y.Z",
+  function upgrade_X_Y_Z(s::UpgradeState, dict::AbstractDict{Symbol, Any})
+    # 1. Recurse into containers and nested objects first
+    upgrade_recursive(upgrade_X_Y_Z, s, dict)
+
+    # 2. Determine the type name of the current node
+    if dict[:_type] isa AbstractDict && haskey(dict[:_type], :name)
+      type_name = dict[:_type][:name]
+    else
+      type_name = dict[:_type]
+    end
+
+    # 3. Apply type-specific transformations
+    if type_name == "MyType"
+      # change type parameter structure
+      old_params = dict[:_type][:params]
+      dict[:_type][:params] = Dict{Symbol, Any}(:renamed => old_params[:original])
+    
+      # change data structure
+      dict[:data][:new_pos] = dict[:data][:old_pos]
+    end
+
+    return dict
+  end
+))
+```
+
+`upgrade_recursive` handles traversal into containers (`Vector`, `Set`, `Matrix`,
+`MultiDimArray`, `Tuple`, `NamedTuple`, `Dict`) and known compound types automatically, so the
+body of the upgrade function only needs to handle the specific type changes
+introduced in that version.
+
+###### Common patterns
+
+**Renaming a type** — use the `rename_types` helper:
+```julia
+renamings = Dict{String,String}("OldName" => "NewName")
+return rename_types(dict, renamings)
+```
+
+**Renaming a data field**:
+```julia
+if type_name == "MyType" && haskey(dict[:data], :old_name)
+  dict[:data][:new_name] = pop!(dict[:data], :old_name)
+end
+```
+
 
 ## Challenges
 This section documents the various challenges we (will) encounter while

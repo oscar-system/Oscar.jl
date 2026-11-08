@@ -23,9 +23,9 @@ end
 ########################################################################
 
 
-domain_type(::Type{Map{D, C}}) where {D, C} = D
+domain_type(::Type{<:Map{D, C}}) where {D, C} = D
 domain_type(f::Map) = domain_type(typeof(f))
-codomain_type(::Type{Map{D, C}}) where {D, C} = C
+codomain_type(::Type{<:Map{D, C}}) where {D, C} = C
 codomain_type(f::Map) = codomain_type(typeof(f))
 
 ########################################################################

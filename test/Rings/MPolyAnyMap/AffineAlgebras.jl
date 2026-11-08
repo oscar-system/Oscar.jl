@@ -73,6 +73,18 @@
     @test preimage(f, ideal(S, [x, y, z])) == ideal(R, [xx, yy])
     @test preimage(f, ideal(S, [z])) == ideal(R, [zero(R)])
   end
+
+  begin
+    # Check whether we can compute the preimage 0 (this errored at some point)
+    R, x = QQ[:x1, :x2]
+    S, y = QQ[:y1, :y2]
+    f = hom(R, S, y)
+    @test is_zero(preimage(f, S()))
+
+    Q, _ = quo(R, ideal(x[1]))
+    g = hom(R, Q, gens(Q))
+    @test is_zero(preimage(g, Q[1]))
+  end
 end
 
 @testset "cross-type kernels" begin

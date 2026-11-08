@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # [Common Model Ops](@id common_model_ops)
 
 All F-theory models describe elliptic (or genus-one) fibrations. While implementation details vary by

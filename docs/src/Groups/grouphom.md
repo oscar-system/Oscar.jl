@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Group homomorphisms
 
 A *group homomorphism* from a group $G$ to a group $H$ is a map $f$ with
@@ -143,6 +137,7 @@ isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
 ```@docs
 isomorphism(::Type{T}, G::Group) where T <: Group
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
+regular_action_homomorphism(G::GAPGroup)
 ```
 
 ## Technicalities

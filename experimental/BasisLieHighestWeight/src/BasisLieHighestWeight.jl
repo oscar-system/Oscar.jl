@@ -25,7 +25,7 @@ import Base: length
 
 # Long-term TODO's:
 # - Test if ZZx should be a graded_polynomial_ring with weights_w as weights
-# - Maybe export and docstring: 
+# - Maybe export and docstring:
 #   - get_lattice_points_of_weightspace
 #   - convert_lattice_points_to_monomials
 #   - convert_monomials_to_lattice_points
@@ -62,6 +62,7 @@ export basis_lie_demazure_nz
 export basis_lie_demazure_string
 export basis_coordinate_ring_kodaira_demazure
 export basis_coordinate_ring_kodaira_demazure_ffl
+export polytope_of_essential_exponents
 
 end
 
@@ -87,3 +88,4 @@ export basis_lie_demazure_nz
 export basis_lie_demazure_string
 export basis_coordinate_ring_kodaira_demazure
 export basis_coordinate_ring_kodaira_demazure_ffl
+export polytope_of_essential_exponents

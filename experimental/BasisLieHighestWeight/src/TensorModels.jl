@@ -18,7 +18,7 @@ end
 
 Calculates the action matrices of the operators in `operators` on
 the tensor product of multiples of the fundamental modules (with multiplicities in `highest_weight`).
-Note that the highest weight module with highest weight `highest_weight` is a submodule of this tensor product. 
+Note that the highest weight module with highest weight `highest_weight` is a submodule of this tensor product.
 We use multiples of fundamentals to reduce the total dimension of the ambient space
 """
 function tensor_matrices_of_operators(

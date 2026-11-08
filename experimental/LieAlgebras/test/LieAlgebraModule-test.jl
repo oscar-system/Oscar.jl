@@ -28,19 +28,49 @@
       V = abstract_module(L, 2, sc)
       @test dim(V) == 2
       lie_algebra_module_conformance_test(L, V)
+
+      # `check=true` rejects matrices that are not compatible with the bracket
+      bad = [identity_matrix(QQ, 2) for _ in 1:3]
+      @test_throws ArgumentError abstract_module(L, 2, bad)
+      @test abstract_module(L, 2, bad; check=false) isa LieAlgebraModule
+    end
+
+    # in characteristic 0, `V` is simple of highest weight `hw` iff the simple root vectors
+    # have a 1-dimensional common kernel on which the simple coroots act by `hw`
+    function simple_module_highest_weight_test(
+      L::LieAlgebra, V::LieAlgebraModule, hw::Vector{Int}
+    )
+      xs, _, hs = chevalley_basis(L)
+      R = coefficient_ring(V)
+      action_matrix(x) = matrix(R, [coefficients(x * v) for v in basis(V)])
+      ker = kernel(reduce(hcat, action_matrix.(xs[1:rank(root_system(L))])); side=:left)
+      @test nrows(ker) == 1
+      nrows(ker) == 1 || return nothing
+      v = LieAlgebraModuleElem(V, ker)
+      @test [h * v for h in hs] == [c * v for c in hw]
     end
 
     @testset "λ = [2,1,0] of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
       V = simple_module(L, [2, 1, 0])
       @test dim(V) == 45
+      simple_module_highest_weight_test(L, V, [2, 1, 0])
       lie_algebra_module_conformance_test(L, V)
+    end
+
+    @testset "λ = [2,0,1] of sl_4(QQ), GAP isomorphism created first" begin
+      # GAP has to use the simple roots of `L` instead of choosing its own
+      L = special_linear_lie_algebra(QQ, 4)
+      Oscar.iso_oscar_gap(L)
+      V = simple_module(L, [2, 0, 1])
+      simple_module_highest_weight_test(L, V, [2, 0, 1])
     end
 
     @testset "λ = [2,1] of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = simple_module(L, [2, 1])
       @test dim(V) == 6
+      simple_module_highest_weight_test(L, V, [2, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -48,6 +78,7 @@
       L = lie_algebra(QQ, :A, 2)
       V = simple_module(L, [0, 1])
       @test dim(V) == 3
+      simple_module_highest_weight_test(L, V, [0, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -55,6 +86,7 @@
       L = lie_algebra(QQ, :B, 3)
       V = simple_module(L, [2, 0, 1])
       @test dim(V) == 168
+      simple_module_highest_weight_test(L, V, [2, 0, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -237,6 +269,11 @@
               Oscar.LieAlgebras.transformation_matrix(V, i),
             1:dim(L),
           )
+
+          # the dual of v has the same coefficients w.r.t. the dual basis
+          v = V(rand(-10:10, dim(V)))
+          @test dual_V(v) == dual_V(coefficients(v))
+          @test_throws ArgumentError dual_dual_V(v)
         end
 
         @testset "direct_sum" begin
@@ -373,16 +410,6 @@
 
               as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
               @test E(as) == map(as)
-
-              T = get_attribute(E, :embedding_tensor_power)
-              E_to_T = get_attribute(E, :embedding_tensor_power_embedding)
-              T_to_E = get_attribute(E, :embedding_tensor_power_projection)
-              @test T == tensor_power(V, k)[1]
-              @test domain(E_to_T) === E
-              @test codomain(E_to_T) === T
-              @test domain(T_to_E) === T
-              @test codomain(T_to_E) === E
-              @test compose(E_to_T, T_to_E) == id_hom(E)
             end
           end
         end
@@ -431,16 +458,6 @@
 
               as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
               @test S(as) == map(as)
-
-              T = get_attribute(S, :embedding_tensor_power)
-              S_to_T = get_attribute(S, :embedding_tensor_power_embedding)
-              T_to_S = get_attribute(S, :embedding_tensor_power_projection)
-              @test T == tensor_power(V, k)[1]
-              @test domain(S_to_T) === S
-              @test codomain(S_to_T) === T
-              @test domain(T_to_S) === T
-              @test codomain(T_to_S) === S
-              @test compose(S_to_T, T_to_S) == id_hom(S)
             end
           end
         end

@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Injective Resolutions
 Let $k[Q]$ be a monoid algebra for $Q\subset \mathbb{Z}^d$ and, let $M$ be a finitely 
 generated $\mathbb{Z}^d$-graded module over $k[Q]$. 
@@ -11,7 +5,7 @@ An *injective resolution* is an exact sequence
 
 $0 \to M \xhookrightarrow{\epsilon} J^0 \xrightarrow{d^0} J^1 \xrightarrow{d^1} \dots \xrightarrow{d^{i-1}} J^i \xrightarrow{d^i} \cdots.$
 
-The maps $d^j$ are given by monomial matrices. The function [injective_resolution](@ref) computes 
+The maps $d^j$ are given by monomial matrices. The function [`injective_resolution`](@ref) computes 
 an injective resolution up to some given cohomological degree. 
 This is an implementation of the algorithms in [HM05](@cite).
 
@@ -80,4 +74,4 @@ of a $\mathbb{Z}^d$-graded module $M$. Then
 - `I.cochain_maps` refers to the cochain maps $d^0,\dots,d^{r-1}$,
 - `I.irr_sums` refers to the irreducible sums $\overline{W}^0, \dots, \overline{W}^r$,
 - `I.mod` refers to $M$, and,
-- `I.cochain_complex` refer to the exact sequence as a `ComplexOfMorphisms{ModuleFP}`.
+- `I.cochain_complex` refer to the exact sequence as a `ComplexOfMorphisms{OFPModule}`.

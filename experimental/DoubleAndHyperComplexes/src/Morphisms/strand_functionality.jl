@@ -3,8 +3,7 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   @assert is_graded(M) "module must be graded"
   R = base_ring(M)
   kk = coefficient_ring(R)
-  cod_dict = Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(all_exponents(M, fac.d; check=fac.check)))
-  fac.mapping_dicts[i] = cod_dict
+  cod_dict = strand_mapping_dict(c, i)
   return FreeMod(kk, length(cod_dict))
 end
 
@@ -12,6 +11,21 @@ function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
   return can_compute_index(fac.orig, i)
 end
 
+# Get the dictionary which enumerates the terms for the basis.
+function strand_mapping_dict(c::AbsHyperComplex, i::Tuple)
+  fac = chain_factory(c)::StrandChainFactory
+  return get!(fac.mapping_dicts, i) do
+    Dict{Tuple{Vector{Int}, Int}, Int}(m=>k for (k, m) in enumerate(get_exponents(c, i)))
+  end
+end
+
+function get_exponents(c::AbsHyperComplex, i::Tuple)
+  fac = chain_factory(c)::StrandChainFactory
+  M = fac.orig[i]
+  return get!(fac.exponents, i) do
+    collect(all_exponents(M, fac.d; check=fac.check))
+  end
+end
 
 function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
   I = collect(i)
@@ -57,7 +71,7 @@ function can_compute(fac::StrandMorphismFactory, c::AbsHyperComplex, p::Int, i::
 end
 
 ### User facing constructor
-function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:ModuleFP}
+function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::Bool=true) where {T<:OFPModule}
   result = StrandComplex(c, d; check)
   inc = StrandInclusionMorphism(result)
   result.inclusion_map = inc
@@ -67,8 +81,20 @@ function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}; check::
 end
 
 
+# allocation free getter and conversion in one go
+function _getindex(::Type{Int}, b::FinGenAbGroupElem, i::Int)
+  return unsafe_load(Nemo.mat_entry_ptr(b.coeff, 1, i))
+end
+
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
 function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem; check::Bool=true)
+  if is_fine_graded(W) 
+    n = ngens(parent(d))
+    res = Int[_getindex(Int, d, i) for i in 1:n]
+    any(<(0), res) && return Vector{Int}[]
+    return [res]
+  end
+
   D = W.D
   @check is_free(D) "Grading group must be free"
   h = hom(free_abelian_group(ngens(W)), D, W.d)

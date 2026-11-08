@@ -2,11 +2,11 @@
 # FreeModElem term orderings
 ###############################################################################
 
-function Orderings.lex(F::ModuleFP)
+function Orderings.lex(F::OFPModule)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :lex))
 end
 
-function Orderings.invlex(F::ModuleFP)
+function Orderings.invlex(F::OFPModule)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :invlex))
 end
 
@@ -121,7 +121,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:FreeModElem{<:
   return coeff(a.elem[i], j), state
 end
 
-function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients, T}}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients, <:FreeModElem{<:MPolyRingElem{C}}}}) where C
   return C
 end
 
@@ -142,7 +142,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:
   return (coeff(a.elem[i], j), (exponent_vector(a.elem[i], j), i)), state
 end
 
-function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients_and_exponents, T}}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients_and_exponents, <:FreeModElem{<:MPolyRingElem{C}}}}) where C
   return Tuple{C, Tuple{Vector{Int}, Int}}
 end
 

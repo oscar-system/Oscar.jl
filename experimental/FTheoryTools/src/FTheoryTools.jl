@@ -17,6 +17,7 @@ include("AbstractFTheoryModels/Properties/properties.jl")
 include("AbstractFTheoryModels/Methods/adders.jl")
 include("AbstractFTheoryModels/Methods/put_over_concrete_base.jl")
 include("AbstractFTheoryModels/Methods/blowups.jl")
+include("AbstractFTheoryModels/Methods/special_resolutions.jl")
 include("AbstractFTheoryModels/Methods/analyze_fibers.jl")
 
 include("WeierstrassModels/constructors.jl")

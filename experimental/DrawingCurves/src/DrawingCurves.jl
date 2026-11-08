@@ -21,7 +21,7 @@ isotopy_graph_from_curve_inner(
 )::Bool
 
 function _compute_isotopy_graph(
-  f_in, transform::MatrixElem, ntries::Int; solver_precision::Int=128,
+  f_in, transform::MatElem, ntries::Int; solver_precision::Int=128,
   ybox_tolerance::Int=32,
 )
   IG = _IsotopyGraph()
@@ -69,7 +69,7 @@ may have been applied beforehand, so the blue points may not be critical points
 in the original coordinate system.
 
 Keyword arguments:
-  - `transform::Union{MatrixElem, AbstractMatrix}`: Provide a matrix such that
+  - `transform::Union{MatElem, AbstractMatrix}`: Provide a matrix such that
     transforming the curve with said transformation results in a curve with
     generic set of critical points, i.e. distinct $x$-coordinates.
     The default is to loop over a hard-coded list of transformation matrices.
@@ -105,7 +105,7 @@ end
 function draw_curve_tikz(
   io::IO,
   f_in;
-  transform::Union{MatrixElem,AbstractMatrix,Nothing}=nothing,
+  transform::Union{MatElem,AbstractMatrix,Nothing}=nothing,
   ntries::Int=1,
   solver_precision::Int=128,
   ybox_tolerance::Int=32,
@@ -135,7 +135,7 @@ end
 function _draw_curve_tikz(
   io::IO,
   f_in,
-  transform::Union{MatrixElem,AbstractMatrix},
+  transform::Union{MatElem,AbstractMatrix},
   ntries::Int,
   solver_precision::Int,
   ybox_tolerance::Int,

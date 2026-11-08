@@ -743,10 +743,8 @@ end
 function product(T::MPolyProductOfMultSets{BRT, BRET, RT, RET}, U::MST) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}}
   R = ring(T)
   R == ring(U) || error("multiplicative sets do not belong to the same ring")
-  for V in sets(T)
-    issubset(U, T) && return T
-  end
-  new_sets = U
+  issubset(U, T) && return T
+  new_sets = AbsMPolyMultSet{BRT, BRET, RT, RET}[U]
   for V in sets(T)
     issubset(V, U) || push!(new_sets, V)
   end
@@ -856,7 +854,8 @@ function product(
     a in U || (push!(keep_denom, a))
   end
   length(keep_denom) == 0 && return U
-  return MPolyProductOfMultSets(vcat(sets(U), MPolyPowersOfElement(keep_denom)))
+  new_sets = AbsMPolyMultSet{BRT, BRET, RT, RET}[sets(U)..., MPolyPowersOfElement(R, keep_denom)]
+  return MPolyProductOfMultSets(R, new_sets)
 end
 function product(
     U::MPolyProductOfMultSets{BRT, BRET, RT, RET},
@@ -1556,7 +1555,7 @@ function pre_saturation_data(I::MPolyLocalizedIdeal)
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::PT, x::MatrixElem{PT}, u::PT;
+    I::MPolyLocalizedIdeal, f::PT, x::MatElem{PT}, u::PT;
     check::Bool=true
   ) where {PT <: MPolyRingElem}
   nrows(x) == 1 || error("matrix must be a row vector")
@@ -1578,7 +1577,7 @@ function extend_pre_saturated_ideal!(
 end
 
 function extend_pre_saturated_ideal!(
-    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatrixElem{PT}, u::Vector{PT};
+    I::MPolyLocalizedIdeal, f::Vector{PT}, x::MatElem{PT}, u::Vector{PT};
     check::Bool=true
   ) where {PT <: MPolyRingElem}
   L = base_ring(I)
@@ -2731,7 +2730,7 @@ julia> minimal_generating_set(I)
 
   # return result after shifting back and moving to the correct ring
   computed_min = IdealGens(base_ring(I_shift), I_shift_min, false)
-  I_min = L.(back_shift.(R.(gens(computed_min))))
+  I_min = L.(back_shift.(gens(computed_min)))
   return filter(!iszero, I_min)
 
 end

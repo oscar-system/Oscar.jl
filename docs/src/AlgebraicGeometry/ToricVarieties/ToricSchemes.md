@@ -1,9 +1,3 @@
-```@meta
-CurrentModule = Oscar
-CollapsedDocStrings = true
-DocTestSetup = Oscar.doctestsetup()
-```
-
 # Toric Schemes
 
 Toric varieties are special instances of schemes. As such, all scheme functionality is

@@ -69,7 +69,8 @@ end
 @doc raw"""
     toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
 
-Construct the toric variety associated to a (Cartier) torus-invariant divisor `d` on the normal toric variety `v`.
+Construct the toric line bundle associated to a Cartier torus-invariant divisor
+`d` on the normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -81,14 +82,8 @@ Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
-  @req is_cartier(d) "The toric divisor must be Cartier to define a toric line bundle"
-  f = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
-  g = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
-  cartier_d = preimage(
-    g, sum(coefficients(d) .* gens(torusinvariant_weil_divisor_group(v)))
-  )
-  picard_class = f(cartier_d)
-  l = ToricLineBundle(v, picard_class)
+  @req toric_variety(d) === v "The divisor must be defined on the given toric variety"
+  l = ToricLineBundle(v, picard_class(d))
   set_attribute!(l, :toric_divisor, d)
   return l
 end
@@ -96,7 +91,7 @@ end
 @doc raw"""
     toric_line_bundle(d::ToricDivisor)
 
-Construct the toric variety associated to a (Cartier) torus-invariant divisor `d`.
+Construct the toric line bundle associated to a Cartier torus-invariant divisor `d`.
 
 # Examples
 ```jldoctest
@@ -114,8 +109,8 @@ toric_line_bundle(d::ToricDivisor) = toric_line_bundle(toric_variety(d), d)
 @doc raw"""
     toric_line_bundle(v::NormalToricVarietyType, dc::ToricDivisorClass)
 
-Construct the toric variety associated to a divisor class in the class group
-of a toric variety.
+Construct the toric line bundle associated to a Cartier divisor class on the
+normal toric variety `v`.
 
 # Examples
 ```jldoctest
@@ -133,13 +128,9 @@ Toric line bundle on a normal toric variety
 ```
 """
 function toric_line_bundle(v::NormalToricVarietyType, dc::ToricDivisorClass)
-  f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-  g = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v)
-  h = map_from_torusinvariant_cartier_divisor_group_to_picard_group(v)
-  cartier_class = preimage(g * f, divisor_class(dc))
-  td = toric_divisor(v, _vec(g(cartier_class).coeff))
-  l = ToricLineBundle(v, h(cartier_class))
-  set_attribute!(td, :is_cartier, true)
+  @req toric_variety(dc) === v "The divisor class must be defined on the given toric variety"
+  td = toric_divisor(dc)
+  l = ToricLineBundle(v, picard_class(dc))
   set_attribute!(l, :toric_divisor, td)
   return l
 end
@@ -147,8 +138,7 @@ end
 @doc raw"""
     toric_line_bundle(dc::ToricDivisorClass)
 
-Construct the toric variety associated to a divisor class in the class group
-of a toric variety.
+Construct the toric line bundle associated to a Cartier divisor class.
 
 # Examples
 ```jldoctest

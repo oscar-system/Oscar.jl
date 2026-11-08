@@ -72,7 +72,9 @@ See also: [`fundamental_weight(::RootSystem, ::Int)`](@ref).
 """
 function gen(P::WeightLattice, i::Int)
   @req 1 <= i <= rank(P) "invalid index"
-  return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), i .== 1:rank(P)))
+  vec = zero_matrix(ZZ, 1, rank(P))
+  vec[1, i] = 1
+  return WeightLatticeElem(P, vec)
 end
 
 @doc raw"""
@@ -137,7 +139,7 @@ end
 @doc raw"""
     WeightLatticeElem(P::WeightLattice, vec::Vector{<:IntegerUnion}) -> WeightLatticeElem
 
-Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of corresponding root system.
+Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of the corresponding root system.
 """
 function WeightLatticeElem(P::WeightLattice, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), v))
@@ -322,7 +324,7 @@ end
 
 Return the coefficient of the `i`-th fundamental weight in `w`.
 
-This can be also accessed via `w[i]`.
+This can also be accessed via `w[i]`.
 """
 function coeff(w::WeightLatticeElem, i::Int)
   return w.vec[i]
@@ -344,11 +346,11 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
 end
 
 function conjugate_dominant_weight!(w::WeightLatticeElem)
-  # w will be dominant once all fundamental weights have a positive coefficient,
+  # w will be dominant once all fundamental weights have a non-negative coefficient,
   # so search for negative coefficients and make them positive by applying the corresponding reflection.
   s = 1
   while s <= rank(parent(w))
-    if w[s] < 0
+    if is_negative_entry(w, s)
       reflect!(w, s)
       s = 1
     else
@@ -375,7 +377,7 @@ function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
   #sizehint!(word, count(<(0), coefficients(w))^2)
   s = 1
   while s <= rank(parent(w))
-    if w[s] < 0
+    if is_negative_entry(w, s)
       push!(word, UInt8(s))
       reflect!(w, s)
       s = 1
@@ -422,7 +424,7 @@ end
 Check if `w` is a dominant weight, i.e. if all coefficients are non-negative.
 """
 function is_dominant(w::WeightLatticeElem)
-  return all(>=(0), coefficients(w))
+  return !any(Base.Fix1(is_negative_entry, w), 1:rank(parent(w)))
 end
 
 @doc raw"""
@@ -485,13 +487,12 @@ This is a mutating version of [`reflect(::WeightLatticeElem, ::Int)`](@ref).
 """
 function reflect!(w::WeightLatticeElem, s::Int)
   # the scalar `w.vec[s]` needs to be implicitly copied as it otherwise gets mutated by `submul!`
-  return WeightLatticeElem(
-    parent(w), submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
-  )
+  submul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), w.vec[s])
+  return w
 end
 
 @doc raw"""
-    reflect(w::WeightLatticeElem, beta::RootSpaceElem) -> RootSpaceElem
+    reflect(w::WeightLatticeElem, beta::RootSpaceElem) -> WeightLatticeElem
   
 Return the reflection of `w` in the hyperplane orthogonal to root `beta`.
 
@@ -502,7 +503,7 @@ function reflect(w::WeightLatticeElem, beta::RootSpaceElem)
 end
 
 @doc raw"""
-    reflect!(w::WeightLatticeElem, beta::RootSpaceElem) -> RootSpaceElem
+    reflect!(w::WeightLatticeElem, beta::RootSpaceElem) -> WeightLatticeElem
 
 Reflect `w` in the hyperplane orthogonal to the root `beta`, and return it.
 

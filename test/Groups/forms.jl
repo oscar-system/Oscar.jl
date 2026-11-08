@@ -149,6 +149,15 @@ end
    f = corresponding_bilinear_form(Q)
    @test dim(radical(f)[1])==2
 
+   F = GF(3)
+   Q = quadratic_form(identity_matrix(F,2))
+   @test Q*F(2)==F(2)*Q
+   @test gram_matrix(Q*F(2))==F(2)*identity_matrix(F,2)
+   R, (x, y) = polynomial_ring(F, [:x, :y])
+   Q = quadratic_form(x^2+x*y)
+   @test gram_matrix(Q*F(2))==F(2)*gram_matrix(Q)
+   @test defining_polynomial(Q*F(2))==F(2)*defining_polynomial(Q)
+   @test hash(Q*F(2))==hash(F(2)*Q)
 end
 
 @testset "TransformForm" begin
@@ -608,7 +617,7 @@ end
       @test orthogonal_sign(orthogonal_group(-1, 4, 3)) == -1
       @test orthogonal_sign(orthogonal_group(0, 5, 3)) == 0
       # Odd dimensional orthogonal groups in char. 2 are not irreducible.
-      @test_throws ErrorException orthogonal_sign(orthogonal_group(0, 5, 2))
+      @test_throws GAP.GAPError orthogonal_sign(orthogonal_group(0, 5, 2))
       @test orthogonal_sign(general_linear_group(4, 2)) === nothing
       # If the abs. irred. module preserves an antisymmetric invariant
       # bilinear form then there is no nondegenerate quadratic form.

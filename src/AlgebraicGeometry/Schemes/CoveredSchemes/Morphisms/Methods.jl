@@ -133,7 +133,7 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
     if is_refinement(codomain(dom_cov), domain(f_cov))[1]
       ref = refinement_morphism(codomain(dom_cov), domain(f_cov))
       dom_cov = compose(dom_cov, ref)
-    elseif is_refinement(domain(f_cov), codomain(dom_cov))
+    elseif is_refinement(domain(f_cov), codomain(dom_cov))[1]
       # This should be the most common case, really: base_change 
       # has happened on the `default_covering`s and `f` has a refinement 
       # thereof as its codomain.
@@ -168,7 +168,7 @@ function _register_birationality!(f::AbsCoveredSchemeMorphism,
     g::AbsAffineSchemeMor, ginv::AbsAffineSchemeMor)
   set_attribute!(g, :inverse, ginv)
   set_attribute!(ginv, :inverse, g)
-  return _register_birationality(f, g)
+  return _register_birationality!(f, g)
 end
 
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 

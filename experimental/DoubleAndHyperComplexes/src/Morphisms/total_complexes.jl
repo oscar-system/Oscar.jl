@@ -18,7 +18,7 @@ struct TotalComplexMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{
       dom::TotalComplex,
       cod::TotalComplex
     )
-    return new{ModuleFPHom}(phi, dom, cod)
+    return new{OFPModuleHom}(phi, dom, cod)
   end
 end
 
@@ -58,7 +58,7 @@ end
     
     internal_morphism = HyperComplexMorphism(domain, codomain, map_factory, cached=true, offset=[sum(offset(phi); init=0)])
     # Assuming that the types have been extracted from the input
-    return new{typeof(domain), typeof(codomain), ModuleFPHom}(internal_morphism)
+    return new{typeof(domain), typeof(codomain), OFPModuleHom}(internal_morphism)
   end
 end
 

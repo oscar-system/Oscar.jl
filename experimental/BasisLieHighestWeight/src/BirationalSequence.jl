@@ -38,7 +38,7 @@ end
 function Base.show(io::IO, birational_seq::BirationalSequence)
   println(io, "BirationalSequence")
   println(io, "Operators: ", operators_as_roots(birational_seq))
-  print(io, "Operators as weights:", operators_as_weights(birational_seq))
+  print(io, "Operators as weights: ", operators_as_weights(birational_seq))
 end
 
 function length(birational_seq::BirationalSequence)
