@@ -12,6 +12,13 @@
     @test n_edges(g) == 0
     @test !has_edge(g, Directed, 1, 2)
 
+    add_edge!(g, Directed, 1, 2)
+    @test has_edge(g, Directed, Edge(1, 2))
+    @test !has_edge(g, Undirected, Edge(1, 2))
+    rem_edge!(g, Directed, Edge(1, 2))
+    @test n_edges(g) == 0
+    @test !has_edge(g, Directed, Edge(1, 2))
+
     add_edge!(g, Undirected, 1, 2)
     @test n_edges(g) == 1
     @test has_edge(g, Undirected, 1, 2)

@@ -259,7 +259,7 @@ function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   dot_how_plus_rho = dot(hw_plus_rho, hw_plus_rho)
 
   pos_roots = positive_roots(R)
-  pos_roots_w = WeightLatticeElem.(positive_roots(R))
+  pos_roots_w = WeightLatticeElem.(pos_roots)
   pos_roots_w_coeffs = coefficients.(pos_roots_w)
 
   char = Dict(hw => T(1))
@@ -524,15 +524,15 @@ end
 #
 ###############################################################################
 
-function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  @req is_positive_root(r) "r is not a positive root"
-
-  d = 2 * dot(w, r)//dot(r, r)
+# `wlelem_r = WeightLatticeElem(r)` and `dot_r_r = dot(r, r)`, but precomputed once
+function _demazure_operator(
+  r::RootSpaceElem, w::WeightLatticeElem, wlelem_r::WeightLatticeElem, dot_r_r
+)
+  d = 2 * dot(w, r)//dot_r_r
   list_of_occuring_weights = WeightLatticeElem[]
 
   refl = reflect(w, r)
 
-  wlelem_r = WeightLatticeElem(r)
   if d > -1
     while w != refl
       push!(list_of_occuring_weights, w)
@@ -581,9 +581,14 @@ Dict{WeightLatticeElem, Int64} with 2 entries:
 function demazure_operator(
   r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
 )
+  # these only depend on `r`, not on the weights in the loop
+  @req is_positive_root(r) "r is not a positive root"
+  wlelem_r = WeightLatticeElem(r)
+  dot_r_r = dot(r, r)
+
   dict = empty(groupringelem)
   for (w, dim) in groupringelem
-    sign, weights = _demazure_operator(r, w)
+    sign, weights = _demazure_operator(r, w, wlelem_r, dot_r_r)
     for w_ in weights
       val = get(dict, w_, 0) + sign * dim
       if is_zero(val)

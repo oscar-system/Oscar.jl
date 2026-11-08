@@ -44,7 +44,7 @@ The invariant theory part of OSCAR  distinguishes two ways of how  finite groups
 
 Here, $G$ will be explicitly given as a matrix group $G\subset \text{GL}_n(K)\cong \text{GL}(V) $ by (finitely many) generating matrices, acting on $K[x_1, \dots, x_n]\cong K[V]$ by linear substitution:
 
-$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)) \text{ for all } \pi\in G.$
+$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f\bigl(\rho(\pi) \cdot (x_1, \dots, x_n)^T\bigr) \text{ for all } \pi\in G.$
 
 #### Permutation Groups
 

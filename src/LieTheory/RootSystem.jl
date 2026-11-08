@@ -181,7 +181,7 @@ end
 
 function Base.hash(R::RootSystem, h::UInt)
   # even though we don't have a == method for RootSystem, we add a hash method
-  # to make hashing of RootSpaceElem and WeightLattice more deterministic
+  # to make hashing of objects depending on a RootSystem more deterministic
   b = 0xeb5362118dea2a0e % UInt
   h = hash(cartan_matrix(R), h)
   return xor(b, h)
@@ -483,7 +483,7 @@ Return the negative roots of `R`.
 
 The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
 
-See also: [`positive_root(::RootSystem, ::Int)`](@ref).
+See also: [`negative_root(::RootSystem, ::Int)`](@ref).
 
 !!! note
     This function does not return a copy of the asked for object,
@@ -621,7 +621,7 @@ function positive_coroot(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    positive_coroots(R::RootSystem) -> DualRootSpaceElem
+    positive_coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
 
 Return the coroots corresponding to the positive roots of `R`,
 in the order of [`positive_roots(::RootSystem)`](@ref positive_roots).
@@ -665,7 +665,7 @@ function negative_coroot(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    negative_coroots(R::RootSystem) -> DualRootSpaceElem
+    negative_coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
 
 Return the coroots corresponding to the negative roots of `R`,
 in the order of [`negative_roots(::RootSystem)`](@ref negative_roots).
@@ -710,7 +710,7 @@ function simple_coroot(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    simple_coroots(R::RootSystem) -> DualRootSpaceElem
+    simple_coroots(R::RootSystem) -> Vector{DualRootSpaceElem}
 
 Return the coroots corresponding to the simple roots of `R`,
 in the order of [`simple_roots(::RootSystem)`](@ref simple_roots).
@@ -950,7 +950,7 @@ end
 
 Return the coefficient of the `i`-th simple root in `r`.
 
-This can be also accessed via `r[i]`.
+This can also be accessed via `r[i]`.
 """
 function coeff(r::RootSpaceElem, i::Int)
   return r.vec[i]
@@ -989,7 +989,7 @@ end
 @doc raw"""
     height(r::RootSpaceElem) -> QQFieldElem
 
-For a root `r`, returns the height of `r`, i.e. the sum of the coefficients of the simple roots.
+Return the height of the root `r`, i.e. the sum of the coefficients of the simple roots.
 If `r` is not a root, the return value is arbitrary.
 """
 function height(r::RootSpaceElem)
@@ -1360,7 +1360,7 @@ end
 
 Return the coefficient of the `i`-th simple coroot in `r`.
 
-This can be also accessed via `r[i]`.
+This can also be accessed via `r[i]`.
 """
 function coeff(r::DualRootSpaceElem, i::Int)
   return r.vec[i]
@@ -1400,7 +1400,7 @@ end
 @doc raw"""
     height(r::DualRootSpaceElem) -> QQFieldElem
 
-For a coroot `r`, returns the height of `r`, i.e. the sum of the coefficients of the simple coroots.
+Return the height of the coroot `r`, i.e. the sum of the coefficients of the simple coroots.
 If `r` is not a coroot, the return value is arbitrary.
 """
 function height(r::DualRootSpaceElem)
@@ -1602,8 +1602,9 @@ end
 @doc raw"""
     _positive_roots_and_reflections(cartan_matrix::ZZMatrix) -> Vector{Vector{ZZRingElem}}, Vector{Vector{ZZRingElem}}, Matrix{UInt64}
 
-Compute the positive roots, the positive coroots, and a matrix `refl` of size $m \times n$,
+Compute the minimal roots, their coroots, and a matrix `refl` of size $m \times n$,
 where $m$ is the rank of the root system and $n$ is the number of minimal roots.
+In finite type, the minimal roots are exactly the positive roots.
 
 The minimal roots and coroots are given as coefficient vectors w.r.t. the simple roots and simple coroots, respectively.
 The minimal roots are indexed by `1:n`, with the first `m` of them corresponding

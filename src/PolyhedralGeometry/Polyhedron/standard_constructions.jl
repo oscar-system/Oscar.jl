@@ -258,7 +258,7 @@ cube(d::Int, l, u) = cube(QQFieldElem, d, l, u)
 Construct the regular tetrahedron, one of the Platonic solids.
 """
 tetrahedron() = polyhedron(Polymake.polytope.tetrahedron());
-tetrahedron(f::scalar_type_or_field) = polyhedron(F, Polymake.polytope.tetrahedron());
+tetrahedron(f::scalar_type_or_field) = polyhedron(f, Polymake.polytope.tetrahedron());
 
 @doc raw"""
     dodecahedron([F::scalar_type_or_field])

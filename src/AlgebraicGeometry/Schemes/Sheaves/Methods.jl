@@ -180,7 +180,7 @@ function produce_restriction_map(F::SheafOfModules, V::AbsAffineScheme, U::Simpl
     # it would have been cached earlier and this call would not have happened
     # This is the end of the recursion induced in the next elseif below.
     W = original(U)
-    res = hom(F(W), F(U), gens(MU), OO(X)(W, U))
+    res = hom(F(W), F(U), gens(F(U)), OO(X)(W, U))
     return res
   elseif has_ancestor(W->(W === V), U)
     W = original(U)
@@ -558,14 +558,14 @@ function produce_object(FF::PushforwardSheaf, U::AbsAffineScheme)
   # In case X was empty, return the zero module and store nothing in the identifications.
   if isempty(X)
     ident[U] = nothing
-    return FreeMod(OOY(U), 0)
+    return FreeMod(OO(X)(U), 0)
   end
 
   # Check whether U ⊂ Y has a nontrivial preimage in X
   f = maps_with_given_codomain(inc, U) # there should be at most one!
   if iszero(length(f))
     ident[U] = nothing
-    return FreeMod(OOY(U), 0)
+    return FreeMod(OO(X)(U), 0)
   end
   ff = first(f)
   UX = domain(ff)
@@ -679,7 +679,7 @@ function produce_object(FF::PullbackSheaf,
   if haskey(morphisms(fcov), U)
     floc = morphisms(fcov)[U]
     MU, map = change_base_ring(pullback(floc), M(codomain(floc)))
-    pullbacks[U] = map
+    pullbacks_on_patches(FF)[U] = map
     return MU
   end
 
@@ -720,11 +720,11 @@ end
 # 4) If V is a node hanging below some patch in `domain(ϕ)` and
 #    U is a subset, restrict as usual.
 
-function restriction_func(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+function produce_restriction_map(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
   f = morphism(F)
   M = original_sheaf(F)
   OOY = sheaf_of_rings(M)
-  OOX = OO(X)
+  OOX = OO(scheme(F))
   fcov = covering_morphism(f)::CoveringMorphism
   CX = domain(fcov)::Covering
   CY = codomain(fcov)::Covering
@@ -737,7 +737,7 @@ function restriction_func(F::PullbackSheaf, V::AbsAffineScheme, U::AbsAffineSche
       MYU = M(codomain(f_U))
       res_Y = M(codomain(f_V), codomain(f_U))
       result = hom(F(V), F(U),
-                   (pullbacks[U]).(res_Y.(gens(MYV))),
+                   (pullbacks_on_patches(F)[U]).(res_Y.(gens(MYV))),
                    OOX(V, U))
       return result
     end

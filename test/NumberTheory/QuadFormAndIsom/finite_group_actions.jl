@@ -45,4 +45,10 @@
   G2 = matrix_group(Oscar.stabilizer_in_diagonal_action(L,A,B,GA,GB))
   G3 = matrix_group(Oscar.stabilizer_in_diagonal_action(L,B,A,GB,GA))
   @test order(G1) == order(G2) == order(G3)
+
+  L2 = root_lattice(:A, 2)
+  @test Oscar.is_isometry(L2, identity_matrix(ZZ, 2), true)
+  @test extend_to_ambient_space(L2, [identity_matrix(ZZ, 2)]) == [identity_matrix(QQ, 2)]
+  G = isometry_group(L2)
+  @test order(saturation(L2, G, sub(G, [one(G)])[1])) == 1
 end

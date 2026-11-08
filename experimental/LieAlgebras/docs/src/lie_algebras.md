@@ -22,8 +22,12 @@ characteristic(L::LieAlgebra)
 
 ## Special functions for `LinearLieAlgebra`s
 
+`(L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true)` returns the element of `L`
+whose matrix representation is `x`.
+With `check=false`, it is not verified that `x` lies in `L`.
+
 ```@docs
-coerce_to_lie_algebra_elem(::LinearLieAlgebra{C}, ::MatElem{C}) where {C<:FieldElem}
+Base.in(::MatElem{C}, ::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}) where {C<:FieldElem}
 matrix_repr_basis(::LinearLieAlgebra{C}, ::Int) where {C<:FieldElem}
 matrix_repr(::LinearLieAlgebraElem{C}) where {C<:FieldElem}
@@ -31,14 +35,20 @@ matrix_repr(::LinearLieAlgebraElem{C}) where {C<:FieldElem}
 
 ## Element constructors
 
+```@docs
+LieAlgebraElem(::LieAlgebra, ::AbstractVector{Int})
+LieAlgebraElem(::LieAlgebra{C}, ::AbstractVector{C}) where {C<:FieldElem}
+LieAlgebraElem(::LieAlgebra{C}, ::MatElem{C}) where {C<:FieldElem}
+LieAlgebraElem(::LieAlgebra{C}, ::SRow{C}) where {C<:FieldElem}
+```
+
 `(L::LieAlgebra{C})()` returns the zero element of the Lie algebra `L`.
 
 `(L::LieAlgebra{C})(x::LieAlgebraElem{C})` returns `x` if `x` is an element of `L`,
 and fails otherwise.
 
-`(L::LieAlgebra{C})(v)` constructs the element of `L` with coefficient vector `v`.
-`v` can be of type `Vector{C}`, `Vector{Int}`, `SRow{C}`,
-or `MatElem{C}` (of size $1 \times \dim(L)$).
+`(L::LieAlgebra{C})(v)` is a shorthand for `LieAlgebraElem(L, v)`.
+`v` can be of type `Vector{C}`, `Vector{Int}`, or `SRow{C}`.
 
 
 ## Arithmetics

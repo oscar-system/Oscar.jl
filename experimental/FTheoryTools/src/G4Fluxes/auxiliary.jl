@@ -137,7 +137,8 @@ julia> length(collect(keys(cdh22)))
           if position_of_interest === nothing
             push!(image, (coeffs[k], new_tuple))
           else
-            image[position_of_interest][1] += coeffs[k]
+            old_entry = image[position_of_interest]
+            image[position_of_interest] = (old_entry[1] + coeffs[k], old_entry[2])
           end
         end
         my_relation = lin_rels[key[2]]

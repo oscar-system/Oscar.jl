@@ -283,6 +283,7 @@ end
   @test degree(g) == 2
 
   @test order(permutation_group(3, [cperm(1:3)])) == 3
+  @test order(permutation_group(ZZ(3), [cperm(1:3)])) == 3
   @test order(permutation_group(5, [cperm(1:3, 4:5), cperm(1:4)])) == 120
 end
 
@@ -489,4 +490,17 @@ end
 
   @test hash(c) == hash(one(g))
   @test hash(a) == hash(b) # same degree
+
+  # GAP stores `a` with 4 byte images and `b` with 2 byte images
+  g = symmetric_group(70001)
+  a = cperm(g, 1:2, 70000:70001) * cperm(g, 70000:70001)
+  b = g(cperm(1:2))
+  @test a == b
+  @test hash(a) == hash(b)
+
+  # images that do not fit into 2 bytes
+  a = cperm(g, 1:2, 70000:70001)
+  b = cperm(g, 70000:70001) * cperm(g, 1:2)
+  @test a == b
+  @test hash(a) == hash(b)
 end

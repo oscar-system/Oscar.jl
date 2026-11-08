@@ -923,7 +923,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
         decode_type(s)
       end
       
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+      U <: type || U >: type || error("Type in file doesn't match target type: $U not a subtype of $type")
 
       Base.issingletontype(type) && return type()
       if isnothing(params)

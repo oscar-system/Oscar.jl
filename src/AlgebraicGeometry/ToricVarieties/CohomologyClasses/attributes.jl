@@ -151,7 +151,7 @@ julia> polynomial(cc)
 polynomial(c::CohomologyClass) = c.p
 
 @doc raw"""
-    polynomial(c::CohomologyClass, ring::MPolyQuoRing)
+    polynomial(ring::MPolyQuoRing, c::CohomologyClass)
 
 Return the polynomial in `ring` corresponding
 to the cohomology class `c`.
@@ -203,12 +203,15 @@ julia> polynomial(R_quo, cc)
 """
 function polynomial(ring::MPolyQuoRing, c::CohomologyClass)
   p = polynomial(c)
-  if iszero(p)
-    return zero(ring)
+  parent(p) === ring && return deepcopy(p)
+  iszero(p) && return zero(ring)
+  R = base_ring(ring)::MPolyRing
+  kk = coefficient_ring(R)
+  @assert kk === coefficient_ring(parent(p)) "coefficients must be the same"
+  ctx = MPolyBuildCtx(R)
+  q = lift(p)::MPolyRingElem
+  for (a, e) in zip(AbstractAlgebra.coefficients(q), AbstractAlgebra.exponent_vectors(q))
+    push_term!(ctx, a, e)
   end
-  coeffs = [k for k in AbstractAlgebra.coefficients(p.f)]
-  expos = matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(p.f)])
-  indets = gens(ring)
-  monoms = [prod(indets[j]^expos[k, j] for j in 1:ncols(expos)) for k in 1:nrows(expos)]
-  return sum(coeffs[k] * monoms[k] for k in 1:length(monoms))
+  return ring(finish(ctx))
 end

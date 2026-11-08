@@ -35,8 +35,6 @@ Base.@deprecate_binding OldType NewType
 @deprecate ambient_ring(U::AbsMultSet) ring(U)
 
 # Deprecated for 1.0
-@deprecate _compute_glueing_base_change _compute_gluing_base_change
-@deprecate _compute_toric_glueing _compute_toric_gluing
 @deprecate add_glueing! add_gluing!
 @deprecate glueing_domains gluing_domains
 @deprecate glueing_graph gluing_graph
@@ -240,6 +238,13 @@ Base.@deprecate_binding AdmissibleModuleFPRingElem AdmissibleOFPModuleRingElem
 Base.@deprecate_binding ModuleFP_dec OFPModule_dec
 Base.@deprecate_binding ModuleFPElem_dec OFPModuleElem_dec
 Base.@deprecate_binding ModuleFPHomDummy OFPModuleHomDummy
+
+# copy of `Hecke._is_basis_kwarg` from thofma/Hecke.jl#2576
+function _is_basis_kwarg(is_basis::Bool, isbasis::Union{Nothing, Bool}, f::Symbol)
+  isnothing(isbasis) && return is_basis
+  Base.depwarn("The keyword `isbasis` is deprecated, use `is_basis` instead.", f)
+  return isbasis
+end
 
 @eval Serialization begin
   @deprecate type_params type_and_params

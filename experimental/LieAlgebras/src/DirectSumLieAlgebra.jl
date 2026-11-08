@@ -83,13 +83,13 @@ function bracket(
 
     xS_vec = _matrix(x)[:, (offset + 1):(offset + dimS)]
     iszero(xS_vec) && continue
-    xS = S(xS_vec)
+    xS = LieAlgebraElem(S, xS_vec)
     yS_vec = _matrix(y)[:, (offset + 1):(offset + dimS)]
     iszero(yS_vec) && continue
-    yS = S(yS_vec)
+    yS = LieAlgebraElem(S, yS_vec)
     vec[:, (offset + 1):(offset + dimS)] = _matrix(bracket(xS, yS))
   end
-  return D(vec)
+  return LieAlgebraElem(D, vec)
 end
 
 ###############################################################################
@@ -100,6 +100,10 @@ end
 
 @attr Bool function is_abelian(L::DirectSumLieAlgebra)
   return all(is_abelian, L.summands)
+end
+
+function change_base_ring(R::Field, L::DirectSumLieAlgebra)
+  return direct_sum(R, LieAlgebra{elem_type(R)}[change_base_ring(R, S) for S in L.summands])
 end
 
 ###############################################################################

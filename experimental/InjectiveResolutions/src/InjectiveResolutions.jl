@@ -47,7 +47,6 @@ import ..Oscar:
   singular_freemodule,
   singular_generators,
   singular_module,
-  singular_poly_ring,
   sparse_row,
   standard_basis,
   SubModuleOfFreeModule,

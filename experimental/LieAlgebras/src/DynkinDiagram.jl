@@ -45,10 +45,9 @@ function show_dynkin_diagram(type::Vector{Tuple{Symbol,Int}}, labels::AbstractVe
   @req length(labels) == sum(t[2] for t in type; init=0) "Invalid number of labels"
   offset = 0
   for (fam, rk) in type
+    offset > 0 && print("\n\n")
     show_dynkin_diagram(fam, rk, labels[(offset + 1):(offset + rk)])
     offset += rk
-    println()
-    println()
   end
   return nothing
 end

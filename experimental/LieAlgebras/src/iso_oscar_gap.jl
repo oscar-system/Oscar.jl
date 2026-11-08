@@ -16,7 +16,7 @@ function _iso_oscar_gap_lie_algebra_functions(
 
   finv = function (x)
     cfs = Vector{GAP.Obj}(GAPWrap.Coefficients(basis_LG, x))
-    return LO([preimage(coeffs_iso, c) for c in cfs])
+    return LieAlgebraElem(LO, [preimage(coeffs_iso, c) for c in cfs])
   end
 
   return (f, finv)
@@ -69,7 +69,7 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra; set_attributes::Bool=true)
   return MapFromFunc(LO, LG, f, finv)
 end
 
-function _iso_oscar_gap_set_root_system(LO::LieAlgebra, LG::GapObj, LO_to_LG::Function)
+function _iso_oscar_gap_set_root_system(LO::LieAlgebra, LG::GapObj, LO_to_LG)
   RO = root_system(LO)
   RG = GAP.Globals.Objectify(
     GAP.Globals.NewType(

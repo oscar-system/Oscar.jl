@@ -205,7 +205,7 @@ function _tropical_mul(x, y)
             return y^x
         end
     elseif y isa Union{Integer, Rational, QQFieldElem, ZZRingElem}
-        if y isa Rational | y isa QQFieldElem
+        if y isa Union{Rational, QQFieldElem}
             _y = ZZ(y)
             return x^_y
         else

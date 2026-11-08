@@ -515,7 +515,7 @@ function _orthogonal_discriminant_indicator0(chi::GAPGroupClassFunction)
   # then choose the square root from `Q`, again get an integral `delta`.
   for (Q, Qemb) in subfields(F, degree = 2)
     if ! is_real(complex_embeddings(Q, conjugates = false)[1])
-      return string(AbelianClosure.quadratic_irrationality_info(embF(embQ(gen(Q))))[3])
+      return string(Oscar.AbelianClosure.quadratic_irrationality_info(embF(Qemb(gen(Q))))[3])
     end
   end
 

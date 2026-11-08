@@ -27,7 +27,7 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
     s::Vector{Symbol};
     check::Bool=true,
   ) where {C<:FieldElem}
-    @assert struct_consts isa Matrix{sparse_row_type(R)} "Invalid structure constants type."
+    @req struct_consts isa Matrix{sparse_row_type(R)} "Invalid structure constants type."
     (n1, n2) = size(struct_consts)
     @req n1 == n2 "Invalid structure constants dimensions."
     dimL = n1
@@ -117,9 +117,16 @@ end
   end
 end
 
-struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
+mutable struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
+  mat::MatElem{C} # 1 x dim(parent) coefficient vector w.r.t. basis(parent)
+  matrix_repr::MatElem{C} # parent.n x parent.n matrix, set on demand
+
+  function LinearLieAlgebraElem{C}(
+    L::LinearLieAlgebra{C}, mat::MatElem{C}
+  ) where {C<:FieldElem}
+    return new{C}(L, mat)
+  end
 end
 
 ###############################################################################
@@ -139,7 +146,7 @@ end
     R::Field,
     summands::Vector{<:LieAlgebra{C}},
   ) where {C<:FieldElem}
-    @req all(x -> coefficient_ring(x) == R, summands) "Summands must have the same coefficient ring."
+    @req all(x -> coefficient_ring(x) === R, summands) "Summands must have the same coefficient ring."
     totaldim = sum(dim, summands; init=0)
     s = [Symbol("$(x)^($(i))") for (i, S) in enumerate(summands) for x in symbols(S)]
     L = new{C}(R, totaldim, summands, s)
@@ -189,13 +196,13 @@ end
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for row in eachrow(basis_matrix)
-          push!(left, g * L(row))
+          push!(left, g * LieAlgebraElem(L, row))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
         @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = L.(eachrow(basis_matrix))
+      basis_elems = [LieAlgebraElem(L, row) for row in eachrow(basis_matrix)]
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -233,17 +240,18 @@ end
       basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
       gens = unique(g for g in gens if !iszero(g))
       left = copy(gens)
+      basis_L = basis(L)
       while !isempty(left)
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for b in basis(L)
+        for b in basis_L
           push!(left, b * g)
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
         @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = L.(eachrow(basis_matrix))
+      basis_elems = [LieAlgebraElem(L, row) for row in eachrow(basis_matrix)]
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -321,7 +329,8 @@ end
     if check
       @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
       # with the right action `v * T_x`, the module axiom reads T_[x,y] = T_y T_x - T_x T_y
-      for (i, xi) in enumerate(basis(L)), (j, xj) in enumerate(basis(L))
+      basis_L = basis(L)
+      for (i, xi) in enumerate(basis_L), (j, xj) in enumerate(basis_L)
         i < j || continue
         T_i = transformation_matrices[i]
         T_j = transformation_matrices[j]
@@ -339,18 +348,26 @@ end
 
 struct LieAlgebraModuleElem{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: AbstractAlgebra.SetElem
   parent::LieAlgebraModule{C,LieT}
-  mat::MatElem{C}
+  mat::MatElem{C} # 1 x dim(parent) coefficient vector w.r.t. basis(parent)
+
+  # no sanity checks, `LieAlgebraModuleElem(V, mat)` does them
+  function LieAlgebraModuleElem{C,LieT}(
+    V::LieAlgebraModule{C,LieT}, mat::MatElem{C}
+  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
+    return new{C,LieT}(V, mat)
+  end
 end
 
 ###############################################################################
 # LieAlgebraModuleHom
 
-@attributes mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
-                           Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
+@attributes mutable struct LieAlgebraModuleHom{
+  T1<:LieAlgebraModule,T2<:LieAlgebraModule,MatT<:MatElem
+} <: Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
   header::MapHeader{T1,T2}
-  matrix::MatElem
+  matrix::MatT
 
-  inverse_isomorphism::LieAlgebraModuleHom{T2,T1}
+  inverse_isomorphism::LieAlgebraModuleHom{T2,T1,MatT}
 
   function LieAlgebraModuleHom(
     V1::LieAlgebraModule,
@@ -374,8 +391,10 @@ end
   )
     @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
     @req size(mat) == (dim(V1), dim(V2)) "Matrix size must match dimensions of domain and codomain"
-    h = new{typeof(V1),typeof(V2)}()
-    h.matrix = mat::dense_matrix_type(coefficient_ring(V2))
+    @req base_ring(mat) === coefficient_ring(V2) "Matrix must be over coefficient ring of codomain"
+    @req mat isa dense_matrix_type(coefficient_ring(V2)) "Invalid matrix type"
+    h = new{typeof(V1),typeof(V2),typeof(mat)}()
+    h.matrix = mat
     h.header = MapHeader(V1, V2)
     if check
       @req is_welldefined(h) "Not a homomorphism"

@@ -10,6 +10,13 @@
   @test weight(young_tableau([[1,2,3,4,5]])) == [1,1,1,1,1]
   @test_throws  ArgumentError  weight(young_tableau([[1],[1],[1]]))
   @test weight(young_tableau(Array{Int,1}[])) == Int[]
+  @test weight(young_tableau([[ZZ(1), ZZ(2)]])) == [1, 1]
+
+  # ZZRingElem entries
+  @test first(standard_tableaux(partition(ZZRingElem[2, 1]))) == young_tableau([[1, 2], [3]])
+  @test sprint(show, semistandard_tableaux(ZZ(3))) == "Iterator over semistandard Young tableaux with 3 boxes"
+  @test sprint(show, standard_tableaux(ZZ(3))) == "Iterator over standard Young tableaux with 3 boxes"
+  @test Oscar.schensted([ZZ(1), ZZ(2)]) == (young_tableau([[1, 2]]), young_tableau([[1, 2]]))
 
   # is_standard
   @test is_standard(young_tableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true

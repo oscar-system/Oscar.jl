@@ -314,6 +314,9 @@ Functions that compute subgroups of `G` return groups of type `SubFPGroup`.
   function FPGroup(G::GapObj)
     # Accept only full f.p. groups.
     @assert GAPWrap.IsFpGroup(G)
+    # GAP admits free groups of infinite rank, Oscar does not support them.
+    F = GAPWrap.IsFreeGroup(G) ? G : GAPWrap.FreeGroupOfFpGroup(G)
+    @req GAPWrap.IsFinitelyGeneratedGroup(F) "free groups of infinite rank are not supported"
     return new(G)
   end
 end

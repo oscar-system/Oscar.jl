@@ -974,7 +974,9 @@ function _set_all_attributes(
       if g == "0"
         return abelian_lie_algebra(C, 0)
       elseif g == "u(1)"
-        return lie_algebra(C, 1, [C(1im) * identity_matrix(C, 1)], ["i"])
+        return lie_algebra(
+          C, 1, [C(1im) * identity_matrix(C, 1)], [:i]; is_basis=true, check=false
+        )
       elseif g[1:2] == "su"
         return special_linear_lie_algebra(C, parse(Int, g[4:(end - 1)]))
       elseif g[1:2] == "so"

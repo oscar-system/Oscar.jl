@@ -797,6 +797,7 @@ end
   m = 4
   @test length(r) == m
   @test number_of_columns(r) == number_of_columns(t)
+  @test number_of_conjugacy_classes(r) == number_of_conjugacy_classes(t)
   @test number_of_rows(r) == m
   @test intersect( t, r ) == r[[1, 3, 4]]
   @test r[1] == trivial_character(t)

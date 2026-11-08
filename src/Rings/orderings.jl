@@ -64,7 +64,6 @@ struct WSymbOrdering{S} <: AbsGenOrdering
     S in (:wdeglex, :wdegrevlex, :negwdeglex, :negwdegrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
     @req length(v) == length(w) "number of variables should match the number of weights"
-    @req all(>(0), v) "all weights should be positive"
     return new{S}(v, w)
   end
 end
@@ -236,7 +235,7 @@ should be one of `:lex`, `:deglex`, `:degrevlex`, `:invlex`, `:deginvlex`, `:neg
 `:negdeglex`, `:negdegrevlex`, `:neginvlex`.
 """
 function monomial_ordering(v::AbstractVector{<:MPolyRingElem}, s::Symbol)
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(s, i))
 end
@@ -282,7 +281,7 @@ function lex(R::MPolyRing)
 end
 
 function lex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:lex, i))
 end
@@ -347,7 +346,7 @@ function deglex(R::MPolyRing)
 end
 
 function deglex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:deglex, i))
 end
@@ -420,7 +419,7 @@ function degrevlex(R::MPolyRing)
 end
 
 function degrevlex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:degrevlex, i))
 end
@@ -493,7 +492,7 @@ function invlex(R::MPolyRing)
 end
 
 function invlex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:invlex, i))
 end
@@ -559,7 +558,7 @@ function deginvlex(R::MPolyRing)
 end
 
 function deginvlex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:deginvlex, i))
 end
@@ -634,7 +633,7 @@ function neglex(R::MPolyRing)
 end
 
 function neglex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:neglex, i))
 end
@@ -699,7 +698,7 @@ function neginvlex(R::MPolyRing)
 end
 
 function neginvlex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:neginvlex, i))
 end
@@ -764,7 +763,7 @@ function negdegrevlex(R::MPolyRing)
 end
 
 function negdegrevlex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negdegrevlex, i))
 end
@@ -837,7 +836,7 @@ function negdeglex(R::MPolyRing)
 end
 
 function negdeglex(v::AbstractVector{<:MPolyRingElem})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), SymbOrdering(:negdeglex, i))
 end
@@ -888,7 +887,7 @@ vector `w` should be the same length as `v`, and the symbol `s` should be one
 of `:wdeglex`, `:wdegrevlex`, `:negwdeglex`, `:negwdegrevlex`.
 """
 function monomial_ordering(v::AbstractVector{<:MPolyRingElem}, s::Symbol, w::Vector{Int})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(s, i, w))
 end
@@ -947,7 +946,7 @@ function wdeglex(R::MPolyRing, w::Vector{Int})
 end
 
 function wdeglex(v::AbstractVector{<:MPolyRingElem}, w::Vector{Int})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdeglex, i, w))
 end
@@ -1017,7 +1016,7 @@ function wdegrevlex(R::MPolyRing, w::Vector{Int})
 end
 
 function wdegrevlex(v::AbstractVector{<:MPolyRingElem}, w::Vector{Int})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:wdegrevlex, i, w))
 end
@@ -1087,7 +1086,7 @@ function negwdeglex(R::MPolyRing, w::Vector{Int})
 end
 
 function negwdeglex(v::AbstractVector{<:MPolyRingElem}, w::Vector{Int})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdeglex, i, w))
 end
@@ -1157,7 +1156,7 @@ function negwdegrevlex(R::MPolyRing, w::Vector{Int})
 end
 
 function negwdegrevlex(v::AbstractVector{<:MPolyRingElem}, w::Vector{Int})
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), WSymbOrdering(:negwdegrevlex, i, w))
 end
@@ -1254,7 +1253,7 @@ function matrix_ordering(R::MPolyRing, M::Union{Matrix{T}, MatElem{T}}; check::B
 end
 
 function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T}, MatElem{T}}; check::Bool = true) where T
-  @req all(isequal(parent(first(v))), map(x->parent(x), v)) "Variables must be from the same ring."
+  @req all(isequal(parent(first(v))), map(parent, v)) "Variables must be from the same ring."
   i = _unique_var_indices(v)
   return MonomialOrdering(parent(first(v)), MatrixOrdering(i, ZZMatrix(M), check))
 end
@@ -2213,6 +2212,12 @@ end
 
 function _try_singular_easy(Q::order_conversion_ctx, o::WSymbOrdering{S}) where S
   _is_consecutive_from(o.vars, Q.last_var) || return (false, Q.def)
+  # Singular.jl rejects non-positive weights for Wp/wp and a zero first weight for Ws/ws
+  if S in (:wdeglex, :wdegrevlex)
+    all(is_positive, o.weights) || return (false, Q.def)
+  else
+    !iszero(o.weights[1]) || return (false, Q.def)
+  end
   n = length(o.vars)
   Q.last_var += n
   return S == :wdeglex       ? (true, Singular.ordering_Wp(o.weights)) :
