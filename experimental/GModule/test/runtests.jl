@@ -79,7 +79,13 @@ end
 
   G = codomain(isomorphism(FPGroup, G, on_gens=true))
   q, mq = maximal_abelian_quotient(PcGroup, G)
-  @test length(Oscar.RepPc.brueckner(mq)) == 6
+  # Check that the representative lift recovers the whole group S3.
+  lifts = Oscar.RepPc.brueckner(mq)
+  @test length(lifts) == 1
+  f = only(lifts)
+  @test domain(f) === G
+  @test is_bijective(f)
+  @test is_isomorphic(codomain(f), symmetric_group(3))
 end
 
 @testset "Experimental.gmodule: solvable quotient" begin
