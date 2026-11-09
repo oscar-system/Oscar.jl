@@ -2358,8 +2358,14 @@ function Oscar.abelian_group(ZGn::AbstractAlgebra.Generic.FreeModule{<:GroupAlge
   n = rank(ZGn)
   G = group(ZG)
   g = Int(order(G))
-
   A = free_abelian_group(g*n)
+  if Hecke._is_sparse(ZG)
+    basis(ZG)
+    return A, map_from_func(A, ZGn,
+              x->ZGn([ZG(Hecke.sparse_row(x.coeff[1:1, (i-1)*g+1:i*g])) for i=1:n]),
+              y->A(vcat([Vector(t.coeffs_sparse, g) for t = y.v]...)))
+  end
+
   return A, map_from_func(A, ZGn, 
             x->ZGn([ZG([x.coeff[1, j] for j = (i-1)*g+1:i*g]) for i=1:n]),
             y->A(vcat([t.coeffs for t = y.v]...)))
