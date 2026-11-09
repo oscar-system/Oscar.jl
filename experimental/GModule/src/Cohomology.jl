@@ -1435,6 +1435,48 @@ function bar_res(ZG::GroupAlgebra; side = :left)
   return Cpx
 end
 
+function Oscar.add!(a::GroupAlgebraElem, c::GroupElem)
+  A = parent(a)
+  if Hecke._is_sparse(A)
+    a.coeffs_sparse = (a+A(c)).coeffs_sparse
+  else
+    a.coeffs[A.group_to_base[c]] += 1
+  end
+end
+
+function Oscar.sub!(a::GroupAlgebraElem, b::GroupAlgebraElem, c::GroupAlgebraElem)
+  A = parent(a)
+  if Hecke._is_sparse(A)
+    a.coeffs_sparse = (b-c).coeffs_sparse
+  else
+    for i=1:dim(A)
+      a.coeffs[i] = sub!(a.coeffs[i], b.coeffs[i], c.coeffs[i])
+    end
+  end
+end
+
+
+function mul_right!(a::GroupAlgebraElem, c::GroupElem)
+  A = parent(a)
+  if Hecke._is_sparse(A)
+    a.coeffs_sparse = (a*A(c)).coeffs_sparse
+  else
+#    b = deepcopy(a)
+    per = Tuple{Int, Int}[]
+    for i=1:length(a.coeffs)
+      if !iszero(a.coeffs[i]) 
+        p = A.group_to_base[A.base_to_group[i]*c]
+        push!(per, (p, a.coeffs[i].d))
+        a.coeffs[i].d = 0
+      end
+    end
+    for (i,d) = per
+      a.coeffs[i] = d
+    end
+#    @assert a == b*A(c)
+  end
+end
+
 function cyclic_res(ZG::GroupAlgebra; side = :left)
   G = group(ZG)
   @assert is_cyclic(G)
@@ -1547,8 +1589,8 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
     C = matrix(ZG, 1, ngens(FF), [ZG(mFF(g)) - one(ZG) for g = gens(FF)])
   end
 
-  F1 = Generic.FreeModule(ZG, 1; is_row = is_left)
-  Fg = Generic.FreeModule(ZG, ngens(FF); is_row = is_left)
+  F1 = Generic.FreeModule(ZG, 1; is_row = is_left, cached)
+  Fg = Generic.FreeModule(ZG, ngens(FF); is_row = is_left, cached)
 
 
   if is_left
@@ -1569,51 +1611,67 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
         r = R[i] #(lhs, rhs)
         if is_left
           function do_left_si(s)
-            local S = [zero(ZG) for j=1:ngens(FF)]
+            SS = [zero(ZG) for j=1:ngens(FF)]
             for i = reverse(s)
               if i > 0
                 p = ZG(mFF(FF[i]))
-                S .= p .* S
-                S[i] += one(ZG)
+                SS .= p .* SS
+                SS[i] += one(ZG)
               else
-                S[-i] -= one(ZG)
+                SS[-i] -= one(ZG)
                 p = ZG(mFF(inv(FF[-i])))
-                S .= p .* S
+                SS .= p .* SS
               end
             end
-            return S
+            return SS
           end
-          S = do_left_si(r[1])
-          T = do_left_si(r[2])
+          SS = do_left_si(r[1])
+          TT = do_left_si(r[2])
           to_1chain = do_left_si
-          B = vcat(B, matrix(ZG, 1, length(S), S .- T))
+          B = vcat(B, matrix(ZG, 1, length(SS), SS .- TT))
         else
+          nFF = ngens(FF)
           function do_right_si(s)
-            local S = [zero(ZG) for j=1:ngens(FF)]
+            local SS = [zero(ZG) for j=1:nFF]
             for i = s
               if i > 0
-                p = ZG(mFF(FF[i]))
-                S .= S .* p
-                S[i] += one(ZG)
+                p = (mFF(FF[i]))
+#                T = deepcopy(SS)
+                for l=1:nFF
+                  if !iszero(SS[l])
+                    mul_right!(SS[l], p)
+                  end
+                end
+#                p = ZG(p)
+#                TT = T .* p
+#                global last_bla = (T, p, mFF(FF[i]), S)
+#                @assert S == TT
+                SS[i] += 1
               else
-                S[-i] -= one(ZG)
-                p = ZG(mFF(inv(FF[-i])))
-                S .= S .* p
+                SS[-i] -= 1
+                p = (mFF(inv(FF[-i])))
+                for l=1:nFF
+                  if !iszero(SS[l])
+                    mul_right!(SS[l], p)
+                  end
+                end
+#                S .= S .* p
               end
             end
-            return S
+            return SS
           end
-          S = do_right_si(r[1])
-          T = do_right_si(r[2])
-          B = hcat(B, matrix(ZG, length(S), 1, S .- T))
+          SS = do_right_si(r[1])
+          TT = do_right_si(r[2])
+          @assert SS !== TT
+          B = hcat(B, matrix(ZG, length(SS), 1, SS .- TT))
           to_1chain = do_right_si
         end
       end
       @assert B != 0
       if is_left
-        Fr = Generic.FreeModule(ZG, nrows(B); is_row = is_left)
+        Fr = Generic.FreeModule(ZG, nrows(B); is_row = is_left, cached)
       else
-        Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left)
+        Fr = Generic.FreeModule(ZG, ncols(B); is_row = is_left, cached)
       end
       function _from_1chain(c)
         res = []
@@ -1652,10 +1710,11 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           #                         C
           g = FF(view(w, p+length(R[r][1]):length(w)))
         end
-        C.T[pos[r]] += ZG(mFF(g))
+        add!(C.T[pos[r]], (mFF(g)))
       end
       c.f = symbolic_collect
 
+      T = [zero(ZG) for i=1:n] #temp. var will be (re)used a lot
       for i = 1:length(R)
         r = R[i]
         for j=1:length(R)
@@ -1682,6 +1741,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
 
           for l=1:l_max
             #                         B                          B
+            local SS = [zero(ZG) for i=1:n]
             if view(r[1], length(r[1])-l+1:length(r[1])) == view(s[1], 1:l)
               # is_left:
               #      AB    -> sS  s,t are tails
@@ -1694,44 +1754,50 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
               #      (AB)C -> SsC -> SC + e_s^C
               #      A(BC) -> ATt -> AT + e_t
               #
-              c.T = [zero(ZG) for i=1:n]
+              c.T = SS
               #
               #                             A                  T
               z1 = collect(vcat(view(r[1], 1:length(r[1])-l), s[2]), c)
               if pos[j] > 0
                 if is_left
-                  c.T[pos[j]] += ZG(mFF(FF(view(r[1], 1:length(r[1])-l))))
+                  add!(c.T[pos[j]], (mFF(FF(view(r[1], 1:length(r[1])-l)))))
                 else
-                  c.T[pos[j]] += one(ZG)
+                  c.T[pos[j]] += 1
                 end
               end
-              S = c.T
-              c.T = [zero(ZG) for i=1:n]
+              for t = T
+                zero!(t)
+              end
+              c.T = T
               if pos[i] > 0
                 if is_left
-                  c.T[pos[i]] += one(ZG)
+                  c.T[pos[i]] += 1
                 else
-                  c.T[pos[i]] += ZG(mFF(FF(view(s[1], l+1:length(s[1])))))
+                  add!(c.T[pos[i]], (mFF(FF(view(s[1], l+1:length(s[1]))))))
                 end
               end
               #                   S              C
               z2 = collect(vcat(r[2], view(s[1], l+1:length(s[1]))), c)
               @assert z1 == z2
-              S = c.T .- S
-              if is_left
-                A = vcat(A, matrix(ZG, 1, length(S), S))
-              else
-                A = hcat(A, matrix(ZG, length(S), 1, S))
+              for i=1:length(SS)
+                sub!(SS[i], T[i], SS[i])
               end
+              if is_left
+                A = vcat(A, matrix(ZG, 1, length(SS), SS))
+              else
+                A = hcat(A, matrix(ZG, length(SS), 1, SS))
+              end
+              #matrix() does not copy the elements, but transfers them
+              #for the inplace operations we have to create new ones
             end
           end
         end
       end
       Fr = Cpx[2]
       if is_left
-        Ft = Generic.FreeModule(ZG, nrows(A); is_row = is_left)
+        Ft = Generic.FreeModule(ZG, nrows(A); is_row = is_left, cached)
       else
-        Ft = Generic.FreeModule(ZG, ncols(A); is_row = is_left)
+        Ft = Generic.FreeModule(ZG, ncols(A); is_row = is_left, cached)
       end
       pushfirst!(Cpx.maps, hom(Ft, Fr, A; is_left = is_left))
       function to_2chain(x, y)
@@ -1745,13 +1811,17 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           @assert length(xx) == 0
           @assert all(is_zero, c.T)
         end
-        c.T = [zero(ZG) for i=1:n]
+        for i = c.T
+          zero!(i)
+        end
         yy = collect(letters(preimage(mFF, y)), c)
         if isone(y)
           @assert length(yy) == 0
           @assert all(is_zero, c.T)
         end
-        c.T = [zero(ZG) for i=1:n]
+        for i = c.T
+          zero!(i)
+        end
         zz = collect(vcat(xx, yy), c)
         if length(xx) == 0
           @assert zz == yy
@@ -1761,7 +1831,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           @assert zz == xx
           @assert all(is_zero, c.T)
         end
-        return copy(c.T)
+        return c.T
       end
       function from_2chain(c) # c:: G x G -> M
         res = []
@@ -1856,7 +1926,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
         q, _mq = snf(q)
         mq = mq*pseudo_inv(_mq)
       end
-      Ft = Generic.FreeModule(ZG, length(gns); is_row = is_left)
+      Ft = Generic.FreeModule(ZG, length(gns); is_row = is_left, cached)
       if is_left
         psi = hom(Ft, domain(phi), vcat([x.v for x = gns]...); is_left)
       else
@@ -1889,6 +1959,22 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
   end
   return Cpx
 end
+
+function Oscar.hom_direct_sum(A::AbstractAlgebra.Generic.DirectSumModule{T}, B::AbstractAlgebra.Generic.DirectSumModule{T}, M::Matrix{<:Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}}) where {T <: GroupAlgebra}
+  s = Matrix{elem_type{base_ring(A)}}(undef, ngens(A), ngens(B))
+  n = 0
+  for i=1:nrows(M)
+    c = 0
+    for j=1:ncols(M)
+      Mij = matrix(M[i,j])
+      s[n+1:n+nrows(Mij), c+1:c+ncols(Mij)] = Mij
+      c += ncols(Mij)
+    end
+    n += ngens(domain(M[i,1]))
+  end
+  return hom(A, B, matrix(base_ring(A), ngens(A), ngens(B), s); check = false)
+end
+
 
 function action(C::GModule, g::GroupAlgebraElem)
   ZG = parent(g)
