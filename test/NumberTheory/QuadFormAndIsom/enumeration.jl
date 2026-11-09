@@ -72,6 +72,19 @@ end
   @test !isempty(rht)
   @test all(N -> !is_finite(order_of_isometry(N)), rht)
 
+  # Infinite isometry: the equation order of Q[x]/(chi) has index 3 in the
+  # maximal order; the numbers of classes have been verified by brute force
+  chi = x^2-7*x+1
+  @test isempty(representatives_of_hermitian_type(genus(hyperbolic_plane_lattice()), chi))
+  n = 0
+  for even in (true, false), G in integer_genera((1, 1), 45; even)
+    rht = representatives_of_hermitian_type(G, chi)
+    @test length(rht) <= 1
+    @test all(N -> genus(lattice(N)) == G && is_zero(chi(isometry(N))), rht)
+    n += length(rht)
+  end
+  @test n == 6
+
   # Galois orbits
   U = hyperbolic_plane_lattice()
   L = direct_sum(U, U, U, U)[1]
