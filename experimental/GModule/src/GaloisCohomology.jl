@@ -847,6 +847,8 @@ idele class group, following Chinberg/Debeerst/Aslam.
   end
 end
 
+#the embedding here is complex, but the element has real values thus the
+#Hecke function does not apply.
 function _sign(x::FacElem{<:NumFieldElem}, e::AbsSimpleNumFieldEmbedding)
   p = 32
   while true
@@ -1463,7 +1465,7 @@ function induce_hom(I1::IdeleParent, I2::IdeleParent, mp::Union{Nothing, <:NumFi
       end
       if length(fnd) != 2
         if pr > 1000
-          error("too bad - precisiion too large $(pr) to be plausible")
+          error("too bad - precision too large $(pr) to be plausible")
         end
       else
         break
@@ -2044,6 +2046,9 @@ end
 
 #from is_local_norm in Hecke
 #based on Klueners/ Acciaro
+# a represents the p-component of an idel that is identically 1 elsewhere
+# it needs to be changed into one that is = 1 mod^* (m0, sign)
+# the ideal of the idel is returned
 function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p::AbsNumFieldOrderIdeal, sign::Union{Vector{InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}}, Nothing} = nothing)
   v1 = valuation(a, p)
   v2 = valuation(m0, p)
@@ -2052,8 +2057,11 @@ function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p
   zk = order(p)
   k = number_field(zk)
   y = crt(zk(1), n0, a, o0)
+  #TODO: Think: do we always need all signs to be pos? or only the ones
+  #      we care about?
   if !isnothing(sign) && length(sign) > 0
     y = zk(approximate(k(y), n0*o0, sign))
+#    @show [Oscar.sign(y*a, x) for x = sign]
   end
   Y = y*order(p)
   Y = divexact(Y, p^v1)
@@ -2077,6 +2085,14 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
     a = parent(a)(Hecke.mod_sym(a.coeff, reduce))
   end
 
+  #Plan: the idel rep in a is trivial (==1) outside S and the infinite
+  #   places. a = sum (a_p), where a_p is 1 outside p and correct at p
+  #   We map each p individually...
+  #   p finite using primarily Acciaro-Klueners
+  #   p infinite...
+  #   in both cases we need to find x in k s.th. a_p*x = 1 mod^* coprime
+  #   and then map to prod p_i^v(a_p*x) = (x)*p_i^(-v(a_p))
+
   zk = maximal_order(I.k)
   o_zk = zk
   if coprime !== nothing && order(coprime) !== zk
@@ -2092,7 +2108,7 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
       e = absolute_ramification_index(Kp)
       x = mUp(pro(a))
       vx = Int(valuation(x) * e)
-      if coprime === nothing
+      if coprime === nothing #careful - this also bypasses positivity
         id *= FacElem(Dict(o_zk*P[1]=>vx))
       else
         if vx != 0
@@ -2124,16 +2140,24 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
         if vx != 0
           #TODO: preimage return things way too large/ precise.
           #      all we need is valuation(coprime, P) or so.
-          iv = _local_norm(coprime, zk(preimage(nKp, uniformizer(Kp))), P[1])
-          if !isnothing(sign) && length(sign) > 0
-            iv = approximate(iv, coprime, sign)
-          end
+          iv = _local_norm(coprime, zk(preimage(nKp, uniformizer(Kp))), P[1], sign)
           ip = o_zk*iv
           id *= FacElem(Dict(iu => 1, ip => vx))
         else
           id *= iu
         end
       end
+    end
+  end
+  if is_totally_real(number_field(I))
+    emb = complex_embeddings(number_field(I))
+    plc = real_places(number_field(I))
+    #TODO: do all places in one step
+    for p = emb
+      pl, mU, pro, inj = completion(I, p)
+      @assert p == pl
+      y = Hecke.approximate_factor(mU(pro(a)), coprime, plc, Bool[p == x ? Oscar.sign(mU(pro(a)), pl) > 0 : true for x = emb])
+      id *= o_zk*zk(evaluate(y))
     end
   end
   return inv(id)
@@ -2330,7 +2354,7 @@ function Oscar.galois_group(::Type{GrpExt}, A::ClassField, ::QQField;
 
   gA = gmodule(A, idele_parent.mG)
   G = group(gA)
-  F = free_res(group_algebra(ZZ, G); side = :right)
+  F = free_res(group_algebra(ZZ, G; sparse = order(G) < 20, cached = false); side = :right)
   hA = hom(F, gA)
   hI = hom(F, idele_parent) 
  
@@ -2340,8 +2364,10 @@ function Oscar.galois_group(::Type{GrpExt}, A::ClassField, ::QQField;
 
   gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
 
+
   @vprintln :GaloisCohomology 2 "projecting to ray class group..."
   @vtime :GaloisCohomology 4 phi = induce_hom(idele_parent, mR; do_map = true, check = false)
+
   @vtime :GaloisCohomology 4 phi = change_module(hI, hA, phi*mQ)
   @vtime :GaloisCohomology 4 aa = phi[2](gamma)
 
@@ -2362,6 +2388,25 @@ function Oscar.ray_class_field(C::IdeleParent; n_quo::Int = -1)
   c = conductor(C)
   A = ray_class_field(prod(k^v for (k,v) = c; init = ZZ(1))*zk; n_quo)
   return A, induce_hom(C, A.rayclassgroupmap)*A.quotientmap
+end
+
+function Oscar.completion(I::IdeleParent, P::AbsSimpleNumFieldEmbedding)
+  @assert is_real(P)
+  inj = canonical_injection(I.M, 1)
+  pro = canonical_projection(I.M, 1)
+  J = components(I.M)[1]
+  pl = complex_embeddings(number_field(I))[1]
+  if P == pl
+    return pl, I.mU, pro*canonical_projection(J, 1), canonical_injection(J, 1)*inj
+  end
+  prm = get_attribute(J, :induce)[2]
+  mG = I.mG
+
+  z = findall(pr -> mG(pr)*pl == P, prm)
+  @assert length(z) == 1
+  pr = inv(prm[z[1]])
+
+  return mG(pr)*pl, I.mU, pro * canonical_projection(J, z[1]), canonical_injection(J, z[1])*inj
 end
 
 function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
@@ -3316,7 +3361,7 @@ function global_fundamental_class(A::IdeleParent)
   end
   #the hard case, we need an extension...
 
-  fk = free_res(group_algebra(ZZ, G); side = :right)
+  fk = free_res(group_algebra(ZZ, G; sparse = order(G) < 20, cached = false); side = :right)
   hk = hom(fk, A)
   z = cohomology_group(hk, 2)
 
@@ -3414,7 +3459,7 @@ function global_fundamental_class(A::IdeleParent)
       @vprint :GaloisCohomology 2 "had $(ngens(B.data[1].M)), now $(ngens(sC.M))\n"
 
       @vprint :GaloisCohomology 1 "computing the new resolution and the inflation map\n"
-      @vtime :GaloisCohomology 2 fK = free_res(group_algebra(ZZ, group(B)); side = :right)
+      @vtime :GaloisCohomology 2 fK = free_res(group_algebra(ZZ, group(B); sparse = order(group(B) < 20, cached = false); side = :right)
 #        @vtime :GaloisCohomology 2 hK = hom(fK, B)
       hsK = hom(fK, sC)
       #TODO: check if just inflating lazy chains is faster...

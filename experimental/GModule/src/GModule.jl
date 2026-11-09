@@ -284,7 +284,7 @@ function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPM
   while d < absolute_degree(K)-1
     d += 1
     absolute_degree(K) % d == 0 || continue
-    k = GF(characteristic(K), d)
+    k = GF(characteristic(K), d; cached = false)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
   end
@@ -322,7 +322,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
     lres = length(res)
     for X in res[sres:end]
       for p in lp
-        F = free_module(GF(p), dim(M); cached = false)
+        F = free_module(GF(p; cached = false), dim(M); cached = false)
         pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x in map(matrix, action(M))])
         S = maximal_submodule_bases(pM)
         pG = p.*gens(M.M)
@@ -922,9 +922,9 @@ function _irred_abelian(G::Oscar.GAPGroup, F::FinField)
     # we work over `K` and later write the matrices over `F`.)
     L, K, z = get!(rootinfo, o) do
       m = modord(p, o) # Note: `orblen == modord(q, o)` divides `m`
-      L = GF(p, m)
+      L = GF(p, m; cached = false)
       return L,
-             GF(p, gcd(k, m)),
+             GF(p, gcd(k, m); cached = false),
              Oscar.DiscLog.element_of_given_order(L, o)
     end
 
@@ -1106,7 +1106,7 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
     while order(C.G) % p == 0
       p = next_prime(p)
     end
-    Cp = gmodule(Native.GF(p), C)
+    Cp = gmodule(Native.GF(p; cached = false), C)
     _c = _character(Cp)
     pZ = ZZ(p)
     @assert all(Cls[i] == _c[i][1] for i=1:length(_c))
@@ -1775,7 +1775,16 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
   while d < absolute_degree(K)-1
     d += 1
     absolute_degree(K) % d == 0 || continue
-    k = GF(characteristic(K), d)
+    if isdefined(K, :subfields) && haskey(K.subfields, d)
+      k = domain(K.subfields[d][1])
+    elseif isa(K, FqField)
+      k = GF(characteristic(K), d; cached = false)
+    elseif isa(K, fqPolyRepField)
+      k = Native.GF(Int(characteristic(K)), d; cached = false)
+    else
+      k = Native.GF(characteristic(K), d; cached = false)
+    end
+    @assert absolute_degree(K) != absolute_degree(k)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
   end
@@ -2258,7 +2267,7 @@ function Oscar.splitting_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
   is_absolutely_irreducible(C) #for GAP to actually compute the field
   G = Gap(C)
   d = GAP.Globals.MTX.DegreeSplittingField(G)
-  return GF(characteristic(base_ring(C)), d)
+  return GF(characteristic(base_ring(C)), d; cached = false)
 end
 
 
@@ -2556,7 +2565,7 @@ function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
   reco = 10
   while true
     p = next_prime(p)
-    z1 = gmodule(Native.GF(p), C)
+    z1 = gmodule(Native.GF(p; cached = false), C)
     t = hom_base(z1, z1)
     isempty(t) && return QQMatrix[]
     c, mc = center(matrix_algebra(base_ring(z1), t; is_basis = true))
@@ -2623,7 +2632,7 @@ function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}, D:
   reco = 10
   while true
     p = next_prime(p)
-    z1 = gmodule(Native.GF(p), C)
+    z1 = gmodule(Native.GF(p; cached = false), C)
     if C === D
       z2 = z1
     else

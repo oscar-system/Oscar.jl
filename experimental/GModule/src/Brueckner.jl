@@ -194,7 +194,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup}; easy::Bool = false)
     end
   end
   lp = Set(prime_divisors(order(Q)))
-  ZG = free_res(group_algebra(ZZ, G); side = :right, one_only = true)
+  ZG = free_res(group_algebra(ZZ, G; sparse = true); side = :right, one_only = true)
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
     ia = gmodule(FinGenAbGroup, ib)
@@ -274,17 +274,18 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   @vprint :BruecknerSQ 1 "using primes $lp\n"
 
   allR = []
+  ZQ = free_res(group_algebra(ZZ, Q; sparse = order(Q) < 20, cached = false); side = :right)
   for p = lp
     _, j = ppio(exponent(Q), p)
     f = j == 1 ? 1 : modord(p, j)
     @assert (p^f-1) % j == 0
     @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
     if f == 1
-      @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q)
+      @vtime :BruecknerSQ 2 I = reps(GF(Int(p); cached = false), Q)
     else
-      @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
+      @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f; cached = false), Q)
     end
-    @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
+    @vprint :BruecknerSQ 0 "have $(length(I)) representations\n"
 
     for i = I
       @vprint :BruecknerSQ 1 "starting to process module\n"
@@ -294,7 +295,8 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       #TODO: why do we need the module over GF(p)??? 
       #we don't
       #iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
-      @vtime :BruecknerSQ 2 l = lift(ii, mQ; limit = limit - length(allR))
+      @vtime :BruecknerSQ 2 l = lift(ii, mQ; limit = limit - length(allR), ZN = ZQ)
+      @show ii, ZQ, ii.action_count
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
       #TODO: in Plesken p119 has more comments what not to do
       append!(allR, [x for x in l])# if is_surjective(x)])
@@ -316,13 +318,12 @@ function trivial_chain(C::GModule, n::Int)
   return Oscar.GrpCoh.CoChain{2, S, T}(C, c, x->zero(C.M))
 end
 
-lift_list = []
 """
   mp: G ->> Q
   C a F_p[Q]-module
   Find all extensions of Q my C s.th. mp can be lifted to an epi.
 """
-function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
+function lift(C::GModule, mp::Map; limit::Int = typemax(Int), ZN::Union{Nothing,ComplexOfMorphisms{<:AbstractAlgebra.FPModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, PcGroup, PcGroupElem}}}}} = nothing )
 #  global lift_list
 #  push!(lift_list, (C, mp))
   #m: G->group(C)
@@ -332,7 +333,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   N = group(C)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
-  ZN = free_res(group_algebra(ZZ, N); side = :right)
+  if isnothing(ZN)
+    ZN = free_res(group_algebra(ZZ, N; sparse = order(N) < 20, cached = false); side = :right)
+  end
 
   R = relators(G)
   M = C.M
@@ -396,6 +399,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   #start with the map
   GG = split_extension(C)
   mGG_PC = isomorphism(PcGroup, GG)
+  Oscar.GrpCoh.inv_action(C) #to force the inverses to exist
 
   im = elem_type(K)[]
   gns = [GG(mp(G[i]), zero(M)) for i=1:ngens(G)]
@@ -487,7 +491,11 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   ih, mih = image(mH2_K)
   b, mb = intersect(ih, is) #mb: b -> is
   k, mk = kernel(mH2_K)
-  gns = [preimage(mH2_K, mih(mb(g))) for g = gens(b)]
+  if ngens(b) > 0
+    gns = [preimage(mH2_K, mih(mb(g))) for g = gens(b)]
+  else
+    gns = elem_type(H2)[]
+  end
   if ngens(k) > 0
     append!(gns, map(mk, gens(k)))
   end
@@ -666,9 +674,23 @@ this works, but constracts all elements...
 G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
 orbits(G)
 
+Brueckner G4
+F = @free_group(:a, :b)
+G, _ = quo(F, [a*b^2* a^-1* b^-1* a^3* b^-1 , b*a^2* b^-1* a^-1* b^3* a^-1])
+
 Brueckner G5
 F = @free_group(:a, :b, :c)
 G, _ = quo(F, [c*a*inv(c), inv(b)* a*b*a* b*a*c*b*inv(a)* inv(c)*b, c*inv(b)*a*c*b*c*inv(a)])
+
+Brueckner G9
+F = @free_group(:a, :b, :c)
+G, pro = quo(F, [comm(a, comm(a, b))*inv(c), 
+                 comm(b, comm(b, c))*inv(a), 
+                 comm(c, comm(c, a))*inv(b)])
+G9, _ = sub(G, map(pro, [b*inv(a), c*inv(a), a^2*b*inv(c)*inv(a), a^2*c, a*b*a]))
+relators(G9)
+G9, _ = quo(parent(ans[1]), ans)
+
 
 =#
 
