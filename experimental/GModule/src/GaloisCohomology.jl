@@ -2342,8 +2342,8 @@ function Oscar.galois_group(::Type{GrpExt}, A::ClassField, ::QQField;
   zk = order(m0)
   @req order(automorphism_group(Hecke.nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
-    s, ms = split_extension(FPGroup, gmodule(A))
-    return permutation_group(s), ms
+    P = extension(Oscar.RepPc.trivial_chain(gmodule(A), 2))
+    return P
   end
   if idele_parent === nothing
     idele_parent = idele_class_gmodule(base_field(A))
@@ -3459,7 +3459,7 @@ function global_fundamental_class(A::IdeleParent)
       @vprint :GaloisCohomology 2 "had $(ngens(B.data[1].M)), now $(ngens(sC.M))\n"
 
       @vprint :GaloisCohomology 1 "computing the new resolution and the inflation map\n"
-      @vtime :GaloisCohomology 2 fK = free_res(group_algebra(ZZ, group(B); sparse = order(group(B) < 20, cached = false); side = :right)
+      @vtime :GaloisCohomology 2 fK = free_res(group_algebra(ZZ, group(B); sparse = order(group(B)) < 20, cached = false); side = :right)
 #        @vtime :GaloisCohomology 2 hK = hom(fK, B)
       hsK = hom(fK, sC)
       #TODO: check if just inflating lazy chains is faster...
