@@ -327,7 +327,7 @@ end
       hw::WeightLatticeElem *or* hw::Vector{<:IntegerUnion},
     ) -> Dict{WeightLatticeElem, T}
 
-Compute all dominant weights occurring in the simple module with highest weight `hw`
+Compute all weights occurring in the simple module with highest weight `hw`
 together with their multiplicities.
 
 One can either provide a semisimple Lie algebra of characteristic $0$,
@@ -413,7 +413,7 @@ end
     tensor_product_decomposition(
       L::LieAlgebra *or* R::RootSystem,
       hw1::WeightLatticeElem *or* hw1::Vector{<:IntegerUnion},
-      hw2::WeightLatticeElem *or* hw1::Vector{<:IntegerUnion},
+      hw2::WeightLatticeElem *or* hw2::Vector{<:IntegerUnion},
     ) -> MSet{Vector{Int}}
 
 Compute the decomposition of the tensor product of the simple modules with highest weights `hw1` and `hw2`
