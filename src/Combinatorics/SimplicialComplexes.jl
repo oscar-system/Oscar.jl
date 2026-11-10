@@ -436,6 +436,49 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisne
 _upper_koszul_generators(gens::Vector{Vector{Int}}, b::Vector{Int}) =
   [findall(g .< b) for g in gens if all(g .<= b)]
 
+# squarefree monomial -> bitmask (assumes ≤ 64 variables)
+function to_mask(m)
+  b = zero(UInt64)
+  for (i, e) in enumerate(exponent_vector(m, 1))
+    e > 0 && (b |= one(UInt64) << (i - 1))
+  end
+  b
+end
+
+# keep only minimal generators (drop g if some other h divides it)
+minimal_masks(gs) = (u = unique(gs); filter(g -> !any(h -> h != g && h & g == h, u), u))
+
+# L as a sorted vector of masks, including 0 (the bottom element, lcm of nothing)
+function _lcm_lattice_squarefree(I::Vector{<:MPolyRingElem})
+  L = UInt64[0]
+  for g in minimal_masks(to_mask.(I))
+    L = unique!(sort!(vcat(L, L .| g)))
+  end
+  L
+end
+
+function _hochster_betti_numbers_squarefree(monomials::Vector{<:MPolyRingElem})
+  R = parent(first(monomials))
+  n = ngens(R)
+  supp(m) = findall(>(0), exponent_vector(m, 1))
+  delta_star = simplicial_complex([setdiff(1:n, supp(mon)) for mon in monomials])
+
+  full = n == 64 ? typemax(UInt64) : (one(UInt64) << n) - 1
+  betti_table = Dict{MPolyRingElem, Vector{Int}}()
+  @showprogress for sigma in Oscar._lcm_lattice_squarefree(monomials)
+    sigma == 0 && continue                                         # bottom element, not a degree
+    mon = monomial(R, digits(Int, sigma; base = 2, pad = n))       # key is sigma, not sigma_bar
+    if mon in monomials                                            # generator: link is {∅}
+      betti_table[mon] = [1]
+      continue
+    end
+    sigma_bar = ~sigma & full
+    link = link_subcomplex(delta_star, findall(isone, digits(sigma_bar; base = 2)))  # link of the complement
+    betti_table[mon] = betti_numbers(link)
+  end
+  return betti_table
+end
+
 @doc raw"""
     hochster_betti_numbers(monomials::Vector{<:MPolyRingElem})
 
