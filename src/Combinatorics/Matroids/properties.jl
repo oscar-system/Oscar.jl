@@ -382,8 +382,7 @@ function independent_sets(M::Matroid)
       # intermediate set of sets to get rid of duplicates.
       rkpt = Set{Vector{Int}}()
       for B in pm_bases
-        for set in Oscar.Hecke.subsets(B, k)
-          println(set)
+        for set in combinations(B, k)
           push!(rkpt, set)
         end
       end
