@@ -590,9 +590,6 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert task in [:sum, :prod, :both, :none]
   G = C[1].G
   @assert all(x->x.G == G, C)
-  @show C, typeof(C)
-  @show C, typeof(C)
-  @show C, typeof(C)
   mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
 
   mC = gmodule(G, [hom_direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
@@ -1701,6 +1698,8 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
     end
 
     if idx == 3
+      # Hecke 0.41.1's group-algebra zero! only handles dense storage.
+      is_sparse = Hecke._is_sparse(ZG)
 
       function symbolic_collect(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
         @assert w[p:p+length(R[r][1])-1] == R[r][1]
@@ -1774,7 +1773,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
                 end
               end
               for t = T
-                zero!(t)
+                zero!(is_sparse ? t.coeffs_sparse : t)
               end
               c.T = T
               if pos[i] > 0
@@ -1819,16 +1818,16 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           @assert length(xx) == 0
           @assert all(is_zero, c.T)
         end
-        for i = c.T
-          zero!(i)
+        for t = c.T
+          zero!(is_sparse ? t.coeffs_sparse : t)
         end
         yy = collect(letters(preimage(mFF, y)), c)
         if isone(y)
           @assert length(yy) == 0
           @assert all(is_zero, c.T)
         end
-        for i = c.T
-          zero!(i)
+        for t = c.T
+          zero!(is_sparse ? t.coeffs_sparse : t)
         end
         zz = collect(vcat(xx, yy), c)
         if length(xx) == 0
