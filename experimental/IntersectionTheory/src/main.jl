@@ -4061,8 +4061,6 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:(l - 1))
   syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i, r) in enumerate(ranks)])
-  # FIXME ordering
-  # ord = prod(ordering_dp(r) for r in ranks)
   R = graded_polynomial_ring(base, syms, reduce(vcat, [1:r for r in ranks]))[1]
   c = pushfirst!(
     [1+sum(gens(R)[(dims[i] + 1):dims[i + 1]]) for i in 1:(l - 1)],
