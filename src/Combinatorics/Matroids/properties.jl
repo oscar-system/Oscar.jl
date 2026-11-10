@@ -160,7 +160,12 @@ julia> flats(M, 2)
  [3, 4, 7]
 ```
 """
-flats(Int, M::Matroid, r::Int) = data.(elements_of_rank(lattice_of_flats(M), r))
+function flats(Int, M::Matroid, r::Int) 
+  if r<0 || r>rank(M)
+    error("The specified rank needs to be between 0 and the rank of the matroid.")
+  end
+  return data.(elements_of_rank(lattice_of_flats(M), r))
+end
 flats(Int, M::Matroid) = data.(elements(lattice_of_flats(M)))
 flats(M::Matroid, r::Int) = _indices_to_gs(flats(Int, M, r), M.groundset)
 flats(M::Matroid) = _indices_to_gs(flats(Int, M), M.groundset)
@@ -205,7 +210,12 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(Int, M::Matroid, r::Int) = data.(elements_of_rank(lattice_of_cyclic_flats(M), r))
+function cyclic_flats(Int, M::Matroid, r::Int) 
+  if r<0 || r>rank(M)
+    error("The specified rank needs to be between 0 and the rank of the matroid.")
+  end
+  return data.(elements_of_rank(lattice_of_cyclic_flats(M), r))
+end
 cyclic_flats(Int, M::Matroid) = data.(elements(lattice_of_cyclic_flats(M)))
 cyclic_flats(M::Matroid, r::Int) = _indices_to_gs(cyclic_flats(Int, M, r), M.groundset)
 cyclic_flats(M::Matroid) = _indices_to_gs(cyclic_flats(Int, M), M.groundset)
@@ -386,8 +396,7 @@ function independent_sets(M::Matroid)
           push!(rkpt, set)
         end
       end
-      rkpt = collect(rkpt)
-      sort!(rkpt)
+      rkpt = sort(collect(rkpt))
       for set in rkpt
         push!(sets, gs[set])
       end

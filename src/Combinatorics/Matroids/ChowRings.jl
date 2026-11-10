@@ -152,14 +152,13 @@ julia> R = augmented_chow_ring(M);
 """
 function augmented_chow_ring(M::Matroid)
     #This function was implemented by Fedor Glazov
-    Flats = flats(M)
-    sizeFlats = length(Flats)
+    is_loopless(M) || error("Matroid has loops")
+    proper_flats = vcat([flats(M,i) for i in 0:rank(M)-1]...)
+    sizeFlats = length(proper_flats)
+    sizeFlats>2 || error("Matroid has too few flats")
     n = length(M)
 
-    is_loopless(M) || error("Matroid has loops")
-    sizeFlats>3 || error("Matroid has too few flats")
 
-    proper_flats = Flats[1:sizeFlats-1]
     element_var_names = [string("y_", S) for S in M.groundset]
 
     flat_var_names = ["x_{" * join(S, ",") * "}" for S in proper_flats]
