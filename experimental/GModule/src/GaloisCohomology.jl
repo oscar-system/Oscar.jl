@@ -2156,8 +2156,8 @@ function Oscar.ideal(I::IdeleParent, _a::FinGenAbGroupElem;
     for p = emb
       pl, mU, pro, inj = completion(I, p)
       @assert p == pl
-      #the component is in the model at emb[1]
-      y = Hecke.approximate_factor(mU(pro(a)), coprime, plc, Bool[p == x ? Oscar.sign(mU(pro(a)), first(emb)) > 0 : true for x = emb])
+      u = mU(pro(a))
+      y = Hecke.approximate_factor(u, coprime, plc, Bool[p == x ? Oscar.sign(u, pl) > 0 : true for x = emb])
       id *= o_zk*zk(evaluate(y))
     end
   end
@@ -2406,9 +2406,11 @@ function Oscar.completion(I::IdeleParent, P::AbsSimpleNumFieldEmbedding)
   #the place for pr is given by its inverse
   z = findall(pr -> mG(inv(pr))*pl == P, prm)
   @assert length(z) == 1
-  pr = inv(prm[z[1]])
 
-  return mG(pr)*pl, I.mU, pro * canonical_projection(J, z[1]), canonical_injection(J, z[1])*inj
+  #transport the unit from pl to P
+  E = I.data[6]
+  mUp = action(E, prm[z[1]]) * I.mU
+  return P, mUp, pro * canonical_projection(J, z[1]), canonical_injection(J, z[1])*inj
 end
 
 function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
