@@ -2448,7 +2448,7 @@ Find all(?) subfields (up to isomorphism) of the splitting field of degree d
 with galois group isomorphic to the original one.
 
 # Examples
-```jldoctest; filter = r"Galois context\(.*\]\)"
+```jldoctest; filter = r"Galois context for .* and prime \d+"
 julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-2);
