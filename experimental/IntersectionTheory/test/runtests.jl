@@ -304,6 +304,170 @@ let pushforward = IntersectionTheory.pushforward
     ###end
   ###end
 
+  @testset "Flag Bundle Pushforwards" begin
+    # Verify projection formulas, section classes, and flag-bundle pushforwards.
+    @testset "Projection Formula on P^2" begin
+      X = abstract_projective_space(2)
+      T = tangent_bundle(X)
+      F = flag_bundle(T, 1)
+      p = structure_map(F)
+      AX = chow_ring(X)
+      h = AX[1]
+      pullback_h = pullback(p, h)
+
+      @test iszero(pushforward(p, pullback_h))
+
+      SQ1, SQ2 = tautological_bundles(F)
+      xi = chern_class(SQ1, 1)
+      lhs = pushforward(p, pullback_h * xi)
+      rhs = h * pushforward(p, xi)
+      @test lhs == rhs
+
+      sect = section_class(p)
+      @test sect == chern_class(SQ2, 1)
+      @test pushforward(p, sect) == one(AX)
+
+      z = chern_class(dual(SQ1), 1)
+      @test sum(pushforward(p, z^(i + rank(T) - 1)) for i in 0:dim(X)) == total_segre_class(T)
+    end
+
+    @testset "Full Flag Variety Fl(3) over a Point" begin
+      P = abstract_point()
+      AP = chow_ring(P)
+      O3 = 3*OO(P)
+      F = flag_bundle(O3, 1, 2)
+      p = structure_map(F)
+      SQ1, SQ2 = tautological_bundles(F)
+      x1 = chern_class(SQ1, 1)
+      x2 = chern_class(SQ2, 1)
+
+      @test iszero(pushforward(p, x1 * x2))
+      @test pushforward(p, x1 * x2^2) == one(AP)
+      @test x1 * x2^2 == section_class(p)
+    end
+
+    @testset "Full Flag Variety Fl(3) over a Point, Gysin" begin
+      P = abstract_point()
+      AP = chow_ring(P)
+      O3 = 3*OO(P)
+      F = flag_bundle(O3, 1, 2; pushforward_algorithm = :gysin)
+      p = structure_map(F)
+      SQ1, SQ2 = tautological_bundles(F)
+      x1 = chern_class(SQ1, 1)
+      x2 = chern_class(SQ2, 1)
+
+      @test iszero(pushforward(p, x1 * x2))
+      @test pushforward(p, x1 * x2^2) == one(AP)
+      @test x1 * x2^2 == section_class(p)
+    end
+
+    @testset "Projective Bundle P(O(1) + O(2)) over P^2" begin
+      X = abstract_projective_space(2)
+      AX = chow_ring(X)
+      h = AX[1]
+      E = OO(X, 1) + OO(X, 2)
+      F = flag_bundle(E, 1)
+      AF = chow_ring(F)
+      p = structure_map(F)
+      SQ1, SQ2 = tautological_bundles(F)
+
+      sect = section_class(p)
+      @test sect == chern_class(SQ2, 1)
+      @test pushforward(p, sect) == one(AX)
+
+      z = chern_class(dual(SQ1), 1)
+      @test iszero(pushforward(p, one(AF)))
+      @test pushforward(p, z) == one(AX)
+      @test pushforward(p, z^2) == -3*h
+      @test pushforward(p, z^3) == 7*h^2
+      @test iszero(pushforward(p, z^4))
+    end
+
+    @testset "Projective Bundle P(O(1) + O(2)) over P^2, Gysin" begin
+      X = abstract_projective_space(2)
+      AX = chow_ring(X)
+      h = AX[1]
+      E = OO(X, 1) + OO(X, 2)
+      F = flag_bundle(E, 1; pushforward_algorithm = :gysin)
+      AF = chow_ring(F)
+      p = structure_map(F)
+      SQ1, SQ2 = tautological_bundles(F)
+
+      sect = section_class(p)
+      @test sect == chern_class(SQ2, 1)
+      @test pushforward(p, sect) == one(AX)
+
+      z = chern_class(dual(SQ1), 1)
+      @test iszero(pushforward(p, one(AF)))
+      @test pushforward(p, z) == one(AX)
+      @test pushforward(p, z^2) == -3*h
+      @test pushforward(p, z^3) == 7*h^2
+      @test iszero(pushforward(p, z^4))
+    end
+
+    @testset "Rank 3 Bundle Full Flags over a Surface" begin
+      X = abstract_projective_space(2)
+      AX = chow_ring(X)
+      h = AX[1]
+      E = abstract_bundle(X, 3, 1 + h + h^2)
+      c1_E = h
+      c2_E = h^2
+      F = flag_bundle(E, 1, 2)
+      p = structure_map(F)
+      SQ1, SQ2 = tautological_bundles(F)
+      x1 = chern_class(SQ1, 1)
+      x2 = chern_class(SQ2, 1)
+
+      @test pushforward(p, x1 * x2^2) == one(AX)
+      @test pushforward(p, x1 * x2^3) == c1_E
+      @test pushforward(p, x1 * x2^4) == c1_E^2 - c2_E
+      @test pushforward(p, x1^2 * x2^3) == c2_E
+    end
+
+    @testset "Rank 3 Bundle Full Flags over a Surface, Gysin" begin
+      X = abstract_projective_space(2)
+      AX = chow_ring(X)
+      h = AX[1]
+      E = abstract_bundle(X, 3, 1 + h + h^2)
+      c1_E = h
+      c2_E = h^2
+      F = flag_bundle(E, 1, 2; pushforward_algorithm = :gysin)
+      p = structure_map(F)
+      SQ1, SQ2 = tautological_bundles(F)
+      x1 = chern_class(SQ1, 1)
+      x2 = chern_class(SQ2, 1)
+
+      @test pushforward(p, x1 * x2^2) == one(AX)
+      @test pushforward(p, x1 * x2^3) == c1_E
+      @test pushforward(p, x1 * x2^4) == c1_E^2 - c2_E
+      @test pushforward(p, x1^2 * x2^3) == c2_E
+    end
+
+    @testset "Partial Flag Bundle Fl(1, 3) of a Rank 4 Bundle" begin
+      X = abstract_projective_space(4)
+      AX = chow_ring(X)
+      T = tangent_bundle(X)
+      F = flag_bundle(T, 1, 3)
+      p = structure_map(F)
+      AF = chow_ring(F)
+
+      @test iszero(pushforward(p, one(AF)))
+      @test pushforward(p, section_class(p)) == one(AX)
+    end
+
+    @testset "Partial Flag Bundle Fl(1, 3) of a Rank 4 Bundle, Gysin" begin
+      X = abstract_projective_space(4)
+      AX = chow_ring(X)
+      T = tangent_bundle(X)
+      F = flag_bundle(T, 1, 3; pushforward_algorithm = :gysin)
+      p = structure_map(F)
+      AF = chow_ring(F)
+
+      @test iszero(pushforward(p, one(AF)))
+      @test pushforward(p, section_class(p)) == one(AX)
+    end
+  end
+
   # testset borrowed from Schubert2
   @testset "Blowups" begin
 

@@ -4101,7 +4101,7 @@ end
 
 @doc raw"""
     function flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c",
-                     pushforward_algorithm::Symbol=:monic)
+                     pushforward_algorithm::Symbol = :monic)
     function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c",
                      pushforward_algorithm::Symbol = :monic)
 
@@ -4110,18 +4110,20 @@ and given an abstract bundle $E$ of rank $n$, return the abstract flag bundle of
 of subspaces of dimensions $d_1, \dots, d_{k}$ in the fibers of $E$.
 
 # Implemented Algorithms
-The default algorithm (`Symbol = :monic`) for computing the pushforward of cycle classes
-from a flag bundle is the algorithm by Grayson, , and Stillman, see [GSS22](@cite). 
-Alternatively (`Symbol = :gysin`), use
-
-
-There are two
+OSCAR offers two algorithms to compute the pushforward of cycle classes from a flag bundle
+to its base variety. The algorithm to be used for a particular flag bundle is determined by
+the user during the construction phase of the bundle. Here, the default algorithm
+(`pushforward_algorithm = :monic`) is the one found by Grayson, Seceleanu, and Stillman
+[GSS22](@cite). It is based on a theory of normal forms for monic ideals in multivariate
+polynomial rings with coefficients in a ring (here, the Chow ring of the base).
+Alternatively, upon entering `pushforward_algorithm = :gysin`, OSCAR will use
+the Gysin formula given by Darondeau and Pragacz [DP17](@cite).
 
 !!! note
     Entering the number $n$ can be omitted since this number can be recovered as the rank of $E$.
 
 !!! note
-    The string `symbols` specifies how to print the generators of the Chow ring.
+    The string `symbol` specifies how to print the generators of the Chow ring.
 
 !!! note
     Let $X$ be a variety, let $E$ be a vector bundle on $X$ of rank $n$, and let $d_1, \dots, d_k$
@@ -4183,10 +4185,77 @@ julia> prod(total_chern_class(SQ[j]) for j =  1:3)
 julia> sum(pullback(pi, chern_class(T, i)) for i = 0:4)
 5*h^4 + 10*h^3 + 10*h^2 + 5*h + 1
 
+julia> X = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> T = tangent_bundle(X) # Rank 2 bundle
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> F = flag_bundle(T, 1, pushforward_algorithm = :gysin)
+AbstractVariety of dim 3
+
+julia> p = structure_map(F) # Morphism p : F -> X
+AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 2
+
+julia> AX = chow_ring(X)
+Quotient
+  of multivariate polynomial ring in 1 variable over QQ graded by
+    h -> [1]
+  by ideal (h^3)
+
+julia> AF = chow_ring(F)
+Quotient
+  of multivariate polynomial ring in 3 variables over QQ graded by
+    c[1, 1] -> [1]
+    c[2, 1] -> [1]
+    h -> [1]
+  by ideal (h^3, -c[1, 1]*c[2, 1] + 3*h^2, -c[1, 1] - c[2, 1] + 3*h)
+
+julia> h = AX[1] # Hyperplane class on P^2
+h
+
+julia> pullback_h = pullback(p, h)
+h
+
+julia> pushforward(p, pullback_h)
+0
+
+julia> SQ1, SQ2 = tautological_bundles(F) # sub-quotient bundles
+2-element Vector{AbstractBundle}:
+ AbstractBundle of rank 1 on AbstractVariety of dim 3
+ AbstractBundle of rank 1 on AbstractVariety of dim 3
+
+julia> xi = chern_class(SQ1, 1)
+-c[2, 1] + 3*h
+
+julia> lhs = pushforward(p, pullback_h * xi)
+-h
+
+julia> rhs = h * pushforward(p, xi)
+-h
+
+julia> lhs == rhs
+true
+
+julia> sect = section_class(p)
+c[2, 1]
+
+julia> sect == chern_class(SQ2, 1)
+true
+
+julia> pushforward(p, sect)
+1
+
+julia> z = chern_class(dual(SQ1), 1)
+c[2, 1] - 3*h
+
+julia> sum(pushforward(p, z^(i + rank(T) - 1)) for i in 0:dim(X)) == total_segre_class(T)
+true
+
 ```
 """
 function flag_bundle(F::AbstractBundle, dims::Int...; gens_names::String = "c",
-                     pushforward_algorithm::Symbol=:monic)
+                     pushforward_algorithm::Symbol = :monic)
   flag_bundle(F, Int[dims...]; gens_names = gens_names, pushforward_algorithm = pushforward_algorithm)
 end
 
