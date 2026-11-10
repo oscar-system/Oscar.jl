@@ -412,7 +412,12 @@ end
 @testset "comprehensive Groebner systems" begin
   A, (a, b) = polynomial_ring(QQ, [:a, :b])
   R, (x,) = polynomial_ring(A, [:x])
+  # the global Singular options must be unchanged afterwards
+  S, (s, t, u, v) = QQ[:s, :t, :u, :v]
+  Is = [ideal(S, [s + t + u, v - 1]), ideal(S, [s^2, t]), ideal(S, [s])]
+  G = gens(intersect(Is))
   cgs = comprehensive_groebner_system(ideal(R, [a*x - b]); algorithm = :KSW)
+  @test gens(intersect(Is)) == G
   @test [(gens(E), gens(N), gens(G)) for (E, N, G) in cgs] ==
         [([zero(A)], [a], [a*x - b]), ([a], [b, a], [one(R)]), ([b, a], [one(A)], [zero(R)])]
   cgs = comprehensive_groebner_system(ideal(R, [R(a)]))

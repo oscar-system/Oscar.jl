@@ -59,9 +59,14 @@ function comprehensive_groebner_system(I::MPolyIdeal;
   # grobcov.lib needs the parameters in the coefficient field, so we compute in Frac(K[U])[X]
   FX, phi = change_base_ring(fraction_field(A), R)
   o = induce(gens(FX), ordering)
+  # cgsdr sets the global Singular options redSB and returnSB without restoring them
+  redSB = Singular.libSingular.set_option("OPT_REDSB", false)
+  returnSB = Singular.libSingular.set_option("OPT_RETURN_SB", false)
   branches = Singular.LibGrobcov.cgsdr(singular_generators(phi(I), o),
       "null", singular_generators(ideal(FX, gens(null)), o),
       "nonnull", singular_generators(ideal(FX, gens(nonnull)), o))
+  Singular.libSingular.set_option("OPT_REDSB", redSB)
+  Singular.libSingular.set_option("OPT_RETURN_SB", returnSB)
   # cgsdr returns polynomials over Frac(K[U]) whose coefficients lie in K[U]
   cgs = Tuple{MPolyIdeal{elem_type(A)}, MPolyIdeal{elem_type(A)}, MPolyIdeal{elem_type(R)}}[]
   for branch in branches
