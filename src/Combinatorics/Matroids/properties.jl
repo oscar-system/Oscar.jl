@@ -377,14 +377,21 @@ function independent_sets(M::Matroid)
     sets = Vector{Vector{elt}}()
     push!(sets,elt[])
     for k in 1:rank(M)
-        for set in Oscar.Hecke.subsets(Vector(1:n),k)
-            for B in pm_bases
-                if issubset(set,B)
-                    push!(sets, gs[collect(set)])
-                    break
-                end
-            end
+      # An independent set might be a subset of multiple bases, so it might
+      # appear multiple times when we list these subsets. Thus we use an
+      # intermediate set of sets to get rid of duplicates.
+      rkpt = Set{Vector{Int}}()
+      for B in pm_bases
+        for set in Oscar.Hecke.subsets(B, k)
+          println(set)
+          push!(rkpt, set)
         end
+      end
+      rkpt = collect(rkpt)
+      sort!(rkpt)
+      for set in rkpt
+        push!(sets, gs[set])
+      end
     end
     return sets
 end
