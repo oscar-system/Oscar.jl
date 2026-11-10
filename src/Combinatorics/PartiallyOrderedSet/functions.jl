@@ -768,7 +768,7 @@ function _element_ids(p::PartiallyOrderedSet)
   dir = top > bot ? 1 : -1
   top -= dir*p.artificial_top
   bot += dir*p.artificial_bottom
-  return (bot:-1:top)
+  return (bot:dir:top)
 end
 
 
