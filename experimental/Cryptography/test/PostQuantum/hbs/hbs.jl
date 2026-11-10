@@ -1,3 +1,7 @@
+using Random
+using Test
+using Oscar
+
 @testset "hbs hash functions" begin
   # Test domain separation and the encoding of bits for the hash-based schemes
   seed = UInt8[1, 2, 3, 4]

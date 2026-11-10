@@ -1,3 +1,6 @@
+using Test
+using Oscar
+
 @testset "lwe parameters" begin
   # Test that parameter sets are defined and validated
   @test lwe_toy.n == 16

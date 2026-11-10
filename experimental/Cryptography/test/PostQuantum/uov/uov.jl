@@ -1,3 +1,6 @@
+using Test
+using Oscar
+
 @testset "uov module structure" begin
   # Test that all parameter sets are defined
   @test isdefined(Oscar, :uov_1p)
