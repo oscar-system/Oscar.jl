@@ -460,7 +460,7 @@ end
         [([zero(A)], [a*b], [a*x - b*y, b^2*y^2 - a^3])]
 
   S, _ = polynomial_ring(QQ, [:x])
-  @test_throws ArgumentError comprehensive_groebner_system(ideal(S, gens(S)))
+  @test_throws MethodError comprehensive_groebner_system(ideal(S, gens(S)))
   A, (a,) = polynomial_ring(GF(2, 2), [:a])
   R, (x,) = polynomial_ring(A, [:x])
   @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]))

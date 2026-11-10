@@ -1,8 +1,8 @@
 @doc raw"""
-    comprehensive_groebner_system(I::MPolyIdeal;
-      null::MPolyIdeal, nonnull::MPolyIdeal,
+    comprehensive_groebner_system(I::MPolyIdeal{<:MPolyRingElem{T}};
+      null::MPolyIdeal{T}, nonnull::MPolyIdeal{T},
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      algorithm::Symbol = :KSW)
+      algorithm::Symbol = :KSW) where {T <: MPolyRingElem}
 
 If `ordering` is global, return a comprehensive Gröbner system of $I$ with respect to `ordering`.
 
@@ -42,20 +42,18 @@ julia> comprehensive_groebner_system(ideal(R, [a*x - b]))
  (Ideal (b, a), Ideal (1), Ideal (0))
 ```
 """
-function comprehensive_groebner_system(I::MPolyIdeal;
-    null::Union{MPolyIdeal,Nothing}=nothing, nonnull::Union{MPolyIdeal,Nothing}=nothing,
+function comprehensive_groebner_system(I::MPolyIdeal{<:MPolyRingElem{T}};
+    null::MPolyIdeal{T}=ideal(coefficient_ring(base_ring(I)), 0),
+    nonnull::MPolyIdeal{T}=ideal(coefficient_ring(base_ring(I)), 1),
     ordering::MonomialOrdering=default_ordering(base_ring(I)),
-    algorithm::Symbol=:KSW)
+    algorithm::Symbol=:KSW) where {T<:MPolyRingElem}
   @req algorithm in (:KSW,) "Unsupported algorithm"
   R = base_ring(I)
   A = coefficient_ring(R)
-  @req A isa MPolyRing "the coefficient ring must be a multivariate polynomial ring"
   K = coefficient_ring(A)
   @req K isa QQField || (K isa FqField && degree(K) == 1) "the coefficients must lie in QQ or in a prime field GF(p)"
   @req base_ring(ordering) === R "the ordering must be defined on the base ring of the ideal"
   @req is_global(ordering) "the ordering must be global"
-  null = something(null, ideal(A, [zero(A)]))
-  nonnull = something(nonnull, ideal(A, [one(A)]))
   @req base_ring(null) === A && base_ring(nonnull) === A "null and nonnull must be ideals of the coefficient ring"
   # grobcov.lib needs the parameters in the coefficient field, so we compute in Frac(K[U])[X]
   FX, phi = change_base_ring(fraction_field(A), R)
