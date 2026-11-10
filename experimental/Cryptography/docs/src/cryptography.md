@@ -7,6 +7,21 @@ hash-based signature schemes. They are meant for experiments and teaching. The
 implementations are neither constant-time nor hardened against side channels and
 must not be used to protect real data.
 
+## The common interface
+
+All schemes use the same functions, which dispatch on the parameter object `p`
+of the scheme, the first argument:
+
+- `keygen(p)` returns a key pair `(pk, sk)`,
+- `sign(p, msg, sk)` signs a message and `verify(p, sig, msg, pk)` checks a
+  signature (signature schemes), `open(p, sm, pk)` returns the message of a signed
+  message `sm` (a message followed by its signature) or `nothing`,
+- `encrypt(p, pk, msg)` and `decrypt(p, sk, ct)` (encryption schemes).
+
+Parameter sets are created with `instantiate_uov`, `instantiate_lwe` and
+`instantiate_hbs`, or taken from the predefined ones such as `uov_1p`, `lwe_toy`
+or `hbs_mss_toy`.
+
 ## UOV signatures
 
 The Unbalanced Oil and Vinegar signature scheme with the parameter sets of the
@@ -14,10 +29,10 @@ NIST submission, see [BCDGKPPS.EA25](@cite).
 
 ```@docs
 instantiate_uov
-uov_keygen
-uov_sign
-uov_verify
-uov_open
+keygen(::UOV)
+sign(::UOV, ::Vector{UInt8}, ::Vector{UInt8})
+verify(::UOV, ::Vector{UInt8}, ::Vector{UInt8}, ::Vector{UInt8})
+open(::UOV, ::Vector{UInt8}, ::Vector{UInt8})
 ```
 
 ## Learning with errors
@@ -27,9 +42,9 @@ Public key encryption based on the learning with errors problem, see
 
 ```@docs
 instantiate_lwe
-lwe_keygen
-lwe_encrypt
-lwe_decrypt
+keygen(::LWE)
+encrypt(::LWE, ::Any, ::AbstractVector{UInt8})
+decrypt(::LWE, ::Any, ::Any)
 ```
 
 ## Hash-based signatures
@@ -46,10 +61,10 @@ standard FIPS 205.
 
 ```@docs
 instantiate_hbs
-hbs_keygen
-hbs_sign
-hbs_verify
-hbs_open
+keygen(::HBS)
+sign(::HBS, ::Vector{UInt8}, ::Vector{UInt8})
+verify(::HBS, ::Vector{UInt8}, ::Vector{UInt8}, ::Vector{UInt8})
+open(::HBS, ::Vector{UInt8}, ::Vector{UInt8})
 ```
 
 ### One-time signatures

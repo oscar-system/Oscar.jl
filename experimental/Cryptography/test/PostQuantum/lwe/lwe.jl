@@ -13,10 +13,10 @@ end
 @testset "lwe encryption and decryption" begin
   # Test that decryption inverts encryption for all parameter sets
   for p in lwe_all
-    pk, sk = lwe_keygen(p)
+    pk, sk = keygen(p)
     for msg in (UInt8[], UInt8[0x00], UInt8[0xff], rand(UInt8, 16))
-      ct = lwe_encrypt(p, pk, msg)
-      @test lwe_decrypt(p, sk, ct) == msg
+      ct = encrypt(p, pk, msg)
+      @test decrypt(p, sk, ct) == msg
     end
   end
 end
@@ -24,11 +24,11 @@ end
 @testset "lwe key properties" begin
   # Test that the public key has small noise and that a wrong key fails
   p = lwe_toy
-  (A, b), s = lwe_keygen(p)
+  (A, b), s = keygen(p)
   noise = mod.(b - A * s, p.q)
   @test all(x -> min(x, p.q - x) <= p.eta, noise)
   msg = rand(UInt8, 32)
-  pk2, sk2 = lwe_keygen(p)
-  ct = lwe_encrypt(p, (A, b), msg)
-  @test lwe_decrypt(p, sk2, ct) != msg
+  pk2, sk2 = keygen(p)
+  ct = encrypt(p, (A, b), msg)
+  @test decrypt(p, sk2, ct) != msg
 end

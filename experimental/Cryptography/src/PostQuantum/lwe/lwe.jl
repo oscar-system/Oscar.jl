@@ -93,7 +93,7 @@ end
 # ---------------------------------------------------------------------------
 
 @doc raw"""
-    lwe_keygen(p::LWE; rng::AbstractRNG = RandomDevice()) -> Tuple{Tuple{Matrix{Int}, Vector{Int}}, Vector{Int}}
+    keygen(p::LWE; rng::AbstractRNG = RandomDevice()) -> Tuple{Tuple{Matrix{Int}, Vector{Int}}, Vector{Int}}
 
 Generate a key pair for the LWE parameters `p`. The public key is a pair
 `(A, b)` where `A` is a uniformly random $m \times n$ matrix modulo $q$ and
@@ -102,13 +102,13 @@ The secret key is `s`. Return `(pk, sk)`.
 
 # Examples
 ```jldoctest
-julia> (A, b), s = lwe_keygen(lwe_toy);
+julia> (A, b), s = keygen(lwe_toy);
 
 julia> size(A), length(b), length(s)
 ((32, 16), 32, 16)
 ```
 """
-function lwe_keygen(p::LWE; rng::AbstractRNG = RandomDevice())
+function keygen(p::LWE; rng::AbstractRNG = RandomDevice())
     A = rand(rng, 0:p.q-1, p.m, p.n)
     s = rand(rng, 0:p.q-1, p.n)
     e = _cbd(rng, p.eta, p.m)
@@ -117,7 +117,7 @@ function lwe_keygen(p::LWE; rng::AbstractRNG = RandomDevice())
 end
 
 @doc raw"""
-    lwe_encrypt(p::LWE, pk, msg::AbstractVector{UInt8}; rng::AbstractRNG = RandomDevice()) -> Tuple{Matrix{Int}, Vector{Int}}
+    encrypt(p::LWE, pk, msg::AbstractVector{UInt8}; rng::AbstractRNG = RandomDevice()) -> Tuple{Matrix{Int}, Vector{Int}}
 
 Encrypt the bytes `msg` under the public key `pk` bit by bit. For each bit
 $\mu$ a random $r \in \{0,1\}^m$ is chosen and the pair
@@ -127,15 +127,15 @@ columns and the vector `v` of the second components.
 
 # Examples
 ```jldoctest
-julia> pk, sk = lwe_keygen(lwe_toy);
+julia> pk, sk = keygen(lwe_toy);
 
-julia> U, v = lwe_encrypt(lwe_toy, pk, UInt8[1, 2, 3]);
+julia> U, v = encrypt(lwe_toy, pk, UInt8[1, 2, 3]);
 
 julia> size(U), length(v)
 ((16, 24), 24)
 ```
 """
-function lwe_encrypt(p::LWE, pk, msg::AbstractVector{UInt8}; rng::AbstractRNG = RandomDevice())
+function encrypt(p::LWE, pk, msg::AbstractVector{UInt8}; rng::AbstractRNG = RandomDevice())
     A, b = pk
     bits = _bytes_to_bits(msg)
     R = rand(rng, 0:1, p.m, length(bits))
@@ -145,7 +145,7 @@ function lwe_encrypt(p::LWE, pk, msg::AbstractVector{UInt8}; rng::AbstractRNG = 
 end
 
 @doc raw"""
-    lwe_decrypt(p::LWE, sk, ct) -> Vector{UInt8}
+    decrypt(p::LWE, sk, ct) -> Vector{UInt8}
 
 Decrypt the ciphertext `ct = (U, v)` with the secret key `sk`. A bit is
 decoded as $1$ if $v_i - s^T U_i \bmod q$ is closer to $\lfloor q/2 \rfloor$
@@ -154,15 +154,15 @@ sets created by `instantiate_lwe`, decryption is always correct.
 
 # Examples
 ```jldoctest
-julia> pk, sk = lwe_keygen(lwe_toy);
+julia> pk, sk = keygen(lwe_toy);
 
-julia> ct = lwe_encrypt(lwe_toy, pk, Vector{UInt8}("oscar"));
+julia> ct = encrypt(lwe_toy, pk, Vector{UInt8}("oscar"));
 
-julia> String(lwe_decrypt(lwe_toy, sk, ct))
+julia> String(decrypt(lwe_toy, sk, ct))
 "oscar"
 ```
 """
-function lwe_decrypt(p::LWE, sk, ct)
+function decrypt(p::LWE, sk, ct)
     U, v = ct
     @req size(U, 1) == p.n && size(U, 2) == length(v) "ciphertext does not match the parameters"
     @req length(v) % 8 == 0 "ciphertext length must be a multiple of 8 bits"

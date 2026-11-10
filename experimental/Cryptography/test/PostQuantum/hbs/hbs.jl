@@ -212,37 +212,37 @@ end
 @testset "hbs interface" begin
   # Test the public interface for all parameter sets that are fast enough
   for p in (hbs_mss_toy, hbs_horst_toy, hbs_fors_toy, hbs_horst_light, hbs_fors_light)
-    pk, sk = hbs_keygen(p; rng = Random.MersenneTwister(11))
+    pk, sk = keygen(p; rng = Random.MersenneTwister(11))
     msg = Vector{UInt8}("hash-based signatures")
-    sig = hbs_sign(p, msg, sk)
+    sig = sign(p, msg, sk)
     @test length(sig) == p.sig_sz
-    @test hbs_verify(p, sig, msg, pk)
-    @test !hbs_verify(p, sig, Vector{UInt8}("other message"), pk)
-    @test hbs_open(p, vcat(msg, sig), pk) == msg
-    @test hbs_open(p, vcat(UInt8[0], sig), pk) === nothing
-    @test hbs_open(p, sig[1:end-1], pk) === nothing
-    @test_throws ArgumentError hbs_verify(p, sig[1:end-1], msg, pk)
+    @test verify(p, sig, msg, pk)
+    @test !verify(p, sig, Vector{UInt8}("other message"), pk)
+    @test open(p, vcat(msg, sig), pk) == msg
+    @test open(p, vcat(UInt8[0], sig), pk) === nothing
+    @test open(p, sig[1:end-1], pk) === nothing
+    @test_throws ArgumentError verify(p, sig[1:end-1], msg, pk)
   end
   # keys from different seeds do not accept each other's signatures
-  pk1, sk1 = hbs_keygen(hbs_fors_toy)
-  pk2, _ = hbs_keygen(hbs_fors_toy)
-  @test !hbs_verify(hbs_fors_toy, hbs_sign(hbs_fors_toy, UInt8[1], sk1), UInt8[1], pk2)
+  pk1, sk1 = keygen(hbs_fors_toy)
+  pk2, _ = keygen(hbs_fors_toy)
+  @test !verify(hbs_fors_toy, sign(hbs_fors_toy, UInt8[1], sk1), UInt8[1], pk2)
   # the scheme with a single tree is stateful, the one with a hypertree is not
-  pk, sk = hbs_keygen(hbs_mss_toy)
+  pk, sk = keygen(hbs_mss_toy)
   sk0 = copy(sk)
-  hbs_sign(hbs_mss_toy, UInt8[1], sk)
+  sign(hbs_mss_toy, UInt8[1], sk)
   @test sk != sk0
-  pk, sk = hbs_keygen(hbs_fors_toy)
+  pk, sk = keygen(hbs_fors_toy)
   sk0 = copy(sk)
-  hbs_sign(hbs_fors_toy, UInt8[1], sk)
+  sign(hbs_fors_toy, UInt8[1], sk)
   @test sk == sk0
 end
 
 @testset "hbs standard parameters" begin
   # Test one signature with the largest parameter set
   p = hbs_fors_standard
-  pk, sk = hbs_keygen(p)
-  sig = hbs_sign(p, UInt8[1, 2, 3], sk)
+  pk, sk = keygen(p)
+  sig = sign(p, UInt8[1, 2, 3], sk)
   @test length(sig) == p.sig_sz
-  @test hbs_verify(p, sig, UInt8[1, 2, 3], pk)
+  @test verify(p, sig, UInt8[1, 2, 3], pk)
 end
