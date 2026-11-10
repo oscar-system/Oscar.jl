@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # The stateless scheme with a hypertree of several Merkle trees, as in SPHINCS
-# [BHH+15](@cite) and SPHINCS+ [BHK+19](@cite). There are `d` layers of Merkle
+# [BHHLNPSS.EA15](@cite) and SPHINCS+ [BHKNRS19](@cite). There are `d` layers of Merkle
 # trees of height `hp = h / d` over Winternitz keys. The top layer has one tree,
 # whose root is part of the public key; each Winternitz key of a layer signs the
 # root of a tree in the layer above. The Winternitz keys of the bottom layer sign

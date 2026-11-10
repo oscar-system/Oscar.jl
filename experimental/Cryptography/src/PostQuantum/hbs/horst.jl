@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # HORST (hash to obtain random subset with tree), the few-time signature scheme
-# of SPHINCS [BHH+15](@cite). A key is one Merkle tree of height `tau` whose
+# of SPHINCS [BHHLNPSS.EA15](@cite). A key is one Merkle tree of height `tau` whose
 # leaves are hashes of secret values. A digest is split into `k` indices of
 # `tau` bits, and the signature reveals the secret values at these indices with
 # their authentication paths. To make the paths shorter, the signature also

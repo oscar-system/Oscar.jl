@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # FORS (forest of random subsets), the few-time signature scheme of SPHINCS+
-# [BHK+19](@cite). A key consists of `k` Merkle trees of height `a`, whose leaves
+# [BHKNRS19](@cite). A key consists of `k` Merkle trees of height `a`, whose leaves
 # are hashes of secret values. A digest is split into `k` indices of `a` bits,
 # and the signature reveals the secret value at the index in each tree together
 # with its authentication path. The public key is the compression of the roots.

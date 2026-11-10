@@ -105,7 +105,7 @@ end
 
 # Parameter sets. They are illustrative and are not claimed to provide any
 # concrete security level. The toy sets are tiny and fast, `hbs_fors_standard`
-# is modelled on the set SPHINCS+-128f of [BHK+19](@cite) with total height 60
+# is modelled on the set SPHINCS+-128f of [BHKNRS19](@cite) with total height 60
 # instead of 66 (indices must fit into an `Int`) and is not compatible with it.
 const hbs_mss_toy = instantiate_hbs(8, 4, 4, "hbs-mss-toy")
 const hbs_mss_light = instantiate_hbs(16, 16, 10, "hbs-mss-light")

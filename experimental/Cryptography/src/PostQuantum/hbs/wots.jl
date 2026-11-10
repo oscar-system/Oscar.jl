@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# The Winternitz one-time signature scheme in the variant WOTS+ [Hul13](@cite).
+# The Winternitz one-time signature scheme in the variant WOTS+ [Hls13](@cite).
 # A message of `n` bytes is written in base `w`, and a checksum is appended.
 # Each digit is signed by the matching number of steps in a hash chain that
 # starts at a secret value. The public key is the compression of the chain ends.
