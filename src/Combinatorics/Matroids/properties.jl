@@ -160,23 +160,11 @@ julia> flats(M, 2)
  [3, 4, 7]
 ```
 """
-flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, pm_object(M).LATTICE_OF_FLATS.N_NODES,  pm_object(M).LATTICE_OF_FLATS.FACES)
+flats(Int, M::Matroid, r::Int) = data.(elements_of_rank(lattice_of_flats(M), r))
+flats(Int, M::Matroid) = data.(elements(lattice_of_flats(M)))
+flats(M::Matroid, r::Int) = _indices_to_gs(flats(Int, M, r), M.groundset)
+flats(M::Matroid) = _indices_to_gs(flats(Int, M), M.groundset)
 
-function flats_impl(M::Matroid{T}, r::Union{Int,Nothing}, num_flats::Int, pm_flats) where T
-    jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
-    if pm_object(M).LATTICE_OF_FLATS.TOP_NODE==0
-        jl_flats = reverse(jl_flats)
-    end
-    matroid_flats = _indices_to_gs(jl_flats, M.groundset)
-    if r !== nothing
-        if r<0 || r>rank(M)
-            error("The specified rank needs to be between 0 and the rank of the matroid.")
-        end
-        matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
-    end
-    matroid_flats = Vector{Vector{T}}(matroid_flats)
-    return matroid_flats
-end
 
 @doc raw"""
     cyclic_flats(M::Matroid, [r::Int])
@@ -217,7 +205,11 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid{T}, r::Union{Int,Nothing}=nothing) where T = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(Int, M::Matroid, r::Int) = data.(elements_of_rank(lattice_of_cyclic_flats(M), r))
+cyclic_flats(Int, M::Matroid) = data.(elements(lattice_of_cyclic_flats(M)))
+cyclic_flats(M::Matroid, r::Int) = _indices_to_gs(cyclic_flats(Int, M, r), M.groundset)
+cyclic_flats(M::Matroid) = _indices_to_gs(cyclic_flats(Int, M), M.groundset)
+
 
 @doc raw"""
     closure(M::Matroid, set::GroundsetType)
