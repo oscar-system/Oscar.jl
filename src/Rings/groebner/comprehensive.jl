@@ -15,8 +15,7 @@ of the same substitution in $I$.
 
 !!! note
     The base ring of $I$ must be a multivariate polynomial ring,
-    whose coefficient ring is again a multivariate polynomial ring over `QQ`
-    or over a prime field created by `GF(p)`.
+    whose coefficient ring is again a multivariate polynomial ring.
     The variables of the coefficient ring are the parameters.
 
 !!! note
@@ -27,6 +26,8 @@ of the same substitution in $I$.
 
 The keyword `algorithm` can be set to
 - `:KSW` (implementation of the Kapur-Sun-Wang algorithm [KSW10](@cite) in *Singular*).
+  This implementation requires the coefficient ring of the parameters to be
+  `QQ` or a prime field created by `GF(p)`.
 
 # Examples
 ```jldoctest
