@@ -150,7 +150,7 @@ mutable struct AffineSemigroupElem{T}
   # constructor from a representative in the ambient group
   function AffineSemigroupElem(Q::AffineSemigroup{T}, repres::FinGenAbGroupElem; check::Bool=true) where {T}
     @assert parent(repres) === ambient_group(Q) "parent mismatch"
-    @check ZZRingElem[repres[i] for i in 1:ngens(parent(repres))] in polyhedral_cone(Q) "representative does not lay in the semigroup"
+    @check repres in Q "representative does not lie in the semigroup"
     return new{T}(Q, nothing, repres)
   end
 end 
@@ -173,6 +173,7 @@ function Oscar.repres(v::AffineSemigroupElem)
   isnothing(v.coords) && isnothing(v.repres) && return zero(ambient_group(parent(v)))
   if isnothing(v.repres)
     F = ambient_group(parent(v))
+    Q = parent(v)
     if !isnothing(v.coords)
       v.repres = sum(a*gen(Q, i) for (i, a) in enumerate(coordinates(v)); init=zero(F))
     else
@@ -221,6 +222,9 @@ function Oscar.addmul!(v::AffineSemigroupElem, w::AffineSemigroupElem, c::ZZRing
     return v
   end
   v.repres = addmul!(repres(v), repres(w), c)
+  if c < 0
+    @assert v.repres in parent(v) "invalid subtraction"
+  end
   v.coords = nothing
   return v
 end
