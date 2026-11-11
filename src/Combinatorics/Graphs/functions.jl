@@ -173,7 +173,7 @@ function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, AbstractMatrix
   for i in 1:n
     for j in 1:(T==Undirected ? i-1 : n)
       if isone(G[i,j])
-        add_edge!(g, i, j)
+        _add_edge_unchecked!(g, i, j)
       else
         iszero(G[i,j]) || error("not an adjacency matrix")
       end
@@ -225,10 +225,21 @@ julia> n_edges(mg)
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-  _has_node(g, source) && _has_node(g, target) || return false
-  old_nedges = n_edges(g)
-  Polymake._add_edge(pm_object(g), source-1, target-1)
-  return n_edges(g) == old_nedges + 1
+  n = n_vertices(g)
+  (0 < source <= n && 0 < target <= n) || return false
+  pmg = pm_object(g)
+  Polymake._has_edge(pmg, source - 1, target - 1) && return false
+  Polymake._add_edge(pmg, source - 1, target - 1)
+  return true
+end
+
+# Internal method to add the edge `(source, target)` to the graph `g`,
+# without the checks of `add_edge!`.
+# We leave it to the user to make sure the operation is valid.
+# Adding an edge that is already there does nothing.
+function _add_edge_unchecked!(g::Graph{T}, source::Int, target::Int) where {T <: Union{Directed, Undirected}}
+  Polymake._add_edge(pm_object(g), source - 1, target - 1)
+  return g
 end
 
 add_edge!(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64) = add_edge!(_directed_component(mg), source, target)
@@ -2050,12 +2061,13 @@ end
 function graph_from_edges(::Type{T},
                           edges::Vector{Edge},
                           n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
-  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]; init=[0]))
+  n_needed = maximum(e -> max(src(e), dst(e)), edges; init=0)
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
   g = graph(T, max(n_needed, n_vertices))
   for e in edges
-    add_edge!(g, src(e), dst(e))
+    (src(e) >= 1 && dst(e) >= 1) || continue
+    _add_edge_unchecked!(g, src(e), dst(e))
   end
 
   return g
@@ -2138,17 +2150,22 @@ function graph_from_edges(::Type{Mixed},
                           directed_edges::Vector{Edge},
                           undirected_edges::Vector{Edge},
                           n_vertices::Int=-1)
-  n_needed = maximum(vcat(reduce(append!,[[src(e),dst(e)] for e in directed_edges]; init=[0]),
-                          reduce(append!,[[src(e),dst(e)] for e in undirected_edges]; init=[0])))
+  n_needed = max(maximum(e -> max(src(e), dst(e)), directed_edges; init=0),
+                 maximum(e -> max(src(e), dst(e)), undirected_edges; init=0))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
   g = graph(Mixed, max(n_needed, n_vertices))
+
+  gd = _directed_component(g)
   for e in directed_edges
-    add_edge!(g, Directed, src(e), dst(e))
+    (src(e) >= 1 && dst(e) >= 1) || continue
+    _add_edge_unchecked!(gd, src(e), dst(e))
   end
 
+  gu = _undirected_component(g)
   for e in undirected_edges
-    add_edge!(g, Undirected, src(e), dst(e))
+    (src(e) >= 1 && dst(e) >= 1) || continue
+    _add_edge_unchecked!(gu, src(e), dst(e))
   end
 
   return g
