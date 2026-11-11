@@ -63,7 +63,42 @@
       @test !isready(wp)
       push!(wp, id)
       @test isready(wp)
-      pop!(workers(wp)) # `push!` re-listed the worker; `close!` must remove it once
+      @test workers(wp) == [id]
+    end
+
+    @testset "remotecall with timeout" begin
+      process_id = only(workers(wp))
+      @test_throws TimeoutException remotecall_with_timeout(() -> sleep(10), wp, 0.5)
+      @test process_id != only(workers(wp))
+      @test remotecall_with_timeout(() -> 1 + 1, wp, 60) == 2
+    end
+
+    @testset "replace crashed worker" begin
+      process_id = only(workers(wp))
+      R, (x, y, z) = GF(101)[:x, :y, :z]
+      # the first call kills its worker, the others run on the replacement
+      res = pmap(wp, gens(R); on_error=identity) do f
+        f == x && exit(1)
+        f^2
+      end
+      @test res[1] isa Exception && res[2:3] == [y^2, z^2]
+      @test process_id != only(workers(wp))
+    end
+
+    @testset "reuse after timeout" begin
+      R, (x, y, z) = GF(101)[:x, :y, :z]
+      @test pmap(f->f^2, wp, gens(R)) == [x^2, y^2, z^2]
+    end
+
+    @testset "remotecall with timeout" begin
+      process_id = only(workers(wp))
+      @test_throws TimeoutException remotecall_with_timeout(() -> sleep(2), wp, 0)
+      @test process_id != only(workers(wp))
+    end
+
+    @testset "reuse after timeout" begin
+      R, (x, y, z) = GF(101)[:x, :y, :z]
+      @test pmap(f->f^2, wp, gens(R)) == [x^2, y^2, z^2]
     end
   end
   sleep(2)
