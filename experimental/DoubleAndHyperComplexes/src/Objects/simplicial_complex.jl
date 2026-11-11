@@ -37,7 +37,7 @@ function (::SimplicialCochainMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple
   i = only(I)
   dom = self[i]
   cod = self[i+1]
-  return hom(dom, cod, transpose(matrix(fac.R, Polymake.topaz.boundary_matrix(fac.K.pm_simplicialcomplex, i+1))))
+  return hom(dom, cod, transpose(Oscar._boundary_matrix(fac.R, fac.K, i+1)))
 end
 
 ### 
