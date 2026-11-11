@@ -187,11 +187,7 @@ function _compute_q_graded_part(kQ::MonoidAlgebra, I::Vector{IndecInj})
     F = graded_free_module(kQ, 0)
     return quo(F, [zero(F)])[1]
   end
-  if is_normal(kQ)
-    irreducible_ideals = [_get_irreducible_ideal(kQ, J) for J in I]
-  else
-    irreducible_ideals = [_get_irreducible_ideal_unsaturated(kQ, J) for J in I]
-  end
+  irreducible_ideals = [_get_irreducible_ideal(Val{is_normal(kQ)},kQ, J) for J in I]
   irreducible_comp = [quotient_ring_as_module(Ji) for Ji in irreducible_ideals]
 
   isone(length(irreducible_comp)) && return irreducible_comp[1]
@@ -1176,37 +1172,9 @@ function irreducible_decomposition(I::MonoidAlgebraIdeal)
   kQ = base_ring(I)
 
   J, _ = irreducible_hull(quotient_ring_as_module(I))
-  if is_normal(kQ)
-    return [_get_irreducible_ideal(kQ, I) for I in J.indec_injectives]
-  else
-    return [_get_irreducible_ideal_unsaturated(kQ, I) for I in J.indec_injectives]
-  end
+  return [_get_irreducible_ideal(Val{is_normal(kQ)}, kQ, I) for I in J.indec_injectives]
 end
 
-@doc raw"""
-    _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj)
-
-Return the irreducible ideal $W \subseteq k[Q]$ with $J_Q = k[Q]/W$, the $Q$-graded
-part of the indecomposable injective $J = k\{a + F - Q\}$ over the monoid algebra `kQ`.
-
-!!! note
-    The monoid algebra $k[Q]$ must be normal.
-"""
-function _get_irreducible_ideal(kQ::MonoidAlgebra, J::IndecInj; minimal::Bool=true)
-  B = Set{Vector{Int}}()
-  for h in hyperplanes(kQ)
-    if is_subset(cone(J.face.semigroup), h.hyperplane)
-      union!(B, generators_W_H(kQ, h, J.vector))
-    end
-  end
-  points = sort!(collect(B))   # sorted for reproducible generator lists
-
-  # The minimal points generate W and each point costs a normal form. The
-  # non-normal case (Algorithm 3.15 in [HM05]) is faster with all of them.
-  minimal && (points = _minimal_points(kQ, points))
-  G_W = [monomial_basis(kQ.algebra, ZZRingElem.(v))[1] for v in points]
-  return ideal(kQ, G_W)
-end
 
 # Points of B minimal for w <= v iff v - w in Q. They generate the same
 # monomial ideal as B. Normal Q only, where membership is a facet check.
@@ -1219,8 +1187,23 @@ function _minimal_points(kQ::MonoidAlgebra, B::Vector{Vector{Int}})
   return [v for v in B if !any(w -> w != v && in_Q(v - w), B)]
 end
 
-#compute the irreducible ideal (kQ unsaturated) (Algorithm 3.15 in HM05)
-function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
+#compute the irreducible ideal if the monoid algebra kQ is saturated
+function _get_irreducible_ideal(::Type{Val{true}}, kQ::MonoidAlgebra,J::IndecInj; minimal::Bool=true)
+  B = Set{Vector{Int}}()
+  for h in hyperplanes(kQ)
+    if is_subset(cone(J.face.semigroup), h.hyperplane)
+      union!(B, generators_W_H(kQ, h, J.vector))
+    end
+  end
+  points = sort!(collect(B))   # sorted for reproducible generator lists
+
+  minimal && (points = _minimal_points(kQ, points))
+  G_W = [monomial_basis(kQ.algebra, ZZRingElem.(v))[1] for v in points]
+  return ideal(kQ, G_W)
+end 
+
+#compute the irreducible ideal if the monoid algebra kQ is unsaturated (Algorithm 3.15 in HM05)
+function _get_irreducible_ideal(::Type{Val{false}}, kQ::MonoidAlgebra,J::IndecInj; minimal::Bool=true)
   @assert base_ring(J.face.prime) == kQ.algebra
   @assert is_pointed(kQ) "k[Q] must be pointed"
   Q = affine_semigroup(kQ)
@@ -1234,7 +1217,7 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
 
   #compute irreducible ideal in kQsat, with the redundant generators of
   #Algorithm 3.9, which seed the iteration below better than the minimal ones
-  V = _get_irreducible_ideal(kQsat, J; minimal=false)
+  V = _get_irreducible_ideal(Val{true}, kQsat, J; minimal=false)
 
   # kQ as a kQsat-module
   I_kQ = saturation_ideal(kQ)
@@ -1302,7 +1285,7 @@ function _get_irreducible_ideal_unsaturated(kQ::MonoidAlgebra, J::IndecInj)
   end
 
   return ideal(kQ,[monomial_basis(kQ,b)[1] for b in _B])
-end
+end 
 
 # workaround for homomorphism between monoid algebras
 function hom(kQ1::MonoidAlgebra, kQ2::MonoidAlgebra, V::Vector)
