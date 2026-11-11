@@ -198,6 +198,19 @@ end
     F = graded_free_module(Rg, [1,1,5,2])
     G = graded_free_module(Rg, [1,1,2,3])
     @test !is_isomorphic(F, G)
+
+    A = abelian_group(1, 0)
+    R, _ = graded_polynomial_ring(QQ, [:x]; weights=[A[1]])
+    S, _ = graded_polynomial_ring(QQ, [:x, :y]; weights=[A[1], A[1]])
+    F = graded_free_module(R, [A[1]])
+    G = graded_free_module(S, [A[1]])
+    @test !is_isomorphic(F, G)
+
+    R, _ = graded_polynomial_ring(QQ, [:u])
+    S, _ = graded_polynomial_ring(QQ, [:v])
+    F = graded_free_module(R, [0])
+    G = graded_free_module(S, [0])
+    @test !is_isomorphic(F, G)
 end
 
 @testset "Canonical isomorphism between graded subquotients" begin
