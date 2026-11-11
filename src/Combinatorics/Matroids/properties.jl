@@ -379,13 +379,10 @@ julia> independent_sets(uniform_matroid(2, 3))
  [2, 3]
 ```
 """
-function independent_sets(M::Matroid)
+function independent_sets(Int, M::Matroid)
     pm_bases = bases(Int, M)
-    gs = matroid_groundset(M)
-    elt = eltype(gs)
-    n = length(gs)
-    sets = Vector{Vector{elt}}()
-    push!(sets,elt[])
+    sets = Vector{Vector{Int}}()
+    push!(sets,Int[])
     for k in 1:rank(M)
       # An independent set might be a subset of multiple bases, so it might
       # appear multiple times when we list these subsets. Thus we use an
@@ -397,12 +394,11 @@ function independent_sets(M::Matroid)
         end
       end
       rkpt = sort(collect(rkpt))
-      for set in rkpt
-        push!(sets, gs[set])
-      end
+      append!(sets, rkpt)
     end
     return sets
 end
+independent_sets(M::Matroid) = _indices_to_gs(independent_sets(Int, M), M.groundset)
 
 @doc raw"""
     spanning_sets(M::Matroid)
