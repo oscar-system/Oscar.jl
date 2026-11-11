@@ -44,7 +44,7 @@ type_and_params(x::T) where T <: SMatSpace = TypeAndParams(T, base_ring(x))
 
 ################################################################################
 # ring of integers (singleton type)
-@register_serialization_type ZZRing
+@register_serialization_type ZZRing "Integers"
 
 ################################################################################
 #  Mod Rings
@@ -82,7 +82,7 @@ end
 #  Polynomial Rings
 
 @register_serialization_type PolyRing uses_id 
-@register_serialization_type MPolyRing uses_id
+@register_serialization_type MPolyRing "PolynomialRing" uses_id
 @register_serialization_type UniversalPolyRing uses_id
 @register_serialization_type MPolyDecRing uses_id
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
@@ -140,7 +140,7 @@ end
 
 ################################################################################
 #  Polynomial Ring Elem Types
-@register_serialization_type MPolyRingElem
+@register_serialization_type MPolyRingElem "Polynomial"
 @register_serialization_type MPolyDecRingElem
 @register_serialization_type UniversalPolyRingElem
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap

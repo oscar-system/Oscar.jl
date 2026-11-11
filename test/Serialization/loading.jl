@@ -76,9 +76,9 @@ end
     ]
   },
   "_type":{
-    "name":"Vector",
+    "name":"HomogeneousList",
     "params":{
-      "name":"Vector",
+      "name":"HomogeneousList",
       "params":"Base.Int"
     }
   },

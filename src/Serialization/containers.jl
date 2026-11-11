@@ -83,7 +83,7 @@ end
 
 ################################################################################
 # Saving and loading vectors
-@register_serialization_type Vector
+@register_serialization_type Vector "HomogeneousList"
 
 # see Array above for load_type_and_params for general Arrays which include Matrix
 # and Vector
@@ -240,7 +240,7 @@ end
 
 ################################################################################
 # Saving and loading Tuple
-@register_serialization_type Tuple
+@register_serialization_type Tuple "InhomogeneousList"
 
 function type_and_params(obj::T) where T <: Tuple
   return TypeAndParams(T, type_and_params.(obj))

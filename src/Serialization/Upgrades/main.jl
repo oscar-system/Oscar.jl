@@ -104,6 +104,9 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
     return get(renamings, d, d)
   end
 
+  # params may hold values that are not types, such as the dims of an array
+  upgrade_type(x::Any) = x
+
   function upgrade_type(v::Vector)
     return map(upgrade_type, v)
   end
@@ -114,7 +117,13 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
     if haskey(d, "name")
       upg_d["name"] = get(renamings, d["name"], d["name"])
     elseif haskey(d, "_type")
-      upg_d["_type"] = get(renamings, d["_type"], d["_type"])
+      upg_d["_type"] = upgrade_type(d["_type"])
+      return upg_d
+    else
+      # a dict of types, such as the per-key types of a Dict
+      for (k, v) in d
+        upg_d[k] = upgrade_type(v)
+      end
       return upg_d
     end
 
@@ -205,7 +214,8 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
   elseif type_name == "NamedTuple"
     upgraded_entries = Dict{String, Any}[]
     upgraded_entry = nothing
-    if haskey(dict["_type"]["params"], "tuple_params")
+    params = dict["_type"]["params"]
+    if params isa AbstractDict && haskey(params, "tuple_params")
       # old format: {names: [...], tuple_params: [...]}
       for (type, entry) in zip(dict["_type"]["params"]["tuple_params"], dict["data"])
         upgraded_entry = upgrade(s, Dict{String, Any}("_type" => type, "data" => entry))
@@ -213,12 +223,20 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
       end
       dict["_type"]["params"]["tuple_params"] = [u_e["_type"] for u_e in upgraded_entries]
     else
-      # new format: field names as keys
-      for (k, entry) in zip(keys(dict["_type"]["params"]), dict["data"])
-        type = dict["_type"]["params"][k]
-        upgraded_entry = upgrade(s, Dict{String, Any}("_type" => type, "data" => entry))
+      # new format: field names as keys, a NamedTuple if an earlier upgrade
+      # had to keep the order of the fields
+      upgraded_params = Pair{Symbol, Any}[]
+      for (k, entry) in zip(keys(params), dict["data"])
+        upgraded_entry = upgrade(s, Dict{String, Any}("_type" => params[k], "data" => entry))
         push!(upgraded_entries, upgraded_entry)
-        dict["_type"]["params"][k] = upgraded_entry["_type"]
+        push!(upgraded_params, Symbol(k) => upgraded_entry["_type"])
+      end
+      if params isa NamedTuple
+        dict["_type"]["params"] = NamedTuple(upgraded_params)
+      else
+        for (k, v) in upgraded_params
+          params[string(k)] = v
+        end
       end
     end
     dict["data"] = [u_e["data"] for u_e in upgraded_entries]
@@ -336,6 +354,7 @@ include("1.7.0.jl")
 include("1.8.0.jl")
 include("1.8.0+1.jl")
 include("1.8.0+2.jl")
+include("1.9.0.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
