@@ -100,10 +100,13 @@
   end
 
   @testset "load groups serialized via GapObj" begin
-    # full groups viewed as `SubFPGroup` or `SubPcGroup`, which are created by
-    # `as_sub_fp_group` and `as_sub_pc_group`, and free groups of infinite rank
+    # Files written by Oscar 1.8.2, which stored these groups via `GapObj`.
+    # For subgroups `H`, `K` of `G`, the parent of `H[1]*K[1]` is
+    # `as_sub_fp_group(G)` or `as_sub_pc_group(G)`: a subgroup object whose
+    # GAP group is the full group.
     loadold(name) = load(joinpath(Main.serialization_upgrade_test_path, "version_1_8_2", name))
 
+    # `H[1]*K[1]`, `G = <a, b | a^2, b^3, (a*b)^5>`, `H = <a>`, `K = <b>`
     Oscar.reset_global_serializer_state()
     x = loadold("SubFPGroupElem-1/0.mrdi")
     @test x isa SubFPGroupElem
@@ -113,6 +116,7 @@
     @test order(parent(x)) == 60
     @test order(x) == 5
 
+    # `(G, H, H[1]*K[1])`
     Oscar.reset_global_serializer_state()
     G, H, x = loadold("Tuple-3/0.mrdi")
     @test G isa FPGroup
@@ -120,6 +124,7 @@
     @test full_group(parent(x))[1] === G
     @test order(parent(x)) == 60
 
+    # `U[1]*V[1]`, `F = free_group(2)`, `U = <F[1]>`, `V = <F[2]>`
     Oscar.reset_global_serializer_state()
     y = loadold("SubFPGroupElem-1/1.mrdi")
     @test y isa SubFPGroupElem
@@ -128,23 +133,28 @@
     @test free_group(F) === F
     @test ngens(parent(y)) == 2
 
+    # `(F, U, U[1]*V[1])`
     Oscar.reset_global_serializer_state()
     F, U, y = loadold("Tuple-3/1.mrdi")
     @test full_group(U)[1] === F
     @test full_group(parent(y))[1] === F
 
+    # `P1[1]*P2[1]`, `P = small_group(24, 12)`, `P1 = <P[1]>`, `P2 = <P[2]>`
     Oscar.reset_global_serializer_state()
     z = loadold("SubPcGroupElem-2/0.mrdi")
     @test z isa SubPcGroupElem
     @test full_group(parent(z))[1] isa PcGroup
     @test order(parent(z)) == 24
 
+    # `(P, P1, P1[1]*P2[1])`
     Oscar.reset_global_serializer_state()
     P, P1, z = loadold("Tuple-3/2.mrdi")
     @test P isa PcGroup
     @test full_group(P1)[1] === P
     @test full_group(parent(z))[1] === P
 
+    # a free group of infinite rank with generators `a`, `b`, `f3`, ...,
+    # and its element `a*f3`; Oscar does not support such groups
     Oscar.reset_global_serializer_state()
     @test_throws "infinite rank" loadold("FPGroup-4/0.mrdi")
     @test_throws "infinite rank" loadold("FPGroupElem-5/0.mrdi")
