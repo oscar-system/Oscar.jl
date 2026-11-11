@@ -692,13 +692,13 @@ end
 
 Return the symplectic Lie algebra $\mathfrak{sp}_n(R)$.
 
-Given a non-degenerate skew-symmetric bilinear form $f$ via its Gram matrix `gram`,
+Given a non-degenerate alternating bilinear form $f$ via its Gram matrix `gram`,
 $\mathfrak{sp}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
 If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ -I_k & 0 \end{pmatrix}$
 is used.
-For odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
+For odd $n$ there is no non-degenerate alternating bilinear form on $R^n$.
 
 # Examples
 ```jldoctest
@@ -739,8 +739,9 @@ symplectic_lie_algebra
 function symplectic_lie_algebra(R::Field, n::Int, gram::MatElem)
   form = map_entries(R, gram)
   @req size(form) == (n, n) "Invalid matrix dimensions"
-  @req is_skew_symmetric(form) "Bilinear form must be skew-symmetric"
-  @req is_even(n) && is_invertible(form) "Bilinear form must be non-degenerate"
+  @req is_even(n) "Dimension must be even"
+  @req is_alternating(form) "Bilinear form must be alternating"
+  @req is_invertible(form) "Bilinear form must be non-degenerate"
   basis = _lie_algebra_basis_from_form(R, n, form)
   dim = length(basis)
   @assert characteristic(R) != 0 || dim == div(n^2 + n, 2)

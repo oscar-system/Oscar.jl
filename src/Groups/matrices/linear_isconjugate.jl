@@ -194,8 +194,8 @@ function generalized_jordan_form(A::MatElem{T}; with_pol::Bool=false) where T
    GJ = cat([generalized_jordan_block(v[1],v[2]) for v in V]..., dims=(1,2))
    a = rational_canonical_form(A)[2]
    gj = rational_canonical_form(GJ)[2]
-   if with_pol return GJ, gj^-1*a, V
-   else return GJ, gj^-1*a
+   if with_pol return GJ, inv(gj)*a, V
+   else return GJ, inv(gj)*a
    end
 end
 #TODO: why don't we always return also `V`, since we have it anyhow?

@@ -762,16 +762,20 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
   Y.Y = Y0
   Y.blowups = projectionsY
 
-  # We need to rewrap the last maps so that the domain is really Y
-  last_pr = pop!(projectionsY)
-  last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
-  #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+  if isempty(projectionsY)
+    piY = CoveredSchemeMorphism(Y, Y0, identity_map(default_covering(Y0)))
+  else
+    # We need to rewrap the last maps so that the domain is really Y
+    last_pr = pop!(projectionsY)
+    last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
+    #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
 
-  push!(projectionsY, last_pr_wrap)
+    push!(projectionsY, last_pr_wrap)
+    piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
+  end
   Y.ambient_blowups = projectionsX
 
   Y.ambient_exceptionals = ambient_exceptionals
-  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   Y.blowup = piY
 
   inc_Y0_wrap = CoveredClosedEmbedding(Y, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
@@ -1124,7 +1128,7 @@ function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
   k = coefficient_ring(kt)
   sing = Vector{elem_type(k)}[]
   for (p,v) in factor(d)
-    if v == 1
+    if v == 1 || (v == 2 && iszero(rem(numerator(j), p)))
       continue
     end
     r = k.(roots(p))
@@ -1133,21 +1137,14 @@ function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
     end
     @assert length(r) ==1
     rt = r[1]
-    if v == 2
-      # not a type II fiber
-      if j!=0
-        push!(sing, [rt,k(1)])
-      end
-    end
-    if v > 2
-      push!(sing, [rt,k(1)])
-    end
+    push!(sing, [rt,k(1)])
   end
   if sort
     sort!(sing, by=x->by_total_order(x[1]))
   end
   # fiber over infinity is always last (if it is there)
-  if degree(d) <= 12*euler_characteristic(X) - 2
+  v = 12*euler_characteristic(X) - degree(d)
+  if v > 2 || (v == 2 && degree(numerator(j)) >= degree(denominator(j)))
     push!(sing, k.([1, 0]))
   end
   return sing
@@ -1336,7 +1333,7 @@ end
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
   # If we have resolution_strategy=:simultaneous, then the following is a non-trivial preprocessing step.
-  ambient_pts = reduce(vcat, maximal_associated_points.(ideal_sheaf.(S.ambient_exceptionals)))
+  ambient_pts = reduce(vcat, maximal_associated_points.(ideal_sheaf.(S.ambient_exceptionals)); init=AbsIdealSheaf[])
   for I in ambient_pts
     @vprintln :EllipticSurface 4 "decomposing divisor "
     mp = maximal_associated_points(pullback(S.inc_Y, I); use_decomposition_info=true)

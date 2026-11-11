@@ -71,11 +71,13 @@ end
 
 function load_object(s::DeserializerState, ::Type{GraphDict}, R::Ring)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
-  load_array_node(s) do (_, (k, v))
-    if k isa Oscar.Serialization.JSON3.Array
-      key = load_object(s, Edge, 1)
-    else
-      key = load_object(s, Int, 1)
+  load_array_node(s) do _
+    key = load_node(s, 1) do
+      if s.obj isa Oscar.Serialization.JSON3.Array || s.obj isa Vector
+        return load_object(s, Edge)
+      else
+        return load_object(s, Int)
+      end
     end
     graph_gen_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
@@ -89,11 +91,13 @@ function load_object(s::DeserializerState, ::Type{GraphDict}, d::Dict)
   dom = d[:domain]
   map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
   graph_gen_dict = Dict{Union{Int, Edge}, map_type}()
-  load_array_node(s) do (_, (k, v))
-    if k isa Oscar.Serialization.JSON3.Array
-      key = load_object(s, Edge, 1)
-    else
-      key = load_object(s, Int, 1)
+  load_array_node(s) do _
+    key = load_node(s, 1) do
+      if s.obj isa Oscar.Serialization.JSON3.Array || s.obj isa Vector
+        return load_object(s, Edge)
+      else
+        return load_object(s, Int)
+      end
     end
     graph_gen_dict[key] = load_object(s, Oscar.MPolyAnyMap, d, 2)
   end
@@ -102,7 +106,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
   graph_trans_dict = Dict{Tuple{Symbol, Edge}, elem_type(R)}()
-  load_array_node(s) do (_, (k, v))
+  load_array_node(s) do _
     key = load_object(s, Tuple{Symbol, Edge}, 1)
     graph_trans_dict[key] = load_object(s, MPolyRingElem, R, 2)
   end
@@ -110,13 +114,13 @@ function load_object(s::DeserializerState, ::Type{GraphTransDict}, R::Ring)
 end
 
 function load_type_and_params(s::DeserializerState, T::Type{GenDict})
-  subtype, params = load_node(s, :params) do obj
-    S, key_params = load_node(s, :key_params) do params
-      params isa String && return decode_type(s), nothing
+  subtype, params = load_node(s, :params) do
+    S, key_params = load_node(s, :key_params) do
+      s.obj isa String && return decode_type(s), nothing
       load_type_and_params(s, decode_type(s))
     end
 
-    _, value_params = load_node(s, :value_params) do _
+    _, value_params = load_node(s, :value_params) do
       load_type_and_params(s, decode_type(s))
     end
 

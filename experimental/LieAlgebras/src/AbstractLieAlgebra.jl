@@ -301,7 +301,7 @@ end
 @doc raw"""
     lie_algebra(R::Field, rs::RootSystem) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct a simple Lie algebra over the field `R` with the root system `rs`.
+Construct a semisimple Lie algebra over the field `R` with the root system `rs`.
 The internally used basis of this Lie algebra is the Chevalley basis.
 
 The experienced user may supply a boolean vector of length `n_positive_roots(rs) - n_simple_roots(rs)`

@@ -187,3 +187,40 @@ end
   @test res_mat*A*transpose(res_mat) == A
 end
 =#
+
+@testset "elliptic surfaces: smooth Weierstrass model" begin
+  # Every singular fiber is of type I1 or II, so the Weierstrass model is smooth.
+  kt, t = polynomial_ring(QQ, :t)
+  a1 = t^6 - t^5 + 2*t^4 - 2*t - 1
+  u = t^3 + t^2 - 2*t - 2
+  E = elliptic_curve(fraction_field(kt), [t^2*a1, -a1*u^2])
+  P = E([u^2//t^2, u^3//t^3])
+  X = elliptic_surface(E, 2, [P])
+  @test length(linear_system(X, P, 2)) == 5
+  contraction = weierstrass_contraction(X)
+  @test domain(contraction) === X
+  @test codomain(contraction) === weierstrass_model(X)[1]
+  @test weierstrass_contraction(X) === contraction
+  @test length(fiber_components(X, [0, 1])) == 1
+    
+  # A place where the discriminant has order 2 carries an irreducible type II fiber
+  # when j vanishes there: here t, t^2 + 2 and infinity, so only the type III fiber
+  # over t = 1 is reducible. On the second surface j has a pole at infinity, so the
+  # I2 fiber there is reducible. On the third, a reducible fiber lies over a place
+  # with no root in the base field, which raises an error.
+  kt, t = polynomial_ring(GF(13), :t)
+  q = t^2 + 2
+  E = elliptic_curve(fraction_field(kt), [t*q*(t - 1), t*q*(t - 1)^2*(t^6 + 1)])
+  X = elliptic_surface(E, 2)
+  @test length(trivial_lattice(X)[1]) == 3
+  @test det(trivial_lattice(X)[2]) == 2
+
+  kt, t = polynomial_ring(QQ, :t)
+  E = elliptic_curve(fraction_field(kt), [-3*t^8 + t^6, 2*t^12 + 1])
+  X = elliptic_surface(E, 2)
+  @test length(reducible_fibers(X)) == 1
+
+  E = elliptic_curve(fraction_field(kt), [-3, 2 + (t^2 + 1)^2])
+  X = elliptic_surface(E, 1)
+  @test_throws "not all reducible fibers are visible over" reducible_fibers(X)
+end

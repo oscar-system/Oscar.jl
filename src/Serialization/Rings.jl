@@ -141,12 +141,27 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
 
 # elements
-function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
+function save_object(s::SerializerState, p::MPolyRingElem)
+  save_data_array(s) do
+    for e_c in zip(AbstractAlgebra.exponent_vectors(p; inplace=true),
+                   AbstractAlgebra.coefficients(p; inplace=true))
+      save_object(s, e_c)
+    end
+  end
 end
 
-function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  save_object(s, [(e, c) for (c, e) in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))])
+function save_object(s::SerializerState, p::Union{AbstractAlgebra.Generic.LaurentMPolyWrap,
+                                                  UniversalPolyRingElem})
+  save_data_array(s) do
+    for e_c in zip(AbstractAlgebra.exponent_vectors(p), AbstractAlgebra.coefficients(p))
+      save_object(s, e_c)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
+  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
+  return parent_ring(poly)
 end
 
 function load_object(s::DeserializerState,
@@ -163,20 +178,18 @@ function load_object(s::DeserializerState,
   return finish(polynomial)
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRing)
-  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
-  return parent_ring(poly)
-end
-
 ################################################################################
 # Univariate Polynomials
 
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  save_object(s, [
-    (i - 1, c) for (i, c) in enumerate(coefficients(p))
-      if !is_zero(c) ])
+  save_data_array(s) do
+    for (i, c) in enumerate(coefficients(p))
+      is_zero(c) && continue
+      save_object(s, (i - 1, c))
+    end
+  end
 end
 
 function load_object(s::DeserializerState,
@@ -260,7 +273,7 @@ function load_object(s::DeserializerState, ::Type{<:IdealGens}, params::Dict)
   if ordering_type <: MonomialOrdering
     ord = load_object(s, ordering_type, base_ring, :ordering)
   else
-    ord = load_node(s, :ordering) do _
+    ord = load_node(s, :ordering) do
       MonomialOrdering(base_ring, load_object(s, ordering_type, :internal_ordering))
     end
   end
@@ -437,7 +450,7 @@ function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
   
-  load_node(s, :terms) do _
+  load_node(s, :terms) do
     load_array_node(s) do _
       e = load_object(s, Int, 1)
       loaded_terms[e] = load_object(s, coeff_type, base, 2)
@@ -454,7 +467,7 @@ function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem},
   loaded_terms = Hecke.zeros_array(base, pol_length)
   coeff_type = elem_type(base)
 
-  load_node(s, :terms) do _
+  load_node(s, :terms) do
     load_array_node(s) do _
       e = load_object(s, Int, 1)
       loaded_terms[e + 1] = load_object(s, coeff_type, base, 2)
@@ -519,12 +532,12 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                      parent_ring::LaurentUnionType)
-  terms = load_node(s, :terms) do terms_data
+  terms = load_node(s, :terms) do
     # reading all exponents before ...
     # might be more efficient way ...
     exponents = Int[]
-    for i in 1:length(terms_data)
-      load_node(s, i) do _
+    for i in 1:length(s.obj)
+      load_node(s, i) do
         push!(exponents, load_object(s, Int, 1))
       end
     end
@@ -537,7 +550,7 @@ function load_object(s::DeserializerState,
     loaded_terms = Hecke.zeros_array(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
-      load_node(s, i) do _
+      load_node(s, i) do
         loaded_terms[e] = load_object(s, coeff_type, base, 2)
       end
     end
