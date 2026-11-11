@@ -43,7 +43,7 @@ function save_object(s::SerializerState, d::T) where T <: Union{GraphDict, Graph
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Ring})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GraphDict, <:Ring})
   R = params(tp)
   graph_gen_dict = Dict{Union{Int, Edge}, elem_type(R)}()
   load_array_node(s) do _
@@ -61,7 +61,7 @@ end
 
 # might need to have more type specification in the future here
 # for now we know that the params are a dict with domain and codomain
-function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GraphDict, <:Tuple{Vararg{Pair}}})
   cdom = tp[:codomain]
   dom = tp[:domain]
   map_type = Oscar.MPolyAnyMap{typeof(dom), typeof(cdom)}
@@ -79,7 +79,7 @@ function load_object(s::DeserializerState, tp::TypeAndParams{GraphDict, <:Tuple{
   return GraphDict{map_type}(graph_gen_dict)
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{GraphTransDict, <:Ring})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GraphTransDict, <:Ring})
   R = params(tp)
   graph_trans_dict = Dict{Tuple{Symbol, Edge}, elem_type(R)}()
   load_array_node(s) do _
@@ -121,7 +121,7 @@ function save_object(s::SerializerState, M::GraphicalModel)
   save_object(s, graph(M))
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{GaussianGraphicalModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GaussianGraphicalModel, <:Tuple{Vararg{Pair}}})
   g = load_object(s, tp[:graph_type])
   gaussian_graphical_model(g)
 end
@@ -133,7 +133,7 @@ function save_object(s::SerializerState, M::DiscreteGraphicalModel)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{DiscreteGraphicalModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:DiscreteGraphicalModel, <:Tuple{Vararg{Pair}}})
   discrete_graphical_model(
     load_object(s, tp[:graph_type], :graph),
     load_object(s, Vector{Int}, :states)
@@ -168,13 +168,13 @@ function save_object(s::SerializerState, pm::PhylogeneticModel)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{PhylogeneticModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:PhylogeneticModel, <:Tuple{Vararg{Pair}}})
   return PhylogeneticModel(
     tp[:base_field],
     load_object(s, tp[:graph_params], :graph),
     load_object(s, tp[:transition_matrix_params], :transition_matrix),
     load_object(s, tp[:root_distribution_params], :root_distribution),
-    load_object(s, type(tp[:model_parameter_name_type]), :model_parameter_name)
+    load_object(s, tp[:model_parameter_name_type], :model_parameter_name)
   )
 end
 
@@ -198,11 +198,11 @@ function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{GroupBasedPhylogeneticModel, <:Tuple{Vararg{Pair}}})
+function load_object(s::DeserializerState, tp::TypeAndParams{<:GroupBasedPhylogeneticModel, <:Tuple{Vararg{Pair}}})
   GroupBasedPhylogeneticModel(tp[:phylo_model],
                               load_object(s, Vector{Symbol}, :fourier_parameters),
                               load_object(s, TypeAndParams(Vector{FinGenAbGroupElem}, tp[:group]), :group_elems),
-                              load_object(s, type(tp[:model_parameter_name_type]), :varnames_group_based))
+                              load_object(s, tp[:model_parameter_name_type], :varnames_group_based))
 end
 
 

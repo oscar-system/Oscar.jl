@@ -204,7 +204,7 @@ end
 TypeAndParams(T::Type, args::Pair...) = TypeAndParams(T, args)
 
 params(tp::TypeAndParams) = tp.params
-type(tp::TypeAndParams) = tp.type
+Oscar.type(tp::TypeAndParams) = tp.type
 
 function Base.getindex(tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}, key::Symbol) where T
   for (k, v) in tp.params
