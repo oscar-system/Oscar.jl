@@ -1,8 +1,8 @@
 ########################################################################
 # Direct sums of complexes
 #
-# This realizes direct sums of complexes of modules over a common ring 
-# `R` in a lazy way. The anticipated use case are strands of complexes 
+# This realizes direct sums of complexes of Abelian groups in a lazy way. 
+# The anticipated use case are strands of complexes 
 # which are composed from monomial bases for the 'fine grading'. There 
 # a single strand for a coarse degree `alpha` consists of a whole 
 # bunch of direct sums of strands for the fine grading for fine degrees 
@@ -92,9 +92,9 @@ end
 @doc raw"""
     DirectSumComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
     
-Direct sum of complexes of `OFPModule`s over a common ring `R`. In particular, this realizes
-the induced morphisms. In order to be able to catch edge cases for terms with an empty list 
-of summands, the ring itself needs to be provided to the constructor. 
+Direct sum of complexes of Abelian groups. 
+
+!!! note In order to use this with your favorite type of Abelian groups, you need to overwrite some internal functions! See the source code for details. 
 """
 @attributes mutable struct DirectSumComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
