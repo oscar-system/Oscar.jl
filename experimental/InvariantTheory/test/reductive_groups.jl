@@ -72,6 +72,13 @@
   B_mixed = [basis(invariant_ring(rep_mixed), d) for d in 1:3]
   @test map(length, B_mixed) == [0, 1, 1]
   @test all(h -> is_invariant(h, rep_mixed), reduce(vcat, B_mixed))
+  #here the raising and lowering operators have nonzero diagonal entries
+  Q = matrix(S, [1 0; 1 1])
+  N1 = inv(Q) * representation_matrix(representation_on_forms(G, 1)) * Q
+  rep_conj = representation_reductive_group(G, block_diagonal_matrix([N1, N1]))
+  B_conj = [basis(invariant_ring(rep_conj), d) for d in 1:2]
+  @test map(length, B_conj) == [0, 1]
+  @test is_invariant(only(B_conj[2]), rep_conj)
 
   #fields other than QQ
   Qt, _ = rational_function_field(QQ, :t)
