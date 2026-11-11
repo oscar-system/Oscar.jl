@@ -111,7 +111,11 @@ end
         @test loaded == p
       end
 
+      # the roundtrip saves again after resetting the serializer state, which
+      # writes new ref files, so check the files of a single save
+      foreach(rm, readdir(path; join=true))
       prefix_path = joinpath(path, "original")
+      save(prefix_path, p; serializer=Oscar.Serialization.MultiFileRefSerializer())
       files = readdir(path)
       @test "original.mrdi" in files
       @test count(f -> startswith(f, "original_") && endswith(f, ".mrdi"), files) == 3
