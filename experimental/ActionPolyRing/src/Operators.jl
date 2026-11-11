@@ -34,6 +34,7 @@ end
 
 function divexact(p::PolyT, q::PolyT; check::Bool = true) where {PolyT<:ActionPolyRingElem}
   check_parent(p, q)
+  iszero(q) && !is_trivial(parent(q)) && throw(DivideError())
   return parent(p)(divexact(data(p), data(q)))
 end
 
