@@ -142,6 +142,19 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
   return dict
 end
 
+# Shared by NamedTuple and heterogeneous Dict from 1.9.0+1 on:
+# per-entry types under `entry_params`, data keyed by the same names.
+function upgrade_keyed_entries(upgrade::Function, s::UpgradeState,
+                               entry_params::AbstractDict, data::AbstractDict)
+  for k in keys(entry_params)
+    # singleton entries have no data
+    haskey(data, k) || continue
+    upgraded_entry = upgrade(s, Dict{Symbol, Any}(:_type => entry_params[k], :data => data[k]))
+    entry_params[k] = upgraded_entry[:_type]
+    data[k] = upgraded_entry[:data]
+  end
+end
+
 function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDict)
   # all containers have a Dict for their type description
   # with a name and a params key
@@ -205,16 +218,23 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
     dict[:_type][:params] = [u_e[:_type] for u_e in upgraded_entries]
     dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif type_name == "NamedTuple"
-    upgraded_entries = Dict{Symbol, Any}[]
-    for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
-      push!(upgraded_entries, upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry)))
+    if haskey(dict[:_type][:params], :tuple_params)
+      # before 1.9.0+1: {names: [...], tuple_params: [...]} with the data as an array
+      upgraded_entries = Dict{Symbol, Any}[]
+      for (type, entry) in zip(dict[:_type][:params][:tuple_params], dict[:data])
+        push!(upgraded_entries, upgrade(s, Dict{Symbol, Any}(:_type => type, :data => entry)))
+      end
+      dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
+      dict[:data] = [u_e[:data] for u_e in upgraded_entries]
+    else
+      upgrade_keyed_entries(upgrade, s, dict[:_type][:params][:entry_params], dict[:data])
     end
-    dict[:_type][:params][:tuple_params] = [u_e[:_type] for u_e in upgraded_entries]
-    dict[:data] = [u_e[:data] for u_e in upgraded_entries]
   elseif type_name == "Dict"
     key_params = dict[:_type][:params][:key_params]
 
-    if haskey(dict[:_type][:params], :value_params)
+    if haskey(dict[:_type][:params], :entry_params)
+      upgrade_keyed_entries(upgrade, s, dict[:_type][:params][:entry_params], dict[:data])
+    elseif haskey(dict[:_type][:params], :value_params)
       value_params = dict[:_type][:params][:value_params]
       upgraded_pairs = Tuple[]
       for (k, v) in dict[:data]
@@ -237,6 +257,7 @@ function upgrade_recursive(upgrade::Function, s::UpgradeState, dict::AbstractDic
         dict[:_type][:params][:value_params] = first_pair[2][:_type]
       end
     else
+      # before 1.9.0+1: per-key types next to key_params
       for k in keys(dict[:_type][:params])
         k === :key_params && continue
         # singleton values have no data
@@ -312,6 +333,7 @@ include("1.7.0.jl")
 include("1.8.0.jl")
 include("1.8.0+1.jl")
 include("1.9.0.jl")
+include("1.9.0+1.jl")
 
 const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)

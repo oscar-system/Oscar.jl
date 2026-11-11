@@ -35,10 +35,11 @@ function type_and_params(obj::T) where {S, T <: PolyhedralObject{S}}
   p_dict = _polyhedral_object_as_dict(obj)
   field = p_dict[:_coeff]
   delete!(p_dict, :_coeff)
-  return TypeAndParams(
-    T,
-    :field => field,
-    :pm_params => type_and_params(p_dict))
+  params = Pair[]
+  for (k, v) in p_dict
+    push!(params, k => type_and_params(v))
+  end
+  return TypeAndParams(T, :field => field, params...)
 end
 
 type_and_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: Union{LinearProgram{S}, MixedIntegerLinearProgram{S}}} = TypeAndParams(T, coefficient_field(obj))
@@ -77,7 +78,11 @@ end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T <: PolyhedralObject
   field = tp[:field]
-  polymake_dict = load_object(s, tp[:pm_params])
+  polymake_dict = Dict{Symbol, Any}()
+  for (k, v) in params(tp)
+    k === :field && continue
+    polymake_dict[k] = load_object(s, v, k)
+  end
   bigobject = _dict_to_bigobject(polymake_dict)
   T_concrete = T isa UnionAll ? T{elem_type(field)} : T
   return T_concrete(bigobject, field)
