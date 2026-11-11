@@ -261,6 +261,8 @@
             @test number_of_connected_components(M) == length(connected_components(M))
             @test is_connected(M) == (number_of_connected_components(M) < 2)
             @test is_simple(M) == values[11]
+            PM = direct_sum(pappus_matroid(), uniform_matroid(2,3))
+            @test issetequal(cyclic_flats(PM, 2:3), [[1, 2, 3], [1, 6, 8], [1, 5, 9], [2, 6, 7], [2, 4, 9], [3, 5, 7], [3, 4, 8], [4, 5, 6], [7, 8, 9], ["1'", "2'", "3'"], [1, 2, 3, 4, 5, 6, 7, 8, 9]])
         end      
     
         @test_throws ErrorException flats(uniform_matroid(2,3),4)
