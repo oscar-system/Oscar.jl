@@ -122,7 +122,7 @@ underlying_complex(c::DirectSumComplex) = c.internal_complex
 
 # method for the user's convenience
 function direct_sum(list::Vector{<:AbsHyperComplex})
-  error("no reasonable type could for objects and morphisms could be inferred from the argument list; try making the type of the list more informative, or call the internal constructor directly")
+  error("no reasonable type for objects and morphisms could be inferred from the argument list; try making the type of the list more informative, or call the internal constructor directly")
 end
 
 function direct_sum(list::Vector{<:AbsHyperComplex{CT}}) where {CT<:OFPModule}
