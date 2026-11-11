@@ -2046,7 +2046,6 @@ function _map(T::Type, f, m::Matrix)
   return map(f, m)
 end
 
-@show :hi
 function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, Group_T, GroupElem_T}}}}, C::GModule{Group_T}) where Group_T where GroupElem_T
   ZG = base_ring(f[0])
   G = group(ZG)
