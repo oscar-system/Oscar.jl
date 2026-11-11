@@ -65,5 +65,5 @@ end
     M = FreeMod(E, 3)
 
     @test !is_zero(x[1]*M[1])
-    @test_throws AssertionError M[1]*x[1]
+    @test_throws ArgumentError M[1]*x[1]
 end

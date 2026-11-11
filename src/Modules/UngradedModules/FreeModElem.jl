@@ -277,8 +277,11 @@ function *(b::AbstractFreeModElem, a::Any)
   error("scalar multiplication from the right is not yet supported")
 end
 
+# Asking for right multiplication on a left module is a user error; a module
+# that reports `is_right` without an implementation behind it is our own.
 function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleOFPModuleRingElem}
-  @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
+  @req is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
+  error("right multiplication is not implemented for $(parent(b))")
 end
 
 # Methods to determine whether a module is a left-, right-, or bi-module. 
