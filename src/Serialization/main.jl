@@ -1117,7 +1117,7 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
       U = load_node(s, type_key) do
         decode_type(s)
       end
-      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $type")
+      U <: type || U >: type || error("Type in file doesn't match target type: $U not a subtype of $type")
       Base.issingletontype(type) && return type()
       if isnothing(params)
         tp_inner = load_node(s, type_key) do

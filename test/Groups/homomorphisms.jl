@@ -459,6 +459,7 @@ end
        S = symmetric_group(4)
        f = @inferred isomorphism(PermGroup, S)
        @test codomain(f) == S
+       @test_throws ErrorException isomorphism(PermGroup, S, on_gens = true)
 
        f = @inferred isomorphism(PcGroup, S)
        G = codomain(f)

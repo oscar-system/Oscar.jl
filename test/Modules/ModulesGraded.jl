@@ -1349,3 +1349,9 @@ end
   @test all(!is_zero, degree.(gens(p1[0])))
   @test all(!is_zero, degree.(gens(p2[0])))
 end
+
+@testset "minimal Betti table of a graded free module" begin
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  F = graded_free_module(R, 2)
+  @test sprint(show, minimal_betti_table(F)) == sprint(show, minimal_betti_table(free_resolution(F)))
+end

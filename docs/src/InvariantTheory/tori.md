@@ -51,6 +51,18 @@ If `RT` is the invariant ring $k[x_1, \dots, x_n]^T$ of a torus $T$, then
 - `coefficient_ring(RT)` to $k$, and
 - `polynomial_ring(RT)` to $k[x_1, \dots, x_n]$.
 
+## The Reynolds Operator
+
+```@docs
+reynolds_operator(RT::TorGroupInvarRing, f::MPolyRingElem)
+```
+
+## The Null Cone
+
+```@docs
+null_cone_ideal(RT::TorGroupInvarRing)
+```
+
 ## Fundamental Systems of Invariants
 
 ```@docs
@@ -59,6 +71,12 @@ fundamental_invariants(RT::TorGroupInvarRing)
 
 ## Invariant Rings as Affine Algebras
 
-```@docs
-affine_algebra(RT::TorGroupInvarRing)
+```@docs; canonical=false
+affine_algebra(RG::RedOrTorGroupInvarRing)
+```
+
+## The Hilbert Series
+
+```@docs; canonical=false
+hilbert_series(RG::RedOrTorGroupInvarRing)
 ```

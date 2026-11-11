@@ -867,7 +867,7 @@ end
    @test isometry_group(L) == orthogonal_group(L)
    L = lattice(q, QQ[1 0; 0 1]) # avoid caching
    @test isometry_group(L, depth = 1, bacher_depth = 0) == orthogonal_group(L)
-   # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
+   # L = lattice(q, QQ[0 0; 0 0]; is_basis=false)
    # @test order(isometry_group(L)) == 1
 
    Qx, x = polynomial_ring(QQ, :x, cached = false)

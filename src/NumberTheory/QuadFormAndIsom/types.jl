@@ -287,7 +287,7 @@ mutable struct ZZLatWithIsomEnumCtX
   fix_root::Int
   # what we want in the end
   orig_fix_root::Int
-  orig_discriminant_action::TorQuadModuleWithIsom
+  orig_discriminant_action::Union{Nothing,TorQuadModuleWithIsom}
   orig_discriminant_annihilator_lb::MPolyIdeal{ZZMPolyRingElem}
   orig_discriminant_annihilator_ub::MPolyIdeal{ZZMPolyRingElem}
   orig_eigenlattice_conditions::Vector{Dict{Int,Vector{Int}}}

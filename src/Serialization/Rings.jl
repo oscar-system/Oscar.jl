@@ -146,12 +146,28 @@ end
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
 
 # elements
-function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
-  save_object(s, [(exponent_vector(p, i), coeff(p, i)) for i in 1:length(p)])
+function save_object(s::SerializerState, p::MPolyRingElem)
+  save_data_array(s) do
+    for e_c in zip(AbstractAlgebra.exponent_vectors(p; inplace=true),
+                   AbstractAlgebra.coefficients(p; inplace=true))
+      save_object(s, e_c)
+    end
+  end
 end
 
-function save_object(s::SerializerState, p::AbstractAlgebra.Generic.LaurentMPolyWrap)
-  save_object(s, [(e, c) for (c, e) in zip(coefficients(p), AbstractAlgebra.exponent_vectors(p))])
+function save_object(s::SerializerState, p::Union{AbstractAlgebra.Generic.LaurentMPolyWrap,
+                                                  UniversalPolyRingElem})
+  save_data_array(s) do
+    for e_c in zip(AbstractAlgebra.exponent_vectors(p), AbstractAlgebra.coefficients(p))
+      save_object(s, e_c)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyDecRingElem, <:MPolyDecRing})
+  parent_ring = params(tp)
+  poly = load_object(s, TypeAndParams(MPolyRingElem, forget_grading(parent_ring)))
+  return parent_ring(poly)
 end
 
 function load_object(s::DeserializerState,
@@ -168,21 +184,18 @@ function load_object(s::DeserializerState,
   return finish(polynomial)
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyDecRingElem, <:MPolyDecRing})
-  parent_ring = params(tp)
-  poly = load_object(s, TypeAndParams(MPolyRingElem, forget_grading(parent_ring)))
-  return parent_ring(poly)
-end
-
 ################################################################################
 # Univariate Polynomials
 
 @register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
-  save_object(s, [
-    (i - 1, c) for (i, c) in enumerate(coefficients(p))
-      if !is_zero(c) ])
+  save_data_array(s) do
+    for (i, c) in enumerate(coefficients(p))
+      is_zero(c) && continue
+      save_object(s, (i - 1, c))
+    end
+  end
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyRingElem, <:PolyRing})

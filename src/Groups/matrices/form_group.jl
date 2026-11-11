@@ -700,7 +700,7 @@ function isometry_group(f::Union{SesquilinearForm{T}, QuadraticForm{T}}) where T
       C = _upper_triangular_version(A*B*transpose(A))      
    else
       degF=0
-      if f.descr==:hermitian e = div(degree(F),2) end
+      if f.descr==:hermitian degF = div(degree(F),2) end
       C,A,r = _find_radical(B,F,n,n; e=degF, _is_symmetric=true)
    end
 

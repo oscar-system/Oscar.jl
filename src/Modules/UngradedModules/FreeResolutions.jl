@@ -2,18 +2,30 @@ function map(FR::FreeResolution, i::Int)
   return map(FR.C, i)
 end
 
+function _free_resolution_display_limit(C::Hecke.ComplexOfMorphisms)
+  padding_start = get_attribute(C, :free_resolution_padding_start)
+  !isnothing(padding_start) && return padding_start - 1
+
+  upper = first(map_range(C))
+  while upper > 0 && is_zero(C[upper]) && is_zero(C[upper - 1])
+    upper -= 1
+  end
+  return upper
+end
+
+function _mark_free_resolution_padding!(C::Hecke.ComplexOfMorphisms, padding_start::Int)
+  current_padding_start = get_attribute(C, :free_resolution_padding_start)
+  if isnothing(current_padding_start) || padding_start < current_padding_start
+    set_attribute!(C, :free_resolution_padding_start => padding_start)
+  end
+end
+
 function Base.show(io::IO, FR::FreeResolution)
   C = FR.C
   name_mod = String[]
   rank_mod = Int[]
 
-  rng = range(C)
-  ub = findfirst(i -> is_zero(C[i]), 2:first(map_range(C)))
-  if ub == nothing
-    rng = first(map_range(C)):-1:0
-  else
-    rng = ub+1:-1:0
-  end
+  rng = _free_resolution_display_limit(C):-1:0
 
   arr = ("<--", "--")
 
@@ -158,6 +170,7 @@ end
 function _extend_free_resolution_to_the_left_by_zeros(cc::Hecke.ComplexOfMorphisms, idx::Int)
   r = Hecke.map_range(cc)
   if idx > first(r)
+    _mark_free_resolution_padding!(cc, first(r) + 1)
     for j = first(r):idx-1
       cod =  domain(first(cc.maps))
       phi = id_hom(cod)
@@ -298,6 +311,10 @@ function _extend_free_resolution_via_fres_or_sres(cc::Hecke.ComplexOfMorphisms, 
   pushfirst!(cc.maps, hom(res[i0+1], Fi0, img_gens))
   for j in first(range(cc))+1:first(range(res.C))
     pushfirst!(cc.maps, map(res, j))
+  end
+  padding_start = get_attribute(res.C, :free_resolution_padding_start)
+  if !isnothing(padding_start)
+    _mark_free_resolution_padding!(cc, padding_start)
   end
   if is_zero(domain(first(cc.maps)))
     cc.complete=true
@@ -540,6 +557,7 @@ function free_resolution(M::SubquoModule{T};
     if algorithm == :mres && is_graded(cc[-1]) # TODO: include local case once :mres is available there
         set_attribute!(cc, :minimal=>true)
     end
+    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M, :algorithm => algorithm)
     _extend_free_resolution_to_the_left_by_zeros(cc, length)
     return FreeResolution(cc)
   end
@@ -645,6 +663,7 @@ function free_resolution(M::SubquoModule{T}; length::Int=0) where {T<:RingElem}
       N = domain(map(C, i))
       if iszero(N)
         C.complete = true
+        _mark_free_resolution_padding!(C, i + 1)
         phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
@@ -666,12 +685,13 @@ end
 
 @doc raw"""
     free_resolution(M::SubquoModule{T};
-        length::Union{Int, PosInf} = 0,
+        length::Union{Int, PosInf} = PosInf(),
         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 
 Return a free resolution of `M`.
 
-If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+If `length` is a positive integer, then the free resolution is only computed up to the `length`-th free module.
+For modules over localizations of quotient rings, `length` must be a positive integer.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -724,12 +744,13 @@ RL2^1 <---- RL2^3 <---- RL2^2 <---- 0
 
 """
 function free_resolution(M::SubquoModule{T};
-                         length::Union{Int, PosInf} = 0,
+                         length::Union{Int, PosInf} = PosInf(),
                          algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
-  if T <: MPolyQuoLocRingElem
-    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  if length isa Int && length < 0
+    error("The length must be nonnegative")
   end
-  if length == 0
+  if length == 0 || length isa PosInf
+    T <: MPolyQuoLocRingElem && error("Specify a finite length up to which a free resolution should be computed")
     length = -1
   end
   if algorithm == :generic
@@ -1012,12 +1033,13 @@ end
 
 @doc raw"""
     free_resolution(I::Ideal{T};
-        length::Int = 0,
+        length::Union{Int, PosInf} = PosInf(),
         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
 
 Consider `I` as a subquotient module over its base ring, and return a free resolution of that module.
 
-If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+If `length` is a positive integer, then the free resolution is only computed up to the `length`-th free module.
+For ideals over localizations of quotient rings, `length` must be a positive integer.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -1047,7 +1069,8 @@ AL^4 <---- AL^3 <---- 0
 ```
 """
 function free_resolution(I::Ideal{T};
-             length::Int = 0, algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
+                         length::Union{Int, PosInf} = PosInf(),
+                         algorithm = :generic) where {T <: Union{MPolyLocRingElem, MPolyQuoLocRingElem}}
   S = ideal_as_module(I)
   n = AbstractAlgebra.get_name(I)
   if n !== nothing
@@ -1129,10 +1152,10 @@ end
 
 @doc raw"""
     free_resolution(Q::MPolyQuoLocRing{T};
-        length::Int = 0, algorithm = :generic) where T
+        length::Union{Int, PosInf} = PosInf(), algorithm = :generic) where T
 Consider `Q` as a subquotient module over its base ring, and return a free resolution of that module.
 
-If `length != 0`, then the free resolution is only computed up to the `length`-th free module.
+If `length` is a positive integer, then the free resolution is only computed up to the `length`-th free module.
 The only current option for `algorithm` is `:generic`. The name `:generic` indicates that the
 method makes use of the generic function `free_resolution_via_kernels`.
 
@@ -1161,7 +1184,8 @@ RL^1 <---- RL^4 <---- RL^3 <---- 0
 ```
 """
 function free_resolution(Q::MPolyQuoLocRing{T};
-             length::Int = 0, algorithm = :generic) where T
+                         length::Union{Int, PosInf} = PosInf(),
+                         algorithm = :generic) where T
   q = quotient_ring_as_module(Q)
   n = AbstractAlgebra.get_name(Q)
   if n !== nothing
@@ -1195,13 +1219,10 @@ julia> augmented_complex(fr)
 
 ```
 """
-function augmented_complex(F::FreeResolution)
-  ub = findfirst(i -> is_zero(F.C[i]), 2:first(map_range(F.C)))
-  if isnothing(ub)
-    AC = F.C[-2:first(map_range(F.C))]
-  else
-    AC = F.C[-2:ub+1]
-  end
+function augmented_complex(F::FreeResolution{T}) where {T}
+  upper = _free_resolution_display_limit(F.C)
+  maps = [map(F.C, i) for i in upper:-1:-1]
+  AC = Hecke.ComplexOfMorphisms(T, maps; check = false, seed = -2)
   set_attribute!(AC, :show => Hecke.pres_show)
   return AC
 end
@@ -1244,4 +1265,3 @@ function length(F::FreeResolution)
   isnothing(ub) && return first(map_range(F.C))
   return ub-1::Int
 end
-

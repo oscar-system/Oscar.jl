@@ -11,10 +11,8 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(
-  h::LieAlgebraModuleHom{<:LieAlgebraModule,<:LieAlgebraModule{C2}}
-) where {C2<:FieldElem}
-  return (h.matrix)::dense_matrix_type(C2)
+function matrix(h::LieAlgebraModuleHom)
+  return h.matrix
 end
 
 @doc raw"""
@@ -152,6 +150,8 @@ The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this 
 """
 @attr Bool function is_isomorphism(h::LieAlgebraModuleHom)
   isdefined(h, :inverse_isomorphism) && return true
+  # `is_invertible_with_inverse` returns a one-sided inverse for non-square matrices
+  is_square(matrix(h)) || return false
   fl, invmat = is_invertible_with_inverse(matrix(h))
   fl || return false
   h.inverse_isomorphism = LieAlgebraModuleHom(codomain(h), domain(h), invmat; check=false)
@@ -210,7 +210,7 @@ end
 
 Construct the homomorphism from `V1` to `V2` by acting with the matrix `mat`
 from the right on the coefficient vector w.r.t. the basis of `V1`.
-`mat` must be a matrix of size `dim(V1) \times dim(V2)` over `coefficient_ring(V2)`.
+`mat` must be a matrix of size $\dim(V_1) \times \dim(V_2)$ over `coefficient_ring(V2)`.
 Currently, `V1` and `V2` must be modules over the same Lie algebra.
 
 By setting `check=false`, the linear map is not checked to be compatible with the module action.
@@ -324,7 +324,7 @@ end
     canonical_injections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
 
 Return the canonical injections from all components into $V$
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_injections(V::LieAlgebraModule)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -336,7 +336,7 @@ end
     canonical_injection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
 
 Return the canonical injection $V_i \to V$
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_injection(V::LieAlgebraModule, i::Int)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -351,7 +351,7 @@ end
     canonical_projections(V::LieAlgebraModule) -> Vector{LieAlgebraModuleHom}
 
 Return the canonical projections from $V$ to all components
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_projections(V::LieAlgebraModule)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -363,7 +363,7 @@ end
     canonical_projection(V::LieAlgebraModule, i::Int) -> LieAlgebraModuleHom
 
 Return the canonical projection $V \to V_i$
-where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
+where $V$ has been constructed as $V_1 \oplus \cdots \oplus V_n$.
 """
 function canonical_projection(V::LieAlgebraModule, i::Int)
   fl, Vs = Oscar._is_direct_sum(V)
@@ -388,7 +388,7 @@ end
     hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
 
 Given modules `V` and `W` which are direct sums with `r` respective `s` summands,
-say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix
+say $V = V_1 \oplus \cdots \oplus V_r$, $W = W_1 \oplus \cdots \oplus W_s$, and given a $r \times s$ matrix
 `hs` of homomorphisms $h_{ij} : V_i \to W_j$, return the homomorphism
 $V \to W$ with $ij$-components $h_{ij}$.
 
@@ -408,16 +408,17 @@ function hom_direct_sum(
     j in 1:size(hs, 2)
   ) "Domain/codomain mismatch"
 
-  Winjs = canonical_injections(W)
-  Vprojs = canonical_projections(V)
-  function map_basis(v)
-    return sum(
-      Winjs[j](sum(hs[i, j](Vprojs[i](v)) for i in 1:length(Vs); init=zero(Ws[j]))) for
-      j in 1:length(Ws);
-      init=zero(W),
-    )
+  mat = zero_matrix(coefficient_ring(W), dim(V), dim(W))
+  row = 0
+  for i in 1:length(Vs)
+    col = 0
+    for j in 1:length(Ws)
+      mat[(row + 1):(row + dim(Vs[i])), (col + 1):(col + dim(Ws[j]))] = matrix(hs[i, j])
+      col += dim(Ws[j])
+    end
+    row += dim(Vs[i])
   end
-  return hom(V, W, map(map_basis, basis(V)); check=false)
+  return hom(V, W, mat; check=false)
 end
 
 function hom_direct_sum(
@@ -428,7 +429,7 @@ function hom_direct_sum(
   fl, Ws = Oscar._is_direct_sum(W)
   @req fl "Second module must be a direct sum"
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
-  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+  @req all(domain(h) === Vi && codomain(h) === Wi for (h, Vi, Wi) in zip(hs, Vs, Ws)) "Domain/codomain mismatch"
 
   return hom(V, W, diagonal_matrix(matrix.(hs)); check=false)
 end
@@ -449,20 +450,20 @@ function hom_tensor(
   if ((fl, Vs) = _is_tensor_product(V); fl)
     # nothing to do
   elseif ((fl, Vb, k) = _is_tensor_power(V); fl)
-    Vs = [Vb for _ in 1:k]
+    Vs = fill(Vb, k)
   else
     throw(ArgumentError("First module must be a tensor product or power"))
   end
   if ((fl, Ws) = _is_tensor_product(W); fl)
     # nothing to do
   elseif ((fl, Wb, k) = _is_tensor_power(W); fl)
-    Ws = [Wb for _ in 1:k]
+    Ws = fill(Wb, k)
   else
     throw(ArgumentError("Second module must be a tensor product or power"))
   end
 
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
-  @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
+  @req all(domain(h) === Vi && codomain(h) === Wi for (h, Vi, Wi) in zip(hs, Vs, Ws)) "Domain/codomain mismatch"
 
   mat = reduce(
     kronecker_product,
@@ -519,8 +520,8 @@ function symmetric_power(
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_symmetric_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_symmetric_power(codomain)
-  @req domain_fl "Domain must be an symmetric power"
-  @req codomain_fl "Codomain must be an symmetric power"
+  @req domain_fl "Domain must be a symmetric power"
+  @req codomain_fl "Codomain must be a symmetric power"
   @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
@@ -550,9 +551,9 @@ function tensor_power(
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_tensor_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_tensor_power(codomain)
-  @req domain_fl "Domain must be an tensor power"
-  @req codomain_fl "Codomain must be an tensor power"
-  @req domain_k == codomain_k "Exponent mismatch"
+  @req domain_fl "Domain must be a tensor power"
+  @req codomain_fl "Codomain must be a tensor power"
+  @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
   mat = reduce(

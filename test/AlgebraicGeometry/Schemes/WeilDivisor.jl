@@ -134,6 +134,7 @@ end
   @test ngens(Oscar._subsystem(L, P, 1)[1]) == 3
   @test ngens(Oscar._subsystem(L, P, 2)[1]) == 1
   @test ngens(Oscar._subsystem(L, P, 3)[1]) == 0
+  @test ngens(subsystem(L, weil_divisor(P), 1)[1]) == 3
 end
 
 @testset "WeilDivisor" begin
@@ -154,6 +155,8 @@ end
   @test D == 3*weil_divisor(J)
   @test sprint(show, D-D) isa String
   @test (ZZ(2)*D == D + J + J + J)
+  A = Oscar.AlgebraicCycle(J, ZZ)
+  @test A + J == 2*A
   @test !(D-D == 4*D)
   KK = function_field(X)
   U = X[1][2]

@@ -29,8 +29,8 @@ struct MultiFileRefSerializer <: MultiFileSerializer
   ref_files::Vector{String}
 end
 MultiFileRefSerializer() = MultiFileRefSerializer("", :none, String[])
-MultiFileRefSerializer(basepath::String) = MultiFileRefSerializer(basepath, :none, String[])
-MultiFileRefSerializer(basepath::String, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
+MultiFileRefSerializer(basepath::AbstractString) = MultiFileRefSerializer(basepath, :none, String[])
+MultiFileRefSerializer(basepath::AbstractString, compression::Symbol) = MultiFileRefSerializer(basepath, compression, String[])
 
 basepath(serializer::MultiFileSerializer) = serializer.basepath
 
@@ -299,15 +299,12 @@ function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing;
                          entry_type::Type = Any)
   load_node(s, key) do
-    i = 1
-    result = entry_type[]
-    sizehint!(result, length(s.obj))
-    foreach(s.obj) do v
+    result = map(enumerate(s.obj)) do (i, v)
+      isnothing(v) && return nothing
       s.obj = v
-      push!(result, f(i))
-      i += 1
+      f(i)
     end
-    return result
+    return entry_type === Any ? result : convert(Vector{entry_type}, result)
   end
 end
 

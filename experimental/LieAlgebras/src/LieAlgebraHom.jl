@@ -11,8 +11,8 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra,MatT}) where {MatT<:MatElem}
-  return (h.matrix)::MatT
+function matrix(h::LieAlgebraHom)
+  return h.matrix
 end
 
 @doc raw"""
@@ -188,6 +188,8 @@ The inverse isomorphism can be cheaply accessed via `inv(h)` after calling this 
 """
 @attr Bool function is_isomorphism(h::LieAlgebraHom)
   isdefined(h, :inverse_isomorphism) && return true
+  # `is_invertible_with_inverse` returns a one-sided inverse for non-square matrices
+  is_square(matrix(h)) || return false
   fl, invmat = is_invertible_with_inverse(matrix(h))
   fl || return false
   h.inverse_isomorphism = LieAlgebraHom(codomain(h), domain(h), invmat; check=false)
@@ -239,7 +241,7 @@ end
 
 Construct the homomorphism from `L1` to `L2` by acting with the matrix `mat`
 from the right on the coefficient vector w.r.t. the basis of `L1`.
-`mat` must be a matrix of size `dim(L1) \times dim(L2)` over `coefficient_ring(L2)`.
+`mat` must be a matrix of size $\dim(L_1) \times \dim(L_2)$ over `coefficient_ring(L2)`.
 
 By setting `check=false`, the linear map is not checked to be compatible with the Lie bracket.
 

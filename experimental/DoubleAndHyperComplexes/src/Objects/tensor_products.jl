@@ -144,7 +144,7 @@ function (fac::TensorProductChainFactory{T})(HC::AbsHyperComplex, i::Tuple) wher
   if all(k->i[k] in range(fac.list[k]), 1:d)
     return tensor_product([fac.list[k][i[k]] for k in 1:d])
   end
-  C = first(list)
+  C = first(fac.list)
   k = first(range(C))
   R = base_ring(C[k])
   return FreeMod(R, 0)

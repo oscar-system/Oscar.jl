@@ -156,7 +156,6 @@ GAP.@wrap HasClassParameters(x::GapObj)::Bool
 GAP.@wrap HasConjugacyClassesSubgroups(x::GapObj)::Bool
 GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
 GAP.@wrap HasGrp(x::GapObj)::Bool
-GAP.@wrap HashPermutation(x::GapObj, y::GapInt)::Int
 GAP.@wrap HasImageRecogNode(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForAlmostSimpleGroup(x::GapObj)::Bool
 GAP.@wrap HasIsRecogInfoForSimpleGroup(x::GapObj)::Bool
@@ -387,7 +386,7 @@ GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap PrimitiveElement(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj, i::Int)::GapObj
-GAP.@wrap PRump(x::GapObj, y::Int)::GapObj
+GAP.@wrap PRump(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap QUO(x::GAP.Obj, y::GAP.Obj)::GAP.Obj
 GAP.@wrap Random(x::GapObj)::GAP.Obj
 GAP.@wrap Random(x::GapObj, y::GapObj)::GAP.Obj
@@ -429,7 +428,7 @@ GAP.@wrap SLPforElement(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap SmallestMovedPoint(x::Any)::GapInt
 GAP.@wrap SortingPerm(x::GapObj)::GapObj
 GAP.@wrap Source(x::GapObj)::GapObj
-GAP.@wrap Sqrt(x::Int64)::GAP.Obj
+GAP.@wrap Sqrt(x::Any)::GAP.Obj
 GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Stabilizer(x::GapObj, y::Any, z::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj

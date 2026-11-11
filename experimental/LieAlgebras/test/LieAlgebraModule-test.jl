@@ -35,17 +35,42 @@
       @test abstract_module(L, 2, bad; check=false) isa LieAlgebraModule
     end
 
+    # in characteristic 0, `V` is simple of highest weight `hw` iff the simple root vectors
+    # have a 1-dimensional common kernel on which the simple coroots act by `hw`
+    function simple_module_highest_weight_test(
+      L::LieAlgebra, V::LieAlgebraModule, hw::Vector{Int}
+    )
+      xs, _, hs = chevalley_basis(L)
+      R = coefficient_ring(V)
+      action_matrix(x) = matrix(R, [coefficients(x * v) for v in basis(V)])
+      ker = kernel(reduce(hcat, action_matrix.(xs[1:rank(root_system(L))])); side=:left)
+      @test nrows(ker) == 1
+      nrows(ker) == 1 || return nothing
+      v = LieAlgebraModuleElem(V, ker)
+      @test [h * v for h in hs] == [c * v for c in hw]
+    end
+
     @testset "λ = [2,1,0] of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
       V = simple_module(L, [2, 1, 0])
       @test dim(V) == 45
+      simple_module_highest_weight_test(L, V, [2, 1, 0])
       lie_algebra_module_conformance_test(L, V)
+    end
+
+    @testset "λ = [2,0,1] of sl_4(QQ), GAP isomorphism created first" begin
+      # GAP has to use the simple roots of `L` instead of choosing its own
+      L = special_linear_lie_algebra(QQ, 4)
+      Oscar.iso_oscar_gap(L)
+      V = simple_module(L, [2, 0, 1])
+      simple_module_highest_weight_test(L, V, [2, 0, 1])
     end
 
     @testset "λ = [2,1] of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = simple_module(L, [2, 1])
       @test dim(V) == 6
+      simple_module_highest_weight_test(L, V, [2, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -53,6 +78,7 @@
       L = lie_algebra(QQ, :A, 2)
       V = simple_module(L, [0, 1])
       @test dim(V) == 3
+      simple_module_highest_weight_test(L, V, [0, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -60,6 +86,7 @@
       L = lie_algebra(QQ, :B, 3)
       V = simple_module(L, [2, 0, 1])
       @test dim(V) == 168
+      simple_module_highest_weight_test(L, V, [2, 0, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -341,7 +368,7 @@
 
         @testset "exterior_power" begin
           if characteristic(R) != 0
-            @test_throws ArgumentError symmetric_power(standard_module(L), 2)[1]
+            @test_throws ArgumentError exterior_power(standard_module(L), 2)
           else
             V = symmetric_power(standard_module(L), 2)[1]
             type_V = module_type_bools(V)
@@ -389,7 +416,7 @@
 
         @testset "symmetric_power" begin
           if characteristic(R) != 0
-            @test_throws ArgumentError exterior_power(standard_module(L), 2)[1]
+            @test_throws ArgumentError symmetric_power(standard_module(L), 2)
           else
             V = exterior_power(standard_module(L), 2)[1]
             type_V = module_type_bools(V)

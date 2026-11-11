@@ -330,24 +330,6 @@ function Base.:*(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem)
   return rw2
 end
 
-# to be removed once GroupCore is supported
-function Base.:(^)(x::WeylGroupElem, n::Int)
-  if n == 0
-    return one(parent(x))
-  elseif n < 0
-    return inv(x)^(-n)
-  end
-
-  px = deepcopy(x)
-  for _ in 2:n
-    for s in word(x)
-      rmul!(px, s)
-    end
-  end
-
-  return px
-end
-
 @doc raw"""
     <(x::WeylGroupElem, y::WeylGroupElem) -> Bool
 
@@ -1039,7 +1021,7 @@ julia> coefficients(r * x)
     push!(imgs, g)
   end
 
-  G = matrix_group(imgs)
+  G = matrix_group(ZZ, n, imgs)
 
   iso = function (w::WeylGroupElem)
     map_word(w, gens(G); init=one(G))
@@ -1095,7 +1077,7 @@ julia> coefficients(w * x)
     push!(imgs, g)
   end
 
-  G = matrix_group(imgs)
+  G = matrix_group(ZZ, n, imgs)
 
   iso = function (w::WeylGroupElem)
     map_word(w, gens(G); init=one(G))

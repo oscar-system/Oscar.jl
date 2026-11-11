@@ -69,7 +69,7 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra; set_attributes::Bool=true)
   return MapFromFunc(LO, LG, f, finv)
 end
 
-function _iso_oscar_gap_set_root_system(LO::LieAlgebra, LG::GapObj, LO_to_LG::Function)
+function _iso_oscar_gap_set_root_system(LO::LieAlgebra, LG::GapObj, LO_to_LG)
   RO = root_system(LO)
   RG = GAP.Globals.Objectify(
     GAP.Globals.NewType(

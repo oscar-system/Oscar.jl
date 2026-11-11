@@ -88,12 +88,16 @@ function bracket(
 ) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
+  struct_consts = _struct_consts(L)
+  mat_x = _matrix(x)
+  mat_y = _matrix(y)
+  nonzeros_y = [(j, mat_y[1, j]) for j in 1:dim(L) if !is_zero_entry(mat_y, 1, j)]
   vec = sparse_row(coefficient_ring(L))
-  for (i, cxi) in enumerate(coefficients(x))
-    iszero(cxi) && continue
-    for (j, cyj) in enumerate(coefficients(y))
-      iszero(cyj) && continue
-      vec = addmul!(vec, _struct_consts(L)[i, j], cxi * cyj)
+  for i in 1:dim(L)
+    is_zero_entry(mat_x, 1, i) && continue
+    cxi = mat_x[1, i]
+    for (j, cyj) in nonzeros_y
+      vec = addmul!(vec, struct_consts[i, j], cxi * cyj)
     end
   end
   return LieAlgebraElem(L, vec)
@@ -297,7 +301,7 @@ end
 @doc raw"""
     lie_algebra(R::Field, rs::RootSystem) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct a simple Lie algebra over the field `R` with the root system `rs`.
+Construct a semisimple Lie algebra over the field `R` with the root system `rs`.
 The internally used basis of this Lie algebra is the Chevalley basis.
 
 The experienced user may supply a boolean vector of length `n_positive_roots(rs) - n_simple_roots(rs)`
@@ -449,14 +453,18 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       i < j || continue
       alpha_i_plus_beta_j = add!(alpha_i_plus_beta_j, alpha_i, beta_j)
       is_positive_root(alpha_i_plus_beta_j) || continue
-      l = let alpha_i_plus_beta_j = alpha_i_plus_beta_j # avoid closure capture
-        findfirst(
-          l -> is_positive_root(alpha_i_plus_beta_j - simple_root(rs, l)), 1:nsimp
-        )::Int
+      # smallest simple root `l` with `alpha_i + beta_j - alpha_l` a positive root
+      l = 0
+      l_comp = 0
+      for k in 1:nsimp
+        fl, l_comp = is_positive_root_with_index(alpha_i_plus_beta_j - simple_root(rs, k))
+        if fl
+          l = k
+          break
+        end
       end
+      @assert l != 0
       l == i && continue # already extraspecial
-      fl, l_comp = is_positive_root_with_index(alpha_i_plus_beta_j - simple_root(rs, l))
-      @assert fl
       t1 = 0
       t2 = 0
       if ((fl, m) = is_positive_root_with_index(beta_j - simple_root(rs, l)); fl)
@@ -522,7 +530,7 @@ function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:AbstractLieA
     struct_consts[i, j] = sparse_row(R)
   end
 
-  L = lie_algebra(R, struct_consts, s)
+  L = lie_algebra(R, struct_consts, s; check=false)
   set_attribute!(L, :is_abelian => true)
   return L
 end

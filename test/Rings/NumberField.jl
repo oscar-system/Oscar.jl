@@ -374,6 +374,13 @@
       @test b == @inferred g\(g(b))
     end
 
+    @test Hecke.map_data_type(typeof(K), typeof(K)) === Hecke.map_data_type(K, K)
+    ginv = inv(g)
+    for i in 1:10
+      b = rand(K, -10:10)
+      @test b == ginv(g(b))
+    end
+
     @test @inferred f == f
     @test @inferred g == g
     @test @inferred f != g

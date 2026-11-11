@@ -199,14 +199,14 @@ function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPMod
   B = hB[1]
   D = norm(B, s, os)
   lambda = D[1,1]
-  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C)) #What is C here?
+  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(M))
   alpha = norm_equation(K, preimage(phi, lambda))
   B *= inv(alpha)
   @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
   Di = inv(D)
   F = free_module(k, dim(M); cached = false)
-  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])#C also appears here
+  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = M.ac])
   # TODO: Get this map working
   # psi = GModuleHom(N, M, , phi)
   psi = nothing
@@ -413,6 +413,8 @@ function irreducible_modules(G::Oscar.GAPGroup; algo::Symbol = :auto)
     im = GAP.Globals.IrreducibleRepresentationsByBaumClausen(GapObj(G))
   elseif algo == :Solvable
     return Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
+  else
+    error("unknown algorithm $algo")
   end
   IM = GModule[]
   K = abelian_closure(QQ)[1]
@@ -2119,6 +2121,8 @@ function hilbert90_cyclic(A::MatElem{<:FieldElem}, s, os::Int)
     rnd = ()->rand(parent(A))
   elseif isa(k, QQField) || isa(k, AbsSimpleNumField)
     rnd = ()->rand(parent(A), -10:10)
+  else
+    error("base ring of type $(typeof(k)) not supported")
   end
   cnt = 1
   while true
@@ -2269,7 +2273,7 @@ end
 function Hecke.hom(C::GModule{T, FinGenAbGroup}, D::GModule{T, FinGenAbGroup}) where {T}
 
  H, mH = Oscar.GModuleFromGap.ghom(C, D)
- q, mq = H_zero(H)
+ q, mq = GrpCoh.H_zero(H)
  mmH = hom(q, H.M, [mq(x)() for x = gens(q)])
  return q, mmH*mH
 end
@@ -2497,7 +2501,7 @@ function center_hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldEle
     z1 = gmodule(Native.GF(p), C)
     t = hom_base(z1, z1)
     isempty(t) && return QQMatrix[]
-    c, mc = center(matrix_algebra(base_ring(z1), t; isbasis = true))
+    c, mc = center(matrix_algebra(base_ring(z1), t; is_basis = true))
     t = [mc(x).matrix for x = basis(c)]
 
     _rref!(t)
@@ -2652,7 +2656,7 @@ function endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, 
     E  = matrix_algebra(base_ring(M), b)
     mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   else
-    E  = matrix_algebra(base_ring(M), hom_base(M, M); isbasis = true)
+    E  = matrix_algebra(base_ring(M), hom_base(M, M); is_basis = true)
     mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   end
   set_attribute!(M, :endo => mE)
@@ -2687,7 +2691,7 @@ function restrict_endo(mE, mC)
     qq = preimage(mQ, q)
     push!(all, matrix(mh(z(qq))))
   end
-  F = matrix_algebra(QQ, all; isbasis = true)
+  F = matrix_algebra(QQ, all; is_basis = true)
   return F, map_from_func(F, Hecke.MapParent(C, C, "homomorphisms"), 
               x -> hom(C, C, matrix(x); check = false),
               y -> E(y.module_map))
@@ -2709,7 +2713,7 @@ function proj_endo(mE, mC)
     qq = preimage(mQ, q)
     push!(all, matrix(mh(z(qq))))
   end
-  F = matrix_algebra(QQ, all; isbasis = true)
+  F = matrix_algebra(QQ, all; is_basis = true)
   return F, map_from_func(F, Hecke.MapParent(C, C, "homomorphisms"), 
                  x -> hom(C, C, matrix(x); check = false),
                  y -> E(matrix(y.module_map)))
@@ -2767,10 +2771,10 @@ function center_of_endo(M::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem
     #TODO: speed this up! (reuse sub-words, ...)
     #https://ysharifi.wordpress.com/2011/02/08/center-of-group-algebras/
     base = [sum(matrix(action(M, g)) for g = c) for c = C]
-    E = matrix_algebra(base_ring(M), base; isbasis = true)
+    E = matrix_algebra(base_ring(M), base; is_basis = true)
     @assert length(base) == dim(E)
   else
-    E  = matrix_algebra(base_ring(M), center_hom_base(M); isbasis = true)
+    E  = matrix_algebra(base_ring(M), center_hom_base(M); is_basis = true)
   end
   mE = MapFromFunc(E, Hecke.MapParent(M, M, "homomorphisms"), x->hom(M, M, hom(M.M, M.M, matrix(x)); check = false), y->E(matrix(y.module_map)))
   set_attribute!(M, :center_endo => mE)

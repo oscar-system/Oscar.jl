@@ -53,11 +53,11 @@ function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
 end
 
 @doc raw"""
-    kodaira_neron_model(E::EllipticCurve) -> EllipticSurface
-    
-Return the Kodaira-Neron model of the elliptic curve `E`.
+    kodaira_neron_model(E::EllipticCurve, euler_characteristic::Int) -> EllipticSurface
+
+Return the Kodaira-Neron model of the elliptic curve `E`; see `elliptic_surface`.
 """
-kodaira_neron_model(E::EllipticCurve) = elliptic_surface(E)
+kodaira_neron_model(E::EllipticCurve, euler_characteristic::Int) = elliptic_surface(E, euler_characteristic)
 
 @doc raw"""
     elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
@@ -224,7 +224,7 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   _, u = hnf_with_transform(ZZ.(denominator(GB) * GB))
   B = u[1:rk-r,:] * BMWL
 
-  MWL = lll(lattice(V, B, isbasis=false))
+  MWL = lll(lattice(V, B; is_basis=false))
   u = solve(BMWL, basis_matrix(MWL); side=:left)
   u = ZZ.(u)
   mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
@@ -762,16 +762,20 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
   Y.Y = Y0
   Y.blowups = projectionsY
 
-  # We need to rewrap the last maps so that the domain is really Y
-  last_pr = pop!(projectionsY)
-  last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
-  #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+  if isempty(projectionsY)
+    piY = CoveredSchemeMorphism(Y, Y0, identity_map(default_covering(Y0)))
+  else
+    # We need to rewrap the last maps so that the domain is really Y
+    last_pr = pop!(projectionsY)
+    last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
+    #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
 
-  push!(projectionsY, last_pr_wrap)
+    push!(projectionsY, last_pr_wrap)
+    piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
+  end
   Y.ambient_blowups = projectionsX
 
   Y.ambient_exceptionals = ambient_exceptionals
-  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
   Y.blowup = piY
 
   inc_Y0_wrap = CoveredClosedEmbedding(Y, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
@@ -865,7 +869,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
   gen_tors = zip(tors, torsV)
   push!(torsV, identity_matrix(QQ,n))
   V = quadratic_space(QQ,GA)
-  L = lattice(V, reduce(vcat,torsV), isbasis=false)
+  L = lattice(V, reduce(vcat,torsV); is_basis=false)
   return basisA, collect(gen_tors), L
 end
 
@@ -1124,30 +1128,23 @@ function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
   k = coefficient_ring(kt)
   sing = Vector{elem_type(k)}[]
   for (p,v) in factor(d)
-    if v == 1
+    if v == 1 || (v == 2 && iszero(rem(numerator(j), p)))
       continue
     end
     r = k.(roots(p))
     if length(r) == 0
-      error("not all reducible fibers are visible over $(base_ring(S))")
+      error("not all reducible fibers are visible over $(base_ring(X))")
     end
     @assert length(r) ==1
     rt = r[1]
-    if v == 2
-      # not a type II fiber
-      if j!=0
-        push!(sing, [rt,k(1)])
-      end
-    end
-    if v > 2
-      push!(sing, [rt,k(1)])
-    end
+    push!(sing, [rt,k(1)])
   end
   if sort
     sort!(sing, by=x->by_total_order(x[1]))
   end
   # fiber over infinity is always last (if it is there)
-  if degree(d) <= 12*euler_characteristic(X) - 2
+  v = 12*euler_characteristic(X) - degree(d)
+  if v > 2 || (v == 2 && degree(numerator(j)) >= degree(denominator(j)))
     push!(sing, k.([1, 0]))
   end
   return sing
@@ -1315,7 +1312,9 @@ function fiber_components(X::EllipticSurface, P; algorithm=:exceptional_divisors
     U = default_covering(W)[4]
     (x,y,s) = coordinates(U)
     F = PrimeIdealSheafFromChart(W, U, ideal(s - P[2]))
-  end 
+  else
+    error("point must be normalized")
+  end
   FF = ideal_sheaf(Fcart)
   EE = exceptional_divisors(S)
   EP = filter(E->issubset(FF, E), EE)
@@ -1334,7 +1333,7 @@ end
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
   # If we have resolution_strategy=:simultaneous, then the following is a non-trivial preprocessing step.
-  ambient_pts = reduce(vcat, maximal_associated_points.(ideal_sheaf.(S.ambient_exceptionals)))
+  ambient_pts = reduce(vcat, maximal_associated_points.(ideal_sheaf.(S.ambient_exceptionals)); init=AbsIdealSheaf[])
   for I in ambient_pts
     @vprintln :EllipticSurface 4 "decomposing divisor "
     mp = maximal_associated_points(pullback(S.inc_Y, I); use_decomposition_info=true)
