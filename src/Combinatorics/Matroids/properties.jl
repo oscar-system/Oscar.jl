@@ -169,6 +169,8 @@ end
 flats(Int, M::Matroid) = data.(elements(lattice_of_flats(M)))
 flats(M::Matroid, r::Int) = _indices_to_gs(flats(Int, M, r), M.groundset)
 flats(M::Matroid) = _indices_to_gs(flats(Int, M), M.groundset)
+flats(Int, M::Matroid, rks::AbstractVector) = data.(elements_of_rank(lattice_of_flats(M), rks))
+flats(M::Matroid, rks::AbstractVector) = _indices_to_gs(flats(Int, M, rks), M.groundset)
 
 
 @doc raw"""
@@ -219,6 +221,8 @@ end
 cyclic_flats(Int, M::Matroid) = data.(elements(lattice_of_cyclic_flats(M)))
 cyclic_flats(M::Matroid, r::Int) = _indices_to_gs(cyclic_flats(Int, M, r), M.groundset)
 cyclic_flats(M::Matroid) = _indices_to_gs(cyclic_flats(Int, M), M.groundset)
+cyclic_flats(Int, M::Matroid, rks::AbstractVector) = data.(elements_of_rank(lattice_of_cyclic_flats(M), rks))
+cyclic_flats(M::Matroid, rks::AbstractVector) = _indices_to_gs(cyclic_flats(Int, M, rks), M.groundset)
 
 
 @doc raw"""
@@ -379,6 +383,7 @@ julia> independent_sets(uniform_matroid(2, 3))
  [2, 3]
 ```
 """
+independent_sets(M::Matroid) = _indices_to_gs(independent_sets(Int, M), M.groundset)
 function independent_sets(Int, M::Matroid)
     pm_bases = bases(Int, M)
     sets = Vector{Vector{Int}}()
@@ -398,7 +403,6 @@ function independent_sets(Int, M::Matroid)
     end
     return sets
 end
-independent_sets(M::Matroid) = _indices_to_gs(independent_sets(Int, M), M.groundset)
 
 @doc raw"""
     spanning_sets(M::Matroid)
