@@ -47,7 +47,7 @@ function (::DirectSumMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
     if !can_compute_map(s, p, i)
       domk = domain(canonical_injection(dom, k))
       codk = domain(canonical_injection(cod, k))
-      push!(maps, hom(domk, codk, elem_type(codk)[zero(cod_k) for _ in 1:ngens(domk)]))
+      push!(maps, zero_map(domk, codk))
       continue
     end
     push!(maps, map(s, p, i))
@@ -60,8 +60,8 @@ end
 # homological degrees and hence can not produce maps themselves.
 # Since there is no canonical way to do this, we request the user 
 # to fill this gap here according to the type they wish to use.
-function _zero_map(domain, codomain)
-  error("not implemented for arguments of type $(typeof(domain)); please overwrite this internal for the direct sums of complexes, see source code for details")
+function zero_map(domain, codomain)
+  throw(NotImplementedError(:zero_map, domain, codomain))
 end
 
 # `DirectSumComplex` produces an entry at index `i` if and only if 
@@ -70,7 +70,7 @@ end
 # in the structure of the direct sum. Since there is no standard way 
 # to do this, the user must overwrite this function for their types. 
 function _zero_object(sample)
-  error("not implemented for arguments of type $(typeof(sample)); please overwrite this internal for the direct sums of complexes, see source code for details")
+  throw(NotImplementedError(:_zero_object, sample))
 end
 
 # For instance, for `OFPModule`s we do the following: 
@@ -79,10 +79,7 @@ function _zero_object(M::OFPModule)
   return FreeMod(base_ring(M), 0)
 end
 
-function _zero_map(domain::OFPModule, codomain::OFPModule)
-  @assert base_ring(domain) === base_ring(codomain) "incompatible rings in domain and codomain"
-  return hom(domain, codomain, elem_type(codomain)[zero(codomain) for _ in 1:ngens(domain)])
-end
+# see the file on tensor products for an implementation of `zero_map`.
 
 function can_compute(::DirectSumMapFactory, self::AbsHyperComplex, p::Int, i::Tuple)
   return any(can_compute_map(a, p, i) for a in chain_factory(self).summands)
