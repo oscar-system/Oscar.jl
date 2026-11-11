@@ -393,7 +393,7 @@ in all test files of that directory.
     end
 
     test_save_load_roundtrip(path, p; params=R) do loaded
-      @test parent(loaded) === R
+      @test loaded == p
     end
   end
 end
@@ -413,7 +413,9 @@ The following keyword arguments are supported, any other keyword argument is
 passed on to both `save` and `load`.
 
 - `params`: passed on to `load`, use this to test loading into a given
-  parent, see the example above.
+  parent, see the example above. Note that testing `parent(loaded) === R`
+  there would be trivially satisfied, with or without `params`, since the
+  parent is stored by its id, see below.
 - `serializer`: the serializer to use, by default `JSONSerializer()`. For the
   multi file serializers only the first of the loads listed above is done.
 - `check_func`: a function that takes the loaded object and returns a `Bool`,
@@ -437,12 +439,18 @@ loaded vector of polynomials have the polynomial ring of `original` as their
 parent, both in `func` and in `check_func`. Hence neither of the two functions
 can test how parents are reconstructed from a file.
 
+One can still test the reconstruction of a parent by doing a round trip with
+the parent itself as the only top-level object and verifying some of its
+invariants in `check_func`. In that case `func` is still of no use, since it
+only ever sees `original`.
+
 Note that unlike `func`, the function `check_func` must not contain any
 `@test`, its return value is tested instead.
 
 A typical use is to check whether attributes were stored:
 
 ```julia
+is_abelian(L) # call a function that stores an attribute
 test_save_load_roundtrip(
   path, L; with_attrs=true,
   check_func=loaded -> has_attribute(loaded, :is_abelian),
