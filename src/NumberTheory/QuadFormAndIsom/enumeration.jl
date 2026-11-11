@@ -1176,8 +1176,7 @@ function _overlattices_of_hermitian_type_non_maximal(
   avoid = FinGenAbGroupHom[abelian_group_homomorphism(StoT) for (_, StoT) in stable_submodules(T, actOE; minimal=true)]
 
   # The bilinear form on T scaled by the exponent
-  gram = exponent(T)*gram_matrix_bilinear(T)
-
+  gram = numerator(exponent(T)*gram_matrix_bilinear(T))
   fT = _induced_endomorphism(T, fM)
   subs = stable_subgroups(A, FinGenAbGroupHom[abelian_group_homomorphism(fT)]; gram, avoid, order=k, op=(x, y) -> sub(x, y, false))
 
@@ -1505,7 +1504,7 @@ function representatives_of_hermitian_type(
     end
     isempty(detE) && return reps
 
-    hermitian_signatures = Dict{place_type(base_field(E)), Int}[]
+    hermitian_signatures = Dict{Hecke.place_type(base_field(E)), Int}[]
     for nG in rks[rk]
       append!(hermitian_signatures, _possible_signatures(nG, E, rk))
     end
