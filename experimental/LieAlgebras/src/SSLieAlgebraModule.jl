@@ -10,6 +10,10 @@ function _root_system_of_ss_char0(L::LieAlgebra)
   return root_system(L)
 end
 
+function _root_system_of_ss_char0(R::RootSystem)
+  return R
+end
+
 ###############################################################################
 #
 #   Simple modules (via highest weight) of semisimple Lie algebras
@@ -71,14 +75,11 @@ function dim_of_simple_module(
 end
 
 function dim_of_simple_module(
-  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type,
+  LR::Union{LieAlgebra,RootSystem},
+  hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  return dim_of_simple_module(T, _root_system_of_ss_char0(L), hw)
-end
-
-function dim_of_simple_module(
-  T::Type, R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
-)
+  R = _root_system_of_ss_char0(LR)
   hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   rho = weyl_vector(R)
@@ -134,14 +135,9 @@ julia> dominant_weights(R, 3 * fundamental_weight(R, 1) + fundamental_weight(R, 
 ```
 """
 function dominant_weights(
-  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  LR::Union{LieAlgebra,RootSystem}, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  return dominant_weights(_root_system_of_ss_char0(L), hw)
-end
-
-function dominant_weights(
-  R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
-)
+  R = _root_system_of_ss_char0(LR)
   hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
 
@@ -212,14 +208,11 @@ function dominant_character(
 end
 
 function dominant_character(
-  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type,
+  LR::Union{LieAlgebra,RootSystem},
+  hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  return dominant_character(T, _root_system_of_ss_char0(L), hw)
-end
-
-function dominant_character(
-  T::Type, R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
-)
+  R = _root_system_of_ss_char0(LR)
   hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
@@ -344,14 +337,11 @@ function character(
 end
 
 function character(
-  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type,
+  LR::Union{LieAlgebra,RootSystem},
+  hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  return character(T, _root_system_of_ss_char0(L), hw)
-end
-
-function character(
-  T::Type, R::RootSystem, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
-)
+  R = _root_system_of_ss_char0(LR)
   hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   dom_char = dominant_character(T, R, hw)
@@ -422,18 +412,11 @@ MSet{Vector{Int64}} with 10 elements:
 ```
 """
 function tensor_product_decomposition(
-  L::LieAlgebra,
-  hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  hw2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-)
-  return tensor_product_decomposition(_root_system_of_ss_char0(L), hw1, hw2)
-end
-
-function tensor_product_decomposition(
-  R::RootSystem,
+  LR::Union{LieAlgebra,RootSystem},
   hw1_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   hw2_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
+  R = _root_system_of_ss_char0(LR)
   hw1 = WeightLatticeElem(R, hw1_)
   hw2 = WeightLatticeElem(R, hw2_)
   @req is_dominant(hw1) "not a dominant weight"
@@ -617,19 +600,11 @@ end
 
 function demazure_character(
   T::Type,
-  L::LieAlgebra,
-  w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return demazure_character(T, _root_system_of_ss_char0(L), w, x)
-end
-
-function demazure_character(
-  T::Type,
-  R::RootSystem,
+  LR::Union{LieAlgebra,RootSystem},
   w_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
+  R = _root_system_of_ss_char0(LR)
   w = WeightLatticeElem(R, w_)
   @req is_dominant(w) "not a dominant weight"
   char = Dict{WeightLatticeElem,T}(w => T(1))
@@ -676,21 +651,12 @@ end
 
 function kostant_kumar_character(
   T::Type,
-  L::LieAlgebra,
-  w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(T, _root_system_of_ss_char0(L), w1, w2, x)
-end
-
-function kostant_kumar_character(
-  T::Type,
-  R::RootSystem,
+  LR::Union{LieAlgebra,RootSystem},
   w1_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   w2_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
+  R = _root_system_of_ss_char0(LR)
   w1 = WeightLatticeElem(R, w1_)
   w2 = WeightLatticeElem(R, w2_)
   @req is_dominant(w1) "first weight is not a dominant weight"
