@@ -108,8 +108,8 @@ end
   # finite set of usable primes, but bounded steps still work
   @test_throws ArgumentError Oscar.RepPc.sq(Oscar.RepPc.solvable_quotient(Z2))
   @test_throws ArgumentError Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2))
-#  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2); primes = [2])) == 3
-#  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(F); primes = [2])) == 3
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(Z2); primes = [2])) == 1
+  @test length(Oscar.RepPc.brueckner(Oscar.RepPc.solvable_quotient(F); primes = [2])) == 1
   # the exact prime set refines Brueckner's estimate from 1.3.1
   _, mq = maximal_abelian_quotient(PcGroup, S3)
   @test Oscar.RepPc.find_primes(mq; easy = true) == ZZRingElem[3]

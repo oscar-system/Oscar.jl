@@ -206,8 +206,12 @@ end
 
 is_sub_with_data(M::FinGenAbGroup, N::FinGenAbGroup) = is_subgroup(M, N)
 
-function Oscar.direct_product(M::AbstractAlgebra.Module...; task::Symbol = :none)
-  D, inj, pro = direct_sum(M...)
+function Oscar.direct_product(M::AbstractAlgebra.Module...; task::Symbol = :none, init::Union{Nothing, Ring} = nothing)
+  return Oscar.direct_product([x for x = M]; task, init)
+end
+
+function Oscar.direct_product(M::Vector{<:AbstractAlgebra.Module}; task::Symbol = :none, init::Union{Nothing, Ring} = nothing)
+  D, inj, pro = direct_sum(M; init)
   if task == :none
     return D
   elseif task == :both

@@ -327,13 +327,17 @@ The operation of `g` on the module as an automorphism.
 """
 function action(C::GModule, g)
   @assert parent(g) == Group(C)
-  if has_attribute(C, :is_trivial)
-    return C.ac[1]
-  end
 
   if haskey(C.action_cache, g)
     C.action_count[g] += 1
     return C.action_cache[g]
+  end
+  if has_attribute(C, :is_trivial)
+    if length(C.action_cache) == 0
+      C.action_cache[g] = identity_map(C.M)
+      C.action_count[g] = 0
+    end
+    return first(values(C.action_cache))
   end
 
   ac = action(C)
@@ -480,7 +484,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
   =#
 
 #  @assert isdefined(C.M, :hnf)
-  indC, pro, inj = direct_product(typeof(C.M)[C.M for i=1:length(g)]..., task = :both)
+  indC, pro, inj = direct_product(typeof(C.M)[C.M for i=1:length(g)]..., task = :both, init = base_ring(C.M))
 #  @assert isdefined(indC, :hnf)
   if hasfield(typeof(indC), :__attrs)
     set_attribute!(indC, :induce => (h, g))
@@ -586,13 +590,21 @@ function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_la
   return S, mq
 end
 
-function Oscar.direct_product(C::GModule...; task::Symbol = :none)
+function Oscar.direct_product(C::GModule...; task::Symbol = :none, init::Union{Nothing, Ring} = nothing)
+  return Oscar.direct_product([x for x = C]; task, init)
+end
+
+function Oscar.direct_product(C::Vector{GModule{G_t, M_t}}; task::Symbol = :none, init::Union{Nothing, Ring} = nothing) where {G_t, M_t}
   @assert task in [:sum, :prod, :both, :none]
   G = C[1].G
   @assert all(x->x.G == G, C)
-  mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
+  mM, pro, inj = direct_product(M_t[x.M for x = C]; task = :both, init)
 
-  mC = gmodule(G, [hom_direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
+  dp_t = typeof(zero_map(mM, mM)) #TODO: we need some hom-type function
+  #will fail if G is trivial as gens(G) is then empty
+  #and the action list will be uptyped.
+  #need, again, some hom_type for C.M
+  mC = gmodule(mM, G, dp_t[hom_direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
   mC.iac = [hom_direct_sum(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
 
   if task == :none
@@ -1672,7 +1684,7 @@ function free_res(ZG::GroupAlgebra; force_rws::Bool = false, side = :left, cache
           to_1chain = do_right_si
         end
       end
-      @assert nrows(B) == 0 ||B != 0
+      @assert nrows(B) == 0 || B != 0
       if is_left
         Fr = Generic.FreeModule(ZG, nrows(B); is_row = is_left, cached)
       else
@@ -2029,6 +2041,12 @@ function Oscar.action(C::GModule, g::GroupAlgebraElem, v)
   return Z
 end
 
+function _map(T::Type, f, m::Matrix)
+  isempty(m) && return Matrix{T}(undef, 0, 0)
+  return map(f, m)
+end
+
+@show :hi
 function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{GroupAlgebraElem{ZZRingElem, GroupAlgebra{ZZRingElem, Group_T, GroupElem_T}}}}, C::GModule{Group_T}) where Group_T where GroupElem_T
   ZG = base_ring(f[0])
   G = group(ZG)
@@ -2052,16 +2070,14 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
   set_attribute!(M1, :hom => (f[0], C), :show => Hecke.show_hom)
   #TODO: add hom_map!!!
   d1 = map(f, 1)
-  if rank(domain(d1)) == 0
-    Mg = AbstractAlgebra.Generic.DirectSumModule{elem_type(base_ring(C.M))}(typeof(C.M)[], typeof(relations(C.M))())
-    @vtime :GaloisCohomology 1 D1 = hom(M1, Mg, zero_matrix(base_ring(M1), rank(M1), 0); check = false)
-  else
-    @vtime :GaloisCohomology 1 Mg = direct_product([C.M for i=1:rank(domain(d1))]...; task = :none)
-    @vtime :GaloisCohomology 1 D1 = hom_direct_sum(M1, Mg, map(x->action(C, x), matrix(d1).entries))
-  end
+  @vtime :GaloisCohomology 1 Mg = direct_product(typeof(C.M)[C.M for i=1:rank(domain(d1))]; task = :none, init = base_ring(C.M))
   set_attribute!(Mg, :hom => (domain(d1), C), :show => Hecke.show_hom)
   #TODO: add hom_map!!!
 
+
+  map_t = typeof(action(C, one(C.G)))
+  @vtime :GaloisCohomology 1 D1 = hom_direct_sum(M1, Mg, _map(map_t, x->action(C, x), matrix(d1).entries))
+        
 
   Cpx = Hecke.ComplexOfMorphisms(typeof(M1), [D1]; typ = :cochain, check = false)
 
@@ -2085,11 +2101,7 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
     d = map(f, i+1)
     dd = map(ff, i-1)
     Mg = codomain(dd)
-    if rank(domain(d)) == 0
-      Mr = AbstractAlgebra.Generic.DirectSumModule{elem_type(base_ring(C.M))}(typeof(C.M)[], typeof(relations(C.M))())
-    else
-      Mr = direct_product(typeof(C.M)[C.M for i=1:rank(domain(d))]...; task = :none)
-    end
+    Mr = direct_product(typeof(C.M)[C.M for i=1:rank(domain(d))]; task = :none, init = base_ring(C.M))
     function hom_map(a::FinGenAbGroupElem)
       return map_from_func(domain(d), C, 
           x->C(sum(action(C, x.v[i, 1])(canonical_projection(Mr, i)(a)) 
@@ -2102,11 +2114,7 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
     set_attribute!(Mr, :hom => (domain(d), C), :show => Hecke.show_hom, 
       :hom_map =>map_from_func(Mr, Hecke.MapParent(domain(d), C, "maps"),
                 hom_map, map_hom))
-    if rank(domain(d)) == 0
-      D = hom(Mg, Mr, zero_matrix(base_ring(C.M), 0, rank(Mr)); check = false)
-    else
-      D = hom_direct_sum(Mg, Mr, map(x->action(C, x), matrix(d).entries))
-    end
+    D = hom_direct_sum(Mg, Mr, _map(map_t, x->action(C, x), matrix(d).entries))
     push!(ff.maps, D)
     return D
   end
