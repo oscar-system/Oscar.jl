@@ -24,7 +24,6 @@ export CylinderDiagram
 export cylinders
 export deck_group
 export elevator_origami
-export from_GAP_origami
 export generalized_cyclic_torus_cover
 export homology
 export horizontal_perm
