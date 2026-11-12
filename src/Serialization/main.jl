@@ -41,6 +41,13 @@ const type_key = :_type
   author_orcid::Union{String, Nothing} = nothing
   name::Union{String, Nothing} = nothing
   description::Union{String, Nothing} = nothing
+  type_qid::Union{String, Nothing} = nothing
+end
+
+# fill in the Wikidata item of the saved type unless the user set one
+function with_type_qid(m::MetaData, ::Type{T}) where T
+  !isnothing(m.type_qid) && return m
+  return MetaData(m.author_orcid, m.name, m.description, wikidata_qid(T))
 end
 
 # FIXME: this function is exported but undocumented
@@ -679,6 +686,7 @@ include("LieTheory.jl")
 
 include("Upgrades/main.jl")
 include("parallel.jl")
+include("wikidata.jl")
 
 
 ################################################################################
@@ -705,6 +713,10 @@ given compression method. The `filename` must have the appropriate file
 extension for the chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
 
+Written metadata includes the field `type_qid`, the Wikidata item of the
+mathematical object being saved (see `Oscar.Serialization.wikidata_qid`), unless it is
+unknown for the type of `obj` or set explicitly in `metadata`.
+
 With `metadata_file=true` the metadata is written to a separate file instead
 of being embedded in `filename`. Its name is `filename` with `-meta` inserted
 before the extension, e.g. `foo.mrdi` (or `foo.mrdi.gz`) gives `foo-meta.mrdi`.
@@ -719,7 +731,7 @@ See [`load`](@ref).
 
 ```jldoctest; setup=:(current=pwd(); cd(mktempdir())), teardown=:(cd(current))
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
-Oscar.Serialization.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
+Oscar.Serialization.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything", nothing)
 
 julia> save("fourtitwo.mrdi", 42; metadata=meta);
 
@@ -727,7 +739,8 @@ julia> read_metadata("fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
   "name": "42",
-  "description": "The meaning of life, the universe and everything"
+  "description": "The meaning of life, the universe and everything",
+  "type_qid": "Q12503"
 }
 
 julia> load("fourtitwo.mrdi")
@@ -760,7 +773,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     handle_refs(s)
 
     if !isnothing(metadata)
-      save_json(s, JSON.json(metadata), :meta)
+      save_json(s, JSON.json(with_type_qid(metadata, T)), :meta)
     end
   end
   serializer_close(s)
@@ -775,7 +788,7 @@ function save(filename::String, obj::Any;
               kwargs...)
   if metadata_file
     open(metadata_filename(filename), "w") do io
-      JSON.json(io, Dict(:meta => something(metadata, MetaData())))
+      JSON.json(io, Dict(:meta => with_type_qid(something(metadata, MetaData()), typeof(obj))))
     end
     metadata = nothing
   end

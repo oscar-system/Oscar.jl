@@ -38,6 +38,11 @@ end
     @test !haskey(JSON.parsefile(filename), "meta")
     m = JSON.parsefile(joinpath(path, "fortytwo-meta.mrdi"))["meta"]
     @test m["author_orcid"] == "0000-0000-0000-0042" && m["name"] == "42"
+    @test m["type_qid"] == "Q12503"
+
+    R, _ = polynomial_ring(QQ, :x)
+    save(joinpath(path, "ring.mrdi"), R; metadata=metadata(name="R"))
+    @test JSON.parsefile(joinpath(path, "ring.mrdi"))["meta"]["type_qid"] == "Q1455652"
 
     save(joinpath(path, "empty.mrdi.gz"), 1; compression=:gzip, metadata_file=true)
     @test JSON.parsefile(joinpath(path, "empty-meta.mrdi"))["meta"]["name"] === nothing
