@@ -104,7 +104,7 @@ matrices with respect to $L$, acting on monodromy vectors.
 translation_group_on_homology_of_tn(n::Int)
 action_of_t_on_homology_of_tn(n::Int)
 action_of_s_on_homology_of_tn(n::Int)
-action_of_matrix_on_homology_of_tn(n::Int, A::Matrix)
+action_of_matrix_on_homology_of_tn(n::Int, A::ZZMatrix)
 ```
 
 ### Actions on the extended homology of $T_n$
@@ -117,5 +117,5 @@ these matrices correspond to products in ${\rm SL}_2(\mathbb{Z})$, but the matri
 ```@docs
 action_of_s_on_extended_homology_of_tn(n::Int)
 action_of_t_on_extended_homology_of_tn(n::Int)
-action_of_matrix_on_extended_homology_of_tn(n::Int, A::Matrix)
+action_of_matrix_on_extended_homology_of_tn(n::Int, A::ZZMatrix)
 ```
