@@ -5,9 +5,8 @@ function random_origami(d::Integer)
   cyc = cperm(G, randperm(d)) # random d-cycle; this ensures transitivity
   other = G(randperm(d)) # arbitrary random permutation
   # swap the h and v permutation with 50% probability
-  # and also apply a random power to the d-cycle
-  iszero(rand(0:1)) && return origami(cyc^rand(1:d), other; check=false)
-  return origami(other, cyc^rand(1:d); check=false)
+  iszero(rand(0:1)) && return origami(cyc, other; check=false)
+  return origami(other, cyc; check=false)
 end
 
 function staircase_origami(length::Integer, height::Integer, steps::Integer)
