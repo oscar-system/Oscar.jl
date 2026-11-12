@@ -29,6 +29,21 @@
   end
 end
 
+@testset "metadata written to a separate file" begin
+  mktempdir() do path
+    meta = metadata(author_orcid="0000-0000-0000-0042", name="42")
+    filename = joinpath(path, "fortytwo.mrdi")
+    save(filename, 42; metadata=meta, metadata_file=true)
+    @test load(filename) == 42
+    @test !haskey(JSON.parsefile(filename), "meta")
+    m = JSON.parsefile(joinpath(path, "fortytwo-meta.mrdi"))["meta"]
+    @test m["author_orcid"] == "0000-0000-0000-0042" && m["name"] == "42"
+
+    save(joinpath(path, "empty.mrdi.gz"), 1; compression=:gzip, metadata_file=true)
+    @test JSON.parsefile(joinpath(path, "empty-meta.mrdi"))["meta"]["name"] === nothing
+  end
+end
+
 @testset "check invalidation" begin
   @test validate(mrdi_schema, Dict("_ns" => Dict("Oscar" => ["https://github.com/oscar-system/Oscar.jl","1.8.0"]),
                                      "_type" => Dict("name" => "Vector", "params" => "Base.Int"),

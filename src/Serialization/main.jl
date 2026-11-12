@@ -48,6 +48,16 @@ function metadata(;args...)
   return MetaData(;args...)
 end
 
+# `foo.mrdi` and `foo.mrdi.gz` map to `foo-meta.mrdi`, other names get `-meta`
+# inserted before their extension
+function metadata_filename(filename::String)
+  for ext in (".mrdi.gz", ".mrdi")
+    endswith(filename, ext) && return chopsuffix(filename, ext) * "-meta.mrdi"
+  end
+  base, ext = splitext(filename)
+  return base * "-meta" * ext
+end
+
 # FIXME: this function is exported but undocumented
 function read_metadata(filename::String)
   open(filename) do io
@@ -676,7 +686,7 @@ include("parallel.jl")
 
 """
     save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, serializer::OscarSerializer=JSONSerializer())
-    save(filename::String, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false, serializer::OscarSerializer=JSONSerializer())
+    save(filename::String, obj::Any; metadata::MetaData=nothing, metadata_file::Bool=false, with_attrs::Bool=true, compression::Symbol=:none, pretty_print::Bool=false, serializer::OscarSerializer=JSONSerializer())
 
 Save an object `obj` to the given io stream respectively to the file `filename`.
 When used with `with_attrs=true` the object will save its attributes along with
@@ -694,6 +704,12 @@ Setting the optional argument `compression` will compress the file using the
 given compression method. The `filename` must have the appropriate file
 extension for the chosen compression method.
 Currently, only `:none` (default) and `:gzip` are supported.
+
+With `metadata_file=true` the metadata is written to a separate file instead
+of being embedded in `filename`. Its name is `filename` with `-meta` inserted
+before the extension, e.g. `foo.mrdi` (or `foo.mrdi.gz`) gives `foo-meta.mrdi`.
+The file is created even if no `metadata` is given, with all fields empty.
+Use [`read_metadata`](@ref) on it as on any `.mrdi` file.
 
 The `pretty_print` optional argument can be used similar to the standard [JSON](https://juliaio.github.io/JSON.jl/stable/writing/#Pretty-Printing) functionality.
 
@@ -754,7 +770,16 @@ end
 function save(filename::String, obj::Any;
               compression::Symbol=:none,
               serializer::OscarSerializer=JSONSerializer(),
+              metadata::Union{MetaData, Nothing}=nothing,
+              metadata_file::Bool=false,
               kwargs...)
+  if metadata_file
+    open(metadata_filename(filename), "w") do io
+      JSON.json(io, Dict(:meta => something(metadata, MetaData())))
+    end
+    metadata = nothing
+  end
+  kwargs = (; kwargs..., metadata=metadata)
   if serializer isa MultiFileRefSerializer
     prefix = if endswith(filename, ".mrdi.gz")
       chopsuffix(filename, ".mrdi.gz")
