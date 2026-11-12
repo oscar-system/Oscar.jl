@@ -279,12 +279,8 @@ function translations(o::Origami)
   h = horizontal_perm(o)
   v = vertical_perm(o)
 
-  function act_on_tuples_by_conj(tup::Vector{PermGroupElem}, g::PermGroupElem)
-    return [tup[1]^g, tup[2]^g]
-  end
-
-  S = stabilizer(perm_group(o), [h, v], act_on_tuples_by_conj)[1]
-  return elements(S)
+  M = sub(perm_group(o), [h, v])[1]
+  return elements(centralizer(perm_group(o), M)[1])
 end
 
 @doc raw"""
