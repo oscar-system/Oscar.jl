@@ -132,8 +132,8 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
-  lpcoeffs = load_node(s, :lpcoeffs) do lpcoeffs
-    Polymake.call_function(:common, :deserialize_json_string, JSON.json(lpcoeffs))
+  lpcoeffs = load_node(s, :lpcoeffs) do
+    Polymake.call_function(:common, :deserialize_json_string, JSON.json(s.obj))
   end
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   index = 0
@@ -171,7 +171,7 @@ end
 
 function load_object(s::DeserializerState{LPSerializer},
                      ::Type{<:LinearProgram}, field::QQField)
-  load_node(s) do _
+  load_node(s) do
     lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj)"
     pm_lp = load_lp(lp_filename)
   end
@@ -212,18 +212,18 @@ end
 function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
-  milp_coeffs = load_node(s, :milp_coeffs) do coeffs
+  milp_coeffs = load_node(s, :milp_coeffs) do
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      JSON.json(coeffs)
+      JSON.json(s.obj)
     )
   end
-  int_vars = load_node(s, :int_vars) do vars
+  int_vars = load_node(s, :int_vars) do
     Polymake.call_function(
       :common,
       :deserialize_json_string,
-      JSON.json(vars)
+      JSON.json(s.obj)
     )
   end
 

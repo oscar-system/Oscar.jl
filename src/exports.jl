@@ -108,6 +108,7 @@ export IndexedSet
 export InfiniteDimensionError
 export K3Chamber
 export K3_surface_automorphism_group
+export LWE
 export LazyPoly
 export LazyPolyRing
 export LinearHalfspace
@@ -464,6 +465,7 @@ export compose
 export composition
 export composition_series, has_composition_series, set_composition_series
 export compositions
+export comprehensive_groebner_system
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -764,6 +766,7 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
+export has_canonical_isomorphism
 export has_edge
 export has_groups_with_class_number
 export has_groups_with_class_number_identification
@@ -788,6 +791,17 @@ export hilbert_series_expanded
 export hilbert_series_reduced
 export hirsch_length
 export hirzebruch_surface
+export hodge_number
+export hodge_numbers
+export instantiate_lwe
+export lwe_all
+export lwe_decrypt
+export lwe_encrypt
+export lwe_keygen
+export lwe_light
+export lwe_standard
+export lwe_toy
+export print_hodge_diamond
 export hom
 export hom_product
 export hom_tensor
@@ -852,6 +866,7 @@ export inner_automorphism_group
 export inner_cartesian_power
 export inner_direct_product
 export inradical
+export instantiate_uov
 export integer_hull
 export integer_lattice_with_isometry
 export integral_basis
@@ -1195,7 +1210,6 @@ export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
 export map_from_character_lattice_to_torusinvariant_weil_divisor_group
-export map_from_func
 export map_from_picard_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_class_group
 export map_from_torusinvariant_cartier_divisor_group_to_picard_group
@@ -1556,6 +1570,7 @@ export rand
 export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
+export rand_dual_bounding_body
 export rand_homogeneous
 export rand_metric
 export rand_metric_int
@@ -1695,6 +1710,7 @@ export set_relative_orders!
 export set_theoretic_intersection
 export sets
 export setwise_stabilizer_in_orthogonal_group
+export shake_256
 export shape
 export sheaf_cohomology
 export sheaf_of_rings
@@ -1819,6 +1835,7 @@ export toric_variety
 export torsion_quadratic_module_with_isometry
 export torsion_subgroup
 export torus # requires a distinction from e.g. an algebraic group
+export torus_saturation
 export torusinvariant_cartier_divisor_group
 export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
@@ -1872,6 +1889,23 @@ export unit
 export unitary_group
 export units_of
 export unwrap
+export uov_1p
+export uov_1p_pkc
+export uov_1p_pkc_skc
+export uov_1s
+export uov_1s_pkc
+export uov_1s_pkc_skc
+export uov_3
+export uov_3_pkc
+export uov_3_pkc_skc
+export uov_5
+export uov_5_pkc
+export uov_5_pkc_skc
+export uov_all
+export uov_keygen
+export uov_open
+export uov_sign
+export uov_verify
 export update_gluing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector

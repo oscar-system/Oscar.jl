@@ -51,7 +51,11 @@ mutable struct FundamentalInvarsCache{PolyRingElemT,PolyRingT}
   end
 end
 
-mutable struct FinGroupInvarRing{FldT,GrpT,PolyRingElemT,PolyRingT,ActionT}
+# Invariant ring of a group action on a polynomial ring; not a `Ring`, its
+# elements live in the polynomial ring
+abstract type InvarRing end
+
+mutable struct FinGroupInvarRing{FldT,GrpT,PolyRingElemT,PolyRingT,ActionT} <: InvarRing
   field::FldT
   poly_ring::PolyRingT
 

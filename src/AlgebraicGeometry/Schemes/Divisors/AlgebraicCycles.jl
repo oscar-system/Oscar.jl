@@ -443,7 +443,7 @@ end
 *(a::Int, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
 *(a::Integer, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
 
-+(D::AbsAlgebraicCycle, I::AbsIdealSheaf) = D + AbsAlgebraicCycle(I)
++(D::AbsAlgebraicCycle, I::AbsIdealSheaf) = D + AlgebraicCycle(I, coefficient_ring(D))
 
 @doc raw"""
     irreducible_decomposition(D::AbsAlgebraicCycle)

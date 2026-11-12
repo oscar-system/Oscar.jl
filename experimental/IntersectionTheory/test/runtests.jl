@@ -623,4 +623,15 @@ let pushforward = IntersectionTheory.pushforward
     cl2 = degeneracy_locus(F, G, 0; class=true)
     @test parent(cl2) == chow_ring(P4)  # should return an element (possibly 0)
   end
+
+  # trees(n) lists the unlabeled trees on n vertices, one per isomorphism class
+  @testset "Trees" begin
+    for n in 1:7
+      ts = IntersectionTheory.trees(n)
+      @test length(ts) == IntersectionTheory.oeis_A55(n)
+      @test all(g -> g isa Graph{Undirected}, ts)
+      @test all(g -> n_vertices(g) == n && n_edges(g) == n - 1 && is_connected(g), ts)
+      @test !any(is_isomorphic(ts[i], ts[j]) for i in 1:length(ts) for j in 1:(i - 1))
+    end
+  end
 end

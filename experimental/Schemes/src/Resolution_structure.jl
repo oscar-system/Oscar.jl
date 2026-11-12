@@ -227,7 +227,7 @@ end
 function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   push!(f.maps, phi)
   sl = ideal_sheaf_of_singular_locus(codomain(phi))
-  ex_div = (AbsIdealSheaf)[pullback(phi,E) for E in exceptional_divisorlist(f,true)]
+  ex_div = (AbsIdealSheaf)[pullback(phi,E) for E in exceptional_divisor_list(f,true)]
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
   push!(normalization_steps(f),length(f.maps))
@@ -552,9 +552,7 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   
   ## trivial case: X is already smooth
   if is_one(I_sl)
-    id_X = identity_blow_up(X)
-    maps = [id_X] 
-    return_value = BlowUpSequence(maps)
+    return_value = initialize_blow_up_sequence(identity_blow_up(X))
     return_value.resolves_sing = true
     return_value.is_trivial = true
     return_value.is_strong = true
@@ -593,9 +591,7 @@ function desingularization_only_blowups(X::AbsCoveredScheme; algorithm::Symbol=:
 
   ## trivial case: X is already smooth
   if is_one(I_sl)
-    id_X = identity_blow_up(X)
-    maps = [id_X]
-    return_value = BlowUpSequence(maps)
+    return_value = initialize_blow_up_sequence(identity_blow_up(X))
     return_value.resolves_sing = true
     return_value.is_trivial = true
     return_value.is_strong = true
@@ -816,7 +812,7 @@ function zero_ideal_sheaf(X::AbsCoveredScheme)
 end
 
 function identity_blow_up(X::AbsCoveredScheme)
-  f = BlowupMorphism(X, unit_ideal_sheaf(X))
+  f = blow_up(X, unit_ideal_sheaf(X))
   return f
 end
 
@@ -1290,7 +1286,7 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
         to_U_dict[UV] = to_U
         to_V_dict[UV] = to_V
       end
-      !match_found && error("no common ancestor found for $U and $V")
+      !match_found && error("no common ancestor found for $U")
     end
     #anc_cov = Covering(anc_list)
     #inherit_gluings!(anc_cov, def_cov)

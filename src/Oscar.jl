@@ -114,8 +114,10 @@ function __init__()
      "primgrp",  # primitive groups library
      "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
+     "sglppow",  # small groups library extension
      "smallclassnr", # library of groups with few conjugacy classes
      "smallgrp", # small groups library
+     "sotgrps",  # small groups library extension
      "transgrp", # transitive groups library
      "wedderga", # provides a function to compute Schur indices
      ]
@@ -320,6 +322,9 @@ include("InvariantTheory/InvariantTheory.jl")
 
 include("LieTheory/LieTheory.jl")
 
+include("Cryptography/keccak.jl")
+include("Cryptography/PostQuantum/uov/uov.jl")
+include("Cryptography/PostQuantum/lwe/lwe.jl")
 
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should

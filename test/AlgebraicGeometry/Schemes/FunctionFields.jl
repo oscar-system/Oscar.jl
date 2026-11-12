@@ -7,6 +7,11 @@
 
   ConformanceTests.test_Field_interface(KK)
   #ConformanceTests.test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
+
+  for check in (true, false)
+    @test_throws DivideError divexact(one(KK), zero(KK); check)
+    @test_throws DivideError divexact(zero(KK), zero(KK); check)
+  end
 end
 
 @testset "fraction fields of varieties" begin

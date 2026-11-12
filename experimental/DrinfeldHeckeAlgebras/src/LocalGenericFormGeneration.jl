@@ -54,7 +54,7 @@ function generate_generic_forms_locally(G::MatGroup{T}, R::Field) where {T <: Fi
     S_g = base_ring(kappa_g)
     next_index = current_parameter_index + ngens(S_g)
     phi_g = hom(S_g, S, [S[i] for i in current_parameter_index:(next_index - 1)])
-    kappa_g = map(x -> phi_g(x), kappa_g)
+    kappa_g = map(phi_g, kappa_g)
     current_parameter_index = next_index
 
     # Calculate all forms in conjugacy class and set everything to forms dictionary

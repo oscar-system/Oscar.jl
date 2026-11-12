@@ -8,10 +8,7 @@ using Oscar:
   GAPWrap,
   GSetByElements,
   IntegerUnion,
-  MapHeader,
-  set_root_system_type!
-
-import Random
+  MapHeader
 
 # not importet in Oscar
 using AbstractAlgebra:
@@ -107,8 +104,6 @@ export _is_tensor_power
 export _is_tensor_product
 
 include("Types.jl")
-include("Combinatorics.jl")
-include("Util.jl")
 
 include("CoxeterGroup.jl")
 include("DynkinDiagram.jl")

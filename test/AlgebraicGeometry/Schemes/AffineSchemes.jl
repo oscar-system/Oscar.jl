@@ -447,3 +447,12 @@ end
   Y3 = spec(l)
   @test length(irreducible_components(Y3))==2
 end 
+
+# closure of a closed subscheme of a localized scheme
+@testset "closure in a localized scheme" begin
+  R, (x, y) = QQ[:x, :y]
+  L, _ = localization(R, complement_of_point_ideal(R, [0, 0]))
+  Q, _ = quo(L, ideal(L, [x]))
+  Z = closure(spec(Q), spec(L); check=false)
+  @test modulus(underlying_quotient(OO(Z))) == ideal(R, [x])
+end

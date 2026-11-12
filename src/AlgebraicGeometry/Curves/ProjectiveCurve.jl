@@ -75,10 +75,10 @@ function invert_birational_map(phi::Vector{T}, C::ProjectiveCurve) where {T <: M
     I = ideal(s, phi)
     IC = defining_ideal(C)
     L = Singular.LibParaplanecurves.invertBirMap(singular_generators(I), singular_generators(IC))
-    R = _fromsingular_ring(L[1])
+    iso = _fromsingular_iso(L[1])
     J = L[2][:J]
     psi = L[2][:psi]
-    return Dict(:image => gens(ideal(R, J)), :inverse => gens(ideal(R, psi)))
+    return Dict(:image => [preimage(iso, g) for g in gens(J)], :inverse => [preimage(iso, g) for g in gens(psi)])
 end
 
 

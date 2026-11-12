@@ -419,9 +419,15 @@ end
 
 function Base.hash(x::Union{PcGroupElem,SubPcGroupElem}, h::UInt)
   b = 0x51e7ebcb0206be89 % UInt
-  G = full_group(parent(x))[1]
-  h = hash(G, h)
-  h = hash(syllables(x), h)
+  o = GapObj(x)
+  if GAPWrap.IsNBitsPcWordRep(o)
+    h = _hash_gap_pc_word(o, h)
+  elseif GAPWrap.IsPcpElement(o)
+    h = _hash_gap_int_list(GAPWrap.Exponents(o), h)
+  else
+    # Other collectors use one representation per family.
+    h = hash(syllables(x), h)
+  end
   return xor(h, b)
 end
 
@@ -1371,6 +1377,11 @@ function short_right_transversal(G::PermGroup, H::PermGroup, s::PermGroupElem)
   return S
 end
 
+# Much slower than the `PermGroup` method, which should be generalized.
+function short_right_transversal(G::GAPGroup, H::GAPGroup, s::GAPGroupElem)
+  return elem_type(G)[t for t in right_transversal(G, H) if s in H^t]
+end
+
 # END subgroups conjugation
 
 
@@ -2127,7 +2138,7 @@ function relators(G::PcGroup)
     @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
     return relators(FPGroup(GAPWrap.Image(f)))
   else
-    return _relators_by_generators(FPGroup(GAPWrap.Image(f)))
+    return _relators_by_generators(G)
   end
 end
 
@@ -2244,6 +2255,16 @@ function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimg
     # Here we take the available syllable representation.
     l = GAPWrap.ExtRepOfObj(gX)
     ll = Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+  elseif GAP.Globals.IsStraightLineProgElm(gX)
+    # Compute the images of the seeds of the straight line program,
+    # by mapping the group generators to `genimgs`.
+    seeds = GAP.getbangindex(gX, 1).seeds::GapObj
+    slp = GAP.getbangindex(gX, 2)::GapObj
+    F = GAP.getbangproperty(GAPWrap.FamilyObj(GapObj(g)), :freeGroup)::GapObj
+    ggens = GAPWrap.GeneratorsOfGroup(F)::GapObj
+    imgs = GapObj(map(i -> GAP.Globals.MappedWord(i, ggens, GapObj(genimgs)), seeds))
+    # Evaluate the straight line program.
+    return GAP.Globals.ResultOfStraightLineProgram(slp, imgs)
   else
     error("do not know the type of the element $gX")
   end

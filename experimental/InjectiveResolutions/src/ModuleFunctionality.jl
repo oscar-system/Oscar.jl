@@ -1,14 +1,52 @@
 default_ordering(A::MonoidAlgebra) = MonomialOrdering(A, Orderings.SymbOrdering(:degrevlex, collect(1:ngens(A))))
 
-singular_poly_ring(A::MonoidAlgebra, ord::Singular.sordering; keep_ordering=nothing) = singular_poly_ring(A.algebra) # ignores the ordering for now
-singular_poly_ring(A::MonoidAlgebra, ord::MonomialOrdering; keep_ordering=nothing) = singular_poly_ring(A.algebra) 
-singular_poly_ring(A::MonoidAlgebra; keep_ordering=nothing) = singular_poly_ring(A.algebra) 
+#############################################################################
+#
+# Singular rings for monoid algebras
+#
+struct OscarSingularMonoidAlgebraMap{D<:MonoidAlgebra, C, W} <: Map{D, C, Any, Any}
+  R::D
+  fpoly::W
+end
 
-(S::Singular.PolyRing)(a::MonoidAlgebraElem) = S(underlying_element(a))
+OscarSingularMonoidAlgebraMap(R::MonoidAlgebra, fpoly::Map) = OscarSingularMonoidAlgebraMap{typeof(R), typeof(codomain(fpoly)), typeof(fpoly)}(R, fpoly)
 
+domain(f::OscarSingularMonoidAlgebraMap) = f.R
+
+codomain(f::OscarSingularMonoidAlgebraMap) = codomain(f.fpoly)
+
+(f::OscarSingularMonoidAlgebraMap)(x) = image(f, x)
+
+function iso_oscar_singular_poly_ring(A::MonoidAlgebra, ord::Union{Singular.sordering, MonomialOrdering, Nothing} = nothing; keep_ordering=nothing)
+  # FIXME: `ord` and `keep_ordering` are ignored, so the Singular ring has a
+  # fixed ordering and e.g. `singular_module(F, o)`, and hence standard bases
+  # of modules w.r.t. `o`, silently use that ordering instead of `o`. For
+  # polynomial algebras, pass `ord` on; quotient algebras share the fixed
+  # ordering limitation of `MPolyQuoRing`.
+  iso1 = iso_oscar_singular_poly_ring(A.algebra)
+  return OscarSingularMonoidAlgebraMap(A, iso1)
+end
+
+function image(f::OscarSingularMonoidAlgebraMap, a)
+  parent(a) !== domain(f) && error("Element not in domain")
+  return image(f.fpoly, underlying_element(a))
+end
+
+function preimage(f::OscarSingularMonoidAlgebraMap, a; check::Bool = true)
+  check && (parent(a) === codomain(f) || error("Element not in codomain"))
+  g = preimage(f.fpoly, a; check)
+  return f.R(g)
+end
+
+_iso_onto(A::MonoidAlgebra, Sx::Singular.PolyRing) = OscarSingularMonoidAlgebraMap(A, _iso_onto(A.algebra, Sx))
+
+
+#############################################################################
+#
+#
 function singular_module(F::FreeMod{<:MonoidAlgebraElem}, ordering::ModuleOrdering)
   A = base_ring(F)
-  Sx = singular_poly_ring(A, induced_ring_ordering(ordering))
+  Sx = codomain(iso_oscar_singular_poly_ring(A, induced_ring_ordering(ordering)))
   return Singular.FreeModule(Sx, rank(F))
 end
 
@@ -163,7 +201,7 @@ function annihilator(N::SubquoModule{T}) where T <: MonoidAlgebraElem
   B = N_quo
   SB = singular_generators(B.gens)
   res = Singular.quotient(SB, SA)
-  return ideal(R, [R(f) for f in gens(res)])
+  return ideal(R, res)
 end
 
 function singular_generators(J::MonoidAlgebraIdeal)
@@ -229,7 +267,7 @@ underlying_ring_type(A::MonoidAlgebra) = underlying_ring_type(typeof(A))
 underlying_ring_type(::Type{T}) where {CT, RT, T<:MonoidAlgebra{CT, RT}} = RT
 
 function free_resolution(M::SubquoModule{T}; 
-    length::Int=0,
+    length::Union{Int, PosInf}=PosInf(),
     algorithm::Union{Symbol, Nothing} = nothing
   ) where {T <: MonoidAlgebraElem}
   if isnothing(algorithm)
@@ -239,15 +277,27 @@ function free_resolution(M::SubquoModule{T};
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
   
-  if underlying_ring_type(base_ring(M)) <: MPolyQuoRing
-    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  Oscar._check_resolution_length(length)
+  if underlying_ring_type(base_ring(M)) <: MPolyQuoRing && length isa PosInf
+    error("Specify a length up to which a free resolution should be computed")
   end
 
 
   cc_complete = false
 
+  # Truncation at the generators: no syzygies needed. The `fill` function extends on demand.
+  if iszero(length)
+    maps = algorithm == :mres ? Oscar._presentation_minimal(M, minimal_kernel=false).maps[2:3] : Oscar._generator_maps(M)
+    cc = Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps, check = false, seed = -2)
+    cc.fill     = _extend_free_resolution
+    cc.complete = false
+    set_attribute!(cc, :show => Hecke.pres_show, :free_res => M)
+    set_attribute!(cc, :algorithm, algorithm)
+    return FreeResolution(cc)
+  end
+
   #= Start with presentation =#
-  pm = algorithm == :mres ? _presentation_minimal(M, minimal_kernel=false) : presentation(M)
+  pm = algorithm == :mres ? Oscar._presentation_minimal(M, minimal_kernel=false) : presentation(M)
   maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
@@ -260,6 +310,9 @@ function free_resolution(M::SubquoModule{T};
     return FreeResolution(cc)
   end
 
+  # Singular reads length 0 as "full resolution".
+  singular_length = length isa PosInf ? 0 : length
+
   singular_free_module  = singular_module(ambient_free_module(kernel_entry))
   singular_kernel_entry = Singular.Module(base_ring(singular_free_module),
                               [singular_free_module(repres(g)) for g in gens(kernel_entry)]...)
@@ -267,31 +320,29 @@ function free_resolution(M::SubquoModule{T};
   #= This is the single computational hard part of this function =#
   if algorithm == :fres
     gbpres = Singular.std(singular_kernel_entry)
-    res = Singular.fres(gbpres, length, "complete")
+    res = Singular.fres(gbpres, singular_length, "complete")
   elseif algorithm == :lres
     error("LaScala's method is not yet available in Oscar.")
     gbpres = singular_kernel_entry # or as appropriate, taking into account base changes
   elseif algorithm == :mres
     gbpres = singular_kernel_entry
-    res = Singular.mres(gbpres, length)
+    res = Singular.mres(gbpres, singular_length)
   elseif algorithm == :nres
     gbpres = singular_kernel_entry
-    res = Singular.nres(gbpres, length)
+    res = Singular.nres(gbpres, singular_length)
   elseif algorithm == :sres
     gbpres = Singular.std(singular_kernel_entry)
-    res = Singular.sres(gbpres, length)
+    res = Singular.sres(gbpres, singular_length)
   else
     error("Unsupported algorithm $algorithm")
   end
 
   slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
-  if length == 0 || slen < length
+  if slen < length
     cc_complete = true
   end
 
-  if length != 0
-    slen =  slen > length ? length : slen
-  end
+  slen = min(slen, length)
 
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#

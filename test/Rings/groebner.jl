@@ -160,6 +160,14 @@ end
     @test normal_form(a^2+b, I) == -b^2+b
 end
 
+@testset "reduce graded" begin
+    # remainders of inhomogeneous polynomials in a graded ring are inhomogeneous
+    R, (a, b) = graded_polynomial_ring(QQ, [:a, :b])
+    @test reduce(a^2 + b + 1, [a^2]) == b + 1
+    q, r = reduce_with_quotients(a^2 + b + 1, [a^2])
+    @test r == b + 1
+end
+
 @testset "groebner leading ideal" begin
    R, (t, x, y, z) = polynomial_ring(QQ, [:t, :x, :y, :z])
 
@@ -399,4 +407,67 @@ end
   @test L[2].isGB == true
 
   @test_throws ErrorException L = factoring_groebner_basis(I, ordering=neglex(R))
+end
+
+@testset "comprehensive Groebner systems" begin
+  A, (a, b) = polynomial_ring(QQ, [:a, :b])
+  R, (x,) = polynomial_ring(A, [:x])
+  # the global Singular options must be unchanged afterwards
+  S, (s, t, u, v) = QQ[:s, :t, :u, :v]
+  Is = [ideal(S, [s + t + u, v - 1]), ideal(S, [s^2, t]), ideal(S, [s])]
+  G = gens(intersect(Is))
+  cgs = comprehensive_groebner_system(ideal(R, [a*x - b]); algorithm = :KSW)
+  @test gens(intersect(Is)) == G
+  @test [(gens(E), gens(N), gens(G)) for (E, N, G) in cgs] ==
+        [([zero(A)], [a], [a*x - b]), ([a], [b, a], [one(R)]), ([b, a], [one(A)], [zero(R)])]
+  cgs = comprehensive_groebner_system(ideal(R, [R(a)]))
+  @test [(gens(E), gens(N), gens(G)) for (E, N, G) in cgs] ==
+        [([zero(A)], [a], [one(R)]), ([a], [one(A)], [zero(R)])]
+  cgs = comprehensive_groebner_system(ideal(R, [R(2)]))
+  @test length(cgs) == 1 && gens(cgs[1][3]) == [one(R)]
+  for I in (ideal(R, elem_type(R)[]), ideal(R, [zero(R)]))
+    cgs = comprehensive_groebner_system(I)
+    @test length(cgs) == 1 && is_zero(cgs[1][1]) && is_zero(cgs[1][3])
+  end
+  @test isempty(comprehensive_groebner_system(ideal(R, [a*x - b]); nonnull = ideal(A, [zero(A)])))
+
+  # ISSAC 2010, Example 5.1
+  for K in (QQ, GF(7))
+    A, (u1, u2) = polynomial_ring(K, [:u1, :u2])
+    R, (x1, x2) = polynomial_ring(A, [:x1, :x2])
+    I = ideal(R, [u2*x2 + u1 + x1, x1^2 + u1*x2 + u2, u1*x1 + x2])
+    h = u1^4*u2 - u1^2*u2^3 - u1^3 + 2*u1*u2^2 - u1^2 - u2
+    G = [x2 + u1^3 - u1*u2^2 + u2, x1 - u1^3*u2 + u1*u2^3 + u1 - u2^2]
+    cgs = comprehensive_groebner_system(I)
+    @test length(cgs) == 2
+    @test is_zero(cgs[1][1]) && cgs[1][2] == ideal(A, [h]) && gens(cgs[1][3]) == [one(R)]
+    @test cgs[2][1] == ideal(A, [h]) && is_one(cgs[2][2]) && gens(cgs[2][3]) == G
+    cgs = comprehensive_groebner_system(I; null = ideal(A, [h]))
+    @test length(cgs) == 1 && gens(cgs[1][3]) == G
+    cgs = comprehensive_groebner_system(I; nonnull = ideal(A, [h]))
+    @test length(cgs) == 1 && gens(cgs[1][3]) == [one(R)]
+  end
+
+  A, (a, b) = polynomial_ring(GF(5), [:a, :b])
+  R, (x, y) = polynomial_ring(A, [:x, :y])
+  I = ideal(R, [a*x - b*y, x^2 - a])
+  cgs = comprehensive_groebner_system(I; ordering = lex(R))
+  @test [(gens(E), gens(N), gens(G)) for (E, N, G) in cgs] ==
+        [([zero(A)], [a*b], [b^2*y^2 - a^3, a*x - b*y]), ([b], [b, a], [one(R)]),
+         ([b, a], [one(A)], [x^2]), ([a], [b], [b*y, x^2])]
+  cgs = comprehensive_groebner_system(I; nonnull = ideal(A, [a*b]))
+  @test [(gens(E), gens(N), gens(G)) for (E, N, G) in cgs] ==
+        [([zero(A)], [a*b], [a*x - b*y, b^2*y^2 - a^3])]
+
+  S, _ = polynomial_ring(QQ, [:x])
+  @test_throws MethodError comprehensive_groebner_system(ideal(S, gens(S)))
+  A, (a,) = polynomial_ring(GF(2, 2), [:a])
+  R, (x,) = polynomial_ring(A, [:x])
+  @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]))
+  A, (a,) = polynomial_ring(QQ, [:a])
+  R, (x,) = polynomial_ring(A, [:x])
+  @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); ordering = neglex(R))
+  B, (c,) = polynomial_ring(QQ, [:c])
+  @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); null = ideal(B, [c]))
+  @test_throws ArgumentError comprehensive_groebner_system(ideal(R, [a*x]); algorithm = :foo)
 end

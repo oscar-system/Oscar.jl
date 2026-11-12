@@ -67,7 +67,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
     load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, n, n), :basis)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  L = lie_algebra(R, n, basis, symbs; check=false)
+  L = lie_algebra(R, n, basis, symbs; is_basis=true, check=false)
   load_root_system_data(s, L, d)
   return L
 end
@@ -133,7 +133,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:LieAlgebraElem}, L::LieAlgebra)
   R = coefficient_ring(L)
-  return L(load_object(s, Vector{elem_type(R)}, R))
+  return LieAlgebraElem(L, load_object(s, Vector{elem_type(R)}, R))
 end
 
 ###############################################################################
@@ -160,17 +160,15 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
   L = d[:lie_algebra]
+  V = load_construction_data(L, T, d)
+  !isnothing(V) && return V
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)
   transformation_matrices = load_object(
     s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  V = load_construction_data(L, T, d)
-  if isnothing(V)
-    V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
-  end
-  return V
+  return abstract_module(L, dim, transformation_matrices, symbs; check=false)
 end
 
 function type_and_params_for_construction_data(V::LieAlgebraModule)
@@ -228,5 +226,5 @@ function load_object(
   s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
 )
   R = coefficient_ring(V)
-  return V(load_object(s, Vector{elem_type(R)}, R))
+  return LieAlgebraModuleElem(V, load_object(s, Vector{elem_type(R)}, R))
 end

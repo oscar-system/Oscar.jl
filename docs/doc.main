@@ -6,6 +6,7 @@
      "Notes for users of other systems" => [
         "General/other/intro.md",
         "General/other/gap.md",
+        "General/other/macaulay2.md",
         "General/other/magma.md",
         "General/other/sage.md",
         "General/other/singular.md",
@@ -220,6 +221,7 @@
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases_integers.md",
+        "CommutativeAlgebra/GroebnerBases/comprehensive_groebner_systems.md",
      ],
      "Miscellaneous" => [
          "CommutativeAlgebra/Miscellaneous/binomial_ideals.md",
@@ -229,8 +231,8 @@
   "Invariant Theory" => [
      "InvariantTheory/intro.md",
      "InvariantTheory/finite_groups.md",
-     "InvariantTheory/tori.md",
      "InvariantTheory/reductive_groups.md",
+     "InvariantTheory/tori.md",
   ],
 
   "Algebraic Geometry" => [

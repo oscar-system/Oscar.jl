@@ -270,7 +270,7 @@ end
 # unlabeled trees
 trees(n::Int) = oeis_A55_graphs(n) # alias
 function oeis_A55_graphs(n::Int)
-  n == 1 && return [SimpleGraph{UInt8}(1)]
+  n == 1 && return [Graph{Undirected}(1)]
   ans = if iseven(n)
     [_connect_root(g[1], g[2]) for g in _sym(oeis_A81_graphs(div(n, 2)), 2)]
   else

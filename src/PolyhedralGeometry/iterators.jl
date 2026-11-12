@@ -462,7 +462,7 @@ for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_
   M = Symbol(f)
   @eval begin
     $M(::Val{_empty_access}, P::PolyhedralObjectUnion) =
-      return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+      return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(pm_object(P)))
   end
 end
 
@@ -473,7 +473,7 @@ for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
       scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
       typename = scalar_regexp[1]
       T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
+      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)))
     end
   end
 end
@@ -485,7 +485,7 @@ for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
       scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
       typename = scalar_regexp[1]
       T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
+      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + 1)
     end
   end
 end

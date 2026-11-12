@@ -202,11 +202,10 @@ function iso_oscar_singular_coeff_ring(F::FqField)
     Fabs = F
   end
 
-  ctx = Nemo._fq_default_ctx_type(F)
-  if ctx == Nemo._FQ_DEFAULT_NMOD
+  # Singular.Fp only accepts primes below 2^29
+  if absolute_degree(F) == 1 && nbits(characteristic(F)) <= 29
     S = Singular.Fp(Int(characteristic(F)))
   elseif nbits(characteristic(F)) <= 29
-    # TODO: the Fp(Int(char)) can throw
     minpoly = modulus(F)
     Fa = parent(minpoly)
     SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),

@@ -98,7 +98,7 @@ function complement(X::AbsAffineScheme,
     check::Bool=true
   )
   @check is_closed_embedding(Z, X) "not a closed embedding"
-  return AffineSchemeOpenSubscheme(Y, modulus(underlying_quotient(OO(Z))))
+  return AffineSchemeOpenSubscheme(X, modulus(underlying_quotient(OO(Z))))
 end
 
 ########################################################################

@@ -606,7 +606,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRin
   F, cont = Oscar.AbstractAlgebra._remove_denominators(Rx, f)
   lF = factor(F)
   an = []
-  push!(an, Qtx(cont)*Oscar.AbstractAlgebra._restore_numerators(Qtx, lF.unit))
+  push!(an, Qtx(cont)*Oscar.AbstractAlgebra._restore_numerators(Qtx, unit(lF)))
   K = base_ring(f)
   Kt, t = polynomial_ring(K, :t, cached = false)
   for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) <= 0)
@@ -642,12 +642,6 @@ function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.FracFieldElem{
   lf = factor_absolute(f)
   @assert length(lf) > 1
   return length(lf) == 2 && lf[2][end] == 1 && is_one(lf[2][2]) 
-end
-
-function Oscar.monomial(R::MPolyRing, v::Vector{Int})
-  b = MPolyBuildCtx(R)
-  push_term!(b, one(base_ring(R)), v)
-  return finish(b)
 end
 
 #=TODO

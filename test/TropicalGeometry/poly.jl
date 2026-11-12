@@ -14,3 +14,9 @@
         @test isempty(roots(t))
     end
 end
+
+@testset "@tropical with an integer exponent" begin
+  T = tropical_semiring(min)
+  t = T(1)
+  @test (Oscar.@tropical t*2) == T(2)
+end

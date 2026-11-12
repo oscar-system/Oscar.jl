@@ -172,9 +172,10 @@ end
 
 function unit_group_nonrecursive(R::Union{FiniteRing, AbstractAssociativeAlgebra})
   if R isa FiniteRing && is_prime(characteristic(R))
-    #@assert fits(Int, p)
     @vprintln :FiniteRings "Ring has prime characterstic. Constructing an algebra ..."
-    RtoS = isomorphism(StructureConstantAlgebra, R)
+    # fpFieldElem arithmetic does not allocate, FqFieldElem does
+    T = Oscar.fits(Int, characteristic(R)) ? Oscar.fpFieldElem : Oscar.FqFieldElem
+    RtoS = isomorphism(StructureConstantAlgebra{T}, R)
     S = codomain(RtoS)
     @vprintln :FiniteRings "Algebra of type $(typeof(S))"
     U = unit_group_nonrecursive(S)
@@ -186,7 +187,6 @@ function unit_group_nonrecursive(R::Union{FiniteRing, AbstractAssociativeAlgebra
     radical(R)
   end
 
-  J = radical(R)
   OJ = OnePlusIdeal(J)
   @vprintln :FiniteRings "Constructing presentation unipotent units"
   OJabs = effective_presentation(OJ; chain = (Oscar.get_attribute(R, :radical_chain, nothing), 2))
@@ -201,7 +201,7 @@ function unit_group_nonrecursive(R::Union{FiniteRing, AbstractAssociativeAlgebra
   Aunitabs = _unit_group_semisimple(A)
   # f : 1 + J -> R^*
   f = x -> x.elem
-  fpreim = x -> OJ(x) # R^* -> 1 + R
+  fpreim = OJ # R^* -> 1 + R
   # g : R^* -> A^*
   g = x -> preimage(AtoRs, RtoRs(x))
   gpreim = x -> preimage(RtoRs, AtoRs(x))

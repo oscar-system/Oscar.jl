@@ -72,6 +72,19 @@ end
   @test !isempty(rht)
   @test all(N -> !is_finite(order_of_isometry(N)), rht)
 
+  # Infinite isometry: the equation order of Q[x]/(chi) has index 3 in the
+  # maximal order; the numbers of classes have been verified by brute force
+  chi = x^2-7*x+1
+  @test isempty(representatives_of_hermitian_type(genus(hyperbolic_plane_lattice()), chi))
+  n = 0
+  for even in (true, false), G in integer_genera((1, 1), 45; even)
+    rht = representatives_of_hermitian_type(G, chi)
+    @test length(rht) <= 1
+    @test all(N -> genus(lattice(N)) == G && is_zero(chi(isometry(N))), rht)
+    n += length(rht)
+  end
+  @test n == 6
+
   # Galois orbits
   U = hyperbolic_plane_lattice()
   L = direct_sum(U, U, U, U)[1]
@@ -147,4 +160,18 @@ end
   @test all(Lf -> order_of_isometry(Lf) == 4, r)
   @test all(is_of_hermitian_type, r)
   @test count(Lf -> is_one(order(discriminant_group(Lf)[2])), r) == 4
+end
+
+@testset "ZZRingElem primes, discriminant_action filter, splitting_by_prime_power!" begin
+  A2 = root_lattice(:A, 2)
+  Lf = integer_lattice_with_isometry(A2)
+  @test length(splitting_of_hermitian_type(Lf, ZZ(2), 0)) == length(splitting_of_hermitian_type(Lf, 2, 0))
+
+  r = Oscar.splitting_by_prime_power!([Lf], 2, 1; eiglat_cond=[Dict{Int, Vector{Int}}()])
+  @test !isempty(r)
+  @test all(M -> order_of_isometry(M) == 2, r)
+
+  Tf = discriminant_group(TorQuadModuleWithIsom, integer_lattice_with_isometry(A2, -identity_matrix(QQ, 2)))
+  r = enumerate_classes_of_lattices_with_isometry(A2, 2; eiglat_cond=[Dict(2 => [2, 2, 0])], discriminant_action=Tf)
+  @test length(r) == 1
 end

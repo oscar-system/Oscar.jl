@@ -104,6 +104,9 @@ end
   shifted_fg = family_of_g4_fluxes(
     qsm_model, M1, M2, shifted_offset; completeness_check=false
   )
+  @test fg == fg
+  @test hash(fg) == hash(fg)
+  @test shifted_fg != fg
   empty_coeff_flux = flux_instance(
     shifted_fg, Int[], Rational{Int}[]; completeness_check=false, consistency_check=false
   )

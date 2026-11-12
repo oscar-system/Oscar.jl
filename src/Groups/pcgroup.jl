@@ -805,6 +805,90 @@ function syllables(g::Union{PcGroupElem, SubPcGroupElem})
   return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
 end
 
+################################################################################
+#
+#  Hashing GAP pc elements without converting them
+#
+#  An element of a finite GAP pc group given by a single collector, in
+#  `IsNBitsPcWordRep`, is a bag holding its type, the number of syllables, and
+#  one `UInt8`, `UInt16` or `UInt32` per syllable encoding generator and
+#  exponent:
+#
+#      +------+---------+------------+-----+------------+
+#      | type | npairs  | syllable 1 | ... | syllable n |
+#      +------+---------+------------+-----+------------+
+#
+#  The bag size is exactly that of the syllables, and the collector fixes the
+#  width for all elements of its family. GAP's `\=` compares only elements of
+#  one family, by their syllables, so hashing the syllable bytes is consistent
+#  with it.
+#
+#  Polycyclic's `\=` for pcp elements compares their exponent lists. Equal GAP
+#  integers have equal representations: an immediate integer, or a bag of
+#  type `T_INTPOS` or `T_INTNEG` holding the limbs of the absolute value
+#  without leading zeros.
+#
+################################################################################
+
+# Size of the type and syllable count preceding the syllables.
+const _GAP_PC_WORD_HEADER_SIZE = 2 * sizeof(Ptr{Cvoid})
+
+function _hash_gap_pc_word(x::GapObj, h::UInt)
+  GC.@preserve x begin
+    addr, _, bagsize = GAP.ADDR_TNUM_SIZE_OBJ(x)
+    data = addr + _GAP_PC_WORD_HEADER_SIZE
+    nbytes = bagsize - _GAP_PC_WORD_HEADER_SIZE
+    h = hash(nbytes, h)
+
+    nchunks = nbytes ÷ sizeof(UInt64)
+    for i in 1:nchunks
+      h = hash(unsafe_load(Ptr{UInt64}(data), i), h)
+    end
+
+    # The bytes past the bag size are not guaranteed to be zero.
+    tail = data + nchunks * sizeof(UInt64)
+    t = UInt64(0)
+    for i in 1:(nbytes % sizeof(UInt64))
+      t = (t << 8) | unsafe_load(Ptr{UInt8}(tail), i)
+    end
+    return hash(t, h)
+  end
+end
+
+# Hash the dense GAP list `l` of integers.
+function _hash_gap_int_list(l::GapObj, h::UInt)
+  # A plain list stores its length as an immediate integer, followed by its
+  # entries.
+  GAPWrap.IsPlistRep(l) || (l = GAPWrap.PlainListCopy(l))
+  GC.@preserve l begin
+    addr, _, bagsize = GAP.ADDR_TNUM_SIZE_OBJ(l)
+    len = reinterpret(Int, unsafe_load(addr, 1)) >> 2
+    @assert 0 <= len < bagsize ÷ sizeof(UInt)
+    h = hash(len, h)
+
+    for i in 1:len
+      e = unsafe_load(addr, i + 1)
+
+      # immediate integer
+      if e & 0x1 == 0x1
+        h = hash(e, h)
+        continue
+      end
+
+      # Other immediate objects carry a nonzero tag, holes are zero.
+      @assert e & 0x3 == 0 && e != 0 "the list is not a dense list of integers"
+      n = unsafe_pointer_to_objref(Ptr{Cvoid}(e))::GapObj
+      naddr, tnum, nbytes = GAP.ADDR_TNUM_SIZE_OBJ(n)
+      @assert tnum == GAP.T_INTPOS || tnum == GAP.T_INTNEG "the list is not a dense list of integers"
+      h = hash(tnum, h)
+      for j in 1:(nbytes ÷ sizeof(UInt))
+        h = hash(unsafe_load(naddr, j), h)
+      end
+    end
+  end
+  return h
+end
+
 # Convert syllables in canonical form into exponent vector
 function _exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
   res = zeros(ZZRingElem, n)

@@ -92,6 +92,12 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
     return I.gb[ordering]
   end
+  if is_zero(ngens(base_ring(I)))
+    P = base_ring(I)
+    G = groebner_basis(_univariate_ideal(I); complete_reduction)
+    I.gb[ordering] = IdealGens(P, [P(constant_coefficient(g)) for g in G], ordering; isGB = true, isReduced = complete_reduction)
+    return I.gb[ordering]
+  end
   if algorithm == :buchberger
     if !haskey(I.gb, ordering)
       I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)

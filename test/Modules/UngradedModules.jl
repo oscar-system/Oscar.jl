@@ -190,6 +190,25 @@ end
   M = free_module(R,1)
   @test length(free_resolution(M)) == 0
 
+  # Genuine zero terms and zero maps in a resolution must remain visible.
+  E = free_module(R, 1)
+  Z = free_module(R, 0)
+  maps = Oscar.OFPModuleHom[
+    hom(Z, E, elem_type(E)[]; check = false),
+    id_hom(E),
+    hom(E, Z, [zero(Z)]; check = false),
+    hom(Z, Z, elem_type(Z)[]; check = false),
+    hom(Z, E, elem_type(E)[]; check = false),
+    id_hom(E),
+    hom(E, Z, [zero(Z)]; check = false),
+  ]
+  C = Oscar.Hecke.ComplexOfMorphisms(Oscar.OFPModule, maps; check = true, seed = -2)
+  F = FreeResolution(C)
+  A = augmented_complex(F)
+  @test split(strip(last(split(sprint(show, F), '\n')))) == ["0", "1", "2", "3", "4", "5"]
+  @test first(chain_range(A)) == 5
+  @test all(map(A, i) === map(F.C, i) for i in -1:5)
+
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   generator_matrices = [R[x x^2*y; y y^2*x^2], R[x x^2*y; y y^2*x^2], R[x y; x^2*y y^2*x], R[x+R(1) x^10; x^2+y^2 y^4-x^4], R[x+R(1) x^10; x^2+y^2 y^4-x^4]]
@@ -220,7 +239,17 @@ end
 	@test free_res[3] == free_module(R, 2)
 	@test free_res[4] == free_module(R, 0)
 	@test free_res[100] == free_module(R, 0)
+  @test free_res[101] == free_module(R, 0)
   @test is_complete(free_res) == true
+  @test get_attribute(free_res.C, :free_resolution_padding_start) == 5
+  @test split(strip(last(split(sprint(show, free_res), '\n')))) == ["0", "1", "2", "3", "4"]
+
+  # Direct overextension must retain where artificial zero padding starts.
+  free_res_direct = free_resolution(M, length = 1)
+  @test isnothing(get_attribute(free_res_direct.C, :free_resolution_padding_start))
+  @test free_res_direct[5] == free_module(R, 0)
+  @test get_attribute(free_res_direct.C, :free_resolution_padding_start) == 5
+  @test split(strip(last(split(sprint(show, free_res_direct), '\n')))) == ["0", "1", "2", "3", "4"]
 	free_res = free_resolution(M)
   @test get_attribute(free_res.C, :algorithm) == :fres
 	@test all(iszero, homology(free_res.C))
@@ -310,6 +339,15 @@ end
   @test domain(isom) == F
   @test codomain(isom) == C
 
+  # Simple presentations must discard zero relations.
+  P = presentation(C)
+  @test is_zero(P[1])
+  @test is_zero(free_resolution(C, length = 1)[1])
+  D, _ = quo(F, [x*F[1], zero(F), zero(F)])
+  P = presentation(D)
+  @test ngens(P[1]) == 1
+  @test [map(P, 1)(g) for g in gens(P[1])] == [x*F[1]]
+
   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
   A, p = quo(R, ideal(R, x^5))
   M1 = identity_matrix(A, 2)
@@ -357,9 +395,7 @@ end
 @testset "Homology of ComplexOfMorphisms{FPModule{FqFieldElem}}" begin
     F = GF(2)
     function _rep_mat(n)
-        I = [i for i in 1:n-1 for d in (0,1)]
-        J = [(i+d-1) % n + 1 for i in 1:n-1 for d in (0,1)]
-        matrix(F, sparse(I, J, trues(2*(n-1)), n-1, n))
+        matrix(F, [j == i || j == i + 1 for i in 1:n-1, j in 1:n])
     end
     for n in 2:50
         d = hom(free_module(F,n-1), free_module(F,n), _rep_mat(n))
@@ -1303,6 +1339,49 @@ end
   @test length(FA.C.maps) == 9
 end
 
+@testset "free resolutions truncated by length" begin
+  # `length = n` stops at the n-th free module, `PosInf()` computes everything
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  M = SubquoModule(R[x; y], R[x^2; x*y; y^2; z^4])
+  for algorithm in (:fres, :mres, :nres)
+    fr = free_resolution(M; length=0, algorithm)
+    @test length(fr) == 0
+    @test !is_complete(fr)
+    @test [rank(fr[i]) for i in 0:4] == [2, 6, 6, 2, 0]
+    @test is_complete(fr)
+
+    fr = free_resolution(M; length=2, algorithm)
+    @test length(fr) == 2
+    @test !is_complete(fr)
+
+    fr = free_resolution(M; length=PosInf(), algorithm)
+    @test length(fr) == 3
+    @test is_complete(fr)
+  end
+  @test_throws ErrorException free_resolution(M; length=-1)
+
+  I = ideal(R, [x, y])^2
+  @test length(free_resolution(I; length=0)) == 0
+  @test length(free_resolution(quo(R, I)[1]; length=0)) == 0
+  @test length(free_resolution(free_module(R, 2); length=0)) == 0
+
+  S, _ = quo(R, ideal(R, [x^2]))
+  N = quotient_ring_as_module(ideal(S, [x, y]))
+  fr = free_resolution(N; length=0)
+  @test length(fr) == 0
+  @test rank(fr[1]) == 2
+  @test length(free_resolution(N; length=3)) == 3
+  @test_throws ErrorException free_resolution(N)
+
+  F = FreeMod(ZZ, 2)
+  MZ, _ = quo(F, [2*F[1], 3*F[2]])
+  fr = free_resolution(MZ; length=0)
+  @test length(fr) == 0
+  @test rank(fr[1]) == 2
+  @test is_zero(fr[2])
+  @test_throws ErrorException free_resolution(MZ; length=-1)
+end
+
 @testset "vector_space_dim and vector_space_basis" begin
   Oscar.set_seed!(235)
   R,(x,y,z,w) = QQ[:x, :y, :z, :w]
@@ -1339,10 +1418,10 @@ end
   end
   dummy(F)
 
-  GC.gc()
-  GC.gc()
+  GC.gc(true)
+  GC.gc(true)
 
-  @test length(keys(F.incoming)) == 0
+  @test is_empty(F.incoming)
   # The other way around it will not work, because I has a reference to its ambient_free_module f.
 
   function dummy2(F::FreeMod)
@@ -1359,10 +1438,10 @@ end
   end
   dummy2(F)
   
-  GC.gc()
-  GC.gc()
+  GC.gc(true)
+  GC.gc(true)
 
-  @test length(keys(F.incoming)) == 0
+  @test is_empty(F.incoming)
 end
 
 
@@ -1569,8 +1648,19 @@ end
 
     fr = free_resolution(M, length=3)
 
-    @test length(fr.C.maps) == 3
+    @test length(fr) == 1
+    @test is_complete(fr)
     @test iszero(homology(fr.C)[1])
+
+    # Generic lazy resolutions must distinguish the terminal zero from padding.
+    G = FreeMod(ZZ, 1)
+    N = SubquoModule(G, [2*G[1]])
+    fr_free = free_resolution(N; length = 1)
+    @test is_zero(fr_free[1])
+    @test isnothing(get_attribute(fr_free.C, :free_resolution_padding_start))
+    @test is_zero(fr_free[2])
+    @test get_attribute(fr_free.C, :free_resolution_padding_start) == 2
+    @test split(strip(last(split(sprint(show, fr_free), '\n')))) == ["0", "1"]
   end
 
   @testset "Tensoring morphisms over ZZ" begin
@@ -1731,7 +1821,8 @@ end
 
     fr = free_resolution(M, length=3)
 
-    @test length(fr.C.maps) == 3
+    @test length(fr) == 1
+    @test is_complete(fr)
     @test iszero(homology(fr.C)[1])
     MP, _ = prune_with_map(M)
     @test is_zero(MP)
@@ -1919,6 +2010,13 @@ end
   @test ngens(min_res[0]) == 1
   @test ngens(min_res[1]) == 2
   @test ngens(min_res[2]) == 1
+
+  # Simplified resolutions must distinguish the terminal zero from padding.
+  @test is_zero(min_res[3])
+  @test isnothing(get_attribute(min_res.C, :free_resolution_padding_start))
+  @test is_zero(min_res[4])
+  @test get_attribute(min_res.C, :free_resolution_padding_start) == 4
+  @test split(strip(last(split(sprint(show, min_res), '\n')))) == ["0", "1", "2", "3"]
 end
 
 @testset "caching of kernels" begin
@@ -2220,11 +2318,83 @@ end
   @test normal_form(w, SB) == zero(F)
 end
 
-@testset "right scalar multiplication is not supported" begin
-  # right multiplication is rejected by its own error, not by a dispatch ambiguity
+@testset "right scalar multiplication" begin
+  # over a commutative base ring right scalar multiplication agrees with the left one
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   F = free_module(R, 2)
+  v = F[1] + y*F[2]
 
-  @test_throws ErrorException F[1]*x
-  @test_throws ErrorException F[1]*2
+  @test v*x == x*v
+  @test parent(v*x) === F
+  @test v*(x + y^2) == (x + y^2)*v
+  @test v*2 == 2*v
+  @test v*QQ(1//2) == QQ(1//2)*v
+  @test is_zero(v*zero(R))
+  @test v*one(R) == v
+
+  Q, _ = quo(F, [x*F[1]])
+  w = Q[1] + y*Q[2]
+
+  @test w*x == x*w
+  @test parent(w*x) === Q
+  @test w*(x + y^2) == (x + y^2)*w
+  @test w*2 == 2*w
+  @test w*QQ(1//2) == QQ(1//2)*w
+  @test is_zero(w*zero(R))
+  @test w*one(R) == w
+
+  @test v*(1//2) == (1//2)*v
+
+  # multiplying two module elements is not scalar multiplication
+  @test_throws MethodError w*w
+
+  # operands whose multiplication does not commute are refused, not reversed
+  @test_throws ErrorException v*matrix(R, [x y; y x])
+end
+
+@testset "direct sums of morphisms" begin
+  R, (x, y) = QQ[:x, :y]
+  F = FreeMod(R, 2)
+  phi = identity_map(F)
+  F2, _ = direct_sum([F, F])
+  psi = direct_sum([phi, phi])
+  @test domain(psi) !== F2
+  @test codomain(psi) !== F2
+  psi = direct_sum([phi, phi]; domain=F2, codomain=F2)
+  @test domain(psi) === F2
+  @test codomain(psi) === F2
+  I = sub_object(F, [x*F[1], y*F[2]])
+  eta = identity_map(I)
+  mu = hom(F, I, gens(I))
+  psi = direct_sum([eta, mu, phi])
+  new_dom, _ = direct_sum([I, F, F])
+  new_cod, _ = direct_sum([I, I, F])
+  psi = direct_sum([eta, mu, phi]; domain=new_dom, codomain=new_cod)
+  @test domain(psi) === new_dom
+  @test codomain(psi) === new_cod
+end 
+
+
+# SubquoModule methods with formerly undefined variables
+@testset "SubquoModule regressions" begin
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  F = free_module(R, 1)
+  M, _ = quo(F, [x^2*F[1]])
+  @test redirect_stdout(devnull) do
+    show_subquo(M)
+  end === nothing
+  gb = reduced_groebner_basis(M)
+  @test gb.isGB
+  @test !isempty(sprint(show, gb))
+  Mrel = SubquoModule(F, [x*F[1]], [x^2*F[1]])
+  ord = lex(gens(R))*lex(gens(F))
+  gb_rel = groebner_basis(Mrel; ordering=ord)
+  @test normal_form(x*F[1], gb_rel) == zero(F)
+  @test first(Oscar.normal_form_with_unit(x*F[1], gb_rel)) == zero(F)
+  J = ideal(R, [x])
+  @test M:J == quotient(M, J)
+  G = free_module(R, 2)
+  fl, h = is_canonically_isomorphic_with_map(SubquoModule(F, [x*F[1]]), SubquoModule(G, [x*G[1]]))
+  @test !fl
+  @test all(is_zero, h.(gens(domain(h))))
 end

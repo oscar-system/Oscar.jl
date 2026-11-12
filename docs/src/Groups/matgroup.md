@@ -36,6 +36,9 @@ julia> m = matrix(x)
 [0   1   0]
 [0   0   1]
 
+julia> m == x
+ERROR: function == is not implemented for arguments
+
 julia> G(m) == x
 true
 

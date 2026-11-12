@@ -119,6 +119,8 @@ function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
     return "sl_$n"
   elseif type == :special_orthogonal
     return "so_$n"
+  elseif type == :symplectic
+    return "sp_$n"
   end
   return nothing
 end
@@ -134,17 +136,92 @@ end
 ###############################################################################
 
 @doc raw"""
-    coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
+    (L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true) -> LinearLieAlgebraElem{C}
 
 Return the element of `L` whose matrix representation corresponds to `x`.
+
 If no such element exists, an error is thrown.
+With `check=false` this is not verified and `x` is assumed to lie in the span of `matrix_repr_basis(L)`.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> x = L(matrix(QQ, [1 2; 3 -1]))
+2*e_1_2 + 3*f_1_2 + h_1
+
+julia> matrix_repr(x)
+[1    2]
+[3   -1]
+```
 """
-function coerce_to_lie_algebra_elem(
-  L::LinearLieAlgebra{C}, x::MatElem{C}
-) where {C<:FieldElem}
+function (L::LinearLieAlgebra{C})(x::MatElem{C}; check::Bool=true) where {C<:FieldElem}
+  m = _coefficient_row(L, x)
+  check && @req _is_in_span(L, x, m) "Matrix is not in the span of the basis."
+  return LieAlgebraElem(L, m)
+end
+
+@doc raw"""
+    in(x::MatElem{C}, L::LinearLieAlgebra{C}) -> Bool
+
+Return `true` if `x` is the matrix representation of an element of `L`, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> L = special_linear_lie_algebra(QQ, 2);
+
+julia> matrix(QQ, [1 2; 3 -1]) in L
+true
+
+julia> identity_matrix(QQ, 2) in L
+false
+```
+"""
+function Base.in(x::MatElem{C}, L::LinearLieAlgebra{C}) where {C<:FieldElem}
+  return _is_in_span(L, x, _coefficient_row(L, x))
+end
+
+# Coefficient row of `x` with respect to `matrix_repr_basis(L)`, assuming `x` lies in their span.
+function _coefficient_row(L::LinearLieAlgebra{C}, x::MatElem{C}) where {C<:FieldElem}
+  @req base_ring(x) == coefficient_ring(L) "Incompatible base rings."
   @req size(x) == (L.n, L.n) "Invalid matrix dimensions."
-  m = coefficient_vector(x, matrix_repr_basis(L))
-  return L(m)
+  pivots, lgs_pivots_inv, _ = _matrix_repr_basis_pivot_data(L)
+  v = matrix(
+    coefficient_ring(L), 1, dim(L),
+    C[x[div(k - 1, L.n) + 1, rem(k - 1, L.n) + 1] for k in pivots],
+  )
+  return v * lgs_pivots_inv
+end
+
+# Whether `x` equals the matrix with coefficient row `m = _coefficient_row(L, x)`.
+function _is_in_span(
+  L::LinearLieAlgebra{C}, x::MatElem{C}, m::MatElem{C}
+) where {C<:FieldElem}
+  _, _, lgs = _matrix_repr_basis_pivot_data(L)
+  return m * lgs == _vec_row(x)
+end
+
+# Flatten `x` into a `1 x (nrows * ncols)` matrix.
+function _vec_row(x::MatElem)
+  return matrix(base_ring(x), 1, nrows(x) * ncols(x), _vec(transpose(x)))
+end
+
+# `lgs` is the `dim(L) x n^2` matrix with the flattened basis matrices as
+# rows, `pivots` are `dim(L)` column indices such that `lgs[:, pivots]` is
+# invertible, and `lgs_pivots_inv` is the inverse of that submatrix. Hence the
+# coefficient vector of a matrix `x` in the span of the basis is
+# `_vec_row(x)[:, pivots] * lgs_pivots_inv`.
+@attr Tuple{Vector{Int},dense_matrix_type(C),dense_matrix_type(C)} function _matrix_repr_basis_pivot_data(
+  L::LinearLieAlgebra{C}
+) where {C<:FieldElem}
+  lgs = zero_matrix(coefficient_ring(L), dim(L), L.n^2)
+  for (k, b) in enumerate(matrix_repr_basis(L))
+    lgs[k:k, :] = _vec_row(b)
+  end
+  r, ech = rref(lgs)
+  @req r == dim(L) "Basis matrices are linearly dependent."
+  pivots = Int[findfirst(j -> !is_zero_entry(ech, i, j), 1:ncols(ech)) for i in 1:r]
+  return (pivots, inv(lgs[:, pivots]), lgs)
 end
 
 ###############################################################################
@@ -154,18 +231,29 @@ end
 ###############################################################################
 
 @doc raw"""
-    matrix_repr(x::LinearLieAlgebraElem{C}) -> Mat{C}
+    matrix_repr(x::LinearLieAlgebraElem{C}; copy::Bool=true) -> MatElem{C}
 
 Return the Lie algebra element `x` in the underlying matrix representation.
+
+The matrix is cached in `x`.
+With `copy=false` the cached matrix itself is returned and must not be mutated.
 """
-function Generic.matrix_repr(x::LinearLieAlgebraElem{C}) where {C<:FieldElem}
-  L = parent(x)
-  mat = zero_matrix(coefficient_ring(L), L.n, L.n)
-  tmp = zero(mat)
-  for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
-    mat = addmul!(mat, b, c, tmp)
+function Generic.matrix_repr(
+  x::LinearLieAlgebraElem{C}; copy::Bool=true
+) where {C<:FieldElem}
+  if !isdefined(x, :matrix_repr)
+    L = parent(x)
+    mat_x = _matrix(x)
+    mat = zero_matrix(coefficient_ring(L), L.n, L.n)
+    tmp = zero(mat)
+    for (i, b) in enumerate(matrix_repr_basis(L))
+      is_zero_entry(mat_x, 1, i) && continue
+      mat = addmul!(mat, b, mat_x[1, i], tmp)
+    end
+    x.matrix_repr = mat
   end
-  return mat
+  mat = (x.matrix_repr)::dense_matrix_type(C)
+  return copy ? deepcopy(mat) : mat
 end
 
 function bracket(
@@ -173,9 +261,12 @@ function bracket(
 ) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
-  x_mat = matrix_repr(x)
-  y_mat = matrix_repr(y)
-  return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat)
+  x_mat = matrix_repr(x; copy=false)
+  y_mat = matrix_repr(y; copy=false)
+  z_mat = x_mat * y_mat - y_mat * x_mat
+  z = L(z_mat; check=false)
+  z.matrix_repr = z_mat
+  return z
 end
 
 ###############################################################################
@@ -211,7 +302,7 @@ end
 
 function change_base_ring(R::Field, L::LinearLieAlgebra)
   basis = map(b -> change_base_ring(R, b), matrix_repr_basis(L))
-  return lie_algebra(R, L.n, basis, symbols(L); check=false)
+  return lie_algebra(R, L.n, basis, symbols(L); is_basis=true, check=false)
 end
 
 ###############################################################################
@@ -221,14 +312,18 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Field, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; check::Bool=true) -> LinearLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, n::Int, mats::Vector{<:MatElem}, s=:x; is_basis::Bool=false, check::Bool=true) -> LinearLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the field `R` with basis `basis` and basis element names
-given by `s`. The basis elements must be square matrices of size `n`.
+Construct the Lie algebra generated by the $n \times n$ matrices `mats` over `R` under the
+commutator bracket $[x, y] = xy - yx$, i.e. the smallest Lie subalgebra of
+$\mathfrak{gl}_n(R)$ containing `mats`.
 
-We require `basis` to be linearly independent, and to contain the Lie bracket of any
-two basis elements in its span (this is currently not checked).
-Setting `check=false` disables these checks (once they are in place).
+With `is_basis=true`, `mats` is used as basis instead, and `check=true` verifies that
+`mats` is linearly independent and closed under the bracket.
+Otherwise, `check` is currently ignored.
+
+The basis elements are named by `s`, which is either a vector with one name per basis
+element or a prefix such as `:x`, giving the names `x_1`, `x_2`, ...
 
 # Examples
 ```jldoctest
@@ -238,7 +333,7 @@ julia> f = matrix(QQ, [0 0 0; 0 0 0; 1 0 0]);
 
 julia> h = matrix(QQ, [1 0 0; 0 0 0; 0 0 -1]);
 
-julia> L = lie_algebra(QQ, 3, [e, f, h], [:e, :f, :h])
+julia> L = lie_algebra(QQ, 3, [e, f, h], [:e, :f, :h]; is_basis=true)
 Linear Lie algebra with 3x3 matrices
   of dimension 3
 over rational field
@@ -267,34 +362,135 @@ julia> matrix_repr_basis(L)
 function lie_algebra(
   R::Field,
   n::Int,
-  basis::Vector{<:MatElem{C}},
-  s::Vector{<:VarName};
+  mats::Vector{<:MatElem},
+  s::Union{VarName,Vector{<:VarName}}=:x;
+  is_basis::Bool=false,
+  check::Bool=true,
+)
+  @req all(g -> base_ring(g) === R, mats) "Matrices must be over the same field"
+  @req all(g -> size(g) == (n, n), mats) "Matrices must be square and of the same size"
+
+  if is_basis
+    basis_mats = mats
+  else
+    gl = general_linear_lie_algebra(R, n)
+    S = sub(gl, [gl(g; check=false) for g in mats])
+    basis_mats = dense_matrix_type(R)[matrix_repr(b) for b in basis(S)]
+    check = false # a basis of a subalgebra by construction
+  end
+  return LinearLieAlgebra{elem_type(R)}(
+    R, n, basis_mats, _basis_symbols(s, length(basis_mats)); check
+  )
+end
+
+_basis_symbols(s::VarName, k::Int) = [Symbol(s, :_, i) for i in 1:k]
+_basis_symbols(s::Vector{<:VarName}, ::Int) = Symbol.(s)
+
+function lie_algebra(
+  elems::Vector{LinearLieAlgebraElem{C}}; is_basis::Bool=false, check::Bool=true
+) where {C<:FieldElem}
+  @req !isempty(elems) "List of elements must not be empty, or provide the Lie algebra as first argument"
+  return lie_algebra(parent(elems[1]), elems; is_basis, check)
+end
+
+function lie_algebra(
+  L::LinearLieAlgebra{C},
+  elems::Vector{LinearLieAlgebraElem{C}};
+  is_basis::Bool=false,
   check::Bool=true,
 ) where {C<:FieldElem}
-  return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); check)
-end
-
-function lie_algebra(
-  basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
-) where {C<:FieldElem}
-  @req !isempty(basis) "Basis must not be empty, or provide the Lie algebra as first argument"
-  return lie_algebra(parent(basis[1]), basis; check)
-end
-
-function lie_algebra(
-  L::LinearLieAlgebra{C}, basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
-) where {C<:FieldElem}
-  @req all(parent(x) === L for x in basis) "Elements not compatible."
+  @req all(parent(x) === L for x in elems) "Elements not compatible."
   R = coefficient_ring(L)
-  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
-  return lie_algebra(R, L.n, matrix_repr.(basis), s; check)
+  if is_basis
+    basis_elems = elems
+  else
+    basis_elems = basis(sub(L, elems))
+    check = false # a basis of a subalgebra by construction
+  end
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis_elems)
+  return lie_algebra(R, L.n, matrix_repr.(basis_elems), s; is_basis=true, check)
+end
+
+@doc raw"""
+    lie_algebra(gens::Vector{<:MatElem{C}}, s=:x; is_basis::Bool=false, check::Bool=true) -> LinearLieAlgebra{C}
+
+Construct the Lie algebra generated by the square matrices `gens` under the
+commutator bracket $[x, y] = xy - yx$, i.e. the smallest Lie subalgebra of
+$\mathfrak{gl}_n(R)$ containing `gens`.
+
+All matrices in `gens` must be of the same size $n \times n$ over the same field $R$.
+See [`lie_algebra(::Field, ::Int, ::Vector{<:MatElem})`](@ref) for `s`, `is_basis` and
+`check`.
+
+# Examples
+```jldoctest
+julia> e = matrix(QQ, [0 1 0; 0 0 1; 0 0 0]);
+
+julia> f = matrix(QQ, [0 0 0; 2 0 0; 0 2 0]);
+
+julia> L = lie_algebra([e, f])
+Linear Lie algebra with 3x3 matrices
+  of dimension 3
+over rational field
+
+julia> matrix_repr_basis(L)
+3-element Vector{QQMatrix}:
+ [1 0 0; 0 0 0; 0 0 -1]
+ [0 1 0; 0 0 1; 0 0 0]
+ [0 0 0; 1 0 0; 0 1 0]
+```
+"""
+function lie_algebra(
+  gens::Vector{<:MatElem{C}},
+  s::Union{VarName,Vector{<:VarName}}=:x;
+  is_basis::Bool=false,
+  check::Bool=true,
+) where {C<:FieldElem}
+  @req !isempty(gens) "List of matrices must not be empty, or provide the field and size as first arguments"
+  return lie_algebra(base_ring(gens[1]), nrows(gens[1]), gens, s; is_basis, check)
+end
+
+@doc raw"""
+    lie_algebra(R::Field, gens::Vector{<:MatElem}, s=:x; is_basis::Bool=false, check::Bool=true) -> LinearLieAlgebra{elem_type(R)}
+
+Construct the Lie algebra over `R` generated by the square matrices `gens`, whose entries are
+mapped into `R`.
+
+See [`lie_algebra(::Field, ::Int, ::Vector{<:MatElem})`](@ref) for `s`, `is_basis` and
+`check`.
+
+# Examples
+```jldoctest
+julia> e = matrix(ZZ, [0 1 0; 0 0 1; 0 0 0]);
+
+julia> f = matrix(ZZ, [0 0 0; 2 0 0; 0 2 0]);
+
+julia> dim(lie_algebra(QQ, [e, f]))
+3
+
+julia> dim(lie_algebra(GF(2), [e, f]))
+1
+```
+"""
+function lie_algebra(
+  R::Field,
+  gens::Vector{<:MatElem},
+  s::Union{VarName,Vector{<:VarName}}=:x;
+  is_basis::Bool=false,
+  check::Bool=true,
+)
+  @req !isempty(gens) "List of matrices must not be empty"
+  if all(g -> base_ring(g) === R, gens)
+    return lie_algebra(R, nrows(gens[1]), gens, s; is_basis, check)
+  end
+  mapped_gens = [map_entries(R, g) for g in gens]
+  return lie_algebra(R, nrows(mapped_gens[1]), mapped_gens, s; is_basis, check)
 end
 
 function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:LinearLieAlgebra}
   @req n >= 0 "Dimension must be non-negative."
   basis = [(b = zero_matrix(R, n, n); b[i, i] = 1; b) for i in 1:n]
-  s = ["x_$(i)" for i in 1:n]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis; is_basis=true, check=false)
   set_attribute!(L, :is_abelian => true)
   return L
 end
@@ -330,7 +526,7 @@ julia> matrix_repr_basis(L)
 function general_linear_lie_algebra(R::Field, n::Int)
   basis = [(b = zero_matrix(R, n, n); b[i, j] = 1; b) for i in 1:n for j in 1:n]
   s = ["x_$(i)_$(j)" for i in 1:n for j in 1:n]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis, s; is_basis=true, check=false)
   set_attribute!(L, :type => :general_linear)
   return L
 end
@@ -370,7 +566,9 @@ function special_linear_lie_algebra(R::Field, n::Int)
   s_e = ["e_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_f = ["f_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
   s_h = ["h_$(i)" for i in 1:(n - 1)]
-  L = lie_algebra(R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h]; check=false)
+  L = lie_algebra(
+    R, n, [basis_e; basis_f; basis_h], [s_e; s_f; s_h]; is_basis=true, check=false
+  )
   set_attribute!(L, :type => :special_linear)
   return L
 end
@@ -406,8 +604,8 @@ Given a non-degenerate symmetric bilinear form $f$ via its Gram matrix `gram`,
 $\mathfrak{so}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
-If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
-is used, and for $n = 2k + 1$ the form defined by $\begin{matrix} 1 & 0 & 0 \\ 0 & 0 I_k \\ 0 & I_k & 0 \end{matrix}$.
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ I_k & 0 \end{pmatrix}$
+is used, and for $n = 2k + 1$ the form defined by $\begin{pmatrix} 1 & 0 & 0 \\ 0 & 0 & I_k \\ 0 & I_k & 0 \end{pmatrix}$.
 
 # Examples
 ```jldoctest
@@ -462,8 +660,7 @@ function special_orthogonal_lie_algebra(R::Field, n::Int, gram::MatElem)
   basis = _lie_algebra_basis_from_form(R, n, form)
   dim = length(basis)
   @assert characteristic(R) != 0 || dim == div(n^2 - n, 2)
-  s = ["x_$(i)" for i in 1:dim]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis; is_basis=true, check=false)
   set_attribute!(L, :type => :special_orthogonal, :form => form)
   return L
 end
@@ -495,13 +692,13 @@ end
 
 Return the symplectic Lie algebra $\mathfrak{sp}_n(R)$.
 
-Given a non-degenerate skew-symmetric bilinear form $f$ via its Gram matrix `gram`,
+Given a non-degenerate alternating bilinear form $f$ via its Gram matrix `gram`,
 $\mathfrak{sp}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
 such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
-If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{pmatrix} 0 & I_k \\ -I_k & 0 \end{pmatrix}$
 is used.
-For odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
+For odd $n$ there is no non-degenerate alternating bilinear form on $R^n$.
 
 # Examples
 ```jldoctest
@@ -542,13 +739,13 @@ symplectic_lie_algebra
 function symplectic_lie_algebra(R::Field, n::Int, gram::MatElem)
   form = map_entries(R, gram)
   @req size(form) == (n, n) "Invalid matrix dimensions"
-  @req is_skew_symmetric(form) "Bilinear form must be skew-symmetric"
-  @req is_even(n) && is_invertible(form) "Bilinear form must be non-degenerate"
+  @req is_even(n) "Dimension must be even"
+  @req is_alternating(form) "Bilinear form must be alternating"
+  @req is_invertible(form) "Bilinear form must be non-degenerate"
   basis = _lie_algebra_basis_from_form(R, n, form)
   dim = length(basis)
   @assert characteristic(R) != 0 || dim == div(n^2 + n, 2)
-  s = ["x_$(i)" for i in 1:dim]
-  L = lie_algebra(R, n, basis, s; check=false)
+  L = lie_algebra(R, n, basis; is_basis=true, check=false)
   set_attribute!(L, :type => :symplectic, :form => form)
   return L
 end

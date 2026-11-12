@@ -20,7 +20,8 @@ import Oscar:
 
 # for ca certificates
 import NetworkOptions
-import Mongoc: Mongoc, find, find_one
+import Mongoc: Mongoc, find_one
+import Oscar: find
 
 const OSCAR_DB = "oscar"
 const OSCAR_DEV_DB = "oscar-dev"
@@ -141,6 +142,10 @@ julia> length([tsc for tsc in tscit])
 63
 ```
 """
+function find(c::Collection, d::Dict=Dict(); opts::Union{Nothing, Dict}=nothing)
+  return Mongoc.find(c, d; opts)
+end
+
 function Mongoc.find(c::Collection, d::Dict=Dict();
                      opts::Union{Nothing, Dict}=nothing)
   return Cursor(Mongoc.find(c.mcol, Mongoc.BSON(d); options=(isnothing(opts) ? nothing : Mongoc.BSON(opts))))

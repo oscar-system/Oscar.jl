@@ -231,7 +231,7 @@ function dominant_character(
 end
 
 function dominant_character(
-  T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
@@ -242,7 +242,7 @@ function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return dominant_character(R, WeightLatticeElem(R, hw))
 end
 
-function dominant_character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+function dominant_character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
   return dominant_character(T, R, WeightLatticeElem(R, hw))
 end
 
@@ -250,7 +250,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
   return dominant_character(Int, R, hw)
 end
 
-function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
+function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
@@ -259,7 +259,7 @@ function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   dot_how_plus_rho = dot(hw_plus_rho, hw_plus_rho)
 
   pos_roots = positive_roots(R)
-  pos_roots_w = WeightLatticeElem.(positive_roots(R))
+  pos_roots_w = WeightLatticeElem.(pos_roots)
   pos_roots_w_coeffs = coefficients.(pos_roots_w)
 
   char = Dict(hw => T(1))
@@ -310,7 +310,7 @@ function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
-function _action_matrices_on_weights(W::WeylGroup)
+@attr Vector{ZZMatrix} function _action_matrices_on_weights(W::WeylGroup)
   R = root_system(W)
   return map(1:rank(R)) do i
     x = gen(W, i)
@@ -327,7 +327,7 @@ end
       hw::WeightLatticeElem *or* hw::Vector{<:IntegerUnion},
     ) -> Dict{WeightLatticeElem, T}
 
-Compute all dominant weights occurring in the simple module with highest weight `hw`
+Compute all weights occurring in the simple module with highest weight `hw`
 together with their multiplicities.
 
 One can either provide a semisimple Lie algebra of characteristic $0$,
@@ -375,7 +375,7 @@ function character(L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUn
 end
 
 function character(
-  T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
@@ -386,7 +386,7 @@ function character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return character(R, WeightLatticeElem(R, hw))
 end
 
-function character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+function character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
   return character(T, R, WeightLatticeElem(R, hw))
 end
 
@@ -394,7 +394,7 @@ function character(R::RootSystem, hw::WeightLatticeElem)
   return character(Int, R, hw)
 end
 
-function character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
+function character(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   dom_char = dominant_character(T, R, hw)
@@ -413,7 +413,7 @@ end
     tensor_product_decomposition(
       L::LieAlgebra *or* R::RootSystem,
       hw1::WeightLatticeElem *or* hw1::Vector{<:IntegerUnion},
-      hw2::WeightLatticeElem *or* hw1::Vector{<:IntegerUnion},
+      hw2::WeightLatticeElem *or* hw2::Vector{<:IntegerUnion},
     ) -> MSet{Vector{Int}}
 
 Compute the decomposition of the tensor product of the simple modules with highest weights `hw1` and `hw2`
@@ -524,15 +524,15 @@ end
 #
 ###############################################################################
 
-function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  @req is_positive_root(r) "r is not a positive root"
-
-  d = 2 * dot(w, r)//dot(r, r)
+# `wlelem_r = WeightLatticeElem(r)` and `dot_r_r = dot(r, r)`, but precomputed once
+function _demazure_operator(
+  r::RootSpaceElem, w::WeightLatticeElem, wlelem_r::WeightLatticeElem, dot_r_r
+)
+  d = 2 * dot(w, r)//dot_r_r
   list_of_occuring_weights = WeightLatticeElem[]
 
   refl = reflect(w, r)
 
-  wlelem_r = WeightLatticeElem(r)
   if d > -1
     while w != refl
       push!(list_of_occuring_weights, w)
@@ -581,9 +581,14 @@ Dict{WeightLatticeElem, Int64} with 2 entries:
 function demazure_operator(
   r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
 )
+  # these only depend on `r`, not on the weights in the loop
+  @req is_positive_root(r) "r is not a positive root"
+  wlelem_r = WeightLatticeElem(r)
+  dot_r_r = dot(r, r)
+
   dict = empty(groupringelem)
   for (w, dim) in groupringelem
-    sign, weights = _demazure_operator(r, w)
+    sign, weights = _demazure_operator(r, w, wlelem_r, dot_r_r)
     for w_ in weights
       val = get(dict, w_, 0) + sign * dim
       if is_zero(val)
@@ -675,7 +680,7 @@ function demazure_character(
 end
 
 function demazure_character(
-  T::DataType,
+  T::Type,
   L::LieAlgebra,
   w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
@@ -692,7 +697,7 @@ function demazure_character(
 end
 
 function demazure_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w::Vector{<:IntegerUnion},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
@@ -707,7 +712,7 @@ function demazure_character(
 end
 
 function demazure_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w::WeightLatticeElem,
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
@@ -759,7 +764,7 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  T::DataType,
+  T::Type,
   L::LieAlgebra,
   w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
@@ -778,7 +783,7 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w1::Vector{<:IntegerUnion},
   w2::Vector{<:IntegerUnion},
@@ -797,7 +802,7 @@ function kostant_kumar_character(
 end
 
 function kostant_kumar_character(
-  T::DataType,
+  T::Type,
   R::RootSystem,
   w1::WeightLatticeElem,
   w2::WeightLatticeElem,

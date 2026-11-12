@@ -20,7 +20,7 @@ end
     modular_subgroup_via_right_action(s::PermGroupElem, t::PermGroupElem; check::Bool=true)
 
 Construct a `ModularGroup` object corresponding to the finite-index subgroup
-of ``{\rm SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``.
+of ``\mathrm{SL}_2(\mathbb{Z})`` described by the permutations ``s`` and ``t``.
 
 For `check = true`, this
 constructor tests if the given permutations actually describe the (right) coset action of the matrices
@@ -272,7 +272,7 @@ Base.hash(x::ModularGroupElem, h::UInt) = hash(matrix(x), h)
     word_gens(G::ModularGroup)
 
 Return generators of `G` as words in the generators `S` and `T` of
-``{\rm SL}_2(\mathbb{Z})``, see [`s_t_decomposition`](@ref).
+``\mathrm{SL}_2(\mathbb{Z})``, see [`s_t_decomposition`](@ref).
 
 # Examples
 ```jldoctest
@@ -318,12 +318,12 @@ end
 @doc raw"""
     s_t_decomposition(M::ZZMatrix)
 
-Return the matrix `M` in ``{\rm SL}_2(\mathbb{Z})`` as a word in the generators
+Return the matrix `M` in ``\mathrm{SL}_2(\mathbb{Z})`` as a word in the generators
 ```math
 S = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad T = \begin{pmatrix} 1 & 1 \\ 0 & 1 \end{pmatrix}.
 ```
 The word is an element of the finitely presented group
-``\langle S, T \mid S^4, (S^3 T)^3, S^2 T S^{-2} T^{-1} \rangle \cong {\rm SL}_2(\mathbb{Z})``,
+``\langle S, T \mid S^4, (S^3 T)^3, S^2 T S^{-2} T^{-1} \rangle \cong \mathrm{SL}_2(\mathbb{Z})``,
 which is its `parent`. All words in `S` and `T` used by this package live in this group.
 
 # Examples
@@ -376,7 +376,7 @@ end
 @doc raw"""
     coset_right_action_of(A::ZZMatrix, G::ModularGroup)
 
-Return the permutation describing the action of the matrix `A` in ``{\rm SL}_2(\mathbb{Z})``
+Return the permutation describing the action of the matrix `A` in ``\mathrm{SL}_2(\mathbb{Z})``
 on the right cosets of `G` by right multiplication.
 """
 function coset_right_action_of(A::ZZMatrix, G::ModularGroup)
@@ -386,7 +386,7 @@ end
 @doc raw"""
     coset_left_action_of(A::ZZMatrix, G::ModularGroup)
 
-Return the permutation describing the action of the matrix `A` in ``{\rm SL}_2(\mathbb{Z})``
+Return the permutation describing the action of the matrix `A` in ``\mathrm{SL}_2(\mathbb{Z})``
 on the left cosets of `G` by left multiplication, see [`modular_subgroup_via_left_action`](@ref).
 """
 function coset_left_action_of(A::ZZMatrix, G::ModularGroup)
@@ -420,7 +420,7 @@ end
     is_word_element_of(w::FPGroupElem, G::ModularGroup)
 
 Return whether the word `w` in the generators `S` and `T` of
-``{\rm SL}_2(\mathbb{Z})`` represents an element of `G`, see [`s_t_decomposition`](@ref).
+``\mathrm{SL}_2(\mathbb{Z})`` represents an element of `G`, see [`s_t_decomposition`](@ref).
 
 # Examples
 ```jldoctest

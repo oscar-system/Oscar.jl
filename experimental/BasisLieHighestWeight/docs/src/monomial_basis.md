@@ -1,4 +1,4 @@
-### Monomial bases
+# Monomial bases
 
 This page documents the methods that have a monomial basis as their input.
 For methods that have a monomial basis as their output, see [Computing monomial bases](@ref).

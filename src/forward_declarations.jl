@@ -138,3 +138,15 @@ end
 end
 
 const NormalToricVarietyType = Union{NormalToricVariety, AffineNormalToricVariety, CyclicQuotientSingularity}
+
+###########################################
+# (3) Generic functions shared by experimental packages
+###########################################
+
+# `find(collection, query...)` returns a lazy iterable of the matching entries.
+# Declared here so that experimental packages can add methods without
+# depending on each other.
+function find end
+
+# polymake's database has a `find` of its own
+find(c::Polymake.Polydb.Collection, args...; kwargs...) = Polymake.Polydb.find(c, args...; kwargs...)

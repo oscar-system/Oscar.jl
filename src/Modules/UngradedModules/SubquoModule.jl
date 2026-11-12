@@ -432,7 +432,7 @@ function show_subquo(SQ::SubquoModule)
     end
     show(stdout, "text/plain", generator_matrix(SQ.sub))
   end
-  print(terse(io), "\nwith ambient free module ", SQ.F)
+  print(terse(stdout), "\nwith ambient free module ", SQ.F)
 end
 
 function show_morphism_as_map(f::OFPModuleHom, print_non_zero_only = false)
@@ -864,12 +864,13 @@ function reduced_groebner_basis(M::SubquoModule, ord::ModuleOrdering = default_o
       rel_gb_ModuleGens = ModuleGens(rel_gb_list, M.F)
       rel_gb_ModuleGens.isGB = true
       rel_gb_ModuleGens.is_reduced = true
+      rel_gb_ModuleGens.ordering = ord
       rel_gb_ModuleGens.quo_GB = quo_gb
       if !haskey(M.groebner_basis, ord)
-        M.groebner_basis[ord] = rel_geb_ModuleGens
+        M.groebner_basis[ord] = rel_gb_ModuleGens
       else
         set_attribute!(M.groebner_basis[ord], :reduced_groebner_basis => rel_gb_ModuleGens)
-        return rel_geb_ModuleGens
+        return rel_gb_ModuleGens
       end
     end
   end
@@ -922,7 +923,8 @@ end
 
 Check if `M` and `N` are isomorphic under `canonical_isomorphism(F, G)` where
 `F` and `G` are the ambient free modules of `M` and `N` respectively.
-Return `false` if the ambient free modules are not isomorphic.
+Return `false` if there is no canonical isomorphism between the ambient free
+modules, see `has_canonical_isomorphism`.
 
 ```jldoctest
 julia> Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
@@ -961,9 +963,7 @@ true
 function is_canonically_isomorphic(M::SubquoModule{T}, N::SubquoModule{T}) where {T}
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  if !is_isomorphic(F, G)
-    return false
-  end
+  has_canonical_isomorphism(F, G) || return false
   return compare_helper(M, N, is_canonically_isomorphic)
 end
 
@@ -1019,7 +1019,7 @@ function is_canonically_isomorphic_with_map(M::SubquoModule{T}, N::SubquoModule{
     f = restrict_codomain(f, N)
     return true, f
   else
-    return false, hom(M, N, [zero(N) for _ in 1:gens(M)])
+    return false, hom(M, N, [zero(N) for _ in 1:ngens(M)])
   end
 end
 
@@ -1708,7 +1708,7 @@ function quotient(M::SubquoModule, J::Ideal)
   return simplify_light(res)[1]
 end
 
-(::Colon)(M::SubquoModule, J::Ideal) = quotient(M, N)
+(::Colon)(M::SubquoModule, J::Ideal) = quotient(M, J)
 
 function _quotient(U::SubModuleOfFreeModule, J::Ideal) ### TODO Replace by generic method
   error("not implemented for the given types of modules.")

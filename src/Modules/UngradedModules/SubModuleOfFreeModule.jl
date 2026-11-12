@@ -427,16 +427,15 @@ end
 @doc raw"""
     is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 
-Check if `M` are canonically isomorphic. This means that if `F = ambient_free_module(M)` is 
-isomorphic to `G = ambient_free_module(N)` and the image of `M` under `canonical_isomorphism(F, G)`
-is equal to `N`.
+Check if `M` and `N` are canonically isomorphic. This means that
+`has_canonical_isomorphism(F, G)` holds for `F = ambient_free_module(M)` and
+`G = ambient_free_module(N)`, and the image of `M` under
+`canonical_isomorphism(F, G)` is equal to `N`.
 """
 function is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   F = ambient_free_module(M)
   G = ambient_free_module(N)
-  if !is_isomorphic(F, G)
-    return false
-  end
+  has_canonical_isomorphism(F, G) || return false
   f = canonical_isomorphism(F,G)
   return SubModuleOfFreeModule(G, [f(v) for v in gens(M)]) == N
 end
@@ -498,7 +497,7 @@ function in_atomic(a::FreeModElem{T}, M::SubModuleOfFreeModule) where {S<:Union{
   return iszero(reduce(a, standard_basis(M)))
 end
 
-@attr Any function solve_ctx(M::SubModuleOfFreeModule)
+@attr AbstractAlgebra.Solve.solve_context_type(parent_type(T)) function solve_ctx(M::SubModuleOfFreeModule{T}) where {T}
   F = ambient_free_module(M)
   d, n = rank(F), ngens(M)
   R = base_ring(F)

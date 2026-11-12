@@ -440,3 +440,18 @@ end
   X = subscheme(P1,ideal(s0^2*s1))
   @test length(irreducible_components(X))==2
 end 
+
+# covered scheme morphism of a projective morphism with coefficient map
+@testset "covered scheme morphism with coefficient map" begin
+  kk = GF(5)
+  pr = MapFromFunc(ZZ, kk, kk)
+  IP2 = projective_space(ZZ, 2)
+  IP2_5, _ = base_change(pr, IP2)
+  S = homogeneous_coordinate_ring(IP2)
+  S5 = homogeneous_coordinate_ring(IP2_5)
+  (x, y, z) = gens(S5)
+  f = ProjectiveSchemeMor(IP2_5, IP2, hom(S, S5, pr, [y, x, z]))
+  f_cov = covered_scheme_morphism(f)
+  @test domain(f_cov) === covered_scheme(IP2_5)
+  @test codomain(f_cov) === covered_scheme(IP2)
+end

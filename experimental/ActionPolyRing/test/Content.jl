@@ -30,6 +30,17 @@
       tRi(differential_polynomial_ring(S, 2, action_derivation.([map_from_func(S, S, p -> derivative(p, 1)), map_from_func(S, S, p -> derivative(p, 2))]))[1])
     end
 
+    @testset "divexact by zero" begin
+      for R in (difference_polynomial_ring(ZZ, 2, 3)[1],
+                differential_polynomial_ring(QQ, 2, 3)[1],
+                difference_polynomial_ring(residue_ring(ZZ, ZZ(18))[1], 2, 3)[1])
+        for check in (true, false)
+          @test_throws DivideError divexact(one(R), zero(R); check)
+          @test_throws DivideError divexact(zero(R), zero(R); check)
+        end
+      end
+    end
+
   end
 
   @testset "Check types" begin
@@ -64,7 +75,7 @@
 
       S, x = polynomial_ring(QQ, :x)
       shifts = action_shift.([hom(S, S, -x), hom(S, S, x + 1)])
-      derivations = action_derivation.([map_from_func(S, S, p -> derivative(p)), map_from_func(S, S, p -> x * derivative(p))])
+      derivations = action_derivation.([map_from_func(S, S, derivative), map_from_func(S, S, p -> x * derivative(p))])
       @test_throws MethodError difference_polynomial_ring(S, 1, derivations)
       @test_throws MethodError differential_polynomial_ring(S, 1, shifts)
     end
@@ -145,21 +156,21 @@
 
         @testset "Check other" begin
           @test !is_univariate(dpr)
-          @test all(var -> is_univariate(var), vars)
+          @test all(is_univariate, vars)
           @test_throws ErrorException to_univariate(u1*u2)
           @test typeof(to_univariate(u1)) == ZZPolyRingElem
           R, univ_var = polynomial_ring(ZZ; cached = false)
           @test to_univariate(R, u1^2 - u1) == univ_var^2 - univ_var
           @test parent(to_univariate(R, u1^2 - u1)) === R
 
-          @test all(var -> is_irreducible(var), vars)
+          @test all(is_irreducible, vars)
           @test !is_irreducible(u1^2)
           @test !is_irreducible(u1*u2)
           @test !is_irreducible(zero(dpr))
           @test !is_irreducible(one(dpr))
 
-          @test all(var -> is_monomial(var), vars)
-          @test all(var -> is_term(var), vars)
+          @test all(is_monomial, vars)
+          @test all(is_term, vars)
           @test all(var -> !is_monomial(3*var), vars)
           @test all(var -> is_term(3*var), vars)
           @test all(var -> !is_monomial(3*var+1), vars)
@@ -241,7 +252,7 @@
 
           @test u1_010 > u1_100 > u1 > u2_100 > u2 > u3_111 > u3 #position over term and invlex
           @test gens(dpr) == [u1_010, u1_100, u1, u2_100, u2, u3_111, u3]
-          @test all(var -> is_gen(var), gens(dpr))
+          @test all(is_gen, gens(dpr))
 
           #Permutations
           @test !__are_perms_up_to_date(dpr)
@@ -308,7 +319,7 @@
             @test !is_unit(dpr())
             @test is_constant(dpr())
             @test is_univariate(dpr())
-            @test_throws ErrorException inv(dpr())
+            @test_throws DivideError inv(dpr())
             @test_throws ArgumentError trailing_coefficient(dpr())
             @test_throws ArgumentError trailing_term(dpr())
             @test_throws ArgumentError trailing_monomial(dpr())
@@ -506,7 +517,7 @@
           @test u3_111 > u2_100 > u2 > u3 > u1_100 > u1_010 > u1
           @test [var_index(u1_010), var_index(u1), var_index(u3_111)] == [6,7,1]
           @test gens(dpr) == [u3_111, u2_100, u2, u3, u1_100, u1_010, u1]
-          @test all(var -> is_gen(var), gens(dpr))
+          @test all(is_gen, gens(dpr))
 
           #Permutations
           @test !__are_perms_up_to_date(dpr)
@@ -574,7 +585,7 @@
             @test !is_unit(dpr())
             @test is_constant(dpr())
             @test is_univariate(dpr())
-            @test_throws ErrorException inv(dpr())
+            @test_throws DivideError inv(dpr())
             @test_throws ArgumentError trailing_coefficient(dpr())
             @test_throws ArgumentError trailing_term(dpr())
             @test_throws ArgumentError trailing_monomial(dpr())
