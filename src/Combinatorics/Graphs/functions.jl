@@ -173,7 +173,7 @@ function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, AbstractMatrix
   for i in 1:n
     for j in 1:(T==Undirected ? i-1 : n)
       if isone(G[i,j])
-        _add_edge_unchecked!(g, i, j)
+        add_edge!(g, i, j;check=false)
       else
         iszero(G[i,j]) || error("not an adjacency matrix")
       end
@@ -224,26 +224,21 @@ julia> n_edges(mg)
 2
 ```
 """
-function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-  n = n_vertices(g)
-  (0 < source <= n && 0 < target <= n) || return false
-  pmg = pm_object(g)
-  Polymake._has_edge(pmg, source - 1, target - 1) && return false
-  Polymake._add_edge(pmg, source - 1, target - 1)
+function add_edge!(g::Graph{T}, source::Int64, target::Int64; check::Bool=true) where {T <: Union{Directed, Undirected}}
+  if check
+    n = n_vertices(g)
+    (0 < source <= n && 0 < target <= n) || return false
+    pmg = pm_object(g)
+    Polymake._has_edge(pmg, source - 1, target - 1) && return false
+    Polymake._add_edge(pmg, source - 1, target - 1)
+  else
+    Polymake._add_edge(pm_object(g), source - 1, target - 1)
+  end
   return true
 end
 
-# Internal method to add the edge `(source, target)` to the graph `g`,
-# without the checks of `add_edge!`.
-# We leave it to the user to make sure the operation is valid.
-# Adding an edge that is already there does nothing.
-function _add_edge_unchecked!(g::Graph{T}, source::Int, target::Int) where {T <: Union{Directed, Undirected}}
-  Polymake._add_edge(pm_object(g), source - 1, target - 1)
-  return g
-end
-
-add_edge!(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64) = add_edge!(_directed_component(mg), source, target)
-add_edge!(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64) = add_edge!(_undirected_component(mg), source, target)
+add_edge!(mg::MixedGraph, ::Type{Directed}, source::Int64, target::Int64; check::Bool=true) = add_edge!(_directed_component(mg), source, target;check=check)
+add_edge!(mg::MixedGraph, ::Type{Undirected}, source::Int64, target::Int64; check::Bool=true) = add_edge!(_undirected_component(mg), source, target;check=check)
 
 @doc raw"""
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -2067,7 +2062,7 @@ function graph_from_edges(::Type{T},
   g = graph(T, max(n_needed, n_vertices))
   for e in edges
     (src(e) >= 1 && dst(e) >= 1) || continue
-    _add_edge_unchecked!(g, src(e), dst(e))
+    add_edge!(g, src(e), dst(e);check=false)
   end
 
   return g
@@ -2159,13 +2154,13 @@ function graph_from_edges(::Type{Mixed},
   gd = _directed_component(g)
   for e in directed_edges
     (src(e) >= 1 && dst(e) >= 1) || continue
-    _add_edge_unchecked!(gd, src(e), dst(e))
+    add_edge!(gd, src(e), dst(e);check=false)
   end
 
   gu = _undirected_component(g)
   for e in undirected_edges
     (src(e) >= 1 && dst(e) >= 1) || continue
-    _add_edge_unchecked!(gu, src(e), dst(e))
+    add_edge!(gu, src(e), dst(e);check=false)
   end
 
   return g
