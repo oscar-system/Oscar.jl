@@ -126,6 +126,9 @@ function _pd_zero_decomposition_lex_zero(I::MPolyIdeal; primary::Bool)
   o = lex(R)
   G = collect(groebner_basis(I; ordering=o, algorithm=:fglm))
   lead(g) = exponent_vector(leading_monomial(g; ordering=o), 1)
+  # a component with the generators of `G` is `I`, whose other bases are known; the
+  # conversion by FGLM is expensive for a quotient of large dimension
+  whole(gs) = length(gs) == length(G) && all(in(G), gs)
   fried = [g for g in G if sum(lead(g)) == 1]
   rest = [g for g in G if sum(lead(g)) > 1]
   fvars = [findfirst(==(1), lead(g)) for g in fried]
@@ -133,8 +136,8 @@ function _pd_zero_decomposition_lex_zero(I::MPolyIdeal; primary::Bool)
   if isempty(fried) || !all(g -> all(((_, e),) -> all(i -> e[i] == 0, fvars), _pd_terms(g)), rest)
     comps = _pd_zero_decomp(R, G; primary)
     return map(comps) do (Q, P)
-      JQ = _pd_with_bases(R, Q, o)
-      return (JQ, Q == P ? JQ : _pd_with_bases(R, P, o))
+      JQ = whole(Q) ? I : _pd_with_bases(R, Q, o)
+      return (JQ, Q == P ? JQ : whole(P) ? I : _pd_with_bases(R, P, o))
     end
   end
   isempty(rest) && return [(_pd_with_bases(R, fried, o), _pd_with_bases(R, fried, o))]
@@ -174,8 +177,8 @@ function _pd_zero_decomposition_lex_zero(I::MPolyIdeal; primary::Bool)
   return map(comps) do (Q, P)
     gQ = with_fried(Q)
     gP = Q == P ? gQ : with_fried(P)
-    JQ = _pd_with_bases(R, gQ, o)
-    return (JQ, gP === gQ ? JQ : _pd_with_bases(R, gP, o))
+    JQ = whole(gQ) ? I : _pd_with_bases(R, gQ, o)
+    return (JQ, gP === gQ ? JQ : whole(gP) ? I : _pd_with_bases(R, gP, o))
   end
 end
 
