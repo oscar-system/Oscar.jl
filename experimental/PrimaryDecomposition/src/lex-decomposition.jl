@@ -47,6 +47,11 @@ function _pd_lex_extension_basis(E::_PDExtension, I::MPolyIdeal)
   return [_pd_to_ext(E, G[i]) for i in keep]
 end
 
+# `zero_decomp` is always called with `ch = 0` and only its primary components are
+# used: the primes it returns can be wrong, for instance `(x1)` for the component
+# `(x1 - x3)^3` with `ch = 1` and the primary ideal itself instead of its radical
+# with `ch = 0`. The prime of a component is its radical, computed by Singular.
+
 # Run `f` without Singular's warning about ideals not known to be standard bases.
 function _pd_without_sb_warning(f)
   old = Singular.libSingular.set_option("V_NSB", true)
@@ -69,11 +74,15 @@ function _pd_zero_decomposition_lex(E::_PDExtension, I::MPolyIdeal; primary::Boo
   SR = base_ring(Sg)
   zero = Singular.Ideal(SR, SR(0))
   res = _pd_without_sb_warning() do
-    Singular.LibPrimdec.zero_decomp(Sg, zero, primary ? 0 : 1)
+    Singular.LibPrimdec.zero_decomp(Sg, zero, 0)
   end
   # `zero_decomp` does not return reduced bases, which can be much larger
   back(sid) = filter(!is_zero, collect(IdealGens(E.Rx, Singular.std(sid; complete_reduction=true))))
-  comps = [(back(res[2k-1]), back(res[2k])) for k in 1:(length(res) ÷ 2)]
+  comps = [(back(res[2k-1]), back(Singular.LibPrimdec.radical(SR, res[2k-1]))) for k in 1:(length(res) ÷ 2)]
+  # a lost component would give a wrong contraction, see `_pd_zero_components_complete`
+  oX = lex(E.Rx)
+  count(gs) = _pd_standard_count(_pd_lex_leads(gs, oX))
+  sum(count(Q) for (Q, _) in comps) == count(gx) || error("zero_decomp lost components")
   return comps, _pd_lex_lead_coeffs(E, gx)
 end
 
@@ -99,10 +108,10 @@ function _pd_zero_decomp(S::MPolyRing, gs::Vector; primary::Bool)
   SR = base_ring(Sg)
   zero = Singular.Ideal(SR, SR(0))
   res = _pd_without_sb_warning() do
-    Singular.LibPrimdec.zero_decomp(Sg, zero, primary ? 0 : 1)
+    Singular.LibPrimdec.zero_decomp(Sg, zero, 0)
   end
   back(sid) = filter(!is_zero, collect(IdealGens(S, Singular.std(sid; complete_reduction=true))))
-  return [(back(res[2k-1]), back(res[2k])) for k in 1:(length(res) ÷ 2)]
+  return [(back(res[2k-1]), back(Singular.LibPrimdec.radical(SR, res[2k-1]))) for k in 1:(length(res) ÷ 2)]
 end
 
 # The primary components (or the associated primes if `primary` is false) of a
@@ -183,11 +192,41 @@ end
 function _pd_try_zero_decomposition_lex_zero(I::MPolyIdeal; primary::Bool)
   _pd_singular_supported(coefficient_ring(base_ring(I))) || return nothing
   try
-    return _pd_zero_decomposition_lex_zero(I; primary)
+    comps = _pd_zero_decomposition_lex_zero(I; primary)
+    return _pd_zero_components_complete(I, comps) ? comps : nothing
   catch e
     e isa ErrorException || rethrow()
     return nothing
   end
+end
+
+# The number of monomials that are not divisible by any of the exponent vectors
+# `leads`, which is the dimension of the quotient by a zero-dimensional ideal if the
+# vectors are the leading monomials of a Groebner basis.
+function _pd_standard_count(leads::Vector{Vector{Int}}, k::Int=1)
+  isempty(leads) && return typemax(Int)
+  k > length(first(leads)) && return 0
+  total = 0
+  e = 0
+  while true
+    restricted = [l for l in leads if l[k] <= e]
+    # a pure power of the variable `k` that divides `x_k^e` leaves no monomials
+    any(l -> all(iszero, l[k+1:end]), restricted) && return total
+    total += _pd_standard_count(restricted, k + 1)
+    e += 1
+  end
+end
+
+_pd_lex_leads(gs, o) = Vector{Int}[exponent_vector(leading_monomial(g; ordering=o), 1) for g in gs]
+
+# Whether the components `(Q, P)` of the zero-dimensional ideal `I` have the vector
+# space dimensions of `I` in total, which they have if no component is missing:
+# `zero_decomp` can lose components (for `cyclic-6` over a finite field it returns
+# 120 of the 156 points) and then the matrix based decomposition is used instead.
+function _pd_zero_components_complete(I::MPolyIdeal, comps)
+  o = lex(base_ring(I))
+  count(J) = _pd_standard_count(_pd_lex_leads(groebner_basis(J; ordering=o), o))
+  return sum(count(Q) for (Q, _) in comps) == count(I)
 end
 
 # The distinct non-unit leading coefficients (in `K[u]`) of the lexicographical

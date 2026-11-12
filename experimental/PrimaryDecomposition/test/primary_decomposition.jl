@@ -99,4 +99,20 @@ using Oscar
   @test all(g -> g in S, new)
   @test Oscar._pd_saturate_leads(L + ideal(R, new), U) == S
   @test Oscar._pd_contract(E, gens(Jr)) == S
+
+  # the primes of the lex decomposition are radicals of the components, and a
+  # decomposition that loses components is detected: the intersection of powers of
+  # four linear primes has these four minimal primes, and cyclic-6 has 156 solutions
+  R, x = polynomial_ring(GF(32003), 6, :x)
+  Ps = [ideal(R, [x[1], x[2]]), ideal(R, [x[3] - x[1], x[4] + x[2]]),
+        ideal(R, [x[5] - x[1] - x[3], x[6] - x[2]]), ideal(R, [x[1] + x[2] + x[3], x[4] - x[5], x[6]])]
+  I = intersect(Ps[1]^3, Ps[2]^3, Ps[3]^2, Ps[4]^2)
+  L = minimal_associated_primes_gtz(I)
+  @test length(L) == 4
+  @test all(P -> any(==(P), L), Ps)
+  R, x = polynomial_ring(GF(32003), 6, :x)
+  I = ideal(R, push!([sum(prod(x[mod1(i + j, 6)] for j in 0:k-1) for i in 1:6) for k in 1:5], prod(x) - 1))
+  L = minimal_associated_primes_gtz(I)
+  @test length(L) == 90
+  @test sum(degree(P) for P in L) == 156
 end
