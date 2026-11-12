@@ -8,15 +8,11 @@ function non_taut_part_of_homology(o::Origami, homology_basis)
 end
 
 function action_of_matrix_on_homology(o::Origami, a::Matrix)
-  # TODO does not work yet because of error in GAP package, change
-  # IsMatrixObj to IsMatrix in homologyaction.gd
   return GAP.gap_to_julia(
     GAP.Globals.ActionOfMatrixOnHom(GapObj(o), GapObj(a)))
 end
 
 function action_of_matrix_on_non_taut(o::Origami, a::Matrix)
-  # TODO does not work yet because of error in GAP package, change
-  # IsMatrixObj to IsMatrix in homologyaction.gd
   return GAP.gap_to_julia(
     GAP.Globals.ActionOfMatrixOnNonTaut(GapObj(o), GapObj(a)))
 end
