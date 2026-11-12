@@ -1,0 +1,269 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://www.mardi4nfdi.de/mrdi/schema.json",
+  "title": "mrdi namespace 1.0.0",
+  "description": "Files using the types of the mrdi namespace. Types of other namespaces, such as {\"name\": ..., \"_ns\": \"Oscar\"}, are accepted without checking their params or data.",
+  "type": "object",
+  "allOf": [{ "$ref": "#/$defs/object" }],
+  "properties": {
+    "_ns": {
+      "type": "object",
+      "properties": {
+        "mrdi": {
+          "type": "array",
+          "items": [
+            { "const": "https://www.mardi4nfdi.de/mrdi" },
+            { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" }
+          ],
+          "additionalItems": false,
+          "minItems": 2
+        }
+      },
+      "required": ["mrdi"]
+    },
+    "_refs": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/uuid" },
+      "additionalProperties": { "$ref": "#/$defs/object" }
+    }
+  },
+  "required": ["_ns", "_type"],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$"
+    },
+    "intString": { "type": "string", "pattern": "^-?[0-9]+$" },
+    "integerData": {
+      "oneOf": [{ "type": "integer" }, { "$ref": "#/$defs/intString" }]
+    },
+    "rationalData": { "type": "string", "pattern": "^-?[0-9]+(//[0-9]+)?$" },
+
+    "object": {
+      "description": "A typed object: a type and the data it describes.",
+      "type": "object",
+      "properties": {
+        "_type": { "$ref": "#/$defs/type" },
+        "id": { "$ref": "#/$defs/uuid" }
+      },
+      "required": ["_type"],
+      "allOf": [
+        { "if": { "$ref": "#/$defs/typeIs/Boolean" }, "then": { "properties": { "data": { "type": "boolean" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/String" }, "then": { "properties": { "data": { "type": "string" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/Symbol" }, "then": { "properties": { "data": { "type": "string" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/Integers" }, "then": { "not": { "required": ["data"] } } },
+        { "if": { "$ref": "#/$defs/typeIs/Rationals" }, "then": { "not": { "required": ["data"] } } },
+        { "if": { "$ref": "#/$defs/typeIs/Integer" }, "then": { "properties": { "data": { "$ref": "#/$defs/integerData" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/Rational" }, "then": { "properties": { "data": { "$ref": "#/$defs/rationalData" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/HomogeneousList" }, "then": { "$ref": "#/$defs/listData" } },
+        { "if": { "$ref": "#/$defs/typeIs/Set" }, "then": { "$ref": "#/$defs/listData" } },
+        { "if": { "$ref": "#/$defs/typeIs/InhomogeneousList" }, "then": { "properties": { "data": { "type": "array" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/FiniteField" }, "then": { "$ref": "#/$defs/finiteFieldData" } },
+        { "if": { "$ref": "#/$defs/typeIs/FiniteFieldElement" }, "then": { "properties": { "data": { "$ref": "#/$defs/finiteFieldElementData" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/PolynomialRing" }, "then": { "properties": { "data": { "$ref": "#/$defs/polynomialRingData" } }, "required": ["data"] } },
+        { "if": { "$ref": "#/$defs/typeIs/Polynomial" }, "then": { "properties": { "data": { "$ref": "#/$defs/polynomialData" } }, "required": ["data"] } }
+      ]
+    },
+
+    "typeIs": {
+      "description": "Conditions matching an object whose _type is the given mrdi type.",
+      "Boolean": { "properties": { "_type": { "const": "Boolean" } }, "required": ["_type"] },
+      "String": { "properties": { "_type": { "const": "String" } }, "required": ["_type"] },
+      "Symbol": { "properties": { "_type": { "const": "Symbol" } }, "required": ["_type"] },
+      "Integers": { "properties": { "_type": { "const": "Integers" } }, "required": ["_type"] },
+      "Rationals": { "properties": { "_type": { "const": "Rationals" } }, "required": ["_type"] },
+      "Integer": { "properties": { "_type": { "anyOf": [{ "const": "Integer" }, { "$ref": "#/$defs/types/Integer" }] } }, "required": ["_type"] },
+      "Rational": { "properties": { "_type": { "anyOf": [{ "const": "Rational" }, { "$ref": "#/$defs/types/Rational" }] } }, "required": ["_type"] },
+      "HomogeneousList": { "properties": { "_type": { "$ref": "#/$defs/types/HomogeneousList" } }, "required": ["_type"] },
+      "Set": { "properties": { "_type": { "$ref": "#/$defs/types/Set" } }, "required": ["_type"] },
+      "InhomogeneousList": { "properties": { "_type": { "$ref": "#/$defs/types/InhomogeneousList" } }, "required": ["_type"] },
+      "FiniteField": { "properties": { "_type": { "$ref": "#/$defs/types/FiniteField" } }, "required": ["_type"] },
+      "FiniteFieldElement": { "properties": { "_type": { "$ref": "#/$defs/types/FiniteFieldElement" } }, "required": ["_type"] },
+      "PolynomialRing": { "properties": { "_type": { "$ref": "#/$defs/types/PolynomialRing" } }, "required": ["_type"] },
+      "Polynomial": { "properties": { "_type": { "$ref": "#/$defs/types/Polynomial" } }, "required": ["_type"] }
+    },
+
+    "type": {
+      "description": "A type: an mrdi type, or a type of another namespace.",
+      "oneOf": [
+        { "enum": ["Boolean", "String", "Symbol", "Integers", "Rationals", "Integer", "Rational"] },
+        { "$ref": "#/$defs/types/Integer" },
+        { "$ref": "#/$defs/types/Rational" },
+        { "$ref": "#/$defs/types/HomogeneousList" },
+        { "$ref": "#/$defs/types/Set" },
+        { "$ref": "#/$defs/types/InhomogeneousList" },
+        { "$ref": "#/$defs/types/FiniteField" },
+        { "$ref": "#/$defs/types/FiniteFieldElement" },
+        { "$ref": "#/$defs/types/PolynomialRing" },
+        { "$ref": "#/$defs/types/Polynomial" },
+        { "$ref": "#/$defs/types/foreign" }
+      ]
+    },
+
+    "parent": {
+      "description": "The parent of elements: a reference into _refs, or an inline typed object such as {\"_type\": \"Rationals\"}.",
+      "oneOf": [{ "$ref": "#/$defs/uuid" }, { "$ref": "#/$defs/object" }]
+    },
+
+    "types": {
+      "Integer": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "Integer" },
+          "params": { "properties": { "_type": { "const": "Integers" } }, "required": ["_type"] }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "Rational": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "Rational" },
+          "params": { "properties": { "_type": { "const": "Rationals" } }, "required": ["_type"] }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "HomogeneousList": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "HomogeneousList" },
+          "params": { "$ref": "#/$defs/type" }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "Set": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "Set" },
+          "params": { "$ref": "#/$defs/type" }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "InhomogeneousList": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "InhomogeneousList" },
+          "params": { "type": "array", "items": { "$ref": "#/$defs/type" } }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "FiniteField": {
+        "description": "Without params a prime field, with params an extension given by a defining polynomial over the parent in params.",
+        "type": "object",
+        "properties": {
+          "name": { "const": "FiniteField" },
+          "params": { "$ref": "#/$defs/parent" },
+          "_instance": { "type": "string" }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      },
+      "FiniteFieldElement": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "FiniteFieldElement" },
+          "params": { "$ref": "#/$defs/parent" }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "PolynomialRing": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "PolynomialRing" },
+          "params": { "$ref": "#/$defs/parent" }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "Polynomial": {
+        "type": "object",
+        "properties": {
+          "name": { "const": "Polynomial" },
+          "params": { "$ref": "#/$defs/parent" }
+        },
+        "required": ["name", "params"],
+        "additionalProperties": false
+      },
+      "foreign": {
+        "description": "A type of another namespace; its params are not checked.",
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "_ns": { "type": "string", "not": { "const": "mrdi" } },
+          "_instance": { "type": "string" }
+        },
+        "required": ["name", "_ns"]
+      }
+    },
+
+    "listData": {
+      "description": "Lists and sets, with the entries checked for element types without parents.",
+      "properties": { "data": { "type": "array" } },
+      "required": ["data"],
+      "allOf": [
+        { "if": { "properties": { "_type": { "properties": { "params": { "const": "Boolean" } } } } }, "then": { "properties": { "data": { "items": { "type": "boolean" } } } } },
+        { "if": { "properties": { "_type": { "properties": { "params": { "enum": ["String", "Symbol"] } } } } }, "then": { "properties": { "data": { "items": { "type": "string" } } } } },
+        { "if": { "properties": { "_type": { "properties": { "params": { "anyOf": [{ "const": "Integer" }, { "$ref": "#/$defs/types/Integer" }] } } } } }, "then": { "properties": { "data": { "items": { "$ref": "#/$defs/integerData" } } } } },
+        { "if": { "properties": { "_type": { "properties": { "params": { "anyOf": [{ "const": "Rational" }, { "$ref": "#/$defs/types/Rational" }] } } } } }, "then": { "properties": { "data": { "items": { "$ref": "#/$defs/rationalData" } } } } }
+      ]
+    },
+
+    "denseOrSparseCoefficients": {
+      "description": "A univariate polynomial as a list of [exponent, coefficient] pairs.",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [{ "type": "integer", "minimum": 0 }, {}],
+        "additionalItems": false,
+        "minItems": 2
+      }
+    },
+
+    "finiteFieldData": {
+      "if": { "properties": { "_type": { "required": ["params"] } } },
+      "then": {
+        "properties": { "data": { "$ref": "#/$defs/denseOrSparseCoefficients" } },
+        "required": ["data"]
+      },
+      "else": {
+        "properties": { "data": { "$ref": "#/$defs/integerData" } },
+        "required": ["data"]
+      }
+    },
+
+    "finiteFieldElementData": {
+      "description": "An integer for elements of prime fields, else the coefficients of the element in the power basis of the defining polynomial.",
+      "oneOf": [
+        { "$ref": "#/$defs/integerData" },
+        { "$ref": "#/$defs/denseOrSparseCoefficients" }
+      ]
+    },
+
+    "polynomialRingData": {
+      "type": "object",
+      "properties": {
+        "symbols": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "required": ["symbols"]
+    },
+
+    "polynomialData": {
+      "description": "A list of terms [exponent vector, coefficient], the coefficient being data of an element of the coefficient ring.",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+          {}
+        ],
+        "additionalItems": false,
+        "minItems": 2
+      }
+    }
+  }
+}
