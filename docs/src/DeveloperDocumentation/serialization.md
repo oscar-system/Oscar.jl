@@ -431,6 +431,29 @@ On load, `deserializer_open` opens each ref file before deserializing the main f
 Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
 
 
+### Namespaces
+
+The header `_ns` of a file lists the namespaces it uses. Besides `Oscar`,
+files written by OSCAR list the `mrdi` namespace, which consists of the types
+agreed upon between the systems implementing the mrdi format, such as
+`Integer`, `Rational`, `HomogeneousList`, `PolynomialRing` and `Polynomial`.
+The list of these types is kept in `src/Serialization/mrdi.jl`.
+
+The `mrdi` namespace is the default namespace of a file listing it, so types of
+this namespace are written without a namespace. All other types are tagged with
+the namespace `Oscar`:
+
+```json
+"_type": {
+  "name": "HomogeneousList",
+  "params": {"name": "Base.Int", "_ns": "Oscar"}
+}
+```
+
+Files that only list the `mrdi` namespace, as written by other systems, can be
+loaded as well. They are not upgraded, since they carry no OSCAR version.
+
+
 ### Upgrades
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
