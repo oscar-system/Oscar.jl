@@ -153,7 +153,7 @@ function action_of_s_on_homology_of_tn(n::Int)
 end
 
 @doc raw"""
-    action_of_matrix_on_homology_of_tn(n::Int, A::Matrix)
+    action_of_matrix_on_homology_of_tn(n::Int, A::ZZMatrix)
 
 Returns: a matrix representing the action of ``A \in {\rm SL}_2(\mathbb{Z})`` on the homology of ``T_n`` with respect to ``L``.
 
@@ -163,10 +163,9 @@ fixed. ``A`` must be in ``{\rm SL}_2(\mathbb{Z})``. It is written as a word in t
 `action_of_t_on_homology_of_tn` is taken and returned.
 
 ```jldoctest
-julia> M = [0 -1; 1 1] # = S * T
-2×2 Matrix{Int64}:
- 0  -1
- 1   1
+julia> M = matrix(ZZ, [0 -1; 1 1]) # = S * T
+[0   -1]
+[1    1]
 
 julia> matrix(ZZ, action_of_matrix_on_homology_of_tn(2, M))
 [ 0   -1   0   0    0]
@@ -176,7 +175,7 @@ julia> matrix(ZZ, action_of_matrix_on_homology_of_tn(2, M))
 [-1   -1   0   1   -1]
 ```
 """
-function action_of_matrix_on_homology_of_tn(n::Int, A::Matrix)
+function action_of_matrix_on_homology_of_tn(n::Int, A::ZZMatrix)
   return matrix(ZZ, GAP.Globals.ActionOfMatrixOnHomologyOfTn(n, GapObj(A)))
 end
 
@@ -245,7 +244,7 @@ function action_of_t_on_extended_homology_of_tn(n::Int)
 end
 
 @doc raw"""
-    action_of_matrix_on_extended_homology_of_tn(n::Int, A::Matrix)
+    action_of_matrix_on_extended_homology_of_tn(n::Int, A::ZZMatrix)
 
 Returns: a matrix representing the action of ``A \in {\rm SL}_2(\mathbb{Z})`` on the homology of ``T_n`` with respect to ``L``
 extended by the loop around the ``n^2``-th puncture.
@@ -257,10 +256,9 @@ except for the identity matrix ``A = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix
 ``E F = \begin{pmatrix} I_N & c \\ 0 & 0 \end{pmatrix}``.
 
 ```jldoctest
-julia> M = [0 -1; 1 1] # = S * T
-2×2 Matrix{Int64}:
- 0  -1
- 1   1
+julia> M = matrix(ZZ, [0 -1; 1 1]) # = S * T
+[0   -1]
+[1    1]
 
 julia> action_of_matrix_on_extended_homology_of_tn(2, M)
 [ 0   -1   0   0    0   0]
@@ -271,6 +269,6 @@ julia> action_of_matrix_on_extended_homology_of_tn(2, M)
 [ 0    0   0   0    0   0]
 ```
 """
-function action_of_matrix_on_extended_homology_of_tn(n::Int, A::Matrix)
+function action_of_matrix_on_extended_homology_of_tn(n::Int, A::ZZMatrix)
   return _extend_homology_action(action_of_matrix_on_homology_of_tn(n, A))
 end
