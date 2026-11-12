@@ -31,7 +31,7 @@ Origami ((1,2),(2,3), 3)
 ```
 """
 function origami(h::PermGroupElem, v::PermGroupElem; check=true)
-  d = max(largest_moved_point(h), largest_moved_point(v))
+  d = max(largest_moved_point(h), largest_moved_point(v), 1)
   G = symmetric_group(d)
   if check
     obj = GAP.Globals.Origami(GapObj(h), GapObj(v))
