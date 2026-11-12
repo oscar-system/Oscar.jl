@@ -572,7 +572,8 @@ function orbit_via_Julia(G::Union{Group, FinGenAbGroup}, fun::F, omega, ::Type{S
       push!(orb, img)
     end
   end
-  res = as_gset(G, fun, orb)
+  res = GSetByElements(G, fun, orb; check = false)
+  set_attribute!(res, :elements => collect(orb))
   # We know that this G-set is transitive.
   set_attribute!(res, :orbits => [res])
   return res
