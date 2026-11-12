@@ -23,7 +23,7 @@ end
 
 Returns a cyclic torus cover of degree ``d = 2`` whose critical points are exactly the point ``P = (x,y)`` and the
 three copies of ``P`` that are obtained by rotating ``P`` around the center of the ``n``-torus. The coordinates are
-given in the range ``0, \dots, (n - 1)^2``, where the point ``(0,0)`` is located in the lower left corner.
+given in the range ``0, \dots, n - 1``, where the point ``(0,0)`` is located in the lower left corner.
 ``P = (x,y)`` must not be a 2-torsion point, that is, it must not be ``(0,0)``, ``(n/2, n/2)``, ``(n/2,0)`` or
 ``(0,n/2)``. The coordinates are considered modulo ``n``. See [HS07](@cite) for more details.
 
