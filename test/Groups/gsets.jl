@@ -169,7 +169,9 @@
 
   # via a G-set, its element type wins
   @test_throws ArgumentError orbit(gset(G, mixed_action, [1]), 1)
-  @test length(orbit(gset(G, mixed_action, Union{Int, Float64}[1]), 1)) == 4
+  @test orbit(gset(G, mixed_action, Union{Int, Float64}[1]), 1) isa
+        Oscar.GSetByElements{PermGroup, Union{Int, Float64}}
+  @test length(orbits(gset(G, mixed_action, Union{Int, Float64}[1]))) == 1
 
   # permutation
   G = alternating_group(6)
