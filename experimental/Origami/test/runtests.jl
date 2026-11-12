@@ -203,8 +203,8 @@ end
     r = matrix(ZZ, n^2 + 2, 1, [0; 0; fill(1, n^2)])
     @test iszero(S * r)
     @test iszero(T * r)
-    @test action_of_matrix_on_extended_homology_of_tn(n, [0 -1; 1 0]) == S
-    @test action_of_matrix_on_extended_homology_of_tn(n, [1 1; 0 1]) == T
-    @test action_of_matrix_on_extended_homology_of_tn(n, [0 -1; 1 1]) == S * T
+    @test action_of_matrix_on_extended_homology_of_tn(n, matrix(ZZ, [0 -1; 1 0])) == S
+    @test action_of_matrix_on_extended_homology_of_tn(n, matrix(ZZ, [1 1; 0 1])) == T
+    @test action_of_matrix_on_extended_homology_of_tn(n, matrix(ZZ, [0 -1; 1 1])) == S * T
   end
 end
