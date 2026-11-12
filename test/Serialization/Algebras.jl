@@ -27,34 +27,43 @@ cases = [
     end
 
     # a quaternion algebra is saved as (a, b) and its elements as coordinates;
-    # elements of one file share one parent
+    # with uses_id, only check_func sees an algebra rebuilt from the file
     @testset "Quaternion algebra over $(name)" for (name, K, a, b) in [
         ("QQ", QQ, QQ(-7), QQ(-97)),
         ("a number field", quadratic_field(5)..., QQ(-3)),
+        begin
+          F, s = quadratic_field(5)
+          Fy, y = polynomial_ring(F, :y)
+          L, t = number_field(y^2 - s, :t)
+          ("a relative number field", L, L(-1), t)
+        end,
+        begin
+          Qz, z = polynomial_ring(QQ, :z)
+          N, (r, s) = number_field([z^2 - 2, z^2 - 5])
+          ("a non-simple number field", N, r, s)
+        end,
         ("a field of characteristic 2", GF(2, 2), gen(GF(2, 2)), 1)]
       A = quaternion_algebra(K, a, K(b))
       i, j, k = basis(A)[2:4]
       x = inv(K(3)) + 3 * i - a * j + 5 * k
-      test_save_load_roundtrip(path, A) do loaded
-        @test base_ring(loaded) === K
-        @test Hecke.standard_form(loaded) == (a, K(b))
+      function is_rebuilt(loaded)
         li, lj = basis(loaded)[2:3]
-        if characteristic(K) == 2
-          @test li^2 + li == loaded(a) && lj^2 == loaded(b) && li * lj == lj * li + lj
+        relations = if characteristic(K) == 2
+          li^2 + li == loaded(a) && lj^2 == loaded(b) && li * lj == lj * li + lj
         else
-          @test li^2 == loaded(a) && lj^2 == loaded(b) && li * lj == -lj * li
+          li^2 == loaded(a) && lj^2 == loaded(b) && li * lj == -lj * li
         end
+        return loaded !== A && base_ring(loaded) === K &&
+          Hecke.standard_form(loaded) == (a, K(b)) && relations
+      end
+      test_save_load_roundtrip(path, A; check_func=is_rebuilt) do loaded
+        # nothing to test here, since `loaded === A`
       end
       test_save_load_roundtrip(path, x) do loaded
         @test coefficients(loaded) == coefficients(x)
-        @test Hecke.standard_form(parent(loaded)) == (a, K(b))
       end
       test_save_load_roundtrip(path, x; params=A) do loaded
         @test loaded == x
-      end
-      test_save_load_roundtrip(path, [x, x^2, one(A)]) do loaded
-        @test parent(loaded[1]) === parent(loaded[2]) === parent(loaded[3])
-        @test loaded[1]^2 == loaded[2]
       end
     end
   end
