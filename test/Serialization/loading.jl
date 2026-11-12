@@ -61,6 +61,27 @@ end
   end
 end
 
+# files written by other systems may only use the mrdi namespace
+@testset "mrdi namespace only" begin
+  str = """
+  {
+    "_ns": {"mrdi": ["https://www.mardi4nfdi.de/mrdi", "1.0.0"]},
+    "_type": {"name": "Polynomial", "params": "a1b2c3d4-0000-4000-8000-000000000001"},
+    "data": [[[2, 0], "1//2"], [[0, 1], "-3"]],
+    "_refs": {
+      "a1b2c3d4-0000-4000-8000-000000000001": {
+        "_type": {"name": "PolynomialRing", "params": {"_type": "Rationals"}},
+        "data": {"symbols": ["x", "y"]}
+      }
+    }
+  }
+  """
+  p = load(IOBuffer(str))
+  x, y = gens(parent(p))
+  @test p == QQ(1, 2) * x^2 - 3 * y
+  Oscar.reset_global_serializer_state()
+end
+
 @testset "pretty printing" begin
   mktempdir() do path
     filename = joinpath(path, "pretty.mrdi")
@@ -73,13 +94,20 @@ end
     "Oscar":[
       "https://github.com/oscar-system/Oscar.jl",
       "$version_info"
+    ],
+    "mrdi":[
+      "https://www.mardi4nfdi.de/mrdi",
+      "1.0.0"
     ]
   },
   "_type":{
     "name":"HomogeneousList",
     "params":{
       "name":"HomogeneousList",
-      "params":"Base.Int"
+      "params":{
+        "name":"Base.Int",
+        "_ns":"Oscar"
+      }
     }
   },
   "data":[
