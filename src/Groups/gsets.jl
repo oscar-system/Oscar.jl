@@ -568,8 +568,7 @@ function orbit_via_Julia(G::Union{Group, FinGenAbGroup}, fun::F, omega, ::Type{S
   for p in orb
     for g in acts
       img = fun(p, g)
-      img isa S || throw(ArgumentError(
-        "the action function maps a point to an object of type $(typeof(img)), which is not of type $S"))
+      @req img isa S "the action function maps a point to an object of type $(typeof(img)), which is not of type $S"
       push!(orb, img)
     end
   end
