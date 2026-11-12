@@ -95,10 +95,8 @@ function doit(
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
   formats::Vector{Symbol} = [:html],
-  pdf_method::Symbol = :pdf_via_latex,
 )
   issubset(formats, (:html, :pdf)) || error("unknown format in $formats")
-  pdf_method in (:pdf_via_latex, :pdf_via_docker) || error("unknown pdf_method: $pdf_method")
   oscardir = Base.pkgdir(Oscar)
 
   # include the list of pages, performing substitutions
@@ -203,7 +201,7 @@ function doit(
       ))
     end
     if :pdf in formats
-      push!(format, Documenter.LaTeX(; platform = pdf_method == :pdf_via_docker ? "docker" : "native"))
+      push!(format, Documenter.LaTeX())
     end
 
     makedocs(;
