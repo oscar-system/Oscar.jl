@@ -268,7 +268,7 @@ end
 
 # so far only genus 2 & 3 supported
 # other strata may still be explored manually by using the read_cylinder_diagrams function
-# genus 3 still contains errors and is thus not available right now, but will hopefully be fixed soon.
+# genus 3 is still missing H(3, 1); otherwise it works now.
 function origamis(stratum::Vector{Int}, degree::Int)::Set{Origami}
   file_name = ""
   if stratum == [1, 1]
