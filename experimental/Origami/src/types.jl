@@ -5,7 +5,7 @@ struct Origami
   d::Int
 end
 
-struct Normal_stored_origami
+struct NormalStoredOrigami
   o::GapObj
   h::PermGroupElem
   v::PermGroupElem

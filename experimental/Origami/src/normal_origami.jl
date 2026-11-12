@@ -1,9 +1,9 @@
 function normal_stored_origami(h::PermGroupElem, v::PermGroupElem, g::Oscar.GAPGroup)
-  return Normal_stored_origami(
+  return NormalStoredOrigami(
     GAP.Globals.NormalStoredOrigami(GapObj(h), GapObj(v), GapObj(g)), h, v, g
   )
 end
-function as_permutation_representation(o::Normal_stored_origami)
+function as_permutation_representation(o::NormalStoredOrigami)
   return GAP.Globals.AsPermutationRepresentation(GapObj(o))
 end
 
