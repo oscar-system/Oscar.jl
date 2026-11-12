@@ -379,6 +379,91 @@ On load, `deserializer_open` opens each ref file before deserializing the main f
 Files ending in `.gz` are decompressed automatically via `GzipDecompressorStream`.
 
 
+### Testing
+
+Every type that supports serialization should have a round trip test in
+`test/Serialization/` (or in the `test` folder of the corresponding
+experimental package). These tests use the helper `test_save_load_roundtrip`,
+which is defined in `test/Serialization/setup_tests.jl` and hence available
+in all test files of that directory.
+
+```julia
+@testset "Univariate Polynomial" begin
+  mktempdir() do path
+    R, z = polynomial_ring(QQ, :z)
+    p = z^2 + 2 * z + 3
+
+    test_save_load_roundtrip(path, p) do loaded
+      @test loaded == p
+    end
+
+    test_save_load_roundtrip(path, p; params=R) do loaded
+      @test loaded == p
+    end
+  end
+end
+```
+
+The call `test_save_load_roundtrip(func, path, original; kw...)` saves
+`original` to a file in the directory `path` and loads it again in several
+ways: from a file, from a file written without references, from an `IOBuffer`,
+and from an `IOBuffer` with the type passed to `load`. Each time it tests that
+the loaded object has the same type as `original` and then calls
+`func(loaded)`, which is where the tests specific to the type belong, written
+with `@test` as usual. Afterwards the object is loaded twice more after
+calling `Oscar.reset_global_serializer_state()`, and the file is validated
+against the `mrdi` schema.
+
+The following keyword arguments are supported, any other keyword argument is
+passed on to both `save` and `load`.
+
+- `params`: passed on to `load`, use this to test loading into a given
+  parent, see the example above. Note that testing `parent(loaded) === R`
+  there would be trivially satisfied, with or without `params`, since the
+  parent is stored by its id, see below.
+- `serializer`: the serializer to use, by default `JSONSerializer()`. For the
+  multi file serializers only the first of the loads listed above is done.
+- `check_func`: a function that takes the loaded object and returns a `Bool`,
+  see below.
+
+#### `check_func`
+
+During the loads that call `func` the global serializer state still knows
+`original`, so whenever `original` is stored as a reference, which is the
+case for all types registered with `uses_id`, these loads return `original`
+itself and not a new object. Tests in `func` that compare `loaded` with
+`original` are then trivially satisfied, and they cannot detect data that is
+missing from the file.
+
+In contrast, `check_func` is called exactly once, at the very end, on the
+object from the last load. That load happens after the global serializer
+state has been reset and with `params=Oscar.type_and_params(original)`, so the
+object itself has been rebuilt from the contents of the file. Its parameters
+are not rebuilt, they are taken from `original`: for example the elements of a
+loaded vector of polynomials have the polynomial ring of `original` as their
+parent, both in `func` and in `check_func`. Hence neither of the two functions
+can test how parents are reconstructed from a file.
+
+One can still test the reconstruction of a parent by doing a round trip with
+the parent itself as the only top-level object and verifying some of its
+invariants in `check_func`. In that case `func` is still of no use, since it
+only ever sees `original`.
+
+Note that unlike `func`, the function `check_func` must not contain any
+`@test`, its return value is tested instead.
+
+A typical use is to check whether attributes were stored:
+
+```julia
+is_abelian(L) # call a function that stores an attribute
+test_save_load_roundtrip(
+  path, L; with_attrs=true,
+  check_func=loaded -> has_attribute(loaded, :is_abelian),
+) do loaded
+  # nothing to test here, since `loaded === L`
+end
+```
+
 ### Upgrades
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
