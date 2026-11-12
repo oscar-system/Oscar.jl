@@ -205,11 +205,10 @@ function veech_group(o::Origami)
     P = orbit[i]
 
     for (j, Q0) in enumerate((action_s(P), action_t(P)))
-      Q = normal_form(Q0)
-      key = canonical_origami_key(Q)
+      key = canonical_origami_key(Q0)
       k = get!(index_of, key, length(orbit) + 1)
       if k > length(orbit)
-        push!(orbit, Q)
+        push!(orbit, origami(perm(key.h), perm(key.v); check=false))
         push!(queue, k)
       end
       imgs = j == 1 ? s_imgs : t_imgs
