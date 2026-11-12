@@ -19,6 +19,7 @@ import ..Oscar:
   coefficient_ring,
   coefficients,
   cochain_complex,
+  compose,
   cone,
   coordinates,
   coordinates_atomic,
@@ -106,16 +107,15 @@ export FaceQ
 export IndecInj
 export InjMod
 export InjRes
+export InjectiveModuleHom
 export IrrRes
 export IrrSum
 export MonoidAlgebra
 export MonoidAlgebraElem
 export MonoidAlgebraIdeal
-export MonomialMatrix
 export affine_semigroup
 export augmentation_map
 export cochain_maps
-export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
 export holes_module
@@ -130,7 +130,6 @@ export local_cohomology
 export local_cohomology_all
 export monoid_algebra
 export monoid_algebra_ideal
-export monomial_matrix
 export Q_graded_part
 export sectors
 export semigroup_generators
@@ -214,25 +213,98 @@ function +(I::IrrSum, J::IrrSum)
 end
 
 @doc raw"""
-    MonomialMatrix{T}
+    InjectiveModuleHom{D}
 
-A map between direct sums of indecomposable injectives (`T = InjMod`) or of
-their $Q$-graded parts (`T = IrrSum`) in the sense of [HM05](@cite). It consists of a scalar
-matrix whose rows and columns are labelled by the summands of the source and
-the target. The entry in row $r$ and column $c$ is the coefficient of the
-monomial $x^{a_c - a_r}$ of the map between the corresponding summands.
+A homomorphism from `D` (an `InjMod` or a `SubquoModule`) into an injective module,
+given by a monomial matrix in the sense of [HM05](@cite). Rows are labelled by the
+summands (resp. generators) of the domain, columns by the summands of the codomain.
 """
-struct MonomialMatrix{T <: Union{InjMod, IrrSum}}
-  matrix::MatElem   # scalar matrix over the coefficient field
-  source::T
-  target::T
-  index::Int        # cohomological degree i of the differential d^i
+struct InjectiveModuleHom{D <: Union{InjMod, SubquoModule}}
+  domain::D
+  codomain::InjMod
+  matrix::MatElem
+
+  function InjectiveModuleHom(dom::D, cod::InjMod, A::MatElem; check::Bool = true) where {D <: Union{SubquoModule, InjMod}}
+    @assert size(A) == (_number_of_sources(dom), length(cod.indec_injectives))
+    # zero out nonzero entries where the Hom space is zero (one integer program each)
+    if check
+      Q = affine_semigroup(cod.monoid_algebra)
+      A = deepcopy(A)
+      for i in 1:nrows(A), j in 1:ncols(A)
+        is_zero(A[i, j]) && continue
+        _has_nonzero_hom(dom, i, cod.indec_injectives[j], Q) || (A[i, j] = zero(base_ring(A)))
+      end
+    end
+    return new{D}(dom, cod, A)
+  end
+end 
+
+domain(phi::InjectiveModuleHom) = phi.domain
+codomain(phi::InjectiveModuleHom) = phi.codomain
+matrix(phi::InjectiveModuleHom) = phi.matrix
+
+_number_of_sources(J::InjMod) = length(J.indec_injectives)
+_number_of_sources(M::SubquoModule) = ngens(M)
+
+# x ∈ a + ZF - Q  ⇔  a - x ∈ Q + ZF
+in_shifted_localization(x::FinGenAbGroupElem, a::FinGenAbGroupElem, F::FaceQ, Q::AffineSemigroup) =
+  in_localization(_int_vector(a) .- _int_vector(x), Q, F.semigroup)
+
+
+@doc raw"""
+    has_nonzero_hom(s::IndecInj, t::IndecInj, Q::AffineSemigroup)
+
+Return whether $\operatorname{Hom}(k\{a+F-Q\}, k\{b+G-Q\}) \neq 0$ for
+`s = (a, F)` and `t = (b, G)`, i.e. whether $G \subseteq F$ and $b \in a + \mathbb ZF - Q$.
+"""
+function has_nonzero_hom(s::IndecInj, t::IndecInj, Q::AffineSemigroup)
+  return _is_subface(t.face, s.face) &&
+         in_shifted_localization(t.vector, s.vector, s.face, Q)
 end
 
-matrix(mm::MonomialMatrix) = mm.matrix
-domain(mm::MonomialMatrix) = mm.source
-codomain(mm::MonomialMatrix) = mm.target
-cohomological_degree(mm::MonomialMatrix) = mm.index
+# a generator of degree d can hit k{b + G - Q} only if d ∈ b + ZG - Q
+function has_nonzero_hom(d::FinGenAbGroupElem, t::IndecInj, Q::AffineSemigroup)
+  return in_shifted_localization(d, t.vector, t.face, Q)
+end
+
+@doc raw"""
+    admissible_entries(dom, J::InjMod)
+
+Boolean matrix whose `(r, c)` entry says whether the `r`-th source of `dom`
+can map nonzero into the `c`-th summand of `J`.
+"""
+function admissible_entries(dom::InjMod, J::InjMod)
+  Q = affine_semigroup(J.monoid_algebra)
+  return [has_nonzero_hom(s, t, Q) for s in dom.indec_injectives, t in J.indec_injectives]
+end
+
+function admissible_entries(M::SubquoModule, J::InjMod)
+  Q = affine_semigroup(J.monoid_algebra)
+  return [has_nonzero_hom(degree(g), t, Q) for g in gens(M), t in J.indec_injectives]
+end
+
+# whether the i-th summand (resp. generator) of the domain can map nonzero into t
+_has_nonzero_hom(J::InjMod, i::Int, t::IndecInj, Q::AffineSemigroup) =
+  has_nonzero_hom(J.indec_injectives[i], t, Q)
+
+function _has_nonzero_hom(M::SubquoModule, i::Int, t::IndecInj, Q::AffineSemigroup)
+  g = M[i]
+  return !is_zero(g) && has_nonzero_hom(degree(g), t, Q)
+end
+
+
+# zero test
+function is_zero(phi::InjectiveModuleHom)
+  return is_zero(matrix(phi))
+end
+# compose two InjectiveModuleHoms
+function compose(f1::InjectiveModuleHom, f2::InjectiveModuleHom)
+  @req codomain(f1) === domain(f2) "maps are not composable"
+  # between injectives admissibility is transitive, so no masking is needed;
+  # for a module domain a generator degree may lie outside the smaller target
+  return InjectiveModuleHom(domain(f1), codomain(f2), matrix(f1) * matrix(f2);
+                            check = domain(f1) isa SubquoModule)
+end
 
 # scalar coefficients of a matrix with monomial entries over the monoid algebra
 function _scalar_matrix(kQ::MonoidAlgebra, A::MatElem)
@@ -243,8 +315,8 @@ end
 struct InjRes #ZZ^d-graded injective resolution
   mod::SubquoModule
   inj_mods::Vector{InjMod}
-  augmentation_map::MatElem                     # scalar matrix of M -> J^0
-  cochain_maps::Vector{MonomialMatrix{InjMod}}  # d^0, d^1, ..., d^{upto-1}
+  augmentation_map::InjectiveModuleHom{<:SubquoModule} # M -> J^0
+  cochain_maps::Vector{InjectiveModuleHom{InjMod}}     # d^0, d^1, ..., d^{upto-1}
   upto::Int
   Q_graded_part::IrrRes
   shift::FinGenAbGroupElem
@@ -280,7 +352,7 @@ injective_modules(res::InjRes) = res.inj_mods
 
 Return the differentials $d^0, d^1, \dots$ of the resolution `res`, that is,
 the maps between consecutive terms. For an injective resolution these are
-`MonomialMatrix` objects, for an irreducible resolution module homomorphisms.
+[`InjectiveModuleHom`](@ref)s, for an irreducible resolution module homomorphisms.
 The map from the resolved module into the first term is [`augmentation_map`](@ref).
 """
 cochain_maps(res::InjRes) = res.cochain_maps
@@ -290,10 +362,11 @@ cochain_maps(res::InjRes) = res.cochain_maps
     augmentation_map(res::IrrRes)
 
 Return the map $\epsilon$ from the resolved module $M$ into the first term of
-the resolution `res`. For an injective resolution this is the scalar matrix
-whose entry $(i, j)$ is the coefficient with which the $i$-th generator of $M$
-maps into the $j$-th summand of $J^0$, for an irreducible resolution it is the
-module homomorphism $M \to \overline{W}^0$.
+the resolution `res`. For an injective resolution this is an
+[`InjectiveModuleHom`](@ref) $M \to J^0$, whose scalar matrix has as entry $(i, j)$
+the coefficient with which the $i$-th generator of $M$ maps into the $j$-th
+summand of $J^0$. For an irreducible resolution it is the module homomorphism
+$M \to \overline{W}^0$.
 """
 augmentation_map(res::InjRes) = res.augmentation_map
 augmentation_map(res::IrrRes) = res.cochain_maps[1]
@@ -341,12 +414,13 @@ Check whether the cochain complex of the irreducible resolution `res` is exact.
 """
 is_exact(res::IrrRes) = is_exact(res.cochain_complex)
 
-function Base.show(io::IO, mm::MonomialMatrix{InjMod})
-  print(io, "Monomial matrix for J^", mm.index, " -> J^", mm.index + 1)
-end
-
-function Base.show(io::IO, mm::MonomialMatrix{IrrSum})
-  print(io, "Monomial matrix for W^", mm.index, " -> W^", mm.index + 1)
+function Base.show(io::IO, phi::InjectiveModuleHom)
+  if is_terse(io)
+    print(io, "Map into an injective module")
+  else
+    A = matrix(phi)
+    print(io, "Map into an injective module given by a ", nrows(A), " x ", ncols(A), " monomial matrix")
+  end
 end
 
 function _show_indec(io::IO, J::IndecInj, ::Type{InjMod})
@@ -356,18 +430,29 @@ function _show_indec(io::IO, J::IndecInj, ::Type{IrrSum})
   println(io, "  k{", J.vector, " + F - Q}_Q, where p_F = ", J.face.prime)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", mm::MonomialMatrix{T}) where T
-  src_label, tgt_label = T == InjMod ? ("J^$(mm.index)", "J^$(mm.index + 1)") : ("W^$(mm.index)", "W^$(mm.index + 1)")
-  println(io, "Monomial matrix for $src_label -> $tgt_label")
-  println(io, "source summands ($src_label):")
-  for J in mm.source.indec_injectives
-    _show_indec(io, J, T)
+function Base.show(io::IO, ::MIME"text/plain", phi::InjectiveModuleHom)
+  println(io, "Map into an injective module given by the monomial matrix")
+  _show_source(io, domain(phi))
+  println(io, "target summands:")
+  for J in codomain(phi).indec_injectives
+    _show_indec(io, J, InjMod)
   end
-  println(io, "target summands ($tgt_label):")
-  for J in mm.target.indec_injectives
-    _show_indec(io, J, T)
+  print(io, matrix(phi))
+end
+
+# row labels of the monomial matrix of an InjectiveModuleHom
+function _show_source(io::IO, J::InjMod)
+  println(io, "source summands:")
+  for Ji in J.indec_injectives
+    _show_indec(io, Ji, InjMod)
   end
-  print(io, mm.matrix)
+end
+
+function _show_source(io::IO, M::SubquoModule)
+  println(io, "source generators:")
+  for g in gens(M)
+    is_zero(g) ? println(io, "  ", g) : println(io, "  ", g, " of degree ", degree(g))
+  end
 end
 
 function Base.show(io::IO,J::InjMod)
@@ -422,29 +507,6 @@ function Base.show(io::IO, ::MIME"text/plain", res::IrrRes)
   end
   println(io, "of ", res.mod)
   print(pretty(io), "over ", Lowercase(), base_ring(res.mod))
-end
-
-@doc raw"""
-    monomial_matrix(i::Int, res::IrrRes)
-    monomial_matrix(i::Int, res::InjRes)
-
-Return the differential $d^i$ of the (co)chain complex of `res` as a
-`MonomialMatrix`.
-
-Here `i` is the cohomological degree of the differential
-$d^i \colon W^i \to W^{i+1}$ (resp. $J^i \to J^{i+1}$).
-"""
-function monomial_matrix(i::Int, res::IrrRes)
-  n = length(res.irr_sums)
-  @req 0 <= i <= n - 2 "cohomological degree i must be in 0:$(n - 2) for this resolution"
-  A = _scalar_matrix(base_ring(res.mod), matrix(res.cochain_maps[i + 2]))
-  return MonomialMatrix(A, res.irr_sums[i + 1], res.irr_sums[i + 2], i)
-end
-
-function monomial_matrix(i::Int, res::InjRes)
-  n = length(res.cochain_maps)
-  @req 0 <= i <= n - 1 "cohomological degree i must be in 0:$(n - 1) for this resolution"
-  return res.cochain_maps[i + 1]
 end
 
 function Base.show(io::IO, ::MIME"text/plain", Ji::IndecInj)
@@ -868,7 +930,7 @@ function relevant_generators(N::SubquoModule{T}, p::FaceQ, b::SubquoModuleElem{T
 
   rel_gens = Vector{SubquoModuleElem}()
   for g in filter(!is_zero,gens(N))
-    if intersects(degree(Vector{Int},g),Q, degree(Vector{Int},b),G_F)
+    if in_shifted_localization(degree(Vector{Int},g),Q, degree(Vector{Int},b),G_F)
       push!(rel_gens,g)
     end
   end
@@ -885,7 +947,7 @@ function relevant_relations(N::SubquoModule{T},p::FaceQ, b::SubquoModuleElem{T},
   R = relations(N)
   rel_rels = Vector{FreeModElem{elem_type(kQ)}}()
   for r in R
-    if intersects(degree(Vector{Int},r),Q,degree(Vector{Int},b),G_F)
+    if in_shifted_localization(degree(Vector{Int},r),Q,degree(Vector{Int},b),G_F)
       push!(rel_rels,r)
     end
   end
@@ -1507,15 +1569,19 @@ function injective_resolution(M::SubquoModule{<:MonoidAlgebraElem}, i::Int; shif
     push!(inj_modules, InjMod(kQ, shifted_comp))
   end
 
-  # the embedding M -> J^0 and the differentials d^k: J^k -> J^{k+1} as
-  # monomial matrices (irr_res.cochain_maps[1] is the embedding, [k+2] is d^k)
-  emb = _scalar_matrix(kQ, matrix(irr_res.cochain_maps[1]))
-  cochain_maps = MonomialMatrix{InjMod}[]
+  # the embedding M -> J^0 and the differentials d^k: J^k -> J^{k+1}
+  # (irr_res.cochain_maps[1] is the embedding, [k+2] is d^k)
+  # irreducible_hull only uses relevant generators, so the matrices vanish
+  # wherever the Hom space is zero and the admissibility check can be skipped
+  eps = InjectiveModuleHom(M, inj_modules[1], _scalar_matrix(kQ, matrix(irr_res.cochain_maps[1])); check = false)
+  d = InjectiveModuleHom{InjMod}[]
   for k in 0:(length(inj_modules) - 2)
     A = _scalar_matrix(kQ, matrix(irr_res.cochain_maps[k + 2]))
-    push!(cochain_maps, MonomialMatrix(A, inj_modules[k + 1], inj_modules[k + 2], k))
+    push!(d, InjectiveModuleHom(inj_modules[k + 1], inj_modules[k + 2], A; check = false))
   end
-  return InjRes(M, inj_modules, emb, cochain_maps, length(inj_modules) - 1, irr_res, a_shift)
+  @check isempty(d) || is_zero(compose(eps, d[1])) "d^0 ∘ ε is not zero"
+  @check all(k -> is_zero(compose(d[k], d[k + 1])), 1:(length(d) - 1)) "d^{k+1} ∘ d^k is not zero"
+  return InjRes(M, inj_modules, eps, d, length(inj_modules) - 1, irr_res, a_shift)
 end
 
 # Rank of M over Frac(k[Q]): 0 for torsion modules, otherwise from the
@@ -1630,10 +1696,10 @@ end
     injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
 
 Return the injective hull $E(M)$ of the finitely generated $\mathbb{Z}^d$-graded
-module `M` as an `InjMod` together with the scalar matrix of the embedding
-$M \hookrightarrow E(M)$, whose entry $(i, j)$ is the coefficient with which the
-$i$-th generator of `M` maps into the $j$-th summand of $E(M)$, as
-[`augmentation_map`](@ref) returns it for a resolution.
+module `M` as an `InjMod` together with the embedding $M \hookrightarrow E(M)$
+as an [`InjectiveModuleHom`](@ref), as [`augmentation_map`](@ref) returns it for
+a resolution. The entry $(i, j)$ of its scalar matrix is the coefficient with
+which the $i$-th generator of `M` maps into the $j$-th summand of $E(M)$.
 """
 function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
   kQ = base_ring(M)
@@ -1652,7 +1718,7 @@ function injective_hull(M::SubquoModule{<:MonoidAlgebraElem})
     indec -> IndecInj(indec.face, indec.vector - a_shift), J.indec_injectives
   ))
 
-  return E,lambda
+  return E, InjectiveModuleHom(M, E, lambda; check = false)
 end
 
 # import local cohomology functions
@@ -1674,11 +1740,10 @@ export IrrSum
 export MonoidAlgebra
 export MonoidAlgebraElem
 export MonoidAlgebraIdeal
-export MonomialMatrix
+export InjectiveModuleHom
 export affine_semigroup
 export augmentation_map
 export cochain_maps
-export cohomological_degree
 export degree_shift
 export degrees_of_bass_numbers
 export holes_module
@@ -1693,7 +1758,6 @@ export local_cohomology
 export local_cohomology_all
 export monoid_algebra
 export monoid_algebra_ideal
-export monomial_matrix
 export Q_graded_part
 export sectors
 export semigroup_generators

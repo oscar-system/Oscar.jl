@@ -191,6 +191,10 @@ function (Q::AffineSemigroup)(v::FinGenAbGroupElem)
   return AffineSemigroupElem(Q, v)
 end
 
+function (Q::AffineSemigroup{T})(coords::Vector{ZZRingElem}) where {T}
+  return AffineSemigroupElem(Q, coords)
+end
+
 function Base.show(io::IO, v::AffineSemigroupElem)
   print(io, repres(v))
 end
@@ -343,17 +347,37 @@ function _generates_ambient_lattice(S::AffineSemigroup)
   return rank(M) == ambient_dim(S) && all(diag_entries .== 1)
 end
 
-# check if (g + Q) \cap (a + \ZZ G) is non-empty
-function intersects(g::AbstractVector, Q::AffineSemigroup,
-                    a::AbstractVector, G::ZZMatrix)
+# # check if (g + Q) \cap (a + \ZZ G) is non-empty
+# function intersects(g::AbstractVector, Q::AffineSemigroup,
+#                     a::AbstractVector, G::ZZMatrix)
+#   MQ = _generator_matrix(Q)
+#   m, k = nrows(MQ), nrows(G)
+#   A = hcat(transpose(MQ), -transpose(G))                  # d × (m+k)
+#   b = matrix(ZZ, ncols(MQ), 1, ZZ.(a) .- ZZ.(g))
+#   C = hcat(identity_matrix(ZZ, m), zero_matrix(ZZ, m, k)) # x ≥ 0, y free
+#   sol = solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, m, 1); permit_unbounded = true)
+#   return nrows(sol) > 0
+# end
+
+@doc raw"""
+    in_localization(v, Q::AffineSemigroup, F::AffineSemigroup)
+
+Check whether `v` lies in the localization $Q + \mathbb ZF = Q - F$ of `Q` at the face `F`.
+"""
+function in_localization(v::AbstractVector{<:IntegerUnion}, Q::AffineSemigroup, F::AffineSemigroup)
+  @req length(v) == ambient_dim(Q) "the point does not lie in the ambient space"
+  MF = _generator_matrix(F)
+  nrows(MF) == 0 && return v in Q                          # F = {0}:  Q_F = Q
+  rank(MF) == ambient_dim(Q) && return in_group_lattice(v, Q)  # F = Q:  Q_F = ZQ
   MQ = _generator_matrix(Q)
-  m, k = nrows(MQ), nrows(G)
-  A = hcat(transpose(MQ), -transpose(G))                  # d × (m+k)
-  b = matrix(ZZ, ncols(MQ), 1, ZZ.(a) .- ZZ.(g))
-  C = hcat(identity_matrix(ZZ, m), zero_matrix(ZZ, m, k)) # x ≥ 0, y free
-  sol = solve_mixed(ZZMatrix, A, b, C, zero_matrix(ZZ, m, 1); permit_unbounded = true)
+  A = hcat(transpose(MQ), -transpose(MF))                 # solve M_Q^T u - M_F^T w = v, u, w ≥ 0
+  b = matrix(ZZ, length(v), 1, ZZ.(v))
+  sol = solve_non_negative(ZZMatrix, A, b; permit_unbounded = true)
   return nrows(sol) > 0
 end
+
+in_localization(v::FinGenAbGroupElem, Q::AffineSemigroup, F::AffineSemigroup) =
+  in_localization(_int_vector(v), Q, F)
 
 function faces(S::AffineSemigroup{T}) where T
   d = ambient_dim(S)

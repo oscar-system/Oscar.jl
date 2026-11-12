@@ -23,14 +23,17 @@
     inj_res_Q = Q_graded_part(inj_res)
     @test is_exact(inj_res_Q)
 
-    # getters, monomial matrices, minimality, injective hull
+    # getters, maps of injective modules, minimality, injective hull
     @test length(injective_modules(inj_res)) == inj_res.upto + 1
     @test length(cochain_maps(inj_res)) == inj_res.upto
-    @test nrows(augmentation_map(inj_res)) == ngens(M)
-    @test base_ring(augmentation_map(inj_res)) == QQ
-    mm = monomial_matrix(0, inj_res)
-    @test mm === cochain_maps(inj_res)[1]
-    @test cohomological_degree(mm) == 0
+    eps = augmentation_map(inj_res)
+    @test domain(eps) === M
+    @test codomain(eps) === injective_modules(inj_res)[1]
+    @test nrows(matrix(eps)) == ngens(M)
+    @test base_ring(matrix(eps)) == QQ
+    @test !is_zero(eps)
+    mm = cochain_maps(inj_res)[1]
+    @test is_zero(compose(eps, mm))
     @test domain(mm) === injective_modules(inj_res)[1]
     @test codomain(mm) === injective_modules(inj_res)[2]
     @test nrows(matrix(mm)) == length(indecomposable_injectives(domain(mm)))
@@ -38,13 +41,15 @@
     @test base_ring(matrix(mm)) == QQ
     @test length(cochain_maps(irr_res)) == length(irreducible_sums(irr_res)) - 1
     @test domain(augmentation_map(irr_res)) === M
-    @test nrows(matrix(monomial_matrix(0, irr_res))) == length(indecomposable_injectives(irreducible_sums(irr_res)[1]))
+    @test nrows(matrix(cochain_maps(irr_res)[1])) == length(indecomposable_injectives(irreducible_sums(irr_res)[1]))
     @test is_minimal(inj_res)
     @test degree_shift(inj_res) isa Vector{Int}
     @test monoid_algebra(injective_modules(inj_res)[1]) == kQ
     E, lambda = injective_hull(M)
     @test length(indecomposable_injectives(E)) == 2
-    @test lambda == augmentation_map(injective_resolution(M, 0))
+    @test domain(lambda) === M
+    @test codomain(lambda) === E
+    @test matrix(lambda) == matrix(augmentation_map(injective_resolution(M, 0)))
     @test irreducible_sums(irr_res) == irr_res.irr_sums
     @test_throws ArgumentError injective_resolution(M, 1; shift=:foo)
 

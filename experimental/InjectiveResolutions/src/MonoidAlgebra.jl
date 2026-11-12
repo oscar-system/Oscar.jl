@@ -96,6 +96,11 @@ Return all faces of the cone $\mathbb{R}_{\geq 0}Q$ of the monoid algebra `A` $=
   return [FaceQ(prime_of_face(A, f[2]), f[2]) for f in faces(S)]
 end
 
+function _is_subface(G::FaceQ, F::FaceQ)
+  gF = Set(gens(Vector{ZZRingElem}, F.semigroup))
+  return all(in(gF), gens(Vector{ZZRingElem}, G.semigroup))
+end
+
 function hyperplanes(A::MonoidAlgebra)
   return hyperplanes(affine_semigroup(A))
 end
