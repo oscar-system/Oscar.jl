@@ -44,8 +44,7 @@ function deck_group(o::Origami)
 end
 
 function is_normal(o::Origami)
-  # the deck group acts freely on each fibre, so its order is at most the degree
-  return order(deck_group(o)) == degree(o)
+  return is_regular(sub(perm_group(o), [horizontal_perm(o), vertical_perm(o)])[1])
 end
 
 # TODO implement AsNormalStoredOrigami
