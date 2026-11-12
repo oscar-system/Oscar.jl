@@ -51,7 +51,6 @@ function from_GAP_origami(o::GapObj)
 end
 
 function Base.:(==)(a::Origami, b::Origami)
-  # TODO rewrite this? for now use Gap equality
   # the degree must be compared as well, so that `==` stays consistent with `hash`
   return (a.h == b.h) && (a.v == b.v) && (a.d == b.d)
 end
