@@ -2,7 +2,7 @@
 
 
 @doc raw"""
-      in_deck_group(o::Origami, sigma::PermGroupElem)
+    in_deck_group(o::Origami, sigma::PermGroupElem)
 
 Checks whether or not the permutation sigma defines a deck transformation of the origami o.
 
@@ -25,7 +25,7 @@ function in_deck_group(o::Origami, sigma::PermGroupElem)
 end
 
 @doc raw"""
-      deck_group(o::Origami)
+    deck_group(o::Origami)
 
 Computes the group of deck transformations of the origami o as a covering of the once punctured torus. Note that the deck transformations can be seen as permutations of the squares of the origami.
 

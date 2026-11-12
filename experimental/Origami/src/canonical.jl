@@ -95,7 +95,7 @@ function normalform_conjugators(o::Origami)
 end
 
 @doc raw"""
-      normal_form(o::Origami)
+    normal_form(o::Origami)
 
 Computes a normal form of a given origami. This normal form has the property that two origamis are equivalent if and only if their normal forms are equal. Note that this method does not copy any previously computed attributes from the old origami to the new one.
 

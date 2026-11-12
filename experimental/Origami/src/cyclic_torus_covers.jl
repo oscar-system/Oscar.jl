@@ -1,5 +1,5 @@
 @doc raw"""
-      generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector{Int64}, hslits::Vector{Int64})
+    generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector{Int64}, hslits::Vector{Int64})
 
 Given integers ``d, n \ge 1``, this function returns an origami of degree ``n^2 d`` in the following way: First,
 for each ``i = 1, \dots, d`` we take ``n^2`` cornerless squares (``s_{i,1}, \dots, s_{i,n^2}``) and arrange them in
@@ -19,7 +19,7 @@ function generalized_cyclic_torus_cover(n::Int, d::Int, vslits::Vector{Int64}, h
 end
 
 @doc raw"""
-      comb_origami(n::Int, x::Int, y::Int)
+    comb_origami(n::Int, x::Int, y::Int)
 
 Returns a cyclic torus cover of degree ``d = 2`` whose critical points are exactly the point ``P = (x,y)`` and the
 three copies of ``P`` that are obtained by rotating ``P`` around the center of the ``n``-torus. The coordinates are
@@ -38,7 +38,7 @@ function comb_origami(n::Int, x::Int, y::Int)
 end
 
 @doc raw"""
-      cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector{Int64})
+    cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector{Int64})
 
 Returns: a cyclic torus cover origami whose monodromy vector with respect to the basis ``S`` is `v`.
 
@@ -53,7 +53,7 @@ function cyclic_torus_cover_origamiS(n::Int, d::Int, v::Vector{Int64})
 end
 
 @doc raw"""
-      cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector{Int64})
+    cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector{Int64})
 
 Returns: a cyclic torus cover origami whose monodromy vector with respect to the basis ``L`` is `v`.
 
@@ -68,7 +68,7 @@ function cyclic_torus_cover_origamiL(n::Int, d::Int, v::Vector{Int64})
 end
 
 @doc raw"""
-      base_change_l_to_s(n::Int)
+    base_change_l_to_s(n::Int)
 
 Returns a matrix ``M = D_{SL}`` corresponding to the change of basis from ``L`` to ``S`` on the homology of ``T_n``.
 The matrix has the following property: given any cyclic torus cover origami as a monodromy vector ``v`` with respect
