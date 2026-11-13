@@ -349,7 +349,7 @@ function save_type_and_params(s::SerializerState, tp::TypeAndParams)
   save_data_dict(s) do
     T = type(tp)
     if reverse_type_map[encode_type(T)] isa Dict
-      save_object(s, convert_type_to_string(T), :_instance)
+      save_object(s, encode_instance(T), :_instance)
     end
 
     save_type_name(s, T)
@@ -368,7 +368,7 @@ function save_type_and_params(s::SerializerState,
   if reverse_type_map[encode_type(T)] isa Dict
     save_data_dict(s) do
       save_type_name(s, T)
-      save_object(s, convert_type_to_string(T), :_instance)
+      save_object(s, encode_instance(T), :_instance)
     end
   else
     save_type_name(s, T, nothing)
@@ -565,11 +565,11 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
     init = reverse_type_map[str]
     # promote the value to a dictionary if necessary
     if init isa Type
-      init = Dict{String, Type}(convert_type_to_string(init) => init)
+      init = Dict{String, Type}(encode_instance(init) => init)
     end
-    reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
+    reverse_type_map[str] = merge(Dict{String, Type}(encode_instance(T) => T), init)
   elseif default
-    reverse_type_map[str] = Dict{String, Type}(convert_type_to_string(T) => T)
+    reverse_type_map[str] = Dict{String, Type}(encode_instance(T) => T)
   else
     reverse_type_map[str] = T
   end
@@ -604,8 +604,10 @@ serialize_with_id(obj::Any) = false
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any, default::Bool)
   return esc(
     quote
-      Oscar.Serialization.register_serialization_type($ex, $str, $default)
       Oscar.Serialization.encode_type(::Type{<:$ex}) = $str
+      # the `_instance` of `$ex` among the types sharing the name `$str`
+      Oscar.Serialization.encode_instance(::Type{<:$ex}) = $(string(ex))
+      Oscar.Serialization.register_serialization_type($ex, $str, $default)
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
       # The ids are only necessary for parent types, checking for element type equality

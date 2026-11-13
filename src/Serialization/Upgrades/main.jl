@@ -94,14 +94,17 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::AbstractDict)
 end
 
 """
-    rename_types(dict::AbstractDict, renamings::Dict{String, String})
+    rename_types(dict::AbstractDict, renamings::AbstractDict{String})
 
 Provides functionality for recursing on the tree structure of `dict`
-and replace all type names that occur as keys in renamings with the values. 
+and replace all type names that occur as keys in renamings with the values.
+A value may also be a dict, such as one holding a `name` and an `_instance`,
+which is then merged into the type description.
 """
-function rename_types(dict::AbstractDict, renamings::Dict{String, String})
+function rename_types(dict::AbstractDict, renamings::AbstractDict{String})
   function upgrade_type(d::String)
-    return get(renamings, d, d)
+    new_type = get(renamings, d, d)
+    return new_type isa AbstractDict ? Dict{String, Any}(new_type) : new_type
   end
 
   # params may hold values that are not types, such as the dims of an array
@@ -115,7 +118,12 @@ function rename_types(dict::AbstractDict, renamings::Dict{String, String})
     upg_d = d
 
     if haskey(d, "name")
-      upg_d["name"] = get(renamings, d["name"], d["name"])
+      new_type = get(renamings, d["name"], d["name"])
+      if new_type isa AbstractDict
+        merge!(upg_d, new_type)
+      else
+        upg_d["name"] = new_type
+      end
     elseif haskey(d, "_type")
       upg_d["_type"] = upgrade_type(d["_type"])
       return upg_d

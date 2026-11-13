@@ -2,8 +2,10 @@
 # Upgrade Summary
 # Types that are part of the mrdi namespace are renamed to names that do not
 # depend on Julia, so that they can be shared with other systems.
+# Univariate and multivariate polynomial rings share the name `PolynomialRing`
+# and are told apart by their `_instance`.
 
-const renamings_1_9_0 = Dict{String, String}([
+const renamings_1_9_0 = Dict{String, Any}([
   ("Bool", "Boolean"),
   ("ZZRing", "Integers"),
   ("ZZRingElem", "Integer"),
@@ -12,7 +14,8 @@ const renamings_1_9_0 = Dict{String, String}([
   ("Vector", "HomogeneousList"),
   ("Tuple", "InhomogeneousList"),
   ("FqFieldElem", "FiniteFieldElement"),
-  ("MPolyRing", "PolynomialRing"),
+  ("PolyRing", Dict("name" => "PolynomialRing", "_instance" => "PolyRing")),
+  ("MPolyRing", Dict("name" => "PolynomialRing", "_instance" => "MPolyRing")),
   ("MPolyRingElem", "Polynomial"),
 ])
 
