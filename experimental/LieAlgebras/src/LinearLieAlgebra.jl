@@ -392,6 +392,16 @@ function lie_algebra(
   is_basis::Bool=false,
   check::Bool=true,
 ) where {C<:FieldElem}
+  return lie_algebra(LinearLieAlgebra, L, elems; is_basis, check)
+end
+
+function lie_algebra(
+  ::Type{<:LinearLieAlgebra},
+  L::LinearLieAlgebra{C},
+  elems::Vector{LinearLieAlgebraElem{C}};
+  is_basis::Bool=false,
+  check::Bool=true,
+) where {C<:FieldElem}
   @req all(parent(x) === L for x in elems) "Elements not compatible."
   R = coefficient_ring(L)
   if is_basis
