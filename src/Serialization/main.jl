@@ -132,6 +132,10 @@ function encode_type(::Type{T}) where T
   )
 end
 
+# name of a registered type among the types sharing its encoding,
+# defined by `@register_serialization_type`
+function encode_instance end
+
 function node_is_string(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
   return JSON.gettype(s.obj) == JSON.JSONTypes.STRING
