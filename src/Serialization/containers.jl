@@ -466,7 +466,7 @@ function load_object(s::DeserializerState,
     vp = tp[:value_params]
     # calls with the old convention pass the raw params instead of a `TypeAndParams`,
     # see the compatibility section in main.jl
-    value_tp = TypeAndParams(U, vp isa TypeAndParams ? params(vp) : vp)
+    value_tp = vp isa TypeAndParams ? vp : TypeAndParams(U, vp)
     pairs = Tuple{S, U}[]
     for k in keys(s.obj)
       key = S <: Integer ? parse(S, string(k)) : S(k)

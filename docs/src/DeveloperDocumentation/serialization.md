@@ -145,22 +145,17 @@ its module — none of these can be reconstructed from their data alone. The
 
 `type_and_params` is a function you implement for your type. It returns a
 `TypeAndParams` object describing the contextual parameters needed to reconstruct
-an object. These parameters are stored in the `_type` branch of the serialized
-file (not in `data`).
+an object (parent ring, base field, ambient space, etc.). These parameters are
+stored in the `_type` branch of the serialized file, not in `data`, and objects
+with a reference are stored as shared `_refs` entries, so a context is only
+written once per file. They are passed to `load_object` as the second argument,
+whose signature should match the shape of the parameters:
 
-The distinction between `data` and `type_and_params` is:
-- **`data`** — what is unique to this particular instance (coefficients,
-  generators, matrices, etc.).
-- **`type_and_params`** — the context in which the instance lives (parent ring,
-  base field, ambient space, etc.). These are stored as `_refs` entries and
-  shared across all objects that reference the same context, so the context
-  is only written once per file.
-
-A useful heuristic: anything you would need to pass as an extra argument to
-the constructor *beyond* the raw data belongs in `type_and_params`. If calling
-`MyType(data_field_1, data_field_2)` is not enough and you also need
-`MyType(context, data_field_1, data_field_2)`, then `context` belongs in
-`type_and_params`.
+| `type_and_params` return | `load_object` signature |
+|---|---|
+| `TypeAndParams(T, nothing)` | `load_object(s, ::Type{<:T})` |
+| `TypeAndParams(T, parent_obj)` | `load_object(s, tp::TypeAndParams{T, ParentType})` |
+| `TypeAndParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}})` |
 
 **When the default is enough:** For a singleton type like `ZZRing` that
 needs no context, the default implementation returning `nothing` is sufficient.
@@ -208,18 +203,6 @@ end
 The rule: only include parameters in `type_and_params` that `load_object` actually
 needs for dispatch or reconstruction. If a type can be determined from a fixed
 concrete type at load time, it does not need to be in `type_and_params`.
-
-**Summary:** implement `type_and_params` whenever your type needs context to be
-reconstructed. The parameters you return will be serialized into the `_type`
-branch of the `mrdi` file, stored as shared `_refs` entries, and passed into
-`load_object` as the second argument. The `load_object` signature should
-match the type of the parameters:
-
-| `type_and_params` return | `load_object` signature |
-|---|---|
-| `TypeAndParams(T, nothing)` | `load_object(s, tp::TypeAndParams{T})` |
-| `TypeAndParams(T, parent_obj)` | `load_object(s, tp::TypeAndParams{T, ParentType})` |
-| `TypeAndParams(T, :a=>x, :b=>y)` | `load_object(s, tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}})` |
 
 ```@docs
 TypeAndParams
@@ -273,7 +256,7 @@ This will result in a data format that looks like this.
 With the corresponding loading function similar to this.
 
 ```julia
-function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
+function load_object(s::DeserializerState, ::Type{<:NewType})
   (obj1, obj2, obj3_4) = load_array_node(s) do i
     if i == 3
       obj3 = load_object(s, Obj3Type, :key1)
@@ -362,7 +345,7 @@ function save_object(s::SerializerState, obj:NewType)
   end
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:NewType})
+function load_object(s::DeserializerState, ::Type{<:NewType})
   load_node(s, :key) do
     info = do_something(s.obj)
 

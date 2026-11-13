@@ -429,8 +429,12 @@ function load_type_and_params(s::DeserializerState, T::Type)
         U = decode_type(s)
         if Base.issingletontype(U)
           p = U()
+        elseif s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+          # a reference: the param is the referenced object itself
+          p = load_ref(s)
         else
-          p = params(load_type_and_params(s, U))
+          # a nested type node: keep its type, matching `type_and_params`
+          p = load_type_and_params(s, U)
         end
       # handle cases where type_and_params is a dict of params
       elseif !haskey(s, type_key)
@@ -546,13 +550,17 @@ function load_object(s::DeserializerState, T::Type, params::Any,
   end
 end
 
-const _legacy_call_shim = which(load_object, Tuple{DeserializerState, Type, Any})
+# methods that match `load_object(s, T, legacy)` without being a legacy definition
+const _legacy_call_shims = (
+  which(load_object, Tuple{DeserializerState, Type, Any}),
+  which(load_object, Tuple{DeserializerState, Type, Symbol}),
+)
 
 # definitions with the old convention: when no method takes the `TypeAndParams`,
 # fall back to a `load_object(s, ::Type{<:T}, params)` method, if there is one
 function load_object(s::DeserializerState, tp::TypeAndParams{T, S}) where {T, S}
   legacy = _legacy_params(params(tp))
-  if which(load_object, Tuple{typeof(s), Type{T}, typeof(legacy)}) !== _legacy_call_shim
+  if !(which(load_object, Tuple{typeof(s), Type{T}, typeof(legacy)}) in _legacy_call_shims)
     return load_object(s, T, legacy)
   end
   modern = _modern_params(params(tp))
@@ -1052,7 +1060,7 @@ defined by
 
 julia> tp = type_and_params(psi);
 
-julia> load("phi.mrdi", type_and_params(psi))
+julia> load("phi.mrdi", tp)
 Ring homomorphism
   from multivariate polynomial ring in 2 variables over QQ
   to multivariate polynomial ring in 2 variables over QQ
