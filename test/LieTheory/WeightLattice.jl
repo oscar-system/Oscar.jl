@@ -8,6 +8,12 @@
     w = WeightLatticeElem(R, [2, 2])
 
     @test root_system(w) === R
+
+    # constructing from an element returns it unchanged
+    @test WeightLatticeElem(R, w) === w
+    @test WeightLatticeElem(weight_lattice(R), w) === w
+    @test_throws ArgumentError WeightLatticeElem(root_system(:A, 2), w)
+    @test_throws ArgumentError WeightLatticeElem(weight_lattice(root_system(:A, 2)), w)
   end
 
   @testset "conjugate_dominant_weight_with_elem(w::WeightLatticeElem)" begin

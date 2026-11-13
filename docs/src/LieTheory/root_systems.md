@@ -105,6 +105,7 @@ weyl_vector(::RootSystem)
 ```@docs
 RootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 RootSpaceElem(::RootSystem, ::QQMatrix)
+RootSpaceElem(::RootSystem, ::RootSpaceElem)
 RootSpaceElem(::WeightLatticeElem)
 zero(::Type{RootSpaceElem}, ::RootSystem)
 dual(::DualRootSpaceElem)
@@ -152,6 +153,7 @@ reflect!(::RootSpaceElem, ::RootSpaceElem)
 ```@docs
 DualRootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
 DualRootSpaceElem(::RootSystem, ::QQMatrix)
+DualRootSpaceElem(::RootSystem, ::DualRootSpaceElem)
 zero(::Type{DualRootSpaceElem}, ::RootSystem)
 dual(::RootSpaceElem)
 ```
