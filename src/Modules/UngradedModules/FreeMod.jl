@@ -253,8 +253,9 @@ false
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
   is_graded(F) == is_graded(G) || return false
-  is_graded(F) && return MSet(F.d) == MSet(G.d)
-  return F.R == G.R && rank(F) == rank(G)
+  F.R == G.R || return false
+  rank(F) == rank(G) || return false
+  return !is_graded(F) || MSet(F.d) == MSet(G.d)
 end
 
 @doc raw"""
