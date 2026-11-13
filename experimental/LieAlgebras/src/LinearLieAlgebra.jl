@@ -387,13 +387,6 @@ _basis_symbols(s::VarName, k::Int) = [Symbol(s, :_, i) for i in 1:k]
 _basis_symbols(s::Vector{<:VarName}, ::Int) = Symbol.(s)
 
 function lie_algebra(
-  elems::Vector{LinearLieAlgebraElem{C}}; is_basis::Bool=false, check::Bool=true
-) where {C<:FieldElem}
-  @req !isempty(elems) "List of elements must not be empty, or provide the Lie algebra as first argument"
-  return lie_algebra(parent(elems[1]), elems; is_basis, check)
-end
-
-function lie_algebra(
   L::LinearLieAlgebra{C},
   elems::Vector{LinearLieAlgebraElem{C}};
   is_basis::Bool=false,

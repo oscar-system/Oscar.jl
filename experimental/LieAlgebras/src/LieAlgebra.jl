@@ -1163,3 +1163,10 @@ function lie_algebra(
   end
   error("Not implemented.")
 end
+
+function lie_algebra(
+  elems::Vector{<:LieAlgebraElem{C}}; is_basis::Bool=false, check::Bool=true
+) where {C<:FieldElem}
+  @req !isempty(elems) "List of elements must not be empty, or provide the Lie algebra as first argument"
+  return lie_algebra(parent(elems[1]), elems; is_basis, check)
+end
