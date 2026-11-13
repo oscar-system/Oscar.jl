@@ -44,7 +44,7 @@ type_and_params(x::T) where T <: SMatSpace = TypeAndParams(T, base_ring(x))
 
 ################################################################################
 # ring of integers (singleton type)
-@register_serialization_type ZZRing
+@register_serialization_type ZZRing "Integers"
 
 ################################################################################
 #  Mod Rings
@@ -81,8 +81,11 @@ end
 ################################################################################
 #  Polynomial Rings
 
-@register_serialization_type PolyRing uses_id 
-@register_serialization_type MPolyRing uses_id
+# Univariate and multivariate polynomial rings share the mrdi name
+# `PolynomialRing` and are told apart by their `_instance`. Without an
+# `_instance` a ring is loaded as univariate if it has a single variable.
+@register_serialization_type PolyRing "PolynomialRing" uses_id
+@register_serialization_type MPolyRing "PolynomialRing" uses_id default
 @register_serialization_type UniversalPolyRing uses_id
 @register_serialization_type MPolyDecRing uses_id
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
@@ -99,7 +102,8 @@ end
 function load_object(s::DeserializerState, tp::TypeAndParams{<:PolyRing, <:Ring})
   R = params(tp)
   symbols = load_object(s, Vector{Symbol}, :symbols)
-  return polynomial_ring(R, only(symbols); cached=false)[1]
+  length(symbols) == 1 && return polynomial_ring(R, only(symbols); cached=false)[1]
+  return polynomial_ring(R, symbols; cached=false)[1]
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyRing, <:Ring})
@@ -140,7 +144,7 @@ end
 
 ################################################################################
 #  Polynomial Ring Elem Types
-@register_serialization_type MPolyRingElem
+@register_serialization_type MPolyRingElem "Polynomial" default
 @register_serialization_type MPolyDecRingElem
 @register_serialization_type UniversalPolyRingElem
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
@@ -166,6 +170,16 @@ function load_object(s::DeserializerState,
     push_term!(polynomial, c, e)
   end
   return finish(polynomial)
+end
+
+# a `Polynomial` from another system whose ring was loaded as univariate
+function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyRingElem, <:PolyRing})
+  parent_ring = params(tp)
+  coeff_type = elem_type(coefficient_ring(parent_ring))
+  exps_coeffs = load_object(s, TypeAndParams(Vector{Tuple{Vector{Int}, coeff_type}},
+                                             (nothing, coefficient_ring(parent_ring))))
+  x = gen(parent_ring)
+  return sum((c * x^only(e) for (e, c) in exps_coeffs); init=zero(parent_ring))
 end
 
 function load_object(s::DeserializerState, tp::TypeAndParams{<:MPolyDecRingElem, <:MPolyDecRing})

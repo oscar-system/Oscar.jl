@@ -18,7 +18,7 @@ end
 
 ################################################################################
 # Bool
-@register_serialization_type Bool 
+@register_serialization_type Bool "Boolean"
 
 function load_object(s::DeserializerState, ::Type{Bool})
   load_node(s) do
@@ -29,7 +29,7 @@ end
 
 ################################################################################
 # ZZRingElem
-@register_serialization_type ZZRingElem
+@register_serialization_type ZZRingElem "Integer"
 
 
 function save_object(s::SerializerState, x::ZZRingElem)
@@ -51,7 +51,7 @@ end
 
 ################################################################################
 # QQFieldElem
-@register_serialization_type QQFieldElem
+@register_serialization_type QQFieldElem "Rational"
 
 load_object(s::DeserializerState, ::TypeAndParams{QQFieldElem, QQField}) = load_object(s, QQFieldElem)
 

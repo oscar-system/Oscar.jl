@@ -41,7 +41,7 @@ end
 function save_type_and_params(s::SerializerState,
                           tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where {S, N,  T <: Array{S, N}}
   save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
+    save_type_name(s, T)
     save_data_dict(s, :params) do
       for (k, v) in params(tp)
         if k == :dims
@@ -83,7 +83,7 @@ end
 
 ################################################################################
 # Saving and loading vectors
-@register_serialization_type Vector
+@register_serialization_type Vector "HomogeneousList"
 
 # see Array above for load_type_and_params for general Arrays which include Matrix
 # and Vector
@@ -240,7 +240,7 @@ end
 
 ################################################################################
 # Saving and loading Tuple
-@register_serialization_type Tuple
+@register_serialization_type Tuple "InhomogeneousList"
 
 function type_and_params(obj::T) where T <: Tuple
   return TypeAndParams(T, type_and_params.(obj))
@@ -248,7 +248,7 @@ end
 
 function save_type_and_params(s::SerializerState, tp::TypeAndParams{T}) where T <: Tuple
   save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
+    save_type_name(s, T)
     save_data_array(s, :params) do
       for param_tp in params(tp)
         save_type_and_params(s, param_tp)
@@ -318,7 +318,7 @@ function load_type_and_params(s::DeserializerState, T::Type{NamedTuple})
     pairs_list = Pair{Symbol, Any}[]
     for k in propertynames(s.obj)
       tp = load_node(s, k) do
-        node_is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
+        is_type_without_params(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
       end
       push!(pairs_list, k => tp)
     end
@@ -376,9 +376,9 @@ function save_type_and_params(
   s::SerializerState,
   tp::TypeAndParams{Dict{S, T}, <:Tuple{Pair, Pair}}) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
-    save_object(s, encode_type(Dict), :name)
+    save_type_name(s, Dict)
     save_data_dict(s, :params) do
-      isempty(params(tp)) && save_object(s, encode_type(T), :value_params)
+      isempty(params(tp)) && save_type_name(s, T, :value_params)
       save_type_and_params(s, tp[:key_params], :key_params)
 
       if tp[:value_params] isa Tuple
@@ -397,7 +397,7 @@ end
 function load_type_and_params(s::DeserializerState, T::Type{Dict})
   return load_node(s, :params) do
     key_tp = load_node(s, :key_params) do
-      node_is_string(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
+      is_type_without_params(s) ? TypeAndParams(decode_type(s), nothing) : load_type_and_params(s, decode_type(s))
     end
     S = type(key_tp)
 
