@@ -206,12 +206,21 @@ end
 
 is_sub_with_data(M::FinGenAbGroup, N::FinGenAbGroup) = is_subgroup(M, N)
 
-function Oscar.direct_product(M::AbstractAlgebra.Module...; task::Symbol = :none, init::Union{Nothing, Ring} = nothing)
-  return Oscar.direct_product([x for x = M]; task, init)
+function Oscar.direct_product(M::AbstractAlgebra.Module, Ms::AbstractAlgebra.Module...; task::Symbol = :none)
+  return Oscar.direct_product([M, Ms...]; task)
 end
 
-function Oscar.direct_product(M::Vector{<:AbstractAlgebra.Module}; task::Symbol = :none, init::Union{Nothing, Ring} = nothing)
-  D, inj, pro = direct_sum(M; init)
+function Oscar.direct_product(R::Ring, M::AbstractAlgebra.Module, Ms::AbstractAlgebra.Module...; task::Symbol = :none)
+  return Oscar.direct_product(R, [M, Ms...]; task)
+end
+
+function Oscar.direct_product(M::Vector{<:AbstractAlgebra.Module}; task::Symbol = :none)
+  @req !isempty(M) "An empty direct product requires a base ring"
+  return Oscar.direct_product(base_ring(first(M)), M; task)
+end
+
+function Oscar.direct_product(R::Ring, M::Vector{<:AbstractAlgebra.Module}; task::Symbol = :none)
+  D, inj, pro = direct_sum(R, M)
   if task == :none
     return D
   elseif task == :both

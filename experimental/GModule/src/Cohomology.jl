@@ -484,7 +484,7 @@ function induce(C::GModule{GT, MT}, h::Map, D = nothing, mDC = nothing; transver
   =#
 
 #  @assert isdefined(C.M, :hnf)
-  indC, pro, inj = direct_product(typeof(C.M)[C.M for i=1:length(g)]..., task = :both, init = base_ring(C.M))
+  indC, pro, inj = direct_product(base_ring(C), fill(C.M, length(g)); task = :both)
 #  @assert isdefined(indC, :hnf)
   if hasfield(typeof(indC), :__attrs)
     set_attribute!(indC, :induce => (h, g))
@@ -590,15 +590,25 @@ function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_la
   return S, mq
 end
 
-function Oscar.direct_product(C::GModule...; task::Symbol = :none, init::Union{Nothing, Ring} = nothing)
-  return Oscar.direct_product([x for x = C]; task, init)
+function Oscar.direct_product(C::GModule, Cs::GModule...; task::Symbol = :none)
+  return Oscar.direct_product([C, Cs...]; task)
 end
 
-function Oscar.direct_product(C::Vector{GModule{G_t, M_t}}; task::Symbol = :none, init::Union{Nothing, Ring} = nothing) where {G_t, M_t}
+function Oscar.direct_product(R::Ring, C::GModule, Cs::GModule...; task::Symbol = :none)
+  return Oscar.direct_product(R, [C, Cs...]; task)
+end
+
+function Oscar.direct_product(C::Vector{GModule{G_t, M_t}}; task::Symbol = :none) where {G_t, M_t}
+  @req !isempty(C) "A direct product of G-modules requires at least one factor"
+  return Oscar.direct_product(base_ring(first(C)), C; task)
+end
+
+function Oscar.direct_product(R::Ring, C::Vector{GModule{G_t, M_t}}; task::Symbol = :none) where {G_t, M_t}
   @assert task in [:sum, :prod, :both, :none]
-  G = C[1].G
+  @req !isempty(C) "A direct product of G-modules requires at least one factor"
+  G = group(first(C))
   @assert all(x->x.G == G, C)
-  mM, pro, inj = direct_product(M_t[x.M for x = C]; task = :both, init)
+  mM, pro, inj = direct_product(R, M_t[x.M for x = C]; task = :both)
 
   dp_t = typeof(zero_map(mM, mM)) #TODO: we need some hom-type function
   #will fail if G is trivial as gens(G) is then empty
@@ -630,7 +640,7 @@ function Oscar.one(f::Generic.ModuleHomomorphism)
   return hom(A, A, gens(A))
 end
 
-Oscar.direct_sum(C::GModule...; task::Symbol = :none) = Oscar.direct_product(C...; task = task)
+Oscar.direct_sum(C::GModule, Cs::GModule...; task::Symbol = :none) = Oscar.direct_product(C, Cs...; task)
 
 import Hecke.⊕
 ⊕(C::GModule...) = Oscar.direct_sum(C...; task = :none)
@@ -2069,7 +2079,7 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
   set_attribute!(M1, :hom => (f[0], C), :show => Hecke.show_hom)
   #TODO: add hom_map!!!
   d1 = map(f, 1)
-  @vtime :GaloisCohomology 1 Mg = direct_product(typeof(C.M)[C.M for i=1:rank(domain(d1))]; task = :none, init = base_ring(C.M))
+  @vtime :GaloisCohomology 1 Mg = direct_product(base_ring(C), Base.fill(C.M, rank(domain(d1))); task = :none)
   set_attribute!(Mg, :hom => (domain(d1), C), :show => Hecke.show_hom)
   #TODO: add hom_map!!!
 
@@ -2100,7 +2110,7 @@ function Oscar.hom(f::ComplexOfMorphisms{<:AbstractAlgebra.Generic.FreeModule{Gr
     d = map(f, i+1)
     dd = map(ff, i-1)
     Mg = codomain(dd)
-    Mr = direct_product(typeof(C.M)[C.M for i=1:rank(domain(d))]; task = :none, init = base_ring(C.M))
+    Mr = direct_product(base_ring(C), Base.fill(C.M, rank(domain(d))); task = :none)
     function hom_map(a::FinGenAbGroupElem)
       return map_from_func(domain(d), C, 
           x->C(sum(action(C, x.v[i, 1])(canonical_projection(Mr, i)(a)) 
