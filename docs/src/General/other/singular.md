@@ -1,6 +1,187 @@
 # Notes for Singular users
 
+OSCAR uses Singular for much of its commutative algebra,
+via the Julia package
+[Singular.jl](https://github.com/oscar-system/Singular.jl).
+This page describes differences between Singular and OSCAR,
+and lists common Singular commands together with their OSCAR
+counterparts.
+
+Not every Singular function has a counterpart in OSCAR.
+If you need one that does not, you can call it directly,
+see [Using Singular from OSCAR](@ref); in that case please also
+[open an issue](https://github.com/oscar-system/Oscar.jl/issues),
+so that we can add a proper OSCAR interface for it.
+
 !!! note "Help wanted"
-    There really should be more here.
-    Please tell us what is missing, see
+    This page is a start. Please tell us what is missing, see
     [Notes for users of other computer algebra systems](@ref).
+
+## Differences in syntax
+
+- Singular is a statically typed language, every variable is declared
+  with its type: `poly f = x2+y2-1;`, `ideal I = f, x-y;`, `int n = 3;`.
+  Julia variables are not declared, one writes `f = x^2 + y^2 - 1`,
+  `I = ideal(R, [f, x - y])`, `n = 3`.
+
+- The abbreviated monomial notation `x2y3` of Singular is not available.
+  In Julia, one has to write `x^2*y^3`.
+
+- Every Singular statement ends with `;`, and `f;` prints the value of `f`.
+  In an interactive Julia session, a trailing `;` suppresses the output
+  of the value, see [Semicolons and output](@ref).
+
+- Comments start with `#` instead of `//`; in Julia, `//` creates a
+  rational number.
+
+- Control structures are `if c ... else ... end`, `for i in 1:n ... end`,
+  and `while c ... end` in Julia,
+  instead of `if (c) { ... } else { ... }`,
+  `for (int i = 1; i <= n; i++) { ... }`,
+  and `while (c) { ... }`.
+  Procedures `proc sq(int a) { return(a^2); }` become functions
+  `sq(a) = a^2` or `function sq(a) return a^2 end`.
+
+- Singular's `list` is a Julia `Vector` (or a tuple),
+  `intvec` is a `Vector{Int}`,
+  and `matrix m[2][2] = 1,2,3,4;` is `m = matrix(R, 2, 2, [1, 2, 3, 4])`
+  or `m = matrix(R, [1 2; 3 4])`.
+  `size(I)` for an ideal is `ngens(I)`, and `size(L)` for a list is
+  `length(L)`.
+
+- `help std;` is `?groebner_basis`;
+  `timer` and `rtimer` are `@time f(x)`;
+  `< "file";` is `include("file.jl")`;
+  `write(":w file", I)` and `read` are `save("file.mrdi", I)` and
+  `load("file.mrdi")`.
+
+- Singular libraries need not be loaded, there is no `LIB "primdec.lib";`.
+
+## Differences in semantics
+
+- **There is no basering.**
+  In Singular, polynomials, ideals, and modules live in the current base
+  ring, which is set by `ring` and `setring`,
+  and `imap` or `fetch` move objects between rings.
+  In OSCAR, every polynomial knows its ring, `parent(f)` returns it,
+  and objects can only be combined if their rings coincide.
+  Ring maps are created with `hom`, and applying such a map moves
+  polynomials and ideals to the target ring,
+  see [Every object has a parent](@ref).
+  ```jldoctest
+  julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
+
+  julia> S, (a, b) = polynomial_ring(QQ, [:a, :b]);
+
+  julia> phi = hom(R, S, [a, b]);
+
+  julia> phi(x^2 + y)
+  a^2 + b
+  ```
+
+- **Rings are created by functions, together with their variables.**
+  `ring r = 0, (x,y), dp;` becomes
+  `R, (x, y) = polynomial_ring(QQ, [:x, :y])`,
+  and `ring r = 32003, (x,y), dp;` becomes
+  `R, (x, y) = polynomial_ring(GF(32003), [:x, :y])`.
+  For a parameter, use `K, a = rational_function_field(QQ, :a)`
+  and then `polynomial_ring(K, [:x, :y])`.
+  Similarly, `qring q = std(I);` is `Q, _ = quo(R, I)`,
+  see [Many constructors return more than one object](@ref).
+
+- **Standard bases are computed on demand.**
+  Many Singular functions, such as `dim`, `vdim`, `kbase`, and `reduce`,
+  must be applied to a standard basis, that is, to the result of `std`.
+  The corresponding OSCAR functions take the ideal itself;
+  a Gröbner basis is computed when needed and cached in the ideal.
+  `groebner_basis(I)` returns the Gröbner basis explicitly.
+
+- **The monomial ordering is not fixed by the ring.**
+  OSCAR's multivariate polynomial rings use the ordering `dp`
+  (degree reverse lexicographic) by default.
+  Other orderings are passed to `groebner_basis` as a keyword argument,
+  for example `groebner_basis(I; ordering = lex(R))` for `lp`.
+  Standard bases w.r.t. local orderings such as `ds` are computed with
+  `standard_basis(I; ordering = negdegrevlex(R))`.
+  The option `option(redSB);` corresponds to the keyword argument
+  `complete_reduction = true`.
+
+- **Integer literals are machine integers.**
+  Like Singular's `int`, Julia's integers overflow: `2^100` evaluates
+  to `0`.
+  Singular's `bigint` corresponds to `ZZ(2)^100`,
+  and the `number` `7/2` (in characteristic 0) to `QQ(7, 2)`,
+  see [Integers and rational numbers](@ref other_integers).
+
+- **Graded rings are explicit.**
+  Functions that need a grading, such as `hilbert_series` and
+  `betti_table`, work on quotients of graded polynomial rings.
+  `grade(R)` returns the standard graded version of `R` together with
+  its variables.
+
+## Common Singular commands and their OSCAR counterparts
+
+### Rings and polynomials
+
+| Singular | OSCAR |
+|:---------|:------|
+| `ring r = 0, (x, y), dp;` | `R, (x, y) = polynomial_ring(QQ, [:x, :y])` |
+| `ring r = 32003, (x, y), dp;` | `R, (x, y) = polynomial_ring(GF(32003), [:x, :y])` |
+| `nvars(r)`, `var(i)`, `char(r)` | `nvars(R)`, `gen(R, i)`, `characteristic(R)` |
+| `basering` | `parent(f)`, `base_ring(I)` |
+| `x2y3` | `x^2*y^3` |
+| `deg(f)` | `total_degree(f)` |
+| `lead(f)`, `leadcoef(f)`, `leadmonom(f)`, `leadexp(f)` | `leading_term(f)`, `leading_coefficient(f)`, `leading_monomial(f)`, `leading_exponent_vector(f)` |
+| `diff(f, x)` | `derivative(f, x)` |
+| `jacob(f)` | `jacobian_ideal(f)`, `jacobian_matrix(f)` |
+| `subst(f, x, 1)` | `evaluate(f, [x], [1])` |
+| `factorize(f)` | `factor(f)` |
+| `gcd(f, g)` | `gcd(f, g)` |
+| `resultant(f, g, x)` | `resultant(f, g, i)` for the `i`-th variable |
+| `homog(f)` | `is_homogeneous(f)` |
+| `map phi = r, a, b;`, `phi(I)` | `phi = hom(R, S, [a, b])`, `phi(I)` |
+| `imap(r, I)`, `fetch(r, I)` | `phi(I)` |
+| `number n = 1/2;` | `QQ(1, 2)` |
+| `bigint(2)^100` | `ZZ(2)^100` |
+
+### Ideals
+
+| Singular | OSCAR |
+|:---------|:------|
+| `ideal I = f, g;` | `I = ideal(R, [f, g])` |
+| `size(I)`, `I[1]` | `ngens(I)`, `I[1]` |
+| `I + J`, `I * J`, `I^2` | `I + J`, `I * J`, `I^2` |
+| `std(I)`, `groebner(I)`, `slimgb(I)` | `groebner_basis(I)` |
+| `option(redSB); std(I);` | `groebner_basis(I; complete_reduction = true)` |
+| `ring r = 0, (x, y), lp; std(I);` | `groebner_basis(I; ordering = lex(R))` |
+| `ring r = 0, (x, y), ds; std(I);` | `standard_basis(I; ordering = negdegrevlex(R))` |
+| `dim(std(I))` | `dim(I)` |
+| `vdim(std(I))` | `vector_space_dimension(quo(R, I)[1])` |
+| `kbase(std(I))` | `monomial_basis(quo(R, I)[1])` |
+| `hilb(std(I))` | `hilbert_series(quo(grade(R)[1], I)[1])` |
+| `reduce(f, std(I))`, `NF(f, std(I))` | `normal_form(f, I)` |
+| `division(f, I)` | `divrem(f, gens(I))` |
+| `lift(I, f)` | `coordinates(f, I)` |
+| `radical(I)` | `radical(I)` |
+| `primdecGTZ(I)`, `primdecSY(I)` | `primary_decomposition(I)` |
+| `minAssGTZ(I)` | `minimal_primes(I)` |
+| `eliminate(I, x)` | `eliminate(I, [x])` |
+| `intersect(I, J)`, `quotient(I, J)` | `intersect(I, J)`, `quotient(I, J)` |
+| `sat(I, J)` | `saturation(I, J)`, `saturation_with_index(I, J)` |
+| `qring Q = std(I);` | `Q, _ = quo(R, I)` |
+| `normal(I)` | `normalization(quo(R, I)[1])` |
+
+### Matrices and modules
+
+| Singular | OSCAR |
+|:---------|:------|
+| `matrix m[2][2] = 1, 2, 3, 4;` | `matrix(R, 2, 2, [1, 2, 3, 4])` |
+| `unitmat(n)` | `identity_matrix(R, n)` |
+| `det(m)`, `transpose(m)` | `det(m)`, `transpose(m)` |
+| `nrows(m)`, `ncols(m)`, `m[i, j]` | `nrows(m)`, `ncols(m)`, `m[i, j]` |
+| `freemodule(n)` | `F = free_module(R, n)` |
+| `module M = [x, y], [y, x];` | `M, _ = sub(F, [F([x, y]), F([y, x])])` |
+| `std(M)` | `groebner_basis(M)` |
+| `syz(I)` | `syzygy_generators(gens(I))` |
+| `res(I, 0)`, `mres(I, 0)` | `free_resolution(I)` |
+| `betti(res(I, 0))` | `betti_table(free_resolution(quo(grade(R)[1], I)[1]))` |
