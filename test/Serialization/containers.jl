@@ -20,6 +20,18 @@
       test_save_load_roundtrip(path, nt) do loaded
         @test nt == loaded
       end
+
+      # tuple entry types without params: empty containers and singleton tuples
+      for original in (Dict{Tuple{Int, Int}, Int}(),
+                       Dict{Int, Tuple{Int, String}}(),
+                       Vector{Tuple{Int, Int}}(),
+                       Set{Tuple{Int, Int}}(),
+                       Vector{@NamedTuple{a::Int, b::String}}(),
+                       [()])
+        test_save_load_roundtrip(path, original) do loaded
+          @test original == loaded
+        end
+      end
     end
 
     @testset "ids in containers" begin
