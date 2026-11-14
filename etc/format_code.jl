@@ -60,7 +60,6 @@ files_and_dirs_to_be_formatted = [
   "experimental/InvariantTheory",
   "experimental/LieAlgebras",
   "experimental/LinearAlgebraicGroups",
-  "experimental/LinearQuotients",
   "experimental/FTheoryTools",
   "experimental/DrawingCurves",
 ]
