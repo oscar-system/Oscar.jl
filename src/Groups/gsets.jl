@@ -558,26 +558,30 @@ function orbit(Omega::GSetByElements{T, S}, omega::S) where {T<:Union{Group, Fin
     return orbit_via_Julia(Omega, omega)
 end
 
-# simpleminded alternative directly in Julia
-function orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S}
-  acts = gens(acting_group(Omega))
-  orb = IndexedSet([omega])
-  fun = action_function(Omega)
 
+# simpleminded alternative directly in Julia
+# NOTE we need to 1. specialize to the type of the action function for performance, and
+# 2. make sure that the resulting `GSet` is of type `GSet{typeof(G), S}`
+function orbit_via_Julia(G::Union{Group, FinGenAbGroup}, fun::F, omega, ::Type{S}) where {F,S}
+  acts = gens(G)
+  orb = IndexedSet(S[omega])
   for p in orb
     for g in acts
-      img = fun(p, g)::S
-      if !(img in orb)
-        push!(orb, img)
-      end
+      img = fun(p, g)
+      @req img isa S "the action function maps a point to an object of type $(typeof(img)), which is not of type $S"
+      push!(orb, img)
     end
   end
-
-  res = as_gset(acting_group(Omega), action_function(Omega), orb)
+  res = GSetByElements(G, fun, orb; check = false)
+  set_attribute!(res, :elements => collect(orb))
   # We know that this G-set is transitive.
   set_attribute!(res, :orbits => [res])
   return res
 end
+
+
+orbit_via_Julia(Omega::GSet{T,S}, omega::S) where {T,S} =
+  orbit_via_Julia(acting_group(Omega), action_function(Omega), omega, S)::GSetByElements{T,S}
 
 
 #############################################################################
@@ -1669,7 +1673,7 @@ function _orbit_representatives_and_stabilizers_ordmod2(G::MatGroup{E}, k::Int) 
   k == 0 && return [(sub(V, [])[1], G)]
   if order(G)>1
     gens_mat = matrix.(small_generating_set(G))
-  else 
+  else
     gens_mat = [identity_matrix(F,n)]
   end
   res = Hecke.orbit_representatives_and_stabilizers_mod_2(gens_mat, k; group_order=order(G))
