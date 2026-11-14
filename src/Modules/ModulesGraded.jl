@@ -449,66 +449,35 @@ end
 # Graded Free Modules functions
 ###############################################################################
 
-function swap!(A::Vector{T}, i::Int, j::Int) where T
-  A[i], A[j] = A[j], A[i]
-end
-
-function generate(k::Int, A::Vector{T}) where T
-  if k == 1
-    return [copy(A)]
-  else
-    perms = generate(k - 1, A)
-    for i in 0:(k - 2)
-      if k % 2 == 0
-        swap!(A, i + 1, k)
-      else
-        swap!(A, 1, k)
-      end
-      perms = vcat(perms, generate(k - 1, A))
-    end
-    return perms
-  end
-end
-
-function permute(v::Vector{T}) where T
-  return generate(length(v), v)
-end
-
-function find_bijections(v_dict::Dict{T,Vector{Int}}, w_dict::Dict{T,Vector{Int}}, v_key::Int, bijections::Vector{Dict{Int,Int}}, current_bijection::Dict{Int,Int}) where T
-  if v_key > length(keys(v_dict))
-    push!(bijections, deepcopy(current_bijection))
-    return nothing
-  end
-  element = collect(keys(v_dict))[v_key]
-  v_indices = v_dict[element]
-  w_indices = w_dict[element]
-  if length(v_indices) == length(w_indices)
-    for w_perm in permute(w_indices)
-      next_bijection = deepcopy(current_bijection)
-      for (i, j) in zip(v_indices, w_perm)
-        next_bijection[i] = j
-      end
-      find_bijections(v_dict, w_dict, v_key + 1, bijections, next_bijection)
-    end
-  end
-end
-
-function get_multiset_bijection(
-    v::Vector{T},
-    w::Vector{T},
-    all_bijections::Bool=false
-) where {T<:Any}
-  v_dict = Dict{T,Vector{Int}}()
-  w_dict = Dict{T,Vector{Int}}()
+# List for every entry of `v` the positions at which it occurs, e.g.
+# [7, 3, 7] gives 7 => [1, 3], 3 => [2].
+function _indices_by_entry(v::Vector{T}) where T
+  result = Dict{T,Vector{Int}}()
   for (i, x) in enumerate(v)
-    push!(get!(v_dict, x, []), i)
+    push!(get!(() -> Int[], result, x), i)
   end
-  for (i, x) in enumerate(w)
-    push!(get!(w_dict, x, []), i)
+  return result
+end
+
+# Return a bijection of the indices of `v` and `w` matching equal entries, or
+# `nothing` if `v` and `w` differ as multisets. Positions carrying the same
+# entry may be matched in any order, so an entry occurring k times accounts for
+# a factor of k! in the number of such bijections; here they are paired up in
+# the order they occur.
+function get_multiset_bijection(v::Vector{T}, w::Vector{T}) where {T<:Any}
+  v_indices = _indices_by_entry(v)
+  w_indices = _indices_by_entry(w)
+  length(v_indices) == length(w_indices) || return nothing
+
+  result = Dict{Int,Int}()
+  for (element, vi) in v_indices
+    wi = get(w_indices, element, nothing)
+    (wi === nothing || length(wi) != length(vi)) && return nothing
+    for (i, j) in zip(vi, wi)
+      result[i] = j
+    end
   end
-  bijections = Vector{Dict{Int,Int}}()
-  find_bijections(v_dict, w_dict, 1, bijections, Dict{Int,Int}())
-  return all_bijections ? bijections : (isempty(bijections) ? nothing : bijections[1])
+  return result
 end
 
 ###############################################################################
