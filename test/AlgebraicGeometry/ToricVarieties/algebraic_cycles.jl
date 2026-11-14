@@ -1,5 +1,9 @@
 @testset "Algebraic cycles" begin
   antv = affine_normal_toric_variety(Oscar.positive_hull([1 1; -1 1]))
+  u, v = gens(cox_ring(antv))
+  weil_divisor = closed_subvariety_of_toric_variety(antv, [u])
+  non_cartier = closed_subvariety_of_toric_variety(antv, [u, v])
+  cartier = closed_subvariety_of_toric_variety(antv, [u^2, v^2])
 
   P3 = projective_space(NormalToricVariety, 3)
   sv0 = closed_subvariety_of_toric_variety(P3, [gens(cox_ring(P3))[1]^2])
@@ -8,6 +12,9 @@
   (xx1, xx2, yy1, yy2) = gens(cox_ring(ntv))
   sv1 = closed_subvariety_of_toric_variety(ntv, [xx1])
   sv2 = closed_subvariety_of_toric_variety(ntv, [xx1^2 + xx1 * xx2 + xx2^2, yy2])
+  sv3 = closed_subvariety_of_toric_variety(ntv, [xx1 * xx2])
+  sv4 = closed_subvariety_of_toric_variety(ntv, [xx1, xx2])
+  sv5 = closed_subvariety_of_toric_variety(ntv, [xx1, xx1 * xx2])
   ac0 = rational_equivalence_class(toric_line_bundle(ntv, [1, 1]))
 
   F5 = hirzebruch_surface(NormalToricVariety, 5)
@@ -22,6 +29,11 @@
   ac3 = rational_equivalence_class(canonical_bundle(dP3))
   ac4 = rational_equivalence_class(toric_divisor_class(dP3, [4, 3, 2, 1]))
 
+  P1xP2 = projective_space(NormalToricVariety, 1) * projective_space(NormalToricVariety, 2)
+  a, b, p, q, r = gens(cox_ring(P1xP2))
+  ci = closed_subvariety_of_toric_variety(P1xP2, [a * p, b * q, a * r + b * p])
+  D = rational_equivalence_class(toric_divisor_class(P1xP2, degree(a * p)))
+
   @testset "Should fail due to bad arguments (algebraic cycles in toric varieties)" begin
     @test_throws ArgumentError rational_equivalence_class(antv, [1, 2, 3])
     @test_throws ArgumentError rational_equivalence_class(toric_variety(ac1), [1, 2, 3])
@@ -31,12 +43,23 @@
     @test_throws ArgumentError sv1 * ac1
     @test_throws ArgumentError ac4 * sv1
     @test_throws ArgumentError sv1 * sv0
+    @test_throws ArgumentError rational_equivalence_class(sv5)
+    @test_throws ArgumentError rational_equivalence_class(non_cartier)
   end
 
   @testset "Arithmetic" begin
     @test (ac1 == ac4) == false
     @test is_trivial(ac4 - ac3) == false
     @test is_trivial(ac1) == true
+  end
+
+  @testset "Fundamental classes of closed subvarieties" begin
+    @test fundamental_class(sv3) == 2 * rational_equivalence_class(sv1)
+    @test is_trivial(fundamental_class(sv4))
+    @test fundamental_class(weil_divisor) ==
+      rational_equivalence_class(toric_divisor_class(antv, degree(u)))
+    @test is_trivial(fundamental_class(cartier))
+    @test fundamental_class(ci) == D^3
   end
 
   @testset "Basic properties" begin

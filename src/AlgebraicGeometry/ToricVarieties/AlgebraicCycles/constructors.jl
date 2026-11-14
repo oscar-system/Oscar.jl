@@ -170,10 +170,41 @@ rational_equivalence_class(cc::CohomologyClass) = RationalEquivalenceClass(
 )
 
 @doc raw"""
-    rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
+    fundamental_class(sv::ClosedSubvarietyOfToricVariety; check_codimension=true)
 
-Construct the rational equivalence class of algebraic
-cycles of a closed subvariety of a normal toric variety.
+Return the rational equivalence class of the fundamental cycle of a closed
+subvariety presented as a complete intersection in a normal toric variety.
+
+The ambient toric variety must be simplicial, but need not be complete.
+Although the method accepts arbitrary closed subvarieties, it computes the
+product of the divisor classes associated with the stored homogeneous Cox-ring
+generators. This product represents the rational equivalence class of the
+fundamental cycle under the complete-intersection assumptions described below.
+
+By default, the method verifies that the defining equations cut out a
+subscheme of the expected codimension. This involves saturating the defining
+ideal by the irrelevant ideal and computing its Krull dimension. If the saturated
+ideal is the unit ideal, the subscheme is empty and the method returns the
+zero class in the Chow ring.
+
+These computations can be expensive. Setting `check_codimension=false` skips
+the saturation and dimension checks. This option should only be used when
+the chosen equations are known to define a nonempty complete intersection
+of the expected codimension. Otherwise, the result may be incorrect.
+
+The verification depends on the chosen generators of the defining ideal.
+Different generating sets may describe the same closed subscheme, but
+redundant generators can cause the codimension check to fail. While the
+rational equivalence class of the fundamental cycle is independent of the
+presentation, the product computed without verification need not represent
+that cycle.
+
+For complete intersections of codimension at least two, we require the defining
+divisors to be Cartier. Together with the expected-codimension condition, this
+ensures that their intersection product represents the rational equivalence class
+of the fundamental cycle. On singular toric varieties, this conclusion need not hold
+for non-Cartier Weil divisors. The Cartier condition is automatically satisfied when
+the ambient toric variety is smooth.
 
 # Examples
 ```jldoctest
@@ -192,32 +223,38 @@ julia> (x1, x2, y1, y2) = gens(cox_ring(ntv))
 julia> sv = closed_subvariety_of_toric_variety(ntv, [x1^2+x1*x2+x2^2, y2])
 Closed subvariety of a normal toric variety
 
-julia> rational_equivalence_class(sv)
+julia> fundamental_class(sv)
 Rational equivalence class on a normal toric variety represented by 2V(x2,y2)
 ```
 """
-function rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety)
-  v = toric_variety(sv)
-  indets = gens(chow_ring(v))
-  mons = [[m for m in monomials(p)][1] for p in gens(defining_ideal(sv))]
-  expos = [
-    matrix(ZZ, [k for k in AbstractAlgebra.exponent_vectors(mons[k])]) for
-    k in 1:length(mons)
-  ]
-  coeffs = [1 for i in 1:length(mons)]
-  new_mons = MPolyQuoRingElem{QQMPolyRingElem}[]
-  for k in 1:length(mons)
-    mon = 1
-    for j in 1:ncols(expos[k])
-      if expos[k][1, j] != 0
-        coeffs[k] = coeffs[k] * expos[k][1, j]
-        mon = mon * indets[j]
-      end
-    end
-    push!(new_mons, mon)
+function fundamental_class(sv::ClosedSubvarietyOfToricVariety; check_codimension::Bool=true)
+  X = toric_variety(sv)
+  I = defining_ideal(sv)
+  fs = gens(I)
+  @req !isempty(fs) && all(f -> !iszero(f) && is_homogeneous(f), fs) "Cycle classes require nonzero homogeneous equations"
+  if check_codimension
+    J = saturation(I, irrelevant_ideal(X))
+    is_one(J) && return RationalEquivalenceClass(X, zero(chow_ring(X)))
+    @req dim(J) == ngens(cox_ring(X)) - length(fs) "The ideal generators of the closed subvariety do not define a complete intersection of the expected codimension"
   end
-  classes = [coeffs[k] * RationalEquivalenceClass(v, new_mons[k]) for k in 1:length(mons)]
-  return prod(classes)
+  @req length(fs) == 1 || is_smooth(X) ||
+    all(f -> is_cartier(toric_divisor(toric_divisor_class(X, degree(f)))), fs) "Complete intersections of codimension greater than one on singular toric varieties require Cartier defining classes"
+  result = RationalEquivalenceClass(X, one(chow_ring(X)))
+  for f in fs
+    result *= rational_equivalence_class(toric_divisor_class(X, degree(f)))
+  end
+  return result
+end
+
+@doc raw"""
+    rational_equivalence_class(sv::ClosedSubvarietyOfToricVariety; check_codimension=true)
+
+Return the fundamental class of `sv`. To this end, this method forwards to [`fundamental_class`](@ref).
+"""
+function rational_equivalence_class(
+  sv::ClosedSubvarietyOfToricVariety; check_codimension::Bool=true
+)
+  return fundamental_class(sv; check_codimension)
 end
 
 ####################################################
