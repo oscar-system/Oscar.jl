@@ -405,7 +405,7 @@ function pubmap(uov::UOV, z::Vector{UInt8}, tm::Vector{UInt8})
 end
 
 @doc raw"""
-    uov_keygen(uov::UOV) -> (pk, sk)
+    keygen(uov::UOV) -> (pk, sk)
 
 Generate a public/private key pair for the UOV parameter set `uov`, returning
 the public key `pk` first and the secret key `sk` second. Both are byte vectors
@@ -415,7 +415,7 @@ whose layout depends on the `pkc` and `skc` flags of `uov`.
 ```jldoctest
 julia> uov = uov_1p;
 
-julia> pk, sk = uov_keygen(uov);
+julia> pk, sk = keygen(uov);
 
 julia> length(pk)
 278432
@@ -424,7 +424,7 @@ julia> length(sk)
 237896
 ```
 """
-function uov_keygen(uov::UOV)
+function keygen(uov::UOV)
     seed_sk = uov.rbg(uov.seed_sk_sz)
     seed_pk_so = shake_256(seed_sk, uov.seed_pk_sz + uov.so_sz)
     seed_pk = seed_pk_so[1:uov.seed_pk_sz]
@@ -448,7 +448,7 @@ function uov_keygen(uov::UOV)
 end
 
 @doc raw"""
-    uov_sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8}) -> sig
+    sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8}) -> sig
 
 Sign the message `msg` (a byte vector) with the secret key `sk` of the UOV
 parameter set `uov`, returning the signature as a byte vector.
@@ -457,17 +457,17 @@ parameter set `uov`, returning the signature as a byte vector.
 ```jldoctest
 julia> uov = uov_1p;
 
-julia> pk, sk = uov_keygen(uov);
+julia> pk, sk = keygen(uov);
 
 julia> msg = zeros(UInt8, 32);
 
-julia> sig = uov_sign(uov, msg, sk);
+julia> sig = sign(uov, msg, sk);
 
-julia> uov_verify(uov, sig, msg, pk)
+julia> verify(uov, sig, msg, pk)
 true
 ```
 """
-function uov_sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
+function Base.sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
     if uov.skc
         @req length(sk) == uov.seed_sk_sz "compact secret key must have length $(uov.seed_sk_sz), got $(length(sk))"
         sk = expand_sk(uov, sk)
@@ -540,7 +540,7 @@ function uov_sign(uov::UOV, msg::Vector{UInt8}, sk::Vector{UInt8})
 end
 
 @doc raw"""
-    uov_verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8}) -> Bool
+    verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8}) -> Bool
 
 Return `true` if the signature `sig` is a valid signature of the message `msg`
 under the public key `pk` of the UOV parameter set `uov`.
@@ -549,24 +549,24 @@ under the public key `pk` of the UOV parameter set `uov`.
 ```jldoctest
 julia> uov = uov_1p;
 
-julia> pk, sk = uov_keygen(uov);
+julia> pk, sk = keygen(uov);
 
 julia> msg = zeros(UInt8, 32);
 
-julia> sig = uov_sign(uov, msg, sk);
+julia> sig = sign(uov, msg, sk);
 
-julia> uov_verify(uov, sig, msg, pk)
+julia> verify(uov, sig, msg, pk)
 true
 
 julia> sig_bad = copy(sig);
 
 julia> sig_bad[1] ⊻= 0xff;
 
-julia> uov_verify(uov, sig_bad, msg, pk)
+julia> verify(uov, sig_bad, msg, pk)
 false
 ```
 """
-function uov_verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8})
+function verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector{UInt8})
     @req length(sig) == uov.sig_sz "signature must have length $(uov.sig_sz), got $(length(sig))"
 
     if uov.pkc
@@ -585,7 +585,7 @@ function uov_verify(uov::UOV, sig::Vector{UInt8}, msg::Vector{UInt8}, pk::Vector
 end
 
 @doc raw"""
-    uov_open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
+    open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
 
 Recover the message from a signed message `sm` (message concatenated with its
 signature), verifying it against the public key `pk`. Returns `nothing` if the
@@ -595,25 +595,25 @@ signature is invalid.
 ```jldoctest
 julia> uov = uov_1p;
 
-julia> pk, sk = uov_keygen(uov);
+julia> pk, sk = keygen(uov);
 
 julia> msg = UInt8[1, 2, 3];
 
-julia> sm = vcat(msg, uov_sign(uov, msg, sk));
+julia> sm = vcat(msg, sign(uov, msg, sk));
 
-julia> uov_open(uov, sm, pk)
+julia> open(uov, sm, pk)
 3-element Vector{UInt8}:
  0x01
  0x02
  0x03
 ```
 """
-function uov_open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
+function Base.open(uov::UOV, sm::Vector{UInt8}, pk::Vector{UInt8})
     msg_sz = length(sm) - uov.sig_sz
     msg = sm[1:msg_sz]
     sig = sm[msg_sz+1:end]
 
-    if !uov_verify(uov, sig, msg, pk)
+    if !verify(uov, sig, msg, pk)
         return nothing
     end
 

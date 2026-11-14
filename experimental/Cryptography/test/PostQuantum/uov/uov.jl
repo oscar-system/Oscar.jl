@@ -1,3 +1,6 @@
+using Test
+using Oscar
+
 @testset "uov module structure" begin
   # Test that all parameter sets are defined
   @test isdefined(Oscar, :uov_1p)
@@ -28,10 +31,10 @@ end
 
 @testset "uov functions exported" begin
   # Test that functions are exported
-  @test isdefined(Oscar, :uov_keygen)
-  @test isdefined(Oscar, :uov_sign)
-  @test isdefined(Oscar, :uov_verify)
-  @test isdefined(Oscar, :uov_open)
+  @test hasmethod(keygen, Tuple{typeof(uov_1p)})
+  @test hasmethod(sign, Tuple{typeof(uov_1p), Vector{UInt8}, Vector{UInt8}})
+  @test hasmethod(verify, Tuple{typeof(uov_1p), Vector{UInt8}, Vector{UInt8}, Vector{UInt8}})
+  @test hasmethod(open, Tuple{typeof(uov_1p), Vector{UInt8}, Vector{UInt8}})
 end
 
 @testset "uov signing and verification" begin
@@ -40,49 +43,49 @@ end
 
   # Test uov_1p (and its pkc/skc variants)
   for uov in (uov_1p, uov_1p_pkc, uov_1p_pkc_skc)
-      pk, sk = uov_keygen(uov)
-      sig = uov_sign(uov, msg, sk)
+      pk, sk = keygen(uov)
+      sig = sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test uov_verify(uov, sig, msg, pk)
+      @test verify(uov, sig, msg, pk)
   end
 
   # Test uov_1s (GF(16) field)
   for uov in (uov_1s, uov_1s_pkc, uov_1s_pkc_skc)
-      pk, sk = uov_keygen(uov)
-      sig = uov_sign(uov, msg, sk)
+      pk, sk = keygen(uov)
+      sig = sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test uov_verify(uov, sig, msg, pk)
+      @test verify(uov, sig, msg, pk)
   end
 
   # Test uov_3
   for uov in (uov_3, uov_3_pkc, uov_3_pkc_skc)
-      pk, sk = uov_keygen(uov)
-      sig = uov_sign(uov, msg, sk)
+      pk, sk = keygen(uov)
+      sig = sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test uov_verify(uov, sig, msg, pk)
+      @test verify(uov, sig, msg, pk)
   end
 
   # Test uov_5 (largest parameter set)
   for uov in (uov_5, uov_5_pkc, uov_5_pkc_skc)
-      pk, sk = uov_keygen(uov)
-      sig = uov_sign(uov, msg, sk)
+      pk, sk = keygen(uov)
+      sig = sign(uov, msg, sk)
       @test length(sig) == uov.sig_sz
-      @test uov_verify(uov, sig, msg, pk)
+      @test verify(uov, sig, msg, pk)
   end
 
   # Test that verification rejects a tampered signature
-  pk, sk = uov_keygen(uov_1p)
-  sig = uov_sign(uov_1p, msg, sk)
+  pk, sk = keygen(uov_1p)
+  sig = sign(uov_1p, msg, sk)
   sig_bad = copy(sig)
   sig_bad[1] = sig_bad[1] ⊻ 0xFF
-  @test !uov_verify(uov_1p, sig_bad, msg, pk)
+  @test !verify(uov_1p, sig_bad, msg, pk)
 end
 
 @testset "uov message opening" begin
   # Test opening of a signed message
   uov = uov_1p
-  pk, sk = uov_keygen(uov)
+  pk, sk = keygen(uov)
   msg = UInt8[1, 2, 3]
-  sm = vcat(msg, uov_sign(uov, msg, sk))
-  @test msg == uov_open(uov, sm, pk)
+  sm = vcat(msg, sign(uov, msg, sk))
+  @test msg == open(uov, sm, pk)
 end
