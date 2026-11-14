@@ -98,6 +98,12 @@ If `RG` is the invariant ring $k[x_1, \dots, x_n]^G$ of a linearly reductive gro
 reynolds_operator(R::RedGroupInvarRing, f::MPolyRingElem)
 ```
 
+## Invariants of a Given Degree
+
+```@docs
+basis(RG::RedGroupInvarRing, d::Int)
+```
+
 ## The Null Cone
 
 ```@docs
