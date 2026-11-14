@@ -140,8 +140,14 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       # make it accessible from Main
       @eval Main global $sym::Module
       invokelatest(setproperty!, Main, sym, mockdule)
-      Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
-      Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
+      @static if VERSION < v"1.12"
+        # for these versions it needs to be inserted without checking,
+        # otherwise it inherits Core.eval
+        Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
+      else
+        isdefined(mockdule, :eval) && hasmethod(mockdule.eval, Tuple{Expr}) || Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
+      end
+      isdefined(mockdule, :include) || Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
 
       input = Pipe()
       output = Pipe()
