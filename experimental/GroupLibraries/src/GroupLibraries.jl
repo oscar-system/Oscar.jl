@@ -5,8 +5,10 @@ include("primitive_groups.jl")
 include("perfect_groups.jl")
 include("class_number_groups.jl")
 include("atlas_groups.jl")
+include("character_tables.jl")
 
 export atlas_groups_library
+export character_table_library
 export find
 export groups_with_class_number_library
 export has_groups
