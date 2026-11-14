@@ -1,13 +1,15 @@
+# Builds the OSCAR manual and runs its doctests.
 #
-# This file is included by docs/make.jl and by a helper function
-# in src/utils/docs.jl
-#
-module BuildDoc
+# Oscar is passed in as a `Module` rather than being a dependency, so that the
+# environment of this package holds no OSCAR package; see `Oscar.docs_env`.
+module OscarDocs
 
 using Documenter, DocumenterCitations, JSON
 
 include("documenter_helpers.jl")
 include("citation_style.jl")
+include("doctest.jl")
+include("preview.jl")
 
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
@@ -162,20 +164,22 @@ function doit(
     end
   end
 
-  function get_rev(uuid::Base.UUID)
-    deps = Documenter.Pkg.dependencies()
-    @assert haskey(deps, uuid)
-    if !isnothing(deps[uuid].git_revision)
-      return deps[uuid].git_revision
-    else
-      return "v$(deps[uuid].version)"
+  # `Pkg.dependencies()` cannot be used here: it only covers the active
+  # project, which need not have OSCAR as a dependency.
+  function get_rev(pkg::Module)
+    dir = Base.pkgdir(pkg)
+    # in a worktree `.git` is a file
+    if ispath(joinpath(dir, ".git"))
+      rev = readchomp(ignorestatus(`git -C $dir rev-parse --verify --quiet HEAD`))
+      isempty(rev) || return rev
     end
+    return "v$(pkgversion(pkg))"
   end
-  aarev = get_rev(Base.PkgId(Oscar.AbstractAlgebra).uuid)
-  nemorev = get_rev(Base.PkgId(Oscar.Nemo).uuid)
-  heckerev = get_rev(Base.PkgId(Oscar.Hecke).uuid)
-  singularrev = get_rev(Base.PkgId(Oscar.Singular).uuid)
-  oscarrev = get_rev(Base.PkgId(Oscar).uuid)
+  aarev = get_rev(Oscar.AbstractAlgebra)
+  nemorev = get_rev(Oscar.Nemo)
+  heckerev = get_rev(Oscar.Hecke)
+  singularrev = get_rev(Oscar.Singular)
+  oscarrev = get_rev(Oscar)
 
   cd(joinpath(oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true, warn=false)
@@ -273,6 +277,26 @@ function doit(
   rm(joinpath(docspath, "build", "search_index.json"))
 end
 
-end # module BuildDoc
+# The implementation of `Oscar.build_doc`.
+function build(
+  Oscar::Module;
+  doctest::Union{Bool,Symbol}=false,
+  warnonly=true,
+  local_build::Bool=true,
+  open_browser::Bool=true,
+  start_server::Bool=false,
+)
+  doctest === false || setup_doctest_stats(Oscar)
+  with_docs_terminal(Oscar) do
+    doit(Oscar; warnonly, local_build, doctest)
+  end
 
-using .BuildDoc
+  if start_server
+    start_doc_preview_server(Oscar; open_browser)
+  elseif open_browser
+    open_doc(Oscar)
+  end
+  return nothing
+end
+
+end # module OscarDocs

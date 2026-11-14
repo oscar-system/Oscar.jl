@@ -1,5 +1,9 @@
-using Documenter, Oscar
+# Build the manual for deployment; run as `julia --project=. docs/make.jl`.
+# For a local build use `Oscar.@build_doc`.
+using Oscar
 
-include("make_work.jl")
+Oscar.docs_env()
 
-@invokelatest BuildDoc.doit(Oscar; warnonly=false, local_build=false, doctest=false)
+using OscarDocs
+
+OscarDocs.build(Oscar; warnonly=false, local_build=false, doctest=false, open_browser=false)

@@ -1,8 +1,14 @@
 import DelimitedFiles
-import Oscar
 
 const docstats = Dict{String,NamedTuple}()
-if haskey(ENV, "GITHUB_ACTION") || haskey(ENV, "OSCAR_TEST_STATS")
+const docstats_registered = Ref(false)
+
+# Arrange for `docstats` to be written to a file at exit, in CI or on request.
+function setup_doctest_stats(Oscar::Module)
+  haskey(ENV, "GITHUB_ACTION") || haskey(ENV, "OSCAR_TEST_STATS") || return
+  docstats_registered[] && return
+  docstats_registered[] = true
+
   metadata = Oscar._test_stats_metadata()
   timestamp = metadata.timestamp
   platform = Sys.islinux() ? "linux" : "macos"
