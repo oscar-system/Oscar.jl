@@ -103,11 +103,23 @@ Please also read the section below on repairing the `jldoctest`s using
     this problem.
 
 
-### The documentation environment
+### Macros and functions
 
-Building the manual needs `Documenter.jl`, which OSCAR does not depend on. It is
-provided by the project of the package `docs/OscarDocs`, which contains the
-code building the manual.
+Building the manual needs `Documenter.jl`, which OSCAR does not depend on. The
+code building the manual is the package `OscarDocs` in `docs/OscarDocs`, which
+depends on `Documenter.jl`; the directory is also the environment providing
+these packages.
+
+The macros `Oscar.@build_doc`, `Oscar.@doctest` and `Oscar.@doctest_fix` make
+that environment available and then load `OscarDocs` with `import`, as you
+would load any package. Like every macro, they also take their arguments in
+parentheses, so `Oscar.build_doc(doctest=:fix)` becomes
+`Oscar.@build_doc(doctest=:fix)`. They must be called at the top level, at the
+REPL or in a script, not inside a function.
+
+The functions `build_doc`, `Oscar.doctest` and `Oscar.doctest_fix` do the same
+and can be called inside functions, but load `OscarDocs` through Julia
+internals. They are kept for existing scripts and tools.
 
 ```@docs
 Oscar.docs_env

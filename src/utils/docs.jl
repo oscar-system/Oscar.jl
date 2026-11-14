@@ -97,7 +97,10 @@ function _split_macro_args(args)
   kws = Any[]
   pos = Any[]
   for arg in args
-    if arg isa Expr && (arg.head === :(=) || arg.head === :kw)
+    # keywords after `;`, as in `@build_doc(; doctest=true)`
+    if arg isa Expr && arg.head === :parameters
+      append!(kws, arg.args)
+    elseif arg isa Expr && (arg.head === :(=) || arg.head === :kw)
       push!(kws, Expr(:kw, arg.args[1], arg.args[2]))
     else
       push!(pos, arg)
@@ -121,7 +124,7 @@ end
 @doc raw"""
     Oscar.@build_doc
     Oscar.@build_doc doctest=false warnonly=true
-    Oscar.@build_doc open_browser=true start_server=false
+    Oscar.@build_doc(doctest=false, open_browser=true, start_server=false)
 
 Build the manual of `Oscar.jl` locally and open the front page in a browser.
 
@@ -230,7 +233,7 @@ julia> Oscar.@doctest_fix "/Rings/"
 macro doctest_fix(args...)
   pos, kws = _split_macro_args(args)
   length(pos) <= 1 || throw(ArgumentError("@doctest_fix takes at most one argument"))
-  filter!(kw -> kw.args[1] !== :fix, kws)
+  filter!(kw -> !(kw isa Expr && kw.args[1] === :fix), kws)
   push!(kws, Expr(:kw, :fix, true))
   return _docs_toplevel(__source__, :doctest, pos, kws)
 end
@@ -246,7 +249,7 @@ end
     build_doc(; doctest=false, warnonly=true, open_browser=true, start_server=false)
 
 Build the OSCAR manual. Equivalent to [`Oscar.@build_doc`](@ref), which should
-be preferred at the REPL.
+be preferred.
 """
 build_doc(; kwargs...) = Base.invokelatest(_oscardocs().build, Oscar; kwargs...)
 
@@ -257,7 +260,7 @@ build_doc(; kwargs...) = Base.invokelatest(_oscardocs().build, Oscar; kwargs...)
 
 Run the doctests of OSCAR, of a single function, or of every file whose path
 contains `path`. Equivalent to [`Oscar.@doctest`](@ref), which should be
-preferred at the REPL.
+preferred.
 """
 doctest(; kwargs...) = Base.invokelatest(_oscardocs().doctest, Oscar; kwargs...)
 doctest(what::Union{Function,String}; kwargs...) =
@@ -267,8 +270,7 @@ doctest(what::Union{Function,String}; kwargs...) =
     doctest_fix(f::Function; set_meta::Bool = false)
     doctest_fix(path::String; set_meta::Bool = false)
 
-Run doctests as [`Oscar.doctest`](@ref) does, replacing their expected output
-with what OSCAR produces. Please use carefully.
+Equivalent to [`Oscar.@doctest_fix`](@ref), which should be preferred.
 """
 doctest_fix(what::Union{Function,String}; kwargs...) = doctest(what; fix=true, kwargs...)
 

@@ -37,20 +37,21 @@
 
 If you are asked to write new doctests, first review
 `docs/src/DeveloperDocumentation/documentation.md` for best practices and for
-the documented `build_doc`, `Oscar.doctest`, and `Oscar.doctest_fix` helpers.
+the documented `Oscar.@build_doc`, `Oscar.@doctest`, and `Oscar.@doctest_fix`
+helpers.
 
 #### Verifying doctests
 If you have changed any `jldoctest` code blocks you should take
 the following steps to verify your work:
 - Review `docs/src/DeveloperDocumentation/documentation.md`. In particular,
   determine if any of the changed doctests require filters, labels, setup code,
-  `build_doc`, or one of the targeted `Oscar.doctest` helpers.
+  `Oscar.@build_doc`, or one of the targeted `Oscar.@doctest` helpers.
 - Run the doctests to verify that your change works:
-    - To run all doctests: `julia --project=. -e 'using Oscar; Oscar.doctest()'`.
+    - To run all doctests: `julia --project=. -e 'using Oscar; Oscar.@doctest()'`.
     - To run doctests for one function:
-      `julia --project=. -e 'using Oscar; Oscar.doctest(function_name)'`.
+      `julia --project=. -e 'using Oscar; Oscar.@doctest(function_name)'`.
     - To run doctests for files matching a path substring:
-      `julia --project=. -e 'using Oscar; Oscar.doctest("/Rings/")'`.
+      `julia --project=. -e 'using Oscar; Oscar.@doctest("/Rings/")'`.
     - IMPORTANT: The doctests may take up to 15 minutes. Do NOT terminate the
       doctests before completion. Do NOT use a timeout for doctests.
     - If you are ChatGPT, you may have to increase `yield_time_ms`.
