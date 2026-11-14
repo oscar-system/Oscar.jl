@@ -3162,7 +3162,16 @@ end
 #  Root test
 #
 ###############################################################################
+
 function _packing_density_test(G::ZZGenus)
+  !iszero(signature_tuple(G)[1]) && return false
+  r = Int(rank(G)) 
+  # Lower bounds for rootless positive definite lattices 
+  # https://arxiv.org/pdf/2611.08356
+  delta = [4, 12, 32, 64, 128, 192, 256, 256, 512, 370, 400, 410, 406, 370, 318, 256, 194, 134, 86, 50, 26, 12, 4]
+  if r <= length(delta)
+    return abs(det(G)) < delta[r]
+  end
   # The center of density of a definite lattice L is defined as
   # delta(L) = rho^n/sqrt(|det(L)|) where rho(L) = 1//2*sqrt(|min(L)|).
   # If there exists a lattice L in a genus G with absolute minimum at least 4
@@ -3171,8 +3180,8 @@ function _packing_density_test(G::ZZGenus)
   #              center_density_ub >= delta(L) >= 1/sqrt(|det(G))
   # Hence, if |det(G)| < 1//(bn[rank(G)])^2, all the lattices in G have
   # absolute minimum equal to 2.
-  !iszero(signature_tuple(G)[1]) && return false
-  r = Int(rank(G))  
+  
+  
   RR = real_field()
   r > 48 && return false
   # Spherepacking bounds taken from Henry cohn
