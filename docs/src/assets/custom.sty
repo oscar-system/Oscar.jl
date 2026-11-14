@@ -1,0 +1,30 @@
+% Loaded by Documenter for the PDF manual, after documenter.sty.
+% KaTeX in the HTML manual knows \coloneqq, \xhookrightarrow etc.
+\usepackage{mathtools}
+
+% LuaTeX drops characters its fonts lack, and only logs this. The sources
+% use Unicode in math (ℙ, 𝕜, ψ, ₁, ⊂), which Computer Modern lacks.
+% unicode-math must come after mathtools.
+\usepackage{unicode-math}
+\setmathfont{latinmodern-math.otf}
+% Latin Modern Math lacks some symbols; list their code points here
+\IfFontExistsTF{STIXMath-Regular.otf}{
+  \setmathfont{STIXMath-Regular.otf}[range={"2AEB}]
+}{}
+
+% unicode-math breaks x_\mathbb{Q}, which KaTeX and LaTeX accept because
+% LaTeX's \mathbb puts braces around its result
+\renewcommand{\mathbb}[1]{{\symbb{#1}}}
+\renewcommand{\mathcal}[1]{{\symcal{#1}}}
+\renewcommand{\mathfrak}[1]{{\symfrak{#1}}}
+\renewcommand{\mathscr}[1]{{\symscr{#1}}}
+
+% The code font of the HTML manual. Documenter's DejaVu Sans Mono lacks some
+% characters of Julia output (⋮, ₖ, ℓ, 𝔸). Without contextual alternates,
+% as in the HTML manual: they draw => as an arrow.
+\IfFontExistsTF{JuliaMono}{
+  \setmonofont{JuliaMono}[Scale=MatchLowercase, Contextuals=NoAlternate]
+}{
+  \PackageWarningNoLine{custom}{JuliaMono not found, code blocks will lack
+    some characters}
+}
