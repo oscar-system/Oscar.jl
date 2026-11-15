@@ -61,11 +61,27 @@ end
 # Instantiate only once per session.
 const _docs_env_instantiated = Ref(false)
 
+# `Pkg.instantiate` keeps a manifest that violates changed compat bounds or was
+# resolved by another Julia version; `Pkg.update` fixes that, but on every call
+# costs seconds and may trigger precompilation.
+function _docs_manifest_stale(env::String)
+  manifest = joinpath(env, "Manifest.toml")
+  isfile(manifest) || return false
+  mtime(joinpath(env, "Project.toml")) > mtime(manifest) && return true
+
+  m = match(r"^julia_version = \"([^\"]+)\""m, read(manifest, String))
+  m === nothing && return true
+  v = VersionNumber(m[1])
+  return (v.major, v.minor) != (VERSION.major, VERSION.minor)
+end
+
 @doc raw"""
     Oscar.docs_env()
 
 Make the package `OscarDocs`, which builds the manual, loadable: instantiate
 its project `docs/OscarDocs`, prepend that to `LOAD_PATH`, and return its path.
+A manifest older than the project file, or resolved by another Julia minor
+version, is updated instead.
 
 That project provides `Documenter` and contains no OSCAR package, so OSCAR
 keeps being loaded from the active project.
@@ -74,7 +90,13 @@ function docs_env()
   env = joinpath(oscardir, "docs", "OscarDocs")
 
   if !_docs_env_instantiated[]
-    Pkg.activate(Pkg.instantiate, env)
+    if _docs_manifest_stale(env)
+      Pkg.activate(() -> Pkg.update(; update_registry=false), env)
+      # Pkg leaves an unchanged manifest untouched
+      touch(joinpath(env, "Manifest.toml"))
+    else
+      Pkg.activate(Pkg.instantiate, env)
+    end
     _docs_env_instantiated[] = true
   end
 
