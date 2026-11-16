@@ -320,14 +320,14 @@ jobs:
           - '1.13'
           - '1.14-nightly'
           - 'nightly'
-        os: ['ubuntu-latest']
+        os: ['ubuntu-26.04']
 
             # Service containers to run
     services:
       # Label used to access the service container
       mongodb:
         # Docker Hub image
-        image: mongo:6.0
+        image: mongo:9.0
         # Provide the login data
         env:
           MONGO_INITDB_ROOT_USERNAME: admin
@@ -353,8 +353,10 @@ jobs:
           cache-scratchspaces: false
       - name: "Fill OscarDB container"
         run: |
-          wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
-          echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          curl -fsSL https://pgp.mongodb.com/server-9.asc | \
+          sudo gpg -o /usr/share/keyrings/mongodb-server-9.gpg \
+          --dearmor
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-9.gpg ] https://repo.mongodb.org/apt/ubuntu resolute/mongodb-org/9.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-9.0.list
           sudo apt-get update
           sudo apt-get install -y mongodb-database-tools
           mongorestore --host localhost -u admin -p admin --port 27017 .github/oscardb_dump
