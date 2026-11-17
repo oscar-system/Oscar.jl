@@ -1510,6 +1510,8 @@ function _stabilizer_isotropic_elementary_semiregular_special(
       for j in i+1:r
         A[i, j]=T[i, j]
       end
+      # over Z/2, A^t+A and hence T have zero diagonal, so A[i, i] = 0 works
+      iszero(R(2)) && continue
       A[i, i] = divexact(T[i, i], 2)
     end
     @assert A+transpose(A) == T

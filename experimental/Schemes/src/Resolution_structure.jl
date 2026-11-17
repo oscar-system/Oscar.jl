@@ -493,7 +493,7 @@ function principalization(I::AbsIdealSheaf; algorithm::Symbol=:BEV)
   ## trivial case: domain(f) was already smooth
   if is_one(I)
     id_W = identity_blow_up(scheme(I))
-    phi = initialize_embedded_blowup_sequence(id_W,I,zero(ZZ))
+    phi = initialize_embedded_blowup_sequence(id_W, I, 0)
     phi.resolves_sing = true
     phi.is_strong = true
     return phi

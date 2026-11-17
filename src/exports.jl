@@ -465,6 +465,7 @@ export compose
 export composition
 export composition_series, has_composition_series, set_composition_series
 export compositions
+export comprehensive_groebner_system
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -765,6 +766,7 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
+export has_canonical_isomorphism
 export has_edge
 export has_groups_with_class_number
 export has_groups_with_class_number_identification

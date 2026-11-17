@@ -1114,6 +1114,8 @@ end
 
 function divexact(a::MPolyQuoRingElem, b::MPolyQuoRingElem; check::Bool=true)
   check_parent(a, b)
+  # 0 is a unit only in the zero ring; `is_trivial` may need a Groebner basis
+  iszero(b) && !is_trivial(parent(b)) && throw(DivideError())
   b, q = divides(a, b)
   !b && error("Division is not exact in divexact")
   return q

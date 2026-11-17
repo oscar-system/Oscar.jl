@@ -410,6 +410,20 @@ end
   @test_throws ErrorException L(y)/L(x-1)
 end
 
+@testset "mpoly-localizations divexact by zero" begin
+  # divexact by zero throws DivideError
+  R, (x, y) = GF(7)[:x, :y]
+  for U in (powers_of_element(y),
+            complement_of_point_ideal(R, [1, 2]),
+            complement_of_prime_ideal(ideal(R, x^2+y^2-1)))
+    L, = localization(R, U)
+    for check in (true, false)
+      @test_throws DivideError divexact(one(L), zero(L); check)
+      @test_throws DivideError divexact(zero(L), zero(L); check)
+    end
+  end
+end
+
 @testset "minimal generating sets" begin
   R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x-1, y-2])^2

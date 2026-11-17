@@ -445,6 +445,7 @@ function divexact(f::VarietyFunctionFieldElem,
     g::VarietyFunctionFieldElem;
     check::Bool=true
   )
+  iszero(g) && throw(DivideError())
   return f//g
 end
 inv(f::VarietyFunctionFieldElem) = parent(f)(denominator(representative(f)),

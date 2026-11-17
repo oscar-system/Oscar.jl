@@ -253,8 +253,9 @@ false
 """
 function is_isomorphic(F::FreeMod, G::FreeMod)
   is_graded(F) == is_graded(G) || return false
-  is_graded(F) && return MSet(F.d) == MSet(G.d)
-  return F.R == G.R && rank(F) == rank(G)
+  F.R == G.R || return false
+  rank(F) == rank(G) || return false
+  return !is_graded(F) || MSet(F.d) == MSet(G.d)
 end
 
 @doc raw"""
@@ -264,6 +265,31 @@ Return `true` if `F` is the zero module, `false` otherwise.
 """
 function is_zero(F::AbstractFreeMod)
   return rank(F) == 0
+end
+
+@doc raw"""
+    has_canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+
+Return whether `canonical_isomorphism(F, G)` exists. This requires `F` and `G`
+to be isomorphic; for graded `F != G` it also requires the degrees of the
+generators to be pairwise distinct, since otherwise matching generators by
+degree leaves a choice.
+
+# Examples
+```jldoctest
+julia> R, _ = graded_polynomial_ring(QQ, [:x, :y]);
+
+julia> has_canonical_isomorphism(graded_free_module(R, [0, 1]), graded_free_module(R, [1, 0]))
+true
+
+julia> has_canonical_isomorphism(graded_free_module(R, [0, 0, 1]), graded_free_module(R, [0, 1, 0]))
+false
+```
+"""
+function has_canonical_isomorphism(F::FreeMod{T}, G::FreeMod{T}) where T
+  F == G && return true
+  is_isomorphic(F, G) || return false
+  return !is_graded(F) || allunique(F.d)
 end
 
 @doc raw"""

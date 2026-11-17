@@ -4,6 +4,16 @@
 #
 ###############################################################################
 
+function _root_system_of_ss_char0(L::LieAlgebra)
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
+  @req is_semisimple(L) "Lie algebra not semisimple"
+  return root_system(L)
+end
+
+function _root_system_of_ss_char0(R::RootSystem)
+  return R
+end
+
 ###############################################################################
 #
 #   Simple modules (via highest weight) of semisimple Lie algebras
@@ -18,19 +28,14 @@ Construct the simple module of the Lie algebra `L` with highest weight `hw`.
 
 `L` needs to be a semisimple Lie algebra of characteristic $0$.
 """
-function simple_module(L::LieAlgebra, hw::WeightLatticeElem)
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
+function simple_module(L::LieAlgebra, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
+  hw = WeightLatticeElem(_root_system_of_ss_char0(L), hw_)
   @req is_dominant(hw) "Not a dominant weight"
   struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
   dimV = size(struct_consts, 2)
   V = abstract_module(L, dimV, struct_consts; check=false)
   # TODO: set appropriate attributes
   return V
-end
-
-function simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return simple_module(L, WeightLatticeElem(root_system(L), hw))
 end
 
 @doc raw"""
@@ -64,35 +69,18 @@ julia> dim_of_simple_module(R, fundamental_weight(R, 1))
 ```
 """
 function dim_of_simple_module(
-  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  LR::Union{LieAlgebra,RootSystem}, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dim_of_simple_module(root_system(L), hw)
+  return dim_of_simple_module(Int, LR, hw)
 end
 
 function dim_of_simple_module(
-  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type,
+  LR::Union{LieAlgebra,RootSystem},
+  hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dim_of_simple_module(T, root_system(L), hw)
-end
-
-function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(R, WeightLatticeElem(R, hw))
-end
-
-function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
-end
-
-function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
-  return dim_of_simple_module(Int, R, hw)
-end
-
-function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   rho = weyl_vector(R)
   hw_plus_rho = hw + rho
@@ -147,19 +135,10 @@ julia> dominant_weights(R, 3 * fundamental_weight(R, 1) + fundamental_weight(R, 
 ```
 """
 function dominant_weights(
-  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  LR::Union{LieAlgebra,RootSystem}, hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dominant_weights(root_system(L), hw)
-end
-
-function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
 
   pos_roots = positive_roots(R)
@@ -223,35 +202,18 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
 ```
 """
 function dominant_character(
-  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  LR::Union{LieAlgebra,RootSystem}, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dominant_character(root_system(L), hw)
+  return dominant_character(Int, LR, hw)
 end
 
 function dominant_character(
-  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type,
+  LR::Union{LieAlgebra,RootSystem},
+  hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return dominant_character(T, root_system(L), hw)
-end
-
-function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(T, R, WeightLatticeElem(R, hw))
-end
-
-function dominant_character(R::RootSystem, hw::WeightLatticeElem)
-  return dominant_character(Int, R, hw)
-end
-
-function dominant_character(T::Type, R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
   rho = weyl_vector(R)
@@ -368,34 +330,19 @@ Dict{WeightLatticeElem, Int64} with 8 entries:
   -w_1 + w_3       => 1
 ```
 """
-function character(L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return character(root_system(L), hw)
+function character(
+  LR::Union{LieAlgebra,RootSystem}, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return character(Int, LR, hw)
 end
 
 function character(
-  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+  T::Type,
+  LR::Union{LieAlgebra,RootSystem},
+  hw_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return character(T, root_system(L), hw)
-end
-
-function character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(R, WeightLatticeElem(R, hw))
-end
-
-function character(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(T, R, WeightLatticeElem(R, hw))
-end
-
-function character(R::RootSystem, hw::WeightLatticeElem)
-  return character(Int, R, hw)
-end
-
-function character(T::Type, R::RootSystem, hw::WeightLatticeElem)
-  @req root_system(hw) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  hw = WeightLatticeElem(R, hw_)
   @req is_dominant(hw) "not a dominant weight"
   dom_char = dominant_character(T, R, hw)
   char = Dict{WeightLatticeElem,T}()
@@ -465,34 +412,13 @@ MSet{Vector{Int64}} with 10 elements:
 ```
 """
 function tensor_product_decomposition(
-  L::LieAlgebra,
-  hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  hw2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  LR::Union{LieAlgebra,RootSystem},
+  hw1_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  hw2_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return tensor_product_decomposition(root_system(L), hw1, hw2)
-end
-
-function tensor_product_decomposition(
-  R::RootSystem,
-  hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  hw2::Vector{<:IntegerUnion},
-)
-  return tensor_product_decomposition(R, hw1, WeightLatticeElem(R, hw2))
-end
-
-function tensor_product_decomposition(
-  R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::WeightLatticeElem
-)
-  return tensor_product_decomposition(R, WeightLatticeElem(R, hw1), hw2)
-end
-
-function tensor_product_decomposition(
-  R::RootSystem, hw1::WeightLatticeElem, hw2::WeightLatticeElem
-)
-  @req root_system(hw1) === R "parent root system mismatch"
-  @req root_system(hw2) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  hw1 = WeightLatticeElem(R, hw1_)
+  hw2 = WeightLatticeElem(R, hw2_)
   @req is_dominant(hw1) "not a dominant weight"
   @req is_dominant(hw2) "not a dominant weight"
 
@@ -670,54 +596,21 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
 ```
 """
 function demazure_character(
-  L::LieAlgebra,
+  LR::Union{LieAlgebra,RootSystem},
   w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return demazure_character(root_system(L), w, x)
+  return demazure_character(Int, LR, w, x)
 end
 
 function demazure_character(
   T::Type,
-  L::LieAlgebra,
-  w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  LR::Union{LieAlgebra,RootSystem},
+  w_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return demazure_character(T, root_system(L), w, x)
-end
-
-function demazure_character(
-  R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}}
-)
-  return demazure_character(R, WeightLatticeElem(R, w), x)
-end
-
-function demazure_character(
-  T::Type,
-  R::RootSystem,
-  w::Vector{<:IntegerUnion},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return demazure_character(T, R, WeightLatticeElem(R, w), x)
-end
-
-function demazure_character(
-  R::RootSystem, w::WeightLatticeElem, x::Union{WeylGroupElem,Vector{<:IntegerUnion}}
-)
-  return demazure_character(Int, R, w, x)
-end
-
-function demazure_character(
-  T::Type,
-  R::RootSystem,
-  w::WeightLatticeElem,
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  @req root_system(w) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  w = WeightLatticeElem(R, w_)
   @req is_dominant(w) "not a dominant weight"
   char = Dict{WeightLatticeElem,T}(w => T(1))
   return _iterated_demazure_operator(R, x, char)
@@ -753,62 +646,24 @@ Instead of a Weyl group element `x`, a reduced expression for `x` can be supplie
 This function may return arbitrary results if the provided expression is not reduced.
 """
 function kostant_kumar_character(
-  L::LieAlgebra,
+  LR::Union{LieAlgebra,RootSystem},
   w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return kostant_kumar_character(root_system(L), w1, w2, x)
+  return kostant_kumar_character(Int, LR, w1, w2, x)
 end
 
 function kostant_kumar_character(
   T::Type,
-  L::LieAlgebra,
-  w1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
-  w2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  LR::Union{LieAlgebra,RootSystem},
+  w1_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  w2_::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
 )
-  @req is_zero(characteristic(L)) "Characteristic must be zero"
-  @req is_semisimple(L) "Lie algebra not semisimple"
-  return kostant_kumar_character(T, root_system(L), w1, w2, x)
-end
-
-function kostant_kumar_character(
-  R::RootSystem, w1::Vector{<:IntegerUnion}, w2::Vector{<:IntegerUnion},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(R, WeightLatticeElem(R, w1), WeightLatticeElem(R, w2), x)
-end
-
-function kostant_kumar_character(
-  T::Type,
-  R::RootSystem,
-  w1::Vector{<:IntegerUnion},
-  w2::Vector{<:IntegerUnion},
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(
-    T, R, WeightLatticeElem(R, w1), WeightLatticeElem(R, w2), x
-  )
-end
-
-function kostant_kumar_character(
-  R::RootSystem, w1::WeightLatticeElem, w2::WeightLatticeElem,
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  return kostant_kumar_character(Int, R, w1, w2, x)
-end
-
-function kostant_kumar_character(
-  T::Type,
-  R::RootSystem,
-  w1::WeightLatticeElem,
-  w2::WeightLatticeElem,
-  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
-)
-  @req root_system(w1) === root_system(w2) === R "parent root system mismatch"
+  R = _root_system_of_ss_char0(LR)
+  w1 = WeightLatticeElem(R, w1_)
+  w2 = WeightLatticeElem(R, w2_)
   @req is_dominant(w1) "first weight is not a dominant weight"
   @req is_dominant(w2) "second weight is not a dominant weight"
   # Compute D_w0(e^w1 * D_x(e^w2))

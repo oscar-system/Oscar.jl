@@ -789,6 +789,16 @@ function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
 end
 
 @doc raw"""
+    RootSpaceElem(R::RootSystem, r::RootSpaceElem) -> RootSpaceElem
+
+Return `r`, after checking that it belongs to the root system `R`.
+"""
+function RootSpaceElem(R::RootSystem, r::RootSpaceElem)
+  @req root_system(r) === R "parent root system mismatch"
+  return r
+end
+
+@doc raw"""
     RootSpaceElem(w::WeightLatticeElem) -> RootSpaceElem
 
 Construct a root space element from the weight lattice element `w`.
@@ -1203,6 +1213,16 @@ Construct a dual root space element in the root system `R` with the given coeffi
 """
 function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+end
+
+@doc raw"""
+    DualRootSpaceElem(R::RootSystem, r::DualRootSpaceElem) -> DualRootSpaceElem
+
+Return `r`, after checking that it belongs to the root system `R`.
+"""
+function DualRootSpaceElem(R::RootSystem, r::DualRootSpaceElem)
+  @req root_system(r) === R "parent root system mismatch"
+  return r
 end
 
 @doc raw"""

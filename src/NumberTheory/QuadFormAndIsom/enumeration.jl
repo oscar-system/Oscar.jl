@@ -842,10 +842,18 @@ end
     ) -> Vector{ZZLatWithIsom}
 
 Given a nonempty genus of integer lattices ``G`` and a polynomial `min_poly`
-which is irreducible over $\mathbb Q$ and so that the equation order of the
-associated number field is maximal, return a complete list of representatives
-for the isomorphism classes of pairs $(M, g)$ consisting of a lattice $M$ in
-$G$ and $g \in O(M)$ is an isometry of minimal polynomial `min_poly`
+which is irreducible over $\mathbb Q$, return a complete list of
+representatives for the isomorphism classes of pairs $(M, g)$ consisting of a
+lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
+`min_poly`.
+
+If the equation order $\mathbb{Z}[\alpha]$ of the number field
+$E = \mathbb{Q}[\alpha]$ defined by `min_poly` is not maximal, then the
+largest $\mathcal{O}_E$-module $M_L$ contained in $L$ is enumerated first,
+and $(L, g)$ is recovered as an overlattice of $M_L$ which is contained in
+$\mathfrak{f}^{-1}M_L$, where $\mathfrak{f}$ is the conductor of
+$\mathbb{Z}[\alpha]$ (see Algorithm 6.13 in Brandhorst--Takada, *Pointless K3
+surfaces over finite fields*).
 
 One can also provide a representative $L$ of $G$ instead.
 
@@ -998,7 +1006,9 @@ function representatives_of_hermitian_type(
     E, b = cyclotomic_field_as_cm_extension(n)
   else
     Etemp, btemp = number_field(chi; cached=false)
-    @req is_maximal(equation_order(Etemp)) "For isometries of infinite order, the equation order of the associated number field must be maximal (for now)"
+    if !is_maximal(equation_order(Etemp))
+      return _representatives_of_hermitian_type_non_maximal(G, chi; first, discriminant_annihilator, _local, allow_info)
+    end
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
     Kt, t = K[:t]
     E, b = number_field(t^2-a*t+1, "b"; cached=false)
@@ -1090,6 +1100,236 @@ function representatives_of_hermitian_type(
   return reps
 end
 
+###############################################################################
+#
+#  Hermitian type: non maximal equation order
+#
+###############################################################################
+
+# Given a quadratic extension of number fields E/K, return generators for the
+# group of units of the maximal order of E of relative norm 1.
+function _norm_one_unit_gens(E::Hecke.RelSimpleNumField)
+  K = base_field(E)
+  OK = maximal_order(K)
+  Eabs, EabsToE = absolute_simple_field(E)
+  UE, mUE = unit_group(maximal_order(Eabs))
+  UK, mUK = unit_group(OK)
+  imgs = FinGenAbGroupElem[mUK\(OK(norm(EabsToE(elem_in_nf(mUE(u)))))) for u in gens(UE)]
+  N = hom(UE, UK, imgs)
+  ker, kerToUE = kernel(N)
+  return elem_type(E)[EabsToE(elem_in_nf(mUE(kerToUE(u)))) for u in gens(ker)]
+end
+
+# Given a lattice with isometry (M, f) and a matrix m commuting with f and
+# preserving M and its dual (both given in ambient coordinates), return the
+# endomorphism of the submodule T of the discriminant group of M induced by m.
+function _induced_endomorphism(T::TorQuadModule, m::QQMatrix)
+  return hom(T, T, TorQuadModuleElem[T(lift(x)*m) for x in gens(T)])
+end
+
+# Given a hermitian lattice H over E/K, with E = Q[b] where b is the generator
+# of E, return a complete set of representatives for the isomorphism classes
+# of lattices with isometry (L, f) with L in G and such that the largest
+# O_E-module contained in L is isomorphic to the trace lattice of H with
+# isometry given by the multiplication by b.
+#
+# Here `cond` is the conductor of the equation order Z[b] in O_E, and `k` is
+# the index [L : M] which is determined by the determinants of M and G.
+#
+# This is Step 2 of [BT26, Algorithm 6.13].
+function _overlattices_of_hermitian_type_non_maximal(
+    H::HermLat,
+    G::ZZGenus,
+    k::ZZRingElem,
+    cond,
+    discriminant_annihilator;
+    first::Bool=false,
+  )
+  E = base_field(H)
+  OE = maximal_order(E)
+  rk = rank(H)
+  M, fM, res = trace_lattice_with_isometry_and_transfer_data(H; check=false)
+  Mf = integer_lattice_with_isometry(M, fM; check=false)
+  reps = ZZLatWithIsom[]
+
+  if isone(k)
+    # L = M is an O_E-module
+    if genus(M) == G && is_annihilated_on_discriminant(Mf, discriminant_annihilator)
+      push!(reps, Mf)
+    end
+    return reps
+  end
+
+  # Any overlattice L of M with M_L = M is contained in f^{-1}M \cap M^\vee
+  # [BT26, Proposition 6.10]
+  qM, _ = discriminant_group(Mf)
+  OqM = orthogonal_group(qM)
+  X = intersect(dual(M), restrict_scalars(inv(cond)*H, res))
+  BX = basis_matrix(X)
+  T, TinqM = sub(qM, TorQuadModuleElem[qM(BX[i,:]) for i in 1:nrows(BX)])
+  is_divisible_by(order(T), k) || return reps
+  A = abelian_group(T)
+
+  # The minimal O_E-submodules of T: L/M may contain none of them since
+  # otherwise L contains an O_E-module strictly larger than M
+  actOE = TorQuadModuleMap[_induced_endomorphism(T, _transfer_isometry(res, elem_in_nf(w)*identity_matrix(E, rk))) for w in absolute_basis(OE)]
+  avoid = FinGenAbGroupHom[abelian_group_homomorphism(StoT) for (_, StoT) in stable_submodules(T, actOE; minimal=true)]
+
+  # The bilinear form on T scaled by the exponent
+  gram = numerator(exponent(T)*gram_matrix_bilinear(T))
+  fT = _induced_endomorphism(T, fM)
+  subs = stable_subgroups(A, FinGenAbGroupHom[abelian_group_homomorphism(fT)]; gram, avoid, order=k, op=(x, y) -> sub(x, y, false))
+
+  cands = TorQuadModule[]
+  for (S, StoA) in subs
+    Sq, _ = sub(qM, TorQuadModuleElem[TinqM(T(StoA(x))) for x in gens(S)])
+    if is_even(G) && !all(x -> iszero(quadratic_product(x)), gens(Sq))
+      continue
+    end
+    L = cover(Sq)
+    genus(L) == G || continue
+    Lf = integer_lattice_with_isometry(L, fM; check=false)
+    is_annihilated_on_discriminant(Lf, discriminant_annihilator) || continue
+    if first
+      push!(reps, Lf)
+      return reps
+    end
+    push!(cands, Sq)
+  end
+  isempty(cands) && return reps
+
+  # We compute the orbits of the candidates under the image of
+  # O(M, fM) = U(H) in O(D_M) [BT26, Proposition 6.11, Remark 6.12]
+  if length(cands) > 1
+    UHq = gens(image_centralizer_in_Oq(Mf)[1])
+    UHq = elem_type(OqM)[OqM(matrix(g); check=false) for g in UHq]
+    push!(UHq, one(OqM))
+    O, _ = sub(OqM, unique!(UHq))
+    to_gap = get_attribute(OqM, :to_gap)
+    to_oscar = get_attribute(OqM, :to_oscar)
+    qgap = codomain(to_gap)
+    sgap = typeof(qgap)[sub(qgap, elem_type(qgap)[to_gap(qM(lift(x))) for x in gens(Sq)])[1] for Sq in cands]
+    cands = TorQuadModule[]
+    for orb in orbits(gset(O, on_subgroups, sgap))
+      repgap = representative(orb)
+      push!(cands, sub(qM, TorQuadModuleElem[to_oscar(qgap(x)) for x in gens(repgap)])[1])
+    end
+  end
+
+  for Sq in cands
+    push!(reps, integer_lattice_with_isometry(cover(Sq), fM; check=false))
+  end
+  return reps
+end
+
+# Given a genus `G` of integral integer lattices and an irreducible reciprocal
+# polynomial `chi` of even degree dividing the rank of `G`, and such that the
+# equation order of Q[x]/(chi) is not maximal, return a complete set of
+# representatives for the isomorphism classes of lattices with isometry (L, f)
+# such that L is in G and f has minimal polynomial `chi`.
+#
+# We follow Algorithm 6.13 in [BT26] (Brandhorst--Takada, "Pointless K3 surfaces
+# over finite fields"): let E = Q[b] := Q[x]/(chi) and let f be
+# the conductor of Z[b] in O_E. For (L, f) as before, we let M_L be the
+# largest O_E-module contained in L. Then:
+# 1. M_L corresponds to a hermitian O_E-lattice for which (f*I)M_L^\vee \subseteq M_L,
+#    where I is a discriminant annihilator for (L, f);
+# 2. L is an f-stable integral overlattice of M_L with L \subseteq f^{-1}M_L
+#    and containing no O_E-module strictly larger than M_L.
+#
+# If `_local` is set to `true`, we enumerate only one representative per
+# genus of hermitian lattices for the O_E-modules M_L. In this case, every
+# genus of lattices with isometry is represented in the output, but it can be
+# represented more than once.
+function _representatives_of_hermitian_type_non_maximal(
+    G::ZZGenus,
+    chi::Union{ZZPolyRingElem, QQPolyRingElem};
+    first::Bool=false,
+    discriminant_annihilator::Union{ZZPolyRingElem, ZZMPolyRingElem, MPolyIdeal{ZZMPolyRingElem}}=_discriminant_annihilator(G),
+    _local::Bool=false,
+    allow_info::Bool=false,
+  )
+  reps = ZZLatWithIsom[]
+  rG = rank(G)
+  dG = abs(numerator(det(G)))
+  nG = signature_pair(G)[2]
+  ok, rk = divides(rG, degree(chi))
+  ok || return reps
+
+  Etemp, btemp = number_field(chi; cached=false)
+  K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
+  Kt, t = K[:t]
+  E, b = number_field(t^2-a*t+1, "b"; cached=false)
+  s = involution(E)
+  OE = maximal_order(E)
+  DK = different(maximal_order(K))
+  DE = DK*OE*different(OE)
+
+  # By a result of Dedekind (see Serre, Local Fields, Ch. III, §6, Corollary 1),
+  # the conductor of the equation order Z[b] in O_E is chi'(b)*D^{-1},
+  # where D is the absolute different of O_E.
+  cond = derivative(chi)(b)*inv(DE)
+  @hassert :ZZLatWithIsom 1 is_integral(cond)
+  ncond = ZZ(absolute_norm(cond))
+
+  # An ideal J of O_E with J*L^\vee \subseteq L. If I*L^\vee \subseteq L then
+  # also sigma(I)*L^\vee \subseteq L by duality, and det(G) annihilates the
+  # discriminant group of L.
+  discriminant_annihilatorE = begin
+    if discriminant_annihilator isa ZZPolyRingElem
+      [evaluate(discriminant_annihilator, b)]
+    elseif discriminant_annihilator isa ZZMPolyRingElem
+      [evaluate(discriminant_annihilator, [b])]
+    else
+      [evaluate(p, [b]) for p in gens(discriminant_annihilator)]
+    end
+  end
+  J = fractional_ideal(OE, vcat(discriminant_annihilatorE, s.(discriminant_annihilatorE), [E(dG)]))
+
+  # The largest O_E-module M in L satisfies (cond*J)*M^\vee \subseteq M
+  # [BT26, Proposition 6.5]. We translate this into bounds on the scales of
+  # the hermitian lattice M [BT26, Proposition 6.8].
+  min_scale = inv(DE)
+  max_scale = cond*J*inv(DE)
+
+  signatures = _possible_signatures(nG, E, rk)
+  isempty(signatures) && return reps
+
+  # The index k = [L : M] divides the order of f^{-1}M/M, which is N(f)^rk.
+  # Moreover det(M) = det(L)*k^2.
+  gene = Tuple{HermGenus, ZZRingElem}[]
+  for k in divisors(ncond^rk)
+    ndE = dG*k^2*inv(QQ(absolute_norm(DE)))^rk
+    for dd in _ideals_of_norm(E, ndE), sign in signatures
+      for g in hermitian_genera(E, rk, sign, dd; min_scale, max_scale)
+        push!(gene, (g, k))
+      end
+    end
+  end
+  unique!(gene)
+  # The trace lattice must be integral, and even if G is
+  filter!(gk -> is_integral(DE*scale(gk[1])), gene)
+  if is_even(G)
+    filter!(gk -> is_integral(DK*norm(gk[1])), gene)
+  end
+  allow_info && !_local && println("All possible hermitian genera $G  $chi: $(length(gene))")
+
+  for (g, k) in gene
+    H = representative(g)
+    if _local
+      gr = typeof(H)[H]
+    else
+      allow_info && println("Enumerate hermitian genus of rank $(rank(H))")
+      gr = genus_representatives(H)
+    end
+    for HH in gr
+      append!(reps, _overlattices_of_hermitian_type_non_maximal(HH, G, k, cond, discriminant_annihilator; first))
+      first && !isempty(reps) && return reps
+    end
+  end
+  return reps
+end
+
 function representatives_of_hermitian_type(
     L::ZZLat,
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
@@ -1177,7 +1417,7 @@ function representatives_of_hermitian_type(
     root_test::Bool=false,
     info_depth::Int=1,
     _local::Bool=false,
-  ) where T <: Hecke.IntegerUnion
+  ) where T <: IntegerUnion
   chi = min_poly
   @req is_irreducible(chi) "Polynomial must be irreducible"
   @req all(>((0, 0)), signatures) "Signature tuples must consist of nonnegative integers with nonzero sum"
@@ -1322,7 +1562,7 @@ end
 
 function representatives_of_hermitian_type(
     signature::Tuple{Int, Int},
-    determinant::Hecke.IntegerUnion,
+    determinant::IntegerUnion,
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
     fix_root::Int = -1;
     kwargs...,
@@ -1342,7 +1582,7 @@ function representatives_of_hermitian_type(
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
     fix_root::Int = -1;
     kwargs...,
-  ) where T <: Hecke.IntegerUnion
+  ) where T <: IntegerUnion
   return representatives_of_hermitian_type(
                                            Tuple{Int, Int}[signature],
                                            determinants,
@@ -1354,7 +1594,7 @@ end
 
 function representatives_of_hermitian_type(
     signatures::Vector{Tuple{Int, Int}},
-    determinant::Hecke.IntegerUnion,
+    determinant::IntegerUnion,
     min_poly::Union{ZZPolyRingElem, QQPolyRingElem},
     fix_root::Int = -1;
     kwargs...,
@@ -2725,7 +2965,7 @@ end
 # intersection I \cap Z[x^p]
 function _discriminant_annihilator_after_power(
   I::MPolyIdeal{ZZMPolyRingElem},
-  p::Hecke.IntegerUnion,
+  p::IntegerUnion,
 )
   P = base_ring(I)
   x = gen(P, 1)
@@ -2738,7 +2978,7 @@ end
 
 function _discriminant_annihilator_after_power(
   f::Union{ZZPolyRingElem, ZZMPolyRingElem},
-  p::Hecke.IntegerUnion,
+  p::IntegerUnion,
 )
   P, (x, ) = polynomial_ring(ZZ, [:x]; cached=false)
   I = ideal(f(x))
@@ -3400,7 +3640,7 @@ function _divisors(d::T) where T <: RingElem
   return res
 end
 
-function *(x::Hecke.IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
+function *(x::IntegerUnion, I::MPolyIdeal{ZZMPolyRingElem})
   return ideal(base_ring(I), [x*i for i in gens(I)])
 end
 
