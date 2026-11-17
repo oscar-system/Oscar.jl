@@ -445,8 +445,9 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   
   @req conductor >= 0 "conductor must not be negative"
 
-  e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
-  f = divexact(absolute_degree(K), e)
+  e_abs = absolute_ramification_index(K)
+  e = divexact(e_abs, absolute_ramification_index(k))
+  f = divexact(absolute_degree(K), e * absolute_degree(k))
   @vprint :GaloisCohomology 1 "the local mult. group as a Z[G] module for e = $e and f = $f (prime: $(prime(K)), cond: $conductor, extra: $extra, $(precision(K)), $(precision(k))\n"
   @vprint :GaloisCohomology 2 " .. the automorphism group ..\n"
 
@@ -460,7 +461,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
       mG,
-      MapFromFunc(A, K, x->pi^x[1], y->Int(e*valuation(y))*A[1])
+      MapFromFunc(A, K, x->pi^x[1], y->Int(e_abs*valuation(y))*A[1])
   end
 
   if e % prime(K) != 0 && conductor < 2
@@ -490,7 +491,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
       mG,
       MapFromFunc(A, K, x->pi^x[1] * gk^x[2],
         function(y)
-          v = Int(e*valuation(y))
+          v = Int(e_abs*valuation(y))
           y *= pi^-v
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
         end)
