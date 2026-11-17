@@ -12,6 +12,11 @@
   kQ = monoid_algebra([[0, 1], [1, 1], [2, 1]],QQ)
   Oscar.ConformanceTests.test_Ring_interface(kQ)
   #Oscar.ConformanceTests.test_Ring_interface_recursive(kQ) # Needs AA update
+
+  for check in (true, false)
+    @test_throws DivideError divexact(one(kQ), zero(kQ); check)
+    @test_throws DivideError divexact(zero(kQ), zero(kQ); check)
+  end
 end
 
 @testset "constuct MonoidAlgebras" begin

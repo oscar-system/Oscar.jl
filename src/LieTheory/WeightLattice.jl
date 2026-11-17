@@ -146,6 +146,26 @@ function WeightLatticeElem(P::WeightLattice, v::Vector{<:IntegerUnion})
 end
 
 @doc raw"""
+    WeightLatticeElem(R::RootSystem, w::WeightLatticeElem) -> WeightLatticeElem
+
+Return `w`, after checking that it belongs to the root system `R`.
+"""
+function WeightLatticeElem(R::RootSystem, w::WeightLatticeElem)
+  @req root_system(w) === R "parent root system mismatch"
+  return w
+end
+
+@doc raw"""
+    WeightLatticeElem(P::WeightLattice, w::WeightLatticeElem) -> WeightLatticeElem
+
+Return `w`, after checking that it belongs to the weight lattice `P`.
+"""
+function WeightLatticeElem(P::WeightLattice, w::WeightLatticeElem)
+  @req parent(w) === P "parent weight lattice mismatch"
+  return w
+end
+
+@doc raw"""
     WeightLatticeElem(r::RootSpaceElem) -> WeightLatticeElem
 
 Construct a weight lattice element from the root space element `r`.

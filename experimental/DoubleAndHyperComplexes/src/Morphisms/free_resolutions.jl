@@ -68,7 +68,7 @@ function (fac::ResolutionModuleFactory{ChainType})(
   if is_empty(fac.map_cache)
     # start the resolution from scratch
     res = free_resolution(fac.orig_mod;
-                          length=isnothing(fac.length) ? 0 : maximum([fac.length::Int, i]),
+                          length=isnothing(fac.length) ? PosInf() : maximum([fac.length::Int, i]),
                           algorithm=isnothing(fac.algorithm) ? :fres : fac.algorithm::Symbol
                          )
     phi = map(res, 1)

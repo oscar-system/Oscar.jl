@@ -768,10 +768,7 @@ function _element_ids(p::PartiallyOrderedSet)
   dir = top > bot ? 1 : -1
   top -= dir*p.artificial_top
   bot += dir*p.artificial_bottom
-  if dir == -1
-    bot, top = top, bot
-  end
-  return (bot:top)
+  return (bot:dir:top)
 end
 
 
@@ -808,3 +805,6 @@ julia> length(elements_of_rank(pos, 2))
 """
 elements_of_rank(p::PartiallyOrderedSet, rk::Int) =
   PartiallyOrderedSetElement.(Ref(p), _ids_of_rank(p, rk))
+
+elements_of_rank(p::PartiallyOrderedSet, rks::AbstractVector) =
+  PartiallyOrderedSetElement.(Ref(p), reduce(vcat, _ids_of_rank.(Ref(p), rks)))

@@ -221,6 +221,7 @@
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases_integers.md",
+        "CommutativeAlgebra/GroebnerBases/comprehensive_groebner_systems.md",
      ],
      "Miscellaneous" => [
          "CommutativeAlgebra/Miscellaneous/binomial_ideals.md",

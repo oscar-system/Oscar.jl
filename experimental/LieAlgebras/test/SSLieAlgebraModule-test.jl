@@ -1114,6 +1114,10 @@
       @test char_ZZ == result
       @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
 
+      char = @inferred kostant_kumar_character(R, w1_int, w2_weight, x)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
+
       char = @inferred kostant_kumar_character(L, w1_weight, w2_weight, x)
       @test char == result
       @test char isa Dict{WeightLatticeElem,Int}
@@ -1149,6 +1153,10 @@
       )
       @test char_ZZ == result
       @test char_ZZ isa Dict{WeightLatticeElem,ZZRingElem}
+
+      char = @inferred kostant_kumar_character(L, w1_weight, w2_int, x)
+      @test char == result
+      @test char isa Dict{WeightLatticeElem,Int}
     end
   end
 end

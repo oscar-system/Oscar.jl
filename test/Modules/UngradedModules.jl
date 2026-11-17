@@ -1339,6 +1339,49 @@ end
   @test length(FA.C.maps) == 9
 end
 
+@testset "free resolutions truncated by length" begin
+  # `length = n` stops at the n-th free module, `PosInf()` computes everything
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  M = SubquoModule(R[x; y], R[x^2; x*y; y^2; z^4])
+  for algorithm in (:fres, :mres, :nres)
+    fr = free_resolution(M; length=0, algorithm)
+    @test length(fr) == 0
+    @test !is_complete(fr)
+    @test [rank(fr[i]) for i in 0:4] == [2, 6, 6, 2, 0]
+    @test is_complete(fr)
+
+    fr = free_resolution(M; length=2, algorithm)
+    @test length(fr) == 2
+    @test !is_complete(fr)
+
+    fr = free_resolution(M; length=PosInf(), algorithm)
+    @test length(fr) == 3
+    @test is_complete(fr)
+  end
+  @test_throws ErrorException free_resolution(M; length=-1)
+
+  I = ideal(R, [x, y])^2
+  @test length(free_resolution(I; length=0)) == 0
+  @test length(free_resolution(quo(R, I)[1]; length=0)) == 0
+  @test length(free_resolution(free_module(R, 2); length=0)) == 0
+
+  S, _ = quo(R, ideal(R, [x^2]))
+  N = quotient_ring_as_module(ideal(S, [x, y]))
+  fr = free_resolution(N; length=0)
+  @test length(fr) == 0
+  @test rank(fr[1]) == 2
+  @test length(free_resolution(N; length=3)) == 3
+  @test_throws ErrorException free_resolution(N)
+
+  F = FreeMod(ZZ, 2)
+  MZ, _ = quo(F, [2*F[1], 3*F[2]])
+  fr = free_resolution(MZ; length=0)
+  @test length(fr) == 0
+  @test rank(fr[1]) == 2
+  @test is_zero(fr[2])
+  @test_throws ErrorException free_resolution(MZ; length=-1)
+end
+
 @testset "vector_space_dim and vector_space_basis" begin
   Oscar.set_seed!(235)
   R,(x,y,z,w) = QQ[:x, :y, :z, :w]
@@ -1605,7 +1648,8 @@ end
 
     fr = free_resolution(M, length=3)
 
-    @test length(fr.C.maps) == 3
+    @test length(fr) == 1
+    @test is_complete(fr)
     @test iszero(homology(fr.C)[1])
 
     # Generic lazy resolutions must distinguish the terminal zero from padding.
@@ -1777,7 +1821,8 @@ end
 
     fr = free_resolution(M, length=3)
 
-    @test length(fr.C.maps) == 3
+    @test length(fr) == 1
+    @test is_complete(fr)
     @test iszero(homology(fr.C)[1])
     MP, _ = prune_with_map(M)
     @test is_zero(MP)
@@ -2273,13 +2318,38 @@ end
   @test normal_form(w, SB) == zero(F)
 end
 
-@testset "right scalar multiplication is not supported" begin
-  # right multiplication is rejected by its own error, not by a dispatch ambiguity
+@testset "right scalar multiplication" begin
+  # over a commutative base ring right scalar multiplication agrees with the left one
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   F = free_module(R, 2)
+  v = F[1] + y*F[2]
 
-  @test_throws ErrorException F[1]*x
-  @test_throws ErrorException F[1]*2
+  @test v*x == x*v
+  @test parent(v*x) === F
+  @test v*(x + y^2) == (x + y^2)*v
+  @test v*2 == 2*v
+  @test v*QQ(1//2) == QQ(1//2)*v
+  @test is_zero(v*zero(R))
+  @test v*one(R) == v
+
+  Q, _ = quo(F, [x*F[1]])
+  w = Q[1] + y*Q[2]
+
+  @test w*x == x*w
+  @test parent(w*x) === Q
+  @test w*(x + y^2) == (x + y^2)*w
+  @test w*2 == 2*w
+  @test w*QQ(1//2) == QQ(1//2)*w
+  @test is_zero(w*zero(R))
+  @test w*one(R) == w
+
+  @test v*(1//2) == (1//2)*v
+
+  # multiplying two module elements is not scalar multiplication
+  @test_throws MethodError w*w
+
+  # operands whose multiplication does not commute are refused, not reversed
+  @test_throws ErrorException v*matrix(R, [x y; y x])
 end
 
 @testset "direct sums of morphisms" begin

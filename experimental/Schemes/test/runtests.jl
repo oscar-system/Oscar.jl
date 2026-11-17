@@ -135,3 +135,14 @@ end
   @test phi.is_trivial
   @test phi.resolves_sing
 end
+
+@testset "principalization of the unit ideal sheaf" begin
+  # the trivial branch returns the identity blow-up sequence
+  X = covered_scheme(spec(polynomial_ring(QQ, [:x, :y, :z])[1]))
+  I = Oscar.unit_ideal_sheaf(X)
+  phi = Oscar.principalization(I)
+  @test phi.is_trivial
+  @test phi.resolves_sing
+  @test phi.is_strong
+  @test phi.ex_mult == [0]
+end

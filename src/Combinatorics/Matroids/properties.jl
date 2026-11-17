@@ -160,23 +160,18 @@ julia> flats(M, 2)
  [3, 4, 7]
 ```
 """
-flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, pm_object(M).LATTICE_OF_FLATS.N_NODES,  pm_object(M).LATTICE_OF_FLATS.FACES)
-
-function flats_impl(M::Matroid{T}, r::Union{Int,Nothing}, num_flats::Int, pm_flats) where T
-    jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
-    if pm_object(M).LATTICE_OF_FLATS.TOP_NODE==0
-        jl_flats = reverse(jl_flats)
-    end
-    matroid_flats = _indices_to_gs(jl_flats, M.groundset)
-    if r !== nothing
-        if r<0 || r>rank(M)
-            error("The specified rank needs to be between 0 and the rank of the matroid.")
-        end
-        matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
-    end
-    matroid_flats = Vector{Vector{T}}(matroid_flats)
-    return matroid_flats
+flats(M::Matroid) = _indices_to_gs(flats(Int, M), M.groundset)
+function flats(Int, M::Matroid, r::Int) 
+  if r<0 || r>rank(M)
+    error("The specified rank needs to be between 0 and the rank of the matroid.")
+  end
+  return data.(elements_of_rank(lattice_of_flats(M), r))
 end
+flats(Int, M::Matroid) = data.(elements(lattice_of_flats(M)))
+flats(M::Matroid, r::Int) = _indices_to_gs(flats(Int, M, r), M.groundset)
+flats(Int, M::Matroid, rks::AbstractVector) = data.(elements_of_rank(lattice_of_flats(M), rks))
+flats(M::Matroid, rks::AbstractVector) = _indices_to_gs(flats(Int, M, rks), M.groundset)
+
 
 @doc raw"""
     cyclic_flats(M::Matroid, [r::Int])
@@ -217,7 +212,18 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid{T}, r::Union{Int,Nothing}=nothing) where T = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid) = _indices_to_gs(cyclic_flats(Int, M), M.groundset)
+function cyclic_flats(Int, M::Matroid, r::Int) 
+  if r<0 || r>rank(M)
+    error("The specified rank needs to be between 0 and the rank of the matroid.")
+  end
+  return data.(elements_of_rank(lattice_of_cyclic_flats(M), r))
+end
+cyclic_flats(Int, M::Matroid) = data.(elements(lattice_of_cyclic_flats(M)))
+cyclic_flats(M::Matroid, r::Int) = _indices_to_gs(cyclic_flats(Int, M, r), M.groundset)
+cyclic_flats(Int, M::Matroid, rks::AbstractVector) = data.(elements_of_rank(lattice_of_cyclic_flats(M), rks))
+cyclic_flats(M::Matroid, rks::AbstractVector) = _indices_to_gs(cyclic_flats(Int, M, rks), M.groundset)
+
 
 @doc raw"""
     closure(M::Matroid, set::GroundsetType)
@@ -372,27 +378,28 @@ julia> independent_sets(uniform_matroid(2, 3))
  [1]
  [2]
  [3]
+ [1, 2]
  [1, 3]
  [2, 3]
- [1, 2]
 ```
 """
-function independent_sets(M::Matroid)
+independent_sets(M::Matroid) = _indices_to_gs(independent_sets(Int, M), M.groundset)
+function independent_sets(Int, M::Matroid)
     pm_bases = bases(Int, M)
-    gs = matroid_groundset(M)
-    elt = eltype(gs)
-    n = length(gs)
-    sets = Vector{Vector{elt}}()
-    push!(sets,elt[])
+    sets = Vector{Vector{Int}}()
+    push!(sets,Int[])
     for k in 1:rank(M)
-        for set in Oscar.Hecke.subsets(Vector(1:n),k)
-            for B in pm_bases
-                if issubset(set,B)
-                    push!(sets, gs[collect(set)])
-                    break
-                end
-            end
+      # An independent set might be a subset of multiple bases, so it might
+      # appear multiple times when we list these subsets. Thus we use an
+      # intermediate set of sets to get rid of duplicates.
+      rkpt = Set{Vector{Int}}()
+      for B in pm_bases
+        for set in combinations(B, k)
+          push!(rkpt, set)
         end
+      end
+      rkpt = sort(collect(rkpt))
+      append!(sets, rkpt)
     end
     return sets
 end

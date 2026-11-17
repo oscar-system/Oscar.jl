@@ -198,6 +198,19 @@ end
     F = graded_free_module(Rg, [1,1,5,2])
     G = graded_free_module(Rg, [1,1,2,3])
     @test !is_isomorphic(F, G)
+
+    A = abelian_group(1, 0)
+    R, _ = graded_polynomial_ring(QQ, [:x]; weights=[A[1]])
+    S, _ = graded_polynomial_ring(QQ, [:x, :y]; weights=[A[1], A[1]])
+    F = graded_free_module(R, [A[1]])
+    G = graded_free_module(S, [A[1]])
+    @test !is_isomorphic(F, G)
+
+    R, _ = graded_polynomial_ring(QQ, [:u])
+    S, _ = graded_polynomial_ring(QQ, [:v])
+    F = graded_free_module(R, [0])
+    G = graded_free_module(S, [0])
+    @test !is_isomorphic(F, G)
 end
 
 @testset "Canonical isomorphism between graded subquotients" begin
@@ -1354,4 +1367,46 @@ end
   R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
   F = graded_free_module(R, 2)
   @test sprint(show, minimal_betti_table(F)) == sprint(show, minimal_betti_table(free_resolution(F)))
+end
+
+@testset "right scalar multiplication" begin
+  # right scalar multiplication on graded modules agrees with the left one
+  Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  F = graded_free_module(Rg, [0, 1])
+  v = F[1] + y*F[2]
+
+  @test v*x == x*v
+  @test parent(v*x) === F
+  @test v*2 == 2*v
+
+  Q, _ = quo(F, [x*F[1]])
+  w = Q[1] + y*Q[2]
+
+  @test w*x == x*w
+  @test parent(w*x) === Q
+  @test w*2 == 2*w
+end
+
+# `is_canonically_isomorphic` compares along the isomorphism matching the
+# degrees of the ambient generators; a repeated degree leaves a choice and
+# ambient modules of different rank leave nothing to compare along at all
+@testset "canonical isomorphisms of graded subquotients" begin
+  Rg, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  F1 = graded_free_module(Rg, [0, 0, 1])
+  F2 = graded_free_module(Rg, [0, 1, 0])
+  M1 = image(F1, Rg[x x 1])
+  M2 = image(F2, Rg[x 1 x])
+  @test !has_canonical_isomorphism(F1, F2)
+  @test has_canonical_isomorphism(F1, F1)
+  @test has_canonical_isomorphism(graded_free_module(Rg, [0, 1]), graded_free_module(Rg, [1, 0]))
+  @test !is_canonically_isomorphic(M1, M2)
+
+  G = graded_free_module(Rg, [0, 0])
+  N = image(G, Rg[x x])
+  @test !has_canonical_isomorphism(F1, G)
+  @test !is_canonically_isomorphic(M1, N)
+
+  iso, f = is_canonically_isomorphic_with_map(M1, N)
+  @test !iso
+  @test all(is_zero(f(v)) for v in gens(M1))
 end
