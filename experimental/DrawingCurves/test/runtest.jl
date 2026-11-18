@@ -31,7 +31,7 @@ let dir, T
     zchart = hom(parent(f), R, [x, y, 1])
     fn = tempname()
     desiredfn = joinpath(dir, "harnack6_graph.tikz")
-    draw_curve_tikz(fn, zchart(f); graph=true)
+    draw_curve_tikz(fn, zchart(f); graph=true, overwrite=true, aligned=false)
     IG = Oscar._compute_isotopy_graph(zchart(f), T, 1)[1]
     # Number of affine components should always be the same.
     # This is a better check than the file comparison later, nevertheless the file
