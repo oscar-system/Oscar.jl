@@ -8,6 +8,8 @@
 # ---------------------------------------------------------------------------
 using Random: AbstractRNG, RandomDevice
 
+const CREDIT_Reg05 = _credit("Reg05")
+
 # ---------------------------------------------------------------------------
 # LWE parameter structure
 # ---------------------------------------------------------------------------
@@ -109,6 +111,7 @@ julia> size(A), length(b), length(s)
 ```
 """
 function lwe_keygen(p::LWE; rng::AbstractRNG = RandomDevice())
+    @credit CREDIT_Reg05
     A = rand(rng, 0:p.q-1, p.m, p.n)
     s = rand(rng, 0:p.q-1, p.n)
     e = _cbd(rng, p.eta, p.m)
@@ -136,6 +139,7 @@ julia> size(U), length(v)
 ```
 """
 function lwe_encrypt(p::LWE, pk, msg::AbstractVector{UInt8}; rng::AbstractRNG = RandomDevice())
+    @credit CREDIT_Reg05
     A, b = pk
     bits = _bytes_to_bits(msg)
     R = rand(rng, 0:1, p.m, length(bits))
@@ -163,6 +167,7 @@ julia> String(lwe_decrypt(lwe_toy, sk, ct))
 ```
 """
 function lwe_decrypt(p::LWE, sk, ct)
+    @credit CREDIT_Reg05
     U, v = ct
     @req size(U, 1) == p.n && size(U, 2) == length(v) "ciphertext does not match the parameters"
     @req length(v) % 8 == 0 "ciphertext length must be a multiple of 8 bits"
