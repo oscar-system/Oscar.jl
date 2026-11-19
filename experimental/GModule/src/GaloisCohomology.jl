@@ -2364,7 +2364,14 @@ function Oscar.galois_group(::Type{GrpExt}, A::ClassField, ::QQField;
 
   gamma = s[2](s[1][1])
 
-  gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
+  fa = Dict{ZZRingElem, Int}(factor(minimum(m0)))
+  for (P, l) in factor(m0)
+    l <= 1 && continue
+    # A tame local quotient discards the principal units of level one.
+    p = minimum(P)
+    fa[p] = max(fa[p], 2)
+  end
+  gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) in fa])
 
 
   @vprintln :GaloisCohomology 2 "projecting to ray class group..."
