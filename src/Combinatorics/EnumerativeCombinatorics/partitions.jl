@@ -380,11 +380,14 @@ function partitions(n::IntegerUnion, k::IntegerUnion; only_distinct_parts::Bool 
   return PartitionsFixedNumParts(n, k; only_distinct_parts = only_distinct_parts)
 end
 
+const CREDIT_RJ76 = _credit("RJ76")
+
 # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 
 # Note that the algorithm is given as partitioning m into n parts,
 # but we have refactored to align more closely with standard terminology.
 function Base.iterate(P::PartitionsFixedNumParts{T}) where T
+  @credit CREDIT_RJ76
   n = P.n
   k = P.k
   lb = P.lb
@@ -588,6 +591,7 @@ Base.IteratorSize(::Type{PartitionsFixedNumPartsAndValues{T}}) where T = Base.Si
 # them all, see below for details. Some initial fixing was done by T. Schmit.
 # Initialize a `state` object for the iterator
 function _initial_state(P::PartitionsFixedNumPartsAndValues{T}) where T
+  @credit CREDIT_RJ76
   state = PartitionsFixedNumPartsAndValuesState{T}()
   state.done = false
 

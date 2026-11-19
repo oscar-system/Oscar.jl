@@ -156,12 +156,15 @@ function check_primary_degrees(
   return true
 end
 
+const CREDIT_Kem99 = _credit("Kem99")
+
 function _primary_invariants_via_optimal_hsop(
   RG::FinGroupInvarRing;
   ensure_minimality::Int=0,
   degree_bound::Int=1,
   primary_degrees::Vector{Int}=Int[],
 )
+  @credit CREDIT_Kem99
   iters = Dict{Int,VectorSpaceIterator}()
   ideals = Dict{
     Set{elem_type(polynomial_ring(RG))},
