@@ -1,3 +1,6 @@
+using Test
+using Oscar
+
 @testset "keccak shake_256" begin
   # Test against known SHAKE256 test vectors, including messages of
   # length 135, 136 and 272 at the block boundaries of the 136-byte rate
