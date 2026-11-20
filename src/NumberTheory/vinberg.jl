@@ -215,8 +215,8 @@ end
 @doc raw"""
     _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix}) -> ZZMatrix
 
-Return a `direction_vector` $v_1$ satisfying $(\~{v}, v_1) \neq 0$ 
-for all `possible_vec` $\~{v}$ with $(v_0, \~{v}) = 0$
+Return a `direction_vector` $v_1$ satisfying $(\tilde{v}, v_1) \neq 0$ 
+for all `possible_vec` $\tilde{v}$ with $(v_0, \tilde{v}) = 0$
 """
 function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
   l = ncols(Q)
@@ -247,8 +247,8 @@ end
 @doc raw"""
     _check_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix}, direction_vector::ZZMatrix) -> ZZMatrix
 
-We check if the given `direction_vector` $v_1$ satisfies $(\~{v}, v_1) \neq 0$ 
-for all `possible_vec` $\~{v}$ with $(v_0, \~{v}) = 0$
+We check if the given `direction_vector` $v_1$ satisfies $(\tilde{v}, v_1) \neq 0$ 
+for all `possible_vec` $\tilde{v}$ with $(v_0, \tilde{v}) = 0$
 """
 function _check_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix}, direction_vector::ZZMatrix)
   v1 = transpose(direction_vector)
