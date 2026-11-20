@@ -19,8 +19,9 @@ of the scheme, the first argument:
 - `encrypt(p, pk, msg)` and `decrypt(p, sk, ct)` (encryption schemes).
 
 Parameter sets are created with `instantiate_uov`, `instantiate_lwe`,
-`instantiate_hbs` and `instantiate_mceliece`, or taken from the predefined ones
-such as `uov_1p`, `lwe_toy`, `hbs_mss_toy` or `mceliece_toy`.
+`instantiate_hbs`, `instantiate_mceliece` and `instantiate_niederreiter`, or
+taken from the predefined ones such as `uov_1p`, `lwe_toy`, `hbs_mss_toy`,
+`mceliece_toy` or `niederreiter_toy`.
 
 ## UOV signatures
 
@@ -87,9 +88,10 @@ merkle_verify
 ## Code-based encryption
 
 Public key encryption whose security rests on the hardness of decoding random
-linear codes. The secret key is a binary Goppa code, whose errors can be
-corrected with Patterson's algorithm [Pat75](@cite). The parameter sets are not
-compatible with the NIST submission Classic McEliece.
+linear codes. For the schemes of McEliece and Niederreiter the secret key is a
+binary Goppa code, whose errors can be corrected with Patterson's algorithm
+[Pat75](@cite). Their parameter sets are not compatible with the NIST
+submission Classic McEliece.
 
 ### McEliece
 
@@ -101,6 +103,19 @@ instantiate_mceliece
 keygen(::McEliece)
 encrypt(::McEliece, ::FqMatrix, ::AbstractVector{UInt8})
 decrypt(::McEliece, ::Any, ::FqMatrix)
+```
+
+### Niederreiter
+
+The scheme of Niederreiter [Nie86](@cite) with Goppa codes: a message block is
+encoded as an error vector of fixed weight, whose syndrome with respect to a
+scrambled parity check matrix of the code is the ciphertext.
+
+```@docs
+instantiate_niederreiter
+keygen(::Niederreiter)
+encrypt(::Niederreiter, ::FqMatrix, ::AbstractVector{UInt8})
+decrypt(::Niederreiter, ::Any, ::FqMatrix)
 ```
 
 ## Hash function
