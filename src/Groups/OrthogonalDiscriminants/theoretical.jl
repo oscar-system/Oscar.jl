@@ -15,10 +15,10 @@ In this case, `val` is `"O+"` or `"O-"`.
 ```jldoctest
 julia> t = character_table("L3(2)");
 
-julia> Oscar.OrthogonalDiscriminants.od_from_order(mod(t, 3)[4])
+julia> Oscar.od_from_order(mod(t, 3)[4])
 (true, "O-")
 
-julia> Oscar.OrthogonalDiscriminants.od_from_order(mod(t, 2)[4])
+julia> Oscar.od_from_order(mod(t, 2)[4])
 (false, "")
 ```
 """
@@ -58,13 +58,13 @@ This criterion works only if the characteristic of `chi` is not $2$,
 ```jldoctest
 julia> t = character_table("A5");
 
-julia> Oscar.OrthogonalDiscriminants.od_from_eigenvalues(t[4])
+julia> Oscar.od_from_eigenvalues(t[4])
 (true, "5")
 
-julia> Oscar.OrthogonalDiscriminants.od_from_eigenvalues(mod(t, 3)[4])
+julia> Oscar.od_from_eigenvalues(mod(t, 3)[4])
 (true, "O-")
 
-julia> Oscar.OrthogonalDiscriminants.od_from_eigenvalues(mod(t, 2)[4])
+julia> Oscar.od_from_eigenvalues(mod(t, 2)[4])
 (false, "")
 ```
 """
@@ -133,10 +133,10 @@ via [`gram_determinant_specht_module`](@ref).
 ```jldoctest
 julia> t = character_table("A5");
 
-julia> Oscar.OrthogonalDiscriminants.od_for_specht_module(t[4])
+julia> Oscar.od_for_specht_module(t[4])
 (true, "5")
 
-julia> Oscar.OrthogonalDiscriminants.od_for_specht_module(mod(t, 3)[4])
+julia> Oscar.od_for_specht_module(mod(t, 3)[4])
 (false, "")
 ```
 """
@@ -199,13 +199,13 @@ Otherwise the function tries to compute the possible permutation characters.
 ```jldoctest
 julia> t = character_table("A5");
 
-julia> Oscar.OrthogonalDiscriminants.od_from_p_subgroup(t[4], 5)
+julia> Oscar.od_from_p_subgroup(t[4], 5)
 (true, "5")
 
-julia> Oscar.OrthogonalDiscriminants.od_from_p_subgroup(mod(t, 3)[4], 5)
+julia> Oscar.od_from_p_subgroup(mod(t, 3)[4], 5)
 (true, "O-")
 
-julia> Oscar.OrthogonalDiscriminants.od_from_p_subgroup(mod(t, 2)[4], 5)
+julia> Oscar.od_from_p_subgroup(mod(t, 2)[4], 5)
 (true, "O-")
 ```
 """

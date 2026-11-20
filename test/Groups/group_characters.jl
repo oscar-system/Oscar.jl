@@ -740,6 +740,104 @@ X_1  1 -1  1
 X_2  2  . -1
 X_3  1  1  1
 ```
+
+ordinary table:
+show orthogonal discriminants in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :OD => true), MIME("text/plain"), t_a5)
+       end
+A5
+
+    2  2  2  .             .             .
+    3  1  .  1             .             .
+    5  1  .  .             1             1
+
+      1a 2a 3a            5a            5b
+   2P 1a 1a 3a            5b            5a
+   3P 1a 2a 1a            5b            5a
+   5P 1a 2a 3a            1a            1a
+   OD
+χ₁     1  1  1             1             1
+χ₂     3 -1  . ζ₅³ + ζ₅² + 1    -ζ₅³ - ζ₅²
+χ₃     3 -1  .    -ζ₅³ - ζ₅² ζ₅³ + ζ₅² + 1
+χ₄  5  4  .  1            -1            -1
+χ₅     5  1 -1             .             .
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :OD => true), MIME("text/latex"), t_a5)
+A5
+
+$\begin{array}{rrrrrrr}
+ & 2 & 2 & 2 & . & . & . \\
+ & 3 & 1 & . & 1 & . & . \\
+ & 5 & 1 & . & . & 1 & 1 \\
+ &  &  &  &  &  &  \\
+ &  & 1a & 2a & 3a & 5a & 5b \\
+ & 2P & 1a & 1a & 3a & 5b & 5a \\
+ & 3P & 1a & 2a & 1a & 5b & 5a \\
+ & 5P & 1a & 2a & 3a & 1a & 1a \\
+ & OD &  &  &  &  &  \\
+\chi_{1} &  & 1 & 1 & 1 & 1 & 1 \\
+\chi_{2} &  & 3 & -1 & . & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 & -\zeta_{5}^{3} - \zeta_{5}^{2} \\
+\chi_{3} &  & 3 & -1 & . & -\zeta_{5}^{3} - \zeta_{5}^{2} & \zeta_{5}^{3} + \zeta_{5}^{2} + 1 \\
+\chi_{4} & 5 & 4 & . & 1 & -1 & -1 \\
+\chi_{5} &  & 5 & 1 & -1 & . & . \\
+\end{array}
+$
+```
+
+Brauer table:
+show orthogonal discriminants in the screen format ...
+
+```jldoctest group_characters.test
+julia> Oscar.with_unicode() do
+         show(IOContext(stdout, :OD => true), MIME("text/plain"), t_a5_mod2)
+       end
+A5mod2
+
+    2  2  .              .              .
+    3  1  1              .              .
+    5  1  .              1              1
+
+      1a 3a             5a             5b
+   2P 1a 3a             5b             5a
+   3P 1a 1a             5b             5a
+   5P 1a 3a             1a             1a
+   OD
+χ₁     1  1              1              1
+χ₂     2 -1 -ζ₅³ - ζ₅² - 1      ζ₅³ + ζ₅²
+χ₃     2 -1      ζ₅³ + ζ₅² -ζ₅³ - ζ₅² - 1
+χ₄ O-  4  1             -1             -1
+```
+
+... and in LaTeX format
+
+```jldoctest group_characters.test
+julia> show(IOContext(stdout, :OD => true), MIME("text/latex"), t_a5_mod2)
+A5mod2
+
+$\begin{array}{rrrrrr}
+ & 2 & 2 & . & . & . \\
+ & 3 & 1 & 1 & . & . \\
+ & 5 & 1 & . & 1 & 1 \\
+ &  &  &  &  &  \\
+ &  & 1a & 3a & 5a & 5b \\
+ & 2P & 1a & 3a & 5b & 5a \\
+ & 3P & 1a & 1a & 5b & 5a \\
+ & 5P & 1a & 3a & 1a & 1a \\
+ & OD &  &  &  &  \\
+\chi_{1} &  & 1 & 1 & 1 & 1 \\
+\chi_{2} &  & 2 & -1 & -\zeta_{5}^{3} - \zeta_{5}^{2} - 1 & \zeta_{5}^{3} + \zeta_{5}^{2} \\
+\chi_{3} &  & 2 & -1 & \zeta_{5}^{3} + \zeta_{5}^{2} & -\zeta_{5}^{3} - \zeta_{5}^{2} - 1 \\
+\chi_{4} & O- & 4 & 1 & -1 & -1 \\
+\end{array}
+$
+```
 """
 
 
