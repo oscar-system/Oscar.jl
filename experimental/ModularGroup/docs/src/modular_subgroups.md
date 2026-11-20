@@ -19,4 +19,5 @@ s_t_decomposition
 is_word_element_of
 coset_right_action_of
 coset_left_action_of
+defines_coset_action_s_t
 ```
