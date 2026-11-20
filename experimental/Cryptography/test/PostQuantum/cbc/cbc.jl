@@ -102,3 +102,32 @@ end
   @test decrypt(p, sk2, ct) != msg
 end
 
+@testset "hqc reed-solomon and reed-muller codes" begin
+  # Test that the codes of HQC correct errors up to their capacities
+  rng = Random.Xoshiro(4)
+  for (n1, k) in ((10, 4), (46, 16))
+    msg = rand(rng, UInt8, k)
+    c = Oscar._rs_encode(msg, n1)
+    @test length(c) == n1
+    for w in 0:(n1 - k) ÷ 2
+      r = copy(c)
+      for i in randperm(rng, n1)[1:w]
+        r[i] ⊻= rand(rng, 0x01:0xff)
+      end
+      @test Oscar._rs_decode(r, k) == msg
+    end
+    r = copy(c)
+    for i in 1:n1 - k
+      r[i] ⊻= 0x01
+    end
+    @test Oscar._rs_decode(r, k) != msg
+  end
+  for b in (0x00, 0x01, 0xa5, 0xff), mult in (1, 3)
+    word = Oscar._rm_encode(b, mult)
+    @test length(word) == 128 * mult
+    @test Oscar._rm_decode(word, mult) == b
+    word[randperm(rng, 128 * mult)[1:31 * mult]] .⊻= 1
+    @test Oscar._rm_decode(word, mult) == b
+  end
+end
+
