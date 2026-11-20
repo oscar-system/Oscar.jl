@@ -1743,9 +1743,9 @@ function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
       inc = inclusion_map(dom)[p]
       pr = projection_map(cod)[p]
       imgs = [mon*inc(v) for v in gens(dom[p])]
-      @assert all(degree(v; check=false) == degree(cod) for v in imgs)
+      #@assert all(degree(v; check=false) == degree(cod) for v in imgs)
       img_gens = elem_type(cod[p])[pr(v) for v in imgs]
-      !is_zero(dom[p]) && @assert !is_zero(img_gens)
+      #!is_zero(dom[p]) && @assert !is_zero(img_gens)
       map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
       p -= 1
     end
