@@ -73,7 +73,21 @@ end
 
 function q_integer(n::IntegerUnion)
   R,q = laurent_polynomial_ring(ZZ, "q")
-  return q_integer(n,q)
+  n >= 0 && return _laurent_poly(R, [one(ZZ) for _ in 1:n], 0)
+  return _laurent_poly(R, [-one(ZZ) for _ in 1:-n], Int(n))
+end
+
+# Return the sum of `c[j] * q^(e + j - 1)`, with linear cost in `length(c)`;
+# a sum of monomials is quadratic because `+` reallocates the dense storage.
+function _laurent_poly(R::LaurentPolyRing, c::Vector{ZZRingElem}, e::Int)
+  z = zero(R)
+
+  # ascending degrees: the lowest one fixes the offset, the others only extend
+  for (j, a) in enumerate(c)
+    iszero(a) && continue
+    z = set_coefficient!(z, e + j - 1, a)
+  end
+  return z
 end
 
 
@@ -112,8 +126,13 @@ function q_factorial(n::IntegerUnion, q::RingElement)
   isone(q) && return R(factorial(n))
 
   z = one(R)
-  for i = 1:n
-    z *= q_integer(i,q)
+  qi = one(R)
+  qint = zero(R)
+  for _ in 1:n
+    # [i]_q = [i-1]_q + q^(i-1)
+    qint = add!(qint, qi)
+    z = mul!(z, z, qint)
+    qi = mul!(qi, qi, q)
   end
   return z
 end
@@ -188,18 +207,84 @@ function q_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElement)
   R = parent(q)
   isone(q) && return R(binomial(n,k))
   k == 0 && return one(R)
-  k == 1 && return q_integer(n,q)
-  n < 0 && return (-1)^Int(k) * q^(div(-k*(k-1),2) + k*n) * q_binomial(k-n-1,k,q)
-  n < k && return zero(R)
+  0 <= n < k && return zero(R)
 
-  z = zero(R)
-  for i = 0:n-k
-    z += q^i * q_binomial(i+k-1,k-1,q)
-  end
-  return z
+  n, k = Int(n), Int(k)
+  n >= 0 && return _q_binomial(n, k, q)
+  z = q^_q_binomial_negative_shift(n, k) * _q_binomial(k-n-1, k, q)
+  return isodd(k) ? neg!(z) : z
 end
 
 function q_binomial(n::IntegerUnion, k::IntegerUnion)
-  R,q = laurent_polynomial_ring(ZZ, "q")
-  return q_binomial(n,k,q)
+  @req k >= 0 "k >= 0 required"
+
+  R,q = laurent_polynomial_ring(ZZ, :q)
+  k == 0 && return one(R)
+  0 <= n < k && return zero(R)
+
+  n, k = Int(n), Int(k)
+  n >= 0 && return _laurent_poly(R, _q_binomial_coefficients(n, k), 0)
+  c = _q_binomial_coefficients(k-n-1, k)
+  if isodd(k)
+    foreach(neg!, c)
+  end
+  return _laurent_poly(R, c, _q_binomial_negative_shift(n, k))
+end
+
+# exponent `e` in the relation `[n, k]_q = (-1)^k q^e [k-n-1, k]_q`
+_q_binomial_negative_shift(n::Int, k::Int) = k*n - div(k*(k-1), 2)
+
+# `[n, k]_q` for `0 <= k <= n` via the q-Pascal rule on `G(a, b) = [a+b, a]_q`:
+#
+#   G(a, b) = G(a-1, b) + q^a G(a, b-1),   G(a, 0) = G(0, b) = 1
+#
+# This costs `k(n-k)` multiplications and additions, without divisions, so it
+# works over every commutative ring.
+function _q_binomial(n::Int, k::Int, q::RingElement)
+  R = parent(q)
+  k = min(k, n - k)
+  qpow = [q^a for a in 1:k]
+
+  # c[a+1] holds G(a, b) for the current b
+  c = [one(R) for _ in 0:k]
+  for _ in 1:n-k
+    for a in 1:k
+      c[a+1] = mul!(c[a+1], c[a+1], qpow[a])
+      c[a+1] = add!(c[a+1], c[a])
+    end
+  end
+  return c[k+1]
+end
+
+# Coefficients of `[n, k]_q` in ascending degree for `0 <= k <= n`, from
+#
+#   [m, i]_q = [m-1, i-1]_q (1 - q^m) / (1 - q^i),   m = n-k+i
+#
+# in `O(k^2 (n-k))` integer additions, a factor `n-k` less than `_q_binomial`
+# with polynomial arithmetic.
+function _q_binomial_coefficients(n::Int, k::Int)
+  k = min(k, n - k)
+  deg = k*(n-k)
+  c = [zero(ZZ) for _ in 0:deg+n]
+  c[1] = one(ZZ)
+
+  # c[j+1] is the coefficient of q^j; d the current degree
+  d = 0
+  for i in 1:k
+    m = n - k + i
+    for j in d+m:-1:m
+      c[j+1] = sub!(c[j+1], c[j-m+1])
+    end
+    d += m - i
+
+    # exact division: P = (1 - q^i) Q gives Q_j = P_j + Q_(j-i); what remains
+    # above degree d is the negated top of Q
+    for j in i:d
+      c[j+1] = add!(c[j+1], c[j-i+1])
+    end
+    for j in d+1:d+i
+      c[j+1] = zero!(c[j+1])
+    end
+  end
+  return resize!(c, deg + 1)
 end
