@@ -37,14 +37,22 @@ Limits:
 
 - Prime fields only, with `p < 2^16`.
 - At most `2^36` subspaces of the requested dimension.
-- The solvable radical is used only if `F^d` has at most `2^24` vectors;
-  beyond that the plain orbit algorithm runs with the given generators.
+- GAP computes with `G` through its action on vectors, so nothing is asked
+  of GAP if `F^d` has more than `2^24` vectors: lengths are then computed by
+  the plain orbit algorithm with the given generators, and stabilizers are
+  refused.
+- For lengths alone the order and the solvable radical of `G` are computed
+  only if the radical can save at least `2^27` images, since GAP may need
+  far longer for them than the plain orbit algorithm for the orbits.
 - The code for the image of a subspace is generated for each pair `(k, d)`;
   the first call for a new pair compiles for a few seconds.
 
 Not done:
 
 - Non-prime fields.
+- Stabilizers if `F^d` has more than `2^24` vectors. They need the order of
+  `G` and membership tests in `G`; `RecognizeGroup` from the GAP package
+  recog may become a way to get these without the action on vectors.
 - For a group whose orbits consist of many blocks, stabilizers are generated
   by Schreier generators of random edges until the known order is reached.
   Each of them needs a scan of the orbit and a membership test in a

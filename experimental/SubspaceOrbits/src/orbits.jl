@@ -58,7 +58,8 @@ function LabelOrbit{L}(npc::Int) where {L}
                        zeros(Int, npc), Tuple{Int,Int}[])
 end
 
-# Processed blocks are dropped once they take up this many entries.
+# Processed blocks are dropped once they take up this many entries, unless
+# the caller asks for another threshold.
 const TRIM_THRESHOLD = 2^22
 
 # Make room for `len` more entries after the first `n`.
@@ -94,10 +95,13 @@ end
 
 # Extend the orbit orbit[1:len0], one N-orbit, to the G-orbit.  Return the
 # number of points left in `orbit` and the number of blocks.  With
-# `parents === nothing` processed blocks are dropped from time to time.
+# `parents === nothing` processed blocks are dropped once they take up
+# `trim_threshold` entries.
 function block_search!(K::LabelAction, orbit::Vector{L}, len0::Int, seen::BitVector,
-                       npc::Int, nextra::Int, parents) where {L}
-  len0 == 1 && return point_search!(K, orbit, seen, npc, nextra, parents)
+                       npc::Int, nextra::Int, parents, trim_threshold::Int) where {L}
+  if len0 == 1
+    return point_search!(K, orbit, seen, npc, nextra, parents, trim_threshold)
+  end
   n = len0
   nblocks = 1
   dropped = 0
@@ -121,7 +125,7 @@ function block_search!(K::LabelAction, orbit::Vector{L}, len0::Int, seen::BitVec
       parents === nothing || push!(parents, (b, j))
     end
     b += 1
-    if parents === nothing && b * len0 >= TRIM_THRESHOLD && 2 * b >= nblocks
+    if parents === nothing && b * len0 >= trim_threshold && 2 * b >= nblocks
       copyto!(orbit, 1, orbit, b * len0 + 1, n - b * len0)
       n -= b * len0
       dropped += b
@@ -137,7 +141,7 @@ end
 # lookup in `seen`; so every image is appended to the orbit, and the number
 # of points is advanced only if it is new.
 function point_search!(K::LabelAction, orbit::Vector{L}, seen::BitVector, npc::Int,
-                       nextra::Int, parents) where {L}
+                       nextra::Int, parents, trim_threshold::Int) where {L}
   tables = K.tables
   n = 1
   dropped = 0
@@ -154,7 +158,7 @@ function point_search!(K::LabelAction, orbit::Vector{L}, seen::BitVector, npc::I
       seen[y] = true
     end
     b += 1
-    if parents === nothing && b >= TRIM_THRESHOLD && 2 * b >= n
+    if parents === nothing && b >= trim_threshold && 2 * b >= n
       copyto!(orbit, 1, orbit, b + 1, n - b)
       n -= b
       dropped += b
@@ -172,14 +176,21 @@ end
 #
 # With `track = true` the state holds the complete orbit and the data
 # describing the transversal; otherwise `state.orbit` is not meaningful.
-function label_orbits(handle, K::LabelAction, relorders::Vector{Int}; track::Bool)
-  D = K.codec.D
-  L = D <= typemax(UInt32) ? UInt32 : UInt64
-  return label_orbits(handle, K, relorders, track, LabelOrbit{L}(length(relorders)))
+#
+# The labels are stored in the smallest type that holds them.  That type and
+# the threshold for dropping blocks can be set, so that small cases reach
+# the code for large ones.
+function label_orbits(handle, K::LabelAction, relorders::Vector{Int}; track::Bool,
+                      trim_threshold::Int=TRIM_THRESHOLD,
+                      label_type::Type{<:Unsigned}=default_label_type(K.codec))
+  state = LabelOrbit{label_type}(length(relorders))
+  return label_orbits(handle, K, relorders, track, trim_threshold, state)
 end
 
+default_label_type(C::LabelCodec) = C.D <= typemax(UInt32) ? UInt32 : UInt64
+
 function label_orbits(handle::F, K::LabelAction, relorders::Vector{Int}, track::Bool,
-                      state::LabelOrbit{L}) where {F,L}
+                      trim_threshold::Int, state::LabelOrbit{L}) where {F,L}
   npc = length(relorders)
   nextra = length(K.tables) - npc
   seen = falses(K.codec.D)
@@ -207,7 +218,7 @@ function label_orbits(handle::F, K::LabelAction, relorders::Vector{Int}, track::
     state.block_length = n
     empty!(state.parents)
     n, nblocks = block_search!(K, orbit, n, seen, npc, nextra,
-                               track ? state.parents : nothing)
+                               track ? state.parents : nothing, trim_threshold)
     state.npoints = n
     state.length = nblocks * state.block_length
     handle(state)

@@ -37,11 +37,20 @@ function field_prime(G::MatGroup)
   return Int(q)
 end
 
-# The solvable radical of G is determined via the action of G on vectors,
-# which is done only up to this number of vectors.
-const MAX_VECTORS_FOR_RADICAL = 2^24
+# GAP computes with G via its action on vectors, which is feasible only up
+# to about this number of vectors.
+const MAX_VECTORS_FOR_GROUP_THEORY = 2^24
 
-function SubspaceAction(G::MatGroup, k::Int)
+# The time GAP needs for the order and the solvable radical of G does not
+# depend on the number of subspaces, and can be far longer than applying
+# every generator to every subspace.  For lengths alone the radical is
+# therefore determined only if it can save at least this many images.
+const MIN_IMAGES_SAVED_BY_RADICAL = 2^27
+
+# With `stabilizers = false` the group G is used through its generators
+# only, unless its solvable radical can save `min_images_saved` images.
+function SubspaceAction(G::MatGroup, k::Int; stabilizers::Bool,
+                        min_images_saved::Int=MIN_IMAGES_SAVED_BY_RADICAL)
   p = field_prime(G)
   d = degree(G)
   dual = 2 * k > d
@@ -51,7 +60,14 @@ function SubspaceAction(G::MatGroup, k::Int)
   relorders = Int[]
   order_N = ZZ(1)
   extra = GapObj[GapObj(g) for g in unique(gens(G)) if !is_one(g)]
-  if ZZ(p)^d <= MAX_VECTORS_FOR_RADICAL
+  few_vectors = ZZ(p)^d <= MAX_VECTORS_FOR_GROUP_THEORY
+  if stabilizers
+    # they need the order of G, and membership tests in G
+    @req few_vectors "stabilizers need at most $MAX_VECTORS_FOR_GROUP_THEORY vectors in F^d"
+  end
+  # with the radical about one image per subspace, without it one per generator
+  images_saved = (length(extra) - 1) * C.D
+  if few_vectors && (stabilizers || images_saved >= min_images_saved)
     N = is_solvable(G) ? G : solvable_radical(G)[1]
     gap_pcgs = GAPWrap.Pcgs(GapObj(N))
     pcgs = GapObj[gap_pcgs[i] for i in 1:length(gap_pcgs)]
@@ -142,7 +158,7 @@ function block_element(A::SubspaceAction, state::LabelOrbit, c::Int)
   return t
 end
 
-# Below this number of edges all of them are enumerated in random order;
+# Up to this number of edges all of them are enumerated in random order;
 # above it edges are drawn at random with repetition.
 const MAX_SHUFFLED_EDGES = 2^20
 
@@ -159,7 +175,8 @@ const MAX_SHUFFLED_EDGES = 2^20
 # of G, a permutation group, where adding a generator extends the
 # stabilizer chain instead of computing a new one.
 function extend_stabilizer!(gens::Vector{GapObj}, A::SubspaceAction,
-                            state::LabelOrbit, target::ZZRingElem)
+                            state::LabelOrbit, target::ZZRingElem,
+                            max_shuffled_edges::Int)
   G = A.G
   K = A.action
   npc = length(A.pcgs)
@@ -174,7 +191,7 @@ function extend_stabilizer!(gens::Vector{GapObj}, A::SubspaceAction,
   end
 
   rng = Random.Xoshiro(state.rep)
-  shuffled = nedges <= MAX_SHUFFLED_EDGES ? Random.randperm(rng, nedges) : Int[]
+  shuffled = nedges <= max_shuffled_edges ? Random.randperm(rng, nedges) : Int[]
   next = 0
   nice = GAPWrap.NiceMonomorphism(GapObj(G))
   images = GapObj([GAPWrap.Image(nice, g) for g in gens])
@@ -199,7 +216,8 @@ function extend_stabilizer!(gens::Vector{GapObj}, A::SubspaceAction,
   return gens
 end
 
-function point_stabilizer(A::SubspaceAction, state::LabelOrbit)
+function point_stabilizer(A::SubspaceAction, state::LabelOrbit;
+                          max_shuffled_edges::Int=MAX_SHUFFLED_EDGES)
   G = A.G
   state.length == 1 && return G
 
@@ -207,7 +225,7 @@ function point_stabilizer(A::SubspaceAction, state::LabelOrbit)
   target = divexact(order(G), state.length)
   @vprintln :SubspaceOrbits 1 "orbit of label $(state.rep): length $(state.length), $(div(state.length, state.block_length)) blocks"
   if target != divexact(A.order_N, state.block_length)
-    extend_stabilizer!(gens, A, state, target)
+    extend_stabilizer!(gens, A, state, target, max_shuffled_edges)
   end
   H = subgroup(G, gens)
   set_order(H, target)
@@ -237,6 +255,10 @@ The memory needed is one bit per `k`-dimensional subspace of `F^d`,
 for the set of subspaces already found,
 plus 4 or 8 bytes per subspace in the orbit being computed.
 
+The group `G` is used through its generators only, unless it has many
+generators and many subspaces to act on: then its order and its solvable
+radical are computed, provided that `F^d` has at most $2^{24}$ vectors.
+
 # Examples
 ```jldoctest
 julia> G = orthogonal_group(1, 4, GF(3))
@@ -256,7 +278,7 @@ function subspace_orbit_representatives_and_lengths(G::MatGroup{<:FinFieldElem},
   k == 0 && return [(sub(V, elem_type(V)[])[1], 1)]
   k == d && return [(sub(V, gens(V))[1], 1)]
 
-  A = SubspaceAction(G, k)
+  A = SubspaceAction(G, k; stabilizers=false)
   labels = Tuple{Int,Int}[]
   label_orbits(A.action, A.relorders; track=false) do state
     push!(labels, (state.rep, state.length))
@@ -273,12 +295,15 @@ and `S` is the stabilizer of `U` in `G`.
 Here `G` is a subgroup of `general_linear_group(d, F)`, acting on row vectors
 from the right.
 The field `F` must be a prime field with fewer than $2^{16}$ elements,
-and `F^d` must have at most $2^{36}$ subspaces of dimension `k`.
+and `F^d` must have at most $2^{36}$ subspaces of dimension `k`
+and, unless `k` is `0` or `d`, at most $2^{24}$ vectors.
 
 The result is of the same form as that of
 `orbit_representatives_and_stabilizers`, with possibly different
 representatives.
 See [`subspace_orbit_representatives_and_lengths`](@ref) for the method.
+Unlike that function, this one always computes the order and the
+solvable radical of `G`, which can take far longer than the orbits.
 
 # Examples
 ```jldoctest
@@ -299,7 +324,7 @@ function subspace_orbit_representatives_and_stabilizers(G::MatGroup{<:FinFieldEl
   k == 0 && return [(sub(V, elem_type(V)[])[1], G)]
   k == d && return [(sub(V, gens(V))[1], G)]
 
-  A = SubspaceAction(G, k)
+  A = SubspaceAction(G, k; stabilizers=true)
   res = Tuple{Int,typeof(G)}[]
   label_orbits(A.action, A.relorders; track=true) do state
     push!(res, (state.rep, point_stabilizer(A, state)))

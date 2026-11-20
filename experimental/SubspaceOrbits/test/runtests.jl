@@ -58,6 +58,26 @@
     end
   end
 
+  # Run the orbit algorithm on a small case with what large cases select:
+  # the radical also for lengths, dropped blocks, sampled edges, 64 bit labels.
+  function check_large_case_branches(G, k)
+    C = SO.LabelCodec(Int(order(base_ring(G))), degree(G), k)
+    orbit_of, lengths = naive_label_orbits(C, [SO.int_matrix(matrix(g)) for g in gens(G)])
+    expected = [(findfirst(==(i), orbit_of), lengths[i]) for i in 1:length(lengths)]
+    for stabilizers in (false, true), L in (UInt32, UInt64)
+      A = SO.SubspaceAction(G, k; stabilizers, min_images_saved=0)
+      got = Tuple{Int,Int}[]
+      SO.label_orbits(A.action, A.relorders; track=stabilizers, trim_threshold=4,
+                      label_type=L) do state
+        push!(got, (state.rep, state.length))
+        stabilizers || return nothing
+        S = SO.point_stabilizer(A, state; max_shuffled_edges=0)
+        @test order(sub(G, gens(S))[1]) * state.length == order(G)
+      end
+      @test got == expected
+    end
+  end
+
   @testset "labels for p = $p, d = $d, k = $k" for (p, d, k) in
       [(2, 4, 2), (2, 5, 3), (2, 6, 2), (3, 3, 2), (3, 4, 2), (5, 3, 1), (5, 3, 2), (7, 2, 1)]
     C = SO.LabelCodec(p, d, k)
@@ -118,6 +138,14 @@
     check_orbits(G, 2)
   end
 
+  @testset "branches for large cases" begin
+    check_large_case_branches(GL(4, 2), 2)
+    check_large_case_branches(GL(3, 5), 1)
+    check_large_case_branches(sylow_subgroup(GL(5, 2), 2)[1], 2)
+    G = stabilizer(GL(5, 2), [GF(2)(x) for x in [1, 0, 0, 0, 0]], *)[1]
+    check_large_case_branches(G, 2)
+  end
+
   @testset "edge cases" begin
     G = GL(3, 3)
     for k in [0, 3]
@@ -146,6 +174,12 @@
     # no group theory for large modules
     res = subspace_orbit_representatives_and_lengths(GL(2, GF(65521)), 1)
     @test [n for (U, n) in res] == [65522]
+    @test_throws ArgumentError subspace_orbit_representatives_and_stabilizers(GL(2, GF(4099)), 1)
+
+    # no group theory where it cannot pay off
+    G = matrix_group(permutation_matrix.(Ref(GF(2)), gens(symmetric_group(5))))
+    @test length(subspace_orbit_representatives_and_lengths(G, 2)) == 10
+    @test !has_order(G)
   end
 
   @testset "consistency with orbit_representatives_and_stabilizers" begin
@@ -154,6 +188,17 @@
       res = subspace_orbit_representatives_and_stabilizers(G, k)
       ref = orbit_representatives_and_stabilizers(G, k)
       @test typeof(res) == typeof(ref)
+      @test sort([order(S) for (U, S) in res]) == sort([order(S) for (U, S) in ref])
+    end
+
+    # a group that is not conjugate to its transpose: it fixes a vector,
+    # the transposed group a hyperplane
+    G = stabilizer(GL(4, 2), [GF(2)(x) for x in [1, 0, 0, 0]], *)[1]
+    @test sort([n for (U, n) in subspace_orbit_representatives_and_lengths(G, 1)]) == [1, 14]
+    @test sort([n for (U, n) in subspace_orbit_representatives_and_lengths(G, 3)]) == [7, 8]
+    for k in 1:3
+      res = subspace_orbit_representatives_and_stabilizers(G, k)
+      ref = orbit_representatives_and_stabilizers(G, k)
       @test sort([order(S) for (U, S) in res]) == sort([order(S) for (U, S) in ref])
     end
   end

@@ -8,9 +8,9 @@ Each subspace is identified with its basis matrix in reduced row echelon
 form, and that matrix with an integer between ``1`` and the number of
 ``k``-dimensional subspaces, as in [OBr90](@cite).
 The orbit algorithm runs on these integers.
-For a solvable normal subgroup of ``G``, by default the solvable radical,
-orbits are computed along a polycyclic generating sequence,
-see [LNS84](@cite); this takes about one image per subspace.
+Where the solvable radical of ``G`` is known, its orbits are computed along
+a polycyclic generating sequence, see [LNS84](@cite); this takes about one
+image per subspace instead of one per generator of ``G``.
 
 ## Status
 
