@@ -158,6 +158,7 @@ vector of tropical varieties, one for each primary factor of `I`.
     Experimental feature, only special cases supported:
     - any coefficient field and any valuation: `I` principal, binomial, or affine linear
     - QQ and trivial / p-adic valuation only: `I` primary
+    - GF(p), p prime, and trivial valuation only: `I` primary
 
     Default choices for `skip_saturation` and `skip_decomposition` will change in the future to
     ensure consistency with other OSCAR functions and tropicalization functions in other software.
