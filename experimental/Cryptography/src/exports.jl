@@ -1,5 +1,6 @@
 export LWE
 export McEliece
+export Niederreiter
 export decrypt
 export encrypt
 export hbs_all
@@ -13,6 +14,7 @@ export hbs_mss_toy
 export instantiate_hbs
 export instantiate_lwe
 export instantiate_mceliece
+export instantiate_niederreiter
 export instantiate_uov
 export keygen
 export lamport_keygen
@@ -30,6 +32,10 @@ export merkle_auth_path
 export merkle_root
 export merkle_tree
 export merkle_verify
+export niederreiter_all
+export niederreiter_light
+export niederreiter_standard
+export niederreiter_toy
 export shake_256
 export uov_1p
 export uov_1p_pkc

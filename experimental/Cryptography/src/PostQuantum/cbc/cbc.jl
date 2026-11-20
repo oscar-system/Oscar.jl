@@ -11,3 +11,4 @@ using Random: AbstractRNG, RandomDevice, randperm, shuffle
 include("bits.jl")
 include("goppa.jl")
 include("mceliece.jl")
+include("niederreiter.jl")

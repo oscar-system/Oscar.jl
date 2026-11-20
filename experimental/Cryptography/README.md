@@ -10,8 +10,8 @@ and teaching, in particular post-quantum schemes:
 - hash-based signatures (`src/PostQuantum/hbs`): Lamport and Winternitz one-time
   signatures, Merkle trees, the few-time signatures HORST and FORS, and
   signature schemes with a single Merkle tree or a hypertree,
-- code-based encryption (`src/PostQuantum/cbc`): the scheme of McEliece with
-  binary Goppa codes,
+- code-based encryption (`src/PostQuantum/cbc`): the schemes of McEliece and
+  Niederreiter with binary Goppa codes,
 - the hash function SHAKE256 (`src/keccak.jl`) that the hash-based schemes use.
 
 ## Status
