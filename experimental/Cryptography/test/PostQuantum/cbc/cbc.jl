@@ -131,3 +131,41 @@ end
   end
 end
 
+@testset "hqc parameters" begin
+  # Test that parameter sets are defined and validated
+  @test hqc_1.n == 17669
+  @test hqc_1.n2 == 384
+  @test hqc_5.k == 32
+  @test length(hqc_all) == 4
+  @test_throws ArgumentError instantiate_hqc(1279, 10, 4, 1, 8, 8, 8, "bad")
+  @test_throws ArgumentError instantiate_hqc(1290, 10, 4, 1, 8, 8, 8, "bad")
+  @test_throws ArgumentError instantiate_hqc(1283, 10, 10, 1, 8, 8, 8, "bad")
+end
+
+@testset "hqc encryption and decryption" begin
+  # Test that decryption inverts encryption for all parameter sets
+  for p in hqc_all
+    pk, sk = keygen(p)
+    for msg in (UInt8[], UInt8[0xff], rand(UInt8, 3 * p.k))
+      ct = encrypt(p, pk, msg)
+      @test length(ct) == cld(8 * length(msg) + 1, 8 * p.k)
+      @test all(((u, v),) -> degree(u) < p.n && degree(v) < p.n1 * p.n2, ct)
+      @test decrypt(p, sk, ct) == msg
+    end
+  end
+end
+
+@testset "hqc keys" begin
+  # Test the relation between the keys and that a wrong key fails
+  p = hqc_toy
+  rng = Random.Xoshiro(5)
+  (h, s), (x, y) = keygen(p; rng)
+  _, x_ = polynomial_ring(GF(2), :x)
+  @test s == mod(x + h * y, x_^p.n - 1)
+  @test all(z -> count(!is_zero, coefficients(z)) == p.w, (x, y))
+  msg = rand(rng, UInt8, 64)
+  ct = encrypt(p, (h, s), msg; rng)
+  @test decrypt(p, (x, y), ct) == msg
+  pk2, sk2 = keygen(p; rng)
+  @test decrypt(p, sk2, ct) != msg
+end
