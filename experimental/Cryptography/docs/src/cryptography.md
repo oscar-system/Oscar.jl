@@ -2,10 +2,10 @@
 
 This section describes implementations of cryptographic schemes that are
 believed to be secure against attacks by quantum computers: the multivariate
-signature scheme UOV, the lattice-based encryption scheme LWE and several
-hash-based signature schemes. They are meant for experiments and teaching. The
-implementations are neither constant-time nor hardened against side channels and
-must not be used to protect real data.
+signature scheme UOV, the lattice-based encryption scheme LWE, several
+hash-based signature schemes and code-based encryption schemes. They are meant
+for experiments and teaching. The implementations are neither constant-time nor
+hardened against side channels and must not be used to protect real data.
 
 ## The common interface
 
@@ -18,9 +18,10 @@ of the scheme, the first argument:
   message `sm` (a message followed by its signature) or `nothing`,
 - `encrypt(p, pk, msg)` and `decrypt(p, sk, ct)` (encryption schemes).
 
-Parameter sets are created with `instantiate_uov`, `instantiate_lwe` and
-`instantiate_hbs`, or taken from the predefined ones such as `uov_1p`, `lwe_toy`
-or `hbs_mss_toy`.
+Parameter sets are created with `instantiate_uov`, `instantiate_lwe`,
+`instantiate_hbs`, `instantiate_mceliece`, `instantiate_niederreiter` and
+`instantiate_hqc`, or taken from the predefined ones such as `uov_1p`,
+`lwe_toy`, `hbs_mss_toy`, `mceliece_toy`, `niederreiter_toy` or `hqc_1`.
 
 ## UOV signatures
 
@@ -82,6 +83,55 @@ merkle_tree
 merkle_root
 merkle_auth_path
 merkle_verify
+```
+
+## Code-based encryption
+
+Public key encryption whose security rests on the hardness of decoding random
+linear codes. For the schemes of McEliece and Niederreiter the secret key is a
+binary Goppa code, whose errors can be corrected with Patterson's algorithm
+[Pat75](@cite). Their parameter sets are not compatible with the NIST
+submission Classic McEliece, the ones of HQC are not compatible with the NIST
+submission HQC.
+
+### McEliece
+
+The scheme of McEliece [McE78](@cite): a message block is encoded with a
+scrambled generator matrix of the code and random errors are added.
+
+```@docs
+instantiate_mceliece
+keygen(::McEliece)
+encrypt(::McEliece, ::FqMatrix, ::AbstractVector{UInt8})
+decrypt(::McEliece, ::Any, ::FqMatrix)
+```
+
+### Niederreiter
+
+The scheme of Niederreiter [Nie86](@cite) with Goppa codes: a message block is
+encoded as an error vector of fixed weight, whose syndrome with respect to a
+scrambled parity check matrix of the code is the ciphertext.
+
+```@docs
+instantiate_niederreiter
+keygen(::Niederreiter)
+encrypt(::Niederreiter, ::FqMatrix, ::AbstractVector{UInt8})
+decrypt(::Niederreiter, ::Any, ::FqMatrix)
+```
+
+### HQC
+
+The public key encryption scheme of HQC (Hamming Quasi-Cyclic)
+[ABDGZ18](@cite) in the ring $\mathrm{GF}(2)[x]/(x^n - 1)$. Messages are encoded
+with a Reed-Solomon code concatenated with a duplicated Reed-Muller code, as in
+the NIST submission. The key encapsulation mechanism of the submission is not
+implemented.
+
+```@docs
+instantiate_hqc
+keygen(::HQC)
+encrypt(::HQC, ::Any, ::AbstractVector{UInt8})
+decrypt(::HQC, ::Any, ::Any)
 ```
 
 ## Hash function

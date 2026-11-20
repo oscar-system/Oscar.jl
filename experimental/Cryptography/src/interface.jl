@@ -1,6 +1,7 @@
 # ---------------------------------------------------------------------------
 # The common interface of the cryptographic schemes. A scheme is described by a
-# parameter object `p` of type `UOV`, `LWE` or `HBS`, which is the first argument:
+# parameter object `p` of type `UOV`, `LWE`, `HBS`, `McEliece`, `Niederreiter` or
+# `HQC`, which is the first argument:
 #
 #   keygen(p)                      key pair `(pk, sk)` of a scheme
 #   sign(p, msg, sk)               signature of a message (signature schemes)
