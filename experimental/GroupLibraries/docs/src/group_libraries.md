@@ -34,3 +34,12 @@ perfect_groups_library
 groups_with_class_number_library
 atlas_groups_library
 ```
+
+## Libraries of other objects
+
+The library of character tables has no primary key, and `find` requires no
+filter for it.
+
+```@docs
+character_table_library
+```
