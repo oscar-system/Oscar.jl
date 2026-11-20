@@ -74,7 +74,7 @@ end
 end
 
 @testset "q_binomial: Laurent coefficients agree with generic recurrence" begin
-  R, q = laurent_polynomial_ring(ZZ, "q")
+  R, q = laurent_polynomial_ring(ZZ, :q)
   f = q_binomial(30, 12)
   @test f == q_binomial(30, 12, q)
   @test evaluate(f, QQ(1)) == binomial(30, 12)

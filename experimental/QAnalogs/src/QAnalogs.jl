@@ -218,7 +218,7 @@ end
 function q_binomial(n::IntegerUnion, k::IntegerUnion)
   @req k >= 0 "k >= 0 required"
 
-  R,q = laurent_polynomial_ring(ZZ, "q")
+  R,q = laurent_polynomial_ring(ZZ, :q)
   k == 0 && return one(R)
   0 <= n < k && return zero(R)
 
