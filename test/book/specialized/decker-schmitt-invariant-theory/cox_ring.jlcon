@@ -39,7 +39,8 @@ julia> map(AtoR, gens(A))
  x[3]^2
 
 julia> VG = linear_quotient(G)
-Linear quotient by matrix group of degree 3 over K
+Linear quotient
+  by matrix group of degree 3 over K
 
 julia> B, BtoR = cox_ring(VG)
 (Quotient of multivariate polynomial ring by ideal (), Hom: B -> graded multivariate polynomial ring)

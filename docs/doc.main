@@ -233,6 +233,7 @@
      "InvariantTheory/finite_groups.md",
      "InvariantTheory/reductive_groups.md",
      "InvariantTheory/tori.md",
+     "InvariantTheory/linear_quotients.md",
   ],
 
   "Algebraic Geometry" => [
