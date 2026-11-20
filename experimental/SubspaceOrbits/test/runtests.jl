@@ -176,6 +176,20 @@
     @test [n for (U, n) in res] == [65522]
     @test_throws ArgumentError subspace_orbit_representatives_and_stabilizers(GL(2, GF(4099)), 1)
 
+    # a prime field that GAP cannot be asked about
+    F = Oscar.AbstractAlgebra.GF(3)
+    G = matrix_group([matrix(F, [0 1; 1 0])])
+    @test sort([n for (U, n) in subspace_orbit_representatives_and_lengths(G, 1)]) == [1, 1, 2]
+    @test_throws ArgumentError subspace_orbit_representatives_and_stabilizers(G, 1)
+
+    # too many subspaces are rejected without counting them
+    err = @test_throws ArgumentError SO.LabelCodec(2, 2000, 1000)
+    @test length(err.value.msg) < 100
+
+    # labels must fit into the type they are stored in
+    K = SO.LabelAction(SO.LabelCodec(2, 9, 1), Matrix{Int}[])
+    @test_throws ArgumentError SO.label_orbits(identity, K, Int[]; track=true, label_type=UInt8)
+
     # no group theory where it cannot pay off
     G = matrix_group(permutation_matrix.(Ref(GF(2)), gens(symmetric_group(5))))
     @test length(subspace_orbit_representatives_and_lengths(G, 2)) == 10
@@ -200,6 +214,25 @@
       res = subspace_orbit_representatives_and_stabilizers(G, k)
       ref = orbit_representatives_and_stabilizers(G, k)
       @test sort([order(S) for (U, S) in res]) == sort([order(S) for (U, S) in ref])
+      for (U, S) in res
+        m = rref(matrix(U.map))[2]
+        @test S == stabilizer(G, m, on_echelon_form_mats)[1]
+        @test length(orbit(G, on_echelon_form_mats, m)) == index(G, S)
+      end
     end
+  end
+
+  # The label of a subspace is the position of its basis in
+  # `bases_of_subspaces`, and the action on labels is `on_echelon_form_mats`.
+  @testset "consistency with bases_of_subspaces for p = $p, d = $d, k = $k" for (p, d, k) in
+      [(2, 4, 2), (3, 4, 1), (3, 4, 3), (5, 3, 2)]
+    F = GF(p)
+    G = GL(d, F)
+    C = SO.LabelCodec(p, d, k)
+    mats = collect(Oscar.bases_of_subspaces(vector_space(F, d), k))
+    @test [SO.int_matrix(m) for m in mats] == [SO.label_to_matrix(C, l) for l in 1:C.D]
+    K = SO.LabelAction(C, [SO.int_matrix(matrix(g)) for g in gens(G)])
+    @test all(mats[SO.image(K, i, l)] == on_echelon_form_mats(mats[l], gen(G, i))
+              for i in 1:ngens(G), l in 1:C.D)
   end
 end

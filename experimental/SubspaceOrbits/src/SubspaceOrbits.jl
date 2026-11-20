@@ -4,10 +4,10 @@ using ..Oscar
 
 import ..Oscar:
   @req,
+  AbstractAlgebra,
   GAPWrap,
   GapObj,
   MatGroupElem,
-  _as_subgroup_bare,
   _ffe_to_int,
   set_order
 

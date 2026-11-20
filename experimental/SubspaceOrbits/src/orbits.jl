@@ -183,6 +183,7 @@ end
 function label_orbits(handle, K::LabelAction, relorders::Vector{Int}; track::Bool,
                       trim_threshold::Int=TRIM_THRESHOLD,
                       label_type::Type{<:Unsigned}=default_label_type(K.codec))
+  @req K.codec.D <= typemax(label_type) "the labels do not fit into $label_type"
   state = LabelOrbit{label_type}(length(relorders))
   return label_orbits(handle, K, relorders, track, trim_threshold, state)
 end

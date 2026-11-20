@@ -15,7 +15,8 @@
 ################################################################################
 
 # One visited bit per subspace: 2^36 subspaces are 8 GiB.
-const MAX_NUMBER_OF_SUBSPACES = 2^36
+const LOG2_MAX_NUMBER_OF_SUBSPACES = 36
+const MAX_NUMBER_OF_SUBSPACES = 2^LOG2_MAX_NUMBER_OF_SUBSPACES
 
 struct LabelCodec
   p::Int
@@ -46,9 +47,12 @@ number_of_free_entries(C::LabelCodec, i::Int, ki::Int) = C.d - ki - (C.k - i)
 
 function LabelCodec(p::Int, d::Int, k::Int)
   @req 0 < k < d "need 0 < k < d"
-  nsubspaces = number_of_subspaces(p, d, k)
-  @req nsubspaces <= MAX_NUMBER_OF_SUBSPACES "too many subspaces: $nsubspaces"
-  D = Int(nsubspaces)
+  # The matrices with pivots in the first k columns alone number
+  # p^(k*(d-k)) >= 2^(k*(d-k)), which rejects huge cases without counting.
+  few = k * (d - k) <= LOG2_MAX_NUMBER_OF_SUBSPACES &&
+        number_of_subspaces(p, d, k) <= MAX_NUMBER_OF_SUBSPACES
+  @req few "more than 2^$LOG2_MAX_NUMBER_OF_SUBSPACES subspaces"
+  D = Int(number_of_subspaces(p, d, k))
 
   nsets = binomial(d, k)
   pivots = Matrix{Int}(undef, k, nsets)
