@@ -191,11 +191,10 @@ struct PartitionsFixedNumPartsAndValues{T<:IntegerUnion}
     @req k >= 0 "k >= 0 required"
     @req length(mu) == length(v) "mu and v should have the same length"
 
-    # Algorithm partb in [RJ76] assumes that v is strictly increasing.
-    # Added (and noticed) on Mar 22, 2023.
+    # The search in `iterate` relies on this
     @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
 
-    # Parta allows v[1] = 0 but this is nonsense for entries of a partition
+    # Partitions have no zero parts
     @req all(>(0), v) "Entries of v must be positive"
 
     # For safety
@@ -204,19 +203,19 @@ struct PartitionsFixedNumPartsAndValues{T<:IntegerUnion}
   end
 end
 
-# Internal type: state of the iterator
-mutable struct PartitionsFixedNumPartsAndValuesState{T<:IntegerUnion}
-  x::Vector{T}
-  y::Vector{T}
-  ii::Vector{T}
-  N::T
-  i::Int
-  r::Int
-  done::Bool
-
-  function PartitionsFixedNumPartsAndValuesState{T}() where {T<:IntegerUnion}
-    return new{T}()
-  end
+# Internal type: state of the iterator, a backtracking search over the
+# multiplicities of the values. `W` is the type of the sums, wider than `T`
+# for small machine integers.
+mutable struct PartitionsFixedNumPartsAndValuesState{T<:IntegerUnion, W<:IntegerUnion}
+  x::Vector{T}      # current partition, x[1:k - t] is set
+  lev::Vector{Int}  # stack of the indices l of the values in use
+  cnt::Vector{Int}  # cnt[d] = multiplicity of v[lev[d]]
+  depth::Int
+  t::Int            # number of parts still to choose
+  s::W              # sum of the parts still to choose
+  C::Vector{Int}    # C[l] = number of parts available with values in v[1:l - 1]
+  sums::Vector{W}   # sums[l] = sum of these parts
+  minsums::Vector{W}
 end
 
 # Iterator type: partitions of n with values in v

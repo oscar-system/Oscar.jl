@@ -494,8 +494,6 @@ If the optional integer `k >= 0` is supplied, the partitions will be into `k`
 parts. In this case, the partitions are produced in lexicographically *decreasing*
 order.
 
-The implemented algorithm is "partb" in [RJ76](@cite).
-
 # Examples
 The number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
 ```jldoctest
@@ -583,218 +581,245 @@ end
 
 Base.IteratorSize(::Type{PartitionsFixedNumPartsAndValues{T}}) where T = Base.SizeUnknown()
 
-# Algorithm "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
-# The algorithm as published in the paper has several issues and we hope to have fixed
-# them all, see below for details. Some initial fixing was done by T. Schmit.
-# Initialize a `state` object for the iterator
+# Backtracking search over the multiplicities of the values
+#
+# Notation. a[l] is the number of parts equal to v[l]. The search fixes
+# a[r], a[r - 1], ..., a[1] in this order. A state is the number t and the
+# sum s of the parts still to choose, from the values v[1:l]. At most
+# c[j] = min(mu[j], k, div(n, v[j])) copies of v[j] are available; no
+# partition uses more. C[l] and sums[l] count and add up the available parts
+# with values in v[1:l - 1].
+#
+# Order. Each a[l] runs from its largest admissible value down, while the
+# levels above l stay fixed. So every multiplicity vector is visited at most
+# once, in lexicographically decreasing order of (a[r], ..., a[1]), which is
+# the lexicographically decreasing order of the partitions.
+#
+# Pruning. Let minsum(t) be the sum of the t smallest available parts and
+# maxsum(l, t) the sum of the t largest ones with values in v[1:l]. For
+# t <= C[l + 1] the t smallest parts lie in v[1:l], so minsum needs no l.
+# A state has a completion only if
+#
+#   (B)  t <= C[l + 1]  and  minsum(t) <= s <= maxsum(l, t).
+#
+# The converse fails, as the sums of t parts need not form an interval, so the
+# search can run into dead ends. Avoiding them is hard in general: with all
+# mu[j] = 1, deciding whether there is any partition is subset sum with a
+# fixed number of terms, which is NP-complete.
+#
+# Three facts let the search skip ranges of multiplicities:
+#
+#   (L)  If a completion uses v[l], then v[l] <= s - minsum(t - 1), as its
+#        other t - 1 parts sum to at least minsum(t - 1). So a = 0 on all
+#        levels above the largest such l.
+#   (M1) Using a copies of v[l] leaves t - a parts with sum s - a*v[l] for
+#        v[1:l - 1]. For t - a <= C[l], s - a*v[l] - minsum(t - a) strictly
+#        decreases in a: a step subtracts v[l] and adds back a part of at
+#        most v[l - 1] < v[l]. So the a satisfying the lower bound of (B) form
+#        an interval starting at the smallest a allowed by capacity.
+#   (M2) Likewise, maxsum(l - 1, t - a) - (s - a*v[l]) strictly increases in
+#        a. So if the upper bound of (B) fails for some a, it fails for all
+#        smaller a, including a = 0.
+#
+# Every cut below follows from (B), (L), (M1) or (M2), so no partition is
+# lost. When t reaches 0, (B) forces s = 0, so x is a partition of n.
+#
+# Algorithm "partb" in [RJ76] solves the same problem, but its bounds ignore
+# the multiplicities and it misses partitions, see
+# https://github.com/oscar-system/Oscar.jl/issues/6498
+
+# Return `nothing` if there are obviously no partitions
 function _initial_state(P::PartitionsFixedNumPartsAndValues{T}) where T
-  state = PartitionsFixedNumPartsAndValuesState{T}()
-  state.done = false
-
-  if is_empty(multiplicities(P))
-    # There are no partitions
-    state.done = true
-    return state
-  end
-
   n = base(P)
   k = parts(P)
   v = values(P)
   mu = multiplicities(P)
+  W = promote_type(T, Int)
 
-  # Initialize variables
-  r = length(v)
-  j = 1
-  m = mu[1]
-  x = zeros(T, k)
-  y = zeros(T, k)
-  ii = zeros(T, k)
-  N = n
+  # Values above n never occur. Capping at div(n, v[l]) also keeps the sums
+  # below length(v) * n.
+  r = searchsortedlast(v, n)
+  C = zeros(Int, r + 1)
+  sums = zeros(W, r + 1)
+  for l in 1:r
+    c = min(mu[l], k)
+    q = div(n, v[l])
+    if q < c
+      c = Int(q)
+    end
+    C[l + 1] = C[l] + c
+    sums[l + 1] = sums[l] + c * v[l]
+  end
+  k > C[end] && return nothing
+  k == 0 && !iszero(n) && return nothing
 
-  # The first step in the algorithm is to initialize the arrays x and y
-  # for the backtrack search.
-  # This fills the array x from right with the values from v from the left
-  # (the smallest) up to their specified multiplicity.
-  # If this is larger than n, there cannot be a partition.
-  for i = k:-1:1
-    x[i] = v[j]
-    y[i] = v[j]
-    m = m - 1
-    N = N - v[j]
-    if m == 0
-      if j == r
-        # In the original algorithm there's a goto b3 here which means
-        # the program will terminate, and thus return an empty list.
-        # But this is wrong, an example is partitions(1, 1, [1], [1]).
-        # What we need to do instead here is to break the loop.
+  # minsums[t + 1] = minsum(t)
+  minsums = Vector{W}(undef, k + 1)
+  minsums[1] = sums[1]
+  l = 1
+  for t in 1:k
+    while C[l + 1] < t
+      l += 1
+    end
+    minsums[t + 1] = minsums[t] + v[l]
+  end
+
+  d = min(k, r)
+  return PartitionsFixedNumPartsAndValuesState{T, W}(zeros(T, k), zeros(Int, d), zeros(Int, d), 0, k, W(n), C, sums, minsums)
+end
+
+# Return the largest i <= hi with a[i] <= y, or 0 if there is none, for sorted a.
+# Gallop downwards from hi, as the result is typically close to hi.
+function _search_down(a::Vector, y, hi::Int)
+  @inbounds begin
+    hi == 0 && return 0
+    a[hi] <= y && return hi
+    step = 1
+    lo = hi - 1
+    while lo >= 1 && a[lo] > y
+      hi = lo
+      step *= 2
+      lo = hi - step
+    end
+    lo = max(lo, 0)
+
+    # a[lo] <= y < a[hi], reading a[0] as -Inf
+    while hi - lo > 1
+      mid = (lo + hi) >> 1
+      if a[mid] <= y
+        lo = mid
+      else
+        hi = mid
+      end
+    end
+    return lo
+  end
+end
+
+# maxsum(l, t) for 0 <= t <= C[l + 1]: all available parts with values in
+# v[p + 1:l] and the rest from v[p]
+function _max_sum(st::PartitionsFixedNumPartsAndValuesState, v::Vector, l::Int, t::Int)
+  @inbounds begin
+    C = st.C
+    sums = st.sums
+    t == 0 && return sums[1]
+    rest = C[l + 1] - t
+    p = _search_down(C, rest, l)
+    return sums[l + 1] - sums[p + 1] + (C[p + 1] - rest) * v[p]
+  end
+end
+
+# Fill the remaining parts with values in v[1:top], each as often as possible.
+# Return false at a dead end.
+function _descend!(st::PartitionsFixedNumPartsAndValuesState, v::Vector, top::Int)
+  @inbounds begin
+    x = st.x
+    C = st.C
+    minsums = st.minsums
+    k = length(x)
+    t = st.t
+    s = st.s
+    found = true
+    while t > 0
+      # The largest l allowed by (L); no l means no completion
+      l = _search_down(v, s - minsums[t], top)
+      if l == 0
+        found = false
         break
       end
-      j = j + 1
-      m = mu[j]
-    end
-  end
 
-  state.x = x
-  state.y = y
-  state.ii = ii
-  state.N = N
-  state.i = 1
-  state.r = r
-  return state
+      # The largest a satisfying the lower bound of (B), by bisection, valid
+      # by (M1). An a below lo leaves more than C[l] parts for v[1:l - 1].
+      # lo = 1 passes by the choice of l, so a cut here has lo > 1, hence
+      # t > C[l], and a = 0 fails as well.
+      lo = max(1, t - C[l])
+      hi = min(C[l + 1] - C[l], t)
+      if lo > hi || s - lo * v[l] < minsums[t - lo + 1]
+        found = false
+        break
+      end
+      if s - hi * v[l] >= minsums[t - hi + 1]
+        lo = hi
+      end
+      while lo < hi
+        mid = (lo + hi + 1) >> 1
+        if s - mid * v[l] >= minsums[t - mid + 1]
+          lo = mid
+        else
+          hi = mid - 1
+        end
+      end
+      a = lo
+
+      # Upper bound of (B); if it fails for this a, it fails for all smaller
+      # a by (M2), and larger a fail the lower bound
+      if s - a * v[l] > _max_sum(st, v, l - 1, t - a)
+        found = false
+        break
+      end
+
+      st.depth += 1
+      st.lev[st.depth] = l
+      st.cnt[st.depth] = a
+      for i in k - t + 1:k - t + a
+        x[i] = v[l]
+      end
+      t -= a
+      s -= a * v[l]
+      top = l - 1
+    end
+    st.t = t
+    st.s = s
+    return found
+  end
 end
 
-# Check whether there is obviously at most one partition.
-# Should be called before the first (actual) iteration and modifies `state` in place.
-# Return `flag, p` where `flag` is true if there is at most one partition.
-# `p` is that partition or `nothing`
-function _is_trivial!(P::PartitionsFixedNumPartsAndValues{T}, state::PartitionsFixedNumPartsAndValuesState{T}) where T
-  if parts(P) == 0
-    if base(P) == 0
-      state.done = true
-      return true, partition(T[], check = false)
-    else
-      return true, nothing
-    end
-  end
+# Move to the next partition by using the last value on the stack once less.
+# Return false if there is none.
+function _next!(st::PartitionsFixedNumPartsAndValuesState, v::Vector)
+  @inbounds begin
+    while st.depth > 0
+      d = st.depth
+      l = st.lev[d]
+      c = st.cnt[d] - 1
+      t = st.t + 1
+      s = st.s + v[l]
 
-  if isempty(multiplicities(P))
-    state.done = true
-    return true, nothing
-  end
+      # c copies of v[l]. The lower bound of (B) held for c + 1, so it holds
+      # by (M1). If capacity or the upper bound fails, it fails for all
+      # smaller c by (M2), so level l is done.
+      if t > st.C[l] || s > _max_sum(st, v, l - 1, t)
+        st.t = t + c
+        st.s = s + c * v[l]
+        st.depth = d - 1
+        continue
+      end
 
-  k = parts(P)
-  v = values(P)
-  x = state.x
-  y = state.y
-  N = state.N
-  r = state.r
-
-  # This is a necessary condition for existence of a partition
-  if N < 0 || N > k * (v[r] - v[1])
-    return true, nothing
-  end
-
-  # The following is a condition for when only a single partition
-  # exists. We added the || i == 1 condition because without it the example
-  # partitions(17, 7, [1, 4], [1, 4]) returns [0, 0, 4, 4, 4, 4, 1], which is
-  # nonsense. So, we have to make sure that all entries of x were modified in
-  # the initial backtracking, which means i was counted down to 1.
-  # Noticed on Mar 23, 2023.
-  if N == 0 && x[1] != 0
-    state.done = true
-    return true, partition(copy(x), check = false)
-  end
-
-  # The iterator is not obviously trivial, so we have to set up N for the first
-  # iteration.
-  # Logically, this should be done by `_initial_state`, but then we would have
-  # to work with N - y[1] in this function which sounds equally horrible.
-  state.N = N + y[1]
-
-  return false, nothing
-end
-
-@inline function iterate(P::PartitionsFixedNumPartsAndValues{T}, s::Union{Nothing, PartitionsFixedNumPartsAndValuesState{T}} = nothing) where {T <: IntegerUnion}
-  first_round = isnothing(s)
-  state = first_round ? _initial_state(P) : s
-
-  if first_round
-    fl, p = _is_trivial!(P, state)
-    if fl
-      if !isnothing(p)
-        return p, state
+      # c = 0 removes v[l] from the stack; the search continues below it
+      st.t = t
+      st.s = s
+      if c == 0
+        st.depth = d - 1
       else
-        return nothing
+        st.cnt[d] = c
       end
+      _descend!(st, v, l - 1) && return true
     end
+    return false
   end
+end
 
-  if state.done
-    return nothing
-  end
-
-  k = parts(P)
+function iterate(P::PartitionsFixedNumPartsAndValues{T}, st::Union{Nothing, PartitionsFixedNumPartsAndValuesState{T}} = nothing) where T
   v = values(P)
-  mu = multiplicities(P)
-
-  # Initialize variables
-  x = state.x
-  y = state.y
-  ii = state.ii
-  N = state.N
-  r = state.r
-  i = state.i
-
-  p = nothing
-  while isnothing(p) && !state.done
-    state.done = true
-
-    j = 1
-    while j <= mu[r] && N > v[r]
-      x[i] = v[r]
-      ii[i] = r - 1
-
-      # Added, otherwise get out of bounds
-      if i == k
-        r = r - 1
-        break # inner while loop
-      end
-      i += 1
-      N = N - v[r] + y[i]
-      j += 1
-    end
-
-    if j > mu[r]
-      r = r - 1
-    end
-
-    while r > 0 && v[r] > N # Added additional r > 0, otherwise get out of bounds
-      r = r - 1
-    end
-    r == 0 && return nothing
-
-    if N == v[r]
-      x[i] = v[r]
-      p = partition(copy(x), check = false)
-      r = r - 1
-      # Added, otherwise get out of bounds
-      r == 0 && break
-    end
-
-    m = y[i]
-    while true
-      # Here comes the most intricate mistake.
-      # On "Knuth's" problem
-      # 100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]
-      # the published algorithm does not find the valid partition
-      # 50 + 20 + 20 + 5 + 2 + 2 + 1.
-      # But when we replace v[r] > k by v[r] >= k, everything works.
-      # Finding this was a wild guess!
-      # Found on Mar 27, 2023.
-      if v[r] >= m && N - v[r] <= (k - i)*(v[r] - v[1])
-        state.done = false
-        break # inner while loop
-      end
-      x[i] = m
-      i -= 1
-      i == 0 && break # inner while loop
-      r = Int(ii[i])
-      N = N + x[i] - m
-      m = y[i]
-    end
+  if isnothing(st)
+    st = _initial_state(P)
+    isnothing(st) && return nothing
+    found = _descend!(st, v, length(st.C) - 1) || _next!(st, v)
+  else
+    found = _next!(st, v)
   end
-  if isnothing(p)
-    # We didn't find a partition
-    return nothing
-  end
-
-  state.x = x
-  state.y = y
-  state.ii = ii
-  state.N = N
-  state.i = i
-  state.r = r
-  return p, state
+  found || return nothing
+  return partition(copy(st.x), check = false), st
 end
 
 ################################################################################
