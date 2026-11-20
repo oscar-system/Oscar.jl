@@ -19,9 +19,9 @@ of the scheme, the first argument:
 - `encrypt(p, pk, msg)` and `decrypt(p, sk, ct)` (encryption schemes).
 
 Parameter sets are created with `instantiate_uov`, `instantiate_lwe`,
-`instantiate_hbs`, `instantiate_mceliece` and `instantiate_niederreiter`, or
-taken from the predefined ones such as `uov_1p`, `lwe_toy`, `hbs_mss_toy`,
-`mceliece_toy` or `niederreiter_toy`.
+`instantiate_hbs`, `instantiate_mceliece`, `instantiate_niederreiter` and
+`instantiate_hqc`, or taken from the predefined ones such as `uov_1p`,
+`lwe_toy`, `hbs_mss_toy`, `mceliece_toy`, `niederreiter_toy` or `hqc_1`.
 
 ## UOV signatures
 
@@ -91,7 +91,8 @@ Public key encryption whose security rests on the hardness of decoding random
 linear codes. For the schemes of McEliece and Niederreiter the secret key is a
 binary Goppa code, whose errors can be corrected with Patterson's algorithm
 [Pat75](@cite). Their parameter sets are not compatible with the NIST
-submission Classic McEliece.
+submission Classic McEliece, the ones of HQC are not compatible with the NIST
+submission HQC.
 
 ### McEliece
 
@@ -116,6 +117,21 @@ instantiate_niederreiter
 keygen(::Niederreiter)
 encrypt(::Niederreiter, ::FqMatrix, ::AbstractVector{UInt8})
 decrypt(::Niederreiter, ::Any, ::FqMatrix)
+```
+
+### HQC
+
+The public key encryption scheme of HQC (Hamming Quasi-Cyclic)
+[ABDGZ18](@cite) in the ring $\mathrm{GF}(2)[x]/(x^n - 1)$. Messages are encoded
+with a Reed-Solomon code concatenated with a duplicated Reed-Muller code, as in
+the NIST submission. The key encapsulation mechanism of the submission is not
+implemented.
+
+```@docs
+instantiate_hqc
+keygen(::HQC)
+encrypt(::HQC, ::Any, ::AbstractVector{UInt8})
+decrypt(::HQC, ::Any, ::Any)
 ```
 
 ## Hash function

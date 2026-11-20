@@ -11,7 +11,7 @@ and teaching, in particular post-quantum schemes:
   signatures, Merkle trees, the few-time signatures HORST and FORS, and
   signature schemes with a single Merkle tree or a hypertree,
 - code-based encryption (`src/PostQuantum/cbc`): the schemes of McEliece and
-  Niederreiter with binary Goppa codes,
+  Niederreiter with binary Goppa codes and the scheme HQC,
 - the hash function SHAKE256 (`src/keccak.jl`) that the hash-based schemes use.
 
 ## Status
@@ -19,4 +19,4 @@ and teaching, in particular post-quantum schemes:
 The implementations are neither constant-time nor hardened against side channels
 and are not meant to protect real data. The hash-based schemes are not
 compatible with the NIST standard FIPS 205, the code-based schemes are not
-compatible with the NIST submission Classic McEliece.
+compatible with the NIST submissions Classic McEliece and HQC.

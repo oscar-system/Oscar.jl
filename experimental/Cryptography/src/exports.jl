@@ -1,3 +1,4 @@
+export HQC
 export LWE
 export McEliece
 export Niederreiter
@@ -11,7 +12,13 @@ export hbs_horst_light
 export hbs_horst_toy
 export hbs_mss_light
 export hbs_mss_toy
+export hqc_1
+export hqc_3
+export hqc_5
+export hqc_all
+export hqc_toy
 export instantiate_hbs
+export instantiate_hqc
 export instantiate_lwe
 export instantiate_mceliece
 export instantiate_niederreiter
