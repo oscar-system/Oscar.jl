@@ -51,7 +51,7 @@ function _FlagBundleGysin(F)
     end
     offset += r
   end
- 
+
   # c(Q_omitted) = c(E) / prod(1 + sign*t_i*z), truncated to its rank.
   # Ascending k multiplies by the inverse of ONE linear factor at a time.
   # No division in the coefficient ring, and no elimination Groebner basis.
