@@ -87,6 +87,11 @@
         @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
         TropI = tropical_variety(I,nu; skip_saturation=true, skip_decomposition=true)
         @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
+
+        R, x = polynomial_ring(GF(32003), :x => (1:2, 1:5))
+        I = grassmann_pluecker_ideal(R, 2, 5)
+        TropI = tropical_variety(I; skip_saturation=true, skip_decomposition=true)
+        @test f_vector(TropI) == [0, 0, 0, 0, 0, 1, 10, 15]
     end
 
     @testset "testing tropical_variety respecting conventions" begin
