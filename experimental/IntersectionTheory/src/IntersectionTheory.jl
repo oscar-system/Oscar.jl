@@ -120,10 +120,6 @@ export TnBundleChern
 export TnRep
 export TnVariety
 
-export _FlagBundleData
-export _flag_bundle_pushforward
-export _FlagBundleReducer
-
 include("types.jl")
 include("misc.jl")
 
@@ -245,7 +241,3 @@ export TnBundle
 export TnBundleChern
 export TnRep
 export TnVariety
-
-export _FlagBundleData
-export _flag_bundle_pushforward
-export _FlagBundleReducer
