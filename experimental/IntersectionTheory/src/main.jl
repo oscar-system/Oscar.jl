@@ -4252,12 +4252,12 @@ true
 
 ```
 """
-function flag_bundle(F::AbstractBundle, dims::Int...; gens_names::String = "c",
+function flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c",
                      pushforward_algorithm::Symbol = :monic)
-  flag_bundle(F, Int[dims...]; gens_names = gens_names, pushforward_algorithm = pushforward_algorithm)
+  flag_bundle(F, Int[dims...]; symbol = symbol, pushforward_algorithm = pushforward_algorithm)
 end
 
-function flag_bundle(F::AbstractBundle, dims::Vector{Int}; gens_names::String = "c",
+function flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c",
                      pushforward_algorithm::Symbol = :monic)
   _flag_check_algorithm(pushforward_algorithm)
   X, n = parent(F), rank(F)
@@ -4279,7 +4279,7 @@ function flag_bundle(F::AbstractBundle, dims::Vector{Int}; gens_names::String = 
 
   R = chow_ring(X)
   PR = R isa MPolyQuoRing ? base_ring(R) : R
-  syms = reduce(vcat, [_parse_symbol(gens_names, i, 1:r) for (i, r) in enumerate(ranks)])
+  syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i, r) in enumerate(ranks)])
   w = vcat(reduce(vcat, [1:r for r in ranks]), weights(Int, R))
   R1, gens_for_rels_R1, imgs_in_R1 = graded_polynomial_ring(
     X.base, syms, symbols(PR); weights=w

@@ -206,8 +206,11 @@ let pushforward = IntersectionTheory.pushforward
 
     # flag bundle
     X, (F,) = abstract_variety(2, [4 => "c"])
-    FlF = flag_bundle(F, 2)
+    # test that the symbol keyword names the flag generators
+    FlF = flag_bundle(F, 2; symbol="q")
     @test dim(FlF) == 6
+    @test string.(gens(FlF))[1:4] ==
+      ["q[1, 1]", "q[1, 2]", "q[2, 1]", "q[2, 2]"]
     @test rank.(tautological_bundles(FlF)) == [2, 2]
     p = structure_map(FlF)
     @test codomain(p) == X
