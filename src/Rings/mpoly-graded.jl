@@ -1185,7 +1185,7 @@ function _degree_fast(a::MPolyDecRingElem)
   w = parent(a).d
   z = zero(grading_group(parent(a)))
   is_zero(f) && return z
-  for (c, e) in zip(coefficients(f), exponents(f))
+  for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     !iszero(c) && return sum(b*w[i] for (i, b) in enumerate(e); init=z)
   end
 end
