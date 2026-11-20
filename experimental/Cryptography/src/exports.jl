@@ -1,4 +1,5 @@
 export LWE
+export McEliece
 export decrypt
 export encrypt
 export hbs_all
@@ -11,6 +12,7 @@ export hbs_mss_light
 export hbs_mss_toy
 export instantiate_hbs
 export instantiate_lwe
+export instantiate_mceliece
 export instantiate_uov
 export keygen
 export lamport_keygen
@@ -20,6 +22,10 @@ export lwe_all
 export lwe_light
 export lwe_standard
 export lwe_toy
+export mceliece_all
+export mceliece_light
+export mceliece_standard
+export mceliece_toy
 export merkle_auth_path
 export merkle_root
 export merkle_tree

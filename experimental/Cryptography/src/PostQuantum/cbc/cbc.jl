@@ -6,6 +6,8 @@
 # The implementation is meant for experiments and teaching. It is neither
 # constant-time nor protected against chosen-ciphertext attacks.
 # ---------------------------------------------------------------------------
-using Random: AbstractRNG, RandomDevice, shuffle
+using Random: AbstractRNG, RandomDevice, randperm, shuffle
 
+include("bits.jl")
 include("goppa.jl")
+include("mceliece.jl")
