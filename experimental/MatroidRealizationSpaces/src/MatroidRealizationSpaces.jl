@@ -25,6 +25,7 @@ end
 export inequations
 export is_realizable
 export realization
+export concrete_realization
 export realization_matrix
 export realization_space
 export defining_ideal
