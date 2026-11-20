@@ -19,6 +19,14 @@ struct BinaryGoppaCode
     G::FqMatrix  # binary generator matrix with n - m*t rows and n columns
 end
 
+# Check the parameters of a binary Goppa code of length `n` over GF(2^m)
+# correcting `t` errors.
+function _check_goppa_parameters(m::Int, n::Int, t::Int)
+    @req 2 <= m <= 16 "m must be between 2 and 16, got $m"
+    @req t >= 2 "t must be at least 2, got $t"
+    @req m * t < n <= 2^m "n must satisfy m*t = $(m*t) < n <= 2^m = $(2^m), got $n"
+end
+
 # Coordinates of an element of GF(2^m) over GF(2), as integers 0 and 1.
 _gf2m_bits(a::FqFieldElem) = [is_one(c) ? 1 : 0 for c in absolute_coordinates(a)]
 

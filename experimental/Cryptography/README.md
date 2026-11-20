@@ -10,10 +10,13 @@ and teaching, in particular post-quantum schemes:
 - hash-based signatures (`src/PostQuantum/hbs`): Lamport and Winternitz one-time
   signatures, Merkle trees, the few-time signatures HORST and FORS, and
   signature schemes with a single Merkle tree or a hypertree,
+- code-based encryption (`src/PostQuantum/cbc`): the scheme of McEliece with
+  binary Goppa codes,
 - the hash function SHAKE256 (`src/keccak.jl`) that the hash-based schemes use.
 
 ## Status
 
 The implementations are neither constant-time nor hardened against side channels
 and are not meant to protect real data. The hash-based schemes are not
-compatible with the NIST standard FIPS 205.
+compatible with the NIST standard FIPS 205, the code-based schemes are not
+compatible with the NIST submission Classic McEliece.
