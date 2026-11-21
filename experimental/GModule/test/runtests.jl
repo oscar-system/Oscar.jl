@@ -470,3 +470,13 @@ end
   @test ngens(M.M) == 2
   @test all(preimage(mM, mM(u)) == u for u = gens(M.M))
 end
+
+@testset "Galois group with a ramified ray modulus" begin
+  # Compare with the automorphisms of the explicit defining field.
+  K, _ = quadratic_field(-39)
+  A = ray_class_field(3*maximal_order(K))
+  G, _ = galois_group(A, QQ)
+  N = number_field(AbsSimpleNumField, A)
+  H, _ = automorphism_group(PermGroup, N)
+  @test is_isomorphic(G, H)
+end
