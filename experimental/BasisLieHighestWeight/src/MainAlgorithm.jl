@@ -468,21 +468,18 @@ function add_by_hand(
   # required monomials of each weightspace
   weightspaces = character(V)
   # sort the monomials from the minkowski-sum by their weightspaces
-  monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
-  for (weight_w, _) in weightspaces
-    monomials_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
-  end
+  monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
+    weight_w => Set{ZZMPolyRingElem}() for weight_w in keys(weightspaces)
+  )
   for mon in basis
     push!(monomials_in_weightspace[highest_weight(V) - weight(mon, birational_seq)], mon)
   end
 
   # only inspect weightspaces with missing monomials
-  weights_with_non_full_weightspace = Set{WeightLatticeElem}()
-  for (weight_w, dim_weightspace) in weightspaces
-    if length(monomials_in_weightspace[weight_w]) != dim_weightspace
-      push!(weights_with_non_full_weightspace, weight_w)
-    end
-  end
+  weights_with_non_full_weightspace = [
+    weight_w for (weight_w, dim_weightspace) in weightspaces if
+    length(monomials_in_weightspace[weight_w]) != dim_weightspace
+  ]
 
   # add all images from `monomials_in_weightspace` on `v0` to `space`
   for weight_w in weights_with_non_full_weightspace
