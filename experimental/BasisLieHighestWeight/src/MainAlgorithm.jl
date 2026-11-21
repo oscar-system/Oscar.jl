@@ -356,8 +356,8 @@ function add_new_monomials!(
   weightspaces::Dict{WeightLatticeElem,ZZRingElem},
   dim_weightspace::ZZRingElem,
   weight_w::WeightLatticeElem,
-  monomials_in_weightspace::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
-  space::Dict{WeightLatticeElem,<:SMat{QQFieldElem}},
+  known_monomials::Set{ZZMPolyRingElem},
+  rref_w::SMat{QQFieldElem},
   v0::SRow{ZZRingElem},
   basis::Set{ZZMPolyRingElem},
   additional_inequalities::Vector{Tuple{Vector{QQFieldElem},QQFieldElem}},
@@ -393,8 +393,7 @@ function add_new_monomials!(
   end
   sort!(poss_mon_in_weightspace; order=monomial_ordering)
 
-  rref_w = get!(() -> sparse_matrix(QQ), space, weight_w)
-  number_mon_in_weightspace = length(monomials_in_weightspace[weight_w])
+  number_mon_in_weightspace = length(known_monomials)
   # go through possible monomials one by one and check if it extends the basis
   for mon in poss_mon_in_weightspace
     number_mon_in_weightspace >= dim_weightspace && break
@@ -428,11 +427,9 @@ function add_by_hand(
 
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
-  R = root_system(base_lie_algebra(V))
   matrices_of_operators = tensor_matrices_of_operators(
     base_lie_algebra(V), highest_weight(V), operators_as_roots(birational_seq)
   )
-  space = Dict(zero(weight_lattice(R)) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(basis, ZZx(1))
@@ -446,34 +443,22 @@ function add_by_hand(
     push!(monomials_in_weightspace[highest_weight(V) - weight(mon, birational_seq)], mon)
   end
 
-  # only inspect weightspaces with missing monomials
-  weights_with_non_full_weightspace = [
-    weight_w for (weight_w, dim_weightspace) in weightspaces if
-    length(monomials_in_weightspace[weight_w]) != dim_weightspace
-  ]
-
-  # add all images from `monomials_in_weightspace` on `v0` to `space`
-  for weight_w in weights_with_non_full_weightspace
-    for mon in monomials_in_weightspace[weight_w]
-      # calculate the vector vec associated with mon
-      vec = calc_vec(v0, mon, matrices_of_operators)
-
-      # check if vec extends the basis
-      s = get!(space, weight_w) do
-        sparse_matrix(QQ)
-      end
-      Hecke._add_row_to_rref!(s, change_base_ring(QQ, vec))
-    end
-  end
-
   # compute additional inequalities to reduce the search space of monomials to inspect
   additional_inequalities = compute_additional_inequalities(
     birational_seq, highest_weight(V)
   )
-  # calculate new monomials
+  # calculate new monomials, only inspect weightspaces with missing monomials
   new_monomials = Set{ZZMPolyRingElem}()
-  for weight_w in weights_with_non_full_weightspace
-    dim_weightspace = weightspaces[weight_w]
+  for (weight_w, dim_weightspace) in weightspaces
+    known_monomials = monomials_in_weightspace[weight_w]
+    length(known_monomials) == dim_weightspace && continue
+
+    # span of the vectors of the known monomials in this weightspace
+    rref_w = sparse_matrix(QQ)
+    for mon in known_monomials
+      vec = calc_vec(v0, mon, matrices_of_operators)
+      Hecke._add_row_to_rref!(rref_w, change_base_ring(QQ, vec))
+    end
     union!(
       new_monomials,
       add_new_monomials!(
@@ -485,8 +470,8 @@ function add_by_hand(
         weightspaces,
         dim_weightspace,
         weight_w,
-        monomials_in_weightspace,
-        space,
+        known_monomials,
+        rref_w,
         v0,
         basis,
         additional_inequalities,
