@@ -14,7 +14,7 @@ function calc_vec(
 )
   v = v0
   degree_mon = degrees(mon)
-  for i in length(degree_mon):-1:1
+  for i in reverse(eachindex(degree_mon))
     for _ in 1:degree_mon[i]
       v = v * matrices_of_operators[i]
     end

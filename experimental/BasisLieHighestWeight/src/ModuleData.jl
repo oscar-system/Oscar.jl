@@ -99,7 +99,7 @@ function character(V::DemazureModuleData)
     _char = demazure_character(
       ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem
     )
-    V.character = Dict([(w * inv_weyl_group_elem => k) for (w, k) in _char])
+    V.character = Dict(w * inv_weyl_group_elem => k for (w, k) in _char)
   end
   return V.character
 end

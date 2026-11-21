@@ -20,7 +20,7 @@ julia> basis_lie_highest_weight_operators(:B, 2)
 function basis_lie_highest_weight_operators(L::LieAlgebra)
   @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   R = root_system(L)
-  return collect(enumerate(map(r -> Oscar._vec(coefficients(r)), positive_roots(R)))) # TODO: clean up
+  return [(i, Oscar._vec(coefficients(r))) for (i, r) in enumerate(positive_roots(R))] # TODO: clean up
 end
 
 function basis_lie_highest_weight_operators(type::Symbol, rank::Int)

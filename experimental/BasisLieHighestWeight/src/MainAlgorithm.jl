@@ -502,13 +502,8 @@ function operators_by_simple_roots(
 )
   @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   R = root_system(L)
-  operators = map(birational_seq) do whgt_alpha
-    root = RootSpaceElem(R, whgt_alpha)
-    fl = is_positive_root(root)
-    @req fl "Only positive roots are allowed as input"
-    root
-  end
-
+  operators = [RootSpaceElem(R, whgt_alpha) for whgt_alpha in birational_seq]
+  @req all(is_positive_root, operators) "Only positive roots are allowed as input"
   return operators
 end
 
@@ -526,12 +521,11 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   @req characteristic(L) == 0 "This function only supports Lie algebras in characteristic 0"
   R = root_system(L)
   W = weyl_group(R)
-  operators = map(1:length(reduced_expression)) do k
-    root = simple_root(R, reduced_expression[k]) * W(reduced_expression[(k - 1):-1:1])
-    fl = is_positive_root(root)
-    @req fl "Only positive roots may occur here"
-    root
-  end
+  operators = [
+    simple_root(R, reduced_expression[k]) * W(reduced_expression[(k - 1):-1:1]) for
+    k in eachindex(reduced_expression)
+  ]
+  @req all(is_positive_root, operators) "Only positive roots may occur here"
   return operators
 end
 
@@ -539,8 +533,7 @@ function demazurify_operators(
   V::DemazureModuleData, simple_operators::Vector{RootSpaceElem}
 )
   inv_weyl_group_elem = inv(weyl_group_elem(V))
-  op = [-(root * inv_weyl_group_elem) for root in simple_operators]
-  return op
+  return [-(root * inv_weyl_group_elem) for root in simple_operators]
 end
 
 function sub_weights(w::WeightLatticeElem)
