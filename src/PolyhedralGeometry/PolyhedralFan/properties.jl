@@ -930,3 +930,55 @@ function primitive_collections(PF::_FanLikeType)
   K = simplicial_complex(I)
   return minimal_nonfaces(K)
 end
+
+@doc raw"""
+    Base.in(tau::Cone, Sigma::PolyhedralFan)
+
+Determine whether the cone $\tau$ belongs to the fan $\Sigma$.
+Membership means that $\tau$ is a cone *of* the fan, not simply a
+subcone of its support.
+
+# Examples
+```jldoctest
+julia> Sigma = polyhedral_fan(positive_hull([1 0; 0 1]));
+
+julia> first(maximal_cones(Sigma)) in Sigma
+true
+
+julia> positive_hull([1 1]) in Sigma
+false
+```
+"""
+function Base.in(tau::Cone, Sigma::PolyhedralFan)
+  ambient_dim(tau) == ambient_dim(Sigma) || return false
+
+  # For cones with lineality, rays() does not expose the relevant generators.
+  # Compare geometrically in this less common case.
+  if lineality_dim(Sigma) != 0 || lineality_dim(tau) != 0
+    return any(sigma -> sigma == tau, cones(Sigma, dim(tau)))
+  end
+
+  # For pointed fans, a cone is a face precisely when its rays coincide
+  # with one row of the fan's cone-incidence matrix.
+  fan_rays = rays(Sigma)
+  indices = Int[]
+  for ray in rays(tau)
+    i = findfirst(==(ray), fan_rays)
+    isnothing(i) && return false
+    push!(indices, i)
+  end
+
+  all_cones = cones(Sigma)
+  for j in 1:nrows(all_cones)
+    length(row(all_cones, j)) == length(indices) || continue
+    is_face = true
+    for i in indices
+      if !all_cones[j, i]
+        is_face = false
+        break
+      end
+    end
+    is_face && return true
+  end
+  return false
+end

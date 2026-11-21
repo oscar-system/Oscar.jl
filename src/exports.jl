@@ -8,6 +8,7 @@ export @perm
 export @permutation_group
 export @register_serialization_type
 export @tropical
+export AbsCompleteIntersectionInToricVariety
 export ANTIC
 export AbsAffineAlgebraicSet
 export AbsAffineCurve
@@ -56,6 +57,8 @@ export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
 export Combination
+export complete_intersection_in_toric_variety
+export CompleteIntersectionInToricVariety
 export Composition
 export Cone
 export CoveredScheme
@@ -63,6 +66,9 @@ export CoveredSchemeMorphism
 export Covering
 export CoveringMorphism
 export CyclicQuotientSingularity
+export defining_divisor_class
+export defining_divisor_classes
+export defining_equations
 export DirectProductGroup
 export DirectSumSheaf
 export Directed
@@ -82,6 +88,7 @@ export FreeMod_dec
 export FreeModuleHom
 export FreeModuleHom_dec
 export FreeResolution
+export fundamental_class
 export GAP
 export GAPGroupConjClass
 export GAPGroupElem
@@ -99,9 +106,12 @@ export GroupCoset
 export GroupDoubleCoset
 export GroupElem
 export Halfspace
+export has_expected_codimension
 export Hecke
 export HilbertData
 export Hyperplane
+export hypersurface_in_toric_variety
+export HypersurfaceInToricVariety
 export IdealSheaf
 export IncidenceMatrix
 export IndexedSet
