@@ -55,6 +55,10 @@ function character(V::SimpleModuleData)
   return V.character
 end
 
+function similar_with_highest_weight(V::SimpleModuleData, lambda::WeightLatticeElem)
+  return SimpleModuleData(base_lie_algebra(V), lambda)
+end
+
 mutable struct DemazureModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} <:
                ModuleData{C,LieT}
   L::LieAlgebra{C} # parent_type(LieT)
@@ -113,4 +117,8 @@ end
 
 function weyl_group_elem(V::DemazureModuleData)
   return V.weyl_group_elem
+end
+
+function similar_with_highest_weight(V::DemazureModuleData, lambda::WeightLatticeElem)
+  return DemazureModuleData(base_lie_algebra(V), lambda, weyl_group_elem(V))
 end

@@ -140,15 +140,7 @@ function basis_coordinate_ring_kodaira_compute(
 
   # start recursion over degree
   for i in 1:degree
-    if V isa SimpleModuleData
-      V_i = SimpleModuleData(base_lie_algebra(V), i * highest_weight(V))
-    elseif V isa DemazureModuleData
-      V_i = DemazureModuleData(
-        base_lie_algebra(V), i * highest_weight(V), weyl_group_elem(V)
-      )
-    else
-      error("unreachable")
-    end
+    V_i = similar_with_highest_weight(V, i * highest_weight(V))
     dim_i = dim(V_i)
     monomials_minkowski_sum = Set{ZZMPolyRingElem}()
     # iterate over all minkowski sums of previous steps
@@ -276,15 +268,8 @@ function compute_monomials(
 
       ind_lambda_1 > ind_lambda_2 && continue
 
-      if V isa SimpleModuleData
-        M_lambda_1 = SimpleModuleData(base_lie_algebra(V), lambda_1)
-        M_lambda_2 = SimpleModuleData(base_lie_algebra(V), lambda_2)
-      elseif V isa DemazureModuleData
-        M_lambda_1 = DemazureModuleData(base_lie_algebra(V), lambda_1, weyl_group_elem(V))
-        M_lambda_2 = DemazureModuleData(base_lie_algebra(V), lambda_2, weyl_group_elem(V))
-      else
-        error("unreachable")
-      end
+      M_lambda_1 = similar_with_highest_weight(V, lambda_1)
+      M_lambda_2 = similar_with_highest_weight(V, lambda_2)
 
       mon_lambda_1 = compute_monomials(
         M_lambda_1,
