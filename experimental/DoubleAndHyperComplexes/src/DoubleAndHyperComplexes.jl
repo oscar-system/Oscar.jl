@@ -13,6 +13,7 @@ include("Objects/new_complex_template.jl")
 include("Objects/linear_strands.jl")
 include("Objects/eagon_northcott_complex.jl")
 include("Objects/induced_ENC.jl")
+include("Objects/DirectSum.jl")
 
 include("Morphisms/Types.jl")
 include("Objects/cartan_eilenberg_resolution.jl")
