@@ -26,6 +26,8 @@ export abstract_quadric
 export adams
 export cannibalistic
 export flag_bundle
+export flag_bundle_basis
+export flag_bundle_normal_form
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
@@ -123,6 +125,9 @@ include("misc.jl")
 
 include("bott.jl")   # integration using Bott's formula
 include("main.jl")   # basic constructors and functionality
+include("flag_normal_form.jl") # relative monic reduction for flag bundles
+include("flag_gysin.jl") # direct Segre-determinant pushforward
+include("flag_bundles.jl") # shared flag data and public interface
 include("blowup.jl") # blowup
 include("schubert.jl") # Schubert calculus
 include("kontsevich.jl") # Kontsevich moduli spaces
@@ -143,6 +148,8 @@ export abstract_quadric
 export adams
 export cannibalistic
 export flag_bundle
+export flag_bundle_basis
+export flag_bundle_normal_form
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
