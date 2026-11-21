@@ -69,10 +69,7 @@ function basis_lie_highest_weight_compute(
     no_minkowski,
   )
   # monomials = sort(collect(monomials); order=monomial_ordering)
-  minkowski_gens = sort(
-    collect(no_minkowski);
-    by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
-  )
+  minkowski_gens = sorted_minkowski_gens(no_minkowski)
   # output
   if V isa SimpleModuleData
     mb = MonomialBasis(V, birational_seq, monomial_ordering, monomials)
@@ -181,10 +178,7 @@ function basis_coordinate_ring_kodaira_compute(
       @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight(V))) we added $(length(monomials_new)) monomials "
 
       # monomials = sort(collect(monomials); order=monomial_ordering)
-      minkowski_gens = sort(
-        collect(no_minkowski);
-        by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
-      )
+      minkowski_gens = sorted_minkowski_gens(no_minkowski)
     end
     if V isa SimpleModuleData
       mb = MonomialBasis(V_i, birational_seq, monomial_ordering, monomials)
@@ -471,6 +465,13 @@ function add_by_hand(
     )
   end
   return basis, new_monomials
+end
+
+function sorted_minkowski_gens(no_minkowski::Set{WeightLatticeElem})
+  return sort(
+    collect(no_minkowski);
+    by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
+  )
 end
 
 function convert_to_point(monomial::ZZMPolyRingElem)
