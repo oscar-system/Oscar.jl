@@ -162,11 +162,10 @@ function basis_coordinate_ring_kodaira_compute(
     monomials_minkowski_sum = Set{ZZMPolyRingElem}()
     # iterate over all minkowski sums of previous steps
     for k in 1:div(i, 2)
-      set_help = Set([p * q for p in monomials_k[i - k] for q in monomials_k[k]])
-      union!(monomials_minkowski_sum, set_help)
-      if length(monomials_minkowski_sum) == dim_i
-        break
-      end
+      union!(
+        monomials_minkowski_sum, (p * q for p in monomials_k[i - k] for q in monomials_k[k])
+      )
+      length(monomials_minkowski_sum) == dim_i && break
     end
 
     if length(monomials_minkowski_sum) == dim_i
@@ -276,8 +275,7 @@ function compute_monomials(
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
     if !isnothing(polytopes)
-      polys = Vector{Polyhedron{QQFieldElem}}()
-      push!(polys, convex_hull(point_vector(QQ, exponent_vector(ZZx(1), 1))))
+      polys = [convex_hull(convert_to_point(ZZx(1)))]
     end
     sub_weights = sub_weights_proper(highest_weight(V))
     sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
