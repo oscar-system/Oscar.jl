@@ -391,53 +391,24 @@ function add_new_monomials!(
       error("unreachable")
     end
   end
-  poss_mon_in_weightspace = sort(poss_mon_in_weightspace; order=monomial_ordering)
+  sort!(poss_mon_in_weightspace; order=monomial_ordering)
 
-  # check which monomials should get added to the basis
-  i = 0
-  if highest_weight(V) == weight_w # check if [0 0 ... 0] already in basis
-    i += 1
-  end
+  rref_w = get!(() -> sparse_matrix(QQ), space, weight_w)
   number_mon_in_weightspace = length(monomials_in_weightspace[weight_w])
   # go through possible monomials one by one and check if it extends the basis
-  while number_mon_in_weightspace < dim_weightspace
-    i += 1
-    mon = poss_mon_in_weightspace[i]
-    if mon in basis
-      continue
-    end
+  for mon in poss_mon_in_weightspace
+    number_mon_in_weightspace >= dim_weightspace && break
+    mon in basis && continue
 
     # check if the weight of each suffix is a weight of the module
-    cancel = false
-    for i in 1:(nvars(ZZx) - 1)
-      if !haskey(
-        weightspaces,
-        highest_weight(V) - sum(
-          exp * weight for (exp, weight) in
-          Iterators.drop(zip(degrees(mon), operators_as_weights(birational_seq)), i)
-        ),
-      )
-        cancel = true
-        break
-      end
-    end
-    if cancel
-      continue
-    end
+    weights_of_factors = degrees(mon) .* operators_as_weights(birational_seq)
+    suffix_weights = accumulate(+, reverse(weights_of_factors))[1:(end - 1)]
+    all(w -> haskey(weightspaces, highest_weight(V) - w), suffix_weights) || continue
 
-    # calculate the vector vec associated with mon
+    # check if the vector associated with mon extends the basis
     vec = calc_vec(v0, mon, matrices_of_operators)
+    Hecke._add_row_to_rref!(rref_w, change_base_ring(QQ, vec)) || continue
 
-    # check if vec extends the basis
-    if !haskey(space, weight_w)
-      space[weight_w] = sparse_matrix(QQ)
-    end
-    fl = Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
-    if !fl
-      continue
-    end
-
-    # save monom
     number_mon_in_weightspace += 1
     push!(new_monomials, mon)
     push!(basis, mon)
