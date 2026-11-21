@@ -39,12 +39,9 @@ function basis_lie_highest_weight_compute(
   birational_seq = birational_sequence(operators, root_system(base_lie_algebra(V)))
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
-  if monomial_ordering_input isa Symbol
-    abs_monomial_ordering = construct_abs_gen_ordering(monomial_ordering_input, operators)
-  else
-    abs_monomial_ordering = monomial_ordering_input
-  end
-  monomial_ordering = MonomialOrdering(ZZx, abs_monomial_ordering)
+  monomial_ordering = MonomialOrdering(
+    ZZx, construct_abs_gen_ordering(monomial_ordering_input, operators)
+  )
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
@@ -127,12 +124,9 @@ function basis_coordinate_ring_kodaira_compute(
   birational_seq = birational_sequence(operators, R)
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
-  if monomial_ordering_input isa Symbol
-    abs_monomial_ordering = construct_abs_gen_ordering(monomial_ordering_input, operators)
-  else
-    abs_monomial_ordering = monomial_ordering_input
-  end
-  monomial_ordering = MonomialOrdering(ZZx, abs_monomial_ordering)
+  monomial_ordering = MonomialOrdering(
+    ZZx, construct_abs_gen_ordering(monomial_ordering_input, operators)
+  )
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(

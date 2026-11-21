@@ -12,3 +12,9 @@ function construct_abs_gen_ordering(
     return SymbOrdering(symb_monomial_ordering, 1:length(operators))
   end
 end
+
+function construct_abs_gen_ordering(
+  abs_monomial_ordering::AbsGenOrdering, ::Vector{RootSpaceElem}
+)
+  return abs_monomial_ordering
+end
