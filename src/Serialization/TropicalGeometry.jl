@@ -12,8 +12,8 @@ function save_object(s::SerializerState, x::TropicalSemiringElem)
   save_data_basic(s, String(strip(str, ['(', ')'])))
 end
 
-function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem},
-                     R::TropicalSemiring)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalSemiringElem, <:TropicalSemiring})
+  R = params(tp)
   load_node(s) do
     str = s.obj
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
@@ -33,9 +33,8 @@ function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
   save_object(s, tropical_polynomial(t))
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface},
-                     params::MPolyRing)
-  polynomial = load_object(s, MPolyRingElem, params)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalHypersurface, <:MPolyRing})
+  polynomial = load_object(s, TypeAndParams(MPolyRingElem, params(tp)))
   return tropical_hypersurface(polynomial)
 end
 
@@ -43,7 +42,7 @@ end
 @register_serialization_type TropicalCurve uses_id
 
 type_and_params(t::TropicalCurve{M, true}) where M = TypeAndParams(TropicalCurve,
-                                                            params(type_and_params(polyhedral_complex(t))))
+                                                                   params(type_and_params(polyhedral_complex(t))))
 # here to handle weird edge case
 type_and_params(t::TropicalCurve{M, false}) where M = TypeAndParams(TropicalCurve, "graph")
 
@@ -57,13 +56,13 @@ function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, params::Field)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalCurve, <:Field})
   return tropical_curve(
-    load_object(s, PolyhedralComplex, params, :polyhedral_complex)
+    load_object(s, TypeAndParams(PolyhedralComplex, params(tp)), :polyhedral_complex)
   )
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, ::String)
+function load_object(s::DeserializerState, tp::TypeAndParams{<:TropicalCurve, String})
   return tropical_curve(
     load_object(s, Graph{Undirected}, :graph)
   )
