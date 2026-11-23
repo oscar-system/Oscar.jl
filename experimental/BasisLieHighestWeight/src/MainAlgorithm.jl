@@ -245,9 +245,11 @@ function compute_monomials(
     return monomials
   elseif is_fundamental_weight(highest_weight(V))
     push!(no_minkowski, highest_weight(V))
-    monomials, _ = add_by_hand(
-      V, birational_seq, ZZx, monomial_ordering, Set([ZZx(1)])
-    )
+    monomials = Set([ZZx(1)])
+    # a 1-dimensional Demazure module needs no operator matrices
+    if dim(V) > 1
+      monomials, _ = add_by_hand(V, birational_seq, ZZx, monomial_ordering, monomials)
+    end
     push!(calc_highest_weight, highest_weight(V) => monomials)
     if !isnothing(polytopes)
       polytopes[highest_weight(V)] = convex_hull(convert_to_point.(monomials))
