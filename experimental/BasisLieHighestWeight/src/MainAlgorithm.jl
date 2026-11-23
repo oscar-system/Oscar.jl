@@ -44,13 +44,10 @@ function basis_lie_highest_weight_compute(
   )
 
   # save computations from recursions
-  calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(weight_lattice(R)) => Set((ZZx(1),))
-  )
+  calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
 
   if compute_polytope
-    polytopes = Dict{WeightLatticeElem,Polyhedron{QQFieldElem}}(
-      zero(weight_lattice(R)) => convex_hull(convert_to_point(ZZx(1))))
+    polytopes = Dict{WeightLatticeElem,Polyhedron{QQFieldElem}}()
   else
     polytopes = nothing
   end
@@ -126,9 +123,7 @@ function basis_coordinate_ring_kodaira_compute(
   )
 
   # save computations from recursions
-  calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(weight_lattice(R)) => Set([ZZx(1)])
-  )
+  calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
 
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{WeightLatticeElem}()
@@ -241,7 +236,14 @@ function compute_monomials(
   # dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
   # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the base case of
   # the recursion.
-  if is_zero(highest_weight(V)) || is_fundamental_weight(highest_weight(V))
+  if is_zero(highest_weight(V))
+    monomials = Set([ZZx(1)])
+    push!(calc_highest_weight, highest_weight(V) => monomials)
+    if !isnothing(polytopes)
+      polytopes[highest_weight(V)] = convex_hull(convert_to_point.(monomials))
+    end
+    return monomials
+  elseif is_fundamental_weight(highest_weight(V))
     push!(no_minkowski, highest_weight(V))
     monomials, _ = add_by_hand(
       V, birational_seq, ZZx, monomial_ordering, Set([ZZx(1)])
