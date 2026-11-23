@@ -91,7 +91,9 @@ end
     
 Direct sum of complexes of Abelian groups. 
 
-!!! note In order to use this with your favorite type of Abelian groups, you need to overwrite some internal functions! See the source code for details. 
+!!! note 
+    In order to use this with your favorite type of Abelian groups, you need to 
+    overwrite some internal functions! See the source code for details. 
 """
 @attributes mutable struct DirectSumComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
