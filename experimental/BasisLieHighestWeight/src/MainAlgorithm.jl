@@ -507,5 +507,6 @@ end
 
 function sub_weights_proper(w::WeightLatticeElem)
   # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise, but neither 0 nor w
+  (is_zero(w) || is_fundamental_weight(w)) && return WeightLatticeElem[]
   return filter(x -> !iszero(x) && x != w, sub_weights(w))
 end
