@@ -1869,7 +1869,7 @@ how much has been factored out.
     else
       i = 0
     end
-    c[Int(minimum(P))] = ceil(Int, i/absolute_ramification_index(kp))
+    c[Int(minimum(P))] = ceil(Int, i)
   end
   return c
 end
@@ -2364,7 +2364,12 @@ function Oscar.galois_group(::Type{GrpExt}, A::ClassField, ::QQField;
 
   gamma = s[2](s[1][1])
 
-  gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = factor(minimum(m0))])
+  fa = Dict{ZZRingElem, Int}(factor(minimum(m0)))
+  for (P, l) in factor(m0)
+    p = minimum(P)
+    fa[p] = max(fa[p], l)
+  end
+  gamma, idele_parent, hI = adjust_support(idele_parent, hI, gamma, [(p, k) for (p, k) = fa])
 
 
   @vprintln :GaloisCohomology 2 "projecting to ray class group..."
