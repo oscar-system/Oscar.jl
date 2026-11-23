@@ -244,7 +244,7 @@ function compute_monomials(
   if is_zero(highest_weight(V)) || is_fundamental_weight(highest_weight(V))
     push!(no_minkowski, highest_weight(V))
     monomials, _ = add_by_hand(
-      V, birational_seq, ZZx, monomial_ordering, Set{ZZMPolyRingElem}()
+      V, birational_seq, ZZx, monomial_ordering, Set([ZZx(1)])
     )
     push!(calc_highest_weight, highest_weight(V) => monomials)
     if !isnothing(polytopes)
@@ -403,7 +403,6 @@ function add_by_hand(
   )
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
-  push!(basis, ZZx(1))
   # required monomials of each weightspace
   weightspaces = character(V)
   # sort the monomials from the minkowski-sum by their weightspaces
