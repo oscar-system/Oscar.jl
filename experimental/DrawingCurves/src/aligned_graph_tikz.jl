@@ -151,6 +151,7 @@ function draw_graph_tikz_aligned(IG::_IsotopyGraph, io, marked_components)
     _draw_pt_tikz(io, pt, scale; color="blue", size=4)
   end
 end
+draw_graph_tikz_aligned(IG::_IsotopyGraph, io) = draw_graph_tikz_aligned(IG, io, nothing)
 
 function _draw_edge_tikz_aligned(
   io::IO, pt0::_Point, pt1::_Point, type::Symbol, scale::QQFieldElem; color::String="black", opts=nothing
