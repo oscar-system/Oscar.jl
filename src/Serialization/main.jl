@@ -1140,19 +1140,9 @@ function load(io::IO; params::Any=nothing, type::Any=nothing,
   end
 end
 
-function load(filename::String, tp::TypeAndParams; kwargs...)
-  if endswith(filename, ".gz")
-    open(CodecZlib.GzipDecompressorStream, filename) do file
-      return load(file, tp; kwargs...)
-    end
-  else
-    open(filename) do file
-      return load(file, tp; kwargs...)
-    end
-  end
-end
-
-function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kwargs...)
+# `args` is empty or a single `TypeAndParams`
+function load(filename::String, args::TypeAndParams...;
+              serializer::OscarSerializer=JSONSerializer(), kwargs...)
   if serializer isa MultiFileRefSerializer
     if endswith(filename, ".mrdi.gz")
       main_file = filename
@@ -1168,20 +1158,20 @@ function load(filename::String; serializer::OscarSerializer=JSONSerializer(), kw
     compression = endswith(main_file, ".gz") ? :gzip : :none
     if compression == :gzip
       open(CodecZlib.GzipDecompressorStream, main_file) do file
-        return load(file; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
+        return load(file, args...; serializer=MultiFileRefSerializer(prefix, compression), kwargs...)
       end
     else
       open(main_file) do file
-        return load(file; serializer=MultiFileRefSerializer(prefix), kwargs...)
+        return load(file, args...; serializer=MultiFileRefSerializer(prefix), kwargs...)
       end
     end
   elseif endswith(filename, ".gz")
     open(CodecZlib.GzipDecompressorStream, filename) do file
-      return load(file; serializer=serializer, kwargs...)
+      return load(file, args...; serializer=serializer, kwargs...)
     end
   else
     open(filename) do file
-      return load(file; serializer=serializer, kwargs...)
+      return load(file, args...; serializer=serializer, kwargs...)
     end
   end
 end

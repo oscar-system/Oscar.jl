@@ -171,7 +171,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name in ["AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField"]
         dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => dict[:data][:def_pols][:_type][:params]
+          :params => dict[:data][:def_pols][:_type][:params][:params]
         )
         dict[:data] = Dict{Symbol, Any}(
           :vars => dict[:data][:vars],
