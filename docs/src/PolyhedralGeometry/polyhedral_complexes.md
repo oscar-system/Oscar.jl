@@ -9,8 +9,8 @@ not yet supported everywhere in the implementation.
 A nonempty finite collection $\mathcal{P}$ of polyhedra in
 $\mathbb{F}^n$, for $n$ fixed, is a *polyhedral complex* if
 
-- the set $\mathcal{F}$ is closed with respect to taking faces and
-- if $C,D\in\mathcal{F}$ then $C\cap D$ is a face of both $C$ and $D$.
+- the set $\mathcal{P}$ is closed with respect to taking faces and
+- if $C,D\in\mathcal{P}$ then $C\cap D$ is a face of both $C$ and $D$.
 
 ## Construction
 

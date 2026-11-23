@@ -2,7 +2,7 @@
 
 A **Young diagram** is a diagram of finitely many empty "boxes" arranged
 in left-justified rows, with the row lengths in non-increasing order. The
-box in row $i$ and and column $j$ has the **coordinates** $(i, j)$. Listing
+box in row $i$ and column $j$ has the **coordinates** $(i, j)$. Listing
 the number of boxes in each row gives a partition $\lambda$ of a non-negative
 integer $n$ (the total number of boxes of the diagram). The diagram is
 then said to be of **shape** $\lambda$. Conversely, one can associate to any

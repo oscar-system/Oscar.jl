@@ -30,7 +30,7 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
     By a result of Robbiano, every monomial ordering can be realized as a matrix ordering.
 
 !!! note
-    The lexicograpical monomial ordering specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
+    The lexicographical monomial ordering specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
     The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering  and the degree reverse lexicographical
     ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on [Gröbner bases](@ref gb_fields).
 
