@@ -1786,10 +1786,31 @@ function multiplication_map(
     all_mons_dom = all_monomials(ctx, alpha + e0*delta)
     all_mons_cod_inv = all_monomials_inv(ctx, beta + e0*delta)
     kk = coefficient_ring(S)
-    img_gens = sparse_matrix(kk, 0, ngens(cod))
-    for _ in 1:ngens(dom)
-      push!(img_gens, sparse_row(kk))
-    end
+    # we provide a custom function to map individual elements instead of 
+    # coming up with a full sparse matrix for mapping. 
+    rngs = get_attribute(dom, :ranges)::Vector{UnitRange{Int}}
+    return MapFromFunc(dom, cod, function(v) # v is a vector in the domain
+                         res_row = sparse_row(kk) # this will be the `coordinates` of its image 
+                         for (ind_v, cc) in coordinates(v)
+                           block_ind = _findfirstrange(ind_v, rngs)::Int
+                           inner_ind = ind_v - sum(length(r) for r in rngs[1:block_ind-1]; init=0)
+                           ee = all_mons_dom[block_ind]
+                           inc_dom = canonical_injection(dom, block_ind)
+                           for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
+                             sample = sample_multiplication(ctx, ee.-e0, (ee + eee).-e0)[j]
+                             inc = canonical_injection(cod, all_mons_cod_inv[ee+eee])
+                             w = cc*images_of_generators(sample)[inner_ind]
+                             ww = inc(w)
+                             Hecke.add_scaled_row!(coordinates(ww), res_row, c)
+                           end
+                         end
+                         cod(res_row)
+                       end
+                      )
+#   img_gens = sparse_matrix(kk, ngens(dom), ngens(cod))
+#   for _ in 1:ngens(dom)
+#     push!(img_gens, sparse_row(kk))
+#   end
     for (k, ee) in enumerate(all_mons_dom)
       inc_dom = canonical_injection(dom, k)
       for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
@@ -1807,6 +1828,21 @@ function multiplication_map(
     hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens])
   end
 end
+
+function _findfirstrange(a::Int, lst::Vector{UnitRange{Int}})
+  return _findfirstrange(1, length(lst), a, lst)
+end
+function _findfirstrange(low::Int, up::Int, a::Int, lst::Vector{UnitRange{Int}})
+  if low == up
+    a in lst[low] && return low
+    return nothing
+  end
+  mid = div(up+low, 2)
+  low_res = _findfirstrange(low, mid, a, lst)
+  !isnothing(low_res) && return low_res
+  return _findfirstrange(mid+1, up, a, lst)
+end
+
 
 # The "support set" is the set of cohomological degrees 
 # for the sector labeled by `p`, for which the fine strand 
