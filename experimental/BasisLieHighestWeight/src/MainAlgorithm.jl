@@ -234,92 +234,69 @@ function compute_monomials(
   end
   # calculation required
   # dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
-  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the base case of
-  # the recursion.
-  if is_zero(highest_weight(V))
-    monomials = Set([ZZx(1)])
-    push!(calc_highest_weight, highest_weight(V) => monomials)
-    if !isnothing(polytopes)
-      polytopes[highest_weight(V)] = convex_hull(convert_to_point.(monomials))
-    end
-    return monomials
-  elseif is_fundamental_weight(highest_weight(V))
-    push!(no_minkowski, highest_weight(V))
-    monomials = Set([ZZx(1)])
-    # a 1-dimensional Demazure module needs no operator matrices
-    if dim(V) > 1
-      monomials, _ = add_by_hand(V, birational_seq, ZZx, monomial_ordering, monomials)
-    end
-    push!(calc_highest_weight, highest_weight(V) => monomials)
-    if !isnothing(polytopes)
-      polytopes[highest_weight(V)] = convex_hull(convert_to_point.(monomials))
-    end
-    return monomials
-  else
-    # use Minkowski-Sum for recursion
-    monomials = Set{ZZMPolyRingElem}()
-    if !isnothing(polytopes)
-      polys = [convex_hull(convert_to_point(ZZx(1)))]
-    end
-    sub_weights = sub_weights_proper(highest_weight(V))
-    sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
-    # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions
-    for (ind_lambda_1, lambda_1) in enumerate(sub_weights)
-      length(monomials) >= dim(V) && break
-
-      lambda_2 = highest_weight(V) - lambda_1
-      ind_lambda_2 = findfirst(==(lambda_2), sub_weights)::Int
-
-      ind_lambda_1 > ind_lambda_2 && continue
-
-      M_lambda_1 = similar_with_highest_weight(V, lambda_1)
-      M_lambda_2 = similar_with_highest_weight(V, lambda_2)
-
-      mon_lambda_1 = compute_monomials(
-        M_lambda_1,
-        birational_seq,
-        ZZx,
-        monomial_ordering,
-        calc_highest_weight,
-        polytopes,
-        no_minkowski,
-      )
-      mon_lambda_2 = compute_monomials(
-        M_lambda_2,
-        birational_seq,
-        ZZx,
-        monomial_ordering,
-        calc_highest_weight,
-        polytopes,
-        no_minkowski,
-      )
-      # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with
-      # points in ZZ^n
-      union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
-      if !isnothing(polytopes)
-        push!(polys, polytopes[lambda_1] + polytopes[lambda_2])
-      end
-    end
-    if !isnothing(polytopes)
-      polytopes[highest_weight(V)] = convex_hull(polys)
-    end
-    # check if we found enough monomials
-
-    if length(monomials) < dim(V)
-      push!(no_minkowski, highest_weight(V))
-      monomials, new_monomials = add_by_hand(
-        V, birational_seq, ZZx, monomial_ordering, monomials
-      )
-      if !isnothing(polytopes)
-        polytopes[highest_weight(V)] = convex_hull(
-          polytopes[highest_weight(V)], convex_hull(convert_to_point.(new_monomials))
-        )
-      end
-    end
-
-    push!(calc_highest_weight, highest_weight(V) => monomials)
-    return monomials
+  # use Minkowski-Sum for recursion, starting from the monomial 1 of the highest weight vector
+  monomials = Set([ZZx(1)])
+  if !isnothing(polytopes)
+    polys = [convex_hull(convert_to_point.(monomials))]
   end
+  sub_weights = sub_weights_proper(highest_weight(V))
+  sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
+  # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions.
+  # The zero weight and the fundamental weights have no partitions.
+  for (ind_lambda_1, lambda_1) in enumerate(sub_weights)
+    length(monomials) >= dim(V) && break
+
+    lambda_2 = highest_weight(V) - lambda_1
+    ind_lambda_2 = findfirst(==(lambda_2), sub_weights)::Int
+
+    ind_lambda_1 > ind_lambda_2 && continue
+
+    M_lambda_1 = similar_with_highest_weight(V, lambda_1)
+    M_lambda_2 = similar_with_highest_weight(V, lambda_2)
+
+    mon_lambda_1 = compute_monomials(
+      M_lambda_1,
+      birational_seq,
+      ZZx,
+      monomial_ordering,
+      calc_highest_weight,
+      polytopes,
+      no_minkowski,
+    )
+    mon_lambda_2 = compute_monomials(
+      M_lambda_2,
+      birational_seq,
+      ZZx,
+      monomial_ordering,
+      calc_highest_weight,
+      polytopes,
+      no_minkowski,
+    )
+    # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with
+    # points in ZZ^n
+    union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
+    if !isnothing(polytopes)
+      push!(polys, polytopes[lambda_1] + polytopes[lambda_2])
+    end
+  end
+  if !isnothing(polytopes)
+    polytopes[highest_weight(V)] = convex_hull(polys)
+  end
+  # check if we found enough monomials. For a fundamental weight, add_by_hand does all the work.
+  if length(monomials) < dim(V)
+    push!(no_minkowski, highest_weight(V))
+    monomials, new_monomials = add_by_hand(
+      V, birational_seq, ZZx, monomial_ordering, monomials
+    )
+    if !isnothing(polytopes)
+      polytopes[highest_weight(V)] = convex_hull(
+        polytopes[highest_weight(V)], convex_hull(convert_to_point.(new_monomials))
+      )
+    end
+  end
+
+  push!(calc_highest_weight, highest_weight(V) => monomials)
+  return monomials
 end
 
 function add_new_monomials!(
