@@ -1,5 +1,6 @@
 function _patchworks2polynomial(
-  hs::Polymake.BigObject; t=QQ(1, 2), points::Union{AbstractMatrix,String,Nothing,ZZMatrix}=nothing
+  hs::Polymake.BigObject; t=QQ(1, 2),
+  points::Union{AbstractMatrix,String,Nothing,ZZMatrix}=nothing,
 )
   R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]; cached=false)
   return _patchworks2polynomial(hs, R; t, points)

@@ -2,7 +2,11 @@
 # ptmp = fc((inv(B)*gens(Rh))...)
 # IG,_ = Oscar._compute_isotopy_graph(zchart(ptmp), Oscar.get_random_transform_matrices()[1], 3; solver_precision=1024, ybox_tolerance=512)
 
-function analyse_component_position(vpos::Vector{Vector{Union{Int, QQFieldElem}}}, xfilter::Dict{Int, Vector{Int}}, c::Vector{Int})
+function analyse_component_position(
+  vpos::Vector{Vector{Union{Int,QQFieldElem}}},
+  xfilter::Dict{Int,Vector{Int}},
+  c::Vector{Int},
+)
   height = 0
   top = vpos[c[1]][2]
   bottom = vpos[c[1]][2]
@@ -12,14 +16,18 @@ function analyse_component_position(vpos::Vector{Vector{Union{Int, QQFieldElem}}
     yvals = [vpos[n][2] for n in xslice]
     ymax = maximum(yvals)
     ymin = minimum(yvals)
-    height = max(height, ymax-ymin)
+    height = max(height, ymax - ymin)
     top = max(top, ymax)
     bottom = min(bottom, ymin)
   end
   return height, top, bottom
 end
 
-function align_component!(vpos::Vector{Vector{Union{Int, QQFieldElem}}}, xfilter::Dict{Int, Vector{Int}}, c::Vector{Int})
+function align_component!(
+  vpos::Vector{Vector{Union{Int,QQFieldElem}}},
+  xfilter::Dict{Int,Vector{Int}},
+  c::Vector{Int},
+)
   xs = unique([vpos[e][1] for e in c])
   h, t, b = analyse_component_position(vpos, xfilter, c)
   targetb = 0
@@ -54,7 +62,7 @@ function align_component!(vpos::Vector{Vector{Union{Int, QQFieldElem}}}, xfilter
 end
 
 function align_nodes_vertically(IG::_IsotopyGraph)
-  xfilter = Dict{Int, Vector{Int}}()
+  xfilter = Dict{Int,Vector{Int}}()
   for i in 1:length(IG.node2pair)
     v = IG.node2pair[i]
     if !haskey(xfilter, v[1])
@@ -64,7 +72,7 @@ function align_nodes_vertically(IG::_IsotopyGraph)
     end
   end
 
-  aligned = Vector{Vector{Union{Int, QQFieldElem}}}(IG.node2pair)
+  aligned = Vector{Vector{Union{Int,QQFieldElem}}}(IG.node2pair)
   CC = connected_components(IG.G)
   node2component = zeros(Int, nv(IG.G))
   for i in 1:length(CC)
@@ -79,13 +87,13 @@ function align_nodes_vertically(IG::_IsotopyGraph)
   while length(queue) > 0
     for i in queue
       h, t, b = analyse_component_position(aligned, xfilter, CC[i])
-      if h == t-b && b == currenty
+      if h == t - b && b == currenty
         align_component!(aligned, xfilter, CC[i])
         queue = Base.setdiff(queue, i)
         append!(donenodes, CC[i])
       end
     end
-    ynodes = filter(i->aligned[i][2]==currenty, 1:nv(IG.G))
+    ynodes = filter(i -> aligned[i][2] == currenty, 1:nv(IG.G))
     ynodes = Base.setdiff(ynodes, donenodes)
     for xn in ynodes
       x = aligned[xn][1]
@@ -102,7 +110,7 @@ function align_nodes_vertically(IG::_IsotopyGraph)
     nbs = neighbors(IG.G, n)
     if length(nbs) > 0
       yvals = [aligned[nb][2] for nb in nbs]
-      aligned[n][2] = QQ(1,2)*(maximum(yvals) + minimum(yvals))
+      aligned[n][2] = QQ(1, 2) * (maximum(yvals) + minimum(yvals))
     end
   end
   return aligned
@@ -122,10 +130,10 @@ function draw_graph_tikz_aligned(IG::_IsotopyGraph, io, marked_components)
     end
     if b in IG.ytangentNodes
       type = :ytangent
-      a,b = b,a
+      a, b = b, a
     elseif b in IG.singularNodes
       type = :singularity
-      a,b = b,a
+      a, b = b, a
     end
     pta = _vec2point(node2pair[a])
     ptb = _vec2point(node2pair[b])
@@ -136,7 +144,9 @@ function draw_graph_tikz_aligned(IG::_IsotopyGraph, io, marked_components)
         mca = (1 + Float64(mc(a.xcoord, a.ycoord))) - 1
         mcb = (1 + Float64(mc(b.xcoord, b.ycoord))) - 1
         if iszero(mca) && iszero(mcb)
-          _draw_edge_tikz_aligned(io, pta, ptb, type, scale; color=c, opts="line width=5pt, opacity=.3")
+          _draw_edge_tikz_aligned(
+            io, pta, ptb, type, scale; color=c, opts="line width=5pt, opacity=.3"
+          )
         end
       end
     end
@@ -154,7 +164,8 @@ end
 draw_graph_tikz_aligned(IG::_IsotopyGraph, io) = draw_graph_tikz_aligned(IG, io, nothing)
 
 function _draw_edge_tikz_aligned(
-  io::IO, pt0::_Point, pt1::_Point, type::Symbol, scale::QQFieldElem; color::String="black", opts=nothing
+  io::IO, pt0::_Point, pt1::_Point, type::Symbol, scale::QQFieldElem; color::String="black",
+  opts=nothing,
 )
   pt0str = _pt_2_string(pt0, scale)
   pt1str = _pt_2_string(pt1, scale)

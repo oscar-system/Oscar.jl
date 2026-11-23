@@ -28,13 +28,15 @@ function _critical_ywindow(
     gap =
       count(r -> inside(r, 2 * ytol), ptsbefore) == kb &&
       count(r -> inside(r, 2 * ytol), ptsafter) == ka
-    below = count(r -> r < ypt[1] - ytol, ptsbefore) == count(r -> r < ypt[1] - ytol, ptsafter)
-    above = count(r -> r > ypt[2] + ytol, ptsbefore) == count(r -> r > ypt[2] + ytol, ptsafter)
+    below =
+      count(r -> r < ypt[1] - ytol, ptsbefore) == count(r -> r < ypt[1] - ytol, ptsafter)
+    above =
+      count(r -> r > ypt[2] + ytol, ptsbefore) == count(r -> r > ypt[2] + ytol, ptsafter)
     typeok = type != :ytangent || (kb, ka) in ((2, 0), (0, 2))
     if gap && below && above && typeok
       return (ytol, :success)
     end
-    ytol = ytol // 2
+    ytol = ytol//2
   end
   return (ytol0, :fail)
 end
@@ -79,7 +81,7 @@ function _analyse_singularity_msolve(
     if type == :ytangent
       @req abs(diff) == 2 "Could not verify ytangent status"
     end
-    
+
     # Just verify that everything fits with float
     pti = findfirst(r -> yinterval[1] <= r && r <= yinterval[2], result)
 

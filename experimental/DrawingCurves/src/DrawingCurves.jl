@@ -123,7 +123,7 @@ function draw_curve_tikz(
     for R in get_random_transform_matrices()
       success = _draw_curve_tikz(
         io, f_in, R, 30, solver_precision, ybox_tolerance, graph, custom_edge_plot,
-        marked_components, aligned
+        marked_components, aligned,
       )
       if success
         break
@@ -133,7 +133,8 @@ function draw_curve_tikz(
   else
     @req ntries > 0 "Number of tries needs to be positive"
     return _draw_curve_tikz(
-      io, f_in, transform, ntries, solver_precision, ybox_tolerance, graph, custom_edge_plot, marked_components, aligned
+      io, f_in, transform, ntries, solver_precision, ybox_tolerance, graph,
+      custom_edge_plot, marked_components, aligned,
     )
   end
 end
