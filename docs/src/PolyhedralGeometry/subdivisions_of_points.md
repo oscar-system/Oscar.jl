@@ -11,10 +11,12 @@ A *subdivision of points* consists of
 - a finite set $\mathcal{P}\subseteq\mathbb{F}^n$ of points; and
 - a finite set of cells $\mathcal{S}\subseteq 2^{\mathcal{P}}$.
 
-The cells are only allowed to intersect in common faces. In contrast to the
-maximal cones of a polyhedral fan or the maximal polytopes of a polyhedral
-complex, cells are allowed to have interior points here, i.e. they are not
-given in terms of their vertices.
+The cells are only allowed to intersect in common faces and the union
+of the cells is the convex hull of the points in $\mathcal{P}$.
+
+In contrast to the maximal cones of a polyhedral fan or the maximal polytopes
+of a polyhedral complex, cells are allowed to have interior points here, i.e.
+they are not given in terms of their vertices.
 
 
 ## Construction

@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
 # This file implements the official 2nd round specification of the
-# unbalanced oil and vingear post quantum signature scheme, see
+# unbalanced oil and vinegar post quantum signature scheme, see
 # [BCDGKPPS.EA25](@cite) for further information.
 # ---------------------------------------------------------------------------
 using Random: rand
