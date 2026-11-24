@@ -457,6 +457,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
     #cohomologically trivial...
     @vprint :GaloisCohomology 2 " .. unramified, only the free part ..\n"
     A = abelian_group([0])
+    set_attribute!(A, :local_unit_level => 0)
     Hecke.assure_has_hnf(A)
     pi = uniformizer(K)
     return gmodule(G, [hom(A, A, [A[1]]) for g = gens(G)]),
@@ -479,6 +480,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
       gkk = setprecision(gk^order(k), pr)
     end
     A = abelian_group([0, order(u)])
+    set_attribute!(A, :local_unit_level => 1)
     Hecke.assure_has_hnf(A)
     h = Map[]
     for g = gens(G)
@@ -537,15 +539,18 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   #necessary
   # k/e > 1/(p-1), k > e/(p-1)
   ex = Int(1+floor(ZZRingElem, absolute_ramification_index(K)//(prime(K)-1)))
-  ex = max(ex, conductor)
+  ex = max(ex, conductor) + extra
 
   #x -> 1+pi*x is in general, not injective, not even for a basis
   # if valuation(dm) == 0, then by Lorenz Alg II, 26.F10 it should
   # be, but we're not using it. This was used to avoid exp
-  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^(ex+extra)*x)) for x = o])
+  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^ex*x)) for x = o])
   S, mS = snf(Q)
   Q = S
   mQ = mQ*inv(mS)
+  # In the convergence range, v(exp(y) - 1) = v(y) and v(p) = 1.
+  level = Int(e_abs * (ex + minimum(valuation, o)))
+  set_attribute!(Q, :local_unit_level => level)
 
   if Sylow > 0
     @assert is_prime(Sylow)
@@ -1807,8 +1812,10 @@ end
 Ensure that for all pairs (p, v) passed in at most
   1+p^v+1 is factored out in the 1-units at p
 allowing for local conductor up to v
+
+The keyword `extra` is forwarded to the local `gmodule` constructor.
 """
-function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
+function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}}; extra::Int = 4)
   J = IdeleParent()
   J.C = I.C #same completion
   J.L = copy(I.L)
@@ -1826,7 +1833,7 @@ function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}})
     f = findfirst(isequal(minimum(I.S[i])), [x[1] for x = p])
     if !isnothing(f)
       kp = codomain(I.C[i])
-      C = gmodule(kp, absolute_base_field(kp); conductor = p[f][2])
+      C = gmodule(kp, absolute_base_field(kp); conductor = p[f][2], extra = extra)
       J.D[i] = C[2]
       J.L[i] = C[3]
       D[i] = Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, J.C[i], mG, C[2]), E, (mU*Hecke.extend_easy(J.C[i], C[3], codomain(mU))))
@@ -1859,17 +1866,8 @@ how much has been factored out.
 """
 @attr Dict{Int, Int} function Oscar.conductor(I::IdeleParent)
   c = Dict{Int, Int}()
-  for P = I.S
-    kp, mkp, mGp, D = completion(I, P)
-    if ngens(domain(D)) > 1 #so not only Z (i.e the valuation)
-      i = 1
-      while !iszero(preimage(D, kp(1+uniformizer(kp)^i)))
-        i += 1
-      end
-    else
-      i = 0
-    end
-    c[Int(minimum(P))] = ceil(Int, i)
+  for (P, D) in zip(I.S, I.L)
+    c[Int(minimum(P))] = get_attribute(domain(D), :local_unit_level)
   end
   return c
 end
