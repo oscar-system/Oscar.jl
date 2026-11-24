@@ -152,6 +152,63 @@ function _has_non_obtuse_angles!(tmp::ZZMatrix, Qv::ZZMatrix, roots::Vector{ZZMa
   return true
 end
 
+# Once many roots are found, testing a candidate against all of them dominates
+# the runtime of Vinberg's algorithm. As long as all numbers involved are small,
+# we therefore do these tests with machine integers: `_SmallRoots` stores the
+# roots found so far, one after another, in a flat vector of `Int`.
+mutable struct _SmallRoots
+  rank::Int
+  bound::Int # rank * bound^2 <= typemax(Int), so products of vectors with entries up to `bound` do not overflow
+  entries::Vector{Int}
+  is_valid::Bool # `false` as soon as a root with an entry larger than `bound` was found
+
+  function _SmallRoots(rank::Int)
+    return new(rank, isqrt(div(typemax(Int), max(rank, 1))), Int[], true)
+  end
+end
+
+function Base.push!(S::_SmallRoots, v::ZZMatrix)
+  S.is_valid || return S
+  if all(x -> abs(x) <= S.bound, v)
+    append!(S.entries, Int(x) for x in v)
+  else
+    S.is_valid = false
+    empty!(S.entries)
+  end
+  return S
+end
+
+# Store `Qv` in `Qv_small` and return `true` if all its entries are at most `bound` in absolute value
+function _set_small!(Qv_small::Vector{Int}, Qv::ZZMatrix, bound::Int)
+  for i in 1:length(Qv_small)
+    x = Qv[i, 1]
+    abs(x) <= bound || return false
+    Qv_small[i] = Int(x)
+  end
+  return true
+end
+
+function _has_non_obtuse_angles(S::_SmallRoots, Qv_small::Vector{Int})
+  n = S.rank
+  entries = S.entries
+  @inbounds for offset in 0:n:(length(entries) - n)
+    s = 0
+    @simd for i in 1:n
+      s += entries[offset + i] * Qv_small[i]
+    end
+    s < 0 && return false
+  end
+  return true
+end
+
+# Same as `_has_non_obtuse_angles!(tmp, Qv, roots)`, using machine integers if possible
+function _has_non_obtuse_angles!(tmp::ZZMatrix, Qv::ZZMatrix, roots::Vector{ZZMatrix}, small_roots::_SmallRoots, Qv_small::Vector{Int})
+  if small_roots.is_valid && _set_small!(Qv_small, Qv, small_roots.bound)
+    return _has_non_obtuse_angles(small_roots, Qv_small)
+  end
+  return _has_non_obtuse_angles!(tmp, Qv, roots)
+end
+
 @doc raw"""
     _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
@@ -285,6 +342,11 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
   roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case $v.v_0 = 0$
   Qv = zero_matrix(ZZ, ncols(Q), 1)
   tmp2 = zero_matrix(ZZ, 1, 1)
+  Qv_small = zeros(Int, ncols(Q))
+  small_roots = _SmallRoots(ncols(Q))
+  for r in roots
+    push!(small_roots, r)
+  end
 
   # The code for `short_vectors_affine` will, by default, turn `Q` and `v0`
   # into `QQMatrix`. This is due to the use of the function `_convert_type`
@@ -313,8 +375,9 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
         # filter for divisibilities
         reduce(gcd, Qv) in divisibilities[k] || continue
       end
-      if _crystallographic_condition(Qv, k) && _has_non_obtuse_angles!(tmp2, Qv, roots)
+      if _crystallographic_condition(Qv, k) && _has_non_obtuse_angles!(tmp2, Qv, roots, small_roots, Qv_small)
         push!(roots, vZZ)
+        push!(small_roots, vZZ)
       end
     end
   end
