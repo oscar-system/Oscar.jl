@@ -148,7 +148,7 @@ julia> L, b = number_field(t^3 - 3, "b")
 ```jldoctest
 julia> Qx, x = QQ["x"];
 
-julia> julia> L, a = number_field([x^2 - 5, x^3 - 3], "a")
+julia> L, a = number_field([x^2 - 5, x^3 - 3], "a")
 (Non-simple number field of degree 6 over QQ, AbsNonSimpleNumFieldElem[a1, a2])
 
 ```
