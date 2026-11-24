@@ -960,7 +960,7 @@ mutable struct NewToricCtx
   projections::Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}
   strands::Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}
   simplified_strands::Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}
-  simplified_strand_homotopies::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
+  simplified_strand_homotopies::Dict{Tuple{Int, FinGenAbGroupElem, Int}, MapFromFunc}
   simplified_strand_inclusions::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
   simplified_strand_projectionss::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
   strand_inclusions::Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}
@@ -1000,7 +1000,7 @@ mutable struct NewToricCtx
                Dict{Tuple{Int, Int}, AbsHyperComplexMorphism}(),
                Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}(),
                Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}(),
-               Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}(),
+               Dict{Tuple{Int, FinGenAbGroupElem, Int}, MapFromFunc}(),
                Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}(),
                Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}(),
                Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}(),
@@ -1133,6 +1133,21 @@ function simplified_strand_homotopy(
   )
   h = simplified_strand_homotopy(ctx.pure_ctx, alpha, d, p)
   return get!(ctx.simplified_strands_homotopy, h) do
+    # We replace the base change of the direct sum by a custom lazy evaluation 
+    # function. 
+    dom = ctx[alpha, d][p]
+    cod = ctx[alpha, d][p+1]
+    return MapFromFunc(dom, cod, function(v)
+                         res_coords = sparse_row(base_ring(cod))
+                         for (i, c) in coordinates(v)
+                           w = h(gen(domain(h), i)) # `images_of_generators` won't work, because this is a `MapFromFunc`, too! 
+                           is_zero(w) && continue
+                           Hecke.add_scaled_row!(map_entries(coefficient_map(ctx.transfer), coordinates(w)), res_coords, c)
+                         end
+                         cod(res_coords)
+                       end
+                      )
+    # previous implementation which this is supposed to mimic, but without blowup in memory consumption: 
     change_base_ring(coefficient_map(ctx.transfer), h; 
                      domain=ctx[alpha, d][p], 
                      codomain=ctx[alpha, d][p+1]
@@ -1613,8 +1628,25 @@ function simplified_strand_homotopy(
     kk = coefficient_ring(S)
     G = grading_group(S)
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
-    all_mons = all_monomials(ctx, alpha+e*delta)
-    maps = [homotopy_map(simplified_fine_strand(ctx, ee.-e), p) for ee in all_mons]
+    all_mons_dom = all_monomials(ctx, alpha+e*delta)
+    maps = [homotopy_map(simplified_fine_strand(ctx, ee.-e), p) for ee in all_mons_dom]
+    # replace the direct sum by a lazy evaluation which does not need to spell 
+    # out all images of generators in the full monomial basis
+    rngs = get_attribute(dom, :ranges)::Vector{UnitRange{Int}}
+    return MapFromFunc(dom, cod, function(v)
+                         res_coords = sparse_row(base_ring(cod))
+                         for (i, c) in coordinates(v)
+                           block_ind = _findfirstrange(i, rngs)::Int
+                           inner_ind = i - sum(length(r) for r in rngs[1:block_ind-1]; init=0)
+                           psi = maps[block_ind]
+                           img_gen = images_of_generators(psi)[inner_ind]
+                           cod_inc = canonical_injection(cod, block_ind)
+                           img_gen = cod_inc(img_gen)
+                           Hecke.add_scaled_row!(coordinates(img_gen), res_coords, c)
+                         end
+                         cod(res_coords)
+                       end
+                      )
     return _direct_sum(kk, maps; domain=dom, codomain=cod)
   end
 end
