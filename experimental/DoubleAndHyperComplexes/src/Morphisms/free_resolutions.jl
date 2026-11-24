@@ -73,7 +73,7 @@ function (fac::ResolutionModuleFactory{ChainType})(
                          )
     phi = map(res, 1)
     F = c[0] # caught above
-    id = hom(codomain(phi), F, gens(F))
+    id = hom(codomain(phi), F, gens(F); check=false)
     push!(fac.map_cache, compose(phi, id))
     r = first(range(res.C)) # the index of the last module
     for j in 2:r
