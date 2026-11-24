@@ -1,3 +1,5 @@
+using Random
+
 @testset "Experimental.gmodule" begin
   function testrels(G::Oscar.GAPGroup)
     ggens = gens(G)
@@ -478,5 +480,25 @@ end
   G, _ = galois_group(A, QQ)
   N = number_field(AbsSimpleNumField, A)
   H, _ = automorphism_group(PermGroup, N)
+  @test is_isomorphic(G, H)
+end
+
+@testset "Dyadic ray class field of absolute degree 16" begin
+  # The dyadic quotient must be refined before computing the group extension.
+  K, _ = quadratic_field(-6; cached = false)
+  I = idele_class_gmodule(K)
+  Random.seed!(1)
+  I = Oscar.GaloisCohomology_Mod.change_precision(I, [(2, 0)]; extra = -1)
+  @test conductor(I)[2] < 6
+
+  P = only(prime_decomposition(maximal_order(K), 2))[1]
+  A = ray_class_field(P^6)
+  R = codomain(A.quotientmap)
+  T = abelian_group([8])
+  q = hom(R, T, [zero(T), T[1]])
+  B = ray_class_field(A.rayclassgroupmap, A.quotientmap*q)
+  @test is_normal(B) && degree(B, QQ) == 16
+  G, _ = galois_group(B, QQ; idele_parent = I)
+  H, _ = automorphism_group(PermGroup, number_field(AbsSimpleNumField, B))
   @test is_isomorphic(G, H)
 end
