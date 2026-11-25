@@ -768,7 +768,7 @@ end
 
 ### end of helper functions to compute the `_minimal_exponent_vector`
 
-# Using these functions, one can shortwire the computation of `_minimal_exponent_vector`s
+# Using these functions, one can short-circuit the computation of `_minimal_exponent_vector`s
 # for `ToricCtx`s. If this is used, all computations will be done with the Frobenius power
 # of the `irrelevant_ideal` with these exponents.
 function set_global_exponent_vector!(ctx::ToricCtx, v::Vector{Int})
