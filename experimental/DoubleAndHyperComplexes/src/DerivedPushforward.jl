@@ -1238,7 +1238,7 @@ end
 function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
   if ctx.pure_ctx isa NewToricCtx
     e = _minimal_exponent_vector(ctx.pure_ctx, m)
-    return Int[e for _ in 1:ngens(graded_ring(ctx.pure_ctx))]
+    return Int[e for _ in 1:ngens(irrelevant_ideal(toric_variety(ctx)))]
   end
   return _minimal_exponent_vector(ctx.pure_ctx, m)
 end
