@@ -8,9 +8,44 @@ using Oscar
  - conjugate to smallest field?
  - allow trivial stuff
 =#
+# Isomorphic modules have conjugate action matrices, so this is an isomorphism
+# invariant, and in dimension 1 a complete one. It only narrows the candidates
+# down; `is_isomorphic` still decides. `Kx` has to be one fixed ring: the
+# one-argument `charpoly` builds an uncached ring per call, and polynomials
+# from two of those do not even compare equal.
+_action_invariant(r::GModule, Kx) = [charpoly(Kx, matrix(action(r, g))) for g in gens(group(r))]
+
+"""
+The state of the pc-chain walk inside `reps`: the chain of subgroups it used,
+the branches a `dim_bound` made it drop, and the representations it produced.
+
+Handing the same state to a later call with a larger bound explores only the
+dropped branches. That is complete: everything below a dropped branch has
+dimension above the old bound, and everything already found has dimension at
+or below it, so the two sets never meet - in particular no representation of
+the one can be conjugate to one of the other, and the two walks need not see
+each other.
+"""
+mutable struct RepsState
+  chain::Vector{Any}    # (subgroup, embedding) per level of the pc chain
+  parked::Vector{Any}   # (level, module) dropped for exceeding the bound
+  found::Vector{Any}    # representations of the whole group, so far
+  bound::Int
+
+  RepsState() = new(Any[], Any[], Any[], 0)
+end
+
 """
   For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
+
+`dim_bound` restricts the search to representations of at most that
+dimension. Dimensions only grow along the pc chain, so a bound prunes whole
+branches rather than filtering at the end - which is the difference between
+answering and not answering for a large `G`.
+
+`state` carries the walk between calls, so raising `dim_bound` only costs the
+branches the smaller one dropped.
 
 Note: the reps are NOT necessarily over the smallest field.
 
@@ -22,36 +57,67 @@ Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
 
 Implements: Brueckner, Chap 1.2.3
 """
-function reps(K, G::Oscar.PcGroup)
+function reps(K, G::Oscar.PcGroup; dim_bound::Int = typemax(Int),
+                                   state::RepsState = RepsState())
   @req is_finite(G) "the group is not finite"
+  @req dim_bound >= 1 "the dimension bound has to be positive"
   if order(G) == 1
     F = free_module(K, 1)
     h = hom(F, F, [F[1]])
     return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
+  dim_bound <= state.bound && return [x for x in state.found if dim(x) <= dim_bound]
+
   pcgs = Oscar.GAPWrap.Pcgs(GapObj(G))
   @assert length(pcgs) == ngens(G)
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
-  s, ms = sub(G, [gG[end]])
-  o = Int(order(s))
-  @assert is_prime(o)
-  z = roots(K(1), o)
-  @assert characteristic(K) == o || length(z) == o
-  F = free_module(K, 1)
-  R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
-  @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
+  Kx, _ = polynomial_ring(K, :x, cached = false)
+  if is_empty(state.chain)
+    state.chain = Vector{Any}(undef, length(gG))
+    state.chain[end] = sub(G, [gG[end]])
+    s, ms = state.chain[end]
+    o = Int(order(s))
+    @assert is_prime(o)
+    z = roots(K(1), o)
+    @assert characteristic(K) == o || length(z) == o
+    F = free_module(K, 1)
+    R = [gmodule(F, s, [hom(F, F, [r*F[1]])]) for r = z]
+    @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
+    i_start = length(gG)-1
+  else
+    # resume: the dropped branches re-enter at the level they were dropped at
+    R = []
+    i_start = is_empty(state.parked) ? 0 : maximum(x[1] for x in state.parked)
+    i_start > 0 && ((s, ms) = state.chain[i_start+1])
+  end
 
-  for i=length(gG)-1:-1:1
+  inject = state.parked
+  state.parked = Any[]
+
+  for i=i_start:-1:1
     h = gG[i]
-    ns, mns = sub(G, gG[i:end])
+    isassigned(state.chain, i) || (state.chain[i] = sub(G, gG[i:end]))
+    ns, mns = state.chain[i]
     @assert mns(ns[1]) == h
+    append!(R, [r for (j, r) in inject if j == i])
     p = Int(divexact(order(ns), order(s)))
     @assert is_prime(p)
     new_R = []
     todo = trues(length(R)) # which entries in `R` have to be handled
+
+    #= The entries of `R` are pairwise non-isomorphic, so an `h`-conjugate of
+       one of them is isomorphic to at most one other entry. Indexing by an
+       invariant finds that one directly, instead of asking the MeatAxe about
+       every entry in turn - which is where this loop used to spend nearly all
+       of its time once `R` grew.
+    =#
+    by_invariant = Dict{Any, Vector{Int}}()
+    for (k, r) in enumerate(R)
+      push!(get!(Vector{Int}, by_invariant, _action_invariant(r, Kx)), k)
+    end
     #TODO: use extend below
     for pos in 1:length(R)
       if todo[pos]
@@ -99,6 +165,16 @@ function reps(K, G::Oscar.PcGroup)
           end
         else #need to extend dim
           n = dim(r)
+          # inducing multiplies the dimension by `p` and nothing further down
+          # the chain ever shrinks it, so this branch is out of range for now.
+          # Park it for a later, larger bound; the `h`-conjugates of `r` have
+          # the same dimension, so they are parked here too and need not be
+          # marked as done.
+          if n*p > dim_bound
+            push!(state.parked, (i, r))
+            continue
+          end
+
           F = free_module(K, dim(r)*p)
 
           # a block permutation matrix for the element `h`
@@ -138,8 +214,9 @@ function reps(K, G::Oscar.PcGroup)
           # other conjugates.
           for j in 2:p
             Gj = gmodule(M, s, conjreps[j])
-            for k in (pos+1):length(R)
-              if is_isomorphic(Gj, R[k]) > 0
+            for k in get(by_invariant, _action_invariant(Gj, Kx), Int[])
+              k > pos || continue
+              if is_isomorphic(Gj, R[k])
                 todo[k] = false
               end
             end
@@ -153,9 +230,58 @@ function reps(K, G::Oscar.PcGroup)
     s, ms = ns, mns
     R = new_R
   end
-  return [gmodule(x.M, G, x.ac) for x = R]
+
+  append!(state.found, [gmodule(x.M, G, x.ac) for x in R])
+  state.bound = dim_bound
+  return [x for x in state.found if dim(x) <= dim_bound]
 end
 
+
+"""
+    _admissible_primes(mQ::Map)
+
+Given `mQ: G ->> Q`, a set of primes containing every `p` for which `Q` has an
+extension by an irreducible `F_p[Q]`-module admitting an epimorphism from `G`.
+
+Those are the `p` with `N/[N,N]N^p` non-zero, `N = ker(mQ)`: any such module is
+a quotient of `N`, and conversely a non-zero `N/[N,N]N^p` has an irreducible
+quotient.
+
+Presenting `G` on fewer relators makes `N` bigger, so it can only make
+`N/[N,N]N^p` bigger too - the answer stays a superset. That is all `brueckner`
+needs: a prime too many costs a search that finds nothing, while exhausting a
+superset still proves that nothing is left. It is worth a lot, because the
+matrix being diagonalised has one row per relator per coset of `N`, so the
+short relators are by far the cheapest and usually already pin the answer down.
+On a quotient of order 504 of the first Oberwolfach example, 80 of the 207
+relators give the same answer as all of them, in 0.27s rather than 3.48s; on
+the quotient of order 1102248, 60 of them answer in 160.6s where the full set
+does not answer at all. Too few and `N` stays infinite abelian, which says
+nothing.
+"""
+function _admissible_primes(mQ::Map{<:Oscar.GAPGroup, PcGroup})
+  G = domain(mQ)
+  R = relators(G)
+  short = is_empty(R) ? R : sort(R, by = x -> length(word(x)))
+
+  n = min(length(R), 64)
+  while true
+    if n < length(R)
+      Gn, _ = quo(parent(short[1]), short[1:n])
+      m = hom(Gn, codomain(mQ), [mQ(x) for x in gens(G)])
+    else
+      m = mQ
+    end
+
+    inv = abelian_invariants(kernel(m)[1])
+    if !(0 in inv)
+      return sort!(unique!(reduce(vcat, (prime_divisors(x) for x in inv), init = ZZRingElem[])))
+    end
+
+    @req n < length(R) "the kernel has infinite abelianization, so every prime is admissible; pass `primes`"
+    n = min(2*n, length(R))
+  end
+end
 
 """
 Brueckner Chap 1.3.1
@@ -242,54 +368,103 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
-  if length(primes) == 0
-    @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-    lp = find_primes(mQ) 
-  else
-    lp = map(ZZRingElem, primes)
-  end
-  @vprint :BruecknerSQ 1 "using primes $lp\n"
 
   allR = []
-  for p = lp
-    _, j = ppio(exponent(Q), p)
-    f = j == 1 ? 1 : modord(p, j)
-    @assert (p^f-1) % j == 0
-    @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
-    if f == 1
-      @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q)
-    else
-      @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
-    end
-    @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
+  # one walk per prime, resumed as the dimension bound grows
+  states = Dict{ZZRingElem, RepsState}()
 
-    for i = I
-      @vprint :BruecknerSQ 1 "starting to process module\n"
-      @vprint :BruecknerSQ 2 "... transfer over min. field\n"
-      @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
-      @vprint :BruecknerSQ 2 "... lift...\n"
-      #TODO: why do we need the module over GF(p)???
-      iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
-      @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
-      @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
-      #TODO: in Plesken p119 has more comments what not to do
-      append!(allR, [x for x in l])# if is_surjective(x)])
-      if length(allR) >= limit
-        return allR
+  # collect lifts for the given primes, from modules of dimension in
+  # `lo+1:hi`; `true` once `limit` of them are known
+  function _extend_by(lp::Vector{ZZRingElem}, lo::Int, hi::Int)
+    @vprint :BruecknerSQ 1 "using primes $lp, dimensions $(lo+1) to $hi\n"
+    for p in lp
+      _, j = ppio(exponent(Q), p)
+      f = j == 1 ? 1 : modord(p, j)
+      @assert (p^f-1) % j == 0
+      @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
+      st = get!(RepsState, states, p)
+      if f == 1
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p)), Q; dim_bound = hi, state = st)
+      else
+        @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q; dim_bound = hi, state = st)
+      end
+      @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
+
+      for i in I
+        @vprint :BruecknerSQ 2 "... transfer over min. field\n"
+        @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
+        #TODO: why do we need the module over GF(p)???
+        iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
+
+        #= The layer this module contributes has order p^dim(iii), and the
+           extension to be built is that much bigger than `Q` - so this, and
+           not the dimension over the splitting field, is what the ladder has
+           to bound. Over GF(p, f) the two differ by a factor of up to f: a
+           bound of 16 over GF(2, 6) would otherwise reach modules of
+           dimension 96, and extensions of order |Q| * 2^96.
+        =#
+        lo < dim(iii) <= hi || continue
+        @vprint :BruecknerSQ 1 "starting to process module\n"
+        @vprint :BruecknerSQ 2 "... lift...\n"
+        @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
+        @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
+        #TODO: in Plesken p119 has more comments what not to do
+        append!(allR, [x for x in l])# if is_surjective(x)])
+        length(allR) >= limit && return true
       end
     end
+    return false
   end
-  return allR
-end
 
-function trivial_chain(C::GModule, n::Int)
-  #TODO: do for other n as well...(or change the name)
-  @assert n == 2
-  G = C.G
-  c = Dict((one(G), one(G)) => zero(C.M))
-  S = elem_type(C.G)
-  T = elem_type(C.M)
-  return Oscar.GrpCoh.CoChain{2, S, T}(C, c, x->zero(C.M))
+  #= The dimension bound prunes the pc chain rather than the answer, so asking
+     for small modules first is far cheaper than asking for all of them and
+     is usually where the next layer is anyway. Walk it upward, and pay for
+     the complete set only if nothing turned up. A caller that wants every
+     lift has to pay for it either way and goes straight there.
+  =#
+  function _search(lp::Vector{ZZRingElem})
+    limit == typemax(Int) && return _extend_by(lp, 0, typemax(Int))
+
+    #= The walk is resumed rather than restarted, so the whole ladder costs
+       what its last rung costs: a fine one is nearly free, and worth having,
+       since layers of dimension 8 do occur. The complete set of modules is
+       not part of the ladder - it is the thing that stops being affordable
+       first, so every candidate prime gets a bounded look before any of them
+       gets an unbounded one.
+    =#
+    lo = 0
+    for hi in (1, 2, 4, 8, 16)
+      _extend_by(lp, lo, hi) && return true
+      lo = hi
+    end
+    return false
+  end
+
+  _complete(lp) = _extend_by(lp, 16, typemax(Int))
+
+  if length(primes) > 0
+    lp = map(ZZRingElem, primes)
+    _search(lp) || (limit == typemax(Int) || _complete(lp))
+    return allR
+  end
+
+  #= `_admissible_primes` needs the kernel, hence an enumeration of the |Q|
+     cosets. A caller that stops early can often avoid that: the primes
+     dividing |Q| are free to name, and one of them usually does lift. Only
+     the exact set is guaranteed complete, so an exhaustive caller goes
+     straight there.
+  =#
+  cheap = limit == typemax(Int) ? ZZRingElem[] : sort(prime_divisors(order(Q)))
+  _search(cheap) && return allR
+
+  @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
+  rest = setdiff(_admissible_primes(mQ), cheap)
+  _search(rest) && return allR
+
+  limit == typemax(Int) && return allR
+  _complete(cheap) && return allR
+  _complete(rest)
+  return allR
 end
 
 """
@@ -305,6 +480,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   N = group(C)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
+  # the surjectivity argument in `_process` needs `M` to have no proper
+  # non-zero submodule
+  @req dim(C) == 1 || is_irreducible(C) "the module has to be irreducible"
 
   R = relators(G)
   M = C.M
@@ -324,66 +502,178 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
    this needs to be "collected"
   =#
 
-  D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
-  K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
-  S = relators(N)
-  if length(S) != 0
-    X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
+  D, pro, inj = direct_product([M for i in 1:ngens(G)]..., task = :both)
+  # `direct_product` needs at least one factor; a presentation without relators
+  # imposes no conditions on the derivations
+  K = is_empty(R) ? free_module(base_ring(M), 0) :
+                    direct_product([M for i in 1:length(R)]..., task = :none)
+
+  # |Z^1(N, M)|, the number of lifts that miss `M`; independent of the cocycle
+  ordZN = ngens(N) == 0 ? ZZ(1) :
+                          order(kernel(Oscar.GrpCoh.H_one_maps(C)[2])[1])
+
+  # the canonical lifts of the generators of `G` into an extension
+  function _lifted_gens(ext)
+    GG, _, _, GMtoGG = ext
+    gns = [GMtoGG([x for x in Oscar.GAPWrap.ExtRepOfObj(GapObj(h))], zero(M)) for h in gens(N)]
+    return [map_word(mp(g), gns, init = one(GG)) for g in gens(G)]
   end
 
-  function _process(mu; is_trivial::Bool = false, limit::Int)
+  # by how much the relators of `G` miss being satisfied there
+  function _defect(ext, gns)
+    GG, GGinj, GGpro, _ = ext
+    rel = [map_word(r, gns, init = one(GG)) for r in R]
+    @assert all(x->isone(GGpro(x)), rel)
+    return K([preimage(GGinj, x) for x in rel])
+  end
+
+  #= Replacing `gns[i]` by `gns[i]*m` moves the relator defects by a map that
+     is linear in the `m` and built only from the action of `N` on `M` and the
+     relators: the cocycle enters the defects as a constant. So `s` below, and
+     with it Z^1(G, M), is the same for every class, and is worth computing
+     once - it costs ngens(D) evaluations of every relator in `GG`, which for
+     a large quotient dwarfs everything else here.
+  =#
+  ext0 = Oscar.GrpCoh.split_extension(PcGroup, C)
+  gns0 = _lifted_gens(ext0)
+  @hassert :BruecknerSQ 1 is_zero(_defect(ext0, gns0))
+  s = hom(D, K, [K([preimage(ext0[2], map_word(r, [gns0[i] * ext0[2](pro[i](h)) for i in 1:ngens(G)])) for r in R]) for h in gens(D)])
+  k, mk = kernel(s)
+
+  # `pe` solves s(pe) = defect, so the twist -pe kills the relators
+  function _process(ext, pe; is_trivial::Bool = false, limit::Int)
+    GG, GGinj, GGpro, _ = ext
     res = typeof(mp)[]
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
     @assert isa(GG, PcGroup)
 
-    s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
-    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
-    @assert all(x->isone(GGpro(x)), rel)
-    rhs = [preimage(GGinj, x) for x = rel]
-    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
+    gns = _lifted_gens(ext)
+    @hassert :BruecknerSQ 1 s(pe) == _defect(ext, gns)
 
-    fl, pe = try
-      true, preimage(s, K(rhs))
-    catch
-      false, zero(D)
-    end
-    if !fl
-#      @show :no_sol
-      return res
-    end
-    k, mk = kernel(s)
-    for x = k
-      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
-      if is_surjective(hm)
-        push!(res, hm)
+    #= The lifts form a torsor under Z^1(G, M) = `k`. Such a lift misses `M`
+       iff its image is a complement to `M` in `GG`, since the image meets `M`
+       in a submodule of the irreducible `M`. Only a split extension has
+       complements, and there the offending lifts are exactly the subspace
+       inf(Z^1(N, M)) of `k`. Hence:
+         - for a non-trivial class no surjectivity test is needed at all;
+         - for the trivial one, a surjective lift exists iff `k` is bigger than
+           that subspace, and then some generator of `k` lies outside it.
+       Trying the generators first matters: `k` is enumerated along an rref
+       basis, so the subspace can occupy a long prefix.
+    =#
+    is_trivial && order(k) == ordZN && return res
+
+    function _try(x)
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe + mk(x))) for i in 1:ngens(G)])
+      if is_trivial
+        is_surjective(hm) || return false
       else
-#        @show :not_sur
+        @hassert :BruecknerSQ 1 is_surjective(hm)
+      end
+
+      push!(res, hm)
+      return length(res) >= limit
+    end
+
+    tried = elem_type(k)[]
+    if is_trivial
+      for x in gens(k)
+        push!(tried, x)
+        _try(x) && return res
       end
     end
+
+    for x in k
+      x in tried && continue
+      _try(x) && return res
+    end
+    @hassert :BruecknerSQ 1 length(res) == order(k) - (is_trivial ? ordZN : 0)
     return res
   end
 
-
-    #TODO: not all "chn" yield distinct groups - the factoring by the
-    #      co-boundaries is missing
-    #      not all "epi" are epi, ie. surjective. The part of the thm
-    #      is missing...
-    # (Thm 15, part b & c) (and the weird lemma)
-
-
-  mu = trivial_chain(C, 2)
-  allG = _process(mu; is_trivial = true, limit)
+  allG = _process(ext0, zero(D); is_trivial = true, limit)
   if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
     return allG
   end
 
   H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
 
-  for h = H2
+  #= By Schur, E = End_{F_p[N]}(M) is a field, and each of its units is an
+     automorphism of `M` commuting with the action of `N`, so it pairs with
+     the identity on `N`. The isomorphism such a pair induces between the
+     extensions for `h` and `u*h` is then the identity on `N`, so it carries
+     lifts of `mp` to lifts of `mp`, bijectively and preserving both
+     surjectivity and the kernel: one class per E-line through 0 describes
+     every quotient that the whole line does. H^2 is an E-vector space, so
+     that line is the F_p-span of the images of `h` under an F_p-basis of E.
+
+     E-lines are as far as this goes. `Oscar.GrpCoh.compatible_pairs` gives
+     coarser orbits on H^2, but they buy nothing: (a, b) fixes the surjection
+     `mp` only for b = id, and those pairs are exactly the units of E. For
+     b != id the isomorphism E(h) -> E((a,b)*h) induces `b` on `N`, so lifts
+     of `mp` there are lifts of b^-1*mp here and have to be recovered by
+     transporting `mp`. The units of E act freely on H^2 minus 0, hence meet
+     no stabiliser, so an orbit of size s needs s/(|E|-1) transported maps -
+     exactly the number of E-lines it contains. The number of lifts to
+     compute is therefore the same, and all that orbits would save is
+     building each extension once per orbit instead of once per line, which
+     does not pay for the `automorphism_group(M)` inside `compatible_pairs`.
+     (Thm 15, part b & c) (and the weird lemma)
+  =#
+  p = Int(characteristic(base_ring(M)))
+  S = elem_type(N)
+  T = elem_type(M)
+  endo = [hom(M, M, b) for b in Oscar.GModuleFromGap.hom_base(C, C)]
+
+  #= The action of E on H^2 is F_p-linear, so get it once as maps rather than
+     transporting a cochain through `z` for every line: that is one pass over
+     the generators of H^2 instead of one per line. Pushing the cochain of a
+     generator forward along every basis element of E before moving on keeps
+     the values it memoised while being evaluated.
+
+     Over the prime field the line through `h` is spanned by `h`, and no
+     cochain has to be transported at all.
+  =#
+  endo_H2 = if length(endo) == 1
+    [id_hom(H2)]
+  else
+    imgs = map(gens(H2)) do g
+      c = z(g)
+      [preimage(z, Oscar.GrpCoh.CoChain{2, S, T}(C, Dict{NTuple{2, S}, T}(),
+                                                 x -> b(c(x[1], x[2]))))
+       for b in endo]
+    end
+    [hom(H2, H2, [imgs[i][j] for i in 1:ngens(H2)]) for j in 1:length(endo)]
+  end
+
+  function _line(h)
+    line = [zero(H2)]
+    for f in endo_H2
+      g = f(h)
+      line = [x + l*g for x in line for l in 0:p-1]
+    end
+    return line
+  end
+
+  #= The defects are linear in the cocycle as well - a relator evaluates to a
+     sum of cocycle values moved around by the action - so read them off a map
+     built from the generators of H^2. Deciding whether a class lifts is then
+     linear algebra, and only the classes that do lift need their extension
+     built.
+  =#
+  rhs_H2 = hom(H2, K, elem_type(K)[_defect(e, _lifted_gens(e)) for e in
+                       (Oscar.GrpCoh.extension(PcGroup, z(g)) for g in gens(H2))])
+
+  seen = Set{elem_type(H2)}()
+
+  for h in H2
     is_zero(h) && continue
-    append!(allG, _process(z(h); is_trivial = false, limit = limit - length(allG)))
+    h in seen && continue
+    union!(seen, _line(h))
+
+    fl, pe = has_preimage_with_preimage(s, rhs_H2(h))
+    fl || continue
+
+    append!(allG, _process(Oscar.GrpCoh.extension(PcGroup, z(h)), pe; is_trivial = false, limit = limit - length(allG)))
     if length(allG) >= limit
       return allG
     end
@@ -393,16 +683,32 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
 end
 
 function solvable_quotient(G::Oscar.GAPGroup)
+  A, _ = maximal_abelian_quotient(G)
+  if is_finite(A)
+    # not `maximal_abelian_quotient(PcGroup, G)`: GAP hands back a pc group on
+    # a non-canonical pcgs for some inputs, and `isomorphism(PcGroup, .)`
+    # refuses those. Going through `FinGenAbGroup` always gives a full pc
+    # group, which `reps` needs.
+    B, mB = maximal_abelian_quotient(FinGenAbGroup, G)
+    iso = isomorphism(PcGroup, B)
+    return hom(G, codomain(iso), [iso(mB(x)) for x in gens(G)])
+  end
+
+  # no maximal finite abelian quotient to start from
   q = cyclic_group(1)
-  mp = hom(G, q, [one(q) for g in gens(G)])
+  return hom(G, q, [one(q) for g in gens(G)])
 end
 
 function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothing} = nothing)
+  if index === nothing
+    @req is_finite(maximal_abelian_quotient(domain(mp))[1]) "infinite abelianization: there is no maximal finite solvable quotient; pass `index`"
+  end
+
   if index !== nothing
     lf = factor(ZZRingElem(index))
     primes = prime_divisors(ZZ(index))
     while length(primes) > 0
-      @time nw = brueckner(mp; limit = 1, primes)
+      @vtime :BruecknerSQ 1 nw = brueckner(mp; limit = 1, primes)
       if length(nw) == 0 
         return mp
       end
@@ -422,6 +728,7 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
       return mp
     end
     mp = nw[1]
+    @vprint :BruecknerSQ 2 "found quotient of order $(order(codomain(mp)))\n"
   end
 end
 
