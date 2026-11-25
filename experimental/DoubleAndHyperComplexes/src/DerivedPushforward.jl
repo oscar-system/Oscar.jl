@@ -1386,8 +1386,8 @@ function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
   S = cox_ring(X)
   G = grading_group(S)
   n = ngens(S)
-  @assert 0 < i <= n "index out of bounds"
-  @assert parent(alpha) === G "degree does not belong to the grading group"
+  @req 0 < i <= n "index out of bounds"
+  @req parent(alpha) === G "degree does not belong to the grading group"
   Sigma = support_sets_ext(X)
   alpha_vec = elem_type(ZZ)[alpha[i] for i in 1:rank(G)]
   phi = map_from_torusinvariant_weil_divisor_group_to_class_group(X)
@@ -1401,7 +1401,6 @@ function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
     for j in 1:n
       L_I[j, j] = j in I ? 1 : -1
     end
-    D = vcat(L_I, A, -A)
     b = elem_type(ZZ)[j in I ? -1 : 0 for j in 1:n]
     @assert nrows(A) == length(alpha_vec)
     @assert ncols(L_I) == ncols(A)
@@ -1905,7 +1904,6 @@ function optimal_k(ctx::NewToricCtx, i::Int, alpha::FinGenAbGroupElem)
       for j in 1:n
         L_I[j, j] = is_zero((I >> (j-1))%2) ? -1 : 1
       end
-      D = vcat(L_I, A, -A)
       b = elem_type(ZZ)[is_zero((I >> (j-1))%2) ? 0 : -1 for j in 1:n]
       @assert nrows(A) == length(alpha_vec)
       @assert ncols(L_I) == ncols(A)
