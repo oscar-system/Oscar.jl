@@ -1544,7 +1544,7 @@ function simplified_strand_inclusion(
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = FreeModuleHom{FreeMod{elem_type(kk)}, FreeMod{elem_type(kk)}, Nothing}[map_to_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
-    return _direct_sum(kk, maps; domain=dom, codomain=cod)
+    return is_empty(maps) ? hom(dom, cod, elem_type(cod)[]) : direct_sum(maps; domain=dom, codomain=cod)
   end
 end
 
@@ -1566,7 +1566,7 @@ function simplified_strand_projection(
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+e*delta)
     maps = [map_from_original_complex(simplified_fine_strand(ctx, ee.-e))[p] for ee in all_mons]
-    return _direct_sum(kk, maps; domain=dom, codomain=cod)
+    return is_empty(maps) ? hom(dom, cod, elem_type(cod)[]) : direct_sum(maps; domain=dom, codomain=cod)
   end
 end
 
