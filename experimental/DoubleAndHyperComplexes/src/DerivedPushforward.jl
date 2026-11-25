@@ -1843,8 +1843,8 @@ function _findfirstrange(low::Int, up::Int, a::Int, lst::Vector{UnitRange{Int}})
     return nothing
   end
   mid = div(up+low, 2)
-  low_res = _findfirstrange(low, mid, a, lst)
-  !isnothing(low_res) && return low_res
+  split = last(lst[mid])
+  a <= split && return _findfirstrange(low, mid, a, lst)
   return _findfirstrange(mid+1, up, a, lst)
 end
 
