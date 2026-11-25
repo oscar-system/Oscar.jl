@@ -999,7 +999,18 @@ mutable struct NewToricCtx
   end
 end
 
-# functionality implemented in `generic_direct_images.jl`
+function set_fixed_exponent_vector!(ctx::NewToricCtx, k::Vector{Int})
+  @assert all(a == first(k) for a in k)
+  return set_fixed_exponent_vector!(ctx, first(k))
+end
+
+# Even though it's not really a vector, the name is kept for historic 
+# reasons and for probable future changes.
+function set_fixed_exponent_vector!(ctx::NewToricCtx, k::Int)
+  ctx.fixed_exponent_vector = k
+  return ctx
+end
+
 
 ########################################################################
 # A context object for computing the spectral sequence associated 
