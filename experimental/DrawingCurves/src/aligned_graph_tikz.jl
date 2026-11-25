@@ -13,7 +13,7 @@ function analyse_component_position(
   for e in c
     pt = vpos[e]
     xslice = intersect(xfilter[pt[1]], c)
-    yvals = [vpos[n][2] for n in xslice]
+    yvals = last.(vpos[xslice])
     (ymin, ymax) = extrema(yvals)
     height = max(height, ymax - ymin)
     top = max(top, ymax)
@@ -27,12 +27,12 @@ function align_component!(
   xfilter::Dict{Int,Vector{Int}},
   c::Vector{Int},
 )
-  xs = unique([vpos[e][1] for e in c])
+  xs = unique(first.(vpos[c]))
   h, t, b = analyse_component_position(vpos, xfilter, c)
   targetb = 0
   for x in xs
     xslice = intersect(xfilter[x], c)
-    yvals = [vpos[n][2] for n in xslice]
+    yvals = last.(vpos[xslice])
     (ymin, ymax) = extrema(yvals)
     if ymax != ymin
       targetb = max(targetb, ymin)
@@ -41,7 +41,7 @@ function align_component!(
   targett = targetb + h
   for x in xs
     xslice = intersect(xfilter[x], c)
-    yvals = [vpos[n][2] for n in xslice]
+    yvals = last.(vpos[xslice])
     (ymin, ymax) = extrema(yvals)
     if ymax != ymin
       for n in xfilter[x]
@@ -106,7 +106,7 @@ function align_nodes_vertically(IG::_IsotopyGraph)
   for n in vcat(IG.singularNodes, IG.ytangentNodes)
     nbs = neighbors(IG.G, n)
     if length(nbs) > 0
-      yvals = [aligned[nb][2] for nb in nbs]
+      yvals = last.(aligned[nbs])
       aligned[n][2] = QQ(1, 2) * (maximum(yvals) + minimum(yvals))
     end
   end
