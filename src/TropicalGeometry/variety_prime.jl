@@ -21,6 +21,7 @@ end
 
 # trivial valuation
 function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{<:Union{QQField,FqField},Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
+    @req degree(coefficient_field(I)) == 1 "only prime fields allowed"
     sI = Oscar.singular_generators(I)
     TropIString = Singular.low_level_caller("tropical", "tropicalVariety_as_string", (sI, ))
     Sigma = gfan_fan_string_to_oscar_complex(TropIString,convention(nu)==min,false)
