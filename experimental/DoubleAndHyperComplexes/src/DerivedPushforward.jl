@@ -921,7 +921,7 @@ end
 # 
 # This came out of the overhaul of arXiv:2602.14657 where we realized 
 # that we only need one single complex over the rationals for each 
-# sector and the rest can be compiled as directs sums of those. 
+# sector and the rest can be compiled as direct sums of those. 
 # 
 # Again, this implements the whole interface for `PushForwardCtx` and 
 # `ToricCtx`, with possibly more functionality. 
