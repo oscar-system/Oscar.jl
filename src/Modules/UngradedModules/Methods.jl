@@ -405,6 +405,17 @@ function change_base_ring(f::Map{DomType, CodType}, F::FreeMod) where {DomType<:
   return FS, map
 end
 
+function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing}; 
+    domain::OFPModule=change_base_ring(bc, Oscar.domain(f))[1],
+    codomain::OFPModule=change_base_ring(bc, Oscar.codomain(f))[1]
+  ) where {DT, CT}
+  img_gens = elem_type(codomain)
+  bc_dom = hom(Oscar.domain(f), domain, gens(domain), bc)
+  bc_cod = hom(Oscar.codomain(f), codomain, gens(codomain), bc)
+  res = hom(domain, codomain, bc_cod.(images_of_generators(f)))
+  return res, bc_dom, bc_cod
+end
+
 function change_base_ring(S::Ring, M::SubquoModule)
   F = ambient_free_module(M)
   R = base_ring(M)
