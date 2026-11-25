@@ -1637,7 +1637,7 @@ function simplified_strand_homotopy(
                          res_coords = sparse_row(base_ring(cod))
                          for (i, c) in coordinates(v)
                            block_ind = _findfirstrange(i, rngs)::Int
-                           inner_ind = i - sum(length(r) for r in rngs[1:block_ind-1]; init=0)
+                           inner_ind = i - first(rngs[block_ind]) + 1 
                            psi = maps[block_ind]
                            img_gen = images_of_generators(psi)[inner_ind]
                            cod_inc = canonical_injection(cod, block_ind)
@@ -1825,7 +1825,7 @@ function multiplication_map(
                          res_row = sparse_row(kk) # this will be the `coordinates` of its image 
                          for (ind_v, cc) in coordinates(v)
                            block_ind = _findfirstrange(ind_v, rngs)::Int
-                           inner_ind = ind_v - sum(length(r) for r in rngs[1:block_ind-1]; init=0)
+                           inner_ind = ind_v - first(rngs[block_ind]) + 1 
                            ee = all_mons_dom[block_ind]
                            inc_dom = canonical_injection(dom, block_ind)
                            for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
