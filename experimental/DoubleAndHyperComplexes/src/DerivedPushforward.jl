@@ -346,7 +346,7 @@ end
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
   G = parent(d)
   S = graded_ring(ctx)
-  @req G === grading_group(S)
+  @req G === grading_group(S) "incompatible grading groups"
   strands = get!(ctx.strands, alpha) do 
     Dict{typeof(d), AbsHyperComplex}()
   end
