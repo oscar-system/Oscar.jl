@@ -346,7 +346,7 @@ end
 function getindex(ctx::PushForwardCtx, alpha::Vector{Int}, d::FinGenAbGroupElem)
   G = parent(d)
   S = graded_ring(ctx)
-  @assert G === grading_group(S)
+  @req G === grading_group(S)
   strands = get!(ctx.strands, alpha) do 
     Dict{typeof(d), AbsHyperComplex}()
   end
@@ -1540,7 +1540,7 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.strands, (e, alpha)) do
     beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
-    return DirectSumComplex{FreeMod, FreeModuleHom}([fine_strand(ctx, ee.-e) for ee in all_mons])
+    return DirectSumComplex{FreeMod, FreeModuleHom}(AbsHyperComplex{FreeMod, FreeModuleHom}[fine_strand(ctx, ee.-e) for ee in all_mons])
   end
 end
 
