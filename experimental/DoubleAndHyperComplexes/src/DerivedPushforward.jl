@@ -1687,7 +1687,7 @@ function simplified_strand_projection(
 end
 
 function cohomology_model(ctx::NewToricCtx, d::FinGenAbGroupElem)
-  get!(ctx.cohomology_models, d) do
+  return get!(ctx.cohomology_models, d) do
     simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
   end
 end
@@ -1820,7 +1820,6 @@ function multiplication_map(
                            block_ind = _findfirstrange(ind_v, rngs)::Int
                            inner_ind = ind_v - first(rngs[block_ind]) + 1 
                            ee = all_mons_dom[block_ind]
-                           inc_dom = canonical_injection(dom, block_ind)
                            for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
                              sample = sample_multiplication(ctx, ee.-e0, (ee + eee).-e0)[j]
                              inc = canonical_injection(cod, all_mons_cod_inv[ee+eee])
