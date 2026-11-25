@@ -683,15 +683,9 @@ function get_lattice_points(v::NormalToricVariety, A::Matrix{Int}, Q::BitVector,
   n = n_rays(v)
   minus_indices = findall(x -> x != 0, Q)
   W = copy(A); W[:, minus_indices] = -W[:,minus_indices]
-  P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,m + A*Q))#First tuples is an affine halfspace that specifies that all exponents are non-negative
+  P = polyhedron((-Matrix{Int}(identity_matrix(ZZ,n)),zeros(Int,n)),(W,b))#First tuples is an affine halfspace that specifies that all exponents are non-negative
   #Second tuple is a hyperplane that specifies that the degree of the corresponding rationome is m
-  points = Vector{Vector{Int}}()
-  list = try 
-    collect(lattice_points(P))#It is sometimes possible that there will be inf solutions which prob means that the corresponding rationome will contribute 0(secondary complex should be 0)
-  catch
-    Vector{Vector{Int}}()
-  end
-  for point in list
+  for point in lattice_points(P)
     point = Vector{Int}(point)
     point[minus_indices] = -(point[minus_indices] .+ 1)
     push!(points, point)
@@ -844,13 +838,6 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
     k0 += 1
   end
   return Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
-end
-
-function get_chamber_dict(ctx::ToricCtx)
-  if !isdefined(ctx, :D)
-    ctx.D = Dict()
-  end
-  return ctx.D
 end
 
 # See [CLS11](@cite), Theorem 9.5.10
