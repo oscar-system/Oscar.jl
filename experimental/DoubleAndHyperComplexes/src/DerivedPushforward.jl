@@ -359,7 +359,7 @@ end
 # the direct limit over the exponent vectors `alpha`. This representative 
 # is chosen by the `_minimal_exponent_vector` for the given degree `d`.
 function cohomology_model(ctx::PushForwardCtx, d::FinGenAbGroupElem)
-  get!(ctx.cohomology_models, d) do
+  return get!(ctx.cohomology_models, d) do
     simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
   end
 end
