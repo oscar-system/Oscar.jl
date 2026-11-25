@@ -1134,11 +1134,6 @@ function simplified_strand_homotopy(
                          cod(res_coords)
                        end
                       )
-    # previous implementation which this is supposed to mimic, but without blowup in memory consumption: 
-    change_base_ring(coefficient_map(ctx.transfer), h; 
-                     domain=ctx[alpha, d][p], 
-                     codomain=ctx[alpha, d][p+1]
-                    )[1]
   end
 end
 
@@ -1528,7 +1523,6 @@ function simplified_strand_homotopy(
                          cod(res_coords)
                        end
                       )
-    return _direct_sum(kk, maps; domain=dom, codomain=cod)
   end
 end
 
