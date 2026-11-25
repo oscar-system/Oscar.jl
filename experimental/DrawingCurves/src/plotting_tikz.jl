@@ -1,5 +1,3 @@
-include("aligned_graph_tikz.jl")
-
 function _pt_2_string(pt::_Point, scale::QQFieldElem)
   (a, b) = scale * [pt.xcoord, pt.ycoord]
   return "($(round(Float64(a); digits=6)), $(round(Float64(b); digits=6)))"
@@ -37,7 +35,7 @@ function _vec2point(v::AbstractVector)
   @req length(v) == 2 "Not a two dimensional point."
   return _Point(QQ(1, 3) * QQ(v[1]), QQ(v[2]))
 end
-function draw_graph_tikz(IG::_IsotopyGraph, io, marked_components)
+function draw_graph_tikz(IG::_IsotopyGraph, io, marked_components=nothing)
   scale = QQ(1)
   if marked_components !== nothing
     for (mc, c) in marked_components
@@ -72,7 +70,6 @@ function draw_graph_tikz(IG::_IsotopyGraph, io, marked_components)
     _draw_pt_tikz(io, pt, scale; color="blue", size=4)
   end
 end
-draw_graph_tikz(IG::_IsotopyGraph, io::IO) = draw_graph_tikz(IG, io, nothing)
 
 function draw_curve_tikz(IG::_IsotopyGraph, scale, io; custom_edge_plot=nothing)
   for e in IG.nosequenceedges

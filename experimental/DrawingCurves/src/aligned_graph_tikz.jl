@@ -14,8 +14,7 @@ function analyse_component_position(
     pt = vpos[e]
     xslice = intersect(xfilter[pt[1]], c)
     yvals = [vpos[n][2] for n in xslice]
-    ymax = maximum(yvals)
-    ymin = minimum(yvals)
+    (ymin, ymax) = extrema(yvals)
     height = max(height, ymax - ymin)
     top = max(top, ymax)
     bottom = min(bottom, ymin)
@@ -34,8 +33,7 @@ function align_component!(
   for x in xs
     xslice = intersect(xfilter[x], c)
     yvals = [vpos[n][2] for n in xslice]
-    ymax = maximum(yvals)
-    ymin = minimum(yvals)
+    (ymin, ymax) = extrema(yvals)
     if ymax != ymin
       targetb = max(targetb, ymin)
     end
@@ -44,8 +42,7 @@ function align_component!(
   for x in xs
     xslice = intersect(xfilter[x], c)
     yvals = [vpos[n][2] for n in xslice]
-    ymax = maximum(yvals)
-    ymin = minimum(yvals)
+    (ymin, ymax) = extrema(yvals)
     if ymax != ymin
       for n in xfilter[x]
         pt = vpos[n]
@@ -116,7 +113,7 @@ function align_nodes_vertically(IG::_IsotopyGraph)
   return aligned
 end
 
-function draw_graph_tikz_aligned(IG::_IsotopyGraph, io, marked_components)
+function draw_graph_tikz_aligned(IG::_IsotopyGraph, io, marked_components=nothing)
   scale = QQ(1)
   node2pair = align_nodes_vertically(IG)
   for e in edges(IG.G)
@@ -161,7 +158,6 @@ function draw_graph_tikz_aligned(IG::_IsotopyGraph, io, marked_components)
     _draw_pt_tikz(io, pt, scale; color="blue", size=4)
   end
 end
-draw_graph_tikz_aligned(IG::_IsotopyGraph, io) = draw_graph_tikz_aligned(IG, io, nothing)
 
 function _draw_edge_tikz_aligned(
   io::IO, pt0::_Point, pt1::_Point, type::Symbol, scale::QQFieldElem; color::String="black",

@@ -1,6 +1,7 @@
 
 include("IsotopyGraph.jl")
 include("plotting_tikz.jl")
+include("aligned_graph_tikz.jl")
 include("backend_msolve.jl")
 include("patchwork.jl")
 include("bezier.jl")
