@@ -1330,7 +1330,6 @@ end
   S_raw = forget_grading(S)
   D = free_abelian_group(n)
   S_fine, _ = grade(S_raw, gens(D))
-  B_fine = ideal(S_fine, [S_fine(forget_grading(g)) for g in gens(B)])
   J = ideal(S_fine, elem_type(S_fine)[S_fine(forget_grading(x)) for x in gens(B)])
   A, _ = quo(S_fine, J)
   S_fine1 = graded_free_module(S_fine, [zero(D)])
@@ -1341,7 +1340,7 @@ end
       Vector{Int}[]
     end
     Hi, _ = homology(hom_complex, -i)
-    for (rr, g) in enumerate(gens(Hi))
+    for g in gens(Hi)
       pg = degree(g)
       any(pg[j] > 0 for j in 1:rank(D)) && continue # can not give one of the required mons
       J = Int[j for j in 1:n if pg[j] < 0]
@@ -1351,8 +1350,8 @@ end
       @assert all(-1 <= q[j] <= 0 for j in 1:n)
       old_zero_combs = Vector{Int}[]
       new_zero_combs = Vector{Int}[]
-      for q in 0:length(J)
-        for c in combinations(length(J), q)
+      for qq in 0:length(J)
+        for c in combinations(length(J), qq)
           zero_found = false
           for k in 1:length(data(c))
             cc = copy(data(c))
