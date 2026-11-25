@@ -206,8 +206,21 @@ end
 
 is_sub_with_data(M::FinGenAbGroup, N::FinGenAbGroup) = is_subgroup(M, N)
 
-function Oscar.direct_product(M::AbstractAlgebra.Module...; task::Symbol = :none)
-  D, inj, pro = direct_sum(M...)
+function Oscar.direct_product(M::AbstractAlgebra.Module, Ms::AbstractAlgebra.Module...; task::Symbol = :none)
+  return Oscar.direct_product([M, Ms...]; task)
+end
+
+function Oscar.direct_product(R::Ring, M::AbstractAlgebra.Module, Ms::AbstractAlgebra.Module...; task::Symbol = :none)
+  return Oscar.direct_product(R, [M, Ms...]; task)
+end
+
+function Oscar.direct_product(M::Vector{<:AbstractAlgebra.Module}; task::Symbol = :none)
+  @req !isempty(M) "An empty direct product requires a base ring"
+  return Oscar.direct_product(base_ring(first(M)), M; task)
+end
+
+function Oscar.direct_product(R::Ring, M::Vector{<:AbstractAlgebra.Module}; task::Symbol = :none)
+  D, inj, pro = direct_sum(R, M)
   if task == :none
     return D
   elseif task == :both
@@ -402,6 +415,18 @@ end
 function Nemo.matrix(h::Oscar.GModuleHom{<:Any, <:AbstractAlgebra.FPModule{<:Any}})
   return matrix(h.module_map)
 end
+
+function Oscar.zero_map(A::AbstractAlgebra.Generic.FreeModule{ZZRingElem}, B::AbstractAlgebra.Generic.FreeModule{ZZRingElem})
+  return hom(A, B, zero_matrix(ZZ, rank(A), rank(B)))
+end
+
+function Oscar.zero_map(A::AbstractAlgebra.FPModule{T}, B::AbstractAlgebra.FPModule{T}) where T <: FieldElem
+  return hom(A, B, zero_matrix(base_ring(A), rank(A), rank(B)))
+end
+import Base:*
+*(a::ZZRingElem, phi::AbstractAlgebra.Generic.ModuleHomomorphism{ZZRingElem}) = hom(domain(phi), codomain(phi), a*matrix(phi))
+
+*(c::ZZRingElem, v::AbstractAlgebra.FPModuleElem{T}) where T<:FinFieldElem = base_ring(parent(v))(c)*v
 
 end # module
 using .Misc
