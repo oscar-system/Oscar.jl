@@ -1536,7 +1536,7 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   G = parent(alpha)
   S = graded_ring(ctx)
   kk = coefficient_ring(S)
-  @assert G === grading_group(S)
+  @req G === grading_group(S) "incompatible grading groups"
   return get!(ctx.strands, (e, alpha)) do
     beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
@@ -1553,10 +1553,10 @@ function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
     G = parent(alpha)
     S = graded_ring(ctx)
     kk = coefficient_ring(S)
-    @assert G === grading_group(S)
+    @req G === grading_group(S) "incompatible grading groups"
     beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
-    summands = [simplified_fine_strand(ctx, ee .- e ) for ee in all_mons]
+    summands = [simplified_fine_strand(ctx, ee .- e) for ee in all_mons]
     @assert length(all_mons) == length(summands)
     return DirectSumComplex{FreeMod, FreeModuleHom}(summands)
   end
@@ -1590,7 +1590,7 @@ function induced_cohomology_map(
       img_gens = elem_type(cod)[]
       for (i, k) in enumerate(index_mapping)
         inc = canonical_injection(cod, k)
-        img_gens = vcat(img_gens, images_of_generators(inc))
+        append!(img_gens, images_of_generators(inc))
       end
       return hom(dom, cod, img_gens)
     elseif e0 > e1
