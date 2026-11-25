@@ -799,6 +799,7 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
       k = maximum([optimal_k(X, i, m) for i in 1:ngens(cox_ring(X))])
       return Int[k for _ in 1:ngens(irrelevant_ideal(X))]
     elseif ctx.bound_strategy == :ChamberCounting
+      @assert is_simplicial(toric_variety(ctx)) "chamber counting strategy for cohomology computation is implemented only for simplicial toric varieties"
       # The following is based on the cohomCalg algorithm(See [BJRR10, BJRR10*1](@cite)), 
       # but only part of the algorithm is executed and explicit lattice points are 
       # calculated for each polyhedron. This part of the code is due to @emikelsons and @HereAround. 
@@ -1520,7 +1521,7 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.strands, (e, alpha)) do
     beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
-    return DirectSumComplex(kk, [:chain], [fine_strand(ctx, ee.-e) for ee in all_mons])
+    return DirectSumComplex{FreeMod, FreeModuleHom}([fine_strand(ctx, ee.-e) for ee in all_mons])
   end
 end
 
@@ -1538,7 +1539,7 @@ function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
     all_mons = all_monomials(ctx, alpha+beta)
     summands = [simplified_fine_strand(ctx, ee .- e ) for ee in all_mons]
     @assert length(all_mons) == length(summands)
-    return DirectSumComplex(kk, [:chain], summands)
+    return DirectSumComplex{FreeMod, FreeModuleHom}(summands)
   end
 end
 
@@ -1673,11 +1674,11 @@ function cohomology_model(ctx::NewToricCtx, d::FinGenAbGroupElem)
 end
 
 function cohomology_model_inclusion(ctx::NewToricCtx, d::FinGenAbGroupElem, i::Int)
-  return simplified_strand_inclusion(ctx, _minimal_exponent_vector(ctx, d), i)
+  return simplified_strand_inclusion(ctx, _minimal_exponent_vector(ctx, d), d, i)
 end
 
 function cohomology_model_projection(ctx::NewToricCtx, d::FinGenAbGroupElem, i::Int)
-  return simplified_strand_projection(ctx, _minimal_exponent_vector(ctx, d), i)
+  return simplified_strand_projection(ctx, _minimal_exponent_vector(ctx, d), d, i)
 end
 
 # return the minimal exponent `e`  such that the whole 
@@ -1696,23 +1697,28 @@ end
 
 function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.strand_inclusions, (e0, e1, alpha)) do
-    @assert e0 <= e1
     S = graded_ring(ctx)
     G = grading_group(S)
     @assert G === parent(alpha)
     delta = sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons_dom = all_monomials(ctx, alpha + e0*delta)
     all_mons_cod_inv = all_monomials_inv(ctx, alpha + e1*delta)
-    index_mapping = Int[all_mons_cod_inv[ee.+(e1 - e0)] for ee in all_mons_dom]
+    index_mapping = Union{Int, Nothing}[get(all_mons_cod_inv, ee.+(e1 - e0), nothing) for ee in all_mons_dom]
     dom = ctx[e0, alpha]
     cod = ctx[e1, alpha]
     p = 0
     map_dict = Dict{Tuple{Int}, FreeModuleHom}()
     while p >= -dim(toric_variety(ctx)) && can_compute_index(dom, p) && can_compute_index(cod, p)
       img_gens = elem_type(cod[p])[]
+      dom_rngs = get_attribute(dom[p], :ranges)::Vector{UnitRange{Int}}
       for (k, i) in enumerate(index_mapping)
+        if isnothing(i)
+          # If this monomial does not appear in the codomain, we cut it off.
+          append!(img_gens, elem_type(cod[p])[zero(cod[p]) for _ in dom_rngs[k]])
+          continue
+        end
         inc = canonical_injection(cod[p], i)
-        img_gens = vcat(img_gens, images_of_generators(inc))
+        append!(img_gens, images_of_generators(inc))
       end
       map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
       p -= 1
