@@ -21,7 +21,7 @@ function (fac::HomologyPseudoInverseFactory)(self::AbsHyperComplexMorphism, i::T
   B, inc_B = boundary(dom, 1, i)
   Q, pr = quo(F, B)
   phi_red = compose(phi, pr)
-  return map_from_func(F, domain(phi), x->preimage(phi_red, pr(x)))
+  return MapFromFunc(F, domain(phi), x->preimage(phi_red, pr(x)))
 end
 
 function can_compute(fac::HomologyPseudoInverseFactory, self::AbsHyperComplexMorphism, i::Tuple)
