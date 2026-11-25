@@ -940,7 +940,7 @@ mutable struct NewToricCtx
   simplified_strands::Dict{Tuple{Int, FinGenAbGroupElem}, AbsHyperComplex}
   simplified_strand_homotopies::Dict{Tuple{Int, FinGenAbGroupElem, Int}, MapFromFunc}
   simplified_strand_inclusions::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
-  simplified_strand_projectionss::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
+  simplified_strand_projections::Dict{Tuple{Int, FinGenAbGroupElem, Int}, OFPModuleHom}
   strand_inclusions::Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}
   strand_projections::Dict{Tuple{Int, Int, FinGenAbGroupElem}, AbsHyperComplexMorphism}
   induced_cohomology_maps::Dict{Tuple{Int, Int, FinGenAbGroupElem, Int}, Map}
@@ -1675,7 +1675,7 @@ end
 function simplified_strand_projection(
     ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
   )
-  return get!(ctx.simplified_strand_projectionss, (e, alpha, p)) do
+  return get!(ctx.simplified_strand_projections, (e, alpha, p)) do
     cod = simplified_strand(ctx, e, alpha)[p]
     dom = ctx[e, alpha][p]
     S = graded_ring(ctx)
