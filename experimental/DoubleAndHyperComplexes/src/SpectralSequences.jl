@@ -94,10 +94,10 @@ Module homomorphism
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}())
   end
   
-  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex)
+  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex; algorithm::Union{Symbol, Nothing}=nothing)
     @assert isone(dim(comp)) "complex must be 1-dimensional"
     S = cox_ring(X)
-    ctx = NewToricCtx(X)
+    ctx = isnothing(algorithm) ? NewToricCtx(X) : ToricCtx(X; algorithm::Symbol) # Choice of algorithms is only supported for `ToricCtx`, but `NewToricCtx` is faster.
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
   end
