@@ -20,7 +20,7 @@ mutable struct CohomologySpectralSequence{GradedRingType, CoeffRingType}
   A::CoeffRingType
   graded_complex::AbsHyperComplex
   pages::Dict{Int, CSSPage}
-  pfctx::Union{PushForwardCtx, ToricCtx, ToricCtxWithParams}
+  pfctx::Union{PushForwardCtx, ToricCtx, NewToricCtx, ToricCtxWithParams}
 
 @doc raw"""
     CohomologySpectralSequence(S::MPolyRing, comp::AbsHyperComplex)
@@ -94,10 +94,10 @@ Module homomorphism
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}())
   end
   
-  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex; algorithm::Symbol=:ext)
+  function CohomologySpectralSequence(X::NormalToricVariety, comp::AbsHyperComplex)
     @assert isone(dim(comp)) "complex must be 1-dimensional"
     S = cox_ring(X)
-    ctx = ToricCtx(X; algorithm)
+    ctx = NewToricCtx(X)
     A = coefficient_ring(S)
     return new{typeof(S), typeof(A)}(S, A, comp, Dict{Int, CSSPage}(), ctx)
   end
@@ -249,7 +249,7 @@ function produce_lifted_kernel_generators_on_initial_page(cssp::CSSPage, i::Int,
     d = -dom_degs[cur_rng_ind]
     vv2 = cohomology_model_inclusion(ctx, d, j)(vv)
     @assert !is_zero(vv2)
-    e = _minimal_exponent_vector(ctx, d)
+    e = ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, d), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, d)
     for (l, p) in coordinates(images_of_generators(orig_map)[cur_rng_ind])
       phi = multiplication_map(ctx, p, e, d, j)
       vvv = phi(vv2)
@@ -721,8 +721,8 @@ function produce_map(cssp::CSSPage, i::Int, j::Int)
     for (k, v) in buckets # go through the buckets
       is_zero(v) && continue # discard zero elements 
       d1 = -cod_degs[k] # find the shift for this component
-      e1 = _minimal_exponent_vector(ctx, d1) # get the minimal exponent for this 
-                                             # component's cohomology complex
+      # get the minimal exponent for this component's cohomology complex
+      e1 = ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, d1), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, d1)
       @assert all(a <= b for (a, b) in zip(e1, e)) # make sure we have not lost information
                                                    # along the way by taking to small denoms
       pr = ctx[e, e1, d1][j1] # project down to the minimal complex
