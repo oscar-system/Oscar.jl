@@ -821,7 +821,7 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
       # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
       p, q = _proportionality_factors(ctx)
       G = grading_group(graded_ring(ctx))
-      k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
+      k0, rem = divrem(p*maximum([Int(abs(m[i])) for i in 1:ngens(G)]), q)
       if !is_zero(rem)
         k0 += 1
       end
