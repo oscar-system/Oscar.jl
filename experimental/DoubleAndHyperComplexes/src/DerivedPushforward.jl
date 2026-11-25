@@ -1189,7 +1189,7 @@ end
 function cohomology_model_inclusion(ctx::ToricCtxWithParams, d::FinGenAbGroupElem, i::Int)
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
-  to_orig = map_to_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
+  to_orig = cohomology_model_inclusion(ctx.pure_ctx, d, i)
   res, _, _ = change_base_ring(coefficient_map(ctx.transfer), to_orig; domain=h[i], codomain=c[i])
   return res
 end
@@ -1197,7 +1197,7 @@ end
 function cohomology_model_projection(ctx::ToricCtxWithParams, d::FinGenAbGroupElem, i::Int)
   h = cohomology_model(ctx, d)
   c = ctx[_minimal_exponent_vector(ctx.pure_ctx, d), d]
-  from_orig = map_from_original_complex(cohomology_model(ctx.pure_ctx, d))[i]
+  from_orig = cohomology_model_projection(ctx.pure_ctx, d, i)
   res, _, _ = change_base_ring(coefficient_map(ctx.transfer), from_orig; domain=c[i], codomain=h[i])
   return res
 end
