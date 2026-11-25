@@ -829,19 +829,9 @@ function _minimal_exponent_vector(ctx::ToricCtx, m::FinGenAbGroupElem)
       error("strategy for finding bounds not recognized")
     end
   end
-  # We use [CLS11](@cite), Lemma 9.5.8 and Theorem 9.5.10 for this.
-  # TODO: Remove this?
-  p, q = _proportionality_factors(ctx)
-  G = grading_group(graded_ring(ctx))
-  k0, rem = divrem(p*maximum([Int(abs(d[i])) for i in 1:ngens(G)]), q)
-  if !is_zero(rem)
-    k0 += 1
-  end
-  return Int[k0 for _ in 1:length(cech_complex_generators(ctx))]
 end
 
 # See [CLS11](@cite), Theorem 9.5.10
-# TODO: Remove this?
 function _proportionality_factors(ctx::ToricCtx)
   if isnothing(ctx.proportionality_factors)
     S = graded_ring(ctx)
@@ -1693,7 +1683,6 @@ end
 # return the minimal exponent `e`  such that the whole 
 # cohomology in degree `m` is contained in the truncated complex for `e`.
 function _minimal_exponent_vector(ctx::NewToricCtx, m::FinGenAbGroupElem)
-  # TODO: Make this use the already build cache for the support sets! 
   !isnothing(ctx.fixed_exponent_vector) && return ctx.fixed_exponent_vector::Int
   return get!(ctx.exp_vec_cache, m) do
     X = toric_variety(ctx)
@@ -1756,9 +1745,7 @@ function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
       inc = inclusion_map(dom)[p]
       pr = projection_map(cod)[p]
       imgs = [mon*inc(v) for v in gens(dom[p])]
-      #@assert all(degree(v; check=false) == degree(cod) for v in imgs)
       img_gens = elem_type(cod[p])[pr(v) for v in imgs]
-      #!is_zero(dom[p]) && @assert !is_zero(img_gens)
       map_dict[(p,)] = hom(dom[p], cod[p], img_gens)
       p -= 1
     end
@@ -1820,25 +1807,6 @@ function multiplication_map(
                          cod(res_row)
                        end
                       )
-#   img_gens = sparse_matrix(kk, ngens(dom), ngens(cod))
-#   for _ in 1:ngens(dom)
-#     push!(img_gens, sparse_row(kk))
-#   end
-    for (k, ee) in enumerate(all_mons_dom)
-      inc_dom = canonical_injection(dom, k)
-      for (c, eee) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
-        sample = sample_multiplication(ctx, ee.-e0, (ee + eee).-e0)[j]
-        inc = canonical_injection(cod, all_mons_cod_inv[ee+eee])
-        psi = compose(sample, inc)
-        psi_imgs = images_of_generators(psi)
-        for (ii, v) in enumerate(images_of_generators(inc_dom))
-          jj, _ = only(coordinates(v))
-          Hecke.add_scaled_row!(coordinates(psi_imgs[ii]), img_gens[jj], c)
-        end
-        @assert codomain(sample) === domain(inc)
-      end
-    end
-    hom(dom, cod, elem_type(cod)[cod(v) for v in img_gens])
   end
 end
 
