@@ -417,8 +417,11 @@ end
  - map a local chain into a ray class group
 =#
 
+struct LowPrecisionError <: Exception end
+
 """
-    gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+    gmodule(K::Hecke.LocalField, k = base_field(K); Sylow::Int = 0, full::Bool = false,
+            conductor::Int = 0, extra::Int = 4)
 
 For a local field extension K/k, return the multiplicative
 group of K as a Gal(K/k) module. Strictly, it returns a quotient
@@ -430,6 +433,9 @@ module is factored out.
 
 If conductor is set to `n`, then the module factored out is guaranteed to 
 be contained in the principal units of level `n`.
+
+Throws `Oscar.LowPrecisionError` if the computed unit quotient has the wrong order
+at the working precision of `K`.
 
 Returns: 
  - the gmodule
@@ -498,7 +504,6 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
           return v*A[1] + preimage(mu, mk(y))[1]*A[2]
         end)
   end
-#TODO: make sure the field has enough precision!! 
 #  @show :wild
   @vprint :GaloisCohomology 2 " .. wild case (or requested), unit group ..\n"
   U, mU = unit_group(K)
@@ -508,7 +513,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   @vprint :GaloisCohomology 2 " .. find lattice (normal basis) ..\n"
   b = absolute_basis(K)
   # need a normal basis for K/k, so the elements need to be k-lin. indep
-  local o, best_o
+  local o, dm
   cnt = 0
   while true
     a = sum(b[i]*rand(-5:5) for i=1:length(b))
@@ -548,6 +553,15 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   S, mS = snf(Q)
   Q = S
   mQ = mQ*inv(mS)
+  # For L = p^ex * span(o), [O_K^* : exp(L)] = (1 - 1/q) * [O_K : L].
+  # The norm of the determinant contributes [k:Q_p] * v_p(dm).
+  p = prime(K)
+  f_abs = absolute_inertia_degree(K)
+  index_exponent = absolute_degree(K) * ex + Int(absolute_degree(k) * valuation(dm))
+  expected = (p^f_abs - 1) * p^(index_exponent - f_abs)
+  actual = prod(filter(!iszero, elementary_divisors(Q)); init = ZZ(1))
+  actual != expected && throw(LowPrecisionError())
+
   # In the convergence range, v(exp(y) - 1) = v(y) and v(p) = 1.
   level = Int(e_abs * (ex + minimum(valuation, o)))
   set_attribute!(Q, :local_unit_level => level)
@@ -564,6 +578,18 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   C = gmodule(G, hh)
   @hassert :GaloisCohomology 1 is_consistent(C)
   return C, mG, pseudo_inv(mQ)*mU
+end
+
+function _idele_local_gmodule(mK; conductor::Int = 0, extra::Int = 4)
+  K = codomain(mK)
+  while true
+    try
+      return mK, gmodule(K, absolute_base_field(K); conductor, extra)
+    catch err
+      err isa LowPrecisionError || rethrow()
+      K, mK = completion(domain(mK), prime(mK), 2 * precision(K))
+    end
+  end
 end
 
 #=  Not used
@@ -1817,9 +1843,9 @@ The keyword `extra` is forwarded to the local `gmodule` constructor.
 """
 function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}}; extra::Int = 4)
   J = IdeleParent()
-  J.C = I.C #same completion
+  J.C = copy(I.C)
   J.L = copy(I.L)
-  J.D = copy(I.D) #same automorphisms (careful with precision!)
+  J.D = copy(I.D)
   k = J.k = I.k
   mG = J.mG = I.mG
   mU = J.mU = I.mU
@@ -1832,8 +1858,7 @@ function change_precision(I::IdeleParent, p::Vector{Tuple{Int, Int}}; extra::Int
   for i = 1:length(J.C)
     f = findfirst(isequal(minimum(I.S[i])), [x[1] for x = p])
     if !isnothing(f)
-      kp = codomain(I.C[i])
-      C = gmodule(kp, absolute_base_field(kp); conductor = p[f][2], extra = extra)
+      J.C[i], C = _idele_local_gmodule(I.C[i]; conductor = p[f][2], extra)
       J.D[i] = C[2]
       J.L[i] = C[3]
       D[i] = Oscar.GrpCoh.induce(C[1], Oscar.decomposition_group(k, J.C[i], mG, C[2]), E, (mU*Hecke.extend_easy(J.C[i], C[3], codomain(mU))))
@@ -1979,19 +2004,19 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   S = S[s]
   I.S = S
 
-  #TODO: precision: for some examples the default is too small
   @vprint :GaloisCohomology 2 " .. gathering the completions ..\n"
   Hecke.pushindent()
-  L = [completion(k, x, 40*ramification_index(x)) for x = S]
-  I.C = [x[2] for x = L]
+  completions = [completion(k, x, 40*ramification_index(x))[2] for x = S]
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. gathering the local modules ..\n"
   Hecke.pushindent()
-  C = [gmodule(x[1], absolute_base_field(x[1]); conductor = extra_cond) for x = L];
+  local_data = [_idele_local_gmodule(mK; conductor = extra_cond) for mK in completions]
+  I.C = first.(local_data)
+  C = last.(local_data)
   I.D = [x[2] for x = C]
   I.L = [x[3] for x = C]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), C)
-  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, L[i][2], mG, C[i][2]), E, (mU*Hecke.extend_easy(L[i][2], C[i][3], codomain(mU)))) for i=1:length(S)]
+  D = [Oscar.GrpCoh.induce(C[i][1], Oscar.decomposition_group(k, I.C[i], mG, C[i][2]), E, (mU*Hecke.extend_easy(I.C[i], C[i][3], codomain(mU)))) for i=1:length(S)]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), D)
   @hassert :GaloisCohomology 1 all(x->is_G_lin(U, D[x][1], D[x][2], g->action(E, g)), 1:length(D))
   Hecke.popindent()
@@ -3978,6 +4003,7 @@ Oscar.gmodule(I::IdeleParent) = I.data[1]
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
+using .GaloisCohomology_Mod: LowPrecisionError
 
 export is_coboundary, 
        idele_class_gmodule,

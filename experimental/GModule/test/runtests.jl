@@ -483,6 +483,21 @@ end
   @test is_isomorphic(G, H)
 end
 
+@testset "Precision of the local unit quotient" begin
+  # At the prime above 2, the retry must recover the unit at level 79.
+  Oscar.randseed!(1)
+  K, a = quadratic_field(-17; cached = false)
+  P = only(prime_decomposition(maximal_order(K), 2))[1]
+  I = idele_class_gmodule(K)
+  Kp = first(completion(I, P))
+  @test_throws Oscar.LowPrecisionError gmodule(Kp, absolute_base_field(Kp); conductor = 40)
+
+  J = Oscar.GaloisCohomology_Mod.change_precision(I, [(2, 40)])
+  _, mLv, _, m = completion(J, P)
+  u = 1 + ZZ(2)^39 * (1 + a)
+  @test !iszero(preimage(m, mLv(u)))
+end
+
 @testset "Dyadic ray class field of absolute degree 16" begin
   # The dyadic quotient must be refined before computing the group extension.
   K, _ = quadratic_field(-6; cached = false)
