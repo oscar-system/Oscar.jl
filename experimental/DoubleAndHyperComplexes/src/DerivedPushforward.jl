@@ -999,14 +999,14 @@ mutable struct EMSToricCtx
   end
 end
 
-function set_fixed_exponent_vector!(ctx::EMSToricCtx, k::Vector{Int})
+function set_global_exponent_vector!(ctx::EMSToricCtx, k::Vector{Int})
   @assert all(a == first(k) for a in k)
   return set_fixed_exponent_vector!(ctx, first(k))
 end
 
 # Even though it's not really a vector, the name is kept for historic 
 # reasons and for probable future changes.
-function set_fixed_exponent_vector!(ctx::EMSToricCtx, k::Int)
+function set_global_exponent_vector!(ctx::EMSToricCtx, k::Int)
   ctx.fixed_exponent_vector = k
   return ctx
 end
