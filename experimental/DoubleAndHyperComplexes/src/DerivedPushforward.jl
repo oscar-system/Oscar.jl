@@ -1002,7 +1002,7 @@ end
 
 function set_global_exponent_vector!(ctx::EMSToricCtx, k::Vector{Int})
   @assert all(a == first(k) for a in k)
-  return set_fixed_exponent_vector!(ctx, first(k))
+  return set_global_exponent_vector!(ctx, first(k))
 end
 
 # Even though it's not really a vector, the name is kept for historic 
@@ -1223,7 +1223,7 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}
       return get!(ctx.strand_projections, (alpha, beta, d)) do
         SummandProjection(ctx[beta, alpha, d]; check=false)
       end
-    elseif ctx.pure_ctx isa NewToricCtx && ctx.pure_ctx.algorithm == :ext
+    elseif ctx.pure_ctx isa EMSToricCtx && ctx.pure_ctx.algorithm == :ext
       return get!(ctx.strand_projections, (alpha, beta, d)) do
         HomologyPseudoInverse(ctx[beta, alpha, d])
       end
