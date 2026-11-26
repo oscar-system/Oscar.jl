@@ -1851,19 +1851,9 @@ function multiplication_map(
 end
 
 function _findfirstrange(a::Int, lst::Vector{UnitRange{Int}})
-  return _findfirstrange(1, length(lst), a, lst)
+  k = searchsortedlast(lst, a:a; by=first)
+  return (k > 0 && a in lst[k]) ? k : nothing
 end
-function _findfirstrange(low::Int, up::Int, a::Int, lst::Vector{UnitRange{Int}})
-  if low == up
-    a in lst[low] && return low
-    return nothing
-  end
-  mid = div(up+low, 2)
-  split = last(lst[mid])
-  a <= split && return _findfirstrange(low, mid, a, lst)
-  return _findfirstrange(mid+1, up, a, lst)
-end
-
 
 # The "support set" is the set of sectors whose fine strand
 # has non-trivial cohomology in cohomological degree `p`.
