@@ -193,7 +193,15 @@ function produce_entry_on_initial_page(cssp::CSSPage, i::Int, j::Int)
   degs = degrees_of_generators(F)
   ctx = pushforward_ctx(cssp)
   kk = coefficient_ring(graded_ring(cssp))
-  summands = FreeMod{elem_type(kk)}[cohomology_model(ctx, -d)[j] for d in degs]
+  summands = sizehint!(FreeMod{elem_type(kk)}[], length(degs))
+  for d in degs
+    coh_mod = cohomology_model(ctx, -d)
+    if !can_compute_index(coh_mod, j)
+      push!(summands, FreeMod(kk, 0))
+      continue
+    end
+    push!(summands, coh_mod[j])
+  end
   is_empty(summands) && return FreeMod(kk, 0)
   return direct_sum(summands)[1]
 end
@@ -355,8 +363,8 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     # To bring everything to the same denominator in the Cech complex 
     # we need to find a common exponent.
     exps = Vector{Int}[v[i][1] for (i, c) in u_coords]
-    exps = vcat(exps, Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in unique(inter_degs)])
-    exps = vcat(exps, Vector{Int}[_minimal_exponent_vector(ctx, -d) for d in unique(cod_degs)])
+    exps = vcat(exps, Vector{Int}[ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, -d), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, -d) for d in unique(inter_degs)])
+    exps = vcat(exps, Vector{Int}[ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, -d), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, -d) for d in unique(cod_degs)])
     sup_exp = Int[maximum([e[i] for e in exps]; init=0) for i in 1:length(first(exps))]
 
     buckets = Tuple{Int, FreeModElem}[]
@@ -385,7 +393,7 @@ function produce_lifted_kernel_generators(cssp::CSSPage, i::Int, j::Int)
     coh_rem = zero(css[1, ii, jj])
     for (i, v) in buckets
       is_zero(v) && continue
-      e0 = _minimal_exponent_vector(ctx, -inter_degs[i])
+      e0 = ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, -inter_degs[i]), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, -inter_degs[i])
       pr1 = ctx[sup_exp, e0, -inter_degs[i]][jj]
       @assert parent(v) === domain(pr1)
       pr2 = cohomology_model_projection(ctx, -inter_degs[i], jj)
@@ -595,7 +603,7 @@ function cohomology_injection_map(
     is_zero(Oscar.codomain(pr)) && continue
     inc = cohomology_model_inclusion(ctx, -degs[k], j)
     @assert Oscar.codomain(pr) === domain(inc)
-    e0 = _minimal_exponent_vector(ctx, -degs[k])
+    e0 = ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, -degs[k]), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, -degs[k])
     phi = ctx[e0, exps, -degs[k]][j]
     @assert Oscar.codomain(inc) === domain(phi)
     @assert Oscar.codomain(phi) === domain(canonical_injection(codomain, k))
@@ -639,7 +647,7 @@ function check_sanity(cssp::CSSPage, i::Int, j::Int; error_on_false::Bool=true)
     end
   end
   # check sanity of the generators
-  exps = [_minimal_exponent_vector(ctx, -d) for d in degrees_of_generators(cplx[i])]
+  exps = [ctx isa NewToricCtx ? fill(_minimal_exponent_vector(ctx, -d), ngens(irrelevant_ideal(toric_variety(ctx)))) : _minimal_exponent_vector(ctx, -d) for d in degrees_of_generators(cplx[i])]
   e = Int[maximum([a[i] for a in exps]) for i in 1:nvars(S)]
   for (k, g) in enumerate(gens(cssp[i, j]))
     rep_g = repres(g)
