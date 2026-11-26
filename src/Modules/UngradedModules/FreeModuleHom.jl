@@ -483,8 +483,6 @@ end
   solve_init(matrix(h))
 end
 
-AbstractAlgebra.Solve.solve_context_type(::Type{QQField}) = AbstractAlgebra.Solve.SolveCtx{QQFieldElem, AbstractAlgebra.Solve.RREFTrait, QQMatrix, QQMatrix, QQMatrix}
-
 function kernel_atomic(h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}) where {T<:Union{ZZRingElem, FieldElem}}
   K = kernel(kernel_ctx(h); side=:left)
   F = domain(h)
