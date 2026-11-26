@@ -774,6 +774,7 @@ end
 function set_global_exponent_vector!(ctx::ToricCtx, v::Vector{Int})
   @assert length(v) == length(cech_complex_generators(ctx)) "exponent vector needs to have the same length as the generators for the `irrelevant_ideal`"
   ctx.fixed_exponent_vector = v
+  return ctx
 end
 
 function set_global_exponent_vector!(ctx::ToricCtx, k::Int)
@@ -1218,18 +1219,18 @@ function getindex(ctx::ToricCtxWithParams, alpha::Vector{Int}, beta::Vector{Int}
     end
   elseif all(a >= b for (a, b) in zip(alpha, beta)) 
     # TODO: Make the stuff below work with base change, too.
-    if ctx.pure_ctx.algorithm == :cech
+    if ctx.pure_ctx isa ToricCtx && ctx.pure_ctx.algorithm == :cech
       return get!(ctx.strand_projections, (alpha, beta, d)) do
         SummandProjection(ctx[beta, alpha, d]; check=false)
       end
-    elseif ctx.pure_ctx.algorithm == :ext
+    elseif ctx.pure_ctx isa NewToricCtx && ctx.pure_ctx.algorithm == :ext
       return get!(ctx.strand_projections, (alpha, beta, d)) do
         HomologyPseudoInverse(ctx[beta, alpha, d])
       end
     else
       error("algorithm not recognized")
     end
-  elseif ctx.pure_ctx.algorithm == :cech
+  elseif (ctx.pure_ctx isa EMSToricCtx) || (ctx.pure_ctx isa ToricCtx && ctx.pure_ctx.algorithm == :cech)
     c = Int[max(a, b) for (a, b) in zip(alpha, beta)]
     return compose(ctx[alpha, c, d], ctx[c, beta, d])
   end
