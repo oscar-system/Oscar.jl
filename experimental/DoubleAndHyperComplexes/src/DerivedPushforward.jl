@@ -1540,7 +1540,18 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.strands, (e, alpha)) do
     beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
-    return DirectSumComplex{FreeMod, FreeModuleHom}(AbsHyperComplex{FreeMod, FreeModuleHom}[fine_strand(ctx, ee.-e) for ee in all_mons])
+    if is_empty(all_mons)
+      # in case of an empty list we still need to return a complex which 
+      # produces zero modules in degrees from -dim(X) to 0. This is required 
+      # by the machinery for spectral sequences. The easiest way to do this 
+      # is to just quickly compile such a complex manually. 
+      zm = FreeMod(kk, 0)
+      zmm = hom(zm, zm, elem_type(zm)[])
+      d = dim(toric_variety(ctx))
+      res = SimpleComplexWrapper(ComplexOfMorphisms([zmm for _ in 1:d]; seed = -d))
+      return res
+    end
+    return DirectSumComplex{FreeMod, FreeModuleHom}(AbsHyperComplex{FreeMod, FreeModuleHom}[fine_strand(ctx, ee.-e) for ee in all_mons]; dim=1, directions=[:chain])
   end
 end
 
@@ -1556,9 +1567,14 @@ function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
     @req G === grading_group(S) "incompatible grading groups"
     beta = e*sum(degree(x; check=false) for x in gens(S); init=zero(G))
     all_mons = all_monomials(ctx, alpha+beta)
-    summands = [simplified_fine_strand(ctx, ee .- e) for ee in all_mons]
+    summands = AbsHyperComplex{FreeMod, FreeModuleHom}[simplified_fine_strand(ctx, ee .- e) for ee in all_mons]
     @assert length(all_mons) == length(summands)
-    return DirectSumComplex{FreeMod, FreeModuleHom}(summands)
+    if is_empty(all_mons)
+      zm = FreeMod(kk, 0)
+      zmm = hom(zm, zm, elem_type(zm)[])
+      return SimpleComplexWrapper(ComplexOfMorphisms([zmm for _ in 1:dim(toric_variety(ctx))]; seed = -dim(toric_variety(ctx))))
+    end
+    return DirectSumComplex{FreeMod, FreeModuleHom}(summands; dim=1, directions=[:chain])
   end
 end
 
