@@ -38,7 +38,14 @@ if !isdefined(Main, :test_upgrade_folder) || isinteractive()
       type_str in exclude_types && continue
       !isnothing(only) && !(type_str in only_types) && !(haskey(only_type_ids, type_str)) && continue
       # the folders are named after the type names at the time of saving
-      T = Oscar.Serialization.reverse_type_map[get(Oscar.Serialization.renamings_1_9_0, type_str, type_str)]
+      renamed = get(Oscar.Serialization.renamings_1_9_0, type_str, type_str)
+      if renamed isa AbstractDict
+        T = Oscar.Serialization.reverse_type_map[renamed["name"]][renamed["_instance"]]
+      else
+        T = Oscar.Serialization.reverse_type_map[renamed]
+        # names shared by several types are told apart by `_instance`
+        T isa AbstractDict && (T = Union{values(T)...})
+      end
       @testset "$T" begin
         for filename in readdir(joinpath(type_folders, dir_name))
           if haskey(exclude_type_ids, type_str)
