@@ -59,13 +59,20 @@ end
 ################################################################################
 # Serialization info
 
+# files without an OSCAR version only use the mrdi namespace and need no
+# OSCAR upgrades
 function serialization_version_info(ns_dict::JSON.Object{String, Any})
   ns = ns_dict[:_ns]
+  :Oscar in propertynames(ns) || return VERSION_NUMBER
   version_info = ns[:Oscar][2]
   return version_number(version_info)
 end
 
-serialization_version_info(obj::JSON.LazyValue) = version_number(obj[:_ns][:Oscar][2][])
+function serialization_version_info(obj::JSON.LazyValue)
+  ns = obj[:_ns]
+  :Oscar in propertynames(ns) || return VERSION_NUMBER
+  return version_number(ns[:Oscar][2][])
+end
 
 
 function version_number(v_number::String)
@@ -99,6 +106,7 @@ function get_oscar_serialization_version()
       :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
     )
   end
+  result[:mrdi] = [mrdi_namespace_url, string(mrdi_namespace_version)]
   return oscar_serialization_version[] = result
 end
 
@@ -123,6 +131,10 @@ function encode_type(::Type{T}) where T
     """
   )
 end
+
+# name of a registered type among the types sharing its encoding,
+# defined by `@register_serialization_type`
+function encode_instance end
 
 function node_is_string(s::DeserializerState)::Bool
   s.obj isa JSON.LazyValue || s.obj isa AbstractDict || return false
@@ -301,7 +313,7 @@ end
 
 function save_typed_object(s::SerializerState, x::T) where T
   if Base.issingletontype(T)
-    save_object(s, encode_type(T), type_key)
+    save_type_name(s, T, type_key)
   else
     save_type_and_params(s, x, type_key)
     save_object(s, x, :data)
@@ -340,12 +352,11 @@ end
 function save_type_and_params(s::SerializerState, tp::TypeAndParams)
   save_data_dict(s) do
     T = type(tp)
-    type_encoding = encode_type(T)
-    if reverse_type_map[type_encoding] isa Dict
-      save_object(s, convert_type_to_string(T), :_instance)
+    if reverse_type_map[encode_type(T)] isa Dict
+      save_object(s, encode_instance(T), :_instance)
     end
-    
-    save_object(s, type_encoding, :name)
+
+    save_type_name(s, T)
 
     # params(tp) isa TypeAndParams if the type isa container type
     if params(tp) isa TypeAndParams
@@ -358,14 +369,13 @@ end
 
 function save_type_and_params(s::SerializerState,
                           ::TypeAndParams{T, Nothing}) where T
-  type_encoding = encode_type(T)
-  if reverse_type_map[type_encoding] isa Dict
+  if reverse_type_map[encode_type(T)] isa Dict
     save_data_dict(s) do
-      save_object(s, type_encoding, :name)
-      save_object(s, convert_type_to_string(T), :_instance)
+      save_type_name(s, T)
+      save_object(s, encode_instance(T), :_instance)
     end
   else
-    save_object(s, type_encoding)
+    save_type_name(s, T, nothing)
   end
 end
 
@@ -388,11 +398,11 @@ end
 function save_type_and_params(s::SerializerState,
                           tp::TypeAndParams{T, <:Tuple{Vararg{Pair}}}) where T
   save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
+    save_type_name(s, T)
     save_data_dict(s, :params) do
       for param in params(tp)
         if param.second isa Type
-          save_object(s, encode_type(param.second), Symbol(param.first))
+          save_type_name(s, param.second, Symbol(param.first))
         elseif !(param.second isa TypeAndParams)
           if param.second isa Tuple
             save_data_array(s, Symbol(param.first)) do
@@ -426,8 +436,8 @@ end
 function load_type_array_params(s::DeserializerState)
   load_array_node(s) do _
     T = decode_type(s)
-    if node_is_string(s)
-      !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
+    if is_type_without_params(s)
+      node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
       return TypeAndParams(T, nothing)
     end
     haskey(s, type_key) && return load_typed_object(s)
@@ -436,16 +446,15 @@ function load_type_array_params(s::DeserializerState)
 end
 
 function load_type_and_params(s::DeserializerState, T::Type)
-  if node_is_string(s)
-    val = load_json(s, String)
-    !isnothing(tryparse(UUID, val)) && return TypeAndParams(T, load_ref(s))
+  if is_type_without_params(s)
+    node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return TypeAndParams(T, load_ref(s))
     return TypeAndParams(T, nothing)
   end
   if haskey(s, :params)
     load_node(s, :params) do
       if node_is_array(s)
         p = load_type_array_params(s)
-      elseif node_is_string(s) || haskey(s, :params)
+      elseif is_type_without_params(s) || haskey(s, :params)
         U = decode_type(s)
         if Base.issingletontype(U)
           p = U()
@@ -464,9 +473,8 @@ function load_type_and_params(s::DeserializerState, T::Type)
               return load_typed_object(s)
             end
             U = decode_type(s)
-            if node_is_string(s)
-              uuid_str = load_json(s, String)
-              !isnothing(tryparse(UUID, uuid_str)) && return load_ref(s)
+            if is_type_without_params(s)
+              node_is_string(s) && !isnothing(tryparse(UUID, load_json(s, String))) && return load_ref(s)
               return TypeAndParams(U, nothing)
             end
             return load_type_and_params(s, U)
@@ -561,11 +569,11 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
     init = reverse_type_map[str]
     # promote the value to a dictionary if necessary
     if init isa Type
-      init = Dict{String, Type}(convert_type_to_string(init) => init)
+      init = Dict{String, Type}(encode_instance(init) => init)
     end
-    reverse_type_map[str] = merge(Dict{String, Type}(convert_type_to_string(T) => T), init)
+    reverse_type_map[str] = merge(Dict{String, Type}(encode_instance(T) => T), init)
   elseif default
-    reverse_type_map[str] = Dict{String, Type}(convert_type_to_string(T) => T)
+    reverse_type_map[str] = Dict{String, Type}(encode_instance(T) => T)
   else
     reverse_type_map[str] = T
   end
@@ -600,8 +608,10 @@ serialize_with_id(obj::Any) = false
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, attrs::Any, default::Bool)
   return esc(
     quote
-      Oscar.Serialization.register_serialization_type($ex, $str, $default)
       Oscar.Serialization.encode_type(::Type{<:$ex}) = $str
+      # the `_instance` of `$ex` among the types sharing the name `$str`
+      Oscar.Serialization.encode_instance(::Type{<:$ex}) = $(string(ex))
+      Oscar.Serialization.register_serialization_type($ex, $str, $default)
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
       # The ids are only necessary for parent types, checking for element type equality
@@ -732,6 +742,7 @@ include("QuadForm.jl")
 include("GAP.jl")
 include("Groups.jl")
 include("LieTheory.jl")
+include("mrdi.jl")
 
 include("Upgrades/main.jl")
 include("parallel.jl")
@@ -889,7 +900,7 @@ function _load_with_state(do_load, io::IO, serializer::OscarSerializer, with_att
   end
 
   load_node(s, :_ns) do
-    @req :Oscar in propertynames(s.obj) "Not an Oscar object"
+    @req (:Oscar in propertynames(s.obj) || :mrdi in propertynames(s.obj)) "Neither an Oscar nor an mrdi object"
   end
 
   # deal with upgrades

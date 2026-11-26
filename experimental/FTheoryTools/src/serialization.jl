@@ -262,8 +262,12 @@ function _load_common_parts(s::DeserializerState, tp::TypeAndParams)
   return def_poly, explicit_model_sections, model_section_parametrization, defining_classes
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:WeierstrassModel, <:Tuple{Vararg{Pair}}})
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
+function load_object(
+  s::DeserializerState, tp::TypeAndParams{<:WeierstrassModel,<:Tuple{Vararg{Pair}}}
+)
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
+    s, tp
+  )
   model = WeierstrassModel(
     explicit_model_sections,
     model_section_parametrization,
@@ -275,8 +279,12 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:WeierstrassModel,
   return model
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:GlobalTateModel, <:Tuple{Vararg{Pair}}})
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
+function load_object(
+  s::DeserializerState, tp::TypeAndParams{<:GlobalTateModel,<:Tuple{Vararg{Pair}}}
+)
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
+    s, tp
+  )
   model = GlobalTateModel(
     explicit_model_sections,
     model_section_parametrization,
@@ -288,8 +296,12 @@ function load_object(s::DeserializerState, tp::TypeAndParams{<:GlobalTateModel, 
   return model
 end
 
-function load_object(s::DeserializerState, tp::TypeAndParams{<:HypersurfaceModel, <:Tuple{Vararg{Pair}}})
-  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(s, tp)
+function load_object(
+  s::DeserializerState, tp::TypeAndParams{<:HypersurfaceModel,<:Tuple{Vararg{Pair}}}
+)
+  def_poly, explicit_model_sections, model_section_parametrization, defining_classes = _load_common_parts(
+    s, tp
+  )
   defining_equation_parametrization = load_object(
     s,
     TypeAndParams(MPolyRingElem, tp[:hypersurface_equation_parametrization_ring]),

@@ -4,7 +4,7 @@
 
 ################################################################################
 # field of rationals (singleton type)
-@register_serialization_type QQField
+@register_serialization_type QQField "Rationals"
 
 ################################################################################
 # type_and_params for field extension types
@@ -120,7 +120,7 @@ end
 # FqField
 
 @register_serialization_type FqField "FiniteField" uses_id default
-@register_serialization_type FqFieldElem
+@register_serialization_type FqFieldElem "FiniteFieldElement"
 
 function type_and_params(K::FqField)
   absolute_degree(K) == 1 && return TypeAndParams(FqField, nothing)
