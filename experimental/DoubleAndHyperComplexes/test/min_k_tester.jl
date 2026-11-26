@@ -50,7 +50,7 @@ sample_spaces = [P1, two_dim_sample_varieties..., three_dim_sample_varieties...]
 
 function all_cohomologies_with_local_cohomology(l::ToricLineBundle)
   g = divisor_class(toric_divisor_class(l))
-  cplx = Oscar.cohomology_model(Oscar.NewToricCtx(toric_variety(l)), g)
+  cplx = Oscar.cohomology_model(Oscar.EMSToricCtx(toric_variety(l)), g)
   return [ZZ(rank(cplx[-k])) for k in 0:dim(toric_variety(l))]
 end
 

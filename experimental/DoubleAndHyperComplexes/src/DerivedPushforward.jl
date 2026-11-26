@@ -927,7 +927,7 @@ end
 # `ToricCtx`, with possibly more functionality. 
 ########################################################################
 
-mutable struct NewToricCtx
+mutable struct EMSToricCtx
   fixed_exponent_vector::Union{Nothing, Int} # If this field is set, then it is used for all computations
   X::NormalToricVariety
   S::MPolyRing
@@ -960,7 +960,7 @@ mutable struct NewToricCtx
   fine_graded_ring::MPolyRing
   sample_complex::AbsHyperComplex
 
-  function NewToricCtx(X::NormalToricVariety)
+  function EMSToricCtx(X::NormalToricVariety)
     @req is_projective(X) "Currently only implemented for projective toric varieties"
 
     # Check for some further potential inconsistencies
@@ -999,14 +999,14 @@ mutable struct NewToricCtx
   end
 end
 
-function set_fixed_exponent_vector!(ctx::NewToricCtx, k::Vector{Int})
+function set_fixed_exponent_vector!(ctx::EMSToricCtx, k::Vector{Int})
   @assert all(a == first(k) for a in k)
   return set_fixed_exponent_vector!(ctx, first(k))
 end
 
 # Even though it's not really a vector, the name is kept for historic 
 # reasons and for probable future changes.
-function set_fixed_exponent_vector!(ctx::NewToricCtx, k::Int)
+function set_fixed_exponent_vector!(ctx::EMSToricCtx, k::Int)
   ctx.fixed_exponent_vector = k
   return ctx
 end
@@ -1036,7 +1036,7 @@ end
 # transformation pattern. 
 ########################################################################
 mutable struct ToricCtxWithParams
-  pure_ctx::Union{ToricCtx, NewToricCtx}
+  pure_ctx::Union{ToricCtx, EMSToricCtx}
   R::Ring
   truncated_cech_complexes::Dict{Vector{Int}, AbsHyperComplex}
   inclusions::Dict{Tuple{Vector{Int}, Vector{Int}}, AbsHyperComplexMorphism}
@@ -1056,7 +1056,7 @@ mutable struct ToricCtxWithParams
   mult_map_cache::Dict{Tuple{Vector{Int}, FinGenAbGroupElem, Int}, WeakKeyDict}
   transfer::Map
 
-  function ToricCtxWithParams(pure_ctx::Union{ToricCtx, NewToricCtx}, 
+  function ToricCtxWithParams(pure_ctx::Union{ToricCtx, EMSToricCtx}, 
       transfer::Map
     )
     X = toric_variety(pure_ctx)
@@ -1247,7 +1247,7 @@ function change_base_ring(bc::Any, f::OFPModuleHom{DT, CT, Nothing};
 end
 
 function _minimal_exponent_vector(ctx::ToricCtxWithParams, m::FinGenAbGroupElem)
-  if ctx.pure_ctx isa NewToricCtx
+  if ctx.pure_ctx isa EMSToricCtx
     e = _minimal_exponent_vector(ctx.pure_ctx, m)
     return Int[e for _ in 1:ngens(irrelevant_ideal(toric_variety(ctx)))]
   end
@@ -1420,14 +1420,14 @@ function optimal_k(X::NormalToricVariety, i::Int, alpha::FinGenAbGroupElem)
 end
 
 ########################################################################
-# Functionality for NewToricCtx
+# Functionality for EMSToricCtx
 # 
 # This implements the usual interface for `PushForwardCtx` and friends.
 ########################################################################
-toric_variety(ctx::NewToricCtx) = ctx.X
-graded_ring(ctx::NewToricCtx) = ctx.S
+toric_variety(ctx::EMSToricCtx) = ctx.X
+graded_ring(ctx::EMSToricCtx) = ctx.S
 
-function ring_as_hypercomplex(ctx::NewToricCtx)
+function ring_as_hypercomplex(ctx::EMSToricCtx)
   if !isdefined(ctx, :S1)
     S = graded_ring(ctx)
     ctx.S1 = ZeroDimensionalComplex(graded_free_module(S, [zero(grading_group(S))]))
@@ -1436,14 +1436,14 @@ function ring_as_hypercomplex(ctx::NewToricCtx)
 end
 
 # internal method for the generators of the irrelevant ideal
-function cech_complex_generators(ctx::NewToricCtx)
+function cech_complex_generators(ctx::EMSToricCtx)
   if !isdefined(ctx, :cech_gens)
     ctx.cech_gens = gens(irrelevant_ideal(toric_variety(ctx)))
   end
   return ctx.cech_gens::Vector{elem_type(graded_ring(ctx))}
 end
 
-# The idea underlying the `NewToricCtx` is to model each strand from 
+# The idea underlying the `EMSToricCtx` is to model each strand from 
 # its components in the fine grading of the Cech complex. See the paper 
 # by Eisenbud, Mustata, and Stillman from '00. 
 #   The fine grading is the grading by the exponent vectors of the 
@@ -1452,7 +1452,7 @@ end
 # integer using its binary digits. 
 
 # obtain all monomials of a given degree in the Cox ring. 
-function all_monomials(ctx::NewToricCtx, alpha::FinGenAbGroupElem)
+function all_monomials(ctx::EMSToricCtx, alpha::FinGenAbGroupElem)
   return get!(ctx.all_monomial_cache, alpha) do
     S = graded_ring(ctx)
     collect(all_exponents(S, alpha))
@@ -1460,14 +1460,14 @@ function all_monomials(ctx::NewToricCtx, alpha::FinGenAbGroupElem)
 end
 
 # obtain a dictionary for the inverse mapping of the above
-function all_monomials_inv(ctx::NewToricCtx, alpha::FinGenAbGroupElem)
+function all_monomials_inv(ctx::EMSToricCtx, alpha::FinGenAbGroupElem)
   return get!(ctx.all_monomial_inv_dicts, alpha) do
     Dict{Vector{Int}, Int}(e=>i for (i, e) in enumerate(all_monomials(ctx, alpha)))
   end
 end
 
 # get the Cox ring with its fine grading
-function fine_graded_ring(ctx::NewToricCtx)
+function fine_graded_ring(ctx::EMSToricCtx)
   if !isdefined(ctx, :fine_graded_ring)
     S = graded_ring(ctx)
     P = forget_grading(S)
@@ -1479,7 +1479,7 @@ function fine_graded_ring(ctx::NewToricCtx)
 end
 
 # get the sample complex Hom(P*, S) for the resolution P* of the `irrelevant_ideal`. 
-function sample_complex(ctx::NewToricCtx)
+function sample_complex(ctx::EMSToricCtx)
   if !isdefined(ctx, :sample_complex)
     S = fine_graded_ring(ctx)
     X = toric_variety(ctx)
@@ -1492,18 +1492,18 @@ function sample_complex(ctx::NewToricCtx)
 end
 
 # selects directly the sector for this degree
-function fine_strand(ctx::NewToricCtx, e::FinGenAbGroupElem)
+function fine_strand(ctx::EMSToricCtx, e::FinGenAbGroupElem)
   return fine_strand(ctx, Int[Int(e[i]) for i in 1:ngens(parent(e))])
 end
 
-function fine_strand(ctx::NewToricCtx, e::Vector{Int})
+function fine_strand(ctx::EMSToricCtx, e::Vector{Int})
   k = sum(((c<0) << (k-1)) for (k, c) in enumerate(e); init=0)
   return fine_strand(ctx, k)
 end
 
 # p is considered as a binary vector with its i-th digit ==1 if 
 # and only if the imagined exponent vector has its i-th component < 0.
-function fine_strand(ctx::NewToricCtx, p::Int)
+function fine_strand(ctx::EMSToricCtx, p::Int)
   return get!(ctx.fine_strands, p) do
     FS = fine_graded_ring(ctx)
     FG = grading_group(FS)
@@ -1513,26 +1513,26 @@ function fine_strand(ctx::NewToricCtx, p::Int)
   end
 end
 
-function simplified_fine_strand(ctx::NewToricCtx, p::Int)
+function simplified_fine_strand(ctx::EMSToricCtx, p::Int)
   return get!(ctx.simplified_fine_strands, p) do
     simplify(fine_strand(ctx, p); with_homotopy_maps=true)
   end
 end
 
-function simplified_fine_strand(ctx::NewToricCtx, e::FinGenAbGroupElem)
+function simplified_fine_strand(ctx::EMSToricCtx, e::FinGenAbGroupElem)
   return simplified_fine_strand(ctx, Int[e[i] for i in 1:ngens(parent(e))])
 end
 
-function simplified_fine_strand(ctx::NewToricCtx, e::Vector{Int})
+function simplified_fine_strand(ctx::EMSToricCtx, e::Vector{Int})
   k = sum(((c<0) << (k-1)) for (k, c) in enumerate(e); init=0)
   return simplified_fine_strand(ctx, k)
 end
 
-function getindex(ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
+function getindex(ctx::EMSToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
   return getindex(ctx, first(e), alpha)
 end
 
-function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
+function getindex(ctx::EMSToricCtx, e::Int, alpha::FinGenAbGroupElem)
   G = parent(alpha)
   S = graded_ring(ctx)
   kk = coefficient_ring(S)
@@ -1555,11 +1555,11 @@ function getindex(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
   end
 end
 
-function simplified_strand(ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
+function simplified_strand(ctx::EMSToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem)
   return simplified_strand(ctx, first(e), alpha)
 end
 
-function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
+function simplified_strand(ctx::EMSToricCtx, e::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.simplified_strands, (e, alpha)) do
     G = parent(alpha)
     S = graded_ring(ctx)
@@ -1579,7 +1579,7 @@ function simplified_strand(ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem)
 end
 
 function induced_cohomology_map(
-    ctx::NewToricCtx, e0::Vector{Int},
+    ctx::EMSToricCtx, e0::Vector{Int},
     e1::Vector{Int}, alpha::FinGenAbGroupElem,
     i::Int
   )
@@ -1587,7 +1587,7 @@ function induced_cohomology_map(
 end
 
 function induced_cohomology_map(
-    ctx::NewToricCtx, e0::Int,
+    ctx::EMSToricCtx, e0::Int,
     e1::Int, alpha::FinGenAbGroupElem,
     i::Int
   )
@@ -1621,13 +1621,13 @@ function induced_cohomology_map(
 end
 
 function simplified_strand_homotopy(
-    ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
+    ctx::EMSToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
   )
   return simplified_strand_homotopy(ctx, first(e), alpha, p)
 end
 
 function simplified_strand_homotopy(
-    ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
+    ctx::EMSToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
   )
   return get!(ctx.simplified_strand_homotopies, (e, alpha, p)) do
     dom = ctx[e, alpha][p]
@@ -1659,13 +1659,13 @@ function simplified_strand_homotopy(
 end
 
 function simplified_strand_inclusion(
-    ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
+    ctx::EMSToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
   )
   return simplified_strand_inclusion(ctx, first(e), alpha, p)
 end
 
 function simplified_strand_inclusion(
-    ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
+    ctx::EMSToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
   )
   return get!(ctx.simplified_strand_inclusions, (e, alpha, p)) do
     dom = simplified_strand(ctx, e, alpha)[p]
@@ -1681,13 +1681,13 @@ function simplified_strand_inclusion(
 end
 
 function simplified_strand_projection(
-    ctx::NewToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
+    ctx::EMSToricCtx, e::Vector{Int}, alpha::FinGenAbGroupElem, p::Int
   )
   return simplified_strand_projection(ctx, first(e), alpha, p)
 end
 
 function simplified_strand_projection(
-    ctx::NewToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
+    ctx::EMSToricCtx, e::Int, alpha::FinGenAbGroupElem, p::Int
   )
   return get!(ctx.simplified_strand_projections, (e, alpha, p)) do
     cod = simplified_strand(ctx, e, alpha)[p]
@@ -1702,23 +1702,23 @@ function simplified_strand_projection(
   end
 end
 
-function cohomology_model(ctx::NewToricCtx, d::FinGenAbGroupElem)
+function cohomology_model(ctx::EMSToricCtx, d::FinGenAbGroupElem)
   return get!(ctx.cohomology_models, d) do
     simplified_strand(ctx, _minimal_exponent_vector(ctx, d), d)
   end
 end
 
-function cohomology_model_inclusion(ctx::NewToricCtx, d::FinGenAbGroupElem, i::Int)
+function cohomology_model_inclusion(ctx::EMSToricCtx, d::FinGenAbGroupElem, i::Int)
   return simplified_strand_inclusion(ctx, _minimal_exponent_vector(ctx, d), d, i)
 end
 
-function cohomology_model_projection(ctx::NewToricCtx, d::FinGenAbGroupElem, i::Int)
+function cohomology_model_projection(ctx::EMSToricCtx, d::FinGenAbGroupElem, i::Int)
   return simplified_strand_projection(ctx, _minimal_exponent_vector(ctx, d), d, i)
 end
 
 # return the minimal exponent `e`  such that the whole 
 # cohomology in degree `m` is contained in the truncated complex for `e`.
-function _minimal_exponent_vector(ctx::NewToricCtx, m::FinGenAbGroupElem)
+function _minimal_exponent_vector(ctx::EMSToricCtx, m::FinGenAbGroupElem)
   !isnothing(ctx.fixed_exponent_vector) && return ctx.fixed_exponent_vector::Int
   return get!(ctx.exp_vec_cache, m) do
     X = toric_variety(ctx)
@@ -1726,11 +1726,11 @@ function _minimal_exponent_vector(ctx::NewToricCtx, m::FinGenAbGroupElem)
   end
 end
 
-function getindex(ctx::NewToricCtx, e0::Vector{Int}, e1::Vector{Int}, alpha::FinGenAbGroupElem)
+function getindex(ctx::EMSToricCtx, e0::Vector{Int}, e1::Vector{Int}, alpha::FinGenAbGroupElem)
   return getindex(ctx, first(e0), first(e1), alpha)
 end
 
-function getindex(ctx::NewToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
+function getindex(ctx::EMSToricCtx, e0::Int, e1::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.strand_inclusions, (e0, e1, alpha)) do
     S = graded_ring(ctx)
     G = grading_group(S)
@@ -1765,14 +1765,14 @@ end
 # Multiplication by a monomial depends only on the transition 
 # of sectors that it realizes. Again, this can be encoded in 
 # a pair of integers, for which we draw from a dictionary. 
-function sample_multiplication(ctx::NewToricCtx, e0::Vector{Int}, e1::Vector{Int})
+function sample_multiplication(ctx::EMSToricCtx, e0::Vector{Int}, e1::Vector{Int})
   @assert all(i <= j for (i, j) in zip(e0, e1))
   return sample_multiplication(ctx, sum((i < 0) << (k-1) for (k, i) in enumerate(e0); init=0),
                                sum((i < 0) << (k-1) for (k, i) in enumerate(e1); init=0)
                               )
 end
 
-function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
+function sample_multiplication(ctx::EMSToricCtx, e0::Int, e1::Int)
   return get!(ctx.fine_strand_morphisms, (e0, e1)) do
     dom = fine_strand(ctx, e0)
     cod = fine_strand(ctx, e1)
@@ -1795,7 +1795,7 @@ function sample_multiplication(ctx::NewToricCtx, e0::Int, e1::Int)
 end
 
 function multiplication_map(
-    ctx::NewToricCtx, 
+    ctx::EMSToricCtx, 
     p::MPolyDecRingElem,
     e0::Vector{Int}, alpha::FinGenAbGroupElem, 
     j::Int
@@ -1804,7 +1804,7 @@ function multiplication_map(
 end
 
 function multiplication_map(
-    ctx::NewToricCtx, 
+    ctx::EMSToricCtx, 
     p::MPolyDecRingElem,
     e0::Int, alpha::FinGenAbGroupElem, 
     j::Int
@@ -1872,7 +1872,7 @@ end
 # Smith MacLaghan), but since we will need the fine graded 
 # strands anyway, we compute the support set directly and 
 # cache the data obtained on the fly. 
-function support_set(ctx::NewToricCtx, p::Int)
+function support_set(ctx::EMSToricCtx, p::Int)
   return get!(ctx.support_sets, p) do 
     X = toric_variety(ctx)
     S = graded_ring(ctx)
@@ -1901,7 +1901,7 @@ end
 # vector is so that the cohomology is contained in a shifted orthant 
 # whose shift vector has all the same components. Maybe we can flexibilize 
 # this? However, this has not shown to be the bottleneck in applications, yet.
-function optimal_k(ctx::NewToricCtx, i::Int, alpha::FinGenAbGroupElem)
+function optimal_k(ctx::EMSToricCtx, i::Int, alpha::FinGenAbGroupElem)
   return get!(ctx.optimal_ks, (i, alpha)) do
     X = toric_variety(ctx)
     k = 0
