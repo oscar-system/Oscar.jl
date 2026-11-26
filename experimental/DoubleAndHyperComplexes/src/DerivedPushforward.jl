@@ -1865,9 +1865,9 @@ function _findfirstrange(low::Int, up::Int, a::Int, lst::Vector{UnitRange{Int}})
 end
 
 
-# The "support set" is the set of cohomological degrees 
-# for the sector labeled by `p`, for which the fine strand 
-# has non-trivial cohomology. This is usually computed by 
+# The "support set" is the set of sectors whose fine strand
+# has non-trivial cohomology in cohomological degree `p`.
+# This is usually computed by
 # other means (see e.g. Eisenbud, Mustata, Stillman '00 or 
 # Smith MacLaghan), but since we will need the fine graded 
 # strands anyway, we compute the support set directly and 
