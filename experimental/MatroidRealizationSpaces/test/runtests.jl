@@ -309,3 +309,15 @@ end
     @test string.(inequations(loaded2)) == string.(inequations(RS2))
     @test string(realization_matrix(loaded2)) == string(realization_matrix(RS2))
 end
+
+@testset "load SelfProjectingMatroidRealizations serialized with 1.7.0" begin
+  # 0.mrdi is a complete database entry, 1.mrdi one without self-projecting data
+  dir = joinpath(Main.serialization_upgrade_test_path, "version_1_7_0", "SelfProjectingMatroidRealizations-1")
+  loaded = load(joinpath(dir, "0.mrdi"))
+  @test equality_of_realizationspaces(loaded) === true
+  @test dim_r(loaded) == 3
+  @test realization_space(loaded).one_realization === false
+  loaded = load(joinpath(dir, "1.mrdi"))
+  @test isnothing(selfprojecting_realization_space(loaded))
+  @test isnothing(equality_of_realizationspaces(loaded))
+end

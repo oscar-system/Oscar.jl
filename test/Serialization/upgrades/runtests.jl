@@ -72,6 +72,8 @@
     test_upgrade_folder("version_1_7_0"; exclude=[
       # upgrading the following is tested in experimental/AlgebraicStatistics/test/serialization-upgrades.jl
       "GroupBasedPhylogeneticModel",
+      # upgrading the following is tested in experimental/MatroidRealizationSpaces/test/runtests.jl
+      "SelfProjectingMatroidRealizations",
     ])
 
     # The main point is to test the relation between loaded objects.
@@ -91,16 +93,6 @@
     @test GAP.Globals.FamilyObj(GapObj(G)) === GAP.Globals.FamilyObj(GapObj(H))
     @test GAP.Globals.FamilyObj(GapObj(F)) !== GAP.Globals.FamilyObj(GapObj(G))
     @test GAP.Globals.FamilyObj(GapObj(P)) === GAP.Globals.FamilyObj(GapObj(S))
-
-    # 0.mrdi is a complete database entry, 1.mrdi one without self-projecting data
-    dir = joinpath(Main.serialization_upgrade_test_path, "version_1_7_0", "SelfProjectingMatroidRealizations-1")
-    loaded = load(joinpath(dir, "0.mrdi"))
-    @test equality_of_realizationspaces(loaded) === true
-    @test dim_r(loaded) == 3
-    @test realization_space(loaded).one_realization === false
-    loaded = load(joinpath(dir, "1.mrdi"))
-    @test isnothing(selfprojecting_realization_space(loaded))
-    @test isnothing(equality_of_realizationspaces(loaded))
   end
   @testset "load files serialized with 1.8.2" begin
     test_upgrade_folder("version_1_8_2")
