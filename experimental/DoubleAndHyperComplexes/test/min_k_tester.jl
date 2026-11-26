@@ -48,17 +48,11 @@ sample_spaces = [P1, two_dim_sample_varieties..., three_dim_sample_varieties...]
 # (2) Comparer
 ###################
 
-function all_cohomologies_with_local_cohomology(l::ToricLineBundle)
+function all_cohomologies_with_local_cohomology(l::ToricLineBundle; ctx=Oscar.EMSToricCtx(toric_variety(l)))
   g = divisor_class(toric_divisor_class(l))
-  cplx = Oscar.cohomology_model(Oscar.EMSToricCtx(toric_variety(l)), g)
+  cplx = Oscar.cohomology_model(ctx, g)
   return [ZZ(rank(cplx[-k])) for k in 0:dim(toric_variety(l))]
 end
-
-function martins_comparer(l::ToricLineBundle)
-  return all_cohomologies(l) == all_cohomologies_with_local_cohomology(l)
-end
-
-
 
 ###################
 # (3) Scanner
@@ -68,11 +62,14 @@ R = 1
 function run_exhaustive_tester()
   for (i, v) in enumerate(sample_spaces)
     r = rank(picard_group(v))
+    ctx = Oscar.EMSToricCtx(v)
     all_degrees = Iterators.product((-R:R for _ in 1:r)...)
     for my_deg_tuple in all_degrees
       my_deg = collect(my_deg_tuple)
       l = toric_line_bundle(v, my_deg)
-      @req martins_comparer(l) "Found counterexample for min_k computation for variety at position $i and line bundle degree $my_deg"
+      cc = all_cohomologies(l)
+      lc = all_cohomologies_with_local_cohomology(l; ctx)
+      @req cc == lc "Found counterexample for min_k computation for variety at position $i and line bundle degree $my_deg"
     end
   end
 end
