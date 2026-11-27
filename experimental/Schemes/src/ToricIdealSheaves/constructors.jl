@@ -187,17 +187,6 @@ function ideal_sheaf(X::NormalToricVarietyType, tau::Cone)
   return ideal_dict
 end
 
-# TODO: Why don't we have that already? Is this too expensive and 
-# we don't want to do it that way?
-function Base.in(tau::Cone, Sigma::PolyhedralFan)
-  # Check that all the rays of tau are also rays of Sigma
-  indices = [findfirst(==(v), rays(Sigma)) for v in rays(tau)]
-  any(isnothing, indices) && return false
-  # Now check that this cone is really in Sigma
-  all_cones = cones(Sigma)
-  return any(j->all(i -> all_cones[j, i], indices), 1:nrows(all_cones))
-end
-
 function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int)
   # We use CLS11, Proposition 5.2.10 and Exercise 5.2.5.
   IM = maximal_cones(IncidenceMatrix, X)
