@@ -1506,6 +1506,22 @@ end
   @test b == b0
 end
 
+@testset "tensor_product with minimal presentations" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  F = free_module(R, 1)
+  M = SubquoModule(F, [x*F[1], x*F[1]], [x^2*F[1]])
+  T0 = tensor_product(M, M)
+  T1 = tensor_product(M, M; minimal=true)
+  @test !is_zero(T0)
+  @test !is_zero(T1)
+  @test ngens(T1) <= ngens(T0)
+  pure1 = Oscar.tensor_pure_function(T1)
+  decomp1 = Oscar.tensor_generator_decompose_function(T1)
+  g = gen(T1, 1)
+  @test pure1(decomp1(g)...) == g
+  @test pure1(M[1] + M[2], M[1]) == pure1(M[1], M[1]) + pure1(M[2], M[1])
+end
+
 @testset "composition of morphisms" begin
   R, (x, y) = QQ[:x, :y]
   P, t = QQ[:t]
@@ -2397,4 +2413,20 @@ end
   fl, h = is_canonically_isomorphic_with_map(SubquoModule(F, [x*F[1]]), SubquoModule(G, [x*G[1]]))
   @test !fl
   @test all(is_zero, h.(gens(domain(h))))
+end
+
+@testset "kernel to subquotient representative reduction option" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+  F = free_module(R, 1)
+  A = R[x; y]
+  B = R[x^2; y^3; z^4]
+  M = SubquoModule(F, A, B)
+  G = free_module(R, 2)
+  phi = hom(G, M, [M[1], M[2]]; check=false)
+
+  K_reduced, _ = kernel(phi)
+  K_fast, _ = kernel(phi; reduce_generators=false)
+
+  @test all(r -> iszero(phi(r)), ambient_representatives_generators(K_reduced))
+  @test all(r -> iszero(phi(r)), ambient_representatives_generators(K_fast))
 end
