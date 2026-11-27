@@ -27,14 +27,9 @@ function tensor_matrices_of_operators(
   R = root_system(L)
   mats = [zero_matrix(SMat, ZZ, 1) for _ in operators]
   for i in 1:rank(R)
-    highest_weight_i = highest_weight[i]
-    iszero(highest_weight_i) && continue
-    mats = [
-      _tensor_product(mat_temp, mat_wi) for (mat_temp, mat_wi) in zip(
-        mats,
-        matrices_of_operators(L, highest_weight_i * fundamental_weight(R, i), operators),
-      )
-    ]
+    iszero(highest_weight[i]) && continue
+    weight_i = highest_weight[i] * fundamental_weight(R, i)
+    mats = _tensor_product.(mats, matrices_of_operators(L, weight_i, operators))
   end
   return mats
 end

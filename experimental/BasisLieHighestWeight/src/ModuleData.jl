@@ -55,6 +55,10 @@ function character(V::SimpleModuleData)
   return V.character
 end
 
+function similar_with_highest_weight(V::SimpleModuleData, lambda::WeightLatticeElem)
+  return SimpleModuleData(base_lie_algebra(V), lambda)
+end
+
 mutable struct DemazureModuleData{C<:FieldElem,LieT<:LieAlgebraElem{C}} <:
                ModuleData{C,LieT}
   L::LieAlgebra{C} # parent_type(LieT)
@@ -99,7 +103,7 @@ function character(V::DemazureModuleData)
     _char = demazure_character(
       ZZRingElem, base_lie_algebra(V), highest_weight(V), V.weyl_group_elem
     )
-    V.character = Dict([(w * inv_weyl_group_elem => k) for (w, k) in _char])
+    V.character = Dict(w * inv_weyl_group_elem => k for (w, k) in _char)
   end
   return V.character
 end
@@ -113,4 +117,8 @@ end
 
 function weyl_group_elem(V::DemazureModuleData)
   return V.weyl_group_elem
+end
+
+function similar_with_highest_weight(V::DemazureModuleData, lambda::WeightLatticeElem)
+  return DemazureModuleData(base_lie_algebra(V), lambda, weyl_group_elem(V))
 end
