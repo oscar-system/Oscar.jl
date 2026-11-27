@@ -243,6 +243,59 @@ end
     @test_throws MethodError atlas_groups_library(PcGroup)
   end
 
+  # The names and the number of tables of a selection must agree with
+  # `all_character_table_names`, and finding them must construct no table.
+  @testset "character tables" begin
+    L = character_table_library()
+    cache = Oscar.character_tables_by_id
+    @testset for (filters, ordered_by) in [
+      ((), nothing),
+      ((is_sporadic_simple, !is_duplicate_table), order),
+      ((number_of_conjugacy_classes => 5,), nothing),
+      ((order => 1:100, !is_abelian, is_atlas_character_table => false),
+        number_of_conjugacy_classes),
+      ((is_simple, !is_abelian, order => 1:59), nothing),
+    ]
+      S = find(L, filters...; ordered_by)
+      names = all_character_table_names(filters...; ordered_by)
+      ncached = length(cache)
+      @test collect(keys(S)) == names
+      @test length(S) == length(names)
+      @test isempty(S) == isempty(names)
+      @test length(cache) == ncached
+    end
+
+    S = find(L, is_sporadic_simple, !is_duplicate_table; ordered_by=order)
+    names = collect(keys(S))
+    tables = collect(S)
+    @test eltype(S) == Oscar.GAPGroupCharacterTable
+    @test tables isa Vector{Oscar.GAPGroupCharacterTable}
+    @test length(tables) == 26
+    @test identifier.(tables) == names
+    @test issorted(order.(tables))
+    @test first(S) === tables[1] === character_table("M11")
+    @test [identify(L, tbl) for tbl in S] == names
+
+    ps = collect(pairs(S))
+    @test first.(ps) == names
+    @test all(p -> p[2] === L[p[1]], ps)
+
+    # every admissible name is accepted, the identifier is the first one
+    @test L["L2(4)"] === L["a5"] === character_table("A5")
+    @test identify(L, L["L2(4)"]) == "A5"
+    @test haskey(L, "L2(4)") && !haskey(L, "J5")
+    @test_throws ArgumentError L["J5"]
+    @test_throws ArgumentError identify(L, character_table(symmetric_group(3)))
+    @test_throws ArgumentError identify(L, mod(L["A5"], 2))
+
+    @test_throws ArgumentError first(find(L, is_simple, !is_abelian, order => 1:59))
+    @test_throws ArgumentError find(L, 60)
+    @test_throws ArgumentError find(L, degree => 3)
+    @test_throws ArgumentError find(L, order)
+    @test_throws ArgumentError find(L; ordered_by=degree)
+    @test_throws MethodError find(small_groups_library(), 8; ordered_by=order)
+  end
+
   # only the GAP package SOTGrps provides the groups of order 2662
   @testset "small groups from SOTGrps" begin
     L = small_groups_library()
