@@ -60,6 +60,7 @@ GAP.@wrap ClassPositionsOfDerivedSubgroup(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfNormalSubgroups(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfPCore(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ClassPositionsOfSolvableResiduum(x::GapObj)::GapObj
+GAP.@wrap ClosureGroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CodePcgs(x::GapObj)::GAP.Obj
 GAP.@wrap Coefficients(x::Any, y::Any)::GapObj
 GAP.@wrap CoefficientsFamily(x::GapObj)::GapObj
@@ -341,6 +342,7 @@ GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj
 GAP.@wrap NaturalHomomorphismByNormalSubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap NextIterator(x::GapObj)::Any
 GAP.@wrap NiceGens(x::GapObj)::GapObj
+GAP.@wrap NiceMonomorphism(x::GapObj)::GapObj
 GAP.@wrap NormalClosure(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Normalizer(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap NormalSubgroupClasses(x::GapObj, y::GAP.Obj)::GapObj
