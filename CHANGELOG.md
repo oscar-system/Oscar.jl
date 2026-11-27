@@ -9,6 +9,225 @@ The following gives an overview of the changes compared to the previous releases
 complete, many more internal or minor changes were made, but we tried to only list those changes
 which we think might affect some users directly.
 
+## [1.9.0](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.9.0) - 2026-11-27
+
+### Combinatorics
+
+#### Only changes experimental parts of OSCAR
+
+- [#6207](https://github.com/oscar-system/Oscar.jl/pull/6207) Fixed bug in the matroid realization space code
+
+#### Miscellaneous changes
+
+- [#6137](https://github.com/oscar-system/Oscar.jl/pull/6137) Add `cycle_graph(::Int)`
+- [#6304](https://github.com/oscar-system/Oscar.jl/pull/6304) `is_isomorphic` working for labeled graphs
+- [#6504](https://github.com/oscar-system/Oscar.jl/pull/6504) Add induced_subcomplex for simplicial complexes
+- [#6538](https://github.com/oscar-system/Oscar.jl/pull/6538) Add internal unchecked `add_edge` method for graphs
+
+### Commutative Algebra
+
+#### New features or extended functionality
+
+- [#6168](https://github.com/oscar-system/Oscar.jl/pull/6168) Add generation of invariant polynomials via orbit sums for permutation groups
+- [#6277](https://github.com/oscar-system/Oscar.jl/pull/6277) Add some SAGBI basis functionalities
+- [#6380](https://github.com/oscar-system/Oscar.jl/pull/6380) Allow coefficient maps for Laurent polynomial rings
+
+#### Fixed bugs that resulted in unexpected errors
+
+- [#6281](https://github.com/oscar-system/Oscar.jl/pull/6281) Fix unexpected errors in `is_canonically_isomorphic`
+
+#### Miscellaneous changes
+
+- [#6264](https://github.com/oscar-system/Oscar.jl/pull/6264) Support monomial bases and homogeneous components for gradings with torsion
+- [#6477](https://github.com/oscar-system/Oscar.jl/pull/6477) Fix an issue with free resolutions of subquotients that are free in disguise
+- [#6505](https://github.com/oscar-system/Oscar.jl/pull/6505) Make `free_resolution` with `length = 0` return a length-zero resolution (it used to compute the full resolution, use `length = PosInf()` for that instead)
+- [#6518](https://github.com/oscar-system/Oscar.jl/pull/6518) Add `comprehensive_groebner_system`
+
+### Cryptography
+
+- [#6236](https://github.com/oscar-system/Oscar.jl/pull/6236) Unbalanced Oil and Vinegar implementation
+- [#6494](https://github.com/oscar-system/Oscar.jl/pull/6494) Learning with errors encryption scheme
+- [#6530](https://github.com/oscar-system/Oscar.jl/pull/6530) Add hash-based signature schemes
+
+### F-Theory Tools
+
+#### Performance improvements or improved testing
+
+- [#6151](https://github.com/oscar-system/Oscar.jl/pull/6151) Improve FTheoryTools performance and model-data safety
+PR number 6162 appears not to have a release notes section! Please checkthat the body containes a second level heading (starting with `##`) named `Release notes`, and have the entries as lists.
+- [#6170](https://github.com/oscar-system/Oscar.jl/pull/6170) FTheoryTools: Refresh zero-section class after toric blowups
+PR number 6171 appears not to have a release notes section! Please checkthat the body containes a second level heading (starting with `##`) named `Release notes`, and have the entries as lists.
+- [#6222](https://github.com/oscar-system/Oscar.jl/pull/6222) Streamline and accelerate FTheoryTools resolutions
+
+#### Miscellaneous changes
+
+PR number 6149 appears not to have a release notes section! Please checkthat the body containes a second level heading (starting with `##`) named `Release notes`, and have the entries as lists.
+- [#6216](https://github.com/oscar-system/Oscar.jl/pull/6216) Fix G4Flux hashing after hypersurface restriction
+
+### Groups
+
+#### New features or extended functionality
+
+- [#6241](https://github.com/oscar-system/Oscar.jl/pull/6241) Support degree 1 in the transitive groups library
+
+#### Performance improvements or improved testing
+
+- [#6138](https://github.com/oscar-system/Oscar.jl/pull/6138) Use Hecke orbit stabilizer for matrix groups over GF(2)
+- [#6237](https://github.com/oscar-system/Oscar.jl/pull/6237) Make `orbits` of G-sets faster (linear in the number of points, not quadratic in the number of orbits)
+- [#6497](https://github.com/oscar-system/Oscar.jl/pull/6497) Speed up orbits
+
+#### Fixed bugs that returned incorrect results
+
+- [#6015](https://github.com/oscar-system/Oscar.jl/pull/6015) Fix centralizers of elements in GL_n and SL_n
+
+#### Other fixed bugs
+
+- [#6278](https://github.com/oscar-system/Oscar.jl/pull/6278) Fix `isomorphism(PcGroup, G)` for non-full images
+
+#### Miscellaneous changes
+
+- [#6055](https://github.com/oscar-system/Oscar.jl/pull/6055) Change serialization format for subgroups of f.p. groups
+- [#6361](https://github.com/oscar-system/Oscar.jl/pull/6361) Change identification of transitive and primitive permutation groups to require `is_transitive` resp. `is_primitive`
+
+### Lie Theory
+
+#### Renamings
+
+- [#6395](https://github.com/oscar-system/Oscar.jl/pull/6395) Replace `coerce_to_lie_algebra_elem(L, mat)` by `L(mat)` for linear Lie algebras
+
+#### New features or extended functionality
+
+- [#6395](https://github.com/oscar-system/Oscar.jl/pull/6395) Add `LieAlgebraElem(L, coeffs)` to construct Lie algebra elements from coefficient vectors, sparse rows or `1 x dim(L)` matrices
+- [#6395](https://github.com/oscar-system/Oscar.jl/pull/6395) Add `in(::MatElem, ::LinearLieAlgebra)`
+- [#6396](https://github.com/oscar-system/Oscar.jl/pull/6396) Add `lie_algebra(gens)` and `lie_algebra(R, gens)` to construct the linear Lie algebra generated by a list of matrices, or with `is_basis=true` the one with this basis
+- [#6433](https://github.com/oscar-system/Oscar.jl/pull/6433) Add `LieAlgebraModuleElem(V, coeffs)` to construct Lie algebra module elements from coefficient vectors, sparse rows or `1 x dim(V)` matrices
+
+#### Only changes experimental parts of OSCAR
+
+- [#6395](https://github.com/oscar-system/Oscar.jl/pull/6395) Remove `L(::MatElem)` for coefficient rows of Lie algebras, use `LieAlgebraElem(L, mat)` instead
+- [#6396](https://github.com/oscar-system/Oscar.jl/pull/6396) Change `lie_algebra(R, n, mats, s)` and `lie_algebra(L, elems)` to take generators by default, pass `is_basis=true` for a basis
+- [#6433](https://github.com/oscar-system/Oscar.jl/pull/6433) Remove `V(::MatElem)` for coefficient rows of Lie algebra modules, use `LieAlgebraModuleElem(V, mat)` instead
+
+#### Performance improvements or improved testing
+
+- [#6465](https://github.com/oscar-system/Oscar.jl/pull/6465) Speed up powers of Weyl group elements and improve support for Weyl groups of rank 0
+
+#### Fixed bugs that returned incorrect results
+
+- [#6354](https://github.com/oscar-system/Oscar.jl/pull/6354) Fix integer overflow in `order(::WeylGroup)` for rank 17 and above
+- [#6354](https://github.com/oscar-system/Oscar.jl/pull/6354) Make `rand(rng, ::WeylGroup)` use `rng` for infinite Weyl groups
+
+#### Improvements or additions to documentation
+
+- [#6354](https://github.com/oscar-system/Oscar.jl/pull/6354) Fix return types and cross-references in `src/LieTheory` docstrings
+
+### Number Theory
+
+#### New features or extended functionality
+
+- [#6102](https://github.com/oscar-system/Oscar.jl/pull/6102) Add a canonical form for lattices
+
+#### Performance improvements or improved testing
+
+PR number 5949 appears not to have a release notes section! Please checkthat the body containes a second level heading (starting with `##`) named `Release notes`, and have the entries as lists.
+
+#### Miscellaneous changes
+
+- [#6191](https://github.com/oscar-system/Oscar.jl/pull/6191) Update Hecke to 0.40
+- [#6510](https://github.com/oscar-system/Oscar.jl/pull/6510) Rename keyword `isbasis` to `is_basis`
+
+### Polyhedral Geometry
+
+#### New features or extended functionality
+
+- [#6294](https://github.com/oscar-system/Oscar.jl/pull/6294) Add rand_dual_bounding_body for random outer approximations of polytopes
+
+### Toric Geometry
+
+#### New features or extended functionality
+
+- [#6286](https://github.com/oscar-system/Oscar.jl/pull/6286) Support Hodge numbers for toric varieties
+
+#### Performance improvements or improved testing
+
+- [#6154](https://github.com/oscar-system/Oscar.jl/pull/6154) Add and improve functionality surrounding toric divisors
+
+#### Miscellaneous changes
+
+- [#6190](https://github.com/oscar-system/Oscar.jl/pull/6190) Update printing of toric varieties
+
+### Tropical Geometry
+
+- [#6139](https://github.com/oscar-system/Oscar.jl/pull/6139) Add support for puiseux polynomials
+- [#6188](https://github.com/oscar-system/Oscar.jl/pull/6188) Add support for tiebreakers in (tropical) groebner bases
+- [#6547](https://github.com/oscar-system/Oscar.jl/pull/6547) Add tropical varieties of polynomial ideals over finite prime fields
+
+### Changes related to the package AbstractAlgebra
+
+- [#6346](https://github.com/oscar-system/Oscar.jl/pull/6346) Update AbstractAlgebra to v0.51
+
+### Changes related to the package AlgebraicSolving
+
+- [#6114](https://github.com/oscar-system/Oscar.jl/pull/6114) AlgebraicSolving v0.12.0 providing signature-based Gröbner basis algorithms
+
+### Changes related to the package Hecke
+
+- [#6346](https://github.com/oscar-system/Oscar.jl/pull/6346) Update Hecke to v0.41
+
+### Changes related to the package Nemo
+
+#### Fixed bugs that resulted in unexpected errors
+
+- [#6404](https://github.com/oscar-system/Oscar.jl/pull/6404) Fix Singular conversion for prime fields with large word-size primes
+
+#### Miscellaneous changes
+
+- [#6346](https://github.com/oscar-system/Oscar.jl/pull/6346) Update Nemo to v0.57
+
+### Other changes
+
+#### Renamings
+
+- [#6161](https://github.com/oscar-system/Oscar.jl/pull/6161) Rename action polynomial ring terminology from elementary symbols to action indeterminates and `diff_action` to `apply_action`
+
+#### Changes related to serializing data in the MRDI file format
+
+- [#6129](https://github.com/oscar-system/Oscar.jl/pull/6129) Update to mrdi file schema
+- [#6463](https://github.com/oscar-system/Oscar.jl/pull/6463) Change the callbacks of `load_node` and `load_array_node` to no longer receive the current entry as an argument; it is available as `s.obj` instead. This breaks serialization code in other packages that uses these functions, see the PR description for how to adapt.
+
+#### New features or extended functionality
+
+- [#5864](https://github.com/oscar-system/Oscar.jl/pull/5864) Galois cohomology of number fields
+- [#6073](https://github.com/oscar-system/Oscar.jl/pull/6073) Add new experimental package `ModularGroup` for working with finite-index subgroups of SL_2(Z)
+- [#6161](https://github.com/oscar-system/Oscar.jl/pull/6161) Add methods `pseudorem` and `pseudodivrem` for action polynomial rings
+- [#6161](https://github.com/oscar-system/Oscar.jl/pull/6161) Add `getindex` for action polynomials - a QoL change for fast access to jet variables
+- [#6166](https://github.com/oscar-system/Oscar.jl/pull/6166) Implement Ritt orderings of action polynomials via the method `is_ritt_less`
+- [#6166](https://github.com/oscar-system/Oscar.jl/pull/6166) Add `partially_reduce`, `reduce` and `autoreduce` as standard reduction methods for action polynomials
+- [#6187](https://github.com/oscar-system/Oscar.jl/pull/6187) Add the methods `action_shift` and `action_derivation` create nontrivial action maps
+- [#6187](https://github.com/oscar-system/Oscar.jl/pull/6187) Add more constructors to `difference_polynomial_ring` and `differential_polynomial_ring` that enable the creation of action polynomial rings with nontrivial action maps
+- [#6187](https://github.com/oscar-system/Oscar.jl/pull/6187) Add the getters `action_maps` and `action_map` that return the action maps associated with a given action polynomial ring (or a specific map specified by an index)
+
+#### Only changes experimental parts of OSCAR
+
+- [#5168](https://github.com/oscar-system/Oscar.jl/pull/5168) Provide first API for Drinfeld-Hecke algebras
+- [#6047](https://github.com/oscar-system/Oscar.jl/pull/6047) Experimental: Add new project QuiverGrassmannian
+
+### **TODO** insufficient labels for automatic classification
+
+The following PRs have neither a topic label assigned to them, nor a PR type. 
+**Manual intervention required.**
+
+- [#6130](https://github.com/oscar-system/Oscar.jl/pull/6130) Root overlattice no new roots
+
+- [#6319](https://github.com/oscar-system/Oscar.jl/pull/6319) Implement determinants of complexes
+
+- [#6330](https://github.com/oscar-system/Oscar.jl/pull/6330) Add torus_saturation via Bayer's method
+
+- [#6527](https://github.com/oscar-system/Oscar.jl/pull/6527) representatives_of_hermitian type for non-maximal equation orders
+
+- [#6558](https://github.com/oscar-system/Oscar.jl/pull/6558) Improve Performance of Vinberg
+
+
 ## [1.8.2](https://github.com/oscar-system/Oscar.jl/releases/tag/v1.8.2) - 2026-09-02
 
 ### Combinatorics
