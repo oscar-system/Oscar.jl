@@ -167,6 +167,23 @@
     @test length(collect(partitions(T(1), 1, T[1], [1]))) == 1
     @test length(collect(partitions(T(100), 7, T[1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))) == 1
 
+    # Issues from https://github.com/oscar-system/Oscar.jl/issues/6498
+    @test collect(partitions(T(24), 5, T[2, 3, 6, 8], [1, 3, 3, 1])) == [partition(T[6, 6, 6, 3, 3])]
+    @test collect(partitions(T(24), 4, T[1, 5, 7, 8], [1, 3, 2, 4])) == [partition(T[8, 8, 7, 1]), partition(T[7, 7, 5, 5])]
+    @test collect(partitions(T(20), 4, T[2, 8], [1, 1])) == Partition{T}[]
+    @test collect(partitions(T(27), 4, T[1, 5, 7, 8, 9], [1, 3, 2, 1, 1])) == [partition(T[9, 8, 5, 5]), partition(T[8, 7, 7, 5])]
+
+    # Compare with the partitions into k parts, filtered by values and multiplicities
+    @testset "Filtered partitions(n, k), v=$v" for v in (T[2, 8], T[1, 2, 3], T[2, 3, 6, 8], T[1, 5, 7, 8])
+      for n in 0:24, k in 0:6
+        Q = collect(partitions(T(n), k))
+        for mu in Iterators.product(fill(1:3, length(v))...)
+          fits(p) = all(x -> (i = findfirst(==(x), v); !isnothing(i) && count(==(x), p) <= mu[i]), p)
+          @test collect(partitions(T(n), k, v, collect(mu))) == filter(fits, Q)
+        end
+      end
+    end
+
     # Special cases
     @testset "Special cases n=$n, k=$k" for n in 0:20, k in 0:n+1
       P = @inferred collect(partitions(T(n), k, T[i for i in 1:n], [n for i in 1:n]))
