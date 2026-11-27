@@ -87,3 +87,7 @@ include("ToricMorphisms/standard_constructions.jl")
 
 include("Proj/constructors.jl")
 include("ToricSchemes/attributes.jl")
+
+include("ToricIdealSheaves/constructors.jl")
+include("ToricIdealSheaves/attributes.jl")
+include("ToricIdealSheaves/methods.jl")
