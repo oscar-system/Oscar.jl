@@ -339,7 +339,7 @@
    ],
 
   "Experimental: Tools in the Making" => [
-    # rest is populated by code in docs/make_work.jl
+    # rest is populated by code in docs/OscarDocs
   ],
 
   "References" => "references.md",
