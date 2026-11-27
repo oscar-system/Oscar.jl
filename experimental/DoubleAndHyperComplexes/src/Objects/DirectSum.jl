@@ -99,19 +99,19 @@ Direct sum of complexes of Abelian groups.
   internal_complex::HyperComplex{ChainType, MorphismType}
 
   function DirectSumComplex{CT, MT}(
-      summands::Vector
+      summands::Vector;
+      dim::Int=dim(first(summands)), # This needs to be manually assigned in case of empty `summands`!
+      directions::Vector{Symbol}=Symbol[direction(first(summands), p) for p in 1:dim] # same here.
     ) where {CT, MT}
-    d = is_empty(summands) ? 0 : dim(first(summands))
-    dirs = is_empty(summands) ? Symbol[] : Symbol[direction(first(summands), i) for i in 1:d]
     if !is_empty(summands)
       s = first(summands)::AbsHyperComplex
-      @assert all(dim(ss) == d for ss in summands[2:end])
-      @assert all(all(direction(ss, p) == dirs[p] for p in 1:dim(s)) for ss in summands[2:end])
+      @assert all(Oscar.dim(ss) == dim for ss in summands[2:end])
+      @assert all(all(direction(ss, p) == directions[p] for p in 1:Oscar.dim(s)) for ss in summands[2:end])
     end
     chain_fac = DirectSumChainFactory{CT}(summands)
     map_fac = DirectSumMapFactory{MT}()
 
-    internal_complex = HyperComplex(d, chain_fac, map_fac, dirs)
+    internal_complex = HyperComplex(dim, chain_fac, map_fac, directions)
     return new{CT, MT}(internal_complex)
   end
 end

@@ -246,7 +246,7 @@ function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
   r = rank(F)
   R = base_ring(F)
   d = degree(amm)::FinGenAbGroupElem
-  return sum(length(get!(amm.exp_cache, d - degree(g; check=false), all_exponents(R, d - degree(g); check=amm.check))) for g in gens(F); init=0)
+  return sum(length(get!(amm.exp_cache, d - dd, all_exponents(R, d - dd; check=amm.check))) for dd in degrees_of_generators(F); init=0)
   result = 0
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
@@ -264,8 +264,8 @@ function Base.iterate(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem}, sta
   d = degree(amm)::FinGenAbGroupElem
   R = base_ring(F)
 
-  for (i, g) in enumerate(gens(F))
-    d_loc = d - degree(g; check=false)
+  for (i, dd) in enumerate(degrees_of_generators(F))
+    d_loc = d - dd
 
     exps = get!(amm.exp_cache, d_loc) do
       all_exponents(R, d_loc; check=amm.check)
@@ -292,7 +292,7 @@ function Base.iterate(
   res = iterate(exps, s)
   if res === nothing
     for j in i+1:ngens(F)
-      d_loc = d - degree(F[j]; check=false)
+      d_loc = d - degrees_of_generators(F)[j]
       exps = get!(amm.exp_cache, d_loc) do
         all_exponents(R, d_loc; check=amm.check)
       end
