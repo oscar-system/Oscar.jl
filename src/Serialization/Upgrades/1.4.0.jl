@@ -154,7 +154,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => dict[:_type],
           :params => Dict{Symbol, Any}(
             :ring => dict[:data][:ring],
-            :grading_group => dict[:data][:grading][:_type][:params]
+            :grading_group => dict[:data][:grading][:_type][:params][:params]
           )
         )
         dict[:data] = dict[:data][:grading][:data]
@@ -171,7 +171,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       elseif type_name in ["AbsNonSimpleNumField", "Hecke.RelNonSimpleNumField"]
         dict[:_type] = Dict{Symbol, Any}(
           :name => dict[:_type],
-          :params => dict[:data][:def_pols][:_type][:params]
+          :params => dict[:data][:def_pols][:_type][:params][:params]
         )
         dict[:data] = Dict{Symbol, Any}(
           :vars => dict[:data][:vars],
@@ -307,12 +307,17 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
         dict[:_type][:params] = [subdict[:_type] for subdict in upgraded_subtypes]
         dict[:data] = [subdict[:data] for subdict in upgraded_subtypes]
+      elseif type_name == "Hecke.QuadSpace"
+        if dict[:_type][:params] isa AbstractDict
+          dict[:_type][:params] = dict[:_type][:params][:params]
+        end
       elseif type_name == "ZZLat"
+        ambient_space = dict[:data][:ambient_space]
         dict[:_type] = Dict{Symbol, Any}(
           :name => type_name,
           :params => Dict{Symbol, Any}(
-            :basis => dict[:data][:basis][:_type],
-            :ambient_space => dict[:data][:ambient_space]
+            :basis => dict[:data][:basis][:_type][:params],
+            :ambient_space => ambient_space isa AbstractDict ? upgrade_1_4_0(s, ambient_space) : ambient_space
           )
         )
         dict[:data] = dict[:data][:basis][:data]
@@ -321,8 +326,8 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => type_name,
           :params => Dict{Symbol, Any}(
             :order => dict[:data][:order][:_type],
-            :isom => dict[:data][:isom][:_type],
-            :quad_space => dict[:data][:quad_space]
+            :isom => dict[:data][:isom][:_type][:params],
+            :quad_space => dict[:data][:quad_space] isa AbstractDict ? upgrade_1_4_0(s, dict[:data][:quad_space]) : dict[:data][:quad_space]
           )
         )
         if dict[:data][:order][:_type] == "Base.Int"
@@ -336,7 +341,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           :name => type_name,
           :params => Dict{Symbol, Any}(
             :ambient_space => quad_space,
-            :basis => dict[:data][:basis][:_type],
+            :basis => dict[:data][:basis][:_type][:params],
           )
         )
         dict[:data] = dict[:data][:basis][:data]
@@ -479,7 +484,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         else
           dict[:_type] = Dict{Symbol, Any}(
             :name => type_name,
-            :params => dict[:data][:polyhedral_complex][:_type]
+            :params => dict[:data][:polyhedral_complex][:_type][:params]
           )
           dict[:data][:polyhedral_complex] = dict[:data][:polyhedral_complex][:data]
         end
