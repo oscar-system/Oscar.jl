@@ -72,6 +72,8 @@
     test_upgrade_folder("version_1_7_0"; exclude=[
       # upgrading the following is tested in experimental/AlgebraicStatistics/test/serialization-upgrades.jl
       "GroupBasedPhylogeneticModel",
+      # upgrading the following is tested in experimental/MatroidRealizationSpaces/test/runtests.jl
+      "SelfProjectingMatroidRealizations",
     ])
 
     # The main point is to test the relation between loaded objects.
