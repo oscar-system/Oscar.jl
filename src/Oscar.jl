@@ -168,8 +168,6 @@ function __init__()
 
   add_verbosity_scope(:FTheoryModelPrinter)
 
-  add_verbosity_scope(:LinearQuotients)
-
   add_assertion_scope(:ZZLatWithIsom)
   add_verbosity_scope(:ZZLatWithIsom)
   
