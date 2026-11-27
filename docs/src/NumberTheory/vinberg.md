@@ -16,17 +16,17 @@
  - the vector $r$ is primitive,
  - reflection by $r$ preserves the lattice, i.e. $\frac{2}{r^2} r Q$ is an integer matrix,
  - the pair $(r, v_0)$ is positive oriented, i.e. $r. v_0 > 0$,
- - the product $r. \~{r} \geq \ 0$ for all roots $\~{r}$ already found.
+ - the product $r. \tilde{r} \geq \ 0$ for all roots $\tilde{r}$ already found.
  This implies that $r^2$ divides $2 i$ for $i$ being the level of $Q$, i.e. the last invariant of the Smith normal form of $Q$. 
 
  $P$ can be constructed by solving $r.v_0 = n$ and $r^2 = k$ by increasing order of the value $\frac{n^2}{k}$ and $r$ satisfying the above conditions.
 
  If $v_0$ lies on a root hyperplane, then $P$ is not uniquely determined.
- In that case we need a direction vector $v_1$ which satisfies $\~{v}. v_1 \neq 0$ 
- for all possible roots $\~{v}$ with $v_0. \~{v} = 0$  
+ In that case we need a direction vector $v_1$ which satisfies $\tilde{v}. v_1 \neq 0$ 
+ for all possible roots $\tilde{v}$ with $v_0. \tilde{v} = 0$  
 
  With $v_0$ and $v_1$ fixed $P$ is uniquely determined for any choice of root lengths and maximal distance $v_0.r$.
- We choose the first roots $r$ by increasing order of the value $\frac{\~{r}. v_1}{r^2}$ for all possible roots $\~{v}$ with $v_0. \~{v} = 0$.
+ We choose the first roots $r$ by increasing order of the value $\frac{\tilde{r}. v_1}{r^2}$ for all possible roots $\tilde{v}$ with $v_0. \tilde{v} = 0$.
  For any other root length we continue as stated above.
  
  For proofs of the statements above and further explanations see [Vin75](@cite).

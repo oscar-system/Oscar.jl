@@ -47,6 +47,63 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
+  build_pdf:
+    # latexminted in Ubuntu 26 fails on Python 3.14, see
+    # https://bugs.launchpad.net/ubuntu/+source/texlive-extra/+bug/2154292
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: '1.10'
+      - uses: julia-actions/cache@v3
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@v1
+      - name: Install dependencies
+        run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
+      - name: Install TeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            latexmk \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-fonts-recommended \
+            texlive-luatex \
+            python3-pygments \
+            fontconfig \
+            fonts-dejavu-core \
+            fonts-dejavu-extra \
+            fonts-stix
+      - name: Install JuliaMono
+        # code font of docs/src/assets/custom.sty, which Ubuntu does not package
+        run: |
+          sudo mkdir -p /usr/local/share/fonts/juliamono
+          curl -fsSL https://github.com/cormullion/juliamono/releases/download/v0.63.2/JuliaMono-ttf.tar.gz \
+            | sudo tar -xz -C /usr/local/share/fonts/juliamono
+          fc-cache -f
+      - name: Build
+        env:
+          DOCUMENTER_LATEX_SHOW_LOGS: true
+          # keep the LaTeX sources and log
+          DOCUMENTER_LATEX_DEBUG: ${{ runner.temp }}/latex
+        run: julia --project=docs/ --color=yes docs/make.jl --pdf
+      - name: Check for dropped characters
+        # LuaTeX drops characters that its fonts lack, such as Greek letters,
+        # subscripts or math symbols written as Unicode, and only logs this
+        run: |
+          log="$RUNNER_TEMP/latex/Oscar.jl.log"
+          test -f "$log"
+          if grep 'Missing character' "$log"; then
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        with:
+          path: docs/build/Oscar.jl.pdf
+          archive: false
+          if-no-files-found: error
+
   deploy_docs:
     needs: build_docs
     runs-on: ubuntu-latest
