@@ -186,7 +186,9 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
 
     H, mH = residue_field(parent(rS[1]))
 
-    mp = embed(H, G)
+    # H and G are inferred as Any; without the assertions, inference
+    # compiles all three methods of `embed`, including the lattice one
+    mp = embed(H::FinField, G::FinField)
     _rC = map(x->mG(mF(x)), rC)
     _rS = map(x->mp(mH(x)), rS)
     @assert Set(_rC) == Set(_rS)
