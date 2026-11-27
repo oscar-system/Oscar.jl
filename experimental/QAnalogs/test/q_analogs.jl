@@ -72,3 +72,12 @@ end
 @testset "q_binomial with negative n and ZZRingElem k" begin
   @test q_binomial(-1, ZZ(2), QQ(2)) == q_binomial(-1, 2, QQ(2))
 end
+
+@testset "q_binomial: Laurent coefficients agree with generic recurrence" begin
+  R, q = laurent_polynomial_ring(ZZ, :q)
+  f = q_binomial(30, 12)
+  @test f == q_binomial(30, 12, q)
+  @test evaluate(f, QQ(1)) == binomial(30, 12)
+  @test q_binomial(-7, 5) == q_binomial(-7, 5, q)
+  @test q_integer(-4) == q_integer(-4, q)
+end
