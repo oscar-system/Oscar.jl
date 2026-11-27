@@ -548,6 +548,7 @@ Note that `x` must be a subgroup of the domain of `g`.
 ```jldoctest
 julia> C = cyclic_group(20)
 Pc group of order 20
+  with 3 generators f1, f2, f3
 
 julia> S = automorphism_group(C)
 Automorphism group of
